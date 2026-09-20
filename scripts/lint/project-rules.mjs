@@ -1,7 +1,21 @@
 /*
- * eIsland - https://github.com/JNTMTMTM/eIsland
- * Copyright (C) 2026 JNTMTMTM / pyisland.com
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -55,7 +69,10 @@ export default {
         schema: [],
         messages: {
           copyright: '文件最顶部必须包含 eIsland、仓库地址、Copyright (C) 和 GPL-3.0 版权声明。',
-          header: '代码前必须包含非空 @file、@description 和 @author 鸡哥 的文件级 JSDoc。',
+          header: '代码前缺少文件级 JSDoc，需包含 @file、@description 和 @author。',
+          file: '文件级 JSDoc 必须包含非空 @file。',
+          description: '文件级 JSDoc 必须包含非空 @description，允许多行说明。',
+          author: '文件级 JSDoc 的每个 @author 必须统一填写 鸡哥。',
         },
       },
       create(context) {
@@ -75,11 +92,26 @@ export default {
             const codeStart = node.body[0]?.range[0] ?? sourceCode.text.length;
             const header = comments.find((comment) => comment.range[0] < codeStart
               && comment.type === 'Block' && comment.value.startsWith('*')
-              && /@file[^\S\r\n]+[^\s*]+/u.test(comment.value));
-            if (!header || !/@description[^\S\r\n]+\S+/u.test(header.value)
-              || !/@author[^\S\r\n]+鸡哥\s*(?:\r?\n|$)/u.test(header.value)) {
+              && /^\s*\*?\s*@(file|description|author)\b/mu.test(comment.value));
+            if (!header) {
               context.report({ node, messageId: 'header' });
+              return;
             }
+            // 去掉 JSDoc 行前缀后按标签分段，保留多行说明，避免把下一标签当成空值的内容。
+            const tags = header.value
+              .split(/\r?\n/u)
+              .map((line) => line.replace(/^\s*\* ?/u, '').trim())
+              .join('\n')
+              .trim()
+              .split(/\n(?=@)/u)
+              .map((block) => /^@(\S+)\s*([\s\S]*)$/u.exec(block))
+              .filter(Boolean);
+            ['file', 'description', 'author'].forEach((tagName) => {
+              const values = tags.filter(([, name]) => name === tagName).map(([, , value]) => value.trim());
+              if (values.length === 0 || values.some((value) => !value || (tagName === 'author' && value !== '鸡哥'))) {
+                context.report({ loc: header.loc, messageId: tagName });
+              }
+            });
           },
         };
       },

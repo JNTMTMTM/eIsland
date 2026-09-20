@@ -1,7 +1,21 @@
 /*
- * eIsland - https://github.com/JNTMTMTM/eIsland
- * Copyright (C) 2026 JNTMTMTM / pyisland.com
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -25,6 +39,7 @@ import stylelint from 'stylelint';
 import tseslint from 'typescript-eslint';
 
 import htmlRules from './html-rules.cjs';
+import project from './project-rules.mjs';
 
 const ESLINT_BIN = fileURLToPath(new URL('./bin/eslint.js', import.meta.resolve('eslint/package.json')));
 const { scripts } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
@@ -63,12 +78,27 @@ const { scripts } = JSON.parse(readFileSync(new URL('../../package.json', import
 });
 
 const HEADER = `/*
- * eIsland - https://github.com/JNTMTMTM/eIsland
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
  * Copyright (C) 2026 JNTMTMTM
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
+
 /**
- * @file probe.ts
+ * @file lint-probe.ts
  * @description 检查规则测试样例
  * @author 鸡哥
  */
@@ -90,15 +120,15 @@ test('基础规则检测 var、宽松相等、any 及危险构造器', async () 
 test('类型感知检查能发现悬空 Promise，声明文件不会因同名源码产生解析错误', async () => {
   const typed = new ESLint();
   // 使用已纳入 TS 项目的文件名提供类型上下文；lintText 不会改写该文件。
-  const [result] = await typed.lintText(`${HEADER}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.ts' });
+  const [result] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'vitest.config.ts')}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.ts' });
   assert.equal(result.fatalErrorCount, 0);
   assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'));
-  const [declaration] = await typed.lintText(`${HEADER}export interface Probe { value: string; }\n`, { filePath: 'src/preload/index.d.ts' });
+  const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'index.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/preload/index.d.ts' });
   assert.equal(declaration.fatalErrorCount, 0);
 });
 
 test('项目规则检测对象简写顺序和不合规文件名', async () => {
-  const [result] = await eslint.lintText(`${HEADER}const value = 1;\nexport default { other: 2, value };\n`, { filePath: 'test/Bad_Name.ts' });
+  const [result] = await eslint.lintText(`${HEADER.replace('lint-probe.ts', 'Bad_Name.ts')}const value = 1;\nexport default { other: 2, value };\n`, { filePath: 'test/Bad_Name.ts' });
   ['project/shorthand-first', 'project/filename'].forEach((rule) => assert.ok(result.messages.some(({ ruleId }) => ruleId === rule), rule));
 });
 
@@ -119,6 +149,53 @@ export function next(value: number): number { return value + 1; }
   assert.ok(wrongAuthor.messages.some(({ ruleId }) => ruleId === 'project/file-header'));
 });
 
+test('文件头规则接受注释规范原文的两种模板和多行说明', async () => {
+  const headerLint = new ESLint({
+    overrideConfigFile: true,
+    overrideConfig: { plugins: { project }, rules: { 'project/file-header': 'error' } },
+  });
+  const document = await readFile(new URL('../../docs/COMMENT_STANDARDS.md', import.meta.url), 'utf8');
+  const examples = [...document.matchAll(/```typescript\r?\n([\s\S]*?)\r?\n```/gu)]
+    .map(([, code]) => code)
+    .filter((code) => code.startsWith('/*\n') || code.startsWith('/*\r\n'));
+  assert.equal(examples.length, 2);
+  const valid = [
+    ...examples.map((code) => code.replace('[开发者名称]', '鸡哥').replace('[filename].ts', 'probe.mjs').replace('effects.ts', 'probe.mjs')),
+    HEADER.replace('@description 检查规则测试样例', '@description\n * 第一行说明\n * 第二行说明'),
+    HEADER.replace('@description 检查规则测试样例', '@description 第一项说明\n * @description 第二项说明'),
+    HEADER.replaceAll('\n', '\r\n'),
+  ];
+  await Promise.all(valid.map(async (header) => {
+    const [result] = await headerLint.lintText(`${header}\nexport {};\n`, { filePath: 'probe.mjs' });
+    assert.deepEqual(result.messages, []);
+  }));
+});
+
+test('文件头规则拒绝空标签、额外作者、伪标签和代码之后的文件说明', async () => {
+  const headerLint = new ESLint({
+    overrideConfigFile: true,
+    overrideConfig: { plugins: { project }, rules: { 'project/file-header': 'error' } },
+  });
+  const cases = [
+    [HEADER.replace('@file lint-probe.ts', '@file'), 'file'],
+    [HEADER.replace('@description 检查规则测试样例', '@description'), 'description'],
+    [HEADER.replace('@author 鸡哥', '@author'), 'author'],
+    [HEADER.replace('@author 鸡哥', '@author 鸡哥\n * @author 其他作者'), 'author'],
+    [HEADER.replace('@description 检查规则测试样例', '@description 第一项说明\n * @description'), 'description'],
+    [HEADER.replace('@file lint-probe.ts', '说明中引用 @file lint-probe.ts'), 'file'],
+    [HEADER.replaceAll('Copyright (C)', 'Copyright'), 'copyright'],
+    [HEADER.replaceAll('GNU General Public License', 'Unknown License'), 'copyright'],
+    [HEADER.replace('https://github.com/JNTMTMTM/eIsland', 'https://example.com'), 'copyright'],
+    [HEADER.replace('/**', 'export {};\n/**'), 'header'],
+    [HEADER.replace(/^\/\*[\s\S]*?\*\//u, ''), 'copyright'],
+  ];
+  await Promise.all(cases.map(async ([header, messageId]) => {
+    const [result] = await headerLint.lintText(`${header}\nexport {};\n`, { filePath: 'probe.mjs' });
+    assert.equal(result.fatalErrorCount, 0);
+    assert.ok(result.messages.some((message) => message.messageId === messageId), messageId);
+  }));
+});
+
 test('禁用注释必须指定规则和原因，失效禁用也会失败', async () => {
   const [result] = await eslint.lintText('// eslint-disable-next-line\nvar value = 1;\n// eslint-disable-next-line no-eval -- 测试未使用的禁用\nexport default value;\n', { filePath: 'test/lint-probe.js' });
   assert.ok(result.messages.some(({ ruleId }) => ruleId === 'eslint-comments/no-unlimited-disable'));
@@ -127,7 +204,7 @@ test('禁用注释必须指定规则和原因，失效禁用也会失败', async
 });
 
 test('React 检测 Hook 条件调用、props 扩散及缺失 alt', async () => {
-  const [result] = await eslint.lintText(`${HEADER}import { useState } from 'react';
+  const [result] = await eslint.lintText(`${HEADER.replace('lint-probe.ts', 'lint-probe.tsx')}import { useState } from 'react';
 export default function Probe(props: { active: boolean }) {
   if (props.active) useState(0);
   return <img {...props} src="icon.png" />;
