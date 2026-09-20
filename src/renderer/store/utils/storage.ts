@@ -61,6 +61,11 @@ export interface WeatherCustomLocationConfig {
   latitude: number;
   longitude: number;
   city?: string;
+  /** 与此坐标关联的 ISO 国家代码及行政区域元数据。 */
+  countryCode?: string;
+  country?: string;
+  regionName?: string;
+  regionCode?: string;
 }
 
 export interface WeatherLocationConfig {
@@ -85,16 +90,28 @@ function normalizeWeatherCustomLocation(value: unknown): WeatherCustomLocationCo
     latitude?: unknown;
     longitude?: unknown;
     city?: unknown;
+    countryCode?: unknown;
+    country?: unknown;
+    regionName?: unknown;
+    regionCode?: unknown;
   };
   const latitude = toFiniteNumber(row.latitude);
   const longitude = toFiniteNumber(row.longitude);
   if (latitude === null || longitude === null) {
     return null;
   }
+  const countryCode = typeof row.countryCode === 'string' ? row.countryCode.trim().toUpperCase() : '';
+  const metadata = /^[A-Z]{2}$/.test(countryCode) ? {
+    countryCode,
+    country: typeof row.country === 'string' ? row.country : '',
+    regionName: typeof row.regionName === 'string' ? row.regionName : '',
+    ...(typeof row.regionCode === 'string' ? { regionCode: row.regionCode } : {}),
+  } : {};
   return {
     latitude,
     longitude,
     city: typeof row.city === 'string' ? row.city : '',
+    ...metadata,
   };
 }
 

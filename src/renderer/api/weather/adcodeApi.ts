@@ -28,6 +28,7 @@ import { loadNetworkConfig } from '../../store/utils/storage';
 import { logger } from '../../utils/logger';
 import i18n from '../../i18n';
 import type { DistrictQueryParams, DistrictItem, DistrictResolvedLocation, DistrictQueryResult } from './types/District';
+import type { LocationInfo } from './types/LocationInfo';
 
 export type { DistrictQueryParams, DistrictItem, DistrictResolvedLocation, DistrictQueryResult };
 
@@ -100,6 +101,11 @@ export async function fetchDistrictByAdcode(params: DistrictQueryParams): Promis
   const { timeoutMs } = loadNetworkConfig();
 
   const query = new URLSearchParams();
+  if (Number.isFinite(params.lat) && Number.isFinite(params.lng)) {
+    query.set('lat', String(params.lat));
+    query.set('lng', String(params.lng));
+  }
+  if (typeof params.limit === 'number') query.set('limit', String(params.limit));
   if (params.adcode?.trim()) query.set('adcode', params.adcode.trim());
   const keywordText = params.keyword?.trim() || params.keywords?.trim() || '';
   if (keywordText) {
@@ -179,5 +185,29 @@ export async function resolveDistrictLocationByKeyword(keyword: string): Promise
     longitude: best.coords.longitude,
     city: name,
     adcode: typeof best.item.adcode === 'string' ? best.item.adcode : undefined,
+  };
+}
+
+/**
+ * 复用行政区域接口补齐自定义坐标的国家信息，保留请求坐标而非返回的行政区中心点。
+ * @param latitude - 自定义纬度。
+ * @param longitude - 自定义经度。
+ * @returns 国家代码及名称、地区名称；接口未提供 ISO 州省代码时不推测。
+ */
+export async function resolveDistrictLocationByCoordinates(latitude: number, longitude: number): Promise<LocationInfo> {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+    throw new Error('Invalid custom location coordinates');
+  }
+  const result = await fetchDistrictByAdcode({ lat: latitude, lng: longitude, limit: 1 });
+  const nearest = extractDistrictItems(result)[0];
+  const countryCode = typeof nearest?.country_code === 'string' ? nearest.country_code.trim().toUpperCase() : '';
+  if (!/^[A-Z]{2}$/.test(countryCode)) throw new Error('District lookup returned no country code');
+  return {
+    latitude,
+    longitude,
+    city: typeof nearest.city === 'string' ? nearest.city : (typeof nearest.name === 'string' ? nearest.name : ''),
+    regionName: typeof nearest.province === 'string' ? nearest.province : '',
+    country: typeof nearest.country === 'string' ? nearest.country : '',
+    countryCode,
   };
 }

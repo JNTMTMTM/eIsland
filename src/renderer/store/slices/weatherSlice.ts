@@ -28,14 +28,22 @@ import type { StateCreator } from 'zustand';
 import type { WeatherSlice, WeatherApiConfig } from '../types';
 import { fetchWeather } from '../../api/weather/weatherApi';
 import { fetchLocation, type LocationInfo } from '../../api/weather/locationApi';
+import { resolveDistrictLocationByCoordinates } from '../../api/weather/adcodeApi';
 import {
   loadWeatherFromStorage,
   saveWeatherToStorage,
   loadLocationFromStorage,
   saveLocationToStorage,
   loadWeatherLocationConfig,
+  saveWeatherLocationConfig,
+  type WeatherLocationConfig,
 } from '../utils/storage';
 import { logger } from '../../utils/logger';
+
+/** 标识用户选择的位置，解析出的元数据不会改变此标识。 */
+function locationSelectionKey(config: WeatherLocationConfig): string {
+  return JSON.stringify([config.priority, config.customLocation?.latitude, config.customLocation?.longitude, config.customLocation?.city || '']);
+}
 
 /**
  * 构建共享位置与天气状态，多个页面同时定位时复用同一次请求。
@@ -45,6 +53,7 @@ import { logger } from '../../utils/logger';
  */
 export const createWeatherSlice: StateCreator<WeatherSlice, [], [], WeatherSlice> = (set, get) => {
   let locationRequest: Promise<LocationInfo | null> | undefined;
+  let locationRequestKey = '';
 
   return {
     weather: loadWeatherFromStorage(),
@@ -56,27 +65,50 @@ export const createWeatherSlice: StateCreator<WeatherSlice, [], [], WeatherSlice
     },
 
     refreshLocation: async (forceRefresh = false) => {
-      if (!locationRequest) {
+      const config = loadWeatherLocationConfig();
+      const selectionKey = locationSelectionKey(config);
+      if (!locationRequest || locationRequestKey !== selectionKey) {
+        locationRequestKey = selectionKey;
         locationRequest = (async () => {
-          const config = loadWeatherLocationConfig();
           const custom = config.customLocation;
           const customLocation: LocationInfo | null = custom
             && Number.isFinite(custom.latitude) && Number.isFinite(custom.longitude)
-            ? { latitude: custom.latitude, longitude: custom.longitude, city: custom.city || '', regionName: '', country: '' }
+            ? { ...custom, city: custom.city || '', regionName: custom.regionName || '', country: custom.country || '' }
             : null;
-          if (config.priority === 'custom' && customLocation) return customLocation;
+          const resolveCustom = async (): Promise<LocationInfo | null> => {
+            if (!customLocation || /^[A-Z]{2}$/.test(customLocation.countryCode ?? '')) return customLocation;
+            const cached = get().location ?? loadLocationFromStorage();
+            try {
+              const metadata = cached?.latitude === customLocation.latitude && cached.longitude === customLocation.longitude
+                && /^[A-Z]{2}$/.test(cached.countryCode ?? '')
+                ? cached
+                : await resolveDistrictLocationByCoordinates(customLocation.latitude, customLocation.longitude);
+              const enriched = { ...metadata, latitude: customLocation.latitude, longitude: customLocation.longitude, city: customLocation.city || metadata.city };
+              const current = loadWeatherLocationConfig();
+              if (locationSelectionKey(current) === selectionKey) {
+                saveWeatherLocationConfig({ ...current, customLocation: { ...enriched, city: current.customLocation?.city || '' } });
+              }
+              return enriched;
+            } catch (error) {
+              logger.warn('[Location] 自定义位置国家信息解析失败:', error);
+              return customLocation;
+            }
+          };
+          if (config.priority === 'custom' && customLocation) return resolveCustom();
           try {
             return await fetchLocation();
           } catch (error) {
             logger.warn('[Location] IP 定位失败:', error);
           }
-          return customLocation;
+          return resolveCustom();
         })();
       }
 
       const pending = locationRequest;
       try {
         const fresh = await pending;
+        // 配置在请求中变化时使用新选择，旧结果不写入当前定位缓存。
+        if (locationSelectionKey(loadWeatherLocationConfig()) !== selectionKey) return get().refreshLocation(forceRefresh);
         const location = fresh ?? (forceRefresh ? null : loadLocationFromStorage());
         if (location) {
           if (fresh) saveLocationToStorage(location);

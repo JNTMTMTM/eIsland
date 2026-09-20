@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   normalizeStoredStaticAssetNode,
   normalizeStaticAssetNode,
@@ -34,6 +34,9 @@ import {
   saveWeatherProviderConfig,
   loadLocationFromStorage,
   saveLocationToStorage,
+  loadWeatherLocationConfig,
+  saveWeatherLocationConfig,
+  hydrateWeatherLocationConfigFromStore,
   DEFAULT_NETWORK_TIMEOUT_MS,
   DEFAULT_STATIC_ASSET_NODE_FREE,
   DEFAULT_WEATHER_PRIMARY_PROVIDER,
@@ -71,6 +74,34 @@ function mockWindowApi(): void {
 }
 
 /* ---------- tests ---------- */
+
+describe('custom weather location metadata', () => {
+  beforeEach(() => { vi.stubGlobal('window', {}); mockLocalStorage(); mockWindowApi(); });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('persists country metadata through local storage and store hydration', async () => {
+    const config = { priority: 'custom' as const, customLocation: { latitude: 35.6, longitude: 139.7, city: 'My city', countryCode: 'JP', country: 'Japan', regionName: 'Tokyo' } };
+    saveWeatherLocationConfig(config);
+    expect(loadWeatherLocationConfig()).toEqual(config);
+    expect(window.api.storeWrite).toHaveBeenCalledWith('weather-location-config', config);
+    vi.mocked(window.api.storeRead).mockResolvedValue(config);
+    store = {};
+    await hydrateWeatherLocationConfigFromStore();
+    expect(loadWeatherLocationConfig()).toEqual(config);
+  });
+
+  it('keeps legacy coordinate-only configurations valid', () => {
+    store.island_weather_location_config = JSON.stringify({ priority: 'custom', customLocation: { latitude: 1, longitude: 2 } });
+    expect(loadWeatherLocationConfig()).toEqual({ priority: 'custom', customLocation: { latitude: 1, longitude: 2, city: '' } });
+  });
+
+  it('normalizes country codes and rejects invalid metadata', () => {
+    saveWeatherLocationConfig({ priority: 'custom', customLocation: { latitude: 1, longitude: 2, countryCode: ' jp ', country: 'Japan' } });
+    expect(loadWeatherLocationConfig().customLocation?.countryCode).toBe('JP');
+    saveWeatherLocationConfig({ priority: 'custom', customLocation: { latitude: 1, longitude: 2, countryCode: 'JPN', regionCode: '13' } });
+    expect(loadWeatherLocationConfig().customLocation).toEqual({ latitude: 1, longitude: 2, city: '' });
+  });
+});
 
 describe('normalizeStoredStaticAssetNode', () => {
   it('returns "cos" for "cos"', () => {
