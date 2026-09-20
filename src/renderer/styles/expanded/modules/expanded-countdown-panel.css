@@ -696,10 +696,8 @@
 }
 
 .countdown-calendar .react-datepicker__day--highlighted {
-  text-decoration: underline dotted 3px;
   background: transparent;
   border-radius: 5px;
-  text-underline-offset: 4px;
 
 }
 
