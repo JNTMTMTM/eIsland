@@ -27,6 +27,7 @@
 import type { KeyboardEvent, RefObject } from 'react';
 import type { CalendarHolidayIndex, CalendarHolidayInfo } from './calendarHolidayTypes';
 import type { CalendarTimelineEvent } from './calendarTimelineTypes';
+import type { getCalendarMonthLayouts } from '../utils/calendarUtils';
 
 /** useCalendar hook 返回值类型 */
 export interface UseCalendarReturn {
@@ -97,6 +98,16 @@ export interface CalendarGridProps {
   /** 日期按钮键盘导航 */
   onDateKeyDown: (event: KeyboardEvent<HTMLElement>, date: Date) => void;
 }
+
+/** CalendarMonthGrid 组件入参；日期状态只传本月日号，未涉及的月份无需重绘。 */
+export type CalendarMonthGridProps = Pick<CalendarGridProps,
+  'holidays' | 'locale' | 'formats' | 'selectedButtonRef' | 'onSelectDate' | 'onDateKeyDown'
+> & {
+  month: ReturnType<typeof getCalendarMonthLayouts>[number];
+  selectedDay: number | null;
+  todayDay: number | null;
+  shortMonthFormat: Intl.DateTimeFormat;
+};
 
 /** CalendarDetailPanel 组件入参 */
 export interface CalendarDetailPanelProps {

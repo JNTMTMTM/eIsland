@@ -14,19 +14,8 @@
 import { memo, useMemo, type CSSProperties, type ReactElement } from 'react';
 import { Lunar } from 'lunar-javascript';
 import { getCalendarDateKey } from '../utils/calendarHolidayUtils';
-import type { getCalendarMonthLayouts } from '../utils/calendarUtils';
-import type { CalendarGridProps } from '../types/calendarTypes';
+import type { CalendarMonthGridProps } from '../types/calendarTypes';
 import { CalendarEventBars } from './CalendarEventBars';
-
-/** 单个月份的数据与交互；日期状态只传本月日号，未涉及的月份无需重绘。 */
-type CalendarMonthGridProps = Pick<CalendarGridProps,
-  'holidays' | 'locale' | 'formats' | 'selectedButtonRef' | 'onSelectDate' | 'onDateKeyDown'
-> & {
-  month: ReturnType<typeof getCalendarMonthLayouts>[number];
-  selectedDay: number | null;
-  todayDay: number | null;
-  shortMonthFormat: Intl.DateTimeFormat;
-};
 
 const MemoizedCalendarEventBars = memo(CalendarEventBars);
 
