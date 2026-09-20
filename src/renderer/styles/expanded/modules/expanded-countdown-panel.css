@@ -105,8 +105,8 @@
 }
 
 .cd-filter-tabs .active {
-  color: var(--cd-accent-text);
-  background: rgb(var(--cd-accent-rgb), .16);
+  color: rgb(var(--color-text-rgb), .95);
+  background: rgb(var(--color-text-rgb), .14);
 
 }
 
@@ -191,9 +191,9 @@
 }
 
 .cd-btn.cancel {
-  color: var(--cd-accent-text);
-  background: rgb(var(--cd-accent-rgb), .06);
-  border-color: rgb(var(--cd-accent-rgb), .18);
+  color: rgb(var(--color-text-rgb), .82);
+  background: rgb(var(--color-text-rgb), .08);
+  border-color: rgb(var(--color-text-rgb), .1);
 
 }
 
@@ -216,8 +216,8 @@
 }
 
 .cd-btn.cancel:hover:not(:disabled) {
-  background: rgb(var(--cd-accent-rgb), .12);
-  border-color: rgb(var(--cd-accent-rgb), .3);
+  background: rgb(var(--color-text-rgb), .14);
+  border-color: rgb(var(--color-text-rgb), .2);
 
 }
 
@@ -232,7 +232,7 @@
 }
 
 .cd-btn.cancel:active:not(:disabled) {
-  background: rgb(var(--cd-accent-rgb), .2);
+  background: rgb(var(--color-text-rgb), .2);
 
 }
 
@@ -245,6 +245,18 @@
 .countdown-panel-v2 :focus-visible, .ov-dash-countdown-widget :focus-visible {
   outline: 2px solid rgb(var(--cd-accent-rgb, 100, 180, 255));
   outline-offset: 2px;
+
+}
+
+.countdown-panel-v2 button:focus-visible,
+.ov-dash-countdown-widget button:focus-visible {
+  outline-color: rgb(var(--color-text-rgb), .5);
+
+}
+
+.countdown-panel-v2 .cd-btn.save:focus-visible,
+.countdown-panel-v2 .cd-new-event:focus-visible {
+  outline-color: rgb(var(--cd-accent-rgb));
 
 }
 
@@ -266,7 +278,7 @@
 }
 
 .cd-feedback button {
-  color: var(--cd-accent-text);
+  color: rgb(var(--color-text-rgb), .82);
   text-decoration: underline;
 
 }
@@ -323,7 +335,7 @@
 }
 
 .cd-card:enabled:hover {
-  box-shadow: 0 0 0 1px rgb(105 192 255 / 50%);
+  box-shadow: 0 0 0 1px rgb(var(--color-text-rgb), .3);
 
 }
 
@@ -434,8 +446,8 @@
 .cd-card-actions [aria-pressed="true"],
 .cd-filter-tabs button:hover:not(:disabled),
 .cd-feedback button:hover:not(:disabled) {
-  color: var(--cd-accent-text);
-  background: rgb(var(--cd-accent-rgb), .16);
+  color: rgb(var(--color-text-rgb), .95);
+  background: rgb(var(--color-text-rgb), .14);
 
 }
 
@@ -855,8 +867,8 @@
 }
 
 .cd-drawer-close:hover:not(:disabled) {
-  color: var(--cd-accent-text);
-  background: rgb(var(--cd-accent-rgb), .16);
+  color: rgb(var(--color-text-rgb), .95);
+  background: rgb(var(--color-text-rgb), .14);
 
 }
 
