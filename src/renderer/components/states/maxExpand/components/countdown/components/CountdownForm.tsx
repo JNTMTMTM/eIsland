@@ -43,7 +43,7 @@ interface CountdownFormProps {
 }
 
 /**
- * 编辑事件内容与规则，外观放入可展开区域。
+ * 编辑事件内容与规则，始终显示颜色与背景控件。
  * @param props - 草稿、保存状态及操作
  * @param props.formId - 关联右侧日期输入的表单标识
  * @param props.draft - 未保存的事件草稿
@@ -94,7 +94,7 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
       <label className="cd-field">{t('countdown.descPlaceholder')}
         <textarea className="cd-textarea" value={draft.description ?? ''} rows={2} maxLength={500} onChange={(e) => change({ description: e.target.value })} />
       </label>
-      <details className="cd-appearance"><summary>{t('countdown.manage.appearance')}</summary>
+      <div className="cd-appearance"><div className="cd-appearance-title">{t('countdown.manage.appearance')}</div>
         <div className="cd-color-row">{COLOR_PRESETS.map((color) => (<button className={`cd-color-dot${draft.color === color ? ' active' : ''}`} key={color} type="button"
           style={{ background: color }} title={t('countdown.manage.colorValue', { color })} aria-label={t('countdown.manage.colorValue', { color })} aria-pressed={draft.color === color} onClick={() => change({ color })} />))}
         <label className="cd-check">{t('countdown.form.customColor')}<input type="color" value={draft.color} onChange={(e) => change({ color: e.target.value })} /></label>
@@ -106,7 +106,7 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
         </div>
         {draft.backgroundImage && <label className="cd-field">{t('countdown.form.opacity')}<input type="range" min={0} max={1} step={0.05} value={draft.backgroundOpacity ?? 0.35} onChange={(e) => change({ backgroundOpacity: Number(e.target.value) })} /></label>}
         {imageError && <p role="alert" className="cd-error">{t('countdown.manage.imageError')}</p>}
-      </details>
+      </div>
       <div className="cd-form-actions cd-form-submit-actions">
         <button className="cd-btn save" type="submit" disabled={saving || !draft.name.trim()}>{t(saving ? 'countdown.manage.saving' : editing ? 'countdown.actions.save' : 'countdown.actions.add')}</button>
         <button className="cd-btn cancel" type="button" disabled={saving} onClick={onCancel}>{t('countdown.actions.cancel')}</button>
