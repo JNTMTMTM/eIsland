@@ -44,7 +44,7 @@ interface CountdownFormProps {
 }
 
 /**
- * 编辑事件内容与规则，始终显示颜色与背景控件。
+ * 编辑事件内容与规则，分别展示边框颜色与背景样式。
  * @param props - 草稿、保存状态及操作
  * @param props.formId - 关联右侧日期输入的表单标识
  * @param props.draft - 未保存的事件草稿
@@ -97,7 +97,8 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
       <label className="cd-field">{t('countdown.descPlaceholder')}
         <textarea className="cd-textarea" value={draft.description ?? ''} rows={2} maxLength={500} onChange={(e) => change({ description: e.target.value })} />
       </label>
-      <div className="cd-appearance"><div className="cd-appearance-title">{t('countdown.manage.appearance')}</div>
+      <section className="cd-appearance" aria-label={t('countdown.manage.borderColor')}>
+        <h4 className="cd-appearance-title">{t('countdown.manage.borderColor')}</h4>
         <div className="cd-color-row">{COLOR_PRESETS.map((color) => (<button className={`cd-color-dot${draft.color === color ? ' active' : ''}`} key={color} type="button"
           style={{ background: color }} title={t('countdown.manage.colorValue', { color })} aria-label={t('countdown.manage.colorValue', { color })} aria-pressed={draft.color === color} onClick={() => change({ color })} />))}
         <button className={`cd-color-dot cd-custom-color${isCustomColor ? ' active' : ''}`} type="button"
@@ -107,6 +108,9 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
         </button>
         <input ref={customColorRef} type="color" hidden tabIndex={-1} value={draft.color} onChange={(e) => change({ color: e.target.value })} />
         </div>
+      </section>
+      <section className="cd-appearance" aria-label={t('countdown.manage.backgroundStyle')}>
+        <h4 className="cd-appearance-title">{t('countdown.manage.backgroundStyle')}</h4>
         <div className="cd-form-actions">
           <button className="cd-btn cancel" type="button" disabled={!resolvedCoverImage} onClick={() => { if (resolvedCoverImage) change({ backgroundImage: resolvedCoverImage }); }}>{t('countdown.form.albumBackground')}</button>
           <button className="cd-btn cancel" type="button" onClick={() => void selectImage()}>{t('countdown.form.customBackground')}</button>
@@ -114,7 +118,7 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
         </div>
         {draft.backgroundImage && <label className="cd-field">{t('countdown.form.opacity')}<input type="range" min={0} max={1} step={0.05} value={draft.backgroundOpacity ?? 0.35} style={{ '--cd-range-progress': `${Math.min(1, Math.max(0, draft.backgroundOpacity ?? 0.35)) * 100}%` } as CSSProperties} onChange={(e) => change({ backgroundOpacity: Number(e.target.value) })} /></label>}
         {imageError && <p role="alert" className="cd-error">{t('countdown.manage.imageError')}</p>}
-      </div>
+      </section>
       <div className="cd-form-actions cd-form-submit-actions">
         <button className="cd-btn save" type="submit" disabled={saving || !draft.name.trim()}>{t(saving ? 'countdown.manage.saving' : editing ? 'countdown.actions.save' : 'countdown.actions.add')}</button>
         <button className="cd-btn cancel" type="button" disabled={saving} onClick={onCancel}>{t('countdown.actions.cancel')}</button>
