@@ -344,6 +344,7 @@
   background: #182638;
   border: 1px solid;
   border-radius: 12px;
+  transition: border-color .2s ease;
 
 }
 
@@ -1007,6 +1008,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cd-card,
   .cd-drawer-layer,
   .cd-drawer,
   .cd-drawer-backdrop {
