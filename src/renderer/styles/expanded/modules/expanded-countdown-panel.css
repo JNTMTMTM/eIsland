@@ -325,6 +325,11 @@
 
 }
 
+.cd-event:has(.cd-card-delete:not(:disabled):is(:hover, :focus-visible)) {
+  --cd-card-action-border: #ef4444;
+
+}
+
 .cd-card {
   container-type: inline-size;
   position: relative;
@@ -482,6 +487,11 @@
 .cd-feedback button:hover:not(:disabled) {
   color: rgb(var(--color-text-rgb), .95);
   background: rgb(var(--color-text-rgb), .14);
+
+}
+
+.cd-card-actions .cd-card-delete:not(:disabled):is(:hover, :focus-visible) {
+  background: rgb(239 68 68 / 18%);
 
 }
 

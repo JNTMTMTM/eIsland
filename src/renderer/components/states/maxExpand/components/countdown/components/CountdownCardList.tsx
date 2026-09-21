@@ -20,7 +20,7 @@
 
 /**
  * @file CountdownCardList.tsx
- * @description 可滚动事件网格，提供编辑、置顶、复制、归档与恢复操作。
+ * @description 可滚动事件网格，提供编辑、置顶、复制、归档、恢复与删除操作。
  * @author 鸡哥
  */
 
@@ -36,6 +36,7 @@ interface CountdownCardListProps {
   now: Date;
   saving: boolean;
   onStartEdit: (item: CountdownItem) => void;
+  onDelete: (item: CountdownItem) => void;
   onAction: (item: CountdownItem, action: 'pin' | 'copy' | 'archive') => void;
 }
 
@@ -47,9 +48,10 @@ interface CountdownCardListProps {
  * @param props.saving - 是否正在保存
  * @param props.onStartEdit - 打开编辑器
  * @param props.onAction - 持久化快捷操作
+ * @param props.onDelete - 删除当前事件并允许撤销
  * @returns 自适应卡片网格
  */
-export function CountdownCardList({ items, now, saving, onStartEdit, onAction }: CountdownCardListProps): ReactElement {
+export function CountdownCardList({ items, now, saving, onStartEdit, onAction, onDelete }: CountdownCardListProps): ReactElement {
   const { t } = useTranslation();
   return (
     <div className="cd-cards-wrap" onWheel={(e) => e.stopPropagation()}>
@@ -65,6 +67,10 @@ export function CountdownCardList({ items, now, saving, onStartEdit, onAction }:
             <button type="button" disabled={saving} title={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')}
               aria-label={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')} onClick={() => onAction(item, 'archive')}>
               <img className="cd-card-action-icon" src={isArchived(item, now) ? SvgIcon.REVERT : SvgIcon.ARCHIVE} alt="" draggable={false} />
+            </button>
+            <button className="cd-card-delete" type="button" disabled={saving} title={t('countdown.manage.delete')}
+              aria-label={t('countdown.manage.delete')} onClick={() => onDelete(item)}>
+              <img className="cd-card-action-icon" src={SvgIcon.DELETE} alt="" draggable={false} />
             </button>
           </div>
         </article>))}

@@ -86,7 +86,7 @@ export function CountdownCard({ item, now, compact, onClick }: CountdownCardProp
   );
   const className = `cd-card cd-card-${item.type}${compact ? ' ov-cd-card' : ''}`;
   return onClick ? (
-    <button className={className} type="button" style={{ borderColor: item.color }} onClick={onClick}
+    <button className={className} type="button" style={{ borderColor: `var(--cd-card-action-border, ${item.color})` }} onClick={onClick}
       title={`${item.name} · ${countdownText(item, t, now)} · ${dateText}`}>{content}</button>
-  ) : <div className={className} style={{ borderColor: item.color }}>{content}</div>;
+  ) : <div className={className} style={{ borderColor: `var(--cd-card-action-border, ${item.color})` }}>{content}</div>;
 }

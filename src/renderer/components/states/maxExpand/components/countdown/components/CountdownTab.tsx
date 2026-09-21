@@ -86,12 +86,12 @@ export function CountdownTab(): ReactElement {
         : { ...value, archived: !isArchived(value, now), expiryAction: 'continue' });
     });
   };
-  const remove = async (): Promise<void> => {
-    const item = items.find((value) => value.id === form.editingId);
+  const remove = async (id = form.editingId): Promise<void> => {
+    const item = items.find((value) => value.id === id);
     if (!item) return;
     if (await updateItems((current) => current.filter((value) => value.id !== item.id))) {
       setDeleted(item);
-      form.setOpen(false);
+      if (form.editingId === item.id) form.setOpen(false);
     }
   };
   const undo = async (): Promise<void> => {
@@ -148,7 +148,7 @@ export function CountdownTab(): ReactElement {
         )}
         <div className="cd-result-count">{t('countdown.manage.resultCount', { count: sorted.length })}</div>
         {!loaded ? <div className="cd-cards-empty">{t('countdown.manage.loading')}</div>
-          : <CountdownCardList items={sorted} now={now} saving={saving} onStartEdit={form.startEdit} onAction={handleAction} />}
+          : <CountdownCardList items={sorted} now={now} saving={saving} onStartEdit={form.startEdit} onAction={handleAction} onDelete={(item) => void remove(item.id)} />}
       </div>
       <CountdownDrawer open={form.open} saving={saving} onClose={closeEditor}
         title={t(form.editingId === null ? 'countdown.manage.new' : 'countdown.editTitle')}>
