@@ -38,10 +38,11 @@ import type { CountdownDraft } from '../types/countdownTypes';
  */
 export function CountdownPreview({ draft, now }: { draft: CountdownDraft; now: Date }): ReactElement {
   const { t } = useTranslation();
+  const previewItem = { ...draft, id: 0, name: draft.name.trim() || t('countdown.namePlaceholder') };
   return (
     <aside className="cd-preview">
       <div className="cd-preview-label">{t('countdown.preview')}</div>
-      <CountdownCard item={{ ...draft, id: 0, name: draft.name.trim() || t('countdown.namePlaceholder') }} now={now} />
+      <CountdownCard item={previewItem} now={now} />
     </aside>
   );
 }
