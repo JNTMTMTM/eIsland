@@ -14,10 +14,10 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CALENDAR_MONTH_HEADER_HEIGHT } from '../config/calendarConfig';
-import type { CalendarGridProps } from '../types/calendarTypes';
 import { getCalendarDateKey } from '../utils/calendarHolidayUtils';
 import { CalendarOverviewMonths } from './CalendarOverviewMonths';
 import { CalendarViewActions } from './CalendarViewActions';
+import type { CalendarGridProps } from '../types/calendarTypes';
 
 /**
  * 渲染全年概览，保留键盘日期导航、今日定位和详情展开状态。
@@ -131,12 +131,12 @@ export function CalendarYearOverview(props: CalendarGridProps): ReactElement {
             if (pendingScroll.current) return;
             if (element.scrollTop < 80 && range.start > 1) {
               const first = yearRefs.current.get(range.start);
-              if (first) pendingScroll.current = { year: range.start, offset: first.getBoundingClientRect().top - top };
+              if (first) pendingScroll.current = {year: range.start, offset: first.getBoundingClientRect().top - top};
               setRange((value) => ({ start: value.start - 1, end: value.end - value.start >= 4 ? value.end - 1 : value.end }));
             } else if (element.scrollHeight - element.scrollTop - element.clientHeight < 80 && range.end < 9999) {
               const anchorYear = current?.year ?? range.end;
               const anchor = yearRefs.current.get(anchorYear);
-              if (anchor) pendingScroll.current = { year: anchorYear, offset: anchor.getBoundingClientRect().top - top };
+              if (anchor) pendingScroll.current = {year: anchorYear, offset: anchor.getBoundingClientRect().top - top};
               setRange((value) => ({ start: value.end - value.start >= 4 ? value.start + 1 : value.start, end: value.end + 1 }));
             }
           });
