@@ -256,10 +256,14 @@
 }
 
 .countdown-panel-v2 button:focus-visible,
-.countdown-panel-v2 .cd-input:focus-visible,
-.countdown-panel-v2 .cd-textarea:focus-visible,
 .ov-dash-countdown-widget button:focus-visible {
   outline-color: rgb(var(--color-text-rgb), .5);
+
+}
+
+.countdown-panel-v2 .cd-input:focus,
+.countdown-panel-v2 .cd-textarea:focus {
+  outline: none;
 
 }
 
@@ -786,7 +790,6 @@
 
 .cd-filters .cd-input:focus {
   background: rgb(var(--color-text-rgb), .08);
-  border-color: rgb(var(--color-text-rgb), .24);
 
 }
 
