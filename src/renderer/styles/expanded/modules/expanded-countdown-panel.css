@@ -858,7 +858,7 @@
   width: min(640px, calc(100% - 32px));
   height: 100%;
   background: var(--color-island-bg, #111);
-  box-shadow: -12px 0 32px rgb(0 0 0 / 18%);
+  box-shadow: -12px 0 32px rgb(0 0 0 / 98%);
   transition: transform .22s ease;
   transform: translateX(100%);
   border-left: 1px solid rgb(var(--color-text-rgb), .12);
