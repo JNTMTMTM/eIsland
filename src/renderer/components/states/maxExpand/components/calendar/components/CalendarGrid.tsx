@@ -103,17 +103,22 @@ export function CalendarGrid({
         <span className="calendar-month-name" data-current-month={visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth()}>
           {monthFormat.format(visibleDate)}
         </span>
-        <button
-          className="calendar-details-toggle"
-          type="button"
-          aria-expanded={detailsExpanded}
-          aria-controls={detailsId}
-          aria-label={t(detailsExpanded ? 'maxExpand.calendar.collapseDetails' : 'maxExpand.calendar.expandDetails')}
-          title={t(detailsExpanded ? 'maxExpand.calendar.collapseDetails' : 'maxExpand.calendar.expandDetails')}
-          onClick={onToggleDetails}
-        >
-          <img className="calendar-details-toggle-icon-img" src={detailsExpanded ? SvgIcon.EXPAND : SvgIcon.COLLAPSE} alt="" draggable={false} />
-        </button>
+        <span className="calendar-header-actions">
+          <button className="calendar-today-button" type="button" onClick={() => onSelectDate(new Date())}>
+            {t('maxExpand.calendar.goToToday')}
+          </button>
+          <button
+            className="calendar-details-toggle"
+            type="button"
+            aria-expanded={detailsExpanded}
+            aria-controls={detailsId}
+            aria-label={t(detailsExpanded ? 'maxExpand.calendar.collapseDetails' : 'maxExpand.calendar.expandDetails')}
+            title={t(detailsExpanded ? 'maxExpand.calendar.collapseDetails' : 'maxExpand.calendar.expandDetails')}
+            onClick={onToggleDetails}
+          >
+            <img className="calendar-details-toggle-icon-img" src={detailsExpanded ? SvgIcon.EXPAND : SvgIcon.COLLAPSE} alt="" draggable={false} />
+          </button>
+        </span>
       </h2>
       <div className="calendar-weekdays" aria-hidden="true">
         {months[0].weeks[0].map((date) => (

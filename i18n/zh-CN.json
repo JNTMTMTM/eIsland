@@ -1504,6 +1504,7 @@
       "details": "日期详情",
       "expandDetails": "展开日期详情",
       "collapseDetails": "收起日期详情",
+      "goToToday": "今日",
       "selectedDate": "所选日期",
       "lunarDate": "农历",
       "holidays": "公共假日",

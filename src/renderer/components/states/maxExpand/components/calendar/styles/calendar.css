@@ -100,6 +100,27 @@
   color: rgb(var(--color-accent-rgb, 59, 130, 246));
 }
 
+.calendar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar-today-button {
+  height: 28px;
+  padding: 0 10px;
+  color: rgba(var(--color-text-rgb), .75);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  background-color: rgba(var(--color-text-rgb), .05);
+  border: 1px solid rgba(var(--color-text-rgb), .1);
+  border-radius: 6px;
+  transition: background-color .15s ease;
+}
+
 .calendar-details-toggle {
   display: flex;
   align-items: center;
@@ -115,11 +136,13 @@
   transition: background-color .15s ease;
 }
 
-.calendar-details-toggle:hover {
+.calendar-details-toggle:hover,
+.calendar-today-button:hover {
   background-color: rgba(var(--color-text-rgb), .08);
 }
 
-.calendar-details-toggle:focus-visible {
+.calendar-details-toggle:focus-visible,
+.calendar-today-button:focus-visible {
   outline: 2px solid rgb(var(--color-accent-rgb, 59, 130, 246));
   outline-offset: 2px;
 }

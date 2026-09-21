@@ -1508,6 +1508,7 @@
       "details": "Date details",
       "expandDetails": "Expand date details",
       "collapseDetails": "Collapse date details",
+      "goToToday": "Today",
       "selectedDate": "Selected date",
       "lunarDate": "Lunar date",
       "holidays": "Public holidays",
