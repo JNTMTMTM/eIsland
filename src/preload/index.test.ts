@@ -134,11 +134,12 @@ describe('preload bridge', () => {
     expect(setup.invokeMock).toHaveBeenLastCalledWith('store:read', 'countdown-dates', true);
     setup.invokeMock.mockRejectedValueOnce(new Error('read failed'));
     await expect(api.storeRead('countdown-dates', true)).rejects.toThrow('read failed');
-    for (const result of ['updated', 'conflict', 'error']) {
+    await ['updated', 'conflict', 'error'].reduce(async (prev, result) => {
+      await prev;
       setup.invokeMock.mockResolvedValueOnce(result);
       expect(await api.storeCompareAndSwap('countdown-dates', [], [{ id: 1 }])).toBe(result);
       expect(setup.invokeMock).toHaveBeenLastCalledWith('store:compare-and-swap', 'countdown-dates', [], [{ id: 1 }]);
-    }
+    }, Promise.resolve());
   });
 
   beforeEach(() => {
