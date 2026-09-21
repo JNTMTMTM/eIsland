@@ -517,6 +517,11 @@
 
 }
 
+.cd-field-full {
+  grid-column: 1 / -1;
+
+}
+
 .cd-check {
   display: inline-flex;
   gap: 5px;

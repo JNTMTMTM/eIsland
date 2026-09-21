@@ -87,7 +87,7 @@ export function CountdownForm({ formId, draft, setDraft, editing, saving, resolv
             <option value="down">{t('countdown.manage.down')}</option><option value="up">{t('countdown.manage.up')}</option>
           </select>
         </label>
-        {draft.mode !== 'up' ? <label className="cd-field">{t('countdown.manage.expiry')}
+        {draft.mode !== 'up' ? <label className="cd-field cd-field-full">{t('countdown.manage.expiry')}
           <select className="cd-input" value={draft.repeat === 'yearly' ? 'yearly' : draft.expiryAction ?? 'continue'}
             onChange={(e) => change({ repeat: e.target.value === 'yearly' ? 'yearly' : 'none', expiryAction: e.target.value === 'archive' ? 'archive' : 'continue' })}>
             <option value="continue">{t('countdown.manage.continue')}</option><option value="yearly">{t('countdown.manage.yearly')}</option><option value="archive">{t('countdown.manage.autoArchive')}</option>
