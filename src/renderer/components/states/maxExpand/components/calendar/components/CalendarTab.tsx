@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useMemo, type ReactElement } from 'react';
+import { useId, useMemo, useState, type ReactElement } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
 import { useCalendarHolidays } from '../hooks/useCalendarHolidays';
 import { useCalendarTodos } from '../hooks/useCalendarTodos';
@@ -40,6 +40,8 @@ import '../styles/calendar.css';
  * @returns 随应用主题和语言更新的日历面板。
  */
 export function CalendarTab(): ReactElement {
+  const [detailsExpanded, setDetailsExpanded] = useState(true);
+  const detailsId = useId();
   const {
     today,
     selectedDate,
@@ -62,8 +64,11 @@ export function CalendarTab(): ReactElement {
       className="max-expand-tab-panel calendar-panel"
       onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}
     >
-      <div className="calendar-layout">
+      <div className="calendar-layout" data-details-expanded={detailsExpanded}>
         <CalendarGrid
+          detailsExpanded={detailsExpanded}
+          detailsId={detailsId}
+          onToggleDetails={() => setDetailsExpanded((expanded) => !expanded)}
           events={events}
           holidays={holidayInfo.holidays}
           onVisibleYearChange={holidayInfo.setVisibleYear}
@@ -76,15 +81,19 @@ export function CalendarTab(): ReactElement {
           onSelectDate={selectDate}
           onDateKeyDown={handleDateKeyDown}
         />
-        <CalendarDetailPanel
-          events={events}
-          holidayInfo={holidayInfo}
-          selectedDate={selectedDate}
-          locale={locale}
-          formats={formats}
-          selectedDay={selectedDay}
-          relativeLabel={relativeLabel}
-        />
+        <div className="calendar-details-shell" id={detailsId} inert={!detailsExpanded} aria-hidden={!detailsExpanded}>
+          <div className="calendar-details-clip">
+            <CalendarDetailPanel
+              events={events}
+              holidayInfo={holidayInfo}
+              selectedDate={selectedDate}
+              locale={locale}
+              formats={formats}
+              selectedDay={selectedDay}
+              relativeLabel={relativeLabel}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

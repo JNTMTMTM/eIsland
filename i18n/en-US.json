@@ -1506,6 +1506,8 @@
       "daysAfter": "In {{count}} days",
       "daysBefore": "{{count}} days ago",
       "details": "Date details",
+      "expandDetails": "Expand date details",
+      "collapseDetails": "Collapse date details",
       "selectedDate": "Selected date",
       "lunarDate": "Lunar date",
       "holidays": "Public holidays",

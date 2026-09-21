@@ -75,6 +75,12 @@ export interface CalendarFormats {
 
 /** CalendarGrid 组件入参 */
 export interface CalendarGridProps {
+  /** 右侧日期详情是否展开。 */
+  detailsExpanded: boolean;
+  /** 详情容器标识，用于按钮的无障碍关联。 */
+  detailsId: string;
+  /** 切换详情展开状态。 */
+  onToggleDetails: () => void;
   /** 假日、待办与倒数日事件。 */
   events: CalendarTimelineEvent[];
   /** 当前地区的节假日索引。 */
