@@ -1,4 +1,4 @@
-/*
+<!--
  * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
  * https://github.com/JNTMTMTM/eIsland
  *
@@ -16,34 +16,13 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- */
-
-/**
- * @file countdownTypes.ts
- * @description 倒数日数据与计时规则。
- * @author 鸡哥
- */
-
-export type EventType = 'countdown' | 'anniversary' | 'birthday' | 'holiday' | 'exam';
-export type CountMode = 'down' | 'up';
-export type ExpiryAction = 'continue' | 'archive';
-
-/** 可选字段保证旧版数据仍按单次倒数规则展示。 */
-export interface CountdownItem {
-  id: number;
-  name: string;
-  date: string;
-  color: string;
-  type: EventType;
-  description?: string;
-  backgroundImage?: string;
-  backgroundOpacity?: number;
-  mode?: CountMode;
-  repeat?: 'none' | 'yearly';
-  expiryAction?: ExpiryAction;
-  includeToday?: boolean;
-  pinned?: boolean;
-  archived?: boolean;
-}
-
-export type CountdownDraft = Omit<CountdownItem, 'id'>;
+ -->
+<!--
+ @file ARCHIVE.svg
+ @description 倒数日归档操作的收纳盒矢量图标。
+ @author 鸡哥
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="3" y="3" width="18" height="5" rx="1" />
+  <path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M9 12h6" />
+</svg>

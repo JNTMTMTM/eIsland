@@ -167,10 +167,10 @@ export function OverviewTab(): React.ReactElement {
     window.api.storeRead(STANDALONE_WINDOW_MODE_STORE_KEY).then((mode) => {
       if (mode === 'standalone' || mode === 'integrated') return mode;
       return window.api.storeRead(LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY).catch(() => null);
-    }).then((mode) => {
+    }).then(async (mode) => {
       if (mode === 'standalone') {
-        window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, target).catch(() => {});
-        window.api.openStandaloneWindow().catch(() => {});
+        await window.api.storeWrite(STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY, target);
+        await window.api.openStandaloneWindow();
       } else {
         setMaxExpandTab(target as Parameters<typeof setMaxExpandTab>[0]);
         setMaxExpand();

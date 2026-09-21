@@ -766,10 +766,11 @@ const api = {
   /**
    * 从文件读取 JSON 数据
    * @param key - 存储键名（对应文件名）
+   * @param strict - true 时读取失败拒绝 Promise，false 时返回 null
    * @returns 解析后的数据，不存在时返回 null
    */
-  storeRead: (key: string): Promise<unknown> => {
-    return ipcRenderer.invoke('store:read', key);
+  storeRead: (key: string, strict = false): Promise<unknown> => {
+    return strict ? ipcRenderer.invoke('store:read', key, true) : ipcRenderer.invoke('store:read', key);
   },
   /**
    * 将数据写入 JSON 文件
@@ -779,6 +780,16 @@ const api = {
    */
   storeWrite: (key: string, data: unknown): Promise<boolean> => {
     return ipcRenderer.invoke('store:write', key, data);
+  },
+  /**
+   * 仅当前存储匹配预期快照时写入，并同步所有窗口。
+   * @param key - 存储键名（对应文件名）
+   * @param expected - 修改前读取的原始 JSON 快照
+   * @param data - 要存储的新数据
+   * @returns 写入成功、快照冲突或存储错误
+   */
+  storeCompareAndSwap: (key: string, expected: unknown, data: unknown): Promise<'updated' | 'conflict' | 'error'> => {
+    return ipcRenderer.invoke('store:compare-and-swap', key, expected, data);
   },
   /** 设置单个闹钟的开关状态，并同步所有窗口。 */
   setAlarmEnabled: (id: number, enabled: boolean): Promise<boolean> => {

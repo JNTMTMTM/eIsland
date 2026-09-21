@@ -20,150 +20,162 @@
 
 /**
  * @file CountdownTab.tsx
- * @description 最大展开模式 — 倒数日 Tab — 主组件：hook 调用与组件组合。
+ * @description 事件优先的倒数日管理页，与 expand 共用数据和日期规则。
  * @author 鸡哥
  */
 
-import React, { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useId, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Plus } from 'lucide-react';
 import useIslandStore from '../../../../../../store/slices';
 import { useCountdownItems } from '../hooks/useCountdownItems';
 import { useCountdownForm } from '../hooks/useCountdownForm';
-import { normalizeImageSource, diffDays } from '../utils/countdownUtils';
+import { useCountdownToday } from '../hooks/useCountdownToday';
+import { normalizeImageSource, occurrenceDate, isArchived, sortCountdownItems, toLocalDateStr } from '../utils/countdownUtils';
+import { EVENT_TYPES } from '../config/countdownConfig';
+import { CountdownDrawer } from './CountdownDrawer';
 import { CountdownCalendar } from './CountdownCalendar';
 import { CountdownForm } from './CountdownForm';
 import { CountdownPreview } from './CountdownPreview';
 import { CountdownCardList } from './CountdownCardList';
-import type { EventType } from '../types/countdownTypes';
+import type { CountdownItem } from '../types/countdownTypes';
 
 /**
- * 倒数日 Tab 主组件：hook 调用 → 组件组合。
+ * 组合事件筛选、编辑与实时预览。
+ * @returns 倒数日页面
  */
-export function CountdownTab(): React.ReactElement {
+export function CountdownTab(): ReactElement {
   const { t } = useTranslation();
-  const cardsRef = useRef<HTMLDivElement>(null);
+  const { items, loaded, saving, error, updateItems } = useCountdownItems();
+  const form = useCountdownForm(updateItems);
+  const now = useCountdownToday();
+  const formId = useId();
   const coverImage = useIslandStore((s) => s.coverImage);
-  const [resolvedCoverImage, setResolvedCoverImage] = React.useState<string | null>(null);
+  const [resolvedCoverImage, setResolvedCoverImage] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('active');
+  const [category, setCategory] = useState('all');
+  const [sort, setSort] = useState('nearest');
+  const [deleted, setDeleted] = useState<CountdownItem | null>(null);
 
-  /* ── Hook: 条目管理 ── */
-  const { items, setItems, removeItem } = useCountdownItems();
-
-  /* ── Hook: 表单状态 ── */
-  const form = useCountdownForm(setItems);
-
-  /** 删除联动清除编辑状态 */
-  const handleRemove = useCallback((id: number) => {
-    removeItem(id);
-    if (form.editingId === id) form.setEditingId(null);
-  }, [removeItem, form.editingId, form.setEditingId]);
-
-  /** 解析封面图片 */
   useEffect(() => {
     let cancelled = false;
-    normalizeImageSource(coverImage ?? undefined).then((resolved) => {
-      if (cancelled) return;
-      setResolvedCoverImage(resolved ?? null);
-    }).catch(() => {
-      if (cancelled) return;
-      setResolvedCoverImage(null);
-    });
+    normalizeImageSource(coverImage ?? undefined).then((image) => {
+      if (!cancelled) setResolvedCoverImage(image ?? null);
+    }).catch(() => { if (!cancelled) setResolvedCoverImage(null); });
     return () => { cancelled = true; };
   }, [coverImage]);
 
-  /** 日历高亮日期 */
-  const highlightDates = items.map(i => new Date(i.date + 'T00:00:00'));
-
-  /** 排序：按距今天数绝对值升序 */
-  const sorted = [...items].sort((a, b) => {
-    const da = Math.abs(diffDays(a.date));
-    const db = Math.abs(diffDays(b.date));
-    return da - db;
+  const visible = items.filter((item) => {
+    const archived = isArchived(item, now);
+    return (filter === 'archived' ? archived : !archived && (filter !== 'pinned' || item.pinned))
+      && (category === 'all' || item.type === category)
+      && `${item.name} ${item.description ?? ''}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
   });
+  const sorted = sort === 'nearest' ? sortCountdownItems(visible, now) : [...visible].sort((a, b) =>
+    Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || (sort === 'name' ? a.name.localeCompare(b.name)
+      : occurrenceDate(a, now).localeCompare(occurrenceDate(b, now))));
 
-  /** 卡片列表水平滚轮 */
-  const handleCardsWheel = useCallback((e: React.WheelEvent) => {
-    e.stopPropagation();
-    if (cardsRef.current) {
-      cardsRef.current.scrollLeft += e.deltaY;
-    }
-  }, []);
-
-  /** 事件类型标签 */
-  const getEventTypeLabel = (type: EventType): string => {
-    return t(`countdown.types.${type}`, {
-      defaultValue: type === 'countdown'
-        ? '倒数日'
-        : type === 'anniversary'
-          ? '纪念日'
-          : type === 'birthday'
-            ? '生日'
-            : type === 'holiday'
-              ? '节日'
-              : '考试',
+  const handleAction = (item: CountdownItem, action: 'pin' | 'copy' | 'archive'): void => {
+    void updateItems((current) => {
+      const latest = current.find((value) => value.id === item.id);
+      if (!latest) return current;
+      if (action === 'copy') {return [...current, { ...latest, id: Date.now() + Math.random(),
+        name: t('countdown.manage.copyName', { name: latest.name }), pinned: false, archived: false, expiryAction: 'continue' }];}
+      return current.map((value) => value.id !== item.id ? value : action === 'pin' ? { ...value, pinned: !value.pinned }
+        : { ...value, archived: !isArchived(value, now), expiryAction: 'continue' });
     });
   };
-
-  /** 天数文本 */
-  const formatDayText = (days: number): string => {
-    if (days > 0) return t('countdown.days.after', { defaultValue: '{{days}} 天后', days });
-    if (days === 0) return t('countdown.days.today', { defaultValue: '就是今天' });
-    return t('countdown.days.before', { defaultValue: '{{days}} 天前', days: Math.abs(days) });
+  const remove = async (id = form.editingId): Promise<void> => {
+    const item = items.find((value) => value.id === id);
+    if (!item) return;
+    if (await updateItems((current) => current.filter((value) => value.id !== item.id))) {
+      setDeleted(item);
+      if (form.editingId === item.id) form.setOpen(false);
+    }
+  };
+  const undo = async (): Promise<void> => {
+    if (deleted && await updateItems((current) => current.some((item) => item.id === deleted.id) ? current : [...current, deleted])) setDeleted(null);
   };
 
-  const editItem = form.editingId !== null ? items.find(i => i.id === form.editingId) ?? null : null;
+  const activeCount = items.filter((item) => !isArchived(item, now)).length;
+  const closeEditor = (): void => form.setOpen(false);
 
   return (
-    <div className="max-expand-tab-panel countdown-panel-v2">
-      {/* ===== 上部区域 ===== */}
-      <div className="cd-top">
-        {/* 左上：日历 */}
-        <CountdownCalendar
-          selectedDate={form.selectedDate}
-          onSelectDate={form.setSelectedDate}
-          highlightDates={highlightDates}
-        />
-
-        {/* 中：表单 */}
-        <CountdownForm
-          editing={form.editingId !== null}
-          selectedDate={form.selectedDate}
-          editItem={editItem}
-          resolvedCoverImage={resolvedCoverImage}
-          form={form}
-          onAdd={form.addItem}
-          onSaveEdit={form.saveEdit}
-          onCancelEdit={() => form.setEditingId(null)}
-          getEventTypeLabel={getEventTypeLabel}
-        />
-
-        {/* 右：卡片预览 */}
-        <CountdownPreview
-          editItem={editItem}
-          editData={form.editData}
-          editBgImage={form.editBgImage}
-          editBgOpacity={form.editBgOpacity}
-          newType={form.newType}
-          newColor={form.newColor}
-          newName={form.newName}
-          newDesc={form.newDesc}
-          newBgImage={form.newBgImage}
-          newBgOpacity={form.newBgOpacity}
-          selectedDate={form.selectedDate}
-          getEventTypeLabel={getEventTypeLabel}
-          formatDayText={formatDayText}
-        />
+    <section className="max-expand-tab-panel countdown-panel-v2" onWheel={(e) => e.stopPropagation()}>
+      <div className="cd-page" inert={form.open}>
+        <header className="cd-toolbar">
+          <h2 className="cd-title">{t('overview.countdown.title')}</h2>
+          <span className="cd-stat">{t('countdown.manage.summary', { count: activeCount })}</span>
+        </header>
+        <div className="cd-filters">
+          <input
+            className="cd-input cd-search"
+            type="search"
+            aria-label={t('countdown.manage.search')}
+            placeholder={t('countdown.manage.search')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <div className="cd-filter-tabs" aria-label={t('countdown.manage.filter')}>
+            {['active', 'pinned', 'archived'].map((value) => (
+              <button
+                className={filter === value ? 'active' : ''}
+                type="button"
+                key={value}
+                aria-pressed={filter === value}
+                onClick={() => setFilter(value)}
+              >{t(`countdown.manage.${value}`)}</button>
+            ))}
+          </div>
+          <select className="cd-input" aria-label={t('countdown.form.type')} value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="all">{t('countdown.manage.allTypes')}</option>
+            {EVENT_TYPES.map((type) => <option key={type} value={type}>{t(`countdown.types.${type}`)}</option>)}
+          </select>
+          <select className="cd-input" aria-label={t('countdown.manage.sort')} value={sort} onChange={(e) => setSort(e.target.value)}>
+            {['nearest', 'name', 'date'].map((value) => <option value={value} key={value}>{t(`countdown.manage.sort_${value}`)}</option>)}
+          </select>
+          <button className="cd-new-event" type="button" disabled={!loaded || saving} onClick={form.startNew}>
+            <Plus size={14} />{t('countdown.manage.new')}
+          </button>
+        </div>
+        {error && !form.open && <p className="cd-error" role="alert">{t('countdown.manage.saveError')}</p>}
+        <div className="cd-result-count">{t('countdown.manage.resultCount', { count: sorted.length })}</div>
+        {!loaded ? <div className="cd-cards-empty">{t('countdown.manage.loading')}</div>
+          : <CountdownCardList items={sorted} now={now} saving={saving} onStartEdit={form.startEdit} onAction={handleAction} onDelete={(item) => void remove(item.id)} />}
+        {deleted && (
+          <div className="cd-feedback" role="status">
+            {t('countdown.manage.deleted', { name: deleted.name })}
+            <button type="button" disabled={saving} onClick={() => void undo()}>{t('countdown.manage.undo')}</button>
+          </div>
+        )}
       </div>
-
-      {/* ===== 下部：卡片水平列表 ===== */}
-      <CountdownCardList
-        items={sorted}
-        onStartEdit={form.startEdit}
-        onRemove={handleRemove}
-        getEventTypeLabel={getEventTypeLabel}
-        formatDayText={formatDayText}
-        cardsRef={cardsRef}
-        onWheel={handleCardsWheel}
-      />
-    </div>
+      <CountdownDrawer open={form.open} saving={saving} onClose={closeEditor}
+        title={t(form.editingId === null ? 'countdown.manage.new' : 'countdown.editTitle')}>
+        {error && <p className="cd-error" role="alert">{t('countdown.manage.saveError')}</p>}
+        <div className="cd-editor-layout">
+          <CountdownForm
+            formId={formId}
+            draft={form.draft}
+            setDraft={form.setDraft}
+            editing={form.editingId !== null}
+            saving={saving}
+            resolvedCoverImage={resolvedCoverImage}
+            onSave={form.save}
+            onCancel={closeEditor}
+            onDelete={form.editingId !== null ? () => void remove() : undefined}
+          />
+          <div className="cd-editor-aside">
+            <CountdownCalendar
+              formId={formId}
+              selectedDate={new Date(`${form.draft.date}T00:00:00`)}
+              onSelectDate={(date) => form.setDraft((value) => ({ ...value, date: toLocalDateStr(date) }))}
+              highlightDates={items.filter((item) => !isArchived(item, now)).map((item) => new Date(`${occurrenceDate(item, now)}T00:00:00`))}
+            />
+            <CountdownPreview draft={form.draft} now={now} />
+          </div>
+        </div>
+      </CountdownDrawer>
+    </section>
   );
 }

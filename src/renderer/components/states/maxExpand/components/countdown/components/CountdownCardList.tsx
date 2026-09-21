@@ -20,51 +20,60 @@
 
 /**
  * @file CountdownCardList.tsx
- * @description 倒数日卡片水平列表。
+ * @description 可滚动事件网格，提供编辑、置顶、复制、归档、恢复与删除操作。
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import { isArchived } from '../utils/countdownUtils';
 import { CountdownCard } from './CountdownCard';
-import { diffDays } from '../utils/countdownUtils';
-import type { CountdownCardListProps } from '../types/countdownTypes';
+import type { ReactElement } from 'react';
+import type { CountdownItem } from '../types/countdownTypes';
 
-/** 下部卡片水平列表 */
-export function CountdownCardList({
-  items, onStartEdit, onRemove,
-  getEventTypeLabel, formatDayText,
-  cardsRef, onWheel,
-}: CountdownCardListProps): ReactElement {
+interface CountdownCardListProps {
+  items: CountdownItem[];
+  now: Date;
+  saving: boolean;
+  onStartEdit: (item: CountdownItem) => void;
+  onDelete: (item: CountdownItem) => void;
+  onAction: (item: CountdownItem, action: 'pin' | 'copy' | 'archive') => void;
+}
+
+/**
+ * 展示筛选后的事件及可键盘访问的快捷操作。
+ * @param props - 条目及操作回调
+ * @param props.items - 排序筛选后的事件
+ * @param props.now - 当前本地日期
+ * @param props.saving - 是否正在保存
+ * @param props.onStartEdit - 打开编辑器
+ * @param props.onAction - 持久化快捷操作
+ * @param props.onDelete - 删除当前事件并允许撤销
+ * @returns 自适应卡片网格
+ */
+export function CountdownCardList({ items, now, saving, onStartEdit, onAction, onDelete }: CountdownCardListProps): ReactElement {
   const { t } = useTranslation();
-
   return (
-    <div className="cd-cards-wrap" ref={cardsRef} onWheel={onWheel}>
-      {items.length === 0 ? (
-        <div className="cd-cards-empty">{t('countdown.empty', { defaultValue: '选择日期并添加事件' })}</div>
-      ) : (
-        items.map(item => {
-          const days = diffDays(item.date);
-          return (
-            <CountdownCard
-              key={item.id}
-              item={item}
-              color={item.color}
-              type={item.type}
-              name={item.name}
-              description={item.description}
-              backgroundImage={item.backgroundImage}
-              backgroundOpacity={item.backgroundOpacity}
-              dateText={item.date}
-              daysText={formatDayText(days)}
-              showDelete
-              onDelete={(e) => { e.stopPropagation(); onRemove(item.id); }}
-              onClick={() => onStartEdit(item)}
-              getEventTypeLabel={getEventTypeLabel}
-            />
-          );
-        })
-      )}
+    <div className="cd-cards-wrap" onWheel={(e) => e.stopPropagation()}>
+      {items.length === 0 ? <div className="cd-cards-empty">{t('countdown.manage.empty')}</div>
+        : items.map((item) => (<article className="cd-event" key={item.id}>
+          <CountdownCard item={item} now={now} onClick={() => onStartEdit(item)} />
+          <div className="cd-card-actions">
+            <button type="button" title={t('countdown.manage.edit')} aria-label={t('countdown.manage.edit')} onClick={() => onStartEdit(item)}><img className="cd-card-action-icon" src={SvgIcon.DIY} alt="" draggable={false} /></button>
+            <button type="button" disabled={saving} title={t(item.pinned ? 'countdown.manage.unpin' : 'countdown.manage.pin')}
+              aria-label={t(item.pinned ? 'countdown.manage.unpin' : 'countdown.manage.pin')} aria-pressed={Boolean(item.pinned)}
+              onClick={() => onAction(item, 'pin')}><img className="cd-card-action-icon" src={SvgIcon.PIN_ON_TOP} alt="" draggable={false} /></button>
+            <button type="button" disabled={saving} title={t('countdown.manage.copy')} aria-label={t('countdown.manage.copy')} onClick={() => onAction(item, 'copy')}><img className="cd-card-action-icon" src={SvgIcon.COPY} alt="" draggable={false} /></button>
+            <button type="button" disabled={saving} title={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')}
+              aria-label={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')} onClick={() => onAction(item, 'archive')}>
+              <img className="cd-card-action-icon" src={isArchived(item, now) ? SvgIcon.REVERT : SvgIcon.ARCHIVE} alt="" draggable={false} />
+            </button>
+            <button className="cd-card-delete" type="button" disabled={saving} title={t('countdown.manage.delete')}
+              aria-label={t('countdown.manage.delete')} onClick={() => onDelete(item)}>
+              <img className="cd-card-action-icon" src={SvgIcon.DELETE} alt="" draggable={false} />
+            </button>
+          </div>
+        </article>))}
     </div>
   );
 }

@@ -67,6 +67,7 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('STAR');
     expect(SvgIcon).toHaveProperty('DOWNLOAD');
     expect(SvgIcon).toHaveProperty('COPY');
+    expect(SvgIcon).toHaveProperty('ARCHIVE');
     expect(SvgIcon).toHaveProperty('DIY');
     expect(SvgIcon).toHaveProperty('UNKNOWN');
     expect(SvgIcon).toHaveProperty('BOY');

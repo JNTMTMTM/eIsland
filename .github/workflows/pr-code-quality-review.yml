@@ -214,12 +214,16 @@ jobs:
             }, {});
 
             const summary = [];
-            summary.push('Scope: limited pattern checks on selected changed files; ESLint, Stylelint, and HTML Validate are not executed.');
-            summary.push(`Scanned files: ${targets.length}`);
-            summary.push(`Violations: ${violations.length}`);
-            summary.push(`By rule: ${JSON.stringify(byRule)}`);
-            summary.push(`Checklist unchecked (self-check only): ${uncheckedChecklist.length}`);
+            summary.push('- **Scope:** limited pattern checks on selected changed files; ESLint, Stylelint, and HTML Validate are not executed.');
+            summary.push(`- **Scanned files:** ${targets.length}`);
+            summary.push(`- **Violations:** ${violations.length}`);
+            summary.push(`- **By rule:** ${Object.entries(byRule).map(([rule, count]) => `\`${rule}\`: ${count}`).join(', ') || 'none'}`);
+            summary.push(`- **Checklist unchecked (self-check only):** ${uncheckedChecklist.length}`);
             summary.push('');
+            const formatViolation = (line) => {
+              const [location, rule, description] = line.split('|').map((part) => part.trim());
+              return `- \`${location}\` — **${rule}**: ${description}`;
+            };
             if (violations.length > 0) {
               const groupedByFile = violations.reduce((acc, line) => {
                 const [left] = line.split('|');
@@ -234,15 +238,17 @@ jobs:
                 const lines = groupedByFile[filename];
                 if (!lines || lines.length === 0) continue;
                 printed.add(filename);
-                summary.push(`FILE | ${filename} | ${lines.length} issue(s)`);
-                summary.push(...lines);
+                summary.push(`#### \`${filename}\` — ${lines.length} issue(s)`);
+                summary.push('');
+                summary.push(...lines.map(formatViolation));
                 summary.push('');
               }
 
               for (const [filename, lines] of Object.entries(groupedByFile)) {
                 if (printed.has(filename)) continue;
-                summary.push(`FILE | ${filename} | ${lines.length} issue(s)`);
-                summary.push(...lines);
+                summary.push(`#### \`${filename}\` — ${lines.length} issue(s)`);
+                summary.push('');
+                summary.push(...lines.map(formatViolation));
                 summary.push('');
               }
             } else {
@@ -250,9 +256,10 @@ jobs:
             }
 
             summary.push('');
-            summary.push('Checklist self-check status (non-blocking):');
+            summary.push('#### Checklist self-check status (non-blocking)');
+            summary.push('');
             if (uncheckedChecklist.length > 0) {
-              summary.push(...uncheckedChecklist.map((line) => `UNCHECKED | ${line}`));
+              summary.push(...uncheckedChecklist.map((line) => `- [ ] ${line}`));
             } else {
               summary.push('All self-check checklist items are checked in PR body.');
             }
@@ -260,7 +267,7 @@ jobs:
             fs.writeFileSync('quality-check.log', summary.join('\n'), 'utf8');
 
             const changedFilesBody = targets.length > 0
-              ? targets.map((f) => `- ${f}`).join('\n')
+              ? targets.map((f) => `- \`${f}\``).join('\n')
               : '- No frontend-related target files were detected.';
             fs.writeFileSync('quality-checked-files.md', changedFilesBody, 'utf8');
 
@@ -290,13 +297,17 @@ jobs:
             echo "- Violations: \`${{ steps.quality_check.outputs.violations }}\`"
             echo "- Checklist unchecked (self-check only, non-blocking): \`${{ steps.quality_check.outputs.checklist_missing }}\`"
             echo ""
-            echo "### Checked Files"
+            echo "<details>"
+            echo "<summary>Checked Files</summary>"
+            echo ""
             cat quality-checked-files.md
             echo ""
+            echo ""
+            echo "</details>"
+            echo ""
             echo "### Review Output (first 180 lines)"
-            echo '```text'
+            echo ""
             cat quality-check-preview.log
-            echo '```'
             echo ""
           } > pr-quality-comment.md
 

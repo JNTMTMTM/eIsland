@@ -81,10 +81,8 @@ describe('cdDiffDays', () => {
     });
 
     it('handles distant future date', () => {
-      expect(cdDiffDays('2099-12-31')).toBe(Math.ceil(
-        (new Date('2099-12-31T00:00:00').getTime() - new Date('2026-05-31T00:00:00').getTime())
-        / (1000 * 60 * 60 * 24)
-      ));
+      // 日历日期差不能使用跨夏令时的本地毫秒差向上取整。
+      expect(cdDiffDays('2099-12-31')).toBe(26877);
     });
 
     it('ignores the current time of day (today is normalized to midnight)', () => {

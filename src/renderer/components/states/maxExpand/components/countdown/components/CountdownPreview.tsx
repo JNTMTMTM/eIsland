@@ -20,71 +20,29 @@
 
 /**
  * @file CountdownPreview.tsx
- * @description 倒数日卡片预览面板，实时展示新建/编辑中的卡片效果。
+ * @description 使用共享卡片实时预览草稿。
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CountdownCard } from './CountdownCard';
-import { diffDays, toLocalDateStr } from '../utils/countdownUtils';
-import type { CountdownPreviewProps } from '../types/countdownTypes';
+import type { ReactElement } from 'react';
+import type { CountdownDraft } from '../types/countdownTypes';
 
-/** 卡片预览面板 */
-export function CountdownPreview({
-  editItem, editData, editBgImage, editBgOpacity,
-  newType, newColor, newName, newDesc, newBgImage, newBgOpacity,
-  selectedDate,
-  getEventTypeLabel, formatDayText,
-}: CountdownPreviewProps): ReactElement {
+/**
+ * 预览未保存事件。
+ * @param props - 草稿及当前日期
+ * @param props.draft - 未保存的事件草稿
+ * @param props.now - 当前本地日期
+ * @returns 卡片预览
+ */
+export function CountdownPreview({ draft, now }: { draft: CountdownDraft; now: Date }): ReactElement {
   const { t } = useTranslation();
-
-  if (editItem) {
-    const color = editData.color || editItem.color;
-    const type = editData.type || editItem.type;
-    const name = (editData.name || '').trim() || editItem.name;
-    const desc = (editData.description || '').trim() || undefined;
-    const days = diffDays(editItem.date);
-
-    return (
-      <div className="cd-preview">
-        <div className="cd-preview-label">{t('countdown.preview', { defaultValue: '预览' })}</div>
-        <CountdownCard
-          item={editItem}
-          color={color}
-          type={type}
-          name={name}
-          description={desc}
-          backgroundImage={editBgImage}
-          backgroundOpacity={editBgOpacity}
-          dateText={editItem.date}
-          daysText={formatDayText(days)}
-          getEventTypeLabel={getEventTypeLabel}
-        />
-      </div>
-    );
-  }
-
-  const dateText = selectedDate ? toLocalDateStr(selectedDate) : t('countdown.datePlaceholder', { defaultValue: 'YYYY-MM-DD' });
-  const daysText = selectedDate
-    ? (() => { const d = diffDays(toLocalDateStr(selectedDate)); return formatDayText(d); })()
-    : t('countdown.days.placeholder', { defaultValue: '-- 天' });
-
+  const previewItem = { ...draft, id: 0, name: draft.name.trim() || t('countdown.namePlaceholder') };
   return (
-    <div className="cd-preview">
-      <div className="cd-preview-label">{t('countdown.preview', { defaultValue: '预览' })}</div>
-      <CountdownCard
-        item={{ id: 0, name: '', date: '', color: newColor, type: newType }}
-        color={newColor}
-        type={newType}
-        name={newName.trim() || t('countdown.namePlaceholder', { defaultValue: '事件名称' })}
-        description={newDesc.trim() || undefined}
-        backgroundImage={newBgImage}
-        backgroundOpacity={newBgOpacity}
-        dateText={dateText}
-        daysText={daysText}
-        getEventTypeLabel={getEventTypeLabel}
-      />
-    </div>
+    <aside className="cd-preview">
+      <div className="cd-preview-label">{t('countdown.preview')}</div>
+      <CountdownCard item={previewItem} now={now} />
+    </aside>
   );
 }

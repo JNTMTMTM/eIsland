@@ -237,6 +237,75 @@ describe('registerStoreIpcHandlers', () => {
     });
   });
 
+  describe('strict reads and compare-and-swap', () => {
+    beforeEach(() => {
+      registerStoreIpcHandlers({ storeDir: 'C:/store' });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    it('reports read failures in strict mode while allowing a missing store', () => {
+      existsSyncMock.mockReturnValue(false);
+      expect(handlers.get('store:read')!({}, 'countdown-dates', true)).toBeNull();
+      existsSyncMock.mockReturnValue(true);
+      readFileSyncMock.mockImplementation(() => { throw new Error('read failed'); });
+      expect(() => handlers.get('store:read')!({}, 'countdown-dates', true)).toThrow('read failed');
+      readFileSyncMock.mockReturnValue('invalid json');
+      expect(() => handlers.get('store:read')!({}, 'countdown-dates', true)).toThrow();
+    });
+
+    it('rejects the second stale window and preserves both additions after retry', () => {
+      let stored = '[]';
+      existsSyncMock.mockReturnValue(true);
+      readFileSyncMock.mockImplementation(() => stored);
+      writeFileSyncMock.mockImplementation((_path: string, data: string) => { stored = data; });
+      const read = handlers.get('store:read')!;
+      const save = handlers.get('store:compare-and-swap')!;
+      const first = { sender: { id: 1 } };
+      const second = { sender: { id: 2 } };
+      const firstSnapshot = read(first, 'countdown-dates', true);
+      const secondSnapshot = read(second, 'countdown-dates', true);
+      expect(save(first, 'countdown-dates', firstSnapshot, [{ id: 1 }])).toBe('updated');
+      expect(save(second, 'countdown-dates', secondSnapshot, [{ id: 2 }])).toBe('conflict');
+      expect(writeFileSyncMock).toHaveBeenCalledTimes(1);
+      expect(broadcastSettingChangeMock).toHaveBeenCalledTimes(1);
+      const latest = read(second, 'countdown-dates', true) as unknown[];
+      expect(save(second, 'countdown-dates', latest, [...latest, { id: 2 }])).toBe('updated');
+      expect(JSON.parse(stored)).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(broadcastSettingChangeMock).toHaveBeenLastCalledWith(-1, 'store:countdown-dates', [{ id: 1 }, { id: 2 }]);
+    });
+
+    it('creates an absent store from a null snapshot', () => {
+      existsSyncMock.mockReturnValue(false);
+      expect(handlers.get('store:compare-and-swap')!({}, 'countdown-dates', null, [])).toBe('updated');
+      expect(writeFileSyncMock).toHaveBeenCalledWith('C:/store/countdown-dates.json', '[]', 'utf-8');
+    });
+
+    it('does not overwrite unreadable or malformed data', () => {
+      existsSyncMock.mockReturnValue(true);
+      readFileSyncMock.mockImplementationOnce(() => { throw new Error('read failed'); });
+      const save = handlers.get('store:compare-and-swap')!;
+      expect(save({}, 'countdown-dates', null, [])).toBe('error');
+      readFileSyncMock.mockReturnValue('invalid json');
+      expect(save({}, 'countdown-dates', null, [])).toBe('error');
+      expect(writeFileSyncMock).not.toHaveBeenCalled();
+      expect(broadcastSettingChangeMock).not.toHaveBeenCalled();
+    });
+
+    it('reports write failure without broadcasting a successful update', () => {
+      existsSyncMock.mockReturnValue(true);
+      readFileSyncMock.mockReturnValue('[]');
+      writeFileSyncMock.mockImplementation(() => { throw new Error('disk full'); });
+      expect(handlers.get('store:compare-and-swap')!({}, 'countdown-dates', [], [{ id: 1 }])).toBe('error');
+      expect(broadcastSettingChangeMock).not.toHaveBeenCalled();
+    });
+
+    it.each(['../outside', 'folder/key', 'folder\\key', ''])('rejects invalid key %s', (key) => {
+      expect(handlers.get('store:compare-and-swap')!({}, key, null, [])).toBe('error');
+      expect(readFileSyncMock).not.toHaveBeenCalled();
+      expect(writeFileSyncMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('path construction', () => {
     it('uses join to build file paths with custom storeDir', () => {
       registerStoreIpcHandlers({ storeDir: '/home/user/.config/eisland/store' });

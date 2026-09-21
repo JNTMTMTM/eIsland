@@ -63,6 +63,7 @@ export const SvgIcon = {
   STAR: './svg/STAR.svg',
   DOWNLOAD: './svg/DOWNLOAD.svg',
   COPY: './svg/COPY.svg',
+  ARCHIVE: './svg/ARCHIVE.svg',
   DIY: './svg/DIY.svg',
   UNKNOWN: './svg/UNKNOWN.svg',
   BOY: './svg/BOY.svg',

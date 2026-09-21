@@ -20,47 +20,73 @@
 
 /**
  * @file CountdownCard.tsx
- * @description 倒数日卡片组件，用于预览和列表展示。
+ * @description 主页面、预览和 expand 共用的倒数日卡片。
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
-import type { CountdownCardProps } from '../types/countdownTypes';
+import { useEffect, useState, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Pin, Repeat2 } from 'lucide-react';
+import { countdownText, occurrenceDate, normalizeImageSource, diffDays } from '../utils/countdownUtils';
+import type { CountdownItem } from '../types/countdownTypes';
 
-/** 单个倒数日卡片 */
-export function CountdownCard({
-  color, type, name, description,
-  backgroundImage, backgroundOpacity,
-  dateText, daysText,
-  showDelete, onDelete, onClick,
-  getEventTypeLabel,
-}: CountdownCardProps): ReactElement {
-  return (
-    <div
-      className={`cd-card cd-card-${type}`}
-      style={{ borderColor: color }}
-      onClick={onClick}
-    >
-      {backgroundImage && <div className="cd-card-bg" style={{ backgroundImage: `url(${backgroundImage})`, opacity: backgroundOpacity ?? 0.5 }} />}
-      <div className="cd-card-overlay" style={{ background: `linear-gradient(135deg, ${color}30, ${color}10)` }} />
+interface CountdownCardProps {
+  item: CountdownItem;
+  now: Date;
+  compact?: boolean;
+  onClick?: () => void;
+}
+
+/**
+ * 渲染以天数为主视觉的共享卡片。
+ * @param props - 事件、当前日期及紧凑模式
+ * @param props.item - 事件及计时规则
+ * @param props.now - 当前本地日期
+ * @param props.compact - 是否使用小组件紧凑布局
+ * @param props.onClick - 打开事件的回调
+ * @returns 卡片内容
+ */
+export function CountdownCard({ item, now, compact, onClick }: CountdownCardProps): ReactElement {
+  const { t, i18n } = useTranslation();
+  const [background, setBackground] = useState<string>();
+  useEffect(() => {
+    let cancelled = false;
+    normalizeImageSource(item.backgroundImage).then((image) => {
+      if (!cancelled) setBackground(image);
+    }).catch(() => { if (!cancelled) setBackground(undefined); });
+    return () => { cancelled = true; };
+  }, [item.backgroundImage]);
+  const date = new Date(`${occurrenceDate(item, now)}T00:00:00`);
+  const dateText = new Intl.DateTimeFormat(i18n.language, { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' }).format(date);
+  const dayDifference = diffDays(occurrenceDate(item, now), now);
+  const countingUp = item.mode === 'up' && dayDifference <= 0;
+  const dayNumber = Math.abs(dayDifference) + Number(countingUp && Boolean(item.includeToday));
+  const showNumber = countingUp || Math.abs(dayDifference) > 1;
+  const captionKey = countingUp ? 'countdown.days.elapsedUnit' : dayDifference > 0 ? 'countdown.days.remainingUnit' : 'countdown.days.pastUnit';
+  const content = (
+    <>
+      {background && <div className="cd-card-bg" style={{ backgroundImage: `url(${background})`, opacity: item.backgroundOpacity ?? 0.35 }} />}
+      <div className="cd-card-overlay" />
       <div className="cd-card-content">
         <div className="cd-card-top-row">
-          <span className="cd-card-type-badge" style={{ background: `${color}50`, color: '#fff' }}>{getEventTypeLabel(type)}</span>
-          {showDelete && onDelete && (
-            <button
-              className="cd-card-delete"
-              onClick={onDelete}
-              type="button"
-            >x</button>
-          )}
+          <span className="cd-card-type-badge">{t(`countdown.types.${item.type}`)}</span>
+          <span className="cd-card-markers">
+            {item.pinned && <Pin size={12} aria-label={t('countdown.manage.pinned')} />}
+            {item.repeat === 'yearly' && <Repeat2 size={12} aria-label={t('countdown.manage.yearly')} />}
+          </span>
         </div>
-        <div className="cd-card-name">{name}</div>
-        {description && <div className="cd-card-desc">{description}</div>}
-        <div className="cd-card-bottom">
-          <span className="cd-card-date">{dateText}</span>
-          <span className="cd-card-days" style={{ color }}>{daysText}</span>
+        <div className="cd-card-days" aria-label={countdownText(item, t, now)}>
+          {showNumber ? <><span>{dayNumber}</span><span className="cd-day-caption">{t(captionKey)}</span></> : countdownText(item, t, now)}
         </div>
+        <div className="cd-card-name" title={item.name}>{item.name}</div>
+        {!compact && item.description && <div className="cd-card-desc" title={item.description}>{item.description}</div>}
+        <div className="cd-card-date">{dateText}</div>
       </div>
-    </div>
+    </>
   );
+  const className = `cd-card cd-card-${item.type}${compact ? ' ov-cd-card' : ''}`;
+  return onClick ? (
+    <button className={className} type="button" style={{ borderColor: `var(--cd-card-action-border, ${item.color})` }} onClick={onClick}
+      title={`${item.name} · ${countdownText(item, t, now)} · ${dateText}`}>{content}</button>
+  ) : <div className={className} style={{ borderColor: `var(--cd-card-action-border, ${item.color})` }}>{content}</div>;
 }
