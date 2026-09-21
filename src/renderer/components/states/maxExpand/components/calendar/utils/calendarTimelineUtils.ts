@@ -55,6 +55,7 @@ export function getCalendarTimelineEvents(holidays: CalendarHolidayIndex, todos:
     events.push({
       id: `countdown:${item.id}`, kind: 'countdown', label: item.name,
       start: item.date, end: item.date, color: item.color,
+      backgroundImage: item.backgroundImage,
       repeat: item.repeat === 'yearly' && item.mode !== 'up' ? 'yearly' : undefined,
     });
   });

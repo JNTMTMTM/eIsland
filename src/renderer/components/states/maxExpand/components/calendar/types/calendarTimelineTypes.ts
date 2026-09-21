@@ -19,6 +19,8 @@ export interface CalendarTimelineEvent {
   start: string;
   end: string;
   color?: string;
+  /** 倒数日自定义背景，用于所选日期详情头部。 */
+  backgroundImage?: string;
   done?: boolean;
   /** 每年重复的单日事件，start 保存原始起始日期。 */
   repeat?: 'yearly';

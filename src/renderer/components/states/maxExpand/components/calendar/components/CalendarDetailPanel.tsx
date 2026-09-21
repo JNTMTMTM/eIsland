@@ -24,12 +24,13 @@
  * @author 鸡哥
  */
 
-import type { CSSProperties, ReactElement } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getLunarDate } from '../../../../../../utils/timeUtils';
 import { CalendarHolidayDetails } from './CalendarHolidayDetails';
 import { getCalendarDateKey } from '../utils/calendarHolidayUtils';
 import { getCalendarEventsInYears } from '../utils/calendarTimelineUtils';
+import { normalizeImageSource } from '../../countdown/utils/countdownUtils';
 import type { CalendarDetailPanelProps } from '../types/calendarTypes';
 
 /**
@@ -59,6 +60,18 @@ export function CalendarDetailPanel({
   const todos = events.filter((event) => event.kind === 'todo' && event.start <= selectedKey && event.end >= selectedKey);
   const countdowns = getCalendarEventsInYears(events.filter((event) => event.kind === 'countdown'), selectedDate.getFullYear())
     .filter((event) => event.start === selectedKey);
+  const backgroundSource = countdowns.find((event) => event.backgroundImage)?.backgroundImage;
+  const [background, setBackground] = useState<{ source: string; image: string }>();
+  useEffect(() => {
+    if (!backgroundSource) return;
+    let cancelled = false;
+    void normalizeImageSource(backgroundSource).then((image) => {
+      if (!cancelled && image) setBackground({ source: backgroundSource, image });
+    }).catch(() => { if (!cancelled) setBackground(undefined); });
+    return () => { cancelled = true; };
+  }, [backgroundSource]);
+  // 日期切换后立即隐藏旧图，避免异步加载期间显示上一日期的背景。
+  const backgroundImage = background?.source === backgroundSource ? background?.image : undefined;
 
   return (
     <aside
@@ -68,6 +81,9 @@ export function CalendarDetailPanel({
       aria-atomic="true"
     >
       <header className="calendar-details-header">
+        {backgroundImage && (
+          <div className="calendar-details-background" aria-hidden="true" style={{ backgroundImage: `url(${JSON.stringify(backgroundImage)})` }} />
+        )}
         <div className="calendar-details-heading">
           <span>{t('maxExpand.calendar.selectedDate')}</span>
           <span className="calendar-relative-date">{relativeLabel}</span>

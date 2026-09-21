@@ -473,9 +473,23 @@
 }
 
 .calendar-details-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   flex-shrink: 0;
   padding-bottom: .875rem;
   border-bottom: 1px solid rgba(var(--color-text-rgb), .12);
+}
+
+.calendar-details-background {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: .12;
 }
 
 .calendar-date-summary {
