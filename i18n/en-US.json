@@ -432,7 +432,6 @@
       "imageError": "Could not load the image. Please choose it again.",
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
-      "viewAll": "All {{count}} events ›",
       "chooseDate": "Choose date",
       "month": "Month",
       "closeEditor": "Close editor"

@@ -432,7 +432,6 @@
       "imageError": "图片载入失败，请重新选择。",
       "previousMonth": "上个月",
       "nextMonth": "下个月",
-      "viewAll": "全部 {{count}} 项 ›",
       "chooseDate": "选择日期",
       "month": "月份",
       "closeEditor": "关闭编辑面板"

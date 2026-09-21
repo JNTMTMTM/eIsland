@@ -780,13 +780,6 @@
 
 }
 
-.cd-widget-more {
-  margin-left: auto;
-  font-size: 10px;
-  color: rgb(var(--color-text-rgb), .75);
-
-}
-
 .cd-day-caption {
   font-size: 12px;
   font-weight: 500;
