@@ -14,6 +14,7 @@
 import type { CalendarTimelineEvent } from '../types/calendarTimelineTypes';
 import { getCalendarDateKey } from './calendarHolidayUtils';
 import { getCalendarEventsInYears } from './calendarTimelineUtils';
+import { parseTodoDate } from '../../todo/utils/todoCalendarUtils';
 
 /**
  * 构建完整年份，年度倒数日沿用月视图的展开规则。
@@ -23,12 +24,28 @@ import { getCalendarEventsInYears } from './calendarTimelineUtils';
  */
 export function getCalendarYearMonths(year: number, events: CalendarTimelineEvent[]) {
   const expanded = getCalendarEventsInYears(events, year);
+  const byDate = new Map<string, CalendarTimelineEvent[]>();
+  const first = getCalendarDateKey(new Date(year, 0, 1, 12));
+  const last = getCalendarDateKey(new Date(year, 11, 31, 12));
+  // 每个事件只展开与本年相交的日期，避免 365 次遍历全部历史事件。
+  expanded.forEach((event) => {
+    const start = event.start < first ? first : event.start;
+    const end = event.end > last ? last : event.end;
+    if (start > end) return;
+    const date = parseTodoDate(start);
+    if (!date) return;
+    for (let key = start; key <= end; date.setDate(date.getDate() + 1), key = getCalendarDateKey(date)) {
+      const matching = byDate.get(key);
+      if (matching) matching.push(event);
+      else byDate.set(key, [event]);
+    }
+  });
   return Array.from({ length: 12 }, (_, month) => {
     const date = new Date(year, month, 1, 12);
     const days = Array.from({ length: new Date(year, month + 1, 0).getDate() }, (_, index) => {
       const day = new Date(year, month, index + 1, 12);
       const key = getCalendarDateKey(day);
-      const matching = expanded.filter((event) => event.start <= key && event.end >= key);
+      const matching = byDate.get(key) ?? [];
       return { date: day, key, names: matching.map((event) => event.label), color: matching.find((event) => event.kind === 'countdown')?.color ?? matching.find((event) => event.color)?.color };
     });
     return { date, days, firstColumn: date.getDay() + 1 };

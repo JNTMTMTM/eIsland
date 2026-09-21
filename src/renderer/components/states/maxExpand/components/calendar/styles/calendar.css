@@ -741,11 +741,17 @@
   min-width: 0;
 }
 
+.calendar-overview-month-placeholder {
+  /* 与标题 16px、下边距及六行日期 137px 保持相同高度，避免虚拟化跳动。 */
+  height: calc(153px + .375rem);
+}
+
 .calendar-overview-month-heading {
   margin: 0 0 .375rem;
   color: rgba(var(--color-text-rgb), .85);
   font-size: 12px;
   font-weight: 600;
+  line-height: 16px;
 }
 
 .calendar-overview-days {

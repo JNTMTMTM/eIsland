@@ -12,6 +12,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import type { CalendarTimelineEvent } from '../types/calendarTimelineTypes';
 import { getCalendarYearMonths } from './calendarYearUtils';
 import { getCalendarTimelineEvents } from './calendarTimelineUtils';
 
@@ -52,4 +53,29 @@ describe('calendar year overview', () => {
     expect(getCalendarYearMonths(2026, updated)[9].days[0].names).toEqual(['Trip']);
     expect(getCalendarYearMonths(2026, [])[9].days[0].names).toEqual([]);
   });
+  it('clips long events to the viewed year and preserves source ordering and color priority', () => {
+    const events: CalendarTimelineEvent[] = [
+      { id: 'long', kind: 'todo', label: 'Long', start: '1990-01-01', end: '2090-12-31', color: '#111111' },
+      { id: 'leap', kind: 'countdown', label: 'Leap', start: '2024-02-29', end: '2024-02-29', color: '#222222' },
+      { id: 'later', kind: 'countdown', label: 'Later', start: '2024-02-29', end: '2024-02-29', color: '#333333' },
+    ];
+    const days = getCalendarYearMonths(2024, events).flatMap((month) => month.days);
+    expect(days).toHaveLength(366);
+    expect(days.every((day) => day.names[0] === 'Long')).toBe(true);
+    expect(days.find((day) => day.key === '2024-02-29')).toMatchObject({ names: ['Long', 'Leap', 'Later'], color: '#222222' });
+    expect(days[0].color).toBe('#111111');
+  });
+
+  it('does not rescan the history for each day when events are outside the viewed year', () => {
+    let reads = 0;
+    const events: CalendarTimelineEvent[] = Array.from({ length: 5000 }, (_, id) => ({
+      id: String(id), kind: 'todo', label: 'History',
+      get start() { reads += 1; return '2020-01-01'; },
+      get end() { reads += 1; return '2020-01-31'; },
+    }));
+    const months = getCalendarYearMonths(2026, events);
+    expect(months.every((month) => month.days.every((day) => day.names.length === 0))).toBe(true);
+    expect(reads).toBeLessThanOrEqual(events.length * 4);
+  });
+
 });

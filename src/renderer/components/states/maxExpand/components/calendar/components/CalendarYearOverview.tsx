@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { CALENDAR_MONTH_HEADER_HEIGHT } from '../config/calendarConfig';
 import type { CalendarGridProps } from '../types/calendarTypes';
 import { getCalendarDateKey } from '../utils/calendarHolidayUtils';
-import { getCalendarYearMonths } from '../utils/calendarYearUtils';
+import { CalendarOverviewMonths } from './CalendarOverviewMonths';
 import { CalendarViewActions } from './CalendarViewActions';
 
 /**
@@ -30,6 +30,9 @@ export function CalendarYearOverview(props: CalendarGridProps): ReactElement {
   const initialYear = props.overviewYear ?? props.selectedDate.getFullYear();
   const [range, setRange] = useState(() => ({ start: initialYear - 1, end: initialYear + 1 }));
   const [visibleYear, setVisibleYear] = useState(initialYear);
+  const visibleYearRef = useRef(initialYear);
+  const [activeYears, setActiveYears] = useState(() => new Set([initialYear]));
+  const scrollFrame = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const yearRefs = useRef(new Map<number, HTMLElement>());
   const pendingScroll = useRef<{ year: number; offset: number } | null>({ year: initialYear, offset: 0 });
@@ -39,12 +42,38 @@ export function CalendarYearOverview(props: CalendarGridProps): ReactElement {
   const yearFormat = useMemo(() => new Intl.DateTimeFormat(props.locale, { year: 'numeric' }), [props.locale]);
   const years = useMemo(() => Array.from({ length: range.end - range.start + 1 }, (_, index) => {
     const year = range.start + index;
-    return { year, months: getCalendarYearMonths(year, props.events) };
-  }), [range, props.events]);
+    return { year };
+  }), [range]);
   const selectedKey = getCalendarDateKey(props.selectedDate);
   const todayKey = getCalendarDateKey(props.today);
 
   useEffect(() => { props.onVisibleYearChange(visibleYear); }, [visibleYear, props.onVisibleYearChange]);
+
+  // 离开视口的年份仅保留等高占位，滚动时不挂载五年的日期按钮。
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    let cancelled = false;
+    const observer = new IntersectionObserver((entries) => {
+      if (cancelled) return;
+      setActiveYears((current) => {
+        const next = new Set([...current].filter((year) => year >= range.start && year <= range.end));
+        entries.forEach((entry) => {
+          const year = Number((entry.target as HTMLElement).dataset.year);
+          if (entry.isIntersecting) next.add(year);
+          else next.delete(year);
+        });
+        return next.size === current.size && [...next].every((year) => current.has(year)) ? current : next;
+      });
+    }, { root, rootMargin: '160px 0px' });
+    yearRefs.current.forEach((element) => observer.observe(element));
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      if (scrollFrame.current !== null) cancelAnimationFrame(scrollFrame.current);
+      scrollFrame.current = null;
+    };
+  }, [range]);
 
   useLayoutEffect(() => {
     if (previousSelection.current === props.selectedDate) return;
@@ -75,7 +104,7 @@ export function CalendarYearOverview(props: CalendarGridProps): ReactElement {
         props.focusDateRef.current = false;
       }
     }
-  }, [years, props.selectedDate, props.selectedButtonRef, props.focusDateRef]);
+  }, [years, activeYears, props.selectedDate, props.selectedButtonRef, props.focusDateRef]);
 
   return (
     <section className="calendar-grid calendar-year-overview" style={{ '--calendar-header-height': `${CALENDAR_MONTH_HEADER_HEIGHT}px` } as CSSProperties} aria-labelledby={headingId}>
@@ -87,43 +116,43 @@ export function CalendarYearOverview(props: CalendarGridProps): ReactElement {
         onKeyDown={(event) => { if (event.target === event.currentTarget) props.onDateKeyDown(event, new Date(visibleYear, 0, 1, 12)); }}
         onScroll={(event) => {
           const element = event.currentTarget;
-          const top = element.getBoundingClientRect().top;
-          const current = years.find(({ year }) => (yearRefs.current.get(year)?.getBoundingClientRect().bottom ?? 0) > top + 1);
-          if (current) setVisibleYear(current.year);
-          if (pendingScroll.current) return;
-          if (element.scrollTop < 80 && range.start > 1) {
-            const first = yearRefs.current.get(range.start);
-            if (first) pendingScroll.current = { year: range.start, offset: first.getBoundingClientRect().top - top };
-            setRange((value) => ({ start: value.start - 1, end: value.end - value.start >= 4 ? value.end - 1 : value.end }));
-          } else if (element.scrollHeight - element.scrollTop - element.clientHeight < 80 && range.end < 9999) {
-            const anchorYear = current?.year ?? range.end;
-            const anchor = yearRefs.current.get(anchorYear);
-            if (anchor) pendingScroll.current = { year: anchorYear, offset: anchor.getBoundingClientRect().top - top };
-            setRange((value) => ({ start: value.end - value.start >= 4 ? value.start + 1 : value.start, end: value.end + 1 }));
-          }
+          if (scrollFrame.current !== null) return;
+          scrollFrame.current = requestAnimationFrame(() => {
+            scrollFrame.current = null;
+            const top = element.getBoundingClientRect().top;
+            const current = years.find(({ year }) => (yearRefs.current.get(year)?.getBoundingClientRect().bottom ?? 0) > top + 1);
+            if (current && visibleYearRef.current !== current.year) {
+              visibleYearRef.current = current.year;
+              setVisibleYear(current.year);
+            }
+            if (pendingScroll.current) return;
+            if (element.scrollTop < 80 && range.start > 1) {
+              const first = yearRefs.current.get(range.start);
+              if (first) pendingScroll.current = { year: range.start, offset: first.getBoundingClientRect().top - top };
+              setRange((value) => ({ start: value.start - 1, end: value.end - value.start >= 4 ? value.end - 1 : value.end }));
+            } else if (element.scrollHeight - element.scrollTop - element.clientHeight < 80 && range.end < 9999) {
+              const anchorYear = current?.year ?? range.end;
+              const anchor = yearRefs.current.get(anchorYear);
+              if (anchor) pendingScroll.current = { year: anchorYear, offset: anchor.getBoundingClientRect().top - top };
+              setRange((value) => ({ start: value.end - value.start >= 4 ? value.start + 1 : value.start, end: value.end + 1 }));
+            }
+          });
         }}
       >
-        {years.map(({ year, months }) => (
-          <section className="calendar-overview-year" key={year} ref={(element) => { if (element) yearRefs.current.set(year, element); else yearRefs.current.delete(year); }} aria-label={yearFormat.format(new Date(year, 0, 1))}>
+        {years.map(({ year }) => (
+          <section className="calendar-overview-year" data-year={year} key={year} ref={(element) => { if (element) yearRefs.current.set(year, element); else yearRefs.current.delete(year); }} aria-label={yearFormat.format(new Date(year, 0, 1))}>
             <h3 className="calendar-overview-year-heading" data-current={year === props.today.getFullYear()}>{yearFormat.format(new Date(year, 0, 1))}</h3>
-            <div className="calendar-overview-months">
-              {months.map((month) => (
-                <div className="calendar-overview-month" key={month.date.getMonth()} role="group" aria-label={props.formats.month.format(month.date)}>
-                  <h4 className="calendar-overview-month-heading" data-current={year === props.today.getFullYear() && month.date.getMonth() === props.today.getMonth()}>{shortMonthFormat.format(month.date)}</h4>
-                  <div className="calendar-overview-days">
-                    {month.days.map((day, index) => (
-                      <button className="calendar-overview-day" key={day.key} type="button" data-events={day.names.length > 0} data-weekend={day.date.getDay() === 0 || day.date.getDay() === 6}
-                        style={{ gridColumnStart: index === 0 ? month.firstColumn : undefined, '--calendar-event-color': day.color } as CSSProperties}
-                        ref={day.key === selectedKey ? props.selectedButtonRef : undefined} tabIndex={day.key === selectedKey ? 0 : -1}
-                        aria-pressed={day.key === selectedKey} aria-current={day.key === todayKey ? 'date' : undefined}
-                        aria-label={[props.formats.full.format(day.date), ...day.names].join(', ')} title={[props.formats.full.format(day.date), ...day.names].join(', ')}
-                        onClick={() => props.onSelectDate(day.date)} onKeyDown={(event) => props.onDateKeyDown(event, day.date)}
-                      >{day.date.getDate()}</button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {activeYears.has(year) || ((pendingSelection.current || previousSelection.current !== props.selectedDate) && year === props.selectedDate.getFullYear()) ? (
+              <CalendarOverviewMonths year={year} events={props.events} formats={props.formats} shortMonthFormat={shortMonthFormat}
+                selectedKey={year === props.selectedDate.getFullYear() ? selectedKey : null}
+                todayKey={year === props.today.getFullYear() ? todayKey : null}
+                selectedButtonRef={props.selectedButtonRef} onSelectDate={props.onSelectDate} onDateKeyDown={props.onDateKeyDown}
+              />
+            ) : (
+              <div className="calendar-overview-months" aria-hidden="true">
+                {Array.from({ length: 12 }, (_, month) => <div className="calendar-overview-month-placeholder" key={month} />)}
+              </div>
+            )}
           </section>
         ))}
       </div>
