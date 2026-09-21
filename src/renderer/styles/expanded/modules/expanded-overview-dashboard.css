@@ -593,14 +593,16 @@
   color: rgba(var(--color-text-rgb), 0.85);
 }
 
-/** 闹钟与世界时钟共用紧凑的两行卡片布局。 */
-.ov-dash-alarm-title {
+/** 标题按钮保留小组件统一的字号、字重和颜色。 */
+.ov-dash-alarm-title,
+.ov-dash-countdown-title {
   padding: 0;
   border: none;
   background: none;
   font-family: inherit;
   text-align: left;
 }
+/** 闹钟与世界时钟共用紧凑的两行卡片布局。 */
 .ov-dash-world-clock-item.ov-dash-alarm-item {
   grid-template-columns: minmax(0, 1fr) auto;
   column-gap: 6px;
