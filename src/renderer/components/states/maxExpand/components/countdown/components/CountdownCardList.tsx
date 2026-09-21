@@ -25,7 +25,7 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import { Archive, ArchiveRestore, Copy, Pencil, Pin, PinOff } from 'lucide-react';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { isArchived } from '../utils/countdownUtils';
 import { CountdownCard } from './CountdownCard';
 import type { ReactElement } from 'react';
@@ -57,14 +57,14 @@ export function CountdownCardList({ items, now, saving, onStartEdit, onAction }:
         : items.map((item) => (<article className="cd-event" key={item.id}>
           <CountdownCard item={item} now={now} onClick={() => onStartEdit(item)} />
           <div className="cd-card-actions">
-            <button type="button" title={t('countdown.manage.edit')} aria-label={t('countdown.manage.edit')} onClick={() => onStartEdit(item)}><Pencil size={14} /></button>
+            <button type="button" title={t('countdown.manage.edit')} aria-label={t('countdown.manage.edit')} onClick={() => onStartEdit(item)}><img className="cd-card-action-icon" src={SvgIcon.DIY} alt="" draggable={false} /></button>
             <button type="button" disabled={saving} title={t(item.pinned ? 'countdown.manage.unpin' : 'countdown.manage.pin')}
               aria-label={t(item.pinned ? 'countdown.manage.unpin' : 'countdown.manage.pin')} aria-pressed={Boolean(item.pinned)}
-              onClick={() => onAction(item, 'pin')}>{item.pinned ? <PinOff size={14} /> : <Pin size={14} />}</button>
-            <button type="button" disabled={saving} title={t('countdown.manage.copy')} aria-label={t('countdown.manage.copy')} onClick={() => onAction(item, 'copy')}><Copy size={14} /></button>
+              onClick={() => onAction(item, 'pin')}><img className="cd-card-action-icon" src={SvgIcon.PIN_ON_TOP} alt="" draggable={false} /></button>
+            <button type="button" disabled={saving} title={t('countdown.manage.copy')} aria-label={t('countdown.manage.copy')} onClick={() => onAction(item, 'copy')}><img className="cd-card-action-icon" src={SvgIcon.COPY} alt="" draggable={false} /></button>
             <button type="button" disabled={saving} title={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')}
               aria-label={t(isArchived(item, now) ? 'countdown.manage.restore' : 'countdown.manage.archive')} onClick={() => onAction(item, 'archive')}>
-              {isArchived(item, now) ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+              <img className="cd-card-action-icon" src={isArchived(item, now) ? SvgIcon.REVERT : SvgIcon.ARCHIVE} alt="" draggable={false} />
             </button>
           </div>
         </article>))}

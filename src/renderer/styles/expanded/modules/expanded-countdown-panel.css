@@ -455,6 +455,27 @@
 
 }
 
+.cd-card-action-icon {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  filter: brightness(0) invert(1);
+  opacity: .75;
+  transition: opacity .18s ease;
+
+}
+
+[data-theme="light"] .cd-card-action-icon {
+  filter: brightness(0) invert(0);
+
+}
+
+.cd-card-actions button:hover:not(:disabled) .cd-card-action-icon,
+.cd-card-actions [aria-pressed="true"] .cd-card-action-icon {
+  opacity: .95;
+
+}
+
 .cd-card-actions button:hover:not(:disabled),
 .cd-card-actions [aria-pressed="true"],
 .cd-filter-tabs button:hover:not(:disabled),
