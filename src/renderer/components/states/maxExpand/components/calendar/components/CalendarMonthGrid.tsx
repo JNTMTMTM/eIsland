@@ -55,6 +55,7 @@ export const CalendarMonthGrid = memo(function CalendarMonthGrid({
   return (
     <div
       className="calendar-month"
+      data-month={days[0].key.slice(0, 7)}
       style={{ '--calendar-month-start-column': month.date.getDay() + 1 } as CSSProperties}
       role="group"
       aria-label={formats.month.format(month.date)}

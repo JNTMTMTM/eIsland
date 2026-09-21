@@ -41,7 +41,7 @@ const CalendarOverviewMonth = memo(function CalendarOverviewMonth(props: Overvie
     ...day, label: [formats.full.format(day.date), ...day.names].join(', '),
   })), [month, formats]);
   return (
-    <div className="calendar-overview-month" role="group" aria-label={formats.month.format(month.date)}>
+    <div className="calendar-overview-month" data-month={month.days[0].key.slice(0, 7)} role="group" aria-label={formats.month.format(month.date)}>
       <h4 className="calendar-overview-month-heading" data-current={props.todayKey !== null}>{props.shortMonthFormat.format(month.date)}</h4>
       <div className="calendar-overview-days">
         {days.map((day, index) => (

@@ -76,6 +76,46 @@
   height: 20rem;
 }
 
+.calendar-view-stage {
+  --calendar-view-exit-scale: .65;
+  --calendar-view-enter-scale: 1.6;
+  min-width: 0;
+  min-height: 0;
+  height: 20rem;
+  overflow: hidden;
+}
+
+.calendar-view-stage[data-direction="month"] {
+  --calendar-view-exit-scale: 1.6;
+  --calendar-view-enter-scale: .65;
+}
+
+.calendar-view-stage > .calendar-grid {
+  transform-origin: var(--calendar-zoom-origin, 50% 50%);
+}
+
+.calendar-view-stage[data-phase="prepare"] > .calendar-grid {
+  opacity: 0;
+}
+
+.calendar-view-stage[data-phase="exit"] > .calendar-grid {
+  animation: calendar-view-exit .18s cubic-bezier(.4, 0, .6, 1) both;
+}
+
+.calendar-view-stage[data-phase="enter"] > .calendar-grid {
+  animation: calendar-view-enter .24s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes calendar-view-exit {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(var(--calendar-view-exit-scale)); }
+}
+
+@keyframes calendar-view-enter {
+  from { opacity: 0; transform: scale(var(--calendar-view-enter-scale)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .calendar-month-heading {
   display: flex;
   flex-shrink: 0;
@@ -683,7 +723,8 @@
     transform: translateX(12px);
   }
 
-  .calendar-grid {
+  .calendar-grid,
+  .calendar-view-stage {
     height: 100%;
   }
 
@@ -695,6 +736,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .calendar-view-stage[data-phase] > .calendar-grid {
+    animation-duration: .01ms;
+  }
+
   .calendar-layout,
   .calendar-details-shell,
   .calendar-details-shell[inert] {

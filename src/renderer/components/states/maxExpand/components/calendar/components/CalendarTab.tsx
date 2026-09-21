@@ -24,12 +24,13 @@
  * @author 鸡哥
  */
 
-import { useId, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
 import { useCalendarHolidays } from '../hooks/useCalendarHolidays';
 import { useCalendarTodos } from '../hooks/useCalendarTodos';
 import { useCountdownItems } from '../../countdown/hooks/useCountdownItems';
 import { getCalendarTimelineEvents } from '../utils/calendarTimelineUtils';
+import { getCalendarDateKey } from '../utils/calendarHolidayUtils';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarYearOverview } from './CalendarYearOverview';
 import { CalendarDetailPanel } from './CalendarDetailPanel';
@@ -43,6 +44,12 @@ import '../styles/calendar.css';
 export function CalendarTab(): ReactElement {
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [overviewYear, setOverviewYear] = useState<number | null>(null);
+  const [viewPhase, setViewPhase] = useState<'idle' | 'exit' | 'prepare' | 'enter'>('idle');
+  const [zoomOrigin, setZoomOrigin] = useState('50% 50%');
+  const zoomDate = useRef(new Date());
+  const pendingOverviewYear = useRef<number | null>(null);
+  const viewStageRef = useRef<HTMLDivElement>(null);
+  const restoreViewFocus = useRef(false);
   const detailsId = useId();
   const {
     today,
@@ -61,6 +68,34 @@ export function CalendarTab(): ReactElement {
   const { items: countdowns } = useCountdownItems();
   const events = useMemo(() => getCalendarTimelineEvents(holidayInfo.holidays, todos, countdowns, today), [holidayInfo.holidays, todos, countdowns, today]);
   const CalendarView = overviewYear === null ? CalendarGrid : CalendarYearOverview;
+  const updateZoomOrigin = useCallback((date: Date) => {
+    const stage = viewStageRef.current;
+    if (!stage) return;
+    const month = stage.querySelector<HTMLElement>(`[data-month="${getCalendarDateKey(date).slice(0, 7)}"]`);
+    const bounds = stage.getBoundingClientRect();
+    const target = month?.getBoundingClientRect();
+    if (!target || !bounds.width || !bounds.height || target.bottom <= bounds.top || target.top >= bounds.bottom) {
+      setZoomOrigin('50% 50%');
+      return;
+    }
+    const x = (Math.max(bounds.left, target.left) + Math.min(bounds.right, target.right)) / 2;
+    const y = (Math.max(bounds.top, target.top) + Math.min(bounds.bottom, target.bottom)) / 2;
+    setZoomOrigin(`${(x - bounds.left) / bounds.width * 100}% ${(y - bounds.top) / bounds.height * 100}%`);
+  }, []);
+  useLayoutEffect(() => {
+    if (viewPhase === 'prepare') updateZoomOrigin(zoomDate.current);
+  }, [viewPhase, updateZoomOrigin]);
+  useEffect(() => {
+    if (viewPhase !== 'prepare') return;
+    // 新视图先以正常尺寸完成虚拟日历定位，再开始缩放，避免缩放坐标干扰滚动测量。
+    const frame = requestAnimationFrame(() => setViewPhase('enter'));
+    return () => cancelAnimationFrame(frame);
+  }, [viewPhase]);
+  useEffect(() => {
+    if (viewPhase !== 'idle' || !restoreViewFocus.current) return;
+    restoreViewFocus.current = false;
+    viewStageRef.current?.querySelector<HTMLButtonElement>('.calendar-view-toggle')?.focus({ preventScroll: true });
+  }, [viewPhase]);
 
   return (
     <div
@@ -68,24 +103,47 @@ export function CalendarTab(): ReactElement {
       onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}
     >
       <div className="calendar-layout" data-details-expanded={detailsExpanded}>
-        <CalendarView
-          overviewYear={overviewYear ?? undefined}
-          onToggleOverview={(date) => setOverviewYear(overviewYear === null ? date.getFullYear() : null)}
-          detailsExpanded={detailsExpanded}
-          detailsId={detailsId}
-          onToggleDetails={() => setDetailsExpanded((expanded) => !expanded)}
-          events={events}
-          holidays={holidayInfo.holidays}
-          onVisibleYearChange={holidayInfo.setVisibleYear}
-          selectedDate={selectedDate}
-          today={today}
-          locale={locale}
-          formats={formats}
-          selectedButtonRef={selectedButtonRef}
-          focusDateRef={focusDateRef}
-          onSelectDate={selectDate}
-          onDateKeyDown={handleDateKeyDown}
-        />
+        <div
+          className="calendar-view-stage"
+          ref={viewStageRef}
+          style={{ '--calendar-zoom-origin': zoomOrigin } as CSSProperties}
+          data-phase={viewPhase}
+          data-direction={(viewPhase === 'exit' ? pendingOverviewYear.current : overviewYear) === null ? 'month' : 'year'}
+          inert={viewPhase !== 'idle'}
+          onAnimationEnd={(event) => {
+            if (event.target !== event.currentTarget.firstElementChild) return;
+            if (viewPhase === 'exit') {
+              setOverviewYear(pendingOverviewYear.current);
+              setViewPhase('prepare');
+            } else if (viewPhase === 'enter') setViewPhase('idle');
+          }}
+        >
+          <CalendarView
+            overviewYear={overviewYear ?? undefined}
+            onToggleOverview={(date) => {
+              if (viewPhase !== 'idle') return;
+              zoomDate.current = overviewYear !== null && selectedDate.getFullYear() === date.getFullYear() ? selectedDate : date;
+              updateZoomOrigin(zoomDate.current);
+              pendingOverviewYear.current = overviewYear === null ? date.getFullYear() : null;
+              restoreViewFocus.current = document.activeElement === viewStageRef.current?.querySelector('.calendar-view-toggle');
+              setViewPhase('exit');
+            }}
+            detailsExpanded={detailsExpanded}
+            detailsId={detailsId}
+            onToggleDetails={() => setDetailsExpanded((expanded) => !expanded)}
+            events={events}
+            holidays={holidayInfo.holidays}
+            onVisibleYearChange={holidayInfo.setVisibleYear}
+            selectedDate={selectedDate}
+            today={today}
+            locale={locale}
+            formats={formats}
+            selectedButtonRef={selectedButtonRef}
+            focusDateRef={focusDateRef}
+            onSelectDate={selectDate}
+            onDateKeyDown={handleDateKeyDown}
+          />
+        </div>
         <div className="calendar-details-shell" id={detailsId} inert={!detailsExpanded} aria-hidden={!detailsExpanded}>
           <div className="calendar-details-clip">
             <CalendarDetailPanel
