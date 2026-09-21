@@ -43,6 +43,8 @@ type TestWindow = {
 };
 
 type ExposedApi = {
+  storeRead: (key: string, strict?: boolean) => Promise<unknown>;
+  storeCompareAndSwap: (key: string, expected: unknown, data: unknown) => Promise<'updated' | 'conflict' | 'error'>;
   setAlarmEnabled: (id: number, enabled: boolean) => Promise<boolean>;
   enableMousePassthrough: () => void;
   getMousePosition: () => Promise<unknown>;
@@ -123,6 +125,22 @@ async function loadPreloadWithContextIsolation(contextIsolated: boolean): Promis
 }
 
 describe('preload bridge', () => {
+  it('forwards strict reads and compare-and-swap snapshots and results', async () => {
+    const setup = await loadPreloadWithContextIsolation(true);
+    const api = setup.exposeInMainWorldMock.mock.calls.find(([name]) => name === 'api')?.[1] as ExposedApi;
+    await api.storeRead('countdown-dates');
+    expect(setup.invokeMock).toHaveBeenLastCalledWith('store:read', 'countdown-dates');
+    await api.storeRead('countdown-dates', true);
+    expect(setup.invokeMock).toHaveBeenLastCalledWith('store:read', 'countdown-dates', true);
+    setup.invokeMock.mockRejectedValueOnce(new Error('read failed'));
+    await expect(api.storeRead('countdown-dates', true)).rejects.toThrow('read failed');
+    for (const result of ['updated', 'conflict', 'error']) {
+      setup.invokeMock.mockResolvedValueOnce(result);
+      expect(await api.storeCompareAndSwap('countdown-dates', [], [{ id: 1 }])).toBe(result);
+      expect(setup.invokeMock).toHaveBeenLastCalledWith('store:compare-and-swap', 'countdown-dates', [], [{ id: 1 }]);
+    }
+  });
+
   beforeEach(() => {
     installTestWindow();
   });

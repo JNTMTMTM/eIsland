@@ -39,17 +39,25 @@ interface CountdownState {
 const useData = create<CountdownState>(() => ({ items: [], loaded: false, saving: false, error: false }));
 let subscribers = 0;
 let stopSync: (() => void) | undefined;
+let syncRevision = 0;
 
 async function updateItems(update: (items: CountdownItem[]) => CountdownItem[]): Promise<boolean> {
   if (!useData.getState().loaded || useData.getState().saving) return false;
   useData.setState({ saving: true, error: false });
   try {
-    // 修改前读取最新数据，避免独立窗口留存的旧快照覆盖另一窗口的更新。
-    const latest = parseCountdownItems(await window.api.storeRead(STORE_KEY));
-    const next = update(latest);
-    if (!await window.api.storeWrite(STORE_KEY, next)) throw new Error('Countdown write failed');
-    useData.setState({ items: next });
-    return true;
+    // 主进程原子比较快照，冲突后基于最新数据重新应用修改。
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const latest = await window.api.storeRead(STORE_KEY, true);
+      const next = update(parseCountdownItems(latest));
+      const revision = syncRevision;
+      const result = await window.api.storeCompareAndSwap(STORE_KEY, latest, next);
+      if (result === 'conflict') continue;
+      if (result !== 'updated') throw new Error('Countdown write failed');
+      // 保存应答可能晚于其他窗口的新提交，不能覆盖已收到的更新。
+      if (revision === syncRevision) useData.setState({ items: next });
+      return true;
+    }
+    throw new Error('Countdown update conflicts exceeded retry limit');
   } catch {
     useData.setState({ error: true });
     return false;
@@ -72,12 +80,13 @@ export function useCountdownItems() {
       const unsubscribe = window.api.onSettingsChanged((channel, data) => {
         if (channel !== `store:${STORE_KEY}`) return;
         revision += 1;
-        useData.setState({ items: parseCountdownItems(data), loaded: true });
+        syncRevision += 1;
+        useData.setState({ items: parseCountdownItems(data), loaded: true, error: false });
       });
-      window.api.storeRead(STORE_KEY).then((data) => {
-        if (!cancelled && revision === 0) useData.setState({ items: parseCountdownItems(data), loaded: true });
+      window.api.storeRead(STORE_KEY, true).then((data) => {
+        if (!cancelled && revision === 0) useData.setState({ items: parseCountdownItems(data), loaded: true, error: false });
       }).catch(() => {
-        if (!cancelled) useData.setState({ error: true });
+        if (!cancelled && revision === 0) useData.setState({ error: true, loaded: true });
       });
       stopSync = () => { cancelled = true; unsubscribe(); };
     }

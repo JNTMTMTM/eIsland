@@ -28,6 +28,7 @@
 import { ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { isDeepStrictEqual } from 'node:util';
 import { broadcastSettingChange } from '../../utils/broadcast';
 import type { RegisterStoreIpcHandlersOptions } from './types';
 
@@ -62,7 +63,7 @@ export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOption
     }
   });
 
-  ipcMain.handle('store:read', (_event, key: string) => {
+  ipcMain.handle('store:read', (_event, key: string, strict = false) => {
     try {
       if (!isValidStoreKey(key)) return null;
       const filePath = join(options.storeDir, `${key}.json`);
@@ -71,7 +72,25 @@ export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOption
       return JSON.parse(raw);
     } catch (err) {
       console.error(`[Store] read '${key}' error:`, err);
+      if (strict) throw err;
       return null;
+    }
+  });
+
+  // 同步比较并写入，两个渲染窗口基于同一快照的修改只能有一个成功。
+  ipcMain.handle('store:compare-and-swap', (_event, key: string, expected: unknown, data: unknown) => {
+    try {
+      if (!isValidStoreKey(key)) return 'error';
+      const filePath = join(options.storeDir, `${key}.json`);
+      const current: unknown = existsSync(filePath) ? JSON.parse(readFileSync(filePath, 'utf-8')) : null;
+      if (!isDeepStrictEqual(current, expected)) return 'conflict';
+      writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+      // 包含发起窗口，确保各窗口按主进程提交顺序接收更新。
+      broadcastSettingChange(-1, `store:${key}`, data);
+      return 'updated';
+    } catch (err) {
+      console.error(`[Store] compare-and-swap '${key}' error:`, err);
+      return 'error';
     }
   });
 
