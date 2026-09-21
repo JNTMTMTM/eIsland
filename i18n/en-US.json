@@ -1509,6 +1509,8 @@
       "expandDetails": "Expand date details",
       "collapseDetails": "Collapse date details",
       "goToToday": "Today",
+      "yearOverview": "Year overview",
+      "monthView": "Month view",
       "selectedDate": "Selected date",
       "lunarDate": "Lunar date",
       "holidays": "Public holidays",

@@ -31,6 +31,7 @@ import { useCalendarTodos } from '../hooks/useCalendarTodos';
 import { useCountdownItems } from '../../countdown/hooks/useCountdownItems';
 import { getCalendarTimelineEvents } from '../utils/calendarTimelineUtils';
 import { CalendarGrid } from './CalendarGrid';
+import { CalendarYearOverview } from './CalendarYearOverview';
 import { CalendarDetailPanel } from './CalendarDetailPanel';
 import '../styles/calendar.css';
 
@@ -41,6 +42,7 @@ import '../styles/calendar.css';
  */
 export function CalendarTab(): ReactElement {
   const [detailsExpanded, setDetailsExpanded] = useState(true);
+  const [overviewYear, setOverviewYear] = useState<number | null>(null);
   const detailsId = useId();
   const {
     today,
@@ -58,6 +60,7 @@ export function CalendarTab(): ReactElement {
   const todos = useCalendarTodos();
   const { items: countdowns } = useCountdownItems();
   const events = useMemo(() => getCalendarTimelineEvents(holidayInfo.holidays, todos, countdowns, today), [holidayInfo.holidays, todos, countdowns, today]);
+  const CalendarView = overviewYear === null ? CalendarGrid : CalendarYearOverview;
 
   return (
     <div
@@ -65,7 +68,9 @@ export function CalendarTab(): ReactElement {
       onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}
     >
       <div className="calendar-layout" data-details-expanded={detailsExpanded}>
-        <CalendarGrid
+        <CalendarView
+          overviewYear={overviewYear ?? undefined}
+          onToggleOverview={(date) => setOverviewYear(overviewYear === null ? date.getFullYear() : null)}
           detailsExpanded={detailsExpanded}
           detailsId={detailsId}
           onToggleDetails={() => setDetailsExpanded((expanded) => !expanded)}

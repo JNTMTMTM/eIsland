@@ -25,8 +25,7 @@
  */
 
 import { useEffect, useId, useLayoutEffect, useMemo, type CSSProperties, type ReactElement } from 'react';
-import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import { CalendarViewActions } from './CalendarViewActions';
 import { useCalendarScroll } from '../hooks/useCalendarScroll';
 import { CALENDAR_EVENT_BOTTOM_GAP, CALENDAR_EVENT_LANE_HEIGHT } from '../config/calendarConfig';
 import { CalendarMonthGrid } from './CalendarMonthGrid';
@@ -39,6 +38,7 @@ import type { CalendarGridProps } from '../types/calendarTypes';
  * @param props.detailsExpanded - 日期详情是否展开
  * @param props.detailsId - 日期详情容器标识
  * @param props.onToggleDetails - 切换日期详情展开状态
+ * @param props.onToggleOverview - 切换全年概览视图
  * @param props.events - 日历事件
  * @param props.holidays - 按日期归类的假日
  * @param props.onVisibleYearChange - 浏览年份变化回调
@@ -56,6 +56,7 @@ export function CalendarGrid({
   detailsExpanded,
   detailsId,
   onToggleDetails,
+  onToggleOverview,
   events,
   holidays,
   onVisibleYearChange,
@@ -68,7 +69,6 @@ export function CalendarGrid({
   onSelectDate,
   onDateKeyDown,
 }: CalendarGridProps): ReactElement {
-  const { t } = useTranslation();
   const monthId = useId();
   const monthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'long' }), [locale]);
   const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
@@ -103,22 +103,7 @@ export function CalendarGrid({
         <span className="calendar-month-name" data-current-month={visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth()}>
           {monthFormat.format(visibleDate)}
         </span>
-        <span className="calendar-header-actions">
-          <button className="calendar-today-button" type="button" onClick={() => onSelectDate(new Date())}>
-            {t('maxExpand.calendar.goToToday')}
-          </button>
-          <button
-            className="calendar-details-toggle"
-            type="button"
-            aria-expanded={detailsExpanded}
-            aria-controls={detailsId}
-            aria-label={t(detailsExpanded ? 'maxExpand.calendar.collapseDetails' : 'maxExpand.calendar.expandDetails')}
-            title={t(detailsExpanded ? 'maxExpand.calendar.collapseDetails' : 'maxExpand.calendar.expandDetails')}
-            onClick={onToggleDetails}
-          >
-            <img className="calendar-details-toggle-icon-img" src={detailsExpanded ? SvgIcon.EXPAND : SvgIcon.COLLAPSE} alt="" draggable={false} />
-          </button>
-        </span>
+        <CalendarViewActions overview={false} visibleDate={visibleDate} detailsExpanded={detailsExpanded} detailsId={detailsId} onToggleDetails={onToggleDetails} onSelectDate={onSelectDate} onToggleOverview={onToggleOverview} />
       </h2>
       <div className="calendar-weekdays" aria-hidden="true">
         {months[0].weeks[0].map((date) => (
