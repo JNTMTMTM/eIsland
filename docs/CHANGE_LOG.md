@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-20T22:08:05.869Z
+> 生成时间：2026-09-21T01:54:13.274Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,32 @@
 
 ## Unreleased
 
+- 2026-09-20 | ee51c29b | 鸡哥 | Merge pull request #219 from JNTMTMTM/dev
+- 2026-09-21 | 0de7cc16 | 鸡哥 | style: refactor storeCompareAndSwap test to use async reduce for improved readability
+- 2026-09-21 | c27b5c43 | 鸡哥 | style: enhance quality review output formatting and improve violation details presentation
+- 2026-09-21 | 5d0450d9 | 鸡哥 | style: enhance store IPC handlers with strict read and compare-and-swap functionality
+- 2026-09-21 | 014fe080 | 鸡哥 | style: refactor CountdownPreview to improve readability by extracting previewItem variable
+- 2026-09-21 | 4a7ad283 | 鸡哥 | style: update CountdownTab to remove duplicate rendering logic and enhance feedback message styling
+- 2026-09-21 | cb2307d6 | 鸡哥 | style: add transition effect to border color for countdown card and enhance reduced motion support
+- 2026-09-21 | 1643acdc | 鸡哥 | style: add delete action to CountdownCardList and enhance button styles for improved visibility
+- 2026-09-21 | f732dce1 | 鸡哥 | style: replace icon components with SVG images in CountdownCardList for improved visual consistency
+- 2026-09-21 | cef3df00 | 鸡哥 | style: enhance expiry label layout in CountdownForm for better alignment
+- 2026-09-21 | 08a3984b | 鸡哥 | style: update box-shadow for countdown panel to enhance visual depth
+- 2026-09-21 | fe890f09 | 鸡哥 | style: update focus styles for countdown panel inputs and buttons for improved accessibility
+- 2026-09-21 | caf99a39 | 鸡哥 | style: enhance toolbar and drawer header styles for improved layout and consistency
+- 2026-09-21 | e7c54a93 | 鸡哥 | style: refine countdown calendar highlighted day styles for improved clarity
+- 2026-09-21 | df2e7169 | 鸡哥 | style: update countdown calendar hover and selected day styles for better accessibility
+- 2026-09-21 | 38101088 | 鸡哥 | style: update CountdownForm to separate border color and background style options with improved layout
+- 2026-09-21 | 9a471134 | 鸡哥 | style: enhance CountdownForm custom color selection with improved layout and styling
+- 2026-09-21 | 357d1bb2 | 鸡哥 | style: update button and tab styles for improved theming and consistency
+- 2026-09-21 | 479b838b | 鸡哥 | style: enhance CountdownForm range input styling and layout for better user experience
+- 2026-09-21 | 857afe4a | 鸡哥 | style: update countdown panel styles for improved theming and button interactions
+- 2026-09-21 | d1041b8b | 鸡哥 | style: update CountdownForm appearance section for improved layout and clarity
+- 2026-09-21 | 9d120a90 | 鸡哥 | style: enhance countdown form actions layout and styling
+- 2026-09-21 | 21b7f81b | 鸡哥 | fix: adjust width of countdown panel to improve layout
+- 2026-09-21 | a2eda068 | 鸡哥 | refactor: remove countdown reminders and related hooks; update countdown components for improved functionality
+- 2026-09-21 | a14d11fa | 鸡哥 | feat: implement countdown reminders and related utilities
+- 2026-09-20 | c2aab6e1 | eislandBot | docs: auto update CHANGE_LOG.md for #218 by @JNTMTMTM [skip ci]
 - 2026-09-20 | ed436d72 | 鸡哥 | Merge pull request #218 from JNTMTMTM/dev
 - 2026-09-21 | e7d25bbe | 鸡哥 | feat(ci): enhance PR comment report with escaped table cells and collapsible sections for changed files
 - 2026-09-21 | c3af653f | 鸡哥 | feat(ci): enhance markdown link check workflow with external and local link validation
