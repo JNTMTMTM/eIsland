@@ -1506,6 +1506,8 @@
       "lunarDate": "农历",
       "holidays": "公共假日",
       "scheduledTodos": "当日待办",
+      "scheduledCountdowns": "当日倒数日",
+      "countdownEvent": "倒数日 · {{name}}：{{date}}",
       "eventPeriod": "{{name}}：{{start}} → {{end}}",
       "eventCompleted": "已完成",
       "currentRegion": "当前位置的国家或地区",

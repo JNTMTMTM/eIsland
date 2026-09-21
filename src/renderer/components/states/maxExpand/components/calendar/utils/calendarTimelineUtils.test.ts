@@ -12,10 +12,11 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import type { CountdownItem } from '../../countdown/types/countdownTypes';
 import type { TodoItem } from '../../todo/types/todoTypes';
 import type { CalendarTimelineEvent } from '../types/calendarTimelineTypes';
 import { CALENDAR_EVENT_BOTTOM_GAP, CALENDAR_EVENT_LANE_HEIGHT, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
-import { getCalendarTimelineEvents, getCalendarWeekTimeline } from './calendarTimelineUtils';
+import { getCalendarEventsInYears, getCalendarTimelineEvents, getCalendarWeekTimeline } from './calendarTimelineUtils';
 import { getCalendarMonthLayouts, getCalendarReflowTop, getCalendarWeeks } from './calendarUtils';
 
 const task = (id: number, start: string, end?: string): TodoItem => ({ id, text: `Task ${id}`, createdAt: new Date(`${start}T12:00:00`).getTime(), done: false, dueDate: end });
@@ -111,5 +112,78 @@ describe('calendar timeline', () => {
     const after = getCalendarMonthLayouts(september, 0, 2, events);
     expect(after[1].weekLayouts.every((week) => week.segments.length === 0)).toBe(true);
     expect(getCalendarMonthLayouts(september, 0, 2, []).every((month) => month.weekLayouts.every((week) => week.lanes === 0))).toBe(true);
+  });
+});
+
+/**
+ * 构造沿用倒数日规则的日历测试事件。
+ * @param id - 事件编号
+ * @param date - 原始目标日期
+ * @param options - 覆盖默认值的事件字段
+ * @returns 倒数日测试记录
+ */
+const countdown = (id: number, date: string, options: Partial<CountdownItem> = {}): CountdownItem => ({
+  id, name: `Event ${id}`, date, color: '#69c0ff', type: 'countdown', ...options,
+});
+
+describe('calendar countdown integration', () => {
+  const today = new Date(2026, 8, 22, 12);
+
+  it('marks only the target day and preserves the name and custom color', () => {
+    const events = getCalendarTimelineEvents(new Map(), [], [countdown(1, '2026-09-23', { name: 'Release', color: '#ff8844' })], today);
+    expect(events).toEqual([expect.objectContaining({ id: 'countdown:1', kind: 'countdown', label: 'Release', color: '#ff8844', start: '2026-09-23', end: '2026-09-23' })]);
+    const month = getCalendarMonthLayouts(september, 0, 1, events)[0];
+    const segments = month.weekLayouts.flatMap((week) => week.segments);
+    expect(segments).toHaveLength(1);
+    expect(segments[0]).toMatchObject({ column: 4, span: 1, continuesBefore: false, continuesAfter: false });
+  });
+
+  it('uses separate lanes for holidays, todos and multiple countdowns on the same day', () => {
+    const events = getCalendarTimelineEvents(new Map([['2026-09-22', ['Holiday']]]), [task(1, '2026-09-22', '2026-09-23')], [countdown(1, '2026-09-22'), countdown(2, '2026-09-22')], today);
+    const row = getCalendarMonthLayouts(september, 0, 1, events)[0].weekLayouts[3];
+    expect(row.lanes).toBe(4);
+    expect(new Set(row.segments.map((segment) => segment.lane)).size).toBe(4);
+    expect(row.segments.map((segment) => segment.event.kind).sort()).toEqual(['countdown', 'countdown', 'holiday', 'todo']);
+  });
+
+  it('excludes manual archives and invalid dates; auto-archives only after the target day', () => {
+    const records = [countdown(1, '2026-09-22', { expiryAction: 'archive' }), countdown(2, '2026-09-22', { archived: true }), countdown(3, '2026-02-30'), countdown(4, '2026-09-20', { expiryAction: 'archive' })];
+    expect(getCalendarTimelineEvents(new Map(), [], records, today).map((event) => event.id)).toEqual(['countdown:1']);
+    expect(getCalendarTimelineEvents(new Map(), [], records, new Date(2026, 8, 23))).toEqual([]);
+  });
+
+  it('keeps elapsed and count-up dates without inventing annual repeats for count-up', () => {
+    const records = [countdown(1, '2024-09-20'), countdown(2, '2024-09-21', { mode: 'up', repeat: 'yearly', expiryAction: 'archive' })];
+    const events = getCalendarTimelineEvents(new Map(), [], records, today);
+    expect(events.map((event) => event.start)).toEqual(['2024-09-20', '2024-09-21']);
+    expect(getCalendarEventsInYears(events, 2026)).toEqual(events);
+    expect(getCalendarMonthLayouts(september, 0, 1, events)[0].weekLayouts.every((week) => week.lanes === 0)).toBe(true);
+  });
+
+  it('expands yearly events in past and future viewed years, never before the source year', () => {
+    const events = getCalendarTimelineEvents(new Map(), [], [countdown(1, '2024-02-29', { repeat: 'yearly', expiryAction: 'archive' })], today);
+    const expanded = getCalendarEventsInYears(events, 2023, 2028);
+    expect(expanded.map((event) => event.start)).toEqual(['2024-02-29', '2025-02-28', '2026-02-28', '2027-02-28', '2028-02-29']);
+    expect(new Set(expanded.map((event) => event.id)).size).toBe(5);
+    expect(events[0].start).toBe('2024-02-29');
+    const layouts = getCalendarMonthLayouts(new Date(2026, 1, 1), -24, 25, events);
+    const displayed = layouts.flatMap((month) => month.weekLayouts.flatMap((week) => week.segments.map((segment) => segment.event.start)));
+    expect(displayed).toEqual(expanded.map((event) => event.start));
+    expect(getCalendarEventsInYears(events, 2026).filter((event) => event.start === '2026-02-28')).toHaveLength(1);
+  });
+
+  it('renders annual occurrences across December and January without duplicates', () => {
+    const events = getCalendarTimelineEvents(new Map(), [], [countdown(1, '2020-12-31', { repeat: 'yearly' }), countdown(2, '2020-01-01', { repeat: 'yearly' })], today);
+    const layouts = getCalendarMonthLayouts(new Date(2026, 11, 1), 0, 2, events);
+    expect(layouts.map((month) => month.weekLayouts.flatMap((week) => week.segments.map((segment) => segment.event.start)))).toEqual([['2026-12-31'], ['2027-01-01']]);
+  });
+
+  it('removes old markers after edits, archival or deletion of the shared records', () => {
+    const markers = (items: CountdownItem[]) => getCalendarMonthLayouts(september, 0, 2, getCalendarTimelineEvents(new Map(), [], items, today))
+      .flatMap((month) => month.weekLayouts.flatMap((week) => week.segments.map((segment) => segment.event.start)));
+    expect(markers([countdown(1, '2026-09-23')])).toEqual(['2026-09-23']);
+    expect(markers([countdown(1, '2026-10-02')])).toEqual(['2026-10-02']);
+    expect(markers([countdown(1, '2026-10-02', { archived: true })])).toEqual([]);
+    expect(markers([])).toEqual([]);
   });
 });

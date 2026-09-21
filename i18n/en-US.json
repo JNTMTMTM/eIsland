@@ -1510,6 +1510,8 @@
       "lunarDate": "Lunar date",
       "holidays": "Public holidays",
       "scheduledTodos": "Scheduled to-dos",
+      "scheduledCountdowns": "Countdown events",
+      "countdownEvent": "Countdown · {{name}}: {{date}}",
       "eventPeriod": "{{name}}: {{start}} → {{end}}",
       "eventCompleted": "Completed",
       "currentRegion": "Current country or region",

@@ -28,6 +28,7 @@ import { useMemo, type ReactElement } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
 import { useCalendarHolidays } from '../hooks/useCalendarHolidays';
 import { useCalendarTodos } from '../hooks/useCalendarTodos';
+import { useCountdownItems } from '../../countdown/hooks/useCountdownItems';
 import { getCalendarTimelineEvents } from '../utils/calendarTimelineUtils';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarDetailPanel } from './CalendarDetailPanel';
@@ -53,7 +54,8 @@ export function CalendarTab(): ReactElement {
   } = useCalendar();
   const holidayInfo = useCalendarHolidays(selectedDate.getFullYear());
   const todos = useCalendarTodos();
-  const events = useMemo(() => getCalendarTimelineEvents(holidayInfo.holidays, todos), [holidayInfo.holidays, todos]);
+  const { items: countdowns } = useCountdownItems();
+  const events = useMemo(() => getCalendarTimelineEvents(holidayInfo.holidays, todos, countdowns, today), [holidayInfo.holidays, todos, countdowns, today]);
 
   return (
     <div
