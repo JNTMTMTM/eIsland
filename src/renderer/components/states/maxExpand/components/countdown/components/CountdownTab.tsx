@@ -140,15 +140,15 @@ export function CountdownTab(): ReactElement {
           </button>
         </div>
         {error && !form.open && <p className="cd-error" role="alert">{t('countdown.manage.saveError')}</p>}
+        <div className="cd-result-count">{t('countdown.manage.resultCount', { count: sorted.length })}</div>
+        {!loaded ? <div className="cd-cards-empty">{t('countdown.manage.loading')}</div>
+          : <CountdownCardList items={sorted} now={now} saving={saving} onStartEdit={form.startEdit} onAction={handleAction} onDelete={(item) => void remove(item.id)} />}
         {deleted && (
           <div className="cd-feedback" role="status">
             {t('countdown.manage.deleted', { name: deleted.name })}
             <button type="button" disabled={saving} onClick={() => void undo()}>{t('countdown.manage.undo')}</button>
           </div>
         )}
-        <div className="cd-result-count">{t('countdown.manage.resultCount', { count: sorted.length })}</div>
-        {!loaded ? <div className="cd-cards-empty">{t('countdown.manage.loading')}</div>
-          : <CountdownCardList items={sorted} now={now} saving={saving} onStartEdit={form.startEdit} onAction={handleAction} onDelete={(item) => void remove(item.id)} />}
       </div>
       <CountdownDrawer open={form.open} saving={saving} onClose={closeEditor}
         title={t(form.editingId === null ? 'countdown.manage.new' : 'countdown.editTitle')}>
