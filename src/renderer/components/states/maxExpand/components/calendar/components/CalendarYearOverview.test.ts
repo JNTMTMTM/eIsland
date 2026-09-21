@@ -32,7 +32,7 @@ function makeProps(year: number): CalendarGridProps {
     events: [], holidays: new Map(),
     formats: { full: format, month: format, weekday: format, lunar: format, lunarDay: format },
     selectedButtonRef: { current: null }, focusDateRef: { current: false },
-    onSelectDate: vi.fn(), onDateKeyDown: vi.fn(), onToggleDetails: vi.fn(), onToggleOverview: vi.fn(), onVisibleYearChange: vi.fn(),
+    onSelectDate: vi.fn(), onDateKeyDown: vi.fn(), onToggleDetails: vi.fn(), onToggleOverview: vi.fn(), onOpenMonth: vi.fn(), onVisibleYearChange: vi.fn(),
   };
 }
 

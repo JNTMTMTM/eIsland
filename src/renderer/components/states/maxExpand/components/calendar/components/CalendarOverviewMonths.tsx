@@ -15,14 +15,14 @@ import { memo, useMemo, type CSSProperties, type ReactElement } from 'react';
 import type { CalendarGridProps } from '../types/calendarTypes';
 import { getCalendarYearMonths } from '../utils/calendarYearUtils';
 
-type OverviewMonthsProps = Pick<CalendarGridProps, 'events' | 'formats' | 'selectedButtonRef' | 'onSelectDate' | 'onDateKeyDown'> & {
+type OverviewMonthsProps = Pick<CalendarGridProps, 'events' | 'formats' | 'selectedButtonRef' | 'onSelectDate' | 'onDateKeyDown' | 'onOpenMonth'> & {
   year: number;
   selectedKey: string | null;
   todayKey: string | null;
   shortMonthFormat: Intl.DateTimeFormat;
 };
 
-type OverviewMonthProps = Pick<OverviewMonthsProps, 'selectedButtonRef' | 'onSelectDate' | 'onDateKeyDown'> & {
+type OverviewMonthProps = Pick<OverviewMonthsProps, 'selectedButtonRef' | 'onSelectDate' | 'onDateKeyDown' | 'onOpenMonth'> & {
   month: ReturnType<typeof getCalendarYearMonths>[number];
   selectedKey: string | null;
   todayKey: string | null;
@@ -42,7 +42,11 @@ const CalendarOverviewMonth = memo(function CalendarOverviewMonth(props: Overvie
   })), [month, formats]);
   return (
     <div className="calendar-overview-month" data-month={month.days[0].key.slice(0, 7)} role="group" aria-label={formats.month.format(month.date)}>
-      <h4 className="calendar-overview-month-heading" data-current={props.todayKey !== null}>{props.shortMonthFormat.format(month.date)}</h4>
+      <h4 className="calendar-overview-month-heading" data-current={props.todayKey !== null}>
+        <button className="calendar-overview-month-link" type="button" aria-label={formats.month.format(month.date)} onClick={() => props.onOpenMonth(month.date)}>
+          {props.shortMonthFormat.format(month.date)}
+        </button>
+      </h4>
       <div className="calendar-overview-days">
         {days.map((day, index) => (
           <button className="calendar-overview-day" key={day.key} type="button" data-events={day.names.length > 0} data-weekend={day.date.getDay() === 0 || day.date.getDay() === 6}
@@ -51,6 +55,7 @@ const CalendarOverviewMonth = memo(function CalendarOverviewMonth(props: Overvie
             aria-pressed={day.key === props.selectedKey} aria-current={day.key === props.todayKey ? 'date' : undefined}
             aria-label={day.label} title={day.label}
             onClick={() => props.onSelectDate(day.date)} onKeyDown={(event) => props.onDateKeyDown(event, day.date)}
+            onDoubleClick={() => props.onOpenMonth(day.date)}
           >{day.date.getDate()}</button>
         ))}
       </div>
@@ -74,6 +79,7 @@ export const CalendarOverviewMonths = memo(function CalendarOverviewMonths(props
           todayKey={props.todayKey?.startsWith(prefix) ? props.todayKey : null}
           formats={props.formats} shortMonthFormat={props.shortMonthFormat}
           selectedButtonRef={props.selectedButtonRef} onSelectDate={props.onSelectDate} onDateKeyDown={props.onDateKeyDown}
+          onOpenMonth={props.onOpenMonth}
         />;
       })}
     </div>

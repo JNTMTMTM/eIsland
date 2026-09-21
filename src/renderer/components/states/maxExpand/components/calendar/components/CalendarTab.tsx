@@ -48,8 +48,9 @@ export function CalendarTab(): ReactElement {
   const [zoomOrigin, setZoomOrigin] = useState('50% 50%');
   const zoomDate = useRef(new Date());
   const pendingOverviewYear = useRef<number | null>(null);
+  const pendingMonthDate = useRef<Date | null>(null);
   const viewStageRef = useRef<HTMLDivElement>(null);
-  const restoreViewFocus = useRef(false);
+  const restoreViewFocus = useRef<'toggle' | 'date' | null>(null);
   const detailsId = useId();
   const {
     today,
@@ -82,6 +83,16 @@ export function CalendarTab(): ReactElement {
     const y = (Math.max(bounds.top, target.top) + Math.min(bounds.bottom, target.bottom)) / 2;
     setZoomOrigin(`${(x - bounds.left) / bounds.width * 100}% ${(y - bounds.top) / bounds.height * 100}%`);
   }, []);
+  const openMonth = useCallback((date: Date) => {
+    if (viewPhase !== 'idle' || overviewYear === null) return;
+    zoomDate.current = date;
+    updateZoomOrigin(date);
+    // 离场完成后再更新选择，避免全年概览因日期定位而在缩放中跳动。
+    pendingMonthDate.current = date;
+    pendingOverviewYear.current = null;
+    restoreViewFocus.current = 'date';
+    setViewPhase('exit');
+  }, [overviewYear, viewPhase, updateZoomOrigin]);
   useLayoutEffect(() => {
     if (viewPhase === 'prepare') updateZoomOrigin(zoomDate.current);
   }, [viewPhase, updateZoomOrigin]);
@@ -93,9 +104,11 @@ export function CalendarTab(): ReactElement {
   }, [viewPhase]);
   useEffect(() => {
     if (viewPhase !== 'idle' || !restoreViewFocus.current) return;
-    restoreViewFocus.current = false;
-    viewStageRef.current?.querySelector<HTMLButtonElement>('.calendar-view-toggle')?.focus({ preventScroll: true });
-  }, [viewPhase]);
+    const target = restoreViewFocus.current === 'date' ? selectedButtonRef.current
+      : viewStageRef.current?.querySelector<HTMLButtonElement>('.calendar-view-toggle');
+    restoreViewFocus.current = null;
+    target?.focus({ preventScroll: true });
+  }, [viewPhase, selectedButtonRef]);
 
   return (
     <div
@@ -113,6 +126,10 @@ export function CalendarTab(): ReactElement {
           onAnimationEnd={(event) => {
             if (event.target !== event.currentTarget.firstElementChild) return;
             if (viewPhase === 'exit') {
+              if (pendingMonthDate.current) {
+                selectDate(pendingMonthDate.current);
+                pendingMonthDate.current = null;
+              }
               setOverviewYear(pendingOverviewYear.current);
               setViewPhase('prepare');
             } else if (viewPhase === 'enter') setViewPhase('idle');
@@ -125,9 +142,10 @@ export function CalendarTab(): ReactElement {
               zoomDate.current = overviewYear !== null && selectedDate.getFullYear() === date.getFullYear() ? selectedDate : date;
               updateZoomOrigin(zoomDate.current);
               pendingOverviewYear.current = overviewYear === null ? date.getFullYear() : null;
-              restoreViewFocus.current = document.activeElement === viewStageRef.current?.querySelector('.calendar-view-toggle');
+              restoreViewFocus.current = document.activeElement === viewStageRef.current?.querySelector('.calendar-view-toggle') ? 'toggle' : null;
               setViewPhase('exit');
             }}
+            onOpenMonth={openMonth}
             detailsExpanded={detailsExpanded}
             detailsId={detailsId}
             onToggleDetails={() => setDetailsExpanded((expanded) => !expanded)}

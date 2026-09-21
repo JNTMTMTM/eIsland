@@ -147,6 +147,7 @@ export function CalendarYearOverview(props: CalendarGridProps): ReactElement {
                 selectedKey={year === props.selectedDate.getFullYear() ? selectedKey : null}
                 todayKey={year === props.today.getFullYear() ? todayKey : null}
                 selectedButtonRef={props.selectedButtonRef} onSelectDate={props.onSelectDate} onDateKeyDown={props.onDateKeyDown}
+                onOpenMonth={props.onOpenMonth}
               />
             ) : (
               <div className="calendar-overview-months" aria-hidden="true">

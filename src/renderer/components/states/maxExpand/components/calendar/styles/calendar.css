@@ -799,6 +799,27 @@
   line-height: 16px;
 }
 
+.calendar-overview-month-link {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.calendar-overview-month-link:hover {
+  color: rgb(var(--color-accent-rgb, 59, 130, 246));
+}
+
+.calendar-overview-month-link:focus-visible {
+  outline: 2px solid rgb(var(--color-accent-rgb, 59, 130, 246));
+  outline-offset: 2px;
+}
+
 .calendar-overview-days {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));

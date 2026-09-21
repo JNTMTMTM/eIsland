@@ -77,6 +77,8 @@ export interface CalendarFormats {
 export interface CalendarGridProps {
   /** 切换月视图与全年概览，传入当前浏览日期。 */
   onToggleOverview: (visibleDate: Date) => void;
+  /** 从全年概览进入指定日期所在的月视图。 */
+  onOpenMonth: (date: Date) => void;
   /** 进入全年概览时定位的年份。 */
   overviewYear?: number;
   /** 右侧日期详情是否展开。 */
