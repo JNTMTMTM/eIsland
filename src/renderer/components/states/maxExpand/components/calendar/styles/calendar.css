@@ -128,6 +128,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+.calendar-heading-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.calendar-heading-year {
+  color: rgba(var(--color-text-rgb), .55);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .calendar-month-name {
   color: rgba(var(--color-text-rgb), .92);
   font-size: 24px;

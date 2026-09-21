@@ -71,6 +71,7 @@ export function CalendarGrid({
 }: CalendarGridProps): ReactElement {
   const monthId = useId();
   const monthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'long' }), [locale]);
+  const yearFormat = useMemo(() => new Intl.DateTimeFormat(locale, { year: 'numeric' }), [locale]);
   const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
   const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, monthLabelHeight, paddingTop, paddingBottom } = useCalendarScroll(selectedDate, events);
   const visibleYear = visibleDate.getFullYear();
@@ -100,8 +101,11 @@ export function CalendarGrid({
       aria-labelledby={monthId}
     >
       <h2 className="calendar-month-heading" id={monthId} aria-label={formats.month.format(visibleDate)} aria-live="polite">
-        <span className="calendar-month-name" data-current-month={visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth()}>
-          {monthFormat.format(visibleDate)}
+        <span className="calendar-heading-title">
+          <span className="calendar-month-name" data-current-month={visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth()}>
+            {monthFormat.format(visibleDate)}
+          </span>
+          <span className="calendar-heading-year">{yearFormat.format(visibleDate)}</span>
         </span>
         <CalendarViewActions overview={false} visibleDate={visibleDate} detailsExpanded={detailsExpanded} detailsId={detailsId} onToggleDetails={onToggleDetails} onSelectDate={onSelectDate} onToggleOverview={onToggleOverview} />
       </h2>

@@ -109,7 +109,10 @@ export function CalendarYearOverview(props: CalendarGridProps): ReactElement {
   return (
     <section className="calendar-grid calendar-year-overview" style={{ '--calendar-header-height': `${CALENDAR_MONTH_HEADER_HEIGHT}px` } as CSSProperties} aria-labelledby={headingId}>
       <h2 className="calendar-month-heading" id={headingId}>
-        <span className="calendar-month-name">{t('maxExpand.calendar.yearOverview')}</span>
+        <span className="calendar-heading-title">
+          <span className="calendar-month-name">{t('maxExpand.calendar.yearOverview')}</span>
+          <span className="calendar-heading-year">{yearFormat.format(new Date(visibleYear, 0, 1))}</span>
+        </span>
         <CalendarViewActions overview visibleDate={new Date(visibleYear, 0, 1)} detailsExpanded={props.detailsExpanded} detailsId={props.detailsId} onToggleDetails={props.onToggleDetails} onSelectDate={props.onSelectDate} onToggleOverview={props.onToggleOverview} />
       </h2>
       <div className="calendar-scroll calendar-overview-scroll" ref={scrollRef} role="region" aria-labelledby={headingId} tabIndex={0}
