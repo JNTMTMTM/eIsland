@@ -27,14 +27,16 @@
 const { EventEmitter } = require('node:events');
 const { smtc, callJson } = require('./ffi-loader');
 
-/** @type {SmtcMonitor | null} */
-let _instance = null;
+/** 合并频繁的原生事件，并让 Worker 能及时处理消息和停止请求。 */
+const POLL_INTERVAL_MS = 100;
 
 class SmtcMonitor extends EventEmitter {
   constructor() {
     super();
     this._running = false;
     this._cache = new Map();
+    this._pollTimer = null;
+    this._lastChangeCounter = null;
   }
 
   /**
@@ -48,6 +50,7 @@ class SmtcMonitor extends EventEmitter {
       throw new Error('Failed to start SMTC monitoring (DLL returned ' + result + ')');
     }
     this._running = true;
+    this._lastChangeCounter = null;
     this._pollLoop();
   }
 
@@ -57,6 +60,10 @@ class SmtcMonitor extends EventEmitter {
   stop() {
     if (!this._running) return;
     this._running = false;
+    if (this._pollTimer !== null) {
+      clearTimeout(this._pollTimer);
+      this._pollTimer = null;
+    }
     smtc.smtc_stop_monitoring();
     this._cache.clear();
     this.removeAllListeners();
@@ -73,25 +80,24 @@ class SmtcMonitor extends EventEmitter {
   }
 
   /**
-   * 轮询循环：等待 DLL 变更信号，diff 后触发事件
+   * 轮询变更计数，只有快照变化时才复制并解析包含封面的 JSON
    * @private
    */
   _pollLoop() {
     if (!this._running) return;
 
-    // 阻塞等待变更（1秒超时），期间不占用 CPU
-    smtc.smtc_wait_for_changes(1000);
-
-    if (!this._running) return;
-
     try {
-      this._drainChanges();
+      const counter = smtc.smtc_get_sessions_changed();
+      if (counter >= 0 && counter !== this._lastChangeCounter) {
+        if (this._drainChanges()) this._lastChangeCounter = counter;
+      }
     } catch (err) {
       this.emit('error', err);
     }
 
-    // 使用 setImmediate 让出事件循环，再继续下一轮
-    setImmediate(() => this._pollLoop());
+    if (this._running) {
+      this._pollTimer = setTimeout(() => this._pollLoop(), POLL_INTERVAL_MS);
+    }
   }
 
   /**
@@ -100,7 +106,7 @@ class SmtcMonitor extends EventEmitter {
    */
   _drainChanges() {
     const sessions = callJson('smtc_get_all_sessions');
-    if (!Array.isArray(sessions)) return;
+    if (!Array.isArray(sessions)) return false;
 
     const currentIds = new Set();
 
@@ -130,6 +136,7 @@ class SmtcMonitor extends EventEmitter {
         this.emit('session-removed', id);
       }
     }
+    return true;
   }
 
   /**

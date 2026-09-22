@@ -58,21 +58,19 @@ if (!dllPath) {
 /** 加载 DLL */
 const lib = koffi.load(dllPath);
 
-/**
- * koffi 的 'str' 返回类型会自动：
- * 1. 读取 CoTaskMem 分配的 UTF-8 字符串
- * 2. 复制为 JS 字符串
- * 3. 调用 CoTaskMemFree 释放原始指针
- */
+// 普通 str 只复制内容；必须用 DLL 的分配器配对释放 CoTaskMem。
+const freeString = lib.func('void icon_free_string(void*)');
+const ownedString = koffi.disposable('str', freeString);
+
 const icon = {
   // ── 字符串释放 ──
-  icon_free_string:        lib.func('void icon_free_string(void*)'),
+  icon_free_string:        freeString,
 
   // ── 图标获取（返回 base64 PNG 字符串） ──
-  icon_get_by_process_name: lib.func('str icon_get_by_process_name(str)'),
-  icon_get_by_pid:         lib.func('str icon_get_by_pid(uint)'),
-  icon_get_by_path:        lib.func('str icon_get_by_path(str)'),
-  icon_get_by_shortcut:    lib.func('str icon_get_by_shortcut(str)'),
+  icon_get_by_process_name: lib.func('icon_get_by_process_name', ownedString, ['str']),
+  icon_get_by_pid:         lib.func('icon_get_by_pid', ownedString, ['uint']),
+  icon_get_by_path:        lib.func('icon_get_by_path', ownedString, ['str']),
+  icon_get_by_shortcut:    lib.func('icon_get_by_shortcut', ownedString, ['str']),
 };
 
 /**

@@ -83,45 +83,6 @@ async function calibrateLyrics(lyrics: SyncedLyricLine[]): Promise<SyncedLyricLi
   }
 }
 
-/**
- * 延迟校准：先设置歌词，延迟后再读取 SMTC 时间戳校准。
- * 通过 calTimerRef 跟踪计时器状态，支持暂停时冻结计时、恢复时继续。
- * @param lyrics - 原始歌词数据
- * @param capturedKey - 当前歌曲标识，用于检测切歌
- * @param delayMs - 延迟毫秒数
- * @param songKeyRef - 歌曲标识 ref
- * @param setSyncedLyricsRef - 设置歌词的 ref
- * @param calTimerRef - 校准计时器状态 ref
- */
-function scheduleCalibration(
-  lyrics: SyncedLyricLine[],
-  capturedKey: string,
-  delayMs: number,
-  songKeyRef: React.MutableRefObject<string>,
-  setSyncedLyricsRef: React.MutableRefObject<(lyrics: SyncedLyricLine[] | null) => void>,
-  calTimerRef: React.MutableRefObject<{
-    timerId: ReturnType<typeof setTimeout> | null;
-    remainingMs: number;
-    pauseTimestamp: number;
-    lyrics: SyncedLyricLine[];
-  }>,
-): void {
-  // 清除已有计时器
-  if (calTimerRef.current.timerId !== null) {
-    clearTimeout(calTimerRef.current.timerId);
-  }
-
-  const timerId = setTimeout(async () => {
-    calTimerRef.current = { timerId: null, remainingMs: 0, pauseTimestamp: 0, lyrics: [] };
-    if (songKeyRef.current !== capturedKey) return;
-    const calibrated = await calibrateLyrics(lyrics);
-    if (songKeyRef.current !== capturedKey) return;
-    setSyncedLyricsRef.current(calibrated);
-  }, delayMs);
-
-  calTimerRef.current = { timerId, remainingMs: delayMs, pauseTimestamp: 0, lyrics };
-}
-
 interface UseIslandNowPlayingSyncOptions {
   handleNowPlayingUpdate: (info: NowPlayingInfo | null) => void;
   updateProgress: (positionMs: number) => void;
@@ -167,15 +128,15 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
   const setLyricsLoadingRef = useRef(setLyricsLoading);
   const songKeyRef = useRef('');
   const progressBaseRef = useRef({ positionMs: 0, durationMs: 0, timestamp: 0 });
-  const progressRafRef = useRef<number | null>(null);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /** 校准计时器状态，用于暂停/恢复时正确处理剩余时间 */
   const calTimerRef = useRef<{
     timerId: ReturnType<typeof setTimeout> | null;
     remainingMs: number;
-    pauseTimestamp: number;
+    startedAt: number;
     lyrics: SyncedLyricLine[];
-  }>({ timerId: null, remainingMs: 0, pauseTimestamp: 0, lyrics: [] });
+  }>({ timerId: null, remainingMs: 0, startedAt: 0, lyrics: [] });
 
   useLayoutEffect(() => {
     handleNowPlayingUpdateRef.current = handleNowPlayingUpdate;
@@ -192,28 +153,64 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
   });
 
   useEffect(() => {
-    const stopProgressRAF = () => {
-      if (progressRafRef.current !== null) {
-        cancelAnimationFrame(progressRafRef.current);
-        progressRafRef.current = null;
+    let disposed = false;
+    let requestVersion = 0;
+    let playing = false;
+
+    const stopProgress = () => {
+      if (progressTimerRef.current !== null) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
       }
     };
 
-    const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
-      handleNowPlayingUpdateRef.current(info);
+    const clearCalibration = () => {
+      if (calTimerRef.current.timerId !== null) {
+        clearTimeout(calTimerRef.current.timerId);
+      }
+      calTimerRef.current = { timerId: null, remainingMs: 0, startedAt: 0, lyrics: [] };
+    };
 
-      const newKey = info ? `${info.title}||${info.artist}` : '';
+    // 仅累计实际播放时间；歌词在暂停期间返回时，不启动校准计时器。
+    const scheduleCalibration = (lyrics: SyncedLyricLine[], delayMs: number): void => {
+      clearCalibration();
+      const version = requestVersion;
+      const timerId = playing ? setTimeout(async () => {
+        clearCalibration();
+        if (disposed || requestVersion !== version) return;
+        const calibrated = await calibrateLyrics(lyrics);
+        if (disposed || requestVersion !== version) return;
+        setSyncedLyricsRef.current(calibrated);
+      }, delayMs) : null;
+      calTimerRef.current = { timerId, remainingMs: delayMs, startedAt: Date.now(), lyrics };
+    };
+
+    const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
+      if (disposed) return;
+      handleNowPlayingUpdateRef.current(info);
+      playing = Boolean(info?.title && info.isPlaying);
+
+      const newKey = info?.title ? `${info.title}||${info.artist}` : '';
+      if (!newKey) {
+        requestVersion += 1;
+        songKeyRef.current = '';
+        stopProgress();
+        clearCalibration();
+        setSyncedLyricsRef.current(null);
+        setTranslationLyricsRef.current(null);
+        setLyricsLoadingRef.current(false);
+        return;
+      }
+
       if (newKey && newKey !== songKeyRef.current) {
         songKeyRef.current = newKey;
-        // 切歌时清除校准计时器
-        if (calTimerRef.current.timerId !== null) {
-          clearTimeout(calTimerRef.current.timerId);
-        }
-        calTimerRef.current = { timerId: null, remainingMs: 0, pauseTimestamp: 0, lyrics: [] };
+        requestVersion += 1;
+        clearCalibration();
         setSyncedLyricsRef.current(null);
         setTranslationLyricsRef.current(null);
         setLyricsLoadingRef.current(true);
-        const capturedKey = newKey;
+        const capturedVersion = requestVersion;
+        const isCurrent = () => !disposed && requestVersion === capturedVersion;
         const title = info!.title;
         const artist = info!.artist;
         const deviceId = info!.deviceId;
@@ -225,6 +222,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           } catch {
             lyricsEnabled = true;
           }
+          if (!isCurrent()) return;
           if (!lyricsEnabled) {
             setLyricsLoadingRef.current(false);
             return;
@@ -252,6 +250,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           } catch {
             // use defaults
           }
+          if (!isCurrent()) return;
 
           const normalLyricsPromise = fetchLyricsWithTranslation(title, artist, deviceId)
             .catch(() => null);
@@ -259,7 +258,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           if (karaokeEnabled) {
             try {
               const karaoke = await fetchKaraokeLyrics(title, artist, deviceId);
-              if (songKeyRef.current !== capturedKey) return;
+              if (!isCurrent()) return;
               if (karaoke && karaoke.length > 0) {
                 const mapped: SyncedLyricLine[] = karaoke.map((line: KaraokeLine) => ({
                   time_ms: line.time_ms,
@@ -269,11 +268,11 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
                 }));
                 setSyncedLyricsRef.current(mapped);
                 if (calibrateEnabled) {
-                  scheduleCalibration(mapped, capturedKey, calibrateDelaySec * 1000, songKeyRef, setSyncedLyricsRef, calTimerRef);
+                  scheduleCalibration(mapped, calibrateDelaySec * 1000);
                 }
 
                 const normalResult = await normalLyricsPromise;
-                if (songKeyRef.current !== capturedKey) return;
+                if (!isCurrent()) return;
                 const translation = normalResult?.translation ?? notFetchedTranslationLyrics();
                 logTranslationLyricsStatus(translation);
                 if (translationEnabled) setTranslationLyricsRef.current(translation);
@@ -282,43 +281,30 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
             } catch {
               // fallback to normal lyrics source
             }
-            if (songKeyRef.current !== capturedKey) return;
+            if (!isCurrent()) return;
           }
 
           const result = await normalLyricsPromise;
-          if (songKeyRef.current !== capturedKey) return;
+          if (!isCurrent()) return;
           const translation = result?.translation ?? notFetchedTranslationLyrics();
           logTranslationLyricsStatus(translation);
           if (translationEnabled) setTranslationLyricsRef.current(translation);
           const lyrics = result?.lyrics ?? null;
           setSyncedLyricsRef.current(lyrics);
           if (lyrics && lyrics.length > 0 && calibrateEnabled) {
-            scheduleCalibration(lyrics, capturedKey, calibrateDelaySec * 1000, songKeyRef, setSyncedLyricsRef, calTimerRef);
+            scheduleCalibration(lyrics, calibrateDelaySec * 1000);
           }
         };
 
-        loadLyrics();
-      } else if (!newKey) {
-        songKeyRef.current = '';
-        setSyncedLyricsRef.current(null);
-        setTranslationLyricsRef.current(null);
+        void loadLyrics();
       }
 
       if (info && info.position_ms !== undefined) {
         if (info.isPlaying) {
           // 恢复校准计时器（从暂停恢复时，用剩余时间重新启动）
           const cal = calTimerRef.current;
-          if (cal.timerId === null && cal.remainingMs > 0 && cal.pauseTimestamp > 0) {
-            const elapsed = Date.now() - cal.pauseTimestamp;
-            const newRemaining = Math.max(0, cal.remainingMs - elapsed);
-            if (newRemaining > 0) {
-              cal.pauseTimestamp = 0;
-              scheduleCalibration(
-                cal.lyrics, songKeyRef.current, newRemaining, songKeyRef, setSyncedLyricsRef, calTimerRef,
-              );
-            } else {
-              calTimerRef.current = { timerId: null, remainingMs: 0, pauseTimestamp: 0, lyrics: [] };
-            }
+          if (cal.timerId === null && cal.lyrics.length > 0) {
+            scheduleCalibration(cal.lyrics, cal.remainingMs);
           }
 
           progressBaseRef.current = {
@@ -327,19 +313,19 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
             timestamp: Date.now(),
           };
 
-          if (progressRafRef.current === null) {
-            let lastProgressWrite = 0;
+          if (progressTimerRef.current === null) {
+            // 进度只需约 15Hz，无需在高刷新率屏幕上每帧唤醒再跳过写入。
             const tick = () => {
               const now = Date.now();
               const base = progressBaseRef.current;
               const elapsed = now - base.timestamp;
-              if (now - lastProgressWrite >= 66) {
-                lastProgressWrite = now;
-                updateProgressRef.current(base.positionMs + elapsed);
+              const position = Math.max(0, base.positionMs + elapsed);
+              updateProgressRef.current(base.durationMs > 0 ? Math.min(base.durationMs, position) : position);
+              if (base.durationMs > 0 && position >= base.durationMs) {
+                stopProgress();
               }
-              progressRafRef.current = requestAnimationFrame(tick);
             };
-            progressRafRef.current = requestAnimationFrame(tick);
+            progressTimerRef.current = setInterval(tick, 66);
           }
         } else {
           // 暂停时冻结校准计时器
@@ -348,24 +334,25 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
             clearTimeout(cal.timerId);
             calTimerRef.current = {
               timerId: null,
-              remainingMs: cal.remainingMs,
-              pauseTimestamp: Date.now(),
+              remainingMs: Math.max(0, cal.remainingMs - (Date.now() - cal.startedAt)),
+              startedAt: 0,
               lyrics: cal.lyrics,
             };
           }
 
-          stopProgressRAF();
+          stopProgress();
           updateProgressRef.current(info.position_ms);
         }
       }
     });
 
     return () => {
+      disposed = true;
+      requestVersion += 1;
+      songKeyRef.current = '';
       unsubscribe?.();
-      stopProgressRAF();
-      if (calTimerRef.current.timerId !== null) {
-        clearTimeout(calTimerRef.current.timerId);
-      }
+      stopProgress();
+      clearCalibration();
     };
   }, []);
 }

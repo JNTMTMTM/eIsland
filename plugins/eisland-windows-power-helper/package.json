@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-power-helper",
-  "version": "26.0.0",
+  "version": "26.0.1",
   "description": "Windows battery status and power event monitoring via Native AOT DLL.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",

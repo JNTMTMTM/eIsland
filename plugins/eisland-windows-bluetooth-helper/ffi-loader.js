@@ -58,30 +58,28 @@ if (!dllPath) {
 /** 加载 DLL */
 const lib = koffi.load(dllPath);
 
-/**
- * koffi 的 'str' 返回类型会自动：
- * 1. 读取 CoTaskMem 分配的 UTF-8 字符串
- * 2. 复制为 JS 字符串
- * 3. 调用 CoTaskMemFree 释放原始指针
- */
+// 普通 str 只复制内容；必须用 DLL 的分配器配对释放 CoTaskMem。
+const freeString = lib.func('void bt_free_string(void*)');
+const ownedString = koffi.disposable('str', freeString);
+
 const bt = {
   // ── 字符串释放 ──
-  bt_free_string:          lib.func('void bt_free_string(void*)'),
-  bt_get_last_error:       lib.func('str bt_get_last_error()'),
+  bt_free_string:          freeString,
+  bt_get_last_error:       lib.func('bt_get_last_error', ownedString, []),
 
   // ── 设备查询 ──
-  bt_get_paired_devices:   lib.func('str bt_get_paired_devices()'),
-  bt_get_connected_devices: lib.func('str bt_get_connected_devices()'),
-  bt_get_all_devices:      lib.func('str bt_get_all_devices()'),
-  bt_get_device:           lib.func('str bt_get_device(str)'),
+  bt_get_paired_devices:   lib.func('bt_get_paired_devices', ownedString, []),
+  bt_get_connected_devices: lib.func('bt_get_connected_devices', ownedString, []),
+  bt_get_all_devices:      lib.func('bt_get_all_devices', ownedString, []),
+  bt_get_device:           lib.func('bt_get_device', ownedString, ['str']),
 
   // ── 设备监控 ──
   bt_start_monitoring:     lib.func('int bt_start_monitoring()'),
   bt_stop_monitoring:      lib.func('int bt_stop_monitoring()'),
   bt_wait_for_changes:     lib.func('int bt_wait_for_changes(int)'),
   bt_get_changes_count:    lib.func('int bt_get_changes_count()'),
-  bt_get_monitored_devices: lib.func('str bt_get_monitored_devices()'),
-  bt_get_monitored_device: lib.func('str bt_get_monitored_device(str)'),
+  bt_get_monitored_devices: lib.func('bt_get_monitored_devices', ownedString, []),
+  bt_get_monitored_device: lib.func('bt_get_monitored_device', ownedString, ['str']),
 };
 
 /**

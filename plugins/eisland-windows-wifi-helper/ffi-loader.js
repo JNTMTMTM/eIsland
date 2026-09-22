@@ -58,26 +58,24 @@ if (!dllPath) {
 /** 加载 DLL */
 const lib = koffi.load(dllPath);
 
-/**
- * koffi 的 'str' 返回类型会自动：
- * 1. 读取 CoTaskMem 分配的 UTF-8 字符串
- * 2. 复制为 JS 字符串
- * 3. 调用 CoTaskMemFree 释放原始指针
- */
+// 普通 str 只复制内容；必须用 DLL 的分配器配对释放 CoTaskMem。
+const freeString = lib.func('void wf_free_string(void*)');
+const ownedString = koffi.disposable('str', freeString);
+
 const wf = {
   // ── 字符串释放 ──
-  wf_free_string:            lib.func('void wf_free_string(void*)'),
-  wf_get_last_error:         lib.func('str wf_get_last_error()'),
+  wf_free_string:            freeString,
+  wf_get_last_error:         lib.func('wf_get_last_error', ownedString, []),
 
   // ── WiFi 查询 ──
-  wf_get_wifi_info:          lib.func('str wf_get_wifi_info()'),
+  wf_get_wifi_info:          lib.func('wf_get_wifi_info', ownedString, []),
 
   // ── WiFi 监控 ──
   wf_start_monitoring:       lib.func('int wf_start_monitoring()'),
   wf_stop_monitoring:        lib.func('int wf_stop_monitoring()'),
   wf_wait_for_changes:       lib.func('int wf_wait_for_changes(int)'),
   wf_get_changes_count:      lib.func('int wf_get_changes_count()'),
-  wf_get_monitored_wifi_info: lib.func('str wf_get_monitored_wifi_info()'),
+  wf_get_monitored_wifi_info: lib.func('wf_get_monitored_wifi_info', ownedString, []),
 };
 
 /**

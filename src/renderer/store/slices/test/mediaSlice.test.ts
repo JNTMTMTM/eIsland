@@ -25,7 +25,11 @@
  */
 
 import type { StateCreator } from 'zustand';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { createStore } from 'zustand/vanilla';
+import { shallow } from 'zustand/shallow';
+import type { IIslandStore, NowPlayingInfo } from '../../types';
+import selectDynamicIslandState from '../../../components/utils/selectDynamicIslandState';
 import { emptyMediaInfo } from '../../constants/defaults';
 import { createMediaSlice } from '../mediaSlice';
 
@@ -42,6 +46,39 @@ function createSliceState(creator: StateCreator<MediaState, [], [], MediaState>)
 }
 
 describe('createMediaSlice', () => {
+  it('isolates the island shell and metadata subscribers from playback progress updates', () => {
+    const store = createStore(createMediaSlice);
+    const info: NowPlayingInfo = {
+      title: 'Song', artist: 'Singer', album: 'Album', duration_ms: 120000,
+      position_ms: 0, isPlaying: true, canFastForward: false, canSkip: false,
+      canLike: false, canChangeVolume: false, canSetOutput: false,
+    };
+    store.getState().handleNowPlayingUpdate(info);
+    const metadata = store.getState().mediaInfo;
+    const shell = selectDynamicIslandState(store.getState() as IIslandStore);
+
+    for (let position = 1; position <= 1000; position += 1) {
+      store.getState().handleNowPlayingUpdate({ ...info, position_ms: position });
+      store.getState().updateProgress(position + 0.5);
+      expect(store.getState().mediaInfo).toBe(metadata);
+      expect(shallow(selectDynamicIslandState(store.getState() as IIslandStore), shell)).toBe(true);
+    }
+
+    store.getState().setCoverImage('new-cover');
+    expect(shallow(selectDynamicIslandState(store.getState() as IIslandStore), shell)).toBe(false);
+  });
+
+  it('does not notify subscribers when the progress and playback state are unchanged', () => {
+    const store = createStore(createMediaSlice);
+    const listener = vi.fn();
+    store.subscribe(listener);
+    for (let i = 0; i < 100; i += 1) {
+      store.getState().updateProgress(0);
+      store.getState().setPlaybackState(false);
+    }
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('resets media state when lrc update is null', () => {
     const store = createSliceState(createMediaSlice);
     store.getState().updateLrcData({

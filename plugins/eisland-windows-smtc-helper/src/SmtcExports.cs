@@ -29,6 +29,9 @@ public static class SmtcExports
     [DllImport("ole32.dll")]
     private static extern int CoInitializeEx(IntPtr pvReserved, uint dwCoInit);
 
+    [DllImport("ole32.dll")]
+    private static extern void CoUninitialize();
+
     private const uint COINIT_APARTMENTTHREADED = 0x2;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -52,14 +55,19 @@ public static class SmtcExports
         Exception? ex = null;
         var thread = new Thread(() =>
         {
+            var comInitialized = false;
             try
             {
-                CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED);
+                comInitialized = CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED) >= 0;
                 result = asyncFunc().GetAwaiter().GetResult();
             }
             catch (Exception e)
             {
                 ex = e;
+            }
+            finally
+            {
+                if (comInitialized) CoUninitialize();
             }
         });
         thread.SetApartmentState(ApartmentState.STA);

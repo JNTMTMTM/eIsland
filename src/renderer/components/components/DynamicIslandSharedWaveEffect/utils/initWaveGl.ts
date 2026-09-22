@@ -51,10 +51,18 @@ export function initWaveGl(canvas: HTMLCanvasElement): WaveGlContext | null {
 
   const vert = compileWaveShader(gl, gl.VERTEX_SHADER, WAVE_VERTEX_SHADER);
   const frag = compileWaveShader(gl, gl.FRAGMENT_SHADER, WAVE_FRAGMENT_SHADER);
-  if (!vert || !frag) return null;
+  if (!vert || !frag) {
+    if (vert) gl.deleteShader(vert);
+    if (frag) gl.deleteShader(frag);
+    return null;
+  }
 
   const program = gl.createProgram();
-  if (!program) return null;
+  if (!program) {
+    gl.deleteShader(vert);
+    gl.deleteShader(frag);
+    return null;
+  }
 
   gl.attachShader(program, vert);
   gl.attachShader(program, frag);
@@ -69,7 +77,10 @@ export function initWaveGl(canvas: HTMLCanvasElement): WaveGlContext | null {
   }
 
   const buffer = gl.createBuffer();
-  if (!buffer) return null;
+  if (!buffer) {
+    gl.deleteProgram(program);
+    return null;
+  }
 
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);

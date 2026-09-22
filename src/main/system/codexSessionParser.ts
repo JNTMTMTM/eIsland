@@ -292,8 +292,10 @@ export function parseCodexSessionContent(
   const heatmap: ClaudeCodeHeatmapDaily = {};
   sortedEvents.forEach((event) => incrementHeatmap(heatmap, event));
   const phase = phaseFrom(sortedEvents, now);
+  // UI 只展示最近 40 条；热力图汇总后释放旧事件及其完整工具输出，避免缓存整份历史。
+  const recentEvents = sortedEvents.slice(0, 40);
   return {
-    events: sortedEvents,
+    events: recentEvents,
     heatmap,
     session: {
       id: sessionId,
@@ -304,7 +306,7 @@ export function parseCodexSessionContent(
       lastSummary: sortedEvents[0]?.summary ?? '',
       lastEventAt: sortedEvents[0]?.createdAt ?? metaTimestamp,
       pendingPermission: phase === 'waiting_permission' ? sortedEvents[0] : null,
-      events: sortedEvents.slice(0, 40),
+      events: recentEvents,
     },
   };
 }

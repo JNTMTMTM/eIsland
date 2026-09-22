@@ -29,6 +29,8 @@ import type { SmtcMediaMeta } from '../types';
 import { extractDominantColor } from '../utils/smtcUtils';
 import { runtime, dominantColorCache, notify } from './smtcStore';
 
+let requestVersion = 0;
+
 /** 构建 meta 快照 */
 function buildMeta(
   info: NowPlayingInfo,
@@ -48,47 +50,55 @@ function buildMeta(
 }
 
 /** 处理封面更新 */
-async function resolveCover(thumbnail: string | null | undefined, hasThumbnail: boolean): Promise<void> {
-  if (!hasThumbnail) return;
-
-  const newCover = thumbnail ?? null;
+async function resolveCover(thumbnail: string | null | undefined, hasThumbnail: boolean): Promise<[number, number, number]> {
+  const newCover = hasThumbnail ? thumbnail ?? null : runtime.coverImage;
   runtime.coverImage = newCover;
 
   if (newCover) {
     const cached = dominantColorCache.get(newCover);
-    if (cached) {
-      runtime.dominantColor = cached;
-    } else {
-      runtime.dominantColor = await extractDominantColor(newCover);
-      dominantColorCache.set(newCover, runtime.dominantColor);
-    }
-  } else {
-    runtime.dominantColor = [0, 0, 0];
+    if (cached) return cached;
+    dominantColorCache.clear();
+    const pending = extractDominantColor(newCover);
+    dominantColorCache.set(newCover, pending);
+    return pending;
   }
+  dominantColorCache.clear();
+  return [0, 0, 0];
 }
 
 /** 获取播放源（仅查询一次） */
-async function resolveSourceAppId(): Promise<void> {
-  if (runtime.sourceAppId) return;
+async function resolveSourceAppId(): Promise<string> {
+  if (runtime.sourceAppId) return runtime.sourceAppId;
   try {
     const result = await window.api.musicDetectSourceAppId();
     const sources = result?.sources ?? [];
     const active = sources.find((s) => s.isPlaying && s.hasTitle) ?? sources[0];
-    if (active) runtime.sourceAppId = active.sourceAppId;
+    if (active) return active.sourceAppId;
   } catch { /* ignore */ }
+  return '';
 }
 
 /** 处理 SMTC 推送 */
 export async function handleNowPlaying(info: NowPlayingInfo | null): Promise<void> {
+  if (!runtime.initialized) return;
+  const version = ++requestVersion;
   if (!info || !info.title) {
     runtime.status = 'no-media';
+    runtime.meta = null;
+    runtime.coverImage = null;
+    runtime.dominantColor = [0, 0, 0];
+    dominantColorCache.clear();
     notify();
     return;
   }
 
   const hasThumbnail = Object.prototype.hasOwnProperty.call(info, 'thumbnail');
-  await resolveCover(info.thumbnail, hasThumbnail);
-  await resolveSourceAppId();
+  const color = await resolveCover(info.thumbnail, hasThumbnail);
+  if (!runtime.initialized || requestVersion !== version) return;
+  const sourceAppId = await resolveSourceAppId();
+  if (!runtime.initialized || requestVersion !== version) return;
+  runtime.dominantColor = color;
+  runtime.sourceAppId = sourceAppId;
 
   runtime.meta = buildMeta(info, runtime.coverImage, runtime.dominantColor, runtime.sourceAppId);
   runtime.status = 'success';
@@ -100,13 +110,18 @@ export function ensureInitialized(): void {
   if (runtime.initialized) return;
   runtime.initialized = true;
 
-  window.api.mediaCurrentInfoGet().then(handleNowPlaying).catch(() => {});
+  const version = ++requestVersion;
+  window.api.mediaCurrentInfoGet().then((info) => {
+    if (!runtime.initialized || requestVersion !== version) return;
+    return handleNowPlaying(info);
+  }).catch(() => {});
   runtime.unsubscribe = window.api.onNowPlayingInfo(handleNowPlaying);
 }
 
 /** 释放 SMTC 订阅与状态，允许下次 ensureInitialized 重新创建 */
 export function dispose(): void {
   if (!runtime.initialized) return;
+  requestVersion += 1;
   runtime.initialized = false;
   runtime.unsubscribe?.();
   runtime.unsubscribe = null;
@@ -115,4 +130,5 @@ export function dispose(): void {
   runtime.coverImage = null;
   runtime.dominantColor = [0, 0, 0];
   runtime.sourceAppId = '';
+  dominantColorCache.clear();
 }

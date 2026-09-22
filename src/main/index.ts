@@ -55,7 +55,7 @@ import { registerLogIpcHandlers } from './ipc/app/log';
 import { registerMusicIpcHandlers } from './ipc/media/music';
 import { registerMusicProviderAuthIpcHandlers } from './ipc/media/musicProviderAuth';
 import { registerQishuiBusinessIpcHandlers } from './ipc/media/qishui';
-import { handleQishuiAudioRequest } from './music/providers/qishuiAudio';
+import { cleanupQishuiAudioSources, handleQishuiAudioRequest } from './music/providers/qishuiAudio';
 import { registerHotkeyIpcHandlers } from './ipc/system/hotkey';
 import { registerIslandIpcHandlers } from './ipc/settings/island';
 import { registerHideProcessIpcHandlers } from './ipc/system/hideProcess';
@@ -809,12 +809,32 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 
+// will-quit 不会等待 Promise；先终止音频下载并删除临时缓存，再允许退出。
+let audioCleanupFinished = false;
+let audioQuitCleanup: Promise<void> | undefined;
+app.on('before-quit', (event) => {
+  if (audioCleanupFinished) return;
+  event.preventDefault();
+  if (audioQuitCleanup) return;
+  audioQuitCleanup = (async () => {
+    try {
+      await cleanupQishuiAudioSources();
+    } catch (error) {
+      console.error('[Qishui] Audio cleanup failed:', error);
+    } finally {
+      audioCleanupFinished = true;
+      app.quit();
+    }
+  })();
+});
+
 registerAppLifecycleHandlers({
   getMainWindow: () => mainWindow,
   onWillQuit: () => {
     autoHideWatcher.stop();
     externalAgentWatcher.stop();
     claudeCodeStatusService.stop();
+    codexStatusService.stop();
     stopClipboardUrlWatcher();
     smtcService.cleanupWorker();
     void disposeLocalOcrWorker();

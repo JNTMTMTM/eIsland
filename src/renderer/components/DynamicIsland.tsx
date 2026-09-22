@@ -26,10 +26,12 @@
 
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../store/isLandStore';
 import { DynamicIslandBackground } from './components/DynamicIslandBackground';
 import { DynamicIslandStateContent } from './components/DynamicIslandStateContent';
 import { useDynamicIslandCoordinator } from './hooks/useDynamicIslandCoordinator';
+import selectDynamicIslandState from './utils/selectDynamicIslandState';
 
 export type { IslandState } from './hooks/useDynamicIslandShell';
 export { AI_CHAT_CLIPBOARD_URL_EVENT, getStateClassName, STATE_CONFIGS } from './config/dynamicIslandConfig';
@@ -40,7 +42,7 @@ export { AI_CHAT_CLIPBOARD_URL_EVENT, getStateClassName, STATE_CONFIGS } from '.
  */
 function DynamicIsland(): JSX.Element {
   const { t, i18n } = useTranslation();
-  const store = useIslandStore();
+  const store = useIslandStore(useShallow(selectDynamicIslandState));
   const {
     state,
     weather,

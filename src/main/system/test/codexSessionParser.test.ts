@@ -62,4 +62,22 @@ describe('parseCodexSessionContent', () => {
   it('returns null when session metadata has no identifier', () => {
     expect(parseCodexSessionContent(jsonl({ type: 'session_meta', payload: { cwd: '/workspace' } }), 'rollout.jsonl', 0)).toBeNull();
   });
+
+  it('retains only visible events while preserving full historical heatmap counts', () => {
+    const base = Date.parse('2026-07-28T10:00:00.000Z');
+    const history = Array.from(Array.from({ length: 1000 }).keys(), (index) => ({
+      timestamp: new Date(base + (index + 1) * 1000).toISOString(),
+      type: 'event_msg',
+      payload: { type: 'user_message', message: `Prompt ${index}` },
+    }));
+    const content = jsonl(
+      { timestamp: new Date(base).toISOString(), type: 'session_meta', payload: { id: 'long-session', cwd: '/workspace' } },
+      ...history,
+    );
+    const parsed = parseCodexSessionContent(content, 'rollout.jsonl', base, base + 1_001_000);
+    expect(parsed?.events).toHaveLength(40);
+    expect(parsed?.session.events).toBe(parsed?.events);
+    expect(parsed?.events[0].raw).toMatchObject({ message: 'Prompt 999' });
+    expect(parsed?.heatmap['2026-7-28']).toEqual({ session: 1, tool: 0, prompt: 1000 });
+  });
 });

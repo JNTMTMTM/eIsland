@@ -25,9 +25,19 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { MediaSlice, LrcMode } from '../types';
+import type { MediaInfo, MediaSlice, LrcMode } from '../types';
 import { emptyMediaInfo } from '../constants/defaults';
 
+function sameMediaInfo(left: MediaInfo, right: MediaInfo): boolean {
+  return left.title === right.title && left.artist === right.artist
+    && left.album === right.album && left.duration_ms === right.duration_ms;
+}
+
+/**
+ * 创建媒体状态切片，保持未变化元数据的引用，避免进度推送触发整页重渲染。
+ * @param set - Zustand 状态更新函数。
+ * @returns 媒体状态及其更新方法。
+ */
 export const createMediaSlice: StateCreator<
   MediaSlice,
   [],
@@ -91,11 +101,11 @@ export const createMediaSlice: StateCreator<
       : state.coverImage,
   })),
 
-  setPlaybackState: (isPlaying) => set({ isPlaying }),
+  setPlaybackState: (isPlaying) => set((state) => state.isPlaying === isPlaying ? state : { isPlaying }),
 
   setLrcMode: (mode) => set({ lrcMode: mode }),
 
-  updateProgress: (position_ms) => set({ currentPositionMs: position_ms }),
+  updateProgress: (positionMs) => set((state) => state.currentPositionMs === positionMs ? state : { currentPositionMs: positionMs }),
 
   setCoverImage: (cover) => set({ coverImage: cover }),
   setDominantColor: (color) => set({ dominantColor: color }),
@@ -119,22 +129,31 @@ export const createMediaSlice: StateCreator<
       return;
     }
 
-    set((state) => ({
-      isMusicPlaying: true,
-      isPlaying: info.isPlaying,
-      mediaInfo: {
+    set((state) => {
+      const mediaInfo = {
         title: info.title,
         artist: info.artist,
         album: info.album || '',
         duration_ms: info.duration_ms,
-      },
-      currentDurationMs: info.duration_ms,
-      currentPositionMs: info.position_ms,
-      coverImage: Object.prototype.hasOwnProperty.call(info, 'thumbnail')
-        ? info.thumbnail ?? null
-        : state.coverImage,
-      currentLyricText: null,
-      nearbyLyrics: [],
-    }));
+      };
+      const coverImage = Object.prototype.hasOwnProperty.call(info, 'thumbnail')
+        ? info.thumbnail ?? null : state.coverImage;
+      if (state.isMusicPlaying && state.isPlaying === info.isPlaying
+        && sameMediaInfo(state.mediaInfo, mediaInfo)
+        && state.currentDurationMs === info.duration_ms && state.currentPositionMs === info.position_ms
+        && state.coverImage === coverImage && state.currentLyricText === null && state.nearbyLyrics.length === 0) {
+        return state;
+      }
+      return {
+        coverImage,
+        isMusicPlaying: true,
+        isPlaying: info.isPlaying,
+        mediaInfo: sameMediaInfo(state.mediaInfo, mediaInfo) ? state.mediaInfo : mediaInfo,
+        currentDurationMs: info.duration_ms,
+        currentPositionMs: info.position_ms,
+        currentLyricText: null,
+        nearbyLyrics: state.nearbyLyrics.length === 0 ? state.nearbyLyrics : [],
+      };
+    });
   },
 });
