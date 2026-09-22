@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-21T01:54:13.274Z
+> 生成时间：2026-09-22T00:55:56.257Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,22 @@
 
 ## Unreleased
 
+- 2026-09-21 | a6cc842c | 鸡哥 | Merge pull request #220 from JNTMTMTM/dev
+- 2026-09-22 | 650761f0 | 鸡哥 | fix: correct destructuring of getBoundingClientRect and update spacing in pendingScroll logic
+- 2026-09-22 | 6b50ca69 | 鸡哥 | fix: update CALENDER.svg to correct path data and ensure proper rendering
+- 2026-09-22 | d0281fd5 | 鸡哥 | feat: add year formatting to Calendar components and update styles for headings
+- 2026-09-22 | d17edf03 | 鸡哥 | feat: add onOpenMonth functionality to Calendar components and update styles
+- 2026-09-22 | 7dce4844 | 鸡哥 | feat: enhance Calendar components with zoom functionality and animations
+- 2026-09-22 | 32971651 | 鸡哥 | feat: implement CalendarOverviewMonths component and enhance CalendarYearOverview functionality
+- 2026-09-22 | 10668994 | 鸡哥 | feat: add year overview and month view functionality in Calendar components
+- 2026-09-22 | a2623266 | 鸡哥 | feat: add CALENDER icon to SvgIcon and update tests
+- 2026-09-22 | 9cc7601d | 鸡哥 | feat: add "Go to Today" button in CalendarGrid and update styles
+- 2026-09-22 | 0dd4cfed | 鸡哥 | feat: add expand/collapse functionality for date details in Calendar components
+- 2026-09-22 | e0d1b8b5 | 鸡哥 | feat: add background image support for countdown events in CalendarDetailPanel
+- 2026-09-22 | a8e9135e | 鸡哥 | feat: add countdown events support in calendar components and translations
+- 2026-09-22 | 46525314 | 鸡哥 | style: remove unused 'viewAll' button from CountdownWidget and clean up related CSS
+- 2026-09-22 | 9f7edf20 | 鸡哥 | style: update CountdownWidget button class for consistency and enhance alarm title styles
+- 2026-09-21 | 7ec92656 | eislandBot | docs: auto update CHANGE_LOG.md for #219 by @JNTMTMTM [skip ci]
 - 2026-09-20 | ee51c29b | 鸡哥 | Merge pull request #219 from JNTMTMTM/dev
 - 2026-09-21 | 0de7cc16 | 鸡哥 | style: refactor storeCompareAndSwap test to use async reduce for improved readability
 - 2026-09-21 | c27b5c43 | 鸡哥 | style: enhance quality review output formatting and improve violation details presentation
