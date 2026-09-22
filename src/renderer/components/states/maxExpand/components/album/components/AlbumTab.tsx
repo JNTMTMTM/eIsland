@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_EXTS } from '../config/albumConfig';
 import { useAlbumItems } from '../hooks/useAlbumItems';
@@ -48,7 +48,7 @@ export function AlbumTab(): ReactElement {
   const {
     items, loaded, metaCache, statusMessage, setStatusMessage,
     fileInputRef, gridVideoRefs, initColumns, initSortMode, initGroupMode,
-    loadExifIfNeeded, loadFullImage, handleAddFiles, handleRemove, handleRemoveSelected,
+    loadExifIfNeeded, loadFullImage, releaseFullImage, handleAddFiles, handleRemove, handleRemoveSelected,
     handleThumbMouseEnter, handleThumbMouseLeave,
     handleFileInputChange, handlePickFiles,
   } = useAlbumItems();
@@ -62,6 +62,8 @@ export function AlbumTab(): ReactElement {
   /* ── Hook: 查看器 ── */
   const viewer = useAlbumViewer(items, filteredItems, metaCache, loadExifIfNeeded, loadFullImage);
   const { activeId, setActiveId } = viewer;
+
+  useEffect(() => releaseFullImage, [activeId, releaseFullImage]);
 
   /* ── Hook: 查看器动作 ── */
   const { handleOpenInExplorer, handleSaveAs, handleSetAsIslandBackground, handleOriginalZoom } =

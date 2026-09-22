@@ -20,11 +20,36 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { parseCodexSessionContent } from '../codexSessionParser';
+import { parseCodexSessionContent, parseCodexSessionLines } from '../codexSessionParser';
 
 const jsonl = (...items: Record<string, unknown>[]): string => items.map((item) => JSON.stringify(item)).join('\n');
 
 describe('parseCodexSessionContent', () => {
+  it('hydrates recent details after sorting and deduplicating out-of-order events', () => {
+    const base = Date.parse('2026-07-28T10:00:00.000Z');
+    const lines = [
+      { timestamp: new Date(base).toISOString(), type: 'session_meta', payload: { id: 'ordered', cwd: '/original', model: 'first-model' } },
+      { type: 'turn_context', payload: { cwd: '/updated', model: 'second-model' } },
+      ...Array.from(Array.from({ length: 70 }).keys(), (index) => ({
+        timestamp: new Date(base + (70 - index) * 1000).toISOString(),
+        type: 'event_msg',
+        payload: { type: 'user_message', message: `Prompt ${70 - index}` },
+      })),
+      { timestamp: new Date(base + 70050).toISOString(), type: 'event_msg', payload: { type: 'user_message', message: 'Prompt 70' } },
+    ].map((line) => JSON.stringify(line));
+    lines.splice(5, 0, 'invalid json', '');
+    let closedReaders = 0;
+    const parsed = parseCodexSessionLines(function* () {
+      try { yield* lines; } finally { closedReaders += 1; }
+    }, 'rollout.jsonl', base, base + 71000);
+    expect(parsed?.events).toHaveLength(40);
+    expect(parsed?.events[0]).toMatchObject({ summary: 'Prompt 70', raw: { message: 'Prompt 70' }, cwd: '/updated' });
+    expect(parsed?.events[0].detailItems).toContainEqual({ label: 'model', value: 'second-model' });
+    expect(parsed?.events.at(-1)?.summary).toBe('Prompt 31');
+    expect(parsed?.heatmap['2026-7-28']).toEqual({ session: 1, tool: 0, prompt: 70 });
+    expect(closedReaders).toBe(3);
+  });
+
   it('converts prompts, tool calls, outputs and completion into a unified session', () => {
     const content = jsonl(
       { timestamp: '2026-07-28T10:00:00.000Z', type: 'session_meta', payload: { id: 'session-1', cwd: 'C:\\work\\demo' } },

@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { ipcMain } from 'electron';
+import { ipcMain, type WebContents } from 'electron';
 import { pingOllama, listOllamaModels, detectOllamaBaseUrl } from './ollamaClient';
 import { orchestrateOllamaChat } from './ollamaOrchestrator';
 import { orchestrateCustomDirectChat } from './customDirectOrchestrator';
@@ -50,6 +50,28 @@ interface CustomDirectChatIpcRequest {
 }
 
 const activeAbortControllers = new Map<string, AbortController>();
+
+/**
+ * 将生成任务绑定到调用窗口，并在替换、取消或结束时移除生命周期引用。
+ * @param sender - 发起生成的渲染进程。
+ * @param sessionId - 生成会话标识。
+ * @returns 取消控制器和幂等清理函数。
+ */
+function trackChatRequest(sender: WebContents, sessionId: string): { controller: AbortController; release: () => void } {
+  activeAbortControllers.get(sessionId)?.abort();
+  const controller = new AbortController();
+  const abort = (): void => controller.abort();
+  const release = (): void => {
+    sender.removeListener('destroyed', abort);
+    controller.signal.removeEventListener('abort', release);
+    // 旧请求结束时不能删除同一会话中新请求的控制器。
+    if (activeAbortControllers.get(sessionId) === controller) activeAbortControllers.delete(sessionId);
+  };
+  activeAbortControllers.set(sessionId, controller);
+  sender.once('destroyed', abort);
+  controller.signal.addEventListener('abort', release, { once: true });
+  return { controller, release };
+}
 
 interface RegisterOllamaIpcHandlersOptions {
   executeAgentLocalTool: (request: AgentLocalToolRequest) => Promise<AgentLocalToolResult>;
@@ -86,8 +108,7 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
 
   ipcMain.handle('ollama:chat:start', (event, sessionId: string, request: OllamaChatIpcRequest) => {
     const sender = event.sender;
-    const abortController = new AbortController();
-    activeAbortControllers.set(sessionId, abortController);
+    const { controller: abortController, release } = trackChatRequest(sender, sessionId);
 
     orchestrateOllamaChat(
       {
@@ -127,9 +148,7 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
           // ignore
         }
       })
-      .finally(() => {
-        activeAbortControllers.delete(sessionId);
-      });
+      .finally(release);
 
     return { started: true, sessionId };
   });
@@ -148,8 +167,7 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
 
   ipcMain.handle('customDirect:chat:start', (event, sessionId: string, request: CustomDirectChatIpcRequest) => {
     const sender = event.sender;
-    const abortController = new AbortController();
-    activeAbortControllers.set(sessionId, abortController);
+    const { controller: abortController, release } = trackChatRequest(sender, sessionId);
 
     orchestrateCustomDirectChat(
       {
@@ -190,9 +208,7 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
           // ignore
         }
       })
-      .finally(() => {
-        activeAbortControllers.delete(sessionId);
-      });
+      .finally(release);
 
     return { started: true, sessionId };
   });

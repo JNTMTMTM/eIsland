@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { EventEmitter } from 'node:events';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { handleMock } = vi.hoisted(() => ({
@@ -157,6 +158,8 @@ describe('agent ipc handlers', () => {
     const sender = {
       isDestroyed: vi.fn(() => false),
       send: vi.fn(),
+      once: vi.fn(),
+      removeListener: vi.fn(),
     };
 
     const startHandler = handleHandlers.get('ollama:chat:start');
@@ -226,6 +229,8 @@ describe('agent ipc handlers', () => {
     const sender = {
       isDestroyed: vi.fn(() => false),
       send: vi.fn(),
+      once: vi.fn(),
+      removeListener: vi.fn(),
     };
 
     expect(
@@ -253,5 +258,43 @@ describe('agent ipc handlers', () => {
         executeLocalTool: expect.any(Function),
       }),
     );
+  });
+
+  it.each(['ollama', 'customDirect'])('cancels %s generation when its renderer is destroyed', async (provider) => {
+    registerOllamaIpcHandlers({ executeAgentLocalTool: vi.fn() });
+    const orchestrate = provider === 'ollama' ? orchestrateOllamaChatMock : orchestrateCustomDirectChatMock;
+    orchestrate.mockReturnValue(new Promise(() => {}));
+    const sender = Object.assign(new EventEmitter(), { isDestroyed: () => false, send: vi.fn() });
+    handleHandlers.get(`${provider}:chat:start`)?.({ sender }, `closed-${provider}`, { model: 'model' });
+    const signal = orchestrate.mock.lastCall![0].signal as AbortSignal;
+    sender.emit('destroyed');
+    expect(signal.aborted).toBe(true);
+    expect(sender.listenerCount('destroyed')).toBe(0);
+    expect(handleHandlers.get(`${provider}:chat:abort`)?.({}, `closed-${provider}`)).toEqual({ aborted: false });
+  });
+
+  it('keeps the new controller when an older request for the same session finishes', async () => {
+    registerOllamaIpcHandlers({ executeAgentLocalTool: vi.fn() });
+    let finishFirst!: () => void;
+    let finishSecond!: () => void;
+    orchestrateOllamaChatMock
+      .mockReturnValueOnce(new Promise<void>((resolve) => { finishFirst = resolve; }))
+      .mockReturnValueOnce(new Promise<void>((resolve) => { finishSecond = resolve; }));
+    const sender = Object.assign(new EventEmitter(), { isDestroyed: () => false, send: vi.fn() });
+    const start = handleHandlers.get('ollama:chat:start')!;
+    start({ sender }, 'reused', { model: 'model' });
+    const firstSignal = orchestrateOllamaChatMock.mock.calls[0][0].signal as AbortSignal;
+    start({ sender }, 'reused', { model: 'model' });
+    const secondSignal = orchestrateOllamaChatMock.mock.calls[1][0].signal as AbortSignal;
+    expect(firstSignal.aborted).toBe(true);
+    finishFirst();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(handleHandlers.get('ollama:chat:abort')?.({}, 'reused')).toEqual({ aborted: true });
+    expect(secondSignal.aborted).toBe(true);
+    finishSecond();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(sender.listenerCount('destroyed')).toBe(0);
   });
 });

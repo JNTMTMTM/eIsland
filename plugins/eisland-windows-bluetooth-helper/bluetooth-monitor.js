@@ -21,16 +21,22 @@
 /**
  * @file bluetooth-monitor.js
  * @description 蓝牙设备实时监控器，通过 DLL FFI 监听 DeviceWatcher 事件
+ * @author 鸡哥
  */
 
 const { EventEmitter } = require('node:events');
 const { bt, callJson } = require('./ffi-loader');
+
+const POLL_INTERVAL_MS = 200;
 
 class BluetoothMonitor extends EventEmitter {
   constructor() {
     super();
     this._running = false;
     this._cache = new Map();
+    this._pollTimer = null;
+    this._lastChangeCounter = null;
+    this._generation = 0;
   }
 
   /**
@@ -43,7 +49,8 @@ class BluetoothMonitor extends EventEmitter {
       throw new Error('Failed to start Bluetooth monitoring (DLL returned ' + result + ')');
     }
     this._running = true;
-    this._pollLoop();
+    this._lastChangeCounter = null;
+    this._pollLoop(++this._generation);
   }
 
   /**
@@ -52,6 +59,11 @@ class BluetoothMonitor extends EventEmitter {
   stop() {
     if (!this._running) return;
     this._running = false;
+    this._generation += 1;
+    if (this._pollTimer !== null) {
+      clearTimeout(this._pollTimer);
+      this._pollTimer = null;
+    }
     bt.bt_stop_monitoring();
     this._cache.clear();
     this.removeAllListeners();
@@ -68,36 +80,41 @@ class BluetoothMonitor extends EventEmitter {
   }
 
   /**
-   * 轮询循环：等待 DLL 变更信号，diff 后触发事件
+   * 仅在计数变化时读取快照，避免阻塞 JS 线程或在原生重启期间忙轮询。
+   * @param {number} generation - 本次启动标识，阻止事件监听器内重启产生重复定时器
    * @private
    */
-  _pollLoop() {
-    if (!this._running) return;
-
-    bt.bt_wait_for_changes(1000);
-
-    if (!this._running) return;
+  _pollLoop(generation) {
+    if (!this._running || generation !== this._generation) return;
 
     try {
-      this._drainChanges();
+      const counter = bt.bt_get_changes_count();
+      if (counter !== this._lastChangeCounter) {
+        if (this._drainChanges(generation) && generation === this._generation) this._lastChangeCounter = counter;
+      }
     } catch (err) {
       this.emit('error', err);
     }
 
-    setImmediate(() => this._pollLoop());
+    if (this._running && generation === this._generation) {
+      this._pollTimer = setTimeout(() => this._pollLoop(generation), POLL_INTERVAL_MS);
+    }
   }
 
   /**
    * 拉取最新设备列表，与缓存 diff 后触发事件
+   * @param {number} generation - 本次启动标识
+   * @returns {boolean} 是否已完整消费本次有效快照
    * @private
    */
-  _drainChanges() {
+  _drainChanges(generation) {
     const devices = callJson('bt_get_monitored_devices');
-    if (!Array.isArray(devices)) return;
+    if (!Array.isArray(devices)) return false;
 
     const currentIds = new Set();
 
     for (const raw of devices) {
+      if (!this._running || generation !== this._generation) return false;
       const id = raw.deviceId;
       if (!id) continue;
       currentIds.add(id);
@@ -109,17 +126,19 @@ class BluetoothMonitor extends EventEmitter {
         this._cache.set(id, normalized);
         this.emit('device-added', normalized);
       } else {
-        this._emitIfChanged(id, prev, normalized);
         this._cache.set(id, normalized);
+        this._emitIfChanged(id, prev, normalized);
       }
     }
 
     for (const [id] of this._cache) {
+      if (!this._running || generation !== this._generation) return false;
       if (!currentIds.has(id)) {
         this._cache.delete(id);
         this.emit('device-removed', id);
       }
     }
+    return true;
   }
 
   /**

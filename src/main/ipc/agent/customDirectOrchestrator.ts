@@ -217,7 +217,7 @@ export async function orchestrateCustomDirectChat(
         callbacks.onEvent({ type: 'chunk', payload: { text: clean } });
       });
       const msg = err instanceof Error ? err.message : String(err);
-      callbacks.onEvent({ type: 'error', payload: { code: 'LLM_ERROR', message: msg } });
+      callbacks.onEvent({ type: 'error', payload: { code: signal?.aborted ? 'ABORTED' : 'LLM_ERROR', message: msg } });
       return;
     }
 
@@ -574,7 +574,7 @@ function streamLlmTurn(
   onStreamChunk?: (text: string, isThink: boolean) => void,
 ): Promise<{ text: string; usage?: OpenAIStreamChunk['usage'] }> {
   return new Promise((resolve, reject) => {
-    const handle = streamOpenAIChat(
+    streamOpenAIChat(
       { model, messages, stream: true, baseUrl, apiKey, temperature, signal },
       {
         onChunk: (text) => {
@@ -592,8 +592,5 @@ function streamLlmTurn(
       },
     );
 
-    if (signal) {
-      signal.addEventListener('abort', () => handle.abort(), { once: true });
-    }
   });
 }

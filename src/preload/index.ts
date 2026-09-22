@@ -703,6 +703,13 @@ const api = {
     return ipcRenderer.invoke('album:load-thumbnail', filePath);
   },
   /**
+   * 获取相册视频流式地址和大小，不跨 IPC 传输完整视频。
+   * @param filePath - 已保存的相册视频绝对路径
+   */
+  getAlbumMediaInfo: (filePath: string): Promise<{ url: string; sizeBytes: number } | null> => {
+    return ipcRenderer.invoke('album:media-info', filePath);
+  },
+  /**
    * 清理 userData/wallpapers/ 下的自定义壁纸缓存
    */
   clearWallpaperCache: (): Promise<void> => {

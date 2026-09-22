@@ -193,6 +193,7 @@ declare global {
       setSystemDesktopWallpaper: (payload: SetWallpaperPayload) => Promise<boolean>;
       wallpaperVideoCover: (sourcePath: string) => Promise<string | null>;
       readLocalFileAsBuffer: (filePath: string) => Promise<Uint8Array | null>;
+      getAlbumMediaInfo: (filePath: string) => Promise<{ url: string; sizeBytes: number } | null>;
       pickVideoForExtract: () => Promise<PickVideoForExtractResult | null>;
       extractVideoTrack: (options: ExtractVideoTrackOptions) => Promise<ExtractVideoTrackResult>;
       netFetch: (url: string, options?: NetFetchOptions) => Promise<NetFetchResult>;

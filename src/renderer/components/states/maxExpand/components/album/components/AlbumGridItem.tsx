@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { AlbumGridItemProps } from '../types/albumTypes';
@@ -46,9 +46,32 @@ export function AlbumGridItem({
   onMouseEnter, onMouseLeave, gridVideoRefs,
 }: AlbumGridItemProps): ReactElement {
   const { t } = useTranslation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || item.mediaType !== 'video') return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setPreviewVisible(entry.isIntersecting);
+    }, { rootMargin: '120px' });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [item.mediaType]);
+
+  const setVideoRef = useCallback((element: HTMLVideoElement | null): void => {
+    const previous = gridVideoRefs.current[item.id];
+    if (previous && previous !== element) {
+      previous.pause();
+      previous.removeAttribute('src');
+      previous.load();
+    }
+    if (element) gridVideoRefs.current[item.id] = element;
+    else delete gridVideoRefs.current[item.id];
+  }, [gridVideoRefs, item.id]);
 
   return (
-    <div className={`album-grid-item${selected ? ' album-grid-item--selected' : ''}${selectMode ? ' album-grid-item--selectable' : ''}`}>
+    <div ref={containerRef} className={`album-grid-item${selected ? ' album-grid-item--selected' : ''}${selectMode ? ' album-grid-item--selectable' : ''}`}>
       <label className="album-selection-check" title={t('albumTab.selection.toggle', { name: item.name })}>
         <input
           className="album-selection-input"
@@ -69,15 +92,15 @@ export function AlbumGridItem({
         {item.mediaType === 'video' ? (
           meta?.videoUrl ? (
             <>
-              <video
+              {previewVisible && <video
                 className="album-thumb-video"
                 src={meta.videoUrl}
                 muted
                 loop
                 playsInline
                 preload="metadata"
-                ref={(el) => { gridVideoRefs.current[item.id] = el; }}
-              />
+                ref={setVideoRef}
+              />}
               <span className="album-thumb-badge">{formatDuration(meta?.durationSec)}</span>
             </>
           ) : meta?.loadFailed ? (

@@ -26,6 +26,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import probeVideo from '../../../../../../utils/media/videoProbe';
 import type { AlbumItem, AlbumMeta, UseAlbumItemsReturn } from '../types/albumTypes';
 import {
   COLUMNS_STORE_KEY,
@@ -42,7 +43,6 @@ import {
   clampColumns,
   estimateBytesFromDataUrl,
   getMediaTypeByExt,
-  getVideoMimeByExt,
   guessVideoCodecByExt,
   parseJpegExif,
   persistAlbumItems,
@@ -67,11 +67,38 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   const metaLoadingRef = useRef<Set<number>>(new Set());
   const fullImageLoadingRef = useRef<Set<number>>(new Set());
   const requestedFullImageIdRef = useRef<number | null>(null);
+  const fullImageProbeRef = useRef<HTMLImageElement | null>(null);
   const exifLoadingRef = useRef<Set<number>>(new Set());
   const mediaQueueRef = useRef<AlbumItem[]>([]);
   const mediaQueuedIdsRef = useRef<Set<number>>(new Set());
   const mediaActiveCountRef = useRef(0);
   const drainMediaQueueRef = useRef<() => void>(() => {});
+  const itemsRef = useRef(items);
+  const lifetimeRef = useRef(0);
+  const mountedRef = useRef(false);
+  const videoRequestsRef = useRef(new Map<number, AbortController>());
+  const persistenceRef = useRef<Promise<void>>(Promise.resolve());
+
+  useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      lifetimeRef.current += 1;
+      mediaQueueRef.current = [];
+      mediaQueuedIdsRef.current.clear();
+      videoRequestsRef.current.forEach((controller) => controller.abort());
+      videoRequestsRef.current.clear();
+      requestedFullImageIdRef.current = null;
+      const image = fullImageProbeRef.current;
+      if (image) {
+        image.onload = null;
+        image.onerror = null;
+        image.src = '';
+        fullImageProbeRef.current = null;
+      }
+    };
+  }, []);
 
   /** 初次加载持久化数据 */
   useEffect(() => {
@@ -117,7 +144,7 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   /** 持久化条目变更 */
   useEffect(() => {
     if (!loaded) return;
-    persistAlbumItems(items);
+    persistenceRef.current = persistAlbumItems(items);
   }, [items, loaded]);
 
   /** 状态信息自动消失 */
@@ -140,62 +167,51 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   /** 主动加载媒体元数据（图像/视频），完成后自动驱动队列 */
   const loadItemMeta = useCallback((item: AlbumItem): void => {
     if (metaLoadingRef.current.has(item.id)) return;
+    const lifetime = lifetimeRef.current;
+    const isCurrent = (): boolean => mountedRef.current && lifetimeRef.current === lifetime
+      && itemsRef.current.some((entry) => entry.id === item.id);
     metaLoadingRef.current.add(item.id);
     setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: true } }));
     if (item.mediaType === 'video') {
-      window.api.readLocalFileAsBuffer(item.path).then((buf) => {
-        if (!buf) throw new Error('video buffer read failed');
-        const mime = getVideoMimeByExt(item.ext);
-        const arrayBuffer = new ArrayBuffer(buf.byteLength);
-        new Uint8Array(arrayBuffer).set(buf);
-        const blobUrl = URL.createObjectURL(new Blob([arrayBuffer], { type: mime }));
-        const probe = document.createElement('video');
-        probe.preload = 'metadata';
-        probe.muted = true;
-        probe.playsInline = true;
-        probe.onloadedmetadata = () => {
-          setMetaCache((prev) => {
-            const previousVideoUrl = prev[item.id]?.videoUrl;
-            if (previousVideoUrl && previousVideoUrl !== blobUrl) {
-              revokeBlobUrl(previousVideoUrl);
-            }
-            return {
-              ...prev,
-              [item.id]: {
-                ...prev[item.id],
-                videoUrl: blobUrl,
-                width: probe.videoWidth,
-                height: probe.videoHeight,
-                durationSec: Number.isFinite(probe.duration) ? probe.duration : 0,
-                sizeBytes: buf.byteLength,
-                videoCodec: guessVideoCodecByExt(item.ext),
-                loading: false,
-                loadFailed: false,
-              },
-            };
-          });
-        };
-        probe.onerror = () => {
-          revokeBlobUrl(blobUrl);
-          setMetaCache((prev) => ({
-            ...prev,
-            [item.id]: { ...prev[item.id], loading: false, loadFailed: true },
-          }));
-        };
-        probe.src = blobUrl;
+      const controller = new AbortController();
+      videoRequestsRef.current.set(item.id, controller);
+      persistenceRef.current.then(() => {
+        if (!isCurrent() || controller.signal.aborted) return null;
+        return window.api.getAlbumMediaInfo(item.path);
+      }).then(async (info) => {
+        if (!isCurrent() || controller.signal.aborted) return;
+        if (!info) throw new Error('video metadata unavailable');
+        const metadata = await probeVideo(info.url, controller.signal);
+        if (!isCurrent() || controller.signal.aborted) return;
+        if (!metadata) throw new Error('video metadata probe failed');
+        setMetaCache((prev) => ({
+          ...prev,
+          [item.id]: {
+            ...prev[item.id],
+            ...metadata,
+            videoUrl: info.url,
+            sizeBytes: info.sizeBytes,
+            videoCodec: guessVideoCodecByExt(item.ext),
+            loading: false,
+            loadFailed: false,
+          },
+        }));
       }).catch(() => {
+        if (!isCurrent()) return;
         setMetaCache((prev) => ({
           ...prev,
           [item.id]: { ...prev[item.id], loading: false, loadFailed: true },
         }));
       }).finally(() => {
+        videoRequestsRef.current.delete(item.id);
         metaLoadingRef.current.delete(item.id);
         mediaActiveCountRef.current = Math.max(0, mediaActiveCountRef.current - 1);
-        drainMediaQueueRef.current();
+        if (mountedRef.current) drainMediaQueueRef.current();
       });
       return;
     }
     window.api.loadAlbumThumbnail(item.path).then((thumbnailUrl) => {
+      if (!isCurrent()) return;
       if (!thumbnailUrl) {
         setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false, loadFailed: true } }));
         return;
@@ -210,11 +226,12 @@ export function useAlbumItems(): UseAlbumItemsReturn {
         },
       }));
     }).catch(() => {
+      if (!isCurrent()) return;
       setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false, loadFailed: true } }));
     }).finally(() => {
       metaLoadingRef.current.delete(item.id);
       mediaActiveCountRef.current = Math.max(0, mediaActiveCountRef.current - 1);
-      drainMediaQueueRef.current();
+      if (mountedRef.current) drainMediaQueueRef.current();
     });
   }, []);
 
@@ -232,7 +249,12 @@ export function useAlbumItems(): UseAlbumItemsReturn {
       if (!dataUrl || requestedFullImageIdRef.current !== item.id) return;
       const sizeBytes = estimateBytesFromDataUrl(dataUrl);
       const probe = new Image();
+      fullImageProbeRef.current = probe;
       const commit = (width?: number, height?: number): void => {
+        probe.onload = null;
+        probe.onerror = null;
+        probe.src = '';
+        if (fullImageProbeRef.current === probe) fullImageProbeRef.current = null;
         if (requestedFullImageIdRef.current !== item.id) return;
         setMetaCache((prev) => {
           const next = Object.fromEntries(
@@ -264,12 +286,30 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     });
   }, []);
 
+  /** 离开原图查看器时释放原图字符串和仍在解码的探针，缩略图继续用于网格。 */
+  const releaseFullImage = useCallback((): void => {
+    requestedFullImageIdRef.current = null;
+    const image = fullImageProbeRef.current;
+    if (image) {
+      image.onload = null;
+      image.onerror = null;
+      image.src = '';
+      fullImageProbeRef.current = null;
+    }
+    if (!mountedRef.current) return;
+    setMetaCache((prev) => {
+      if (!Object.values(prev).some((meta) => meta.dataUrl)) return prev;
+      return Object.fromEntries(Object.entries(prev).map(([id, meta]) => [id, { ...meta, dataUrl: undefined }]));
+    });
+  }, []);
+
   /** 从队列中取出下一个待加载项并执行（受并发上限控制） */
   const drainMediaQueue = useCallback((): void => {
-    while (mediaActiveCountRef.current < MEDIA_LOAD_CONCURRENCY && mediaQueueRef.current.length > 0) {
+    while (mountedRef.current && mediaActiveCountRef.current < MEDIA_LOAD_CONCURRENCY && mediaQueueRef.current.length > 0) {
       const next = mediaQueueRef.current.shift();
       if (!next) break;
       mediaQueuedIdsRef.current.delete(next.id);
+      if (!itemsRef.current.some((item) => item.id === next.id)) continue;
       mediaActiveCountRef.current += 1;
       loadItemMeta(next);
     }
@@ -353,6 +393,9 @@ export function useAlbumItems(): UseAlbumItemsReturn {
 
   /** 删除单个条目 */
   const handleRemove = useCallback((id: number): void => {
+    itemsRef.current = itemsRef.current.filter((item) => item.id !== id);
+    videoRequestsRef.current.get(id)?.abort();
+    if (requestedFullImageIdRef.current === id) requestedFullImageIdRef.current = null;
     setItems((prev) => prev.filter((it) => it.id !== id));
     setMetaCache((prev) => {
       const next = { ...prev };
@@ -366,6 +409,11 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   const handleRemoveSelected = useCallback((ids: Set<number>): void => {
     if (ids.size === 0) return;
     const idsToRemove = new Set(ids);
+    itemsRef.current = itemsRef.current.filter((item) => !idsToRemove.has(item.id));
+    idsToRemove.forEach((id) => videoRequestsRef.current.get(id)?.abort());
+    if (requestedFullImageIdRef.current !== null && idsToRemove.has(requestedFullImageIdRef.current)) {
+      requestedFullImageIdRef.current = null;
+    }
     setItems((prev) => prev.filter((item) => !idsToRemove.has(item.id)));
     setMetaCache((prev) => {
       const next = { ...prev };
@@ -421,6 +469,7 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     initGroupMode,
     loadExifIfNeeded,
     loadFullImage,
+    releaseFullImage,
     handleAddFiles,
     handleRemove,
     handleRemoveSelected,
