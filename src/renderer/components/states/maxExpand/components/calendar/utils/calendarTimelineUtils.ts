@@ -7,11 +7,13 @@
 
 /**
  * @file calendarTimelineUtils.ts
- * @description 合并假日与待办周期，裁切跨周跨月事件并分配无重叠轨道。
+ * @description 合并假日、待办与倒数日，展开年度事件并分配无重叠轨道。
  * @author 鸡哥
  */
 
 import type { TodoItem } from '../../todo/types/todoTypes';
+import type { CountdownItem } from '../../countdown/types/countdownTypes';
+import { isArchived } from '../../countdown/utils/countdownUtils';
 import { getTodoColor, getTodoStartDate, parseTodoDate } from '../../todo/utils/todoCalendarUtils';
 import type { CalendarHolidayIndex } from '../types/calendarHolidayTypes';
 import type { CalendarTimelineEvent, CalendarTimelineSegment } from '../types/calendarTimelineTypes';
@@ -21,9 +23,11 @@ import { getCalendarDateKey } from './calendarHolidayUtils';
  * 建立事件周期，待办沿用原有创建日期与截止日期规则。
  * @param holidays - 按日期归类的公共假日
  * @param todos - 已有待办记录
+ * @param countdowns - 共享倒数日记录
+ * @param today - 用于判定自动归档的当前日期
  * @returns 排序稳定的事件列表
  */
-export function getCalendarTimelineEvents(holidays: CalendarHolidayIndex, todos: TodoItem[]): CalendarTimelineEvent[] {
+export function getCalendarTimelineEvents(holidays: CalendarHolidayIndex, todos: TodoItem[], countdowns: CountdownItem[] = [], today = new Date()): CalendarTimelineEvent[] {
   const events: CalendarTimelineEvent[] = [];
   const lastByName = new Map<string, CalendarTimelineEvent>();
   [...holidays].sort(([left], [right]) => left.localeCompare(right)).forEach(([date, names]) => {
@@ -46,7 +50,39 @@ export function getCalendarTimelineEvents(holidays: CalendarHolidayIndex, todos:
     if (!parseTodoDate(start) || !todo.dueDate || !parseTodoDate(todo.dueDate) || todo.dueDate < start) return;
     events.push({ id: `todo:${todo.id}`, kind: 'todo', label: todo.text, start, end: todo.dueDate, done: todo.done, color: getTodoColor(todo.id) });
   });
+  countdowns.forEach((item) => {
+    if (!parseTodoDate(item.date) || isArchived(item, today)) return;
+    events.push({
+      id: `countdown:${item.id}`, kind: 'countdown', label: item.name,
+      start: item.date, end: item.date, color: item.color,
+      backgroundImage: item.backgroundImage,
+      repeat: item.repeat === 'yearly' && item.mode !== 'up' ? 'yearly' : undefined,
+    });
+  });
   return events.sort((left, right) => left.start.localeCompare(right.start) || right.end.localeCompare(left.end) || left.id.localeCompare(right.id));
+}
+
+/**
+ * 将年度单日事件展开到浏览范围内，2 月 29 日在平年落到 2 月末。
+ * @param events - 原始日历事件
+ * @param startYear - 浏览起始年份（包含）
+ * @param endYear - 浏览结束年份（包含），默认仅展开起始年份
+ * @returns 保留原有事件顺序、年度实例按年份递增的事件列表
+ */
+export function getCalendarEventsInYears(events: CalendarTimelineEvent[], startYear: number, endYear = startYear): CalendarTimelineEvent[] {
+  const expanded = events.flatMap((event) => {
+    if (event.repeat !== 'yearly') return [event];
+    const source = parseTodoDate(event.start);
+    if (!source) return [];
+    const firstYear = Math.max(startYear, source.getFullYear());
+    return Array.from({ length: Math.max(0, endYear - firstYear + 1) }, (_, offset) => {
+      const year = firstYear + offset;
+      const day = Math.min(source.getDate(), new Date(year, source.getMonth() + 1, 0).getDate());
+      const date = getCalendarDateKey(new Date(year, source.getMonth(), day, 12));
+      return { ...event, id: `${event.id}:${year}`, start: date, end: date, repeat: undefined };
+    });
+  });
+  return expanded;
 }
 
 /**

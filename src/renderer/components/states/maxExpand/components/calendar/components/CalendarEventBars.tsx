@@ -7,7 +7,7 @@
 
 /**
  * @file CalendarEventBars.tsx
- * @description 按七列网格与独立轨道显示假日和待办周期。
+ * @description 按七列网格与独立轨道显示假日、待办与倒数日。
  * @author 鸡哥
  */
 
@@ -18,6 +18,9 @@ import type { CalendarTimelineSegment } from '../types/calendarTimelineTypes';
 /**
  * 渲染周内事件条，点击后查看片段起始日期详情。
  * @param props - 轨道布局、日期格式及日期选择回调
+ * @param props.segments - 当前周的事件片段
+ * @param props.lanes - 事件轨道数量
+ * @param props.onSelectDate - 选中日期回调
  * @returns 事件区，无事件时为空
  */
 export function CalendarEventBars({ segments, lanes, onSelectDate }: {
@@ -30,7 +33,9 @@ export function CalendarEventBars({ segments, lanes, onSelectDate }: {
   return (
     <div className="calendar-week-events" style={{ '--calendar-event-lanes': lanes } as CSSProperties}>
       {segments.map(({ event, column, span, lane, start, continuesBefore, continuesAfter }) => {
-        const label = t('maxExpand.calendar.eventPeriod', { name: event.label, start: event.start, end: event.end });
+        const label = event.kind === 'countdown'
+          ? t('maxExpand.calendar.countdownEvent', { name: event.label, date: event.start })
+          : t('maxExpand.calendar.eventPeriod', { name: event.label, start: event.start, end: event.end });
         const title = event.done ? `${label} · ${t('maxExpand.calendar.eventCompleted')}` : label;
         return (
           <button
@@ -46,7 +51,7 @@ export function CalendarEventBars({ segments, lanes, onSelectDate }: {
             aria-label={title}
             onClick={() => onSelectDate(start)}
           >
-            {event.kind === 'todo' && <span>{event.label}</span>}
+            {event.kind !== 'holiday' && <span>{event.label}</span>}
           </button>
         );
       })}

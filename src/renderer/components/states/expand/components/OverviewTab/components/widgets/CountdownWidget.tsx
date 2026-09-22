@@ -51,8 +51,7 @@ export function CountdownWidget({ openTargetPage }: CountdownWidgetProps): React
   return (
     <div className="ov-dash-widget ov-dash-countdown-widget">
       <div className="ov-dash-widget-header">
-        <button className="ov-dash-widget-title cd-widget-link" type="button" onClick={open}>{t('overview.countdown.title')}</button>
-        <button className="cd-widget-link cd-widget-more" type="button" onClick={open}>{t('countdown.manage.viewAll', { count: active.length })}</button>
+        <button className="ov-dash-widget-title ov-dash-widget-title--link ov-dash-countdown-title" type="button" onClick={open}>{t('overview.countdown.title')}</button>
       </div>
       {shown.length === 0 ? <button className="ov-dash-countdown-empty cd-widget-link" type="button" onClick={open}>
         {t(error ? 'countdown.manage.saveError' : !loaded ? 'countdown.manage.loading' : 'countdown.manage.new')}

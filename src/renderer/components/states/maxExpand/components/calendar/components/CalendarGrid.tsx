@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useId, useLayoutEffect, useMemo, type CSSProperties, type ReactElement } from 'react';
+import { CalendarViewActions } from './CalendarViewActions';
 import { useCalendarScroll } from '../hooks/useCalendarScroll';
 import { CALENDAR_EVENT_BOTTOM_GAP, CALENDAR_EVENT_LANE_HEIGHT } from '../config/calendarConfig';
 import { CalendarMonthGrid } from './CalendarMonthGrid';
@@ -34,9 +35,28 @@ import type { CalendarGridProps } from '../types/calendarTypes';
  * 日历月视图网格
  * @description 月份之间保留清晰间隔，滚动浏览与日期选择独立。
  * @param props - 组件入参
+ * @param props.detailsExpanded - 日期详情是否展开
+ * @param props.detailsId - 日期详情容器标识
+ * @param props.onToggleDetails - 切换日期详情展开状态
+ * @param props.onToggleOverview - 切换全年概览视图
+ * @param props.events - 日历事件
+ * @param props.holidays - 按日期归类的假日
+ * @param props.onVisibleYearChange - 浏览年份变化回调
+ * @param props.selectedDate - 所选日期
+ * @param props.today - 当前日期
+ * @param props.locale - 当前语言
+ * @param props.formats - 日期格式化器
+ * @param props.selectedButtonRef - 所选日期按钮引用
+ * @param props.focusDateRef - 键盘选择后的待聚焦标记
+ * @param props.onSelectDate - 选中日期回调
+ * @param props.onDateKeyDown - 日期键盘导航回调
  * @returns 月视图 JSX
  */
 export function CalendarGrid({
+  detailsExpanded,
+  detailsId,
+  onToggleDetails,
+  onToggleOverview,
   events,
   holidays,
   onVisibleYearChange,
@@ -51,8 +71,8 @@ export function CalendarGrid({
 }: CalendarGridProps): ReactElement {
   const monthId = useId();
   const monthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'long' }), [locale]);
-  const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
   const yearFormat = useMemo(() => new Intl.DateTimeFormat(locale, { year: 'numeric' }), [locale]);
+  const shortMonthFormat = useMemo(() => new Intl.DateTimeFormat(locale, { month: 'short' }), [locale]);
   const { scrollRef, onScroll, months, visibleDate, weekHeight, headerHeight, monthGap, monthLabelHeight, paddingTop, paddingBottom } = useCalendarScroll(selectedDate, events);
   const visibleYear = visibleDate.getFullYear();
   useEffect(() => { onVisibleYearChange(visibleYear); }, [visibleYear, onVisibleYearChange]);
@@ -81,10 +101,13 @@ export function CalendarGrid({
       aria-labelledby={monthId}
     >
       <h2 className="calendar-month-heading" id={monthId} aria-label={formats.month.format(visibleDate)} aria-live="polite">
-        <span className="calendar-month-name" data-current-month={visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth()}>
-          {monthFormat.format(visibleDate)}
-        </span> 
-        <span className="calendar-year">{yearFormat.format(visibleDate)}</span>
+        <span className="calendar-heading-title">
+          <span className="calendar-month-name" data-current-month={visibleDate.getFullYear() === today.getFullYear() && visibleDate.getMonth() === today.getMonth()}>
+            {monthFormat.format(visibleDate)}
+          </span>
+          <span className="calendar-heading-year">{yearFormat.format(visibleDate)}</span>
+        </span>
+        <CalendarViewActions overview={false} visibleDate={visibleDate} detailsExpanded={detailsExpanded} detailsId={detailsId} onToggleDetails={onToggleDetails} onSelectDate={onSelectDate} onToggleOverview={onToggleOverview} />
       </h2>
       <div className="calendar-weekdays" aria-hidden="true">
         {months[0].weeks[0].map((date) => (

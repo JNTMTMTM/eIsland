@@ -26,7 +26,7 @@
 
 import { CALENDAR_EVENT_BOTTOM_GAP, CALENDAR_EVENT_LANE_HEIGHT, CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT } from '../config/calendarConfig';
 import type { CalendarTimelineEvent } from '../types/calendarTimelineTypes';
-import { getCalendarWeekTimeline } from './calendarTimelineUtils';
+import { getCalendarEventsInYears, getCalendarWeekTimeline } from './calendarTimelineUtils';
 
 /**
  * 返回从周日开始的六周日期，固定行数以避免切月时布局跳动。
@@ -60,7 +60,7 @@ export function getCalendarWeek(anchor: Date, offset: number): Date[] {
  * @param anchor - 基准月份内的日期。
  * @param start - 起始月份偏移（包含）。
  * @param end - 结束月份偏移（不包含）。
- * @param events - 决定周行高度的假日与待办周期。
+ * @param events - 决定周行高度的假日、待办与倒数日事件。
  * @returns 每个月的日期、所需周行、顶部位置和高度。
  */
 export function getCalendarMonthLayouts(anchor: Date, start: number, end: number, events: CalendarTimelineEvent[] = []) {
@@ -68,7 +68,8 @@ export function getCalendarMonthLayouts(anchor: Date, start: number, end: number
   const firstMonth = anchor.getFullYear() * 12 + anchor.getMonth() + start;
   const monthlyEvents: CalendarTimelineEvent[][] = Array.from({ length: monthCount }, () => []);
   // 只把事件分配给覆盖的月份，避免每个缓冲周反复扫描全部历史待办。
-  events.forEach((event) => {
+  const expandedEvents = getCalendarEventsInYears(events, Math.floor(firstMonth / 12), Math.floor((firstMonth + monthCount - 1) / 12));
+  expandedEvents.forEach((event) => {
     const first = Math.max(0, Number(event.start.slice(0, 4)) * 12 + Number(event.start.slice(5, 7)) - 1 - firstMonth);
     const last = Math.min(monthCount - 1, Number(event.end.slice(0, 4)) * 12 + Number(event.end.slice(5, 7)) - 1 - firstMonth);
     for (let index = first; index <= last; index += 1) monthlyEvents[index].push(event);

@@ -75,7 +75,19 @@ export interface CalendarFormats {
 
 /** CalendarGrid 组件入参 */
 export interface CalendarGridProps {
-  /** 假日与待办时间条。 */
+  /** 切换月视图与全年概览，传入当前浏览日期。 */
+  onToggleOverview: (visibleDate: Date) => void;
+  /** 从全年概览进入指定日期所在的月视图。 */
+  onOpenMonth: (date: Date) => void;
+  /** 进入全年概览时定位的年份。 */
+  overviewYear?: number;
+  /** 右侧日期详情是否展开。 */
+  detailsExpanded: boolean;
+  /** 详情容器标识，用于按钮的无障碍关联。 */
+  detailsId: string;
+  /** 切换详情展开状态。 */
+  onToggleDetails: () => void;
+  /** 假日、待办与倒数日事件。 */
   events: CalendarTimelineEvent[];
   /** 当前地区的节假日索引。 */
   holidays: CalendarHolidayIndex;
@@ -111,7 +123,7 @@ export type CalendarMonthGridProps = Pick<CalendarGridProps,
 
 /** CalendarDetailPanel 组件入参 */
 export interface CalendarDetailPanelProps {
-  /** 所选日期对应的待办周期。 */
+  /** 用于查找所选日期待办与倒数日的事件。 */
   events: CalendarTimelineEvent[];
   /** 节假日详情、地区及加载状态。 */
   holidayInfo: CalendarHolidayInfo;
