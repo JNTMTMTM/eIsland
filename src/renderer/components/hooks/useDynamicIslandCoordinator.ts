@@ -159,6 +159,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
   } = useDynamicIslandShell({
     state,
     animationSpeed,
+    springAnimation,
     isMusicPlaying,
     coverImage,
     isPlaying,

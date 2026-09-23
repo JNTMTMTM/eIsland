@@ -26,6 +26,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
+import { useIslandContentActive } from '../../hooks/islandContentActivity';
 import useIslandStore from '../../../store/slices';
 import type { MaxExpandTab } from '../../../store/types';
 import {
@@ -58,7 +60,12 @@ function isEditableTarget(target: EventTarget | null): boolean {
  */
 export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: MaxExpandContentShellProps): React.ReactElement {
   const { t } = useTranslation();
-  const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore();
+  const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore(useShallow((store) => ({
+    setExpanded: store.setExpanded,
+    maxExpandTab: store.maxExpandTab,
+    setMaxExpandTab: store.setMaxExpandTab,
+  })));
+  const contentActive = useIslandContentActive();
   const contentRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
@@ -90,7 +97,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: 
 
   useEffect(() => {
     // 导航配置加载前不能判定目标页不可见，否则会覆盖入口指定的标签。
-    if (!navLayoutLoaded) return;
+    if (!navLayoutLoaded || !contentActive) return;
 
     if (startupMode === 'standalone' && navLayoutLoaded && NAV_DOTS.length === 1) {
       setExpanded();
@@ -101,7 +108,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: 
     if (!isVisible && NAV_DOTS.length > 1) {
       setActiveTab(NAV_DOTS[1] as MaxExpandTab);
     }
-  }, [NAV_DOTS, activeTab, navLayoutLoaded, setActiveTab, setExpanded, startupMode]);
+  }, [NAV_DOTS, activeTab, navLayoutLoaded, setActiveTab, setExpanded, startupMode, contentActive]);
 
   const filteredNavDots = useMemo(() => {
     const getNavLabel = (id: NavDotId): string => t(`maxExpand.nav.${id}`, {
@@ -123,7 +130,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: 
 
   useEffect(() => {
     const el = contentRef.current;
-    if (!el) return;
+    if (!el || !contentActive) return;
 
     const handleWheel = (e: WheelEvent): void => {
       const target = e.target as HTMLElement;
@@ -162,7 +169,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: 
       el.removeEventListener('wheel', handleWheel);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [navigateTab]);
+  }, [navigateTab, contentActive]);
 
   const handleNavClick = (id: NavDotId): void => {
     navigateTab(id);

@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -19,8 +24,8 @@
  * @author 鸡哥
  */
 
-import type { IslandState } from '../types';
 import { ISLAND_HEIGHT, ISLAND_WIDTH } from '../../../shared/islandDimensions';
+import type { IslandState } from '../types';
 
 export const ISLAND_STATE_AREA: Record<string, number> = {
   idle: ISLAND_WIDTH * ISLAND_HEIGHT,
@@ -54,13 +59,22 @@ const MORPH_DURATION_BY_SPEED: Record<string, number> = {
   fast: 360,
 };
 
+// 与 shell.css 的非弹性宽高过渡保持一致，并为最后一帧预留 20 ms。
+const BASIC_DURATION_BY_SPEED: Record<string, number> = {
+  slow: 660,
+  medium: 420,
+  fast: 220,
+};
+
 /**
  * 获取指定速度档位的完整形变保护时长。
  * @param animationSpeed - 动画速度档位。
+ * @param springAnimation - 是否启用弹性动画；窗口画布保护默认采用较长的弹性时长。
  * @returns 形变保护时长（毫秒）。
  */
-export function getIslandMorphDuration(animationSpeed: string): number {
-  return MORPH_DURATION_BY_SPEED[animationSpeed] ?? MORPH_DURATION_BY_SPEED.medium;
+export function getIslandMorphDuration(animationSpeed: string, springAnimation = true): number {
+  const durations = springAnimation ? MORPH_DURATION_BY_SPEED : BASIC_DURATION_BY_SPEED;
+  return durations[animationSpeed] ?? durations.medium;
 }
 
 /**

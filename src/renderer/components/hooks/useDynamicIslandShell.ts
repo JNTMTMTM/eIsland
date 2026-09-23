@@ -26,17 +26,17 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useIslandStore from '../../store/isLandStore';
+import { getIslandMorphDuration } from '../../store/constants/islandTransition';
 import type { IslandState } from '../../store/types';
 
 const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
 
 export type { IslandState };
 
-const MORPH_DURATION_BY_SPEED: Record<string, number> = { slow: 1100, medium: 550, fast: 280 };
-
 interface UseDynamicIslandShellOptions {
   state: IslandState;
   animationSpeed: string;
+  springAnimation: boolean;
   isMusicPlaying: boolean;
   coverImage: string | null;
   isPlaying: boolean;
@@ -67,6 +67,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   const {
     state,
     animationSpeed,
+    springAnimation,
     isMusicPlaying,
     coverImage,
     isPlaying,
@@ -81,6 +82,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   } = options;
 
   const prevStateRef = useRef(state);
+  const morphingRef = useRef(false);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
   const [glowEffectEnabled, setGlowEffectEnabled] = useState<boolean>(true);
@@ -106,16 +108,19 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   }, []);
 
   useEffect(() => {
-    if (prevStateRef.current === state) return;
-    setFromState(prevStateRef.current);
-    prevStateRef.current = state;
+    if (prevStateRef.current !== state) {
+      setFromState(prevStateRef.current);
+      prevStateRef.current = state;
+    } else if (!morphingRef.current) return;
+    morphingRef.current = true;
     setMorphing(true);
     const id = setTimeout(() => {
+      morphingRef.current = false;
       setMorphing(false);
       setFromState('');
-    }, MORPH_DURATION_BY_SPEED[animationSpeed] ?? 550);
+    }, getIslandMorphDuration(animationSpeed, springAnimation));
     return () => clearTimeout(id);
-  }, [state, animationSpeed]);
+  }, [state, animationSpeed, springAnimation]);
 
   const handleIslandClick = useCallback(() => {
     /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 点击均进入 hover */

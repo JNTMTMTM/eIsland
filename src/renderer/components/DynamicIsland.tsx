@@ -30,6 +30,7 @@ import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../store/isLandStore';
 import { DynamicIslandBackground } from './components/DynamicIslandBackground';
 import { DynamicIslandStateContent } from './components/DynamicIslandStateContent';
+import IslandContentTransition from './components/islandContentTransition';
 import { useDynamicIslandCoordinator } from './hooks/useDynamicIslandCoordinator';
 import selectDynamicIslandState from './utils/selectDynamicIslandState';
 
@@ -90,19 +91,24 @@ function DynamicIsland(): JSX.Element {
         onVideoLoadedMetadata={handleVideoLoadedMetadata}
         onVideoCanPlay={handleVideoCanPlay}
       />
-      <DynamicIslandStateContent
-        state={state}
-        timeStr={timeStr}
-        dayStr={dayStr}
-        weather={weather}
-        timerState={timerData?.state ?? 'idle'}
-        remainingSeconds={timerData?.remainingSeconds ?? 0}
-        pomodoroRunning={pomodoroRunning}
-        pomodoroRemaining={pomodoroRemaining}
-        fullTimeStr={fullTimeStr}
-        lunarStr={lunarStr}
-        notification={notification}
-      />
+      <IslandContentTransition state={state}
+        animationSpeed={store.animationSpeed}
+        springAnimation={store.springAnimation}
+      >
+        <DynamicIslandStateContent
+          state={state}
+          timeStr={timeStr}
+          dayStr={dayStr}
+          weather={weather}
+          timerState={timerData?.state ?? 'idle'}
+          remainingSeconds={timerData?.remainingSeconds ?? 0}
+          pomodoroRunning={pomodoroRunning}
+          pomodoroRemaining={pomodoroRemaining}
+          fullTimeStr={fullTimeStr}
+          lunarStr={lunarStr}
+          notification={notification}
+        />
+      </IslandContentTransition>
     </div>
   );
 }

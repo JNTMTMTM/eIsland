@@ -26,19 +26,29 @@
 
 import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ActivityHeatmapProps, HeatmapMetric } from '../types/types';
 import { HEATMAP_MONTH_KEYS } from '../utils/heatmapGrid';
 import { useHeatmapGrid } from '../hooks/useHeatmapGrid';
 import { useHeatmapScroll } from '../hooks/useHeatmapScroll';
+import useCollapsibleContent from '../hooks/useCollapsibleContent';
+import type { ActivityHeatmapProps, HeatmapMetric } from '../types/types';
+
+interface ActivityHeatmapContentProps extends ActivityHeatmapProps {
+  metric: HeatmapMetric;
+  setMetric: (metric: HeatmapMetric) => void;
+}
 
 /**
- * Claude Code 活动热力图组件
- * @param props - 组件属性
- * @returns 热力图 React 元素
+ * 渲染可见热力图的网格和指标，隐藏后随内容一起释放。
+ * @param props - 热力图数据、展示状态和指标控制方法
+ * @param props.heatmap - 按日期汇总的活动量
+ * @param props.compact - 是否采用紧凑布局
+ * @param props.visible - 面板是否展开
+ * @param props.metric - 当前活动指标
+ * @param props.setMetric - 切换活动指标的方法
+ * @returns 热力图内容
  */
-export function ActivityHeatmap({ heatmap, compact = false, visible = true }: ActivityHeatmapProps): ReactElement {
+function ActivityHeatmapContent({ heatmap, compact, visible = true, metric, setMetric }: ActivityHeatmapContentProps): ReactElement {
   const { t } = useTranslation();
-  const [metric, setMetric] = useState<HeatmapMetric>('session');
   const grid = useHeatmapGrid(heatmap, metric);
   const { scrollRef, todayRef } = useHeatmapScroll(visible, metric);
 
@@ -97,5 +107,29 @@ export function ActivityHeatmap({ heatmap, compact = false, visible = true }: Ac
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * Claude Code 活动热力图组件
+ * @param props - 组件属性
+ * @param props.heatmap - 按日期汇总的活动量
+ * @param props.compact - 是否采用紧凑布局
+ * @param props.visible - 面板是否展开
+ * @returns 热力图 React 元素，完全收起后不创建内容
+ */
+export function ActivityHeatmap({ heatmap, compact = false, visible = true }: ActivityHeatmapProps): ReactElement | null {
+  const [metric, setMetric] = useState<HeatmapMetric>('session');
+  const contentMounted = useCollapsibleContent(visible, 240);
+
+  // 保留用户选择的指标，但不在隐藏时计算全年网格或创建数百个格子。
+  if (!contentMounted) return null;
+  return (
+    <ActivityHeatmapContent heatmap={heatmap}
+      compact={compact}
+      visible={visible}
+      metric={metric}
+      setMetric={setMetric}
+    />
   );
 }

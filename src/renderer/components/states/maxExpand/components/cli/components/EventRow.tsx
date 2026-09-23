@@ -24,22 +24,29 @@
  * @author 鸡哥
  */
 
-import { useState, useRef, useCallback, type ReactElement } from 'react';
+import { useState, useRef, useCallback, useMemo, type ReactElement } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { STOP_EVENTS, PERMISSION_EVENTS } from '../config/cliConstants';
-import type { EventRowProps } from '../types/types';
 import { formatTime, detailLabel } from '../utils/cliFormatters';
+import useCollapsibleContent from '../hooks/useCollapsibleContent';
+import type { EventRowProps } from '../types/types';
 
 /**
  * 单条 CLI 事件卡片
  * @param props - 组件属性
+ * @param props.event - 当前事件及完整详情
+ * @param props.t - 翻译函数
+ * @param props.showPermission - 是否显示待处理授权操作
  * @returns 事件卡片 React 元素
  */
 export function EventRow({ event, t, showPermission }: EventRowProps): ReactElement {
   const [expanded, setExpanded] = useState(false);
+  const detailsMounted = useCollapsibleContent(expanded, 260);
   const cardRef = useRef<HTMLDivElement>(null);
+  // IPC 会为每次快照复制事件对象；摘要未变化时避免重复运行 Markdown 解析器。
+  const summary = useMemo(() => <ReactMarkdown>{event.summary}</ReactMarkdown>, [event.summary]);
   const visibleDetails = (event.detailItems ?? []).filter((item) => item.value);
   const hasExtra = visibleDetails.length > 0 || event.toolName || event.toolInputPreview;
   const handleToggle = useCallback(() => {
@@ -65,7 +72,7 @@ export function EventRow({ event, t, showPermission }: EventRowProps): ReactElem
           <span className="cli-event-card-time">{formatTime(event.createdAt)}</span>
         </div>
       </div>
-      <div className="cli-event-card-body"><ReactMarkdown>{event.summary}</ReactMarkdown></div>
+      <div className="cli-event-card-body">{summary}</div>
       {showPermission && (
         <div className="cli-event-card-permission">
           <button
@@ -99,7 +106,7 @@ export function EventRow({ event, t, showPermission }: EventRowProps): ReactElem
           </button>
           <div className={`cli-event-card-details-content${expanded ? ' is-open' : ''}`}>
             <div className="cli-event-card-details-inner">
-              {visibleDetails.map((item) => (
+              {detailsMounted && visibleDetails.map((item) => (
                 <div className="cli-event-card-detail-item" key={item.label}>
                   <span>{detailLabel(item.label, t)}</span>
                   <pre>{item.value}</pre>

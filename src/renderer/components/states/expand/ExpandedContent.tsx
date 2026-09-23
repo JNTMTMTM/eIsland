@@ -26,7 +26,9 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../../../store/slices';
+import { useIslandContentActive } from '../../hooks/islandContentActivity';
 import type { ExpandTab, MaxExpandTab } from '../../../store/types';
 import '../../../styles/expanded/expanded.css';
 import { OverviewTab } from './components/OverviewTab';
@@ -47,7 +49,15 @@ import { getNavLabel } from './utils/getNavLabel';
  */
 export function ExpandedContent(): React.ReactElement {
   const { t } = useTranslation();
-  const { expandTab, setExpandTab, setHover, setMaxExpand, maxExpandTab, setMaxExpandTab } = useIslandStore();
+  const active = useIslandContentActive();
+  const { expandTab, setExpandTab, setHover, setMaxExpand, maxExpandTab, setMaxExpandTab } = useIslandStore(useShallow((state) => ({
+    expandTab: state.expandTab,
+    setExpandTab: state.setExpandTab,
+    setHover: state.setHover,
+    setMaxExpand: state.setMaxExpand,
+    maxExpandTab: state.maxExpandTab,
+    setMaxExpandTab: state.setMaxExpandTab,
+  })));
   const contentRef = useRef<HTMLDivElement>(null);
   const expandTabRef = useRef(expandTab);
   expandTabRef.current = expandTab;
@@ -83,7 +93,7 @@ export function ExpandedContent(): React.ReactElement {
   navDotsRef.current = NAV_DOTS;
 
   const handleSetMaxExpand = useCallback((): void => {
-    if (!hasAvailableMaxExpandTab) return;
+    if (!active || !hasAvailableMaxExpandTab) return;
     const targetMaxExpandTab = firstVisibleMaxExpandTab ?? 'settings';
     if (!targetMaxExpandTab) return;
     const activeTabVisible = maxExpandTab === 'settings'
@@ -94,15 +104,16 @@ export function ExpandedContent(): React.ReactElement {
     }
     preloadEagerWhenPerformanceModeDisabled();
     setMaxExpand();
-  }, [firstVisibleMaxExpandTab, hasAvailableMaxExpandTab, maxExpandNavLayoutConfig, maxExpandTab, preloadEagerWhenPerformanceModeDisabled, setMaxExpand, setMaxExpandTab, startupMode]);
+  }, [active, firstVisibleMaxExpandTab, hasAvailableMaxExpandTab, maxExpandNavLayoutConfig, maxExpandTab, preloadEagerWhenPerformanceModeDisabled, setMaxExpand, setMaxExpandTab, startupMode]);
 
   useEffect(() => {
+    if (!active) return;
     const visibleExpandTabs = NAV_DOTS.filter((tab): tab is ExpandTab => tab !== 'hover' && tab !== 'maxExpand');
     const isVisible = NAV_DOTS.includes(expandTab);
     if (!isVisible && visibleExpandTabs.length > 0) {
       setExpandTab(visibleExpandTabs[0]);
     }
-  }, [NAV_DOTS, expandTab, setExpandTab]);
+  }, [active, NAV_DOTS, expandTab, setExpandTab]);
 
   useExpandWheelNav({
     contentRef,
@@ -134,6 +145,7 @@ export function ExpandedContent(): React.ReactElement {
             key={tab}
             className={`expand-nav-dot ${expandTab === tab ? 'active' : ''}`}
             onClick={() => {
+              if (!active) return;
               if (tab === 'hover') { setHover(); }
               else if (tab === 'maxExpand') { handleSetMaxExpand(); }
               else {
