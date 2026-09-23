@@ -62,7 +62,8 @@ export function ExpandedContent(): React.ReactElement {
   const expandTabRef = useRef(expandTab);
   expandTabRef.current = expandTab;
 
-  const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
+  // 首次挂载只播放容器淡入，用户切换标签后才启用方向动画。
+  const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null);
   const [startupMode, setStartupMode] = useState<'integrated' | 'standalone'>(isStartupModeResolved() ? getStartupMode() : 'integrated');
 
   const { navLayoutConfig, maxExpandNavLayoutConfig, preloadEagerWhenPerformanceModeDisabled } = useExpandNavLayout();
@@ -129,7 +130,7 @@ export function ExpandedContent(): React.ReactElement {
     <div className="expanded-content" ref={contentRef}>
       {/* Tab 内容区域 */}
       <div className="expand-tab-content" onClick={(e) => e.stopPropagation()}>
-        <div className={`expand-tab-transition${tabAnimation ? ` expand-tab-slide-${slideDir}` : ''}`} key={expandTab}>
+        <div className={`expand-tab-transition${tabAnimation && slideDir ? ` expand-tab-slide-${slideDir}` : ''}`} key={expandTab}>
           {expandTab === 'overview' && <OverviewTab />}
           {expandTab === 'song' && <SongTab />}
           {expandTab === 'tools' && <ToolsTab />}
