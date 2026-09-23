@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useLayoutEffect, useMemo, useRef, useState, type ReactElement, type CSSProperties } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type ReactElement, type ReactNode, type CSSProperties } from 'react';
 import { getIslandMorphDuration, ISLAND_STATE_AREA } from '../../store/constants/islandTransition';
 import { IslandContentActivityContext } from '../hooks/islandContentActivity';
 import type { IslandState } from '../../store/types';
@@ -32,15 +32,13 @@ import type { IslandState } from '../../store/types';
 // display:contents 保持原页面的 flex 布局；离场树完全跳过布局和绘制。
 const ACTIVE_LAYER_STYLE: CSSProperties = { display: 'contents' };
 const HIDDEN_LAYER_STYLE: CSSProperties = { display: 'none' };
-const PENDING_STYLE: CSSProperties = {
-  width: 20, height: 3, borderRadius: 2, background: 'rgba(var(--color-text-rgb), 0.25)',
-};
 
 interface IslandContentTransitionProps {
   state: IslandState;
   animationSpeed: string;
   springAnimation: boolean;
   children: ReactElement;
+  fallback?: ReactNode;
 }
 
 interface ContentLayer {
@@ -65,10 +63,11 @@ function isHeavyState(state: IslandState): boolean {
  * @param props.animationSpeed - 动画速度档位。
  * @param props.springAnimation - 是否启用弹性动画。
  * @param props.children - 目标页面节点。
+ * @param props.fallback - 等待重页面挂载时显示的内容，由调用方按性能模式控制。
  * @returns 当前页面、短暂保留的离场页面及轻量加载占位。
  */
 export default function IslandContentTransition({
-  state, animationSpeed, springAnimation, children,
+  state, animationSpeed, springAnimation, children, fallback = null,
 }: IslandContentTransitionProps): ReactElement {
   const visibleContentRef = useRef(children);
   const [transition, setTransition] = useState<ContentTransition>({
@@ -135,7 +134,7 @@ export default function IslandContentTransition({
           </div>
         );
       })}
-      {!showTarget && <div style={PENDING_STYLE} aria-hidden="true" />}
+      {!showTarget && fallback}
     </>
   );
 }

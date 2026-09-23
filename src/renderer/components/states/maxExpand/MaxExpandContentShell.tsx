@@ -42,11 +42,13 @@ import { useContentReady } from './hooks/useContentReady';
 import { shouldIgnoreWheelEvent } from './hooks/useWheelNavigation';
 import { getDefaultNavLabel } from './utils/getNavLabel';
 import { getAdjacentNavDotId } from './utils/tabNavigation';
+import MaxExpandLoading from './maxExpandLoading';
 import '../../../styles/settings/settings.css';
 
 export interface MaxExpandContentShellProps {
   renderActiveTab: (activeTab: MaxExpandTab, loadingFallback: React.ReactElement, contentReady: boolean) => React.ReactElement | null;
   deferContent?: boolean;
+  performanceModeEnabled?: boolean;
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -58,7 +60,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
 /**
  * 渲染 MaxExpand 通用壳层，负责导航与内容切换控制。
  */
-export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: MaxExpandContentShellProps): React.ReactElement {
+export function MaxExpandContentShell({ renderActiveTab, deferContent = true, performanceModeEnabled = false }: MaxExpandContentShellProps): React.ReactElement {
   const { t } = useTranslation();
   const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore(useShallow((store) => ({
     setExpanded: store.setExpanded,
@@ -176,12 +178,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true }: 
   };
 
   const loadingFallback = (
-    <div className="max-expand-tab-loading">
-      <span className="max-expand-tab-loading-spinner" aria-hidden="true" />
-      <span className="max-expand-tab-loading-text">
-        {t('maxExpand.loading', { defaultValue: '正在加载最大展开界面...' })}
-      </span>
-    </div>
+    <MaxExpandLoading activeTab={activeTab} performanceModeEnabled={performanceModeEnabled} />
   );
 
   return (

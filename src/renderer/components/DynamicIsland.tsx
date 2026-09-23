@@ -31,6 +31,8 @@ import useIslandStore from '../store/isLandStore';
 import { DynamicIslandBackground } from './components/DynamicIslandBackground';
 import { DynamicIslandStateContent } from './components/DynamicIslandStateContent';
 import IslandContentTransition from './components/islandContentTransition';
+import MaxExpandTransitionLoading from './states/maxExpand/maxExpandTransitionLoading';
+import ExpandedTransitionLoading from './states/expand/expandedTransitionLoading';
 import { useDynamicIslandCoordinator } from './hooks/useDynamicIslandCoordinator';
 import selectDynamicIslandState from './utils/selectDynamicIslandState';
 
@@ -75,6 +77,10 @@ function DynamicIsland(): JSX.Element {
     language: i18n.resolvedLanguage,
   });
 
+  let loadingFallback: JSX.Element | null = null;
+  if (state === 'maxExpand') loadingFallback = <MaxExpandTransitionLoading />;
+  if (state === 'expanded') loadingFallback = <ExpandedTransitionLoading />;
+
   return (
     <div
       className={shellClassName}
@@ -94,6 +100,7 @@ function DynamicIsland(): JSX.Element {
       <IslandContentTransition state={state}
         animationSpeed={store.animationSpeed}
         springAnimation={store.springAnimation}
+        fallback={loadingFallback}
       >
         <DynamicIslandStateContent
           state={state}

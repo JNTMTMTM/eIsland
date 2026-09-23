@@ -71,7 +71,16 @@
 }
 
 .max-expand-tab-loading-text {
-  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: min(360px, 75vw);
+  line-height: 1.4;
+}
+
+.max-expand-tab-loading-description {
+  font-size: 11px;
+  color: rgba(var(--color-text-rgb), 0.42);
 }
 
 @keyframes maxExpandTabLoadingSpin {
