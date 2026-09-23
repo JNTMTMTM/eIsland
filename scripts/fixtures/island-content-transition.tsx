@@ -29,6 +29,7 @@ interface FixtureOptions {
   state: IslandState;
   animationSpeed?: string;
   springAnimation?: boolean;
+  performanceModeEnabled?: boolean;
   deferred?: boolean;
   rows?: number;
 }
@@ -93,12 +94,13 @@ function Page(props: { state: IslandState; rows: number }): ReactElement {
  * @returns 独立的测试界面。
  */
 function Fixture(options: FixtureOptions): ReactElement {
-  const { state, animationSpeed = 'medium', springAnimation = true, deferred = true, rows = 40 } = options;
+  const { state, animationSpeed = 'medium', springAnimation = true, performanceModeEnabled = true, deferred = true, rows = 40 } = options;
   const content = <Page key={state} state={state} rows={rows} />;
   return (
     <div className={`island-shell ${state} speed-${animationSpeed}${springAnimation ? ' spring-animation' : ''}`}>
       {deferred ? (
-        <IslandContentTransition state={state} animationSpeed={animationSpeed} springAnimation={springAnimation}>
+        <IslandContentTransition state={state} animationSpeed={animationSpeed} springAnimation={springAnimation}
+          performanceModeEnabled={performanceModeEnabled} fallback={<div data-fixture-loading="true" />}>
           {content}
         </IslandContentTransition>
       ) : content}
@@ -112,7 +114,7 @@ function Fixture(options: FixtureOptions): ReactElement {
  * @returns 无返回值。
  */
 function render(options: FixtureOptions): void {
-  flushSync(() => root.render(<Fixture state={options.state} animationSpeed={options.animationSpeed} springAnimation={options.springAnimation} deferred={options.deferred} rows={options.rows} />));
+  flushSync(() => root.render(<Fixture state={options.state} animationSpeed={options.animationSpeed} springAnimation={options.springAnimation} performanceModeEnabled={options.performanceModeEnabled} deferred={options.deferred} rows={options.rows} />));
 }
 
 /**
@@ -287,6 +289,68 @@ async function testInterruptions(): Promise<void> {
 }
 
 /**
+ * 确保关闭性能模式时同步切换页面，不保留隐藏树或显示加载占位。
+ * @param state - 当前目标状态。
+ * @returns 当前目标页面节点。
+ */
+function assertImmediateContent(state: IslandState): Element {
+  const pages = document.querySelectorAll('[data-fixture-state]');
+  assert(pages.length === 1 && pages[0].getAttribute('data-fixture-state') === state, `Disabled performance mode must immediately show only ${state}.`);
+  assert(visible(pages[0]), `${state} must remain visible while performance mode is disabled.`);
+  assert(!document.querySelector('[data-island-state][hidden], [data-island-state][inert], [data-island-state][aria-hidden="true"]'), 'Disabled performance mode retained a hidden or inert page layer.');
+  assert(!document.querySelector('[data-fixture-loading]'), 'Disabled performance mode displayed the transition loading fallback.');
+  assert(livePages === 1, 'Disabled performance mode did not immediately release the outgoing page.');
+  return pages[0];
+}
+
+/**
+ * 验证性能模式关闭和动画中切换设置时的页面生命周期。
+ * @returns 场景完成后的 Promise。
+ */
+async function testPerformanceMode(): Promise<void> {
+  reset();
+  const states: IslandState[] = ['cli', 'expanded', 'maxExpand', 'cli'];
+  states.forEach((state, index) => {
+    render({ state, animationSpeed: 'fast', performanceModeEnabled: false });
+    assertImmediateContent(state);
+    assert(events.filter((event) => event.type === 'mount').length === index + 1, 'Disabled performance mode delayed a target mount.');
+    assert(events.filter((event) => event.type === 'unmount').length === index, 'Disabled performance mode delayed outgoing cleanup.');
+  });
+  await wait(480);
+  assertImmediateContent('cli');
+  checks.push('performance mode off: cli → expanded → maxExpand → cli switches synchronously');
+
+  reset();
+  render({ state: 'expanded', animationSpeed: 'fast' });
+  await frame();
+  render({ state: 'maxExpand', animationSpeed: 'fast' });
+  assert(Boolean(document.querySelector('[data-fixture-loading]')), 'Enabled performance mode must show the supplied loading fallback for pending heavy content.');
+  await wait(50);
+  render({ state: 'maxExpand', animationSpeed: 'fast', performanceModeEnabled: false });
+  const enteredPage = assertImmediateContent('maxExpand');
+  render({ state: 'maxExpand', animationSpeed: 'fast', performanceModeEnabled: true });
+  assert(assertImmediateContent('maxExpand') === enteredPage, 'Re-enabling performance mode unnecessarily remounted the current page.');
+  await wait(480);
+  assert(assertImmediateContent('maxExpand') === enteredPage, 'A stale enter timer replaced the page after the setting changed.');
+  assert(events.filter((event) => event.state === 'maxExpand' && event.type === 'mount').length === 1, 'Disabling a pending enter must mount its target exactly once.');
+  checks.push('disable performance mode during enter, then re-enable without remounting');
+
+  render({ state: 'cli', animationSpeed: 'fast' });
+  const outgoing = document.querySelector('[data-fixture-state="maxExpand"]');
+  assert(Boolean(outgoing && !visible(outgoing)), 'Re-enabled performance mode must retain and hide outgoing heavy content until shrink completes.');
+  const compactPage = document.querySelector('[data-fixture-state="cli"]');
+  await wait(50);
+  render({ state: 'cli', animationSpeed: 'fast', performanceModeEnabled: false });
+  assert(assertImmediateContent('cli') === compactPage, 'Disabling performance mode during shrink must preserve the visible light target.');
+  render({ state: 'cli', animationSpeed: 'fast', performanceModeEnabled: true });
+  await wait(480);
+  assert(assertImmediateContent('cli') === compactPage, 'A stale shrink timer changed the target after the setting changed.');
+  assert(events.filter((event) => event.state === 'maxExpand' && event.type === 'unmount').length === 1, 'Disabling a pending shrink must release its source exactly once.');
+  checks.push('disable performance mode during shrink immediately releases retained content');
+  reset();
+}
+
+/**
  * 采样实际浏览器帧间隔；性能数据仅用于比较，不作为不稳定的测试门槛。
  * @param deferred - 是否启用业务内容调度器。
  * @param direction - 展开或收起重内容。
@@ -335,6 +399,7 @@ declare global {
 window.runIslandTransitionTests = async () => {
   await testLifecycle();
   await testInterruptions();
+  await testPerformanceMode();
   const baselineEnter = await benchmark(false, 'enter');
   const scheduledEnter = await benchmark(true, 'enter');
   const baselineExit = await benchmark(false, 'exit');

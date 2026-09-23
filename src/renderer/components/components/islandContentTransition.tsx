@@ -20,7 +20,7 @@
 
 /**
  * @file islandContentTransition.tsx
- * @description 将重页面挂载和卸载移出外壳宽高动画，过渡结束后释放离场内容。
+ * @description 性能模式下将重页面挂载和卸载移出外壳动画，普通模式立即切换内容。
  * @author 鸡哥
  */
 
@@ -37,6 +37,7 @@ interface IslandContentTransitionProps {
   state: IslandState;
   animationSpeed: string;
   springAnimation: boolean;
+  performanceModeEnabled: boolean;
   children: ReactElement;
   fallback?: ReactNode;
 }
@@ -57,17 +58,18 @@ function isHeavyState(state: IslandState): boolean {
 }
 
 /**
- * 在外壳缩放期间只显示轻内容，避免重树布局和清理抢占动画帧。
+ * 按性能模式选择延迟重内容或立即切换页面，并在关闭开关时取消待完成的过渡。
  * @param props - 目标状态、动画配置和对应页面。
  * @param props.state - 当前目标状态。
  * @param props.animationSpeed - 动画速度档位。
  * @param props.springAnimation - 是否启用弹性动画。
+ * @param props.performanceModeEnabled - 是否启用内容隐藏、延迟挂载和离场保留。
  * @param props.children - 目标页面节点。
  * @param props.fallback - 等待重页面挂载时显示的内容，由调用方按性能模式控制。
  * @returns 当前页面、短暂保留的离场页面及轻量加载占位。
  */
 export default function IslandContentTransition({
-  state, animationSpeed, springAnimation, children, fallback = null,
+  state, animationSpeed, springAnimation, performanceModeEnabled, children, fallback = null,
 }: IslandContentTransitionProps): ReactElement {
   const visibleContentRef = useRef(children);
   const [transition, setTransition] = useState<ContentTransition>({
@@ -77,6 +79,11 @@ export default function IslandContentTransition({
   // 首次渲染就拦住重目标，不能等 effect 执行后才隐藏已挂载的页面。
   const changed = transition.target !== state;
   const current = useMemo<ContentTransition>(() => {
+    // 普通模式直接提交目标内容；中途关闭时也立即释放旧层，避免开关恢复后复用过期状态。
+    if (!performanceModeEnabled) {
+      if (!changed && !transition.pending) return transition;
+      return { target: state, pending: false, retained: null };
+    }
     if (!changed) return transition;
     const pending = transition.pending || (
       ISLAND_STATE_AREA[transition.target] !== ISLAND_STATE_AREA[state]
@@ -88,13 +95,13 @@ export default function IslandContentTransition({
     }
     if (!pending) retained = null;
     return { pending, retained, target: state };
-  }, [changed, state, transition]);
+  }, [changed, state, transition, performanceModeEnabled]);
   const { pending } = current;
 
   useLayoutEffect(() => {
-    if (changed) setTransition(current);
+    if (current !== transition) setTransition(current);
     if (!pending) visibleContentRef.current = children;
-  }, [changed, current, pending, children]);
+  }, [transition, current, pending, children]);
 
   useLayoutEffect(() => {
     if (!current.pending) return;

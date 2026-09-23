@@ -33,6 +33,7 @@ import { DynamicIslandStateContent } from './components/DynamicIslandStateConten
 import IslandContentTransition from './components/islandContentTransition';
 import MaxExpandTransitionLoading from './states/maxExpand/maxExpandTransitionLoading';
 import ExpandedTransitionLoading from './states/expand/expandedTransitionLoading';
+import { usePerformanceMode } from './states/maxExpand/hooks/usePerformanceMode';
 import { useDynamicIslandCoordinator } from './hooks/useDynamicIslandCoordinator';
 import selectDynamicIslandState from './utils/selectDynamicIslandState';
 
@@ -46,6 +47,7 @@ export { AI_CHAT_CLIPBOARD_URL_EVENT, getStateClassName, STATE_CONFIGS } from '.
 function DynamicIsland(): JSX.Element {
   const { t, i18n } = useTranslation();
   const store = useIslandStore(useShallow(selectDynamicIslandState));
+  const performanceModeEnabled = usePerformanceMode();
   const {
     state,
     weather,
@@ -100,6 +102,7 @@ function DynamicIsland(): JSX.Element {
       <IslandContentTransition state={state}
         animationSpeed={store.animationSpeed}
         springAnimation={store.springAnimation}
+        performanceModeEnabled={performanceModeEnabled}
         fallback={loadingFallback}
       >
         <DynamicIslandStateContent
