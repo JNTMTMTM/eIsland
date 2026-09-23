@@ -166,7 +166,7 @@ export function AlbumCarouselWidget({ openAlbumPage }: AlbumCarouselWidgetProps)
       videoPosterCacheRef.current = null;
       const metadata = await probeVideo(info.url, controller.signal, true);
       if (controller.signal.aborted || !metadata?.poster) return;
-      videoPosterCacheRef.current = { id: activeItem.id, poster: metadata.poster };
+      videoPosterCacheRef.current = {id: activeItem.id, poster: metadata.poster};
       setVideoPosterUrl(metadata.poster);
     }).catch(() => {});
 

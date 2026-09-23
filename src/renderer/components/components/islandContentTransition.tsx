@@ -91,7 +91,7 @@ export default function IslandContentTransition({
     );
     let { retained } = transition;
     if (!transition.pending && isHeavyState(transition.target)) {
-      retained = { state: transition.target, element: visibleContentRef.current };
+      retained = {state: transition.target, element: visibleContentRef.current};
     }
     if (!pending) retained = null;
     return { pending, retained, target: state };

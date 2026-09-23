@@ -96,7 +96,7 @@ async function resetWorker(slot = cachedWorker): Promise<void> {
 
 /** 应用退出时清理 worker。 */
 export async function disposeLocalOcrWorker(): Promise<void> {
-  for (const controller of activeRequests) controller.abort();
+  activeRequests.forEach((controller) => controller.abort());
   await resetWorker();
 }
 

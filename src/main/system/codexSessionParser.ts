@@ -229,13 +229,20 @@ function* textLines(content: string): Generator<string> {
  * @returns 有效 JSON 记录的迭代器
  */
 function* jsonLines(readLines: () => Iterable<string>): Generator<Record<string, unknown>> {
-  // eslint-disable-next-line no-restricted-syntax -- 流式迭代不能转成数组，否则会重新保留整份日志。
-  for (const text of readLines()) {
-    try {
-      if (text.trim()) yield asRecord(JSON.parse(text));
-    } catch {
-      // CLI 可能正在追加当前行，下一次轮询会重新读取。
+  const iterator = readLines()[Symbol.iterator]();
+  let next = iterator.next();
+  try {
+    while (!next.done) {
+      const text = next.value;
+      try {
+        if (text.trim()) yield asRecord(JSON.parse(text));
+      } catch {
+        // CLI 可能正在追加当前行，下一次轮询会重新读取。
+      }
+      next = iterator.next();
     }
+  } finally {
+    if (!next.done) iterator.return?.();
   }
 }
 
@@ -254,13 +261,17 @@ export function parseCodexSessionLines(
   now = Date.now(),
 ): ParsedCodexSession | null {
   let metaLine: Record<string, unknown> | undefined;
-  // eslint-disable-next-line no-restricted-syntax -- 找到元数据即关闭文件迭代器，不加载后续历史。
-  for (const line of jsonLines(readLines)) {
+  const metaIterator = jsonLines(readLines);
+  let metaNext = metaIterator.next();
+  while (!metaNext.done) {
+    const line = metaNext.value;
     if (asString(line.type) === 'session_meta') {
       metaLine = line;
       break;
     }
+    metaNext = metaIterator.next();
   }
+  metaIterator.return(undefined);
   const meta = asRecord(metaLine?.payload ?? metaLine?.item);
   const sessionId = asString(meta.id) ?? asString(meta.session_id) ?? asString(meta.thread_id);
   if (!sessionId) return null;
@@ -291,18 +302,24 @@ export function parseCodexSessionLines(
   });
 
   let index = -1;
-  // eslint-disable-next-line no-restricted-syntax -- 逐条消费日志，释放上一条的大型原始输出。
-  for (const line of jsonLines(readLines)) {
+  const eventIterator = jsonLines(readLines);
+  let eventNext = eventIterator.next();
+  while (!eventNext.done) {
+    const line = eventNext.value;
     index += 1;
     const lineType = asString(line.type);
     const payload = asRecord(line.payload ?? line.item);
     if (lineType === 'turn_context') {
       context.cwd = asString(payload.cwd) ?? context.cwd;
       context.model = asString(payload.model) ?? context.model;
+      eventNext = eventIterator.next();
       continue;
     }
     const mapped = mapLine(line, context);
-    if (!mapped) continue;
+    if (!mapped) {
+      eventNext = eventIterator.next();
+      continue;
+    }
     const createdAt = timestampOf(line, fallbackTimestamp + index);
     events.push({
       sessionId,
@@ -319,6 +336,7 @@ export function parseCodexSessionLines(
       toolInputPreview: mapped.toolInputPreview,
       raw: {},
     });
+    eventNext = eventIterator.next();
   }
 
   const seenAt = new Map<string, number>();
@@ -349,23 +367,28 @@ export function parseCodexSessionLines(
     startEvent.detailItems = detailItems(detailContext, [['model', detailContext.model], ['rawEvent', meta]]);
   }
   index = -1;
-  // eslint-disable-next-line no-restricted-syntax -- 只为选中的事件加载详情，不能物化全部原始记录。
-  for (const line of jsonLines(readLines)) {
+  const detailIterator = jsonLines(readLines);
+  let detailNext = detailIterator.next();
+  while (!detailNext.done) {
+    const line = detailNext.value;
     index += 1;
     const payload = asRecord(line.payload ?? line.item);
     if (asString(line.type) === 'turn_context') {
       detailContext.cwd = asString(payload.cwd) ?? detailContext.cwd;
       detailContext.model = asString(payload.model) ?? detailContext.model;
+      detailNext = detailIterator.next();
       continue;
     }
     const createdAt = timestampOf(line, fallbackTimestamp + index);
     const event = selected.get(`${sessionId}-${index}-${createdAt}`);
-    if (!event) continue;
-    const mapped = mapLine(line, detailContext);
-    if (mapped) {
-      event.detailItems = mapped.detailItems;
-      event.raw = payload;
+    if (event) {
+      const mapped = mapLine(line, detailContext);
+      if (mapped) {
+        event.detailItems = mapped.detailItems;
+        event.raw = payload;
+      }
     }
+    detailNext = detailIterator.next();
   }
   return {
     heatmap,
