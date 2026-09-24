@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-22T00:55:56.257Z
+> 生成时间：2026-09-24T20:00:15.421Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,18 @@
 
 ## Unreleased
 
+- 2026-09-24 | 41129cf3 | 鸡哥 | Merge pull request #221 from JNTMTMTM/dev
+- 2026-09-24 | 46c4a4f2 | 鸡哥 | refactor: streamline abort logic in disposeLocalOcrWorker and improve iterator handling in codexSessionParser
+- 2026-09-24 | ea9eef4f | 鸡哥 | feat: update licensing information and original author details in loading components
+- 2026-09-24 | 2b314d85 | 鸡哥 | feat: add 'questionnaire' option to user initial profile page state
+- 2026-09-24 | 0ec40108 | 鸡哥 | feat: enhance animation for expanded content with fade-in effect and conditional slide direction
+- 2026-09-23 | 470815ab | 鸡哥 | feat: add performance mode support for content transitions and state management
+- 2026-09-23 | c4224e67 | 鸡哥 | feat: implement performance mode loading animations and descriptions for expanded and maxExpand states
+- 2026-09-23 | dd70a416 | 鸡哥 | feat: add island content activity hook for managing active state during transitions
+- 2026-09-23 | 9383ad64 | 鸡哥 | feat: add comprehensive tests for image translation and text file line utilities
+- 2026-09-22 | 78f0e23f | 鸡哥 | fix: remove unnecessary libc entries and add hasInstallScript flag in package-lock.json
+- 2026-09-22 | a6c25472 | 鸡哥 | feat(tests): add comprehensive unit tests for various components and utilities
+- 2026-09-22 | 57555928 | eislandBot | docs: auto update CHANGE_LOG.md for #220 by @JNTMTMTM [skip ci]
 - 2026-09-21 | a6cc842c | 鸡哥 | Merge pull request #220 from JNTMTMTM/dev
 - 2026-09-22 | 650761f0 | 鸡哥 | fix: correct destructuring of getBoundingClientRect and update spacing in pendingScroll logic
 - 2026-09-22 | 6b50ca69 | 鸡哥 | fix: update CALENDER.svg to correct path data and ensure proper rendering
