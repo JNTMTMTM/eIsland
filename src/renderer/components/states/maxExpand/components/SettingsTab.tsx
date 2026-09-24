@@ -24,7 +24,8 @@
  * @author 鸡哥
  */
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { memo, useCallback, useState, useRef, useEffect, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -191,7 +192,7 @@ function SettingsField({
  * @description 提供应用设置、AI 配置与关于软件三类设置入口
  * @returns 设置 Tab 组件
  */
-export function SettingsTab(): ReactElement {
+export const SettingsTab = memo((): ReactElement => {
   const { t } = useTranslation();
   const translatedOverviewWidgetOptions = useMemo(() => {
     const labelKeyMap: Record<OverviewWidgetType, string> = {
@@ -240,7 +241,14 @@ export function SettingsTab(): ReactElement {
   const [wallpaperMarketRefreshKey, setWallpaperMarketRefreshKey] = useState(0);
   const [wallpaperSearchExpanded, setWallpaperSearchExpanded] = useState(false);
   const [wallpaperDetailOpen, setWallpaperDetailOpen] = useState(false);
-  const { aiConfig, setAiConfig, fetchWeatherData, setLogin, setRegister, setNotification } = useIslandStore();
+  const { aiConfig, setAiConfig, fetchWeatherData, setLogin, setRegister, setNotification } = useIslandStore(useShallow((store) => ({
+    aiConfig: store.aiConfig,
+    setAiConfig: store.setAiConfig,
+    fetchWeatherData: store.fetchWeatherData,
+    setLogin: store.setLogin,
+    setRegister: store.setRegister,
+    setNotification: store.setNotification,
+  })));
   const settingsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (activeTab !== 'user') {
@@ -364,7 +372,6 @@ export function SettingsTab(): ReactElement {
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<string[]>([]);
   const [navEditMode, setNavEditMode] = useState(false);
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const dragIdxRef = useRef<number | null>(null);
   const [detectingSourceAppId, setDetectingSourceAppId] = useState(false);
   const [detectedSources, setDetectedSources] = useState<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>>([]);
@@ -540,17 +547,34 @@ export function SettingsTab(): ReactElement {
     window.api.settingsPreview('i18n:language', language).catch(() => {});
   };
 
-  const persistNavConfig = (visibleOrder: string[], hiddenOrder: string[]): void => {
+  const persistNavConfig = useCallback((visibleOrder: string[], hiddenOrder: string[]): void => {
     window.api.navOrderSet({ visibleOrder, hiddenOrder }).catch(() => {});
-  };
+  }, []);
 
-  const resetNavConfig = (): void => {
+  const resetNavConfig = useCallback((): void => {
     const nextVisible = [...DEFAULT_NAV_ORDER];
     const nextHidden: string[] = [];
     setNavOrder(nextVisible);
     setHiddenNavOrder(nextHidden);
     persistNavConfig(nextVisible, nextHidden);
-  };
+  }, [persistNavConfig]);
+
+  const handleNavAction = useCallback((actionId: string): void => {
+    if (actionId === 'user-pro') {
+      setUserInitialProfilePage('pro');
+      setActiveTab('user');
+      return;
+    }
+    if (actionId === 'user-recharge') {
+      setUserInitialProfilePage('recharge');
+      setActiveTab('user');
+      return;
+    }
+    if (actionId === 'user-questionnaire') {
+      setUserInitialProfilePage('questionnaire');
+      setActiveTab('user');
+    }
+  }, [setActiveTab]);
 
   /** 快捷键相关状态 */
   const [hideHotkey, setHideHotkey] = useState<string>('Alt+X');
@@ -2323,11 +2347,9 @@ export function SettingsTab(): ReactElement {
               visibleCards={visibleCards}
               hiddenCards={hiddenCards}
               navEditMode={navEditMode}
-              dragOverIdx={dragOverIdx}
               navOrder={navOrder}
               hiddenNavOrder={hiddenNavOrder}
               dragIdxRef={dragIdxRef}
-              setDragOverIdx={setDragOverIdx}
               setNavOrder={setNavOrder}
               setHiddenNavOrder={setHiddenNavOrder}
               setNavEditMode={setNavEditMode}
@@ -2338,22 +2360,7 @@ export function SettingsTab(): ReactElement {
               setAiSettingsPage={setAiSettingsPage}
               setNetworkSettingsPage={setNetworkSettingsPage}
               setActiveTab={setActiveTab}
-              onAction={(actionId) => {
-                if (actionId === 'user-pro') {
-                  setUserInitialProfilePage('pro');
-                  setActiveTab('user');
-                  return;
-                }
-                if (actionId === 'user-recharge') {
-                  setUserInitialProfilePage('recharge');
-                  setActiveTab('user');
-                  return;
-                }
-                if (actionId === 'user-questionnaire') {
-                  setUserInitialProfilePage('questionnaire');
-                  setActiveTab('user');
-                }
-              }}
+              onAction={handleNavAction}
             />
           )}
 
@@ -2860,4 +2867,6 @@ export function SettingsTab(): ReactElement {
       </div>
     </div>
   );
-}
+});
+
+SettingsTab.displayName = 'SettingsTab';
