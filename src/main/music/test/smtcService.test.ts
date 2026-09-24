@@ -66,7 +66,7 @@ const MockWorkerClass = vi.hoisted(() =>
       return this;
     });
     postMessage = vi.fn();
-    terminate = vi.fn();
+    terminate = vi.fn().mockResolvedValue(0);
     constructor(_path: string) {
       workerConstructLog.push(_path);
       createdWorkers.push(this);
@@ -99,7 +99,7 @@ vi.mock('path', () => ({
 /* ------------------------------------------------------------------ */
 
 function defaultOptions(overrides: Partial<{
-  getMainWindow: () => { isDestroyed: () => boolean; webContents: { send: (...a: unknown[]) => void } } | null;
+  getMainWindow: () => import('electron').BrowserWindow | null;
   getWhitelist: () => string[];
   getSmtcUnsubscribeMs: () => number;
   unsubscribeNeverValue: number;
@@ -270,6 +270,18 @@ describe('createSmtcService', () => {
   /* -------------------------------------------------------------- */
 
   describe('initWorker', () => {
+    it('does not start duplicate monitors when initialized twice', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const svc = createSmtcService(defaultOptions());
+      svc.initWorker();
+      const runtime = svc.getSmtcSessionRuntime();
+      svc.initWorker();
+
+      expect(workerConstructLog).toHaveLength(1);
+      expect(svc.getSmtcSessionRuntime()).toBe(runtime);
+      svc.cleanupWorker();
+    });
+
     it('creates a Worker and makes session runtime available', async () => {
       const { createSmtcService } = await import('../smtcService');
       const svc = createSmtcService(defaultOptions());
@@ -953,6 +965,37 @@ describe('createSmtcService', () => {
   /* -------------------------------------------------------------- */
 
   describe('detectAllSources', () => {
+    it('shares concurrent detection and clears its only timer after completion', async () => {
+      vi.useFakeTimers();
+      const { createSmtcService } = await import('../smtcService');
+      const svc = createSmtcService(defaultOptions());
+      svc.initWorker();
+      const requests = Array.from({ length: 50 }, () => svc.detectAllSources());
+      expect(getLastWorker().postMessage).toHaveBeenCalledTimes(1);
+      expect(vi.getTimerCount()).toBe(1);
+      const sources = [{ sourceAppId: 'spotify', isPlaying: true, hasTitle: true, thumbnail: null }];
+      emitWorkerMessage({ type: 'detect-sources-result', sources });
+
+      expect(await Promise.all(requests)).toEqual(Array.from({ length: 50 }, () => sources));
+      expect(vi.getTimerCount()).toBe(0);
+      svc.cleanupWorker();
+      vi.useRealTimers();
+    });
+
+    it('clears pending detection and cached sessions when the worker exits', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const svc = createSmtcService(defaultOptions());
+      svc.initWorker();
+      const pending = svc.detectAllSources();
+      emitWorkerExit(0);
+
+      expect(await pending).toEqual([]);
+      expect(svc.getSmtcSessionRuntime()).toBeNull();
+      svc.initWorker();
+      expect(workerConstructLog).toHaveLength(2);
+      svc.cleanupWorker();
+    });
+
     it('returns empty array when worker is not initialized', async () => {
       const { createSmtcService } = await import('../smtcService');
       const svc = createSmtcService(defaultOptions());

@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -33,6 +38,14 @@ describe('getIslandWindowShrinkDelay', () => {
     expect(getIslandMorphDuration('slow')).toBe(1100);
     expect(getIslandMorphDuration('medium')).toBe(700);
     expect(getIslandMorphDuration('fast')).toBe(360);
+  });
+
+  it('uses the base CSS duration when spring animation is disabled', () => {
+    expect(getIslandMorphDuration('slow', false)).toBe(660);
+    expect(getIslandMorphDuration('medium', false)).toBe(420);
+    expect(getIslandMorphDuration('fast', false)).toBe(220);
+    expect(getIslandMorphDuration('unknown', false)).toBe(420);
+    expect(getIslandMorphDuration('unknown')).toBe(700);
   });
 
   it('uses zero-area fallbacks when a state is missing from the area map', () => {

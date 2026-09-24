@@ -54,22 +54,6 @@ function decryptSpadeA(spadeA: string): string {
   return end <= decoded.length ? decoded.subarray(1, end).toString('utf8') : '';
 }
 
-function parseSampleSizes(data: Buffer): number[] {
-  const sampleSize = data.readUInt32BE(4);
-  const count = data.readUInt32BE(8);
-  if (sampleSize !== 0) return Array.from({ length: count }, () => sampleSize);
-  return Array.from({ length: count }, (_, index) => data.readUInt32BE(12 + index * 4));
-}
-
-function parseInitializationVectors(data: Buffer): Buffer[] {
-  const count = data.readUInt32BE(4);
-  return Array.from({ length: count }, (_, index) => {
-    const iv = Buffer.alloc(16);
-    data.copy(iv, 0, 8 + index * 8, 16 + index * 8);
-    return iv;
-  });
-}
-
 function findFlacMetadata(stsdData: Buffer): Buffer {
   const markerIndex = stsdData.indexOf(Buffer.from('dfLa'));
   if (markerIndex < 4) return Buffer.alloc(0);
@@ -110,34 +94,45 @@ export function decryptQishuiAudio(
     throw new Error('QISHUI_AUDIO_CONTAINER_INVALID');
   }
 
-  const sizes = parseSampleSizes(stsz.data);
-  const ivs = parseInitializationVectors(senc.data);
-  if (sizes.length !== ivs.length) throw new Error('QISHUI_AUDIO_SAMPLE_COUNT_MISMATCH');
-  let offset = mdat.offset + 8;
-  const samples = sizes.map((size, index) => {
-    const decipher = createDecipheriv('aes-128-ctr', key, ivs[index]);
-    const sample = Buffer.concat([
-      decipher.update(encryptedBuffer.subarray(offset, offset + size)),
-      decipher.final(),
-    ]);
-    offset += size;
-    return sample;
-  });
-
-  const flacMetadata = findFlacMetadata(stsd.data);
-  if (flacMetadata.length) {
-    return {
-      buffer: Buffer.concat([Buffer.from('fLaC'), flacMetadata, ...samples]),
-      contentType: 'audio/flac',
-    };
+  // 先验证表长度，避免损坏的 count 字段触发数十亿个样本/IV 的分配。
+  if (stsz.data.length < 12 || senc.data.length < 8) throw new Error('QISHUI_AUDIO_CONTAINER_INVALID');
+  const sampleSize = stsz.data.readUInt32BE(4);
+  const count = stsz.data.readUInt32BE(8);
+  if (count !== senc.data.readUInt32BE(4)) throw new Error('QISHUI_AUDIO_SAMPLE_COUNT_MISMATCH');
+  if ((sampleSize === 0 && count > (stsz.data.length - 12) / 4)
+    || count > (senc.data.length - 8) / 8) {
+    throw new Error('QISHUI_AUDIO_CONTAINER_INVALID');
   }
-
-  const output = Buffer.from(encryptedBuffer);
-  let writeOffset = mdat.offset + 8;
-  samples.forEach((sample) => {
-    sample.copy(output, writeOffset);
-    writeOffset += sample.length;
-  });
-  replaceEncryptedAudioType(output, stsd.offset, stsd.offset + stsd.size);
-  return { buffer: output, contentType: 'audio/mp4' };
+  let totalSampleBytes = 0;
+  for (let index = 0; index < count; index += 1) {
+    totalSampleBytes += sampleSize || stsz.data.readUInt32BE(12 + index * 4);
+    if (totalSampleBytes > mdat.data.length) throw new Error('QISHUI_AUDIO_CONTAINER_INVALID');
+  }
+  const flacMetadata = findFlacMetadata(stsd.data);
+  const isFlac = flacMetadata.length > 0;
+  const output = isFlac
+    ? Buffer.alloc(4 + flacMetadata.length + totalSampleBytes)
+    : Buffer.from(encryptedBuffer);
+  if (isFlac) {
+    output.write('fLaC', 0, 'ascii');
+    flacMetadata.copy(output, 4);
+  }
+  let readOffset = mdat.offset + 8;
+  let writeOffset = isFlac ? 4 + flacMetadata.length : readOffset;
+  const iv = Buffer.alloc(16);
+  // 每个样本解密后立即写入最终输出，不再保留整曲的样本数组和额外拼接副本。
+  for (let index = 0; index < count; index += 1) {
+    const size = sampleSize || stsz.data.readUInt32BE(12 + index * 4);
+    senc.data.copy(iv, 0, 8 + index * 8, 16 + index * 8);
+    const decipher = createDecipheriv('aes-128-ctr', key, iv);
+    for (let offset = 0; offset < size; offset += 64 * 1024) {
+      const end = Math.min(offset + 64 * 1024, size);
+      decipher.update(encryptedBuffer.subarray(readOffset + offset, readOffset + end)).copy(output, writeOffset + offset);
+    }
+    decipher.final();
+    readOffset += size;
+    writeOffset += size;
+  }
+  if (!isFlac) replaceEncryptedAudioType(output, stsd.offset, stsd.offset + stsd.size);
+  return { buffer: output, contentType: isFlac ? 'audio/flac' : 'audio/mp4' };
 }

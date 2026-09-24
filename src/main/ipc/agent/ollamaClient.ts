@@ -155,9 +155,18 @@ export function streamOllamaChat(
     max_tokens: request.max_tokens,
   });
 
-  let aborted = false;
+  let finished = false;
   let fullText = '';
   let lastUsage: OllamaStreamChunk['usage'] | undefined;
+  let abortRequest = (): void => {};
+  const cleanup = (): void => request.signal?.removeEventListener('abort', abortRequest);
+  const fail = (error: Error): void => {
+    if (finished) return;
+    finished = true;
+    fullText = '';
+    cleanup();
+    callbacks.onError?.(error);
+  };
 
   const req = http.request(
     {
@@ -172,6 +181,8 @@ export function streamOllamaChat(
       timeout: REQUEST_TIMEOUT_MS,
     },
     (res) => {
+      res.on('error', fail);
+      res.on('aborted', () => fail(new Error('Ollama 响应已中断')));
       if (res.statusCode && res.statusCode >= 400) {
         let errBody = '';
         res.setEncoding('utf8');
@@ -179,11 +190,7 @@ export function streamOllamaChat(
           errBody += chunk;
         });
         res.on('end', () => {
-          if (!aborted) {
-            callbacks.onError?.(
-              new Error(`Ollama 请求失败 (${res.statusCode}): ${errBody || 'unknown error'}`),
-            );
-          }
+          fail(new Error(`Ollama 请求失败 (${res.statusCode}): ${errBody || 'unknown error'}`));
         });
         return;
       }
@@ -192,7 +199,7 @@ export function streamOllamaChat(
       res.setEncoding('utf8');
 
       res.on('data', (chunk: string) => {
-        if (aborted) return;
+        if (finished) return;
         buffer += chunk;
 
         const lines = buffer.split('\n');
@@ -227,7 +234,7 @@ export function streamOllamaChat(
       });
 
       res.on('end', () => {
-        if (aborted) return;
+        if (finished) return;
         // 处理 buffer 中残留数据
         if (buffer.trim()) {
           const dataPrefix = buffer.trim().startsWith('data: ')
@@ -247,46 +254,36 @@ export function streamOllamaChat(
             }
           }
         }
+        finished = true;
+        cleanup();
         callbacks.onDone?.(fullText, lastUsage);
-      });
-
-      res.on('error', (err) => {
-        if (!aborted) {
-          callbacks.onError?.(err);
-        }
+        fullText = '';
       });
     },
   );
 
-  req.on('error', (err) => {
-    if (!aborted) {
-      callbacks.onError?.(err);
-    }
-  });
+  req.on('error', fail);
 
   req.on('timeout', () => {
+    fail(new Error('Ollama 请求超时'));
     req.destroy();
-    if (!aborted) {
-      callbacks.onError?.(new Error('Ollama 请求超时'));
-    }
   });
 
-  if (request.signal) {
-    request.signal.addEventListener('abort', () => {
-      aborted = true;
-      req.destroy();
-    });
+  abortRequest = (): void => {
+    if (finished) return;
+    // 取消也必须结算上层 Promise，否则会保留本轮对话、工具结果及请求对象。
+    fail(new DOMException('请求已取消', 'AbortError'));
+    req.destroy();
+  };
+  if (request.signal?.aborted) {
+    abortRequest();
+  } else if (!finished) {
+    request.signal?.addEventListener('abort', abortRequest, { once: true });
+    req.write(payload);
+    req.end();
   }
 
-  req.write(payload);
-  req.end();
-
-  return {
-    abort: (): void => {
-      aborted = true;
-      req.destroy();
-    },
-  };
+  return { abort: abortRequest };
 }
 
 /**

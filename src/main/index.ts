@@ -51,11 +51,12 @@ import { registerFormatFactoryIpcHandlers } from './ipc/app/formatFactory';
 import { registerNetIpcHandlers } from './ipc/app/net';
 import { registerMailIpcHandlers } from './ipc/app/mail';
 import { registerStoreIpcHandlers } from './ipc/app/store';
+import { handleAlbumMediaRequest } from './media/albumMedia';
 import { registerLogIpcHandlers } from './ipc/app/log';
 import { registerMusicIpcHandlers } from './ipc/media/music';
 import { registerMusicProviderAuthIpcHandlers } from './ipc/media/musicProviderAuth';
 import { registerQishuiBusinessIpcHandlers } from './ipc/media/qishui';
-import { handleQishuiAudioRequest } from './music/providers/qishuiAudio';
+import { cleanupQishuiAudioSources, handleQishuiAudioRequest } from './music/providers/qishuiAudio';
 import { registerHotkeyIpcHandlers } from './ipc/system/hotkey';
 import { registerIslandIpcHandlers } from './ipc/settings/island';
 import { registerHideProcessIpcHandlers } from './ipc/system/hideProcess';
@@ -218,14 +219,16 @@ function showAgentVoiceInputWindow(): void {
     agentVoiceInputWindow.loadFile(join(__dirname, '../../src/renderer/DynamicIslandAibackground.html'));
   }
 
-  agentVoiceInputWindow.once('ready-to-show', () => {
-    if (agentVoiceInputWindow && !agentVoiceInputWindow.isDestroyed()) {
-      agentVoiceInputWindow.show();
+  const voiceWindow = agentVoiceInputWindow;
+  voiceWindow.once('ready-to-show', () => {
+    if (agentVoiceInputWindow === voiceWindow && !voiceWindow.isDestroyed()) {
+      voiceWindow.show();
     }
   });
 
-  agentVoiceInputWindow.on('closed', () => {
-    agentVoiceInputWindow = null;
+  voiceWindow.on('closed', () => {
+    // 淡出期间可能已创建下一扇窗口，旧窗口关闭不能丢失新窗口的引用。
+    if (agentVoiceInputWindow === voiceWindow) agentVoiceInputWindow = null;
   });
 
   // 确保灵动岛始终在 Agent 语音输入窗口之上
@@ -302,14 +305,15 @@ function showCliGlowWindow(): void {
     cliGlowWindow.loadFile(join(__dirname, '../../src/renderer/DynamicIslandAibackground.html'));
   }
 
-  cliGlowWindow.once('ready-to-show', () => {
-    if (cliGlowWindow && !cliGlowWindow.isDestroyed()) {
-      cliGlowWindow.show();
+  const glowWindow = cliGlowWindow;
+  glowWindow.once('ready-to-show', () => {
+    if (cliGlowWindow === glowWindow && !glowWindow.isDestroyed()) {
+      glowWindow.show();
     }
   });
 
-  cliGlowWindow.on('closed', () => {
-    cliGlowWindow = null;
+  glowWindow.on('closed', () => {
+    if (cliGlowWindow === glowWindow) cliGlowWindow = null;
   });
 
   // 保证灵动岛始终位于光效窗口之上
@@ -794,6 +798,7 @@ protocol.registerSchemesAsPrivileged([
     privileges: {
       standard: true,
       secure: true,
+      corsEnabled: true,
       supportFetchAPI: true,
       stream: true,
     },
@@ -809,12 +814,32 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 
+// will-quit 不会等待 Promise；先终止音频下载并删除临时缓存，再允许退出。
+let audioCleanupFinished = false;
+let audioQuitCleanup: Promise<void> | undefined;
+app.on('before-quit', (event) => {
+  if (audioCleanupFinished) return;
+  event.preventDefault();
+  if (audioQuitCleanup) return;
+  audioQuitCleanup = (async () => {
+    try {
+      await cleanupQishuiAudioSources();
+    } catch (error) {
+      console.error('[Qishui] Audio cleanup failed:', error);
+    } finally {
+      audioCleanupFinished = true;
+      app.quit();
+    }
+  })();
+});
+
 registerAppLifecycleHandlers({
   getMainWindow: () => mainWindow,
   onWillQuit: () => {
     autoHideWatcher.stop();
     externalAgentWatcher.stop();
     claudeCodeStatusService.stop();
+    codexStatusService.stop();
     stopClipboardUrlWatcher();
     smtcService.cleanupWorker();
     void disposeLocalOcrWorker();
@@ -846,9 +871,11 @@ app.whenReady().then(() => {
    * eisland-media:// 协议处理器
    * @description 将形如 eisland-media://local/<encoded-abs-path> 的请求代理到本地文件，
    *   仅允许读取 userData/wallpapers 下的文件，超出范围返回 403。
+   *   album 分支仅流式读取已保存在相册清单中的视频，并支持范围请求。
    *   使用纯字符串切片解析以避免 Node URL 解析对非内置 scheme 的差异。
    */
   protocol.handle('eisland-media', (request) => {
+    if (request.url.startsWith('eisland-media://album/')) return handleAlbumMediaRequest(request);
     try {
       const raw = request.url;
       const schemePrefix = 'eisland-media://';

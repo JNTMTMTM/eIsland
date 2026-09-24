@@ -19,11 +19,10 @@
  */
 
 using System.Collections.Concurrent;
-using System.IO;
 using System.Runtime.InteropServices;
+using Windows.Foundation;
 using Windows.Media;
 using Windows.Media.Control;
-using Windows.Storage.Streams;
 
 namespace eIslandSmtcHelper;
 
@@ -53,6 +52,9 @@ public static class SmtcSessionMonitor
     [DllImport("ole32.dll")]
     private static extern int CoInitializeEx(IntPtr pvReserved, uint dwCoInit);
 
+    [DllImport("ole32.dll")]
+    private static extern void CoUninitialize();
+
     private const uint COINIT_APARTMENTTHREADED = 0x2;
     private const uint WAIT_OBJECT_0 = 0;
     private const uint WAIT_TIMEOUT = 258;
@@ -76,6 +78,11 @@ public static class SmtcSessionMonitor
 
     private static volatile bool _monitoring;
     private static GlobalSystemMediaTransportControlsSessionManager? _manager;
+    private static Thread? _monitorThread;
+    private static readonly object _lifecycleLock = new();
+    private static readonly object _sessionLock = new();
+    private static readonly Dictionary<string, Action> _unsubscribeSessions = new();
+    private static TypedEventHandler<GlobalSystemMediaTransportControlsSessionManager, SessionsChangedEventArgs>? _sessionsChangedHandler;
 
     /// <summary>Timeline 变更节流：每会话 200ms 最多触发一次</summary>
     private static readonly ConcurrentDictionary<string, long> _lastTimelineSignal = new();
@@ -103,19 +110,22 @@ public static class SmtcSessionMonitor
     /// <returns>0=成功, 1=失败</returns>
     public static int StartMonitoring()
     {
-        if (_monitoring) return 0;
-        if (!EnsureEvents()) return 1;
-        ResetEvent(_stopEvent);
-        _monitoring = true;
-
-        var thread = new Thread(MonitorLoop)
+        lock (_lifecycleLock)
         {
-            IsBackground = true,
-            Name = "SMTC-Monitor"
-        };
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        return 0;
+            if (_monitorThread?.IsAlive == true) return _monitoring ? 0 : 1;
+            if (!EnsureEvents()) return 1;
+            ResetEvent(_stopEvent);
+            _monitoring = true;
+
+            _monitorThread = new Thread(MonitorLoop)
+            {
+                IsBackground = true,
+                Name = "SMTC-Monitor"
+            };
+            _monitorThread.SetApartmentState(ApartmentState.STA);
+            _monitorThread.Start();
+            return 0;
+        }
     }
 
     /// <summary>
@@ -124,11 +134,15 @@ public static class SmtcSessionMonitor
     /// <returns>0=成功</returns>
     public static int StopMonitoring()
     {
-        if (!_monitoring) return 0;
-        _monitoring = false;
-        if (_stopEvent != IntPtr.Zero)
-            SetEvent(_stopEvent);
-        return 0;
+        lock (_lifecycleLock)
+        {
+            _monitoring = false;
+            if (_stopEvent != IntPtr.Zero)
+                SetEvent(_stopEvent);
+            // 初始化中的 WinRT 调用可能延迟返回；线程结束前禁止重启复用旧句柄。
+            if (_monitorThread?.Join(5000) != false) _monitorThread = null;
+            return 0;
+        }
     }
 
     /// <summary>
@@ -185,18 +199,15 @@ public static class SmtcSessionMonitor
 
     private static void MonitorLoop()
     {
+        var comInitialized = false;
         try
         {
-            CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED);
+            comInitialized = CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED) >= 0;
             if (!InitSessionManager()) return;
             RegisterManagerCallbacks();
             InitExistingSessions();
 
-            while (_monitoring)
-            {
-                if (WaitForSingleObject(_stopEvent, 0) == WAIT_OBJECT_0) break;
-                Thread.Sleep(200);
-            }
+            if (_monitoring) WaitForSingleObject(_stopEvent, INFINITE);
         }
         catch (Exception ex)
         {
@@ -204,7 +215,9 @@ public static class SmtcSessionMonitor
         }
         finally
         {
+            _monitoring = false;
             Cleanup();
+            if (comInitialized) CoUninitialize();
         }
     }
 
@@ -225,30 +238,26 @@ public static class SmtcSessionMonitor
     private static void RegisterManagerCallbacks()
     {
         if (_manager == null) return;
-        _manager.SessionsChanged += (_, _) =>
+        _sessionsChangedHandler = (_, _) =>
         {
-            SyncSessions();
-            SignalChange();
+            lock (_sessionLock)
+            {
+                if (!_monitoring) return;
+                SyncSessions();
+                SignalChange();
+            }
         };
+        _manager.SessionsChanged += _sessionsChangedHandler;
     }
 
     private static void InitExistingSessions()
     {
-        if (_manager == null) return;
-        try
+        lock (_sessionLock)
         {
-            var sessions = _manager.GetSessions();
-            foreach (var session in sessions)
-            {
-                var id = session.SourceAppUserModelId;
-                if (string.IsNullOrEmpty(id)) continue;
-                var info = BuildSessionInfo(session);
-                _sessions[id] = info;
-                RegisterSessionCallbacks(session, id);
-            }
+            if (!_monitoring) return;
+            SyncSessions();
             if (_sessions.Count > 0) SignalChange();
         }
-        catch { /* 忽略初始化错误 */ }
     }
 
     #endregion
@@ -283,6 +292,7 @@ public static class SmtcSessionMonitor
             var removedIds = _sessions.Keys.Where(k => !currentIds.Contains(k)).ToArray();
             foreach (var id in removedIds)
             {
+                if (_unsubscribeSessions.Remove(id, out var unsubscribe)) unsubscribe();
                 _sessions.TryRemove(id, out _);
                 _lastTimelineSignal.TryRemove(id, out _);
             }
@@ -293,43 +303,71 @@ public static class SmtcSessionMonitor
     private static void RegisterSessionCallbacks(
         GlobalSystemMediaTransportControlsSession session, string id)
     {
-        session.MediaPropertiesChanged += (_, _) =>
+        Action? unsubscribe = null;
+        TypedEventHandler<GlobalSystemMediaTransportControlsSession, MediaPropertiesChangedEventArgs> mediaChanged = (_, _) =>
         {
-            try
+            lock (_sessionLock)
             {
-                var info = BuildSessionInfo(session);
-                _sessions[id] = info;
-                SignalChange();
+                if (!_monitoring || !_unsubscribeSessions.TryGetValue(id, out var current)
+                    || !ReferenceEquals(current, unsubscribe)) return;
+                try
+                {
+                    var info = BuildSessionInfo(session);
+                    _sessions[id] = info;
+                    SignalChange();
+                }
+                catch { /* 忽略 */ }
             }
-            catch { /* 忽略 */ }
         };
 
-        session.PlaybackInfoChanged += (_, _) =>
+        TypedEventHandler<GlobalSystemMediaTransportControlsSession, PlaybackInfoChangedEventArgs> playbackChanged = (_, _) =>
         {
-            try
+            lock (_sessionLock)
             {
-                var info = BuildSessionInfo(session, refreshThumbnail: false);
-                _sessions[id] = info;
-                SignalChange();
+                if (!_monitoring || !_unsubscribeSessions.TryGetValue(id, out var current)
+                    || !ReferenceEquals(current, unsubscribe)) return;
+                try
+                {
+                    var info = BuildSessionInfo(session, refreshThumbnail: false);
+                    _sessions[id] = info;
+                    SignalChange();
+                }
+                catch { /* 忽略 */ }
             }
-            catch { /* 忽略 */ }
         };
 
-        session.TimelinePropertiesChanged += (_, _) =>
+        TypedEventHandler<GlobalSystemMediaTransportControlsSession, TimelinePropertiesChangedEventArgs> timelineChanged = (_, _) =>
         {
-            try
+            lock (_sessionLock)
             {
-                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var last = _lastTimelineSignal.GetOrAdd(id, 0);
-                if (now - last < TimelineThrottleMs) return;
-                _lastTimelineSignal[id] = now;
+                if (!_monitoring || !_unsubscribeSessions.TryGetValue(id, out var current)
+                    || !ReferenceEquals(current, unsubscribe)) return;
+                try
+                {
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    var last = _lastTimelineSignal.GetOrAdd(id, 0);
+                    if (now - last < TimelineThrottleMs) return;
+                    _lastTimelineSignal[id] = now;
 
-                var info = BuildSessionInfo(session, refreshThumbnail: false);
-                _sessions[id] = info;
-                SignalChange();
+                    var info = BuildSessionInfo(session, refreshThumbnail: false);
+                    _sessions[id] = info;
+                    SignalChange();
+                }
+                catch { /* 忽略 */ }
             }
-            catch { /* 忽略 */ }
         };
+
+        // 原委托同时标识订阅，防止同一应用重建会话后收到旧订阅排队中的事件。
+        unsubscribe = () =>
+        {
+            try { session.MediaPropertiesChanged -= mediaChanged; } catch { }
+            try { session.PlaybackInfoChanged -= playbackChanged; } catch { }
+            try { session.TimelinePropertiesChanged -= timelineChanged; } catch { }
+        };
+        _unsubscribeSessions[id] = unsubscribe;
+        session.MediaPropertiesChanged += mediaChanged;
+        session.PlaybackInfoChanged += playbackChanged;
+        session.TimelinePropertiesChanged += timelineChanged;
     }
 
     #endregion
@@ -341,10 +379,11 @@ public static class SmtcSessionMonitor
         bool refreshThumbnail = true)
     {
         var id = session.SourceAppUserModelId;
-        var cachedThumbnail = _sessions.TryGetValue(id, out var cached)
-            ? cached.Media?.Thumbnail
-            : null;
-        var media = BuildMediaMetadata(session, refreshThumbnail, cachedThumbnail);
+        _sessions.TryGetValue(id, out var cached);
+        // 时间线和播放状态事件不改变媒体属性，避免每秒反复调用异步 WinRT 元数据接口。
+        var media = !refreshThumbnail && cached != null
+            ? cached.Media
+            : BuildMediaMetadata(session, refreshThumbnail, cached?.Media?.Thumbnail);
         var playback = BuildPlaybackInfo(session);
         var timeline = BuildTimelineInfo(session);
 
@@ -380,7 +419,7 @@ public static class SmtcSessionMonitor
             {
                 try
                 {
-                    thumbnail = ReadThumbnailAsBase64(props.Thumbnail);
+                    thumbnail = SmtcController.ReadThumbnailAsBase64(props.Thumbnail);
                 }
                 catch { /* 忽略 */ }
             }
@@ -480,35 +519,26 @@ public static class SmtcSessionMonitor
         }
     }
 
-    private static string? ReadThumbnailAsBase64(IRandomAccessStreamReference? thumbnail)
-    {
-        if (thumbnail == null) return null;
-        try
-        {
-            using var stream = thumbnail.OpenReadAsync().GetAwaiter().GetResult();
-            if (stream == null || stream.Size == 0) return null;
-            using var memoryStream = new MemoryStream();
-            stream.AsStreamForRead().CopyTo(memoryStream);
-            var bytes = memoryStream.ToArray();
-            var base64 = Convert.ToBase64String(bytes);
-            return $"data:image/jpeg;base64,{base64}";
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     #endregion
 
     #region 清理
 
     private static void Cleanup()
     {
-        _manager = null;
-        _sessions.Clear();
-        _lastTimelineSignal.Clear();
-        _changeCounter = 0;
+        lock (_sessionLock)
+        {
+            if (_manager != null && _sessionsChangedHandler != null)
+            {
+                try { _manager.SessionsChanged -= _sessionsChangedHandler; } catch { }
+            }
+            _sessionsChangedHandler = null;
+            foreach (var unsubscribe in _unsubscribeSessions.Values) unsubscribe();
+            _unsubscribeSessions.Clear();
+            _manager = null;
+            _sessions.Clear();
+            _lastTimelineSignal.Clear();
+            _changeCounter = 0;
+        }
 
         if (_changeEvent != IntPtr.Zero)
         {

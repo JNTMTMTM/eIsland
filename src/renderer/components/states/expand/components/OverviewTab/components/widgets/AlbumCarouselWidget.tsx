@@ -27,11 +27,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import probeVideo from '../../../../../../../utils/media/videoProbe';
 import {
   OVERVIEW_ALBUM_CONFIG_STORE_KEY,
   OVERVIEW_ALBUM_MEDIA_LOAD_DELAY_MS,
   PHOTO_ALBUM_STORE_KEY,
-  getOverviewVideoMimeByExt,
   normalizeOverviewAlbumCardConfig,
   normalizeOverviewAlbumItems,
   type OverviewAlbumCardConfig,
@@ -54,7 +54,7 @@ export function AlbumCarouselWidget({ openAlbumPage }: AlbumCarouselWidgetProps)
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [videoPosterUrl, setVideoPosterUrl] = useState<string | null>(null);
-  const videoPosterCacheRef = useRef<Record<number, string>>({});
+  const videoPosterCacheRef = useRef<{ id: number; poster: string } | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -137,121 +137,41 @@ export function AlbumCarouselWidget({ openAlbumPage }: AlbumCarouselWidgetProps)
       setVideoPosterUrl(null);
       return;
     }
-    setVideoPosterUrl(videoPosterCacheRef.current[activeItem.id] || null);
+    setVideoPosterUrl(videoPosterCacheRef.current?.id === activeItem.id ? videoPosterCacheRef.current.poster : null);
   }, [activeItem?.id, activeItem?.mediaType]);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
+    setVideoPreviewUrl(null);
+    setImagePreviewUrl(null);
     if (!activeItem) {
-      setImagePreviewUrl(null);
-      setVideoPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-      return () => {
-        cancelled = true;
-      };
+      videoPosterCacheRef.current = null;
+      return () => controller.abort();
     }
 
     if (activeItem.mediaType === 'image') {
-      setVideoPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
       setVideoPosterUrl(null);
+      videoPosterCacheRef.current = null;
       window.api.loadWallpaperFile(activeItem.path).then((dataUrl) => {
-        if (cancelled) return;
-        setImagePreviewUrl(dataUrl || null);
-      }).catch(() => {
-        if (cancelled) return;
-        setImagePreviewUrl(null);
-      });
-      return () => {
-        cancelled = true;
-      };
+        if (!controller.signal.aborted) setImagePreviewUrl(dataUrl || null);
+      }).catch(() => {});
+      return () => controller.abort();
     }
 
-    setImagePreviewUrl(null);
+    if (!mediaLoadReady) return () => controller.abort();
+    window.api.getAlbumMediaInfo(activeItem.path).then(async (info) => {
+      if (controller.signal.aborted || !info) return;
+      setVideoPreviewUrl(info.url);
+      if (videoPosterCacheRef.current?.id === activeItem.id) return;
+      videoPosterCacheRef.current = null;
+      const metadata = await probeVideo(info.url, controller.signal, true);
+      if (controller.signal.aborted || !metadata?.poster) return;
+      videoPosterCacheRef.current = {id: activeItem.id, poster: metadata.poster};
+      setVideoPosterUrl(metadata.poster);
+    }).catch(() => {});
 
-    if (!mediaLoadReady) {
-      setVideoPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    window.api.readLocalFileAsBuffer(activeItem.path).then((buf) => {
-      if (cancelled || !buf) return;
-      const mime = getOverviewVideoMimeByExt(activeItem.ext);
-      const arrayBuffer = new ArrayBuffer(buf.byteLength);
-      new Uint8Array(arrayBuffer).set(buf);
-      const blob = new Blob([arrayBuffer], { type: mime });
-      const nextUrl = URL.createObjectURL(blob);
-
-      if (!videoPosterCacheRef.current[activeItem.id]) {
-        const probe = document.createElement('video');
-        probe.preload = 'metadata';
-        probe.muted = true;
-        probe.playsInline = true;
-        const cleanupProbe = (): void => {
-          probe.src = '';
-          probe.load();
-        };
-        probe.onloadeddata = () => {
-          if (cancelled) {
-            cleanupProbe();
-            return;
-          }
-          const width = probe.videoWidth;
-          const height = probe.videoHeight;
-          if (width > 0 && height > 0) {
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(probe, 0, 0, width, height);
-              const poster = canvas.toDataURL('image/jpeg', 0.86);
-              videoPosterCacheRef.current[activeItem.id] = poster;
-              setVideoPosterUrl(poster);
-            }
-          }
-          cleanupProbe();
-        };
-        probe.onerror = () => {
-          cleanupProbe();
-        };
-        probe.src = nextUrl;
-      }
-
-      setVideoPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return nextUrl;
-      });
-    }).catch(() => {
-      if (cancelled) return;
-      setVideoPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, [mediaLoadReady, activeItem?.id, activeItem?.mediaType, activeItem?.path, activeItem?.ext]);
-
-  useEffect(() => {
-    return () => {
-      setVideoPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-    };
-  }, []);
 
   const hasImagePreview = activeItem?.mediaType === 'image' && Boolean(imagePreviewUrl);
   const hasVideoPreview = activeItem?.mediaType === 'video' && Boolean(videoPreviewUrl);

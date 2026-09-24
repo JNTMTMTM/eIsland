@@ -658,6 +658,14 @@
     }
   },
   "expanded": {
+    "loadingPage": "Loading {{page}}…",
+    "loadingDescriptions": {
+      "overview": "Preparing the overview and quick actions.",
+      "song": "Preparing song information and playback controls.",
+      "tools": "Preparing tools and shortcuts.",
+      "translation": "Preparing the translation input and results panel.",
+      "performanceMonitor": "Preparing system performance and hardware status panels."
+    },
     "nav": {
       "hover": "Back",
       "overview": "Overview",
@@ -1531,6 +1539,27 @@
       "dayOfMonth": "Day {{day}} of {{total}} this month"
     },
     "loading": "Loading max expand view...",
+    "loadingPage": "Loading {{page}}…",
+    "loadingDescriptions": {
+      "aiChat": "Preparing chat and conversation controls.",
+      "todo": "Preparing the to-do list and task controls.",
+      "urlFavorites": "Preparing saved links and category views.",
+      "localFileSearch": "Preparing file search and the results view.",
+      "clipboardHistory": "Preparing clipboard history and filters.",
+      "album": "Preparing the album and media browser.",
+      "mail": "Preparing the mailbox and message reader.",
+      "memo": "Preparing the memo list and editor.",
+      "countdown": "Preparing events and countdown views.",
+      "alarm": "Preparing the alarm list and reminder controls.",
+      "toolbox": "Preparing the tool list and shortcuts.",
+      "miniGame": "Preparing the game list and play area.",
+      "stock": "Preparing the stock market view.",
+      "cli": "Preparing sessions and activity logs.",
+      "calculator": "Preparing the calculator and input controls.",
+      "worldClock": "Preparing city clocks and time zone views.",
+      "calendar": "Preparing the calendar and date details.",
+      "settings": "Preparing settings categories and controls."
+    },
     "nav": {
       "expanded": "Back",
       "todo": "Todo",

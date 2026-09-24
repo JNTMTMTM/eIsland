@@ -101,6 +101,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   let pendingSourceSwitchEntry: SmtcSessionRuntimeEntry | null = null;
   let lastSmtcCleanupAt = 0;
   let pendingDetectResolve: ((sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>) => void) | null = null;
+  let pendingDetectPromise: Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>> | null = null;
 
   function isWhitelisted(): boolean {
     const id = currentDeviceId.toLowerCase();
@@ -153,6 +154,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   }
 
   function initWorker(): void {
+    if (smtcWorker) return;
     try {
       const sessionRuntime = new Map<string, SmtcSessionRuntimeEntry>();
       smtcSessionRuntime = sessionRuntime;
@@ -191,9 +193,10 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
       };
 
       const workerPath = join(__dirname, 'smtcWorker.js');
-      smtcWorker = new Worker(workerPath);
+      const worker = new Worker(workerPath);
+      smtcWorker = worker;
 
-      smtcWorker.on('message', (msg: {
+      worker.on('message', (msg: {
         type: string;
         sourceAppId?: string;
         session?: {
@@ -203,6 +206,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         };
         sources?: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>;
       }) => {
+        if (smtcWorker !== worker) return;
         if (msg.type === 'detect-sources-result') {
           if (pendingDetectResolve) {
             pendingDetectResolve(msg.sources ?? []);
@@ -210,9 +214,6 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
           }
           return;
         }
-
-        const mainWindow = options.getMainWindow();
-        if (!mainWindow || mainWindow.isDestroyed()) return;
 
         if (msg.type === 'session-removed') {
           if (msg.sourceAppId) {
@@ -229,6 +230,9 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
           }
           return;
         }
+
+        const mainWindow = options.getMainWindow();
+        if (!mainWindow || mainWindow.isDestroyed()) return;
 
         if (msg.type !== 'session-update') return;
 
@@ -341,12 +345,16 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         }
       });
 
-      smtcWorker.on('error', (err) => {
+      worker.on('error', (err) => {
+        if (smtcWorker !== worker) return;
         console.error('[SMTC] Worker error:', err);
       });
 
-      smtcWorker.on('exit', (code) => {
+      worker.on('exit', (code) => {
+        if (smtcWorker !== worker) return;
         if (code !== 0) console.error('[SMTC] Worker exited with code:', code);
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define -- Worker 的异步退出事件复用已完成初始化的服务清理函数。
+        cleanupWorker();
       });
     } catch (err) {
       console.error('[SMTC] Worker init error:', err);
@@ -355,15 +363,19 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
 
   function requestFreshSources(): Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>> {
     if (!smtcWorker) return Promise.resolve([]);
+    // 多个歌词/设置调用共享一次检测，避免覆盖 resolver 后留下超时和重复原生扫描。
+    if (pendingDetectPromise) return pendingDetectPromise;
 
-    return new Promise((resolve) => {
+    pendingDetectPromise = new Promise((resolve) => {
       const timeout = setTimeout(() => {
         pendingDetectResolve = null;
+        pendingDetectPromise = null;
         resolve([]);
       }, 3000);
 
       pendingDetectResolve = (sources) => {
         clearTimeout(timeout);
+        pendingDetectPromise = null;
         const now = Date.now();
         sources.forEach((s) => {
           detectedSourceRuntime.set(s.sourceAppId, {
@@ -375,8 +387,15 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         resolve(sources);
       };
 
-      smtcWorker!.postMessage({ type: 'detect-sources' });
     });
+    const promise = pendingDetectPromise;
+    try {
+      smtcWorker.postMessage({ type: 'detect-sources' });
+    } catch {
+      pendingDetectResolve?.([]);
+      pendingDetectResolve = null;
+    }
+    return promise;
   }
 
   function pickDetectedSourceAppIdAsync(): Promise<string> {
@@ -395,8 +414,10 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
       pendingDetectResolve = null;
     }
     if (smtcWorker) {
-      smtcWorker.terminate();
+      const worker = smtcWorker;
       smtcWorker = null;
+      // eslint-disable-next-line promise/prefer-await-to-then -- 同步清理接口先解除 Worker 引用，再处理异步终止失败。
+      worker.terminate().catch((error) => console.error('[SMTC] Worker termination error:', error));
     }
     detectedSourceRuntime.clear();
     smtcSessionRuntime?.clear();

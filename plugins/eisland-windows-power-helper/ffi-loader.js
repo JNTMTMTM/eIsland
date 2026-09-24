@@ -58,26 +58,24 @@ if (!dllPath) {
 /** 加载 DLL */
 const lib = koffi.load(dllPath);
 
-/**
- * koffi 的 'str' 返回类型会自动：
- * 1. 读取 CoTaskMem 分配的 UTF-8 字符串
- * 2. 复制为 JS 字符串
- * 3. 调用 CoTaskMemFree 释放原始指针
- */
+// 普通 str 只复制内容；必须用 DLL 的分配器配对释放 CoTaskMem。
+const freeString = lib.func('void pw_free_string(void*)');
+const ownedString = koffi.disposable('str', freeString);
+
 const pw = {
   // ── 字符串释放 ──
-  pw_free_string:            lib.func('void pw_free_string(void*)'),
-  pw_get_last_error:         lib.func('str pw_get_last_error()'),
+  pw_free_string:            freeString,
+  pw_get_last_error:         lib.func('pw_get_last_error', ownedString, []),
 
   // ── 电源查询 ──
-  pw_get_power_info:         lib.func('str pw_get_power_info()'),
+  pw_get_power_info:         lib.func('pw_get_power_info', ownedString, []),
 
   // ── 电源监控 ──
   pw_start_monitoring:       lib.func('int pw_start_monitoring()'),
   pw_stop_monitoring:        lib.func('int pw_stop_monitoring()'),
   pw_wait_for_changes:       lib.func('int pw_wait_for_changes(int)'),
   pw_get_changes_count:      lib.func('int pw_get_changes_count()'),
-  pw_get_monitored_power_info: lib.func('str pw_get_monitored_power_info()'),
+  pw_get_monitored_power_info: lib.func('pw_get_monitored_power_info', ownedString, []),
 };
 
 /**

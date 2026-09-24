@@ -658,6 +658,14 @@
     }
   },
   "expanded": {
+    "loadingPage": "正在加载{{page}}…",
+    "loadingDescriptions": {
+      "overview": "准备总览与快捷操作。",
+      "song": "准备歌曲信息与播放控制。",
+      "tools": "准备实用工具与快捷入口。",
+      "translation": "准备翻译输入与结果面板。",
+      "performanceMonitor": "准备系统性能与硬件状态面板。"
+    },
     "nav": {
       "hover": "返回",
       "overview": "总览",
@@ -1531,6 +1539,27 @@
       "daysBefore_other": "{{count}} 天前"
     },
     "loading": "正在加载最大展开界面...",
+    "loadingPage": "正在加载{{page}}…",
+    "loadingDescriptions": {
+      "aiChat": "准备对话与会话管理界面。",
+      "todo": "准备待办列表与任务管理界面。",
+      "urlFavorites": "准备收藏列表与分类视图。",
+      "localFileSearch": "准备文件检索与结果列表。",
+      "clipboardHistory": "准备剪贴板记录与筛选界面。",
+      "album": "准备相册与媒体浏览界面。",
+      "mail": "准备邮箱与邮件阅读界面。",
+      "memo": "准备备忘录列表与编辑界面。",
+      "countdown": "准备日期事件与倒数日视图。",
+      "alarm": "准备闹钟列表与提醒设置。",
+      "toolbox": "准备工具列表与快捷入口。",
+      "miniGame": "准备游戏列表与游玩界面。",
+      "stock": "准备股票行情展示界面。",
+      "cli": "准备会话列表与运行记录。",
+      "calculator": "准备计算面板与输入控件。",
+      "worldClock": "准备城市时钟与时区视图。",
+      "calendar": "准备日历与日期详情。",
+      "settings": "准备设置分类与配置面板。"
+    },
     "nav": {
       "expanded": "返回",
       "todo": "待办",

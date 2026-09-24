@@ -59,29 +59,29 @@ if (!dllPath) {
 const lib = koffi.load(dllPath);
 
 /**
- * koffi 的 'str' 返回类型会自动：
- * 1. 读取 CoTaskMem 分配的 UTF-8 字符串
- * 2. 复制为 JS 字符串
- * 3. 调用 CoTaskMemFree 释放原始指针
- * 因此不需要手动调用 smtc_free_string
+ * 普通 str 只复制字符串，不释放 DLL 分配的 CoTaskMem。
+ * 使用 DLL 自己的释放函数，确保每次转换后归还原始缓冲区。
  */
+const freeString = lib.func('void smtc_free_string(void *)');
+const ownedString = koffi.disposable('str', freeString);
+
 const smtc = {
   // ── 原有命令 ──
   smtc_play:               lib.func('int smtc_play()'),
   smtc_pause:              lib.func('int smtc_pause()'),
   smtc_next:               lib.func('int smtc_next()'),
   smtc_previous:           lib.func('int smtc_previous()'),
-  smtc_get_status:         lib.func('str smtc_get_status()'),
-  smtc_get_last_error:     lib.func('str smtc_get_last_error()'),
+  smtc_get_status:         lib.func('smtc_get_status', ownedString, []),
+  smtc_get_last_error:     lib.func('smtc_get_last_error', ownedString, []),
 
   // ── 会话监控 ──
   smtc_start_monitoring:   lib.func('int smtc_start_monitoring()'),
   smtc_stop_monitoring:    lib.func('int smtc_stop_monitoring()'),
   smtc_wait_for_changes:   lib.func('int smtc_wait_for_changes(int)'),
   smtc_get_sessions_changed: lib.func('int smtc_get_sessions_changed()'),
-  smtc_get_all_sessions:   lib.func('str smtc_get_all_sessions()'),
-  smtc_get_session:        lib.func('str smtc_get_session(str)'),
-  smtc_get_timestamp:      lib.func('str smtc_get_timestamp()'),
+  smtc_get_all_sessions:   lib.func('smtc_get_all_sessions', ownedString, []),
+  smtc_get_session:        lib.func('smtc_get_session', ownedString, ['str']),
+  smtc_get_timestamp:      lib.func('smtc_get_timestamp', ownedString, []),
 
   // ── 扩展控制 ──
   smtc_seek:               lib.func('int smtc_seek(double)'),

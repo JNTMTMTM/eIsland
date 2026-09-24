@@ -91,19 +91,34 @@ async function parseApiResponse(response: Response): Promise<ApiResult> {
     };
     if (response.ok && payload.data) return { success: true, data: payload.data };
     return { success: false, message: payload.message ?? `HTTP ${response.status}` };
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
     return { success: false, message: response.ok ? '响应解析失败' : `HTTP ${response.status}` };
   }
 }
 
-async function requestWithTimeout(url: string, init: RequestInit, signal: AbortSignal): Promise<Response> {
+/**
+ * 在响应体读取完毕后才撤销超时和取消监听，避免窗口关闭后仍下载大图。
+ * @param url - 请求地址。
+ * @param init - HTTP 请求选项。
+ * @param signal - 调用方取消信号。
+ * @param consume - 在超时保护下读取响应体的回调。
+ * @returns 响应体回调产生的结果。
+ */
+async function requestWithTimeout<T>(
+  url: string,
+  init: RequestInit,
+  signal: AbortSignal,
+  consume: (response: Response) => Promise<T>,
+): Promise<T> {
   const timeoutController = new AbortController();
   const timeoutId = setTimeout(() => timeoutController.abort(), REQUEST_TIMEOUT_MS);
   const abort = (): void => timeoutController.abort();
   if (signal.aborted) timeoutController.abort();
   signal.addEventListener('abort', abort, { once: true });
   try {
-    return await fetch(url, { ...init, signal: timeoutController.signal });
+    const response = await fetch(url, { ...init, signal: timeoutController.signal });
+    return await consume(response);
   } finally {
     clearTimeout(timeoutId);
     signal.removeEventListener('abort', abort);
@@ -112,24 +127,41 @@ async function requestWithTimeout(url: string, init: RequestInit, signal: AbortS
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(resolve, ms);
-    signal.addEventListener('abort', () => {
+    if (signal.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+    const abort = (): void => {
       clearTimeout(timeoutId);
       reject(new DOMException('Aborted', 'AbortError'));
-    }, { once: true });
+    };
+    const timeoutId = setTimeout(() => {
+      signal.removeEventListener('abort', abort);
+      resolve();
+    }, ms);
+    signal.addEventListener('abort', abort, { once: true });
   });
 }
 
 async function downloadAsDataUrl(url: string, signal: AbortSignal): Promise<string> {
   if (url.startsWith('data:image/')) return url;
-  const response = await requestWithTimeout(url, { method: 'GET' }, signal);
-  if (!response.ok) throw new Error(`下载翻译图片失败: HTTP ${response.status}`);
-  const mimeType = response.headers.get('content-type')?.split(';')[0] || 'image/png';
-  const bytes = Buffer.from(await response.arrayBuffer());
-  return `data:${mimeType};base64,${bytes.toString('base64')}`;
+  return requestWithTimeout(url, { method: 'GET' }, signal, async (response) => {
+    if (!response.ok) throw new Error(`下载翻译图片失败: HTTP ${response.status}`);
+    const mimeType = response.headers.get('content-type')?.split(';')[0] || 'image/png';
+    const bytes = Buffer.from(await response.arrayBuffer());
+    return `data:${mimeType};base64,${bytes.toString('base64')}`;
+  });
 }
 
-/** 提交图片翻译并等待最终译图。 */
+/**
+ * 提交图片翻译并等待最终译图。
+ * @param token - 登录用户 token。
+ * @param dataUrl - 待翻译图片的 data URL。
+ * @param sourceLanguage - 原文语言，为空时自动识别。
+ * @param targetLanguage - 目标语言，为空时使用中文。
+ * @param signal - 截图窗口关闭时用于取消任务的信号。
+ * @returns 翻译结果和可显示的图片数据。
+ */
 export async function translateCaptureImage(
   token: string,
   dataUrl: string,
@@ -146,22 +178,24 @@ export async function translateCaptureImage(
     formData.append('sourceLanguage', sourceLanguage || 'auto');
     formData.append('targetLanguage', targetLanguage || 'zh');
 
-    const submitted = await parseApiResponse(await requestWithTimeout(
+    const submitted = await requestWithTimeout(
       `${API_BASE}/v1/toolbox/image-translations`,
       { method: 'POST', headers: buildHeaders(token), body: formData },
       signal,
-    ));
+      parseApiResponse,
+    );
     if (!submitted.success || !submitted.data?.taskId) {
       return { success: false, code: IMAGE_TRANSLATE_ERROR.SUBMIT_FAILED, message: submitted.message ?? '图片翻译任务提交失败' };
     }
 
     for (let count = 0; count < MAX_POLL_COUNT; count += 1) {
       await delay(POLL_INTERVAL_MS, signal);
-      const result = await parseApiResponse(await requestWithTimeout(
+      const result = await requestWithTimeout(
         `${API_BASE}/v1/toolbox/image-translations/${encodeURIComponent(submitted.data.taskId)}`,
         { method: 'GET', headers: buildHeaders(token) },
         signal,
-      ));
+        parseApiResponse,
+      );
       if (!result.success || !result.data) {
         if (count < 2) continue;
         return { success: false, code: IMAGE_TRANSLATE_ERROR.QUERY_FAILED, message: result.message ?? '查询图片翻译任务失败' };

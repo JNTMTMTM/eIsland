@@ -19,7 +19,8 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useIslandContentActive } from '../../../../../hooks/islandContentActivity';
 import type { CliProvider } from '../../../../../../store/types';
 import { EMPTY_CLI_STATUS, type CliStatusSnapshot } from '../types/types';
 
@@ -57,53 +58,80 @@ const apiFor = (provider: CliProvider) => provider === 'codex'
  * @returns 统一快照和控制方法
  */
 export function useCliStatus(provider: CliProvider): CliStatusActions {
+  const active = useIslandContentActive();
   const [snapshot, setSnapshot] = useState<CliStatusSnapshot>(EMPTY_CLI_STATUS);
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState('');
+  const snapshotProviderRef = useRef(provider);
+  const requestGenerationRef = useRef(0);
 
   useEffect(() => {
+    requestGenerationRef.current += 1;
+    if (snapshotProviderRef.current !== provider) {
+      snapshotProviderRef.current = provider;
+      setSnapshot(EMPTY_CLI_STATUS);
+      setActionMessage('');
+      setLoading(true);
+    }
+    // 离场页面暂时保留 DOM，停止快照更新以免和外层尺寸动画争抢主线程。
+    if (!active) return;
+
     const api = apiFor(provider);
     let cancelled = false;
-    setLoading(true);
-    setSnapshot(EMPTY_CLI_STATUS);
+    let receivedUpdate = false;
     api.get().then((next) => {
-      if (cancelled) return;
+      if (cancelled || receivedUpdate) return;
       setSnapshot(next);
       setLoading(false);
     }).catch(() => {
       if (!cancelled) setLoading(false);
     });
     const unsubscribe = api.subscribe((next) => {
+      if (cancelled) return;
+      receivedUpdate = true;
       setSnapshot(next);
       setLoading(false);
     });
     return () => {
       cancelled = true;
+      requestGenerationRef.current += 1;
       unsubscribe();
     };
-  }, [provider]);
+  }, [provider, active]);
 
   const enableMonitor = useCallback(async (): Promise<void> => {
+    if (!active) return;
+    const generation = requestGenerationRef.current;
     setActionMessage('');
     const result = await apiFor(provider).enable();
+    if (generation !== requestGenerationRef.current) return;
     setSnapshot(result.snapshot);
     setActionMessage(result.message);
-  }, [provider]);
+  }, [provider, active]);
 
   const disableMonitor = useCallback(async (): Promise<void> => {
+    if (!active) return;
+    const generation = requestGenerationRef.current;
     setActionMessage('');
     const result = await apiFor(provider).disable();
+    if (generation !== requestGenerationRef.current) return;
     setSnapshot(result.snapshot);
     setActionMessage(result.message);
-  }, [provider]);
+  }, [provider, active]);
 
   const clearEvents = useCallback(async (): Promise<void> => {
-    setSnapshot(await apiFor(provider).clear());
-  }, [provider]);
+    if (!active) return;
+    const generation = requestGenerationRef.current;
+    const next = await apiFor(provider).clear();
+    if (generation === requestGenerationRef.current) setSnapshot(next);
+  }, [provider, active]);
 
   const deleteSessions = useCallback(async (sessionIds: string[]): Promise<void> => {
-    setSnapshot(await apiFor(provider).deleteSessions(sessionIds));
-  }, [provider]);
+    if (!active) return;
+    const generation = requestGenerationRef.current;
+    const next = await apiFor(provider).deleteSessions(sessionIds);
+    if (generation === requestGenerationRef.current) setSnapshot(next);
+  }, [provider, active]);
 
   return { snapshot, loading, actionMessage, enableMonitor, disableMonitor, clearEvents, deleteSessions };
 }

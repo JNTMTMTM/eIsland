@@ -30,6 +30,7 @@ import { execFile } from 'child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'fs';
 import { extname, join, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
+import { getAlbumMediaInfo } from '../../media/albumMedia';
 
 const DESKTOP_SYNC_FILE_BASENAME = 'desktop-sync-wallpaper';
 
@@ -300,6 +301,8 @@ export function registerWallpaperIpcHandlers(): void {
       return null;
     }
   });
+
+  ipcMain.handle('album:media-info', (_event, filePath: string) => getAlbumMediaInfo(filePath));
 
   ipcMain.handle('wallpaper:clear-cache', async () => {
     try {

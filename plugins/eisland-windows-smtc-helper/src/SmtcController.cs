@@ -186,7 +186,8 @@ public static class SmtcController
         }
     }
 
-    private static string? ReadThumbnailAsBase64(IRandomAccessStreamReference? thumbnail)
+    /// <summary>限制封面输入大小，避免异常媒体会话让原生缓冲区和 JSON 无界膨胀。</summary>
+    internal static string? ReadThumbnailAsBase64(IRandomAccessStreamReference? thumbnail)
     {
         if (thumbnail == null)
             return null;
@@ -194,12 +195,12 @@ public static class SmtcController
         try
         {
             using var stream = thumbnail.OpenReadAsync().GetAwaiter().GetResult();
-            if (stream == null || stream.Size == 0)
+            if (stream == null || stream.Size == 0 || stream.Size > 8 * 1024 * 1024)
                 return null;
 
-            using var memoryStream = new MemoryStream();
-            stream.AsStreamForRead().CopyTo(memoryStream);
-            var bytes = memoryStream.ToArray();
+            var bytes = new byte[checked((int)stream.Size)];
+            using var input = stream.AsStreamForRead();
+            input.ReadExactly(bytes);
 
             var base64 = Convert.ToBase64String(bytes);
             return $"data:image/jpeg;base64,{base64}";

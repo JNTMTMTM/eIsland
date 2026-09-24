@@ -239,7 +239,7 @@ export async function orchestrateOllamaChat(
         callbacks.onEvent({ type: 'chunk', payload: { text: clean } });
       });
       const msg = err instanceof Error ? err.message : String(err);
-      callbacks.onEvent({ type: 'error', payload: { code: 'LLM_ERROR', message: msg } });
+      callbacks.onEvent({ type: 'error', payload: { code: signal?.aborted ? 'ABORTED' : 'LLM_ERROR', message: msg } });
       return;
     }
 
@@ -612,7 +612,7 @@ function streamLlmTurn(
   onStreamChunk?: (text: string) => void,
 ): Promise<{ text: string; usage?: OllamaStreamChunk['usage'] }> {
   return new Promise((resolve, reject) => {
-    const handle = streamOllamaChat(
+    streamOllamaChat(
       { model, messages, stream: true, baseUrl, temperature, signal },
       {
         onChunk: (text) => {
@@ -627,8 +627,5 @@ function streamLlmTurn(
       },
     );
 
-    if (signal) {
-      signal.addEventListener('abort', () => handle.abort(), { once: true });
-    }
   });
 }

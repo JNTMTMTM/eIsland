@@ -50,12 +50,16 @@ if (!dllPath) {
 
 const lib = koffi.load(dllPath);
 
+// 普通 str 只复制内容；必须用 DLL 的分配器配对释放 CoTaskMem。
+const freeString = lib.func('void sc_free_string(void*)');
+const ownedString = koffi.disposable('str', freeString);
+
 const sc = {
-  sc_free_string: lib.func('void sc_free_string(void*)'),
-  sc_get_last_error: lib.func('str sc_get_last_error()'),
-  sc_capture_primary_display_png: lib.func('str sc_capture_primary_display_png()'),
-  sc_capture_all_displays_png: lib.func('str sc_capture_all_displays_png()'),
-  sc_get_visible_windows: lib.func('str sc_get_visible_windows()'),
+  sc_free_string: freeString,
+  sc_get_last_error: lib.func('sc_get_last_error', ownedString, []),
+  sc_capture_primary_display_png: lib.func('sc_capture_primary_display_png', ownedString, []),
+  sc_capture_all_displays_png: lib.func('sc_capture_all_displays_png', ownedString, []),
+  sc_get_visible_windows: lib.func('sc_get_visible_windows', ownedString, []),
 };
 
 function getLastError() {

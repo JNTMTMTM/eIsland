@@ -52,6 +52,18 @@ interface CustomFont {
 }
 
 /**
+ * 释放指定用途的自定义字体资源，预设字体切换时无需继续保留字体 Blob。
+ * @param prefix - 界面或歌词字体族前缀
+ */
+export function releaseCustomFonts(prefix: 'eIsland-UI' | 'eIsland-Lyrics'): void {
+  document.querySelectorAll<HTMLStyleElement>('style[data-font-url]').forEach((style) => {
+    if (!style.id.startsWith(`custom-font-${prefix}-`)) return;
+    if (style.dataset.fontUrl) URL.revokeObjectURL(style.dataset.fontUrl);
+    style.remove();
+  });
+}
+
+/**
  * 从 base64 数据注入 @font-face（复用已有 style 元素时会释放旧 Blob URL）
  * @param familyName - 字体族名称
  * @param base64Data - base64 编码的字体数据
@@ -67,6 +79,8 @@ export function injectFontFace(familyName: string, base64Data: string, ext: stri
   }
   const blob = new Blob([bytes], { type: mime });
   const url = URL.createObjectURL(blob);
+  if (familyName.startsWith('eIsland-UI-')) releaseCustomFonts('eIsland-UI');
+  if (familyName.startsWith('eIsland-Lyrics-')) releaseCustomFonts('eIsland-Lyrics');
 
   const styleId = `custom-font-${familyName}`;
   let style = document.getElementById(styleId) as HTMLStyleElement | null;
@@ -102,34 +116,33 @@ export async function initFonts(): Promise<void> {
     const uiCustomArr = Array.isArray(uiCustom) ? uiCustom as CustomFont[] : [];
     const lyricsCustomArr = Array.isArray(lyricsCustom) ? lyricsCustom as CustomFont[] : [];
 
-    /** 加载自定义字体列表，返回 path → css 映射 */
-    async function loadCustom(fonts: CustomFont[], prefix: string): Promise<Map<string, string>> {
-      const entries = await Promise.all(
-        fonts.map(async (font) => {
-          try {
-            const result = await window.api.readFontFile(font.path);
-            if (result) {
-              return [font.path, injectFontFace(`${prefix}-${font.name}`, result.data, result.ext)] as const;
-            }
-          } catch {
-            /* 字体文件不可用时跳过 */
-          }
-          return null;
-        })
-      );
-      return new Map(entries.filter((e): e is NonNullable<typeof e> => e !== null));
+    /**
+     * 仅加载当前选中字体，字体列表仍保留路径供设置页按需切换。
+     * @param fonts - 已导入字体的名称和路径
+     * @param selected - 当前字体设置值
+     * @param prefix - 界面或歌词字体族前缀
+     * @returns 选中字体的 CSS 值；没有有效自定义字体时返回 null
+     */
+    async function loadSelected(fonts: CustomFont[], selected: unknown, prefix: string): Promise<string | null> {
+      if (typeof selected !== 'string' || !selected.startsWith('custom:')) return null;
+      const font = fonts.find((entry) => entry.path === selected.slice(7));
+      if (!font) return null;
+      try {
+        const result = await window.api.readFontFile(font.path);
+        return result ? injectFontFace(`${prefix}-${font.name}`, result.data, result.ext) : null;
+      } catch {
+        return null;
+      }
     }
 
-    const [uiCssMap, lyricsCssMap] = await Promise.all([
-      loadCustom(uiCustomArr, 'eIsland-UI'),
-      loadCustom(lyricsCustomArr, 'eIsland-Lyrics'),
+    const [uiCss, lyricsCss] = await Promise.all([
+      loadSelected(uiCustomArr, uiVal, 'eIsland-UI'),
+      loadSelected(lyricsCustomArr, lyricsVal, 'eIsland-Lyrics'),
     ]);
 
     /** 应用 UI 字体 */
     if (typeof uiVal === 'string' && uiVal.startsWith('custom:')) {
-      const path = uiVal.slice(7);
-      const css = uiCssMap.get(path);
-      if (css) document.documentElement.style.setProperty('--island-ui-font', css);
+      if (uiCss) document.documentElement.style.setProperty('--island-ui-font', uiCss);
     } else if (typeof uiVal === 'string') {
       const css = PRESET_FONTS[uiVal];
       if (css) document.documentElement.style.setProperty('--island-ui-font', css);
@@ -137,9 +150,7 @@ export async function initFonts(): Promise<void> {
 
     /** 应用歌词字体 */
     if (typeof lyricsVal === 'string' && lyricsVal.startsWith('custom:')) {
-      const path = lyricsVal.slice(7);
-      const css = lyricsCssMap.get(path);
-      if (css) document.documentElement.style.setProperty('--island-lyrics-font', css);
+      if (lyricsCss) document.documentElement.style.setProperty('--island-lyrics-font', lyricsCss);
     } else if (typeof lyricsVal === 'string') {
       const css = PRESET_FONTS[lyricsVal];
       if (css) document.documentElement.style.setProperty('--island-lyrics-font', css);

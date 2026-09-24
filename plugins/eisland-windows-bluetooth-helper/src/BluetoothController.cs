@@ -190,7 +190,7 @@ public static class BluetoothController
         // 尝试 BLE（优先，可获取电量、Appearance、ServiceUuids）
         try
         {
-            var ble = BluetoothLEDevice.FromIdAsync(deviceId).GetAwaiter().GetResult();
+            using var ble = BluetoothLEDevice.FromIdAsync(deviceId).GetAwaiter().GetResult();
             if (ble != null)
             {
                 isConnected = ble.ConnectionStatus == BluetoothConnectionStatus.Connected;
@@ -200,16 +200,29 @@ public static class BluetoothController
                 // BLE Appearance（BluetoothLEAppearance）
                 try { if (ble.Appearance != null) appearance = ble.Appearance.RawValue; } catch { }
 
-                // GATT Service UUIDs
+                // 同一次枚举同时读取服务 UUID 和电量，并释放所有原生服务句柄。
                 try
                 {
                     var svcResult = ble.GetGattServicesAsync(BluetoothCacheMode.Cached).GetAwaiter().GetResult();
-                    if (svcResult.Status == GattCommunicationStatus.Success && svcResult.Services.Count > 0)
-                        serviceUuids = svcResult.Services.Select(s => s.Uuid.ToString()).ToArray();
+                    try
+                    {
+                        if (svcResult.Status == GattCommunicationStatus.Success)
+                        {
+                            serviceUuids = svcResult.Services.Select(s => s.Uuid.ToString()).ToArray();
+                            var batteryService = svcResult.Services.FirstOrDefault(s => s.Uuid == GattServiceUuids.Battery);
+                            if (batteryService != null) batteryLevel = ReadBleBatteryLevel(batteryService);
+                        }
+                    }
+                    finally
+                    {
+                        foreach (var service in svcResult.Services)
+                        {
+                            try { service.Dispose(); } catch { }
+                        }
+                    }
                 }
                 catch { }
 
-                batteryLevel = ReadBleBatteryLevel(ble);
                 return;
             }
         }
@@ -218,7 +231,7 @@ public static class BluetoothController
         // 尝试经典蓝牙
         try
         {
-            var bt = BluetoothDevice.FromIdAsync(deviceId).GetAwaiter().GetResult();
+            using var bt = BluetoothDevice.FromIdAsync(deviceId).GetAwaiter().GetResult();
             if (bt != null)
             {
                 isConnected = bt.ConnectionStatus == BluetoothConnectionStatus.Connected;
@@ -237,19 +250,11 @@ public static class BluetoothController
     /// <summary>
     /// 通过 GATT Battery Service (0x180F) 读取 BLE 设备电量百分比
     /// </summary>
-    private static int? ReadBleBatteryLevel(BluetoothLEDevice ble)
+    /// <param name="service">调用方持有并负责释放的 Battery Service</param>
+    private static int? ReadBleBatteryLevel(GattDeviceService service)
     {
-        GattDeviceService? service = null;
         try
         {
-            var result = ble.GetGattServicesAsync(BluetoothCacheMode.Cached).GetAwaiter().GetResult();
-            if (result.Status != GattCommunicationStatus.Success) return null;
-
-            // 查找 Battery Service (UUID 0x180F)
-            service = result.Services.FirstOrDefault(s =>
-                s.Uuid == GattServiceUuids.Battery);
-            if (service == null) return null;
-
             var characteristics = service.GetCharacteristicsAsync(BluetoothCacheMode.Cached).GetAwaiter().GetResult();
             if (characteristics.Status != GattCommunicationStatus.Success) return null;
 
@@ -264,16 +269,12 @@ public static class BluetoothController
             var valueResult = batteryChar.ReadValueAsync().GetAwaiter().GetResult();
             if (valueResult.Status != GattCommunicationStatus.Success) return null;
 
-            var reader = Windows.Storage.Streams.DataReader.FromBuffer(valueResult.Value);
+            using var reader = Windows.Storage.Streams.DataReader.FromBuffer(valueResult.Value);
             return reader.ReadByte(); // 0–100
         }
         catch
         {
             return null;
-        }
-        finally
-        {
-            service?.Dispose();
         }
     }
 }

@@ -25,6 +25,7 @@
  */
 
 import { type RefObject, useEffect, useRef } from 'react';
+import { useIslandContentActive } from '../../../hooks/islandContentActivity';
 import type { ExpandTab } from '../../../../store/types';
 import type { NavDotId } from '../config/types';
 
@@ -50,10 +51,12 @@ export function useExpandWheelNav({
   handleSetMaxExpand,
   setSlideDir,
 }: UseExpandWheelNavOptions): void {
+  const active = useIslandContentActive();
   const handleSetMaxExpandRef = useRef(handleSetMaxExpand);
   handleSetMaxExpandRef.current = handleSetMaxExpand;
 
   useEffect(() => {
+    if (!active) return;
     const el = contentRef.current;
     if (!el) return;
 
@@ -86,5 +89,5 @@ export function useExpandWheelNav({
 
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
-  }, [contentRef, expandTabRef, navDotsRef, setExpandTab, setHover, setSlideDir]);
+  }, [active, contentRef, expandTabRef, navDotsRef, setExpandTab, setHover, setSlideDir]);
 }

@@ -34,7 +34,9 @@ import type { HoverContentProps } from '../types';
 /** Hover 状态交互逻辑 Hook */
 export function useHover(props: HoverContentProps) {
   const { t } = useTranslation();
-  const { hoverTab, setHoverTab, setExpanded } = useIslandStore();
+  const hoverTab = useIslandStore((store) => store.hoverTab);
+  const setHoverTab = useIslandStore((store) => store.setHoverTab);
+  const setExpanded = useIslandStore((store) => store.setExpanded);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const getDotLabel = (tab: HoverTab): string => t(`hover.nav.${tab}`, {
@@ -65,7 +67,7 @@ export function useHover(props: HoverContentProps) {
 
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
-  }, [hoverTab, setHoverTab]);
+  }, [hoverTab, setHoverTab, setExpanded]);
 
   return {
     ...props,

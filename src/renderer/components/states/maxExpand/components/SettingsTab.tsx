@@ -233,7 +233,7 @@ export function SettingsTab(): ReactElement {
   const [aiSettingsPage, setAiSettingsPage] = useState<AiSettingsPageKey>('general');
   const [networkSettingsPage, setNetworkSettingsPage] = useState<NetworkSettingsPageKey>('timeout');
   const [updateSettingsPage, setUpdateSettingsPage] = useState<UpdateSettingsPageKey>('update-check');
-  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders'>('info');
+  const [userInitialProfilePage, setUserInitialProfilePage] = useState<'info' | 'pro' | 'recharge' | 'orders' | 'questionnaire'>('info');
   const [aboutInitialPage, setAboutInitialPage] = useState<'development' | 'feedback'>('development');
   const [pluginMarketPage, setPluginMarketPage] = useState<PluginMarketPageKey>('wallpaper');
   const [pluginMarketNavigationExpanded, setPluginMarketNavigationExpanded] = useState(false);

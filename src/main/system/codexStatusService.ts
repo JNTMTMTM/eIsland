@@ -27,7 +27,9 @@ import type { ClaudeCodeHookEvent } from '../types/system/ClaudeCodeHookEvent';
 import type { ClaudeCodeSessionSnapshot } from '../types/system/ClaudeCodeSessionSnapshot';
 import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusSnapshot';
 import type { CodexMonitorMutationResult, CodexStatusService } from '../types/system/CodexStatusService';
-import { parseCodexSessionContent, type ParsedCodexSession } from './codexSessionParser';
+import { parseCodexSessionLines, type ParsedCodexSession } from './codexSessionParser';
+import { readTextLinesSync } from '../utils/textFileLines';
+import { createHash } from 'crypto';
 import { MAX_CLI_SESSIONS } from './sessionLimits';
 
 interface CreateCodexStatusServiceOptions {
@@ -180,7 +182,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
       if (cached && cached.mtimeMs === file.mtimeMs && cached.size === file.size) return cached.parsed ? [cached.parsed] : [];
       let parsed: ParsedCodexSession | null = null;
       try {
-        parsed = parseCodexSessionContent(readFileSync(file.path, 'utf-8'), file.path, file.mtimeMs, now);
+        parsed = parseCodexSessionLines(() => readTextLinesSync(file.path), file.path, file.mtimeMs, now);
       } catch {
         parsed = null;
       }
@@ -217,7 +219,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
       updatedAt: Date.now(),
     };
     // 增量签名：排除 updatedAt 等易变字段，保留阶段与事件内容以确保变更可检测
-    const signature = JSON.stringify({ ...next, updatedAt: 0 });
+    const signature = createHash('sha256').update(JSON.stringify({ ...next, updatedAt: 0 })).digest('hex');
     snapshot = next;
     if (signature !== snapshotSignature) {
       snapshotSignature = signature;
@@ -241,6 +243,8 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
   function stop(): void {
     if (timer) clearInterval(timer);
     timer = null;
+    cache.clear();
+    snapshotSignature = '';
     snapshot = { ...snapshot, receiverRunning: false, updatedAt: Date.now() };
     emitSnapshot();
   }
@@ -256,6 +260,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
     enabled = false;
     if (timer) clearInterval(timer);
     timer = null;
+    cache.clear();
     persistState();
     snapshot = { ...snapshot, enabled: false, receiverRunning: false, updatedAt: Date.now() };
     snapshotSignature = '';

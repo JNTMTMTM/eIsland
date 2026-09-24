@@ -48,5 +48,16 @@ export function useWaveInit(canvasRef: RefObject<HTMLCanvasElement | null>, play
     glRef.current = initWaveGl(canvas);
   }, [canvasRef, playing]);
 
+  useEffect(() => () => {
+    const ctx = glRef.current;
+    if (!ctx) return;
+    // 页面切换会反复挂载波浪画布，不能等浏览器回收 GPU 资源。
+    ctx.gl.useProgram(null);
+    ctx.gl.bindBuffer(ctx.gl.ARRAY_BUFFER, null);
+    ctx.gl.deleteBuffer(ctx.buffer);
+    ctx.gl.deleteProgram(ctx.program);
+    glRef.current = null;
+  }, [canvasRef]);
+
   return glRef;
 }

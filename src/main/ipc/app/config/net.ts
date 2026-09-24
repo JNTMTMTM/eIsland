@@ -24,6 +24,9 @@
  * @author 鸡哥
  */
 
+/** 文本代理用于 JSON/歌词，限制缓冲大小，二进制下载由下载服务流式处理。 */
+export const MAX_NET_RESPONSE_BYTES = 16 * 1024 * 1024;
+
 /** 敏感请求头名称集合 */
 export const SENSITIVE_HEADER_NAMES = new Set([
   'authorization',

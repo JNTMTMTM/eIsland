@@ -26,8 +26,7 @@
 
 import { ipcMain } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { ImapFlow } from 'imapflow';
-import { simpleParser } from 'mailparser';
+import type { ImapFlow } from 'imapflow';
 import { join } from 'path';
 import type { RegisterMailIpcHandlersOptions, MailAccountConfig, MailInboxItem, MailInboxCacheStore } from './types';
 import { IMAP_TIMEOUT_MS, MAIL_INBOX_CACHE_STORE_KEY, MAIL_INBOX_CACHE_MAX_ITEMS } from './config/mail';
@@ -160,6 +159,7 @@ function writeInboxCache(storeDir: string, value: MailInboxCacheStore): void {
 
 async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetchOne']>>): Promise<MailInboxItem | null> {
   if (!message) return null;
+  const { simpleParser } = await import('mailparser');
   const parsed = message.source ? await simpleParser(message.source) : null;
   const plainText = normalizeMailText(typeof parsed?.text === 'string' ? parsed.text : '');
   const body = typeof parsed?.html === 'string' && parsed.html.trim()
@@ -182,6 +182,8 @@ async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow
 }
 
 async function withImapClient<T>(config: MailAccountConfig, task: (client: ImapFlow) => Promise<T>): Promise<T> {
+  // 邮件库及其 MIME 解析依赖只在实际访问邮箱时加载，避免常驻岛屿为空闲功能付出启动内存。
+  const { ImapFlow } = await import('imapflow');
   const client = new ImapFlow({
     host: config.imapHost,
     port: parsePort(config.imapPort, config.imapSecure ? 993 : 143),

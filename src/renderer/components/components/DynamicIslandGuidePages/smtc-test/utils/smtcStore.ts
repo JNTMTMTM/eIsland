@@ -26,8 +26,8 @@
 
 import type { SmtcTestStatus, SmtcMediaMeta } from '../types';
 
-/** 封面主色缓存 */
-export const dominantColorCache = new Map<string, [number, number, number]>();
+/** 仅保留当前封面任务，避免 base64 图片作为 key 长期累积，并合并并发提色。 */
+export const dominantColorCache = new Map<string, Promise<[number, number, number]>>();
 
 /** 运行时状态（跨组件挂载持久化） */
 export const runtime = {

@@ -26,8 +26,8 @@
  */
 
 import { ipcMain, net } from 'electron';
-import type { RegisterNetIpcHandlersOptions } from './types';
-import { SENSITIVE_HEADER_NAMES, SENSITIVE_BODY_KEYS } from './config/net';
+import { MAX_NET_RESPONSE_BYTES, SENSITIVE_HEADER_NAMES, SENSITIVE_BODY_KEYS } from './config/net';
+import type { MainLogWriter, RegisterNetIpcHandlersOptions } from './types';
 
 function isTrustedSenderUrl(url: string): boolean {
   if (!url) return false;
@@ -163,9 +163,15 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
     try {
       const result = await new Promise<{ ok: boolean; status: number; body: string }>((resolve) => {
         let settled = false;
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+        const chunks: Buffer[] = [];
+        let receivedBytes = 0;
         const finish = (value: { ok: boolean; status: number; body: string }): void => {
           if (settled) return;
           settled = true;
+          clearTimeout(timeout);
+          timeout = undefined;
+          chunks.length = 0;
           resolve(value);
         };
 
@@ -178,42 +184,65 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
           }
         });
 
-        const timeout = setTimeout(() => {
+        timeout = setTimeout(() => {
           options.writeMainLog('warn', `[Net] timeout ${JSON.stringify({ method, url: safeLogUrl, headers: safeLogHeaders, body: safeLogBody, timeoutMs })}`);
+          // abort 可能同步触发 error；先结束请求，避免覆盖超时结果及保留已收取数据。
+          finish({ ok: false, status: 408, body: 'timeout' });
           try {
             request.abort();
-          } catch {}
-          finish({ ok: false, status: 408, body: 'timeout' });
+          } catch { /* 请求可能已经关闭。 */ }
         }, timeoutMs);
 
         request.on('response', (response) => {
-          const chunks: Buffer[] = [];
+          const rejectOversizedResponse = (): void => {
+            options.writeMainLog('warn', `[Net] response exceeds ${MAX_NET_RESPONSE_BYTES} bytes: ${safeLogUrl}`);
+            finish({ ok: false, status: 413, body: 'response too large' });
+            try { request.abort(); } catch { /* 请求可能已经关闭。 */ }
+          };
           response.on('data', (chunk: Buffer | string) => {
-            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+            if (settled) return;
+            const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+            if (bytes.length > MAX_NET_RESPONSE_BYTES - receivedBytes) {
+              rejectOversizedResponse();
+              return;
+            }
+            receivedBytes += bytes.length;
+            chunks.push(bytes);
           });
           response.on('end', () => {
-            clearTimeout(timeout);
-            const text = Buffer.concat(chunks).toString('utf-8');
+            if (settled) return;
+            const text = Buffer.concat(chunks, receivedBytes).toString('utf-8');
             const status = response.statusCode ?? 0;
-            finish({ ok: status >= 200 && status < 300, status, body: text });
+            finish({ status, ok: status >= 200 && status < 300, body: text });
           });
           response.on('error', (error) => {
-            clearTimeout(timeout);
+            if (settled) return;
             options.writeMainLog('error', `[Net] response stream error ${JSON.stringify({ method, url: safeLogUrl, error: String(error) })}`);
             finish({ ok: false, status: 0, body: '' });
           });
+          response.on('aborted', () => finish({ ok: false, status: 0, body: '' }));
+          const declaredLength = Number(response.headers?.['content-length']);
+          if (!settled && declaredLength > MAX_NET_RESPONSE_BYTES) rejectOversizedResponse();
         });
 
         request.on('error', (error) => {
-          clearTimeout(timeout);
+          if (settled) return;
           options.writeMainLog('error', `[Net] request error ${JSON.stringify({ method, url: safeLogUrl, error: String(error) })}`);
           finish({ ok: false, status: 0, body: '' });
         });
+        request.on('abort', () => finish({ ok: false, status: 0, body: '' }));
+        request.on('close', () => finish({ ok: false, status: 0, body: '' }));
 
-        if (allowsBody && typeof body === 'string') {
-          request.write(body);
+        try {
+          if (allowsBody && typeof body === 'string') {
+            request.write(body);
+          }
+          request.end();
+        } catch (error) {
+          options.writeMainLog('error', `[Net] request send error: ${String(error)}`);
+          finish({ ok: false, status: 0, body: '' });
+          try { request.abort(); } catch { /* 请求可能已经关闭。 */ }
         }
-        request.end();
       });
 
       options.writeMainLog('info', `[Net] response ${JSON.stringify({ method, url: safeLogUrl, status: result.status, ok: result.ok, bodyLen: result.body?.length ?? 0 })}`);

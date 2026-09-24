@@ -31,6 +31,7 @@
   width: 100%;
   height: 100%;
   padding: 8px 16px 6px;
+  animation: expandFadeIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 /** Expanded Tab 内容区域 */
@@ -41,7 +42,6 @@
   justify-content: center;
   width: 100%;
   overflow: hidden;
-  animation: expandFadeIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .expand-tab-transition {
@@ -71,9 +71,8 @@
 }
 
 @keyframes expandFadeIn {
-  0%   { opacity: 0; transform: translateY(6px) scale(0.97); filter: blur(2px); }
-  50%  { opacity: 0.8; filter: blur(0); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /** Expanded Tab 面板通用容器 */

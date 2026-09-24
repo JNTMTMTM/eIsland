@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { IIslandStore } from '../../store/types';
+import type selectDynamicIslandState from '../utils/selectDynamicIslandState';
 import { useDynamicIslandShell } from './useDynamicIslandShell';
 import { useIslandDominantColor } from './useIslandDominantColor';
 import { useIslandTimeStrings } from './useIslandTimeStrings';
@@ -46,7 +46,7 @@ import { useIslandAutoDim } from './useIslandAutoDim';
 import { useClaudeCliSessionStatus } from './useClaudeCliSessionStatus';
 
 interface UseDynamicIslandCoordinatorOptions {
-  store: IIslandStore;
+  store: ReturnType<typeof selectDynamicIslandState>;
   t: (key: string, options?: Record<string, unknown>) => string;
   language: string | undefined;
 }
@@ -103,7 +103,6 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     syncedLyrics,
     lyricsLoading,
     translationLyrics,
-    currentPositionMs,
     springAnimation,
     animationSpeed,
     shapeMode,
@@ -160,6 +159,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
   } = useDynamicIslandShell({
     state,
     animationSpeed,
+    springAnimation,
     isMusicPlaying,
     coverImage,
     isPlaying,
@@ -244,7 +244,6 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     syncedLyrics,
     lyricsLoading,
     translationLyrics,
-    currentPositionMs,
     setLyrics,
     setLyricsTranslation,
     setAgentVoiceInput,

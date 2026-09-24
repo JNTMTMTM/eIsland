@@ -268,6 +268,7 @@ export interface UseAlbumItemsReturn {
   initGroupMode: AlbumGroupMode;
   loadExifIfNeeded: (item: AlbumItem) => void;
   loadFullImage: (item: AlbumItem) => void;
+  releaseFullImage: () => void;
   handleAddFiles: (files: FileList | File[] | null) => void;
   handleRemove: (id: number) => void;
   handleRemoveSelected: (ids: Set<number>) => void;

@@ -35,6 +35,7 @@ import type { ClaudeCodeHeatmapDailyCount, ClaudeCodeHeatmapDaily } from '../typ
 import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusSnapshot';
 import type { ClaudeCodeStatusService, ClaudeSettingsMutationResult, PermissionDecision } from '../types/system/ClaudeCodeStatusService';
 import { limitRecentSessions } from './sessionLimits';
+import { readLastTextLinesSync } from '../utils/textFileLines';
 
 export type {
   ClaudeCodeHookEventDetailItem,
@@ -159,7 +160,7 @@ function textFromContent(value: unknown): string | null {
 function transcriptTextFromRole(transcriptPath: string | null, roleName: 'user' | 'assistant'): string | null {
   if (!transcriptPath || !existsSync(transcriptPath)) return null;
   try {
-    const lines = readFileSync(transcriptPath, 'utf-8').trim().split(/\r?\n/).slice(-120).reverse();
+    const lines = readLastTextLinesSync(transcriptPath, 120).reverse();
     return lines.reduce<string | null>((found, line) => {
       if (found) return found;
       const entry = asRecord(JSON.parse(line));
@@ -261,7 +262,7 @@ function readClaudeTranscriptDetails(transcriptPath: string | null, payload: Rec
   const expectedToolName = asString(payload.tool_name) ?? asString(payload.toolName) ?? asString(payload.name);
   const details = emptyTranscriptDetails();
   try {
-    const lines = readFileSync(transcriptPath, 'utf-8').trim().split(/\r?\n/).slice(-260).reverse();
+    const lines = readLastTextLinesSync(transcriptPath, 260).reverse();
     lines.some((line) => {
       const entry = asRecord(JSON.parse(line));
       details.sessionId = details.sessionId ?? asString(entry.sessionId) ?? asString(entry.session_id);

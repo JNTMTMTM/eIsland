@@ -50,14 +50,17 @@ export function useSilkyWave(
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rect = canvas.getBoundingClientRect();
     const w = rect.width;
     const h = rect.height;
 
-    if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+    // canvas 尺寸只能存整数；直接比较小数会导致每帧重建绘图缓冲区。
+    const pixelWidth = Math.max(1, Math.round(w * dpr));
+    const pixelHeight = Math.max(1, Math.round(h * dpr));
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 

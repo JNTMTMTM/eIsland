@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-bluetooth-helper",
-  "version": "26.0.0",
+  "version": "26.0.2",
   "description": "Windows Bluetooth device enumeration and real-time monitoring via Native AOT DLL.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",

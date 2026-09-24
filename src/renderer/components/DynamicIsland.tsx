@@ -26,10 +26,16 @@
 
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../store/isLandStore';
 import { DynamicIslandBackground } from './components/DynamicIslandBackground';
 import { DynamicIslandStateContent } from './components/DynamicIslandStateContent';
+import IslandContentTransition from './components/islandContentTransition';
+import MaxExpandTransitionLoading from './states/maxExpand/maxExpandTransitionLoading';
+import ExpandedTransitionLoading from './states/expand/expandedTransitionLoading';
+import { usePerformanceMode } from './states/maxExpand/hooks/usePerformanceMode';
 import { useDynamicIslandCoordinator } from './hooks/useDynamicIslandCoordinator';
+import selectDynamicIslandState from './utils/selectDynamicIslandState';
 
 export type { IslandState } from './hooks/useDynamicIslandShell';
 export { AI_CHAT_CLIPBOARD_URL_EVENT, getStateClassName, STATE_CONFIGS } from './config/dynamicIslandConfig';
@@ -40,7 +46,8 @@ export { AI_CHAT_CLIPBOARD_URL_EVENT, getStateClassName, STATE_CONFIGS } from '.
  */
 function DynamicIsland(): JSX.Element {
   const { t, i18n } = useTranslation();
-  const store = useIslandStore();
+  const store = useIslandStore(useShallow(selectDynamicIslandState));
+  const performanceModeEnabled = usePerformanceMode();
   const {
     state,
     weather,
@@ -72,6 +79,10 @@ function DynamicIsland(): JSX.Element {
     language: i18n.resolvedLanguage,
   });
 
+  let loadingFallback: JSX.Element | null = null;
+  if (state === 'maxExpand') loadingFallback = <MaxExpandTransitionLoading />;
+  if (state === 'expanded') loadingFallback = <ExpandedTransitionLoading />;
+
   return (
     <div
       className={shellClassName}
@@ -88,19 +99,26 @@ function DynamicIsland(): JSX.Element {
         onVideoLoadedMetadata={handleVideoLoadedMetadata}
         onVideoCanPlay={handleVideoCanPlay}
       />
-      <DynamicIslandStateContent
-        state={state}
-        timeStr={timeStr}
-        dayStr={dayStr}
-        weather={weather}
-        timerState={timerData?.state ?? 'idle'}
-        remainingSeconds={timerData?.remainingSeconds ?? 0}
-        pomodoroRunning={pomodoroRunning}
-        pomodoroRemaining={pomodoroRemaining}
-        fullTimeStr={fullTimeStr}
-        lunarStr={lunarStr}
-        notification={notification}
-      />
+      <IslandContentTransition state={state}
+        animationSpeed={store.animationSpeed}
+        springAnimation={store.springAnimation}
+        performanceModeEnabled={performanceModeEnabled}
+        fallback={loadingFallback}
+      >
+        <DynamicIslandStateContent
+          state={state}
+          timeStr={timeStr}
+          dayStr={dayStr}
+          weather={weather}
+          timerState={timerData?.state ?? 'idle'}
+          remainingSeconds={timerData?.remainingSeconds ?? 0}
+          pomodoroRunning={pomodoroRunning}
+          pomodoroRemaining={pomodoroRemaining}
+          fullTimeStr={fullTimeStr}
+          lunarStr={lunarStr}
+          notification={notification}
+        />
+      </IslandContentTransition>
     </div>
   );
 }

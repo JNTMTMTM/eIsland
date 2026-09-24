@@ -76,5 +76,5 @@ function renderLazyActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElem
  * 渲染 MaxExpand 的懒加载内容（性能模式）。
  */
 export function MaxExpandContentLazy(): ReactElement {
-  return <MaxExpandContentShell renderActiveTab={renderLazyActiveTab} />;
+  return <MaxExpandContentShell renderActiveTab={renderLazyActiveTab} performanceModeEnabled />;
 }

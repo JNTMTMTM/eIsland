@@ -107,9 +107,9 @@ export function sanitizeAlbumItems(data: unknown): AlbumItem[] {
 }
 
 /** 写入持久化（store + localStorage 兜底） */
-export function persistAlbumItems(items: AlbumItem[]): void {
+export async function persistAlbumItems(items: AlbumItem[]): Promise<void> {
   try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items)); } catch { /* noop */ }
-  window.api.storeWrite(STORE_KEY, items).catch(() => { });
+  await window.api.storeWrite(STORE_KEY, items).catch(() => { });
 }
 
 /** 文件大小格式化为可读字符串 */

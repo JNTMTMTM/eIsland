@@ -27,6 +27,7 @@
 import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { truncateByVisualWidth } from '../utils/lyricUtils';
@@ -49,7 +50,13 @@ export function LyricsTab(): ReactElement {
     mediaInfo,
     coverImage,
     dominantColor,
-  } = useIslandStore();
+  } = useIslandStore(useShallow((store) => ({
+    isMusicPlaying: store.isMusicPlaying,
+    isPlaying: store.isPlaying,
+    mediaInfo: store.mediaInfo,
+    coverImage: store.coverImage,
+    dominantColor: store.dominantColor,
+  })));
 
   const [bgStyle, setBgStyle] = useState<HoverMusicBgStyle>('silky');
 

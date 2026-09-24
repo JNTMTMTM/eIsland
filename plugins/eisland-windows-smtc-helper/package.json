@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-smtc-helper",
-  "version": "26.0.0",
+  "version": "26.0.1",
   "description": "Windows SMTC (System Media Transport Controls) all-in-one: commands, status, and real-time session monitoring via Native AOT DLL.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",

@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { BUILTIN_WALLPAPERS } from '../../../../../../../../assets/wallpaper/builtinWallpapers';
 import useIslandStore from '../../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
-import { injectFontFace } from '../../../../../../../../utils/font';
+import { injectFontFace, releaseCustomFonts } from '../../../../../../../../utils/font';
 import type { AppSettingsSectionProps } from './types';
 
 type ThemeSettingsPageProps = Pick<
@@ -347,6 +347,7 @@ export function ThemeSettingsPage({
                 type="button"
                 onClick={() => {
                   setUIFont(font.value);
+                  releaseCustomFonts('eIsland-UI');
                   document.documentElement.style.setProperty('--island-ui-font', font.css);
                   window.api.storeWrite(UI_FONT_STORE_KEY, font.value).catch(() => {});
                 }}
@@ -382,6 +383,7 @@ export function ThemeSettingsPage({
                     if (uiFont === `custom:${font.path}`) {
                       const fallback = FONT_PRESETS[0];
                       setUIFont(fallback.value);
+                      releaseCustomFonts('eIsland-UI');
                       document.documentElement.style.setProperty('--island-ui-font', fallback.css);
                       window.api.storeWrite(UI_FONT_STORE_KEY, fallback.value).catch(() => {});
                     }
@@ -429,6 +431,7 @@ export function ThemeSettingsPage({
                 type="button"
                 onClick={() => {
                   setLyricsFont(font.value);
+                  releaseCustomFonts('eIsland-Lyrics');
                   document.documentElement.style.setProperty('--island-lyrics-font', font.css);
                   window.api.storeWrite(LYRICS_FONT_STORE_KEY, font.value).catch(() => {});
                 }}
@@ -464,6 +467,7 @@ export function ThemeSettingsPage({
                     if (lyricsFont === `custom:${font.path}`) {
                       const fallback = FONT_PRESETS[0];
                       setLyricsFont(fallback.value);
+                      releaseCustomFonts('eIsland-Lyrics');
                       document.documentElement.style.setProperty('--island-lyrics-font', fallback.css);
                       window.api.storeWrite(LYRICS_FONT_STORE_KEY, fallback.value).catch(() => {});
                     }
