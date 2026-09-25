@@ -24,10 +24,10 @@
  * @author 鸡哥
  */
 
-import { useCallback, useRef, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MaxExpandNavLayoutConfig } from '../../../utils/settingsConfig';
-import { MAXEXPAND_TAB_LABELS, DEFAULT_MAXEXPAND_NAV_LAYOUT } from '../../../utils/settingsConfig';
+import { MAXEXPAND_TAB_LABELS, DEFAULT_MAXEXPAND_NAV_LAYOUT, MAXEXPAND_APP_MODE_ENABLED_STORE_KEY } from '../../../utils/settingsConfig';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 
 interface MaxExpandLayoutSettingsPageProps {
@@ -46,8 +46,33 @@ export function MaxExpandLayoutSettingsPage({
   updateMaxExpandNavLayout,
 }: MaxExpandLayoutSettingsPageProps): ReactElement {
   const { t } = useTranslation();
+  const [appModeEnabled, setAppModeEnabled] = useState(false);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const dragIdxRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    window.api.storeRead(MAXEXPAND_APP_MODE_ENABLED_STORE_KEY).then((value) => {
+      if (cancelled) return;
+      setAppModeEnabled(value === true);
+    }).catch(() => {});
+    const unsubscribe = window.api.onSettingsChanged((channel: string, value: unknown) => {
+      if (cancelled) return;
+      if (channel === `store:${MAXEXPAND_APP_MODE_ENABLED_STORE_KEY}`) {
+        setAppModeEnabled(value === true);
+      }
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
+
+  const handleAppModeChange = (enabled: boolean): void => {
+    setAppModeEnabled(enabled);
+    window.api.storeWrite(MAXEXPAND_APP_MODE_ENABLED_STORE_KEY, enabled).catch(() => {});
+    window.api.settingsPreview(`store:${MAXEXPAND_APP_MODE_ENABLED_STORE_KEY}`, enabled).catch(() => {});
+  };
 
   const getTabLabel = useCallback((id: string): string => {
     return t(`settings.app.maxExpandLayout.tabLabels.${id}`, { defaultValue: MAXEXPAND_TAB_LABELS[id] || id });
@@ -105,6 +130,23 @@ export function MaxExpandLayoutSettingsPage({
   return (
     <div className="max-expand-settings-section">
       <div className="settings-cards">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.maxExpandLayout.appModeTitle')}</div>
+            <div className="settings-card-subtitle">{t('settings.app.maxExpandLayout.appModeHint')}</div>
+          </div>
+          <div className="settings-card-inline-row">
+            <label className="settings-card-check">
+              <input
+                type="checkbox"
+                checked={appModeEnabled}
+                onChange={(event) => handleAppModeChange(event.target.checked)}
+              />
+              <span>{t('settings.app.maxExpandLayout.appModeTitle')}</span>
+            </label>
+          </div>
+        </div>
+
         {/* 预览区域 */}
         <div className="settings-card">
           <div className="settings-card-header">

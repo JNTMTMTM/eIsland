@@ -2964,6 +2964,8 @@
         }
       },
       "maxExpandLayout": {
+        "appModeTitle": "Enable App Mode",
+        "appModeHint": "Toggle app mode for the MaxExpand interface.",
         "previewTitle": "MaxExpand Navigation Preview",
         "previewHint": "Preview the bottom navigation order. Dimmed items are hidden.",
         "backLabel": "Back",

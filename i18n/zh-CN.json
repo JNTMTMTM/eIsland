@@ -2964,6 +2964,8 @@
         }
       },
       "maxExpandLayout": {
+        "appModeTitle": "启用界面应用化模式",
+        "appModeHint": "设置全展开界面的应用化模式开关。",
         "previewTitle": "全展开导航预览",
         "previewHint": "预览底部导航点的排列顺序，灰色表示已隐藏的页面。",
         "backLabel": "返回",

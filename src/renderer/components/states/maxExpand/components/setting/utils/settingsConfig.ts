@@ -210,6 +210,7 @@ export const DEFAULT_LAYOUT: OverviewLayoutConfig = {
 };
 
 export const MAXEXPAND_NAV_LAYOUT_STORE_KEY = 'maxexpand-nav-layout';
+export const MAXEXPAND_APP_MODE_ENABLED_STORE_KEY = 'maxexpand-app-mode-enabled';
 
 export const EXPAND_NAV_LAYOUT_STORE_KEY = 'expand-nav-layout';
 
@@ -461,6 +462,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '展开导航预览', desc: '预览展开态底部导航点顺序，灰色表示已隐藏页面。', labelKey: 'settings.app.expandLayout.previewTitle', descKey: 'settings.app.expandLayout.previewHint', tab: 'app', appPage: 'expand-layout' },
   { label: '页面排序与可见性（展开）', desc: '拖拽调整展开态页面顺序，点击开关切换是否显示。', labelKey: 'settings.app.expandLayout.orderTitle', descKey: 'settings.app.expandLayout.orderHintStatic', tab: 'app', appPage: 'expand-layout' },
   // ── 软件设置 > 全展开布局 ──
+  { label: '启用界面应用化模式', desc: '设置全展开界面的应用化模式开关。', labelKey: 'settings.app.maxExpandLayout.appModeTitle', descKey: 'settings.app.maxExpandLayout.appModeHint', tab: 'app', appPage: 'maxexpand-layout' },
   { label: '全展开导航预览', desc: '预览底部导航点的排列顺序，灰色表示已隐藏的页面。', labelKey: 'settings.app.maxExpandLayout.previewTitle', descKey: 'settings.app.maxExpandLayout.previewHint', tab: 'app', appPage: 'maxexpand-layout' },
   { label: '页面排序与可见性', desc: '拖拽调整页面顺序，点击开关控制页面显示或隐藏。', labelKey: 'settings.app.maxExpandLayout.orderTitle', descKey: 'settings.app.maxExpandLayout.orderHintStatic', tab: 'app', appPage: 'maxexpand-layout' },
   // ── 软件设置 > 相册 ──
