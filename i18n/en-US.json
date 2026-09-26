@@ -4516,6 +4516,10 @@
         "label": "Performance Monitor",
         "desc": "Configure performance monitor display and hardware status."
       },
+      "screenshot-settings": {
+        "label": "Screenshot Settings",
+        "desc": "Configure screenshot related settings."
+      },
       "network": {
         "label": "Network",
         "desc": "Request timeout and network behavior settings"

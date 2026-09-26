@@ -4516,6 +4516,10 @@
         "label": "性能监控",
         "desc": "性能监控展示与硬件状态配置。"
       },
+      "screenshot-settings": {
+        "label": "截图设置",
+        "desc": "截图相关配置。"
+      },
       "network": {
         "label": "网络配置",
         "desc": "请求超时与网络行为设置"
