@@ -344,6 +344,9 @@ export interface IslandSlice {
   hoverTab: HoverTab;
   expandTab: ExpandTab;
   maxExpandTab: MaxExpandTab;
+  maxExpandAppModeEnabled: boolean;
+  /** 应用化模式下显示导航页，保留最后选择的应用供传统模式恢复。 */
+  maxExpandLauncherVisible: boolean;
   cliProvider: CliProvider;
   notification: NotificationData;
   sttText: string;
@@ -384,6 +387,7 @@ export interface IslandSlice {
   setHoverTab: (tab: HoverTab) => void;
   setExpandTab: (tab: ExpandTab) => void;
   setMaxExpandTab: (tab: MaxExpandTab) => void;
+  showMaxExpandLauncher: () => void;
   setCliProvider: (provider: CliProvider) => void;
   setSpringAnimation: (enabled: boolean) => void;
   setAnimationSpeed: (speed: AnimationSpeed) => void;

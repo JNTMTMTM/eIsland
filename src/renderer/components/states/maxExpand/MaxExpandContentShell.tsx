@@ -37,6 +37,9 @@ import {
   type NavDotId,
 } from './config/shellConstants';
 import { useNavLayout } from './hooks/useNavLayout';
+import { useAppMode } from './hooks/useAppMode';
+import MaxExpandAppLauncher from './components/MaxExpandAppLauncher';
+import MaxExpandAppControls from './components/MaxExpandAppControls';
 import { useTabAnimation } from './hooks/useTabAnimation';
 import { useContentReady } from './hooks/useContentReady';
 import { shouldIgnoreWheelEvent } from './hooks/useWheelNavigation';
@@ -44,6 +47,7 @@ import { getDefaultNavLabel } from './utils/getNavLabel';
 import { getAdjacentNavDotId } from './utils/tabNavigation';
 import MaxExpandLoading from './maxExpandLoading';
 import '../../../styles/settings/settings.css';
+import '../../../styles/settings/modules/settings-maxexpand-app-mode.css';
 
 export interface MaxExpandContentShellProps {
   renderActiveTab: (activeTab: MaxExpandTab, loadingFallback: React.ReactElement, contentReady: boolean) => React.ReactElement | null;
@@ -62,10 +66,12 @@ function isEditableTarget(target: EventTarget | null): boolean {
  */
 export function MaxExpandContentShell({ renderActiveTab, deferContent = true, performanceModeEnabled = false }: MaxExpandContentShellProps): React.ReactElement {
   const { t } = useTranslation();
-  const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab } = useIslandStore(useShallow((store) => ({
+  const { setExpanded, maxExpandTab: activeTab, setMaxExpandTab: setActiveTab, maxExpandLauncherVisible, showMaxExpandLauncher } = useIslandStore(useShallow((store) => ({
     setExpanded: store.setExpanded,
     maxExpandTab: store.maxExpandTab,
     setMaxExpandTab: store.setMaxExpandTab,
+    maxExpandLauncherVisible: store.maxExpandLauncherVisible,
+    showMaxExpandLauncher: store.showMaxExpandLauncher,
   })));
   const contentActive = useIslandContentActive();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -74,7 +80,8 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
 
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
   const [startupMode, setStartupMode] = useState<'integrated' | 'standalone'>(isStartupModeResolved() ? getStartupMode() : 'integrated');
-  const { navLayoutConfig, navLayoutLoaded } = useNavLayout();
+  const { appModeEnabled, appModeLoaded } = useAppMode();
+  const { navLayoutConfig, navLayoutLoaded } = useNavLayout(appModeLoaded && !appModeEnabled);
   const tabAnimation = useTabAnimation();
   const contentReady = useContentReady(deferContent);
 
@@ -87,19 +94,20 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
   }, []);
 
   const NAV_DOTS: NavDotId[] = useMemo(() => {
+    if (appModeEnabled) return [];
     const visibleTabs = navLayoutConfig
       .filter((item: { visible: boolean }) => item.visible)
       .map((item: { id: string }) => item.id as NavDotId);
     return startupMode === 'standalone'
       ? ['expanded' as NavDotId, ...visibleTabs]
       : ['expanded' as NavDotId, ...visibleTabs, 'settings' as NavDotId];
-  }, [navLayoutConfig, startupMode]);
+  }, [appModeEnabled, navLayoutConfig, startupMode]);
   const navDotsRef = useRef(NAV_DOTS);
   navDotsRef.current = NAV_DOTS;
 
   useEffect(() => {
     // 导航配置加载前不能判定目标页不可见，否则会覆盖入口指定的标签。
-    if (!navLayoutLoaded || !contentActive) return;
+    if (!appModeLoaded || appModeEnabled || !navLayoutLoaded || !contentActive) return;
 
     if (startupMode === 'standalone' && navLayoutLoaded && NAV_DOTS.length === 1) {
       setExpanded();
@@ -110,7 +118,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
     if (!isVisible && NAV_DOTS.length > 1) {
       setActiveTab(NAV_DOTS[1] as MaxExpandTab);
     }
-  }, [NAV_DOTS, activeTab, navLayoutLoaded, setActiveTab, setExpanded, startupMode, contentActive]);
+  }, [NAV_DOTS, activeTab, appModeEnabled, appModeLoaded, navLayoutLoaded, setActiveTab, setExpanded, startupMode, contentActive]);
 
   const filteredNavDots = useMemo(() => {
     const getNavLabel = (id: NavDotId): string => t(`maxExpand.nav.${id}`, {
@@ -132,7 +140,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
 
   useEffect(() => {
     const el = contentRef.current;
-    if (!el || !contentActive) return;
+    if (!el || !contentActive || !appModeLoaded || appModeEnabled || !navLayoutLoaded) return;
 
     const handleWheel = (e: WheelEvent): void => {
       const target = e.target as HTMLElement;
@@ -171,35 +179,58 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
       el.removeEventListener('wheel', handleWheel);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [navigateTab, contentActive]);
+  }, [navigateTab, contentActive, appModeEnabled, appModeLoaded, navLayoutLoaded]);
 
   const handleNavClick = (id: NavDotId): void => {
     navigateTab(id);
   };
 
+  const handleSelectApp = useCallback((tab: MaxExpandTab): void => {
+    setSlideDir('right');
+    setActiveTab(tab);
+  }, [setActiveTab]);
+
+  const handleBackToLauncher = useCallback((): void => {
+    setSlideDir('left');
+    showMaxExpandLauncher();
+  }, [showMaxExpandLauncher]);
+
+  const launcherVisible = appModeEnabled && maxExpandLauncherVisible;
+
   const loadingFallback = (
-    <MaxExpandLoading activeTab={activeTab} performanceModeEnabled={performanceModeEnabled} />
+    <MaxExpandLoading activeTab={activeTab} performanceModeEnabled={performanceModeEnabled} launcherVisible={launcherVisible} />
   );
 
+  let content: React.ReactElement | null = loadingFallback;
+  if (appModeLoaded) {
+    content = launcherVisible
+      ? <MaxExpandAppLauncher onSelectApp={handleSelectApp} />
+      : renderActiveTab(activeTab, loadingFallback, contentReady);
+  }
+
   return (
-    <div className="settings-content" ref={contentRef}>
+    <div className={`settings-content${appModeEnabled ? ' max-expand-app-mode' : ''}${launcherVisible ? ' max-expand-app-mode-launcher' : ''}`} ref={contentRef}>
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
-        <div className={`max-expand-tab-transition${tabAnimation ? ` max-expand-tab-slide-${slideDir}` : ''}`} key={activeTab}>
-          {renderActiveTab(activeTab, loadingFallback, contentReady)}
+        <div className={`max-expand-tab-transition${tabAnimation ? ` max-expand-tab-slide-${slideDir}` : ''}`} key={launcherVisible ? 'app-launcher' : activeTab}>
+          {content}
         </div>
       </div>
 
-      <div className="settings-nav-dots" onClick={(e) => e.stopPropagation()} style={navLayoutLoaded ? undefined : { visibility: 'hidden' }}>
-        {filteredNavDots.map(({ id, label }) => (
-          <button
-            key={id}
-            className={`settings-nav-dot ${activeTab === id ? 'active' : ''}`}
-            onClick={() => handleNavClick(id)}
-            title={label}
-            aria-label={t('maxExpand.nav.switchTo', { defaultValue: '切换到{{label}}', label })}
-          />
-        ))}
-      </div>
+      {appModeEnabled ? (
+        !launcherVisible && <MaxExpandAppControls onBackToLauncher={handleBackToLauncher} />
+      ) : (
+        <div className="settings-nav-dots" onClick={(e) => e.stopPropagation()} style={appModeLoaded && navLayoutLoaded ? undefined : { visibility: 'hidden' }}>
+          {filteredNavDots.map(({ id, label }) => (
+            <button
+              key={id}
+              className={`settings-nav-dot ${activeTab === id ? 'active' : ''}`}
+              onClick={() => handleNavClick(id)}
+              title={label}
+              aria-label={t('maxExpand.nav.switchTo', { defaultValue: '切换到{{label}}', label })}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

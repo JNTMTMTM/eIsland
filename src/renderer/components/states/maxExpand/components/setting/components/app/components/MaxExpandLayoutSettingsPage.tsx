@@ -27,7 +27,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MaxExpandNavLayoutConfig } from '../../../utils/settingsConfig';
-import { MAXEXPAND_TAB_LABELS, DEFAULT_MAXEXPAND_NAV_LAYOUT, MAXEXPAND_APP_MODE_ENABLED_STORE_KEY } from '../../../utils/settingsConfig';
+import { MAXEXPAND_TAB_LABELS, DEFAULT_MAXEXPAND_NAV_LAYOUT, MAXEXPAND_APP_MODE_ENABLED_STORE_KEY, MAXEXPAND_APP_MODE_CHANGED_EVENT } from '../../../utils/settingsConfig';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 
 interface MaxExpandLayoutSettingsPageProps {
@@ -72,6 +72,7 @@ export function MaxExpandLayoutSettingsPage({
     setAppModeEnabled(enabled);
     window.api.storeWrite(MAXEXPAND_APP_MODE_ENABLED_STORE_KEY, enabled).catch(() => {});
     window.api.settingsPreview(`store:${MAXEXPAND_APP_MODE_ENABLED_STORE_KEY}`, enabled).catch(() => {});
+    window.dispatchEvent(new CustomEvent(MAXEXPAND_APP_MODE_CHANGED_EVENT, { detail: enabled }));
   };
 
   const getTabLabel = useCallback((id: string): string => {

@@ -64,6 +64,8 @@ export const createIslandSlice: StateCreator<
   hoverTab: 'time',
   expandTab: 'overview',
   maxExpandTab: 'todo',
+  maxExpandAppModeEnabled: false,
+  maxExpandLauncherVisible: true,
   cliProvider: readCliProvider(),
   notification: emptyNotification,
   sttText: '',
@@ -304,7 +306,8 @@ export const createIslandSlice: StateCreator<
 
   setHoverTab: (tab) => set({ hoverTab: tab }),
   setExpandTab: (tab) => set({ expandTab: tab }),
-  setMaxExpandTab: (tab) => set({ maxExpandTab: tab }),
+  setMaxExpandTab: (tab) => set({ maxExpandTab: tab, maxExpandLauncherVisible: false }),
+  showMaxExpandLauncher: () => set({ maxExpandLauncherVisible: true }),
   setCliProvider: (provider) => {
     try {
       window.localStorage.setItem('eisland-cli-provider', provider);

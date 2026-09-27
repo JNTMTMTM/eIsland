@@ -1505,6 +1505,12 @@
     }
   },
   "maxExpand": {
+    "appMode": {
+      "title": "Apps",
+      "hint": "Choose an app to get started",
+      "backToLauncher": "Back to apps",
+      "controls": "App controls"
+    },
     "calendar": {
       "today": "Today",
       "daysAfter_one": "In {{count}} day",
@@ -2965,7 +2971,7 @@
       },
       "maxExpandLayout": {
         "appModeTitle": "Enable App Mode",
-        "appModeHint": "Toggle app mode for the MaxExpand interface.",
+        "appModeHint": "Open any app from the launcher and return with the button on the right. The page order and visibility settings below do not apply in app mode.",
         "previewTitle": "MaxExpand Navigation Preview",
         "previewHint": "Preview the bottom navigation order. Dimmed items are hidden.",
         "backLabel": "Back",

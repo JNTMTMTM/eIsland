@@ -1505,6 +1505,12 @@
     }
   },
   "maxExpand": {
+    "appMode": {
+      "title": "应用",
+      "hint": "选择一个应用开始使用",
+      "backToLauncher": "返回应用导航页",
+      "controls": "应用控制栏"
+    },
     "calendar": {
       "today": "今天",
       "daysAfter": "{{count}} 天后",
@@ -2965,7 +2971,7 @@
       },
       "maxExpandLayout": {
         "appModeTitle": "启用界面应用化模式",
-        "appModeHint": "设置全展开界面的应用化模式开关。",
+        "appModeHint": "通过应用导航页打开全部应用，右侧按钮返回导航页；启用后不使用下方的页面排序与可见性配置。",
         "previewTitle": "全展开导航预览",
         "previewHint": "预览底部导航点的排列顺序，灰色表示已隐藏的页面。",
         "backLabel": "返回",
