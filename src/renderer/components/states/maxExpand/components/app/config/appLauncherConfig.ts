@@ -5,10 +5,17 @@
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
  *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -17,8 +24,8 @@
  * @author 鸡哥
  */
 
-import { SvgIcon } from '../../../../utils/SvgIcon';
-import type { MaxExpandTab } from '../../../../store/types';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import type { MaxExpandTab } from '../../../../../../store/types';
 
 /** 完整应用映射保证新增 MaxExpand 页面时同步补齐导航入口。 */
 export const MAX_EXPAND_APPS = {

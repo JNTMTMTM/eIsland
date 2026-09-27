@@ -38,7 +38,7 @@ import {
 } from './config/shellConstants';
 import { useNavLayout } from './hooks/useNavLayout';
 import { useAppMode } from './hooks/useAppMode';
-import MaxExpandAppLauncher from './components/MaxExpandAppLauncher';
+import MaxExpandAppLauncher from './components/app';
 import MaxExpandAppControls from './components/MaxExpandAppControls';
 import { useTabAnimation } from './hooks/useTabAnimation';
 import { useContentReady } from './hooks/useContentReady';

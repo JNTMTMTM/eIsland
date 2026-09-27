@@ -21,7 +21,7 @@ import { Children, createElement, isValidElement, type ReactElement, type ReactN
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MaxExpandContentShell } from '../MaxExpandContentShell';
-import MaxExpandAppLauncher from '../components/MaxExpandAppLauncher';
+import MaxExpandAppLauncher from '../components/app';
 import MaxExpandAppControls from '../components/MaxExpandAppControls';
 import type { IslandSlice, MaxExpandTab } from '../../../../store/types';
 
@@ -92,7 +92,7 @@ vi.mock('../config/shellConstants', () => ({
   isStartupModeResolved: () => true,
 }));
 vi.mock('../maxExpandLoading', () => ({ default: () => createElement('div', { 'data-loading': true }) }));
-vi.mock('../components/MaxExpandAppLauncher', () => ({
+vi.mock('../components/app', () => ({
   default: (props: { onSelectApp: (tab: MaxExpandTab) => void }) => createElement('button', {
     'data-launcher': true,
     onClick: () => props.onSelectApp('calendar'),
