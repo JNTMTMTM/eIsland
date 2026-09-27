@@ -18,10 +18,9 @@
  */
 
 import MaxExpandAppControls from '../../MaxExpandAppControls';
-import { MAX_EXPAND_APPS } from '../config/appLauncherConfig';
 import { useAppNavigationTransition } from '../hooks/useAppNavigationTransition';
 import MaxExpandAppLauncher from './MaxExpandAppLauncher';
-import type { CSSProperties, ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import type { MaxExpandTab } from '../../../../../../store/types';
 
 interface MaxExpandAppNavigationProps {
@@ -44,16 +43,15 @@ interface MaxExpandAppNavigationProps {
  * @param props.onSelectApp - 切换到指定应用。
  * @param props.onBackToLauncher - 返回应用导航页。
  * @param props.children - 当前应用的内容。
- * @returns 导航层、应用层和临时过渡图标。
+ * @returns 导航层与应用层。
  */
 export default function MaxExpandAppNavigation({
   activeTab, launcherVisible, animationEnabled, contentActive, onSelectApp, onBackToLauncher, children,
 }: MaxExpandAppNavigationProps): ReactElement {
-  const { stageRef, launcherRef, applicationRef, iconRef, transition, selectApp, backToLauncher } = useAppNavigationTransition({
+  const { stageRef, launcherRef, applicationRef, transition, selectApp, backToLauncher } = useAppNavigationTransition({
     activeTab, launcherVisible, animationEnabled, contentActive, onSelectApp, onBackToLauncher,
   });
   const transitioning = transition !== null;
-  const transitionApp = transition ? MAX_EXPAND_APPS[transition.tab] : null;
 
   return (
     <div className="max-expand-app-stage" ref={stageRef}
@@ -70,20 +68,6 @@ export default function MaxExpandAppNavigation({
         <div className="max-expand-app-application-layer" ref={applicationRef} inert={transitioning}>
           <div className="max-expand-tab-transition" key={activeTab}>{children}</div>
           <MaxExpandAppControls onBackToLauncher={backToLauncher} />
-        </div>
-      )}
-      {transition && transitionApp && (
-        <div className="max-expand-app-launcher-circle max-expand-app-transition-icon" ref={iconRef}
-          aria-hidden="true"
-          style={{
-            '--max-expand-app-color': transitionApp.color,
-            left: transition.icon.left,
-            top: transition.icon.top,
-            width: transition.icon.width,
-            height: transition.icon.height,
-          } as CSSProperties}
-        >
-          <img className="max-expand-app-icon-img" src={transitionApp.icon} alt="" draggable={false} />
         </div>
       )}
     </div>

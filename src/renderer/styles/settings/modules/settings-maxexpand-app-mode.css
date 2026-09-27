@@ -92,19 +92,9 @@
 
 }
 
-.max-expand-app-launcher-circle.max-expand-app-transition-icon {
-  position: absolute;
-  z-index: 2;
-  box-sizing: border-box;
-  pointer-events: none;
+.max-expand-app-stage[data-transition] .max-expand-app-launcher-visual,
+.max-expand-app-stage[data-transition] .max-expand-app-launcher-circle {
   transition: none;
-  will-change: transform, opacity;
-
-}
-
-.max-expand-app-transition-icon > .max-expand-app-icon-img {
-  width: 50%;
-  height: 50%;
 
 }
 
@@ -242,7 +232,7 @@
 
 }
 
-.max-expand-app-launcher-item[data-transition-active="true"] .max-expand-app-launcher-circle {
+.max-expand-app-launcher-item[data-transition-active="true"] .max-expand-app-launcher-label {
   opacity: 0;
 
 }

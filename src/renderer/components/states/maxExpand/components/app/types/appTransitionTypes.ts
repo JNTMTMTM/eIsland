@@ -52,12 +52,11 @@ export interface UseAppNavigationTransitionOptions {
   onBackToLauncher: () => void;
 }
 
-/** 绑定舞台与三个视觉层，并向导航按钮提供过渡操作。 */
+/** 绑定舞台、导航层与应用层，并向导航按钮提供过渡操作。 */
 export interface UseAppNavigationTransitionResult {
   stageRef: RefObject<HTMLDivElement | null>;
   launcherRef: RefObject<HTMLDivElement | null>;
   applicationRef: RefObject<HTMLDivElement | null>;
-  iconRef: RefObject<HTMLDivElement | null>;
   transition: AppNavigationTransition | null;
   selectApp: (tab: MaxExpandTab) => void;
   backToLauncher: () => void;

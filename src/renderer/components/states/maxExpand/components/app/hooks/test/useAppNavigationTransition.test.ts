@@ -75,6 +75,17 @@ interface ControlledAnimation {
   cancel: ReturnType<typeof vi.fn>;
 }
 
+interface MockLauncherItem {
+  tab: MaxExpandTab;
+  circle: {
+    animate: ReturnType<typeof vi.fn>;
+    getBoundingClientRect: () => { left: number; top: number; width: number; height: number };
+    transform: string;
+  };
+  visual: { animate: ReturnType<typeof vi.fn>; transform: string };
+  querySelector: ReturnType<typeof vi.fn>;
+}
+
 describe('useAppNavigationTransition', () => {
   let options: UseAppNavigationTransitionOptions;
   let result: UseAppNavigationTransitionResult;
@@ -83,9 +94,14 @@ describe('useAppNavigationTransition', () => {
   let stageBounds: { left: number; top: number; width: number; height: number };
   let circleBounds: { left: number; top: number; width: number; height: number };
   let stage: { getBoundingClientRect: () => typeof stageBounds; querySelector: ReturnType<typeof vi.fn> };
-  let launcher: { animate: ReturnType<typeof vi.fn> };
+  let launcher: {
+    animate: ReturnType<typeof vi.fn>;
+    querySelector: ReturnType<typeof vi.fn>;
+    querySelectorAll: ReturnType<typeof vi.fn>;
+  };
   let application: { animate: ReturnType<typeof vi.fn> };
-  let icon: { animate: ReturnType<typeof vi.fn> };
+  let items: MockLauncherItem[];
+  let selectedIndex: number;
   let unmounted: boolean;
   const onSelectApp = vi.fn();
   const onBackToLauncher = vi.fn();
@@ -113,7 +129,6 @@ describe('useAppNavigationTransition', () => {
       result.launcherRef.current = launcher as unknown as HTMLDivElement;
       // 与实际壳层一致：导航页首次显示时应用层尚未挂载。
       result.applicationRef.current = options.launcherVisible ? null : application as unknown as HTMLDivElement;
-      result.iconRef.current = result.transition ? icon as unknown as HTMLDivElement : null;
       hooks.pending.splice(0).forEach((effect) => effect());
       renders++;
       if (renders > 10) throw new Error('unexpected render loop');
@@ -162,15 +177,43 @@ describe('useAppNavigationTransition', () => {
     });
     stageBounds = { left: 10, top: 20, width: 400, height: 300 };
     circleBounds = { left: 50, top: 90, width: 60, height: 60 };
+    selectedIndex = 0;
+    const positions = [{ x: 0, y: 0 }, { x: 70, y: 0 }, { x: 0, y: 70 }, { x: 300, y: 200 }];
+    items = (['calendar', 'todo', 'alarm', 'settings'] as const).map((tab, index) => {
+      const circle = {
+        animate: vi.fn(createAnimation),
+        getBoundingClientRect: () => ({
+          ...circleBounds,
+          left: circleBounds.left + positions[index].x - positions[selectedIndex].x,
+          top: circleBounds.top + positions[index].y - positions[selectedIndex].y,
+        }),
+        transform: 'matrix(1.2, 0, 0, 1.2, 0, 0)',
+      };
+      const visual = { animate: vi.fn(createAnimation), transform: 'matrix(1, 0, 0, 1, 4, 2)' };
+      return {
+        tab, circle, visual,
+        querySelector: vi.fn((selector: string) => selector === '.max-expand-app-launcher-circle' ? circle : visual),
+      };
+    });
     stage = {
       getBoundingClientRect: () => stageBounds,
-      querySelector: vi.fn(() => ({ getBoundingClientRect: () => circleBounds })),
+      querySelector: vi.fn((selector: string) => {
+        selectedIndex = items.findIndex((item) => selector.includes(`data-app="${item.tab}"`));
+        return items[selectedIndex]?.circle ?? null;
+      }),
     };
-    launcher = { animate: vi.fn(createAnimation) };
+    launcher = {
+      animate: vi.fn(createAnimation),
+      querySelector: vi.fn(() => null),
+      querySelectorAll: vi.fn(() => items),
+    };
     application = { animate: vi.fn(createAnimation) };
-    icon = { animate: vi.fn(createAnimation) };
     media = Object.assign(new EventTarget(), { matches: false });
-    vi.stubGlobal('window', { setTimeout, clearTimeout, matchMedia: vi.fn(() => media) });
+    vi.stubGlobal('window', {
+      setTimeout, clearTimeout,
+      matchMedia: vi.fn(() => media),
+      getComputedStyle: (element: { transform: string }) => ({ transform: element.transform }),
+    });
   });
 
   afterEach(() => {
@@ -179,23 +222,41 @@ describe('useAppNavigationTransition', () => {
     vi.unstubAllGlobals();
   });
 
-  it('从真实图标位置进入应用，立即选择目标，完成后清理三层动画', async () => {
+  it('放大网格中的真实圆并同步推开近邻，全部动画完成才清理过渡', async () => {
     render().selectApp('calendar');
     expect(onSelectApp).toHaveBeenCalledExactlyOnceWith('calendar');
     expect(render().transition).toEqual({
       direction: 'open', tab: 'calendar', icon: { left: 40, top: 70, width: 60, height: 60 },
     });
     expect(stage.querySelector).toHaveBeenCalledWith('.max-expand-app-launcher-item[data-app="calendar"] .max-expand-app-launcher-circle');
-    expect(application.animate).toHaveBeenCalledWith([
-      { transform: 'translate(-130px, -50px) scale(0.15)', transformOrigin: '50% 50%', opacity: 0 },
-      { transform: 'translate(0px, 0px) scale(1)', transformOrigin: '50% 50%', opacity: 1 },
-    ], { duration: 400, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' });
-    expect(animations).toHaveLength(3);
-    expect(icon.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ easing: 'linear' }));
-    const iconFrames = icon.animate.mock.calls[0][0] as Keyframe[];
-    expect(iconFrames[0]).toEqual(expect.objectContaining({ transform: 'scale(1)', opacity: 1 }));
-    expect(iconFrames.at(-1)).toEqual(expect.objectContaining({ transform: 'scale(3)', opacity: 0 }));
+    const applicationFrames = application.animate.mock.calls[0][0] as Keyframe[];
+    expect(applicationFrames[0]).toEqual(expect.objectContaining({ transform: 'translate(-130px, -50px) scale(0.15)', opacity: 0 }));
+    expect(applicationFrames.at(-1)).toEqual(expect.objectContaining({ transform: 'translate(0px, 0px) scale(1)', opacity: 1 }));
+    const [selected, rightNeighbor] = items;
+    expect(selected.circle.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ easing: 'linear' }));
+    const circleFrames = selected.circle.animate.mock.calls[0][0] as Keyframe[];
+    expect(circleFrames[0].transform).toBe(`${selected.circle.transform} scale(1)`);
+    expect(circleFrames.at(-1)?.transform).toBe(`${selected.circle.transform} scale(2.4)`);
+    const selectedVisualFrames = selected.visual.animate.mock.calls[0][0] as Keyframe[];
+    expect(selectedVisualFrames.every((frame) => frame.transform === `${selected.visual.transform} translate3d(0px, 0px, 0)`)).toBe(true);
+    const neighborFrames = rightNeighbor.visual.animate.mock.calls[0][0] as Keyframe[];
+    expect(rightNeighbor.circle.animate).not.toHaveBeenCalled();
+    expect(neighborFrames[0].transform).toBe(`${rightNeighbor.visual.transform} translate3d(0px, 0px, 0)`);
+    const endTranslation = String(neighborFrames.at(-1)?.transform).match(/translate3d\(([-\d.e]+)px, ([-\d.e]+)px, 0\)/);
+    expect(Number(endTranslation?.[1])).toBeGreaterThan(0);
+    expect(neighborFrames.map((frame) => frame.offset)).toEqual(circleFrames.map((frame) => frame.offset));
+    expect(rightNeighbor.visual.animate.mock.calls[0][1]).toEqual(selected.circle.animate.mock.calls[0][1]);
+    expect(items[2].visual.animate).toHaveBeenCalledOnce();
+    const farFrames = items[3].visual.animate.mock.calls[0][0] as Keyframe[];
+    expect(farFrames.every((frame) => frame.transform === `${items[3].visual.transform} translate3d(0px, 0px, 0)`)).toBe(true);
+    const launcherFrames = launcher.animate.mock.calls[0][0] as Keyframe[];
+    expect(launcherFrames.every((frame) => frame.transform === undefined)).toBe(true);
     expect(vi.getTimerCount()).toBe(1);
+
+    const lastNeighborAnimation = rightNeighbor.visual.animate.mock.results[0].value as Animation;
+    animations.filter(({ animation }) => animation !== lastNeighborAnimation).forEach((animation) => animation.complete());
+    await vi.advanceTimersByTimeAsync(0);
+    expect(render().transition?.direction).toBe('open');
 
     await completeAnimations();
 
@@ -214,10 +275,13 @@ describe('useAppNavigationTransition', () => {
     expect(render().transition).toEqual({
       direction: 'close', tab: 'todo', icon: { left: 170, top: 120, width: 72, height: 72 },
     });
-    expect(application.animate.mock.calls[0][0]).toEqual([
-      { transform: 'translate(0px, 0px) scale(1)', transformOrigin: '50% 50%', opacity: 1 },
-      { transform: 'translate(6px, 6px) scale(0.18)', transformOrigin: '50% 50%', opacity: 0 },
-    ]);
+    const applicationFrames = application.animate.mock.calls[0][0] as Keyframe[];
+    expect(applicationFrames[0]).toEqual(expect.objectContaining({ transform: 'translate(0px, 0px) scale(1)', opacity: 1 }));
+    expect(applicationFrames.at(-1)).toEqual(expect.objectContaining({ transform: 'translate(6px, 6px) scale(0.18)', opacity: 0 }));
+    const [, selected] = items;
+    const circleFrames = selected.circle.animate.mock.calls[0][0] as Keyframe[];
+    expect(circleFrames[0].transform).toBe(`${selected.circle.transform} scale(2.4)`);
+    expect(circleFrames.at(-1)?.transform).toBe(`${selected.circle.transform} scale(1)`);
     expect(options.launcherVisible).toBe(false);
 
     await completeAnimations();
@@ -235,12 +299,13 @@ describe('useAppNavigationTransition', () => {
     render().backToLauncher();
     expect(onSelectApp).toHaveBeenCalledExactlyOnceWith('calendar');
     expect(onBackToLauncher).not.toHaveBeenCalled();
+    const openingAnimationCount = animations.length;
     await completeAnimations();
 
     result.backToLauncher();
     result.backToLauncher();
     expect(render().transition?.direction).toBe('close');
-    expect(animations).toHaveLength(6);
+    expect(animations.length).toBeGreaterThan(openingAnimationCount);
     await completeAnimations();
     expect(onBackToLauncher).toHaveBeenCalledOnce();
   });
@@ -254,9 +319,7 @@ describe('useAppNavigationTransition', () => {
       set scrollTop(value: number) { scrollTop = Math.max(0, value); },
     };
     Object.assign(launcher, { querySelector: vi.fn(() => scroll) });
-    stage.querySelector.mockImplementation(() => ({
-      getBoundingClientRect: () => ({ left: 60, top: 480 - scrollTop, width: 60, height: 60 }),
-    }));
+    items[1].circle.getBoundingClientRect = () => ({ left: 60, top: 480 - scrollTop, width: 60, height: 60 });
 
     render().backToLauncher();
 
@@ -326,6 +389,7 @@ describe('useAppNavigationTransition', () => {
     options.launcherVisible = false;
     render().backToLauncher();
     render();
+    const createdBeforeDisabling = animations.length;
     options = { ...options, animationEnabled: false };
     expect(render().transition).toBeNull();
     expect(onBackToLauncher).toHaveBeenCalledOnce();
@@ -334,7 +398,7 @@ describe('useAppNavigationTransition', () => {
     result.selectApp('calendar');
     expect(render().transition).toBeNull();
     expect(onSelectApp).toHaveBeenCalledExactlyOnceWith('calendar');
-    expect(animations).toHaveLength(3);
+    expect(animations).toHaveLength(createdBeforeDisabling);
   });
 
   it('系统减少动态效果初始开启时立即切页，中途开启时立即完成返回', () => {

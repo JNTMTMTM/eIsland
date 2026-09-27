@@ -30,7 +30,7 @@ import type { MaxExpandTab } from '../../../../../../store/types';
 export interface MaxExpandAppLauncherProps {
   /** 打开指定 MaxExpand 应用的回调 */
   onSelectApp: (tab: MaxExpandTab) => void;
-  /** 由过渡图标接管显示的应用，原图标保留布局占位 */
+  /** 正在原位放大或缩小并挤开周围图标的应用 */
   transitionTab?: MaxExpandTab;
 }
 

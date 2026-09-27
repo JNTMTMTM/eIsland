@@ -36,7 +36,7 @@ import type { AppLauncherHoverOffset, MaxExpandAppLauncherProps } from '../types
  * 渲染应用导航页，保留原生按钮的键盘导航与焦点行为。
  * @param props - 应用导航页属性。
  * @param props.onSelectApp - 打开指定 MaxExpand 应用的回调。
- * @param props.transitionTab - 当前由缩放过渡图标接管显示的应用。
+ * @param props.transitionTab - 当前在网格内执行缩放挤压的应用。
  * @returns 应用导航页。
  */
 export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: MaxExpandAppLauncherProps): ReactElement {
@@ -49,7 +49,8 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: Max
 
   useLayoutEffect(() => {
     const grid = gridRef.current;
-    if (!grid) return;
+    // 切页期间由缩放动画接管位移，保留开始时的悬停位置以免跳动。
+    if (!grid || transitionTab) return;
     if (!activeApp) {
       setOffsets([]);
       return;
@@ -68,7 +69,7 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: Max
     const observer = new ResizeObserver(updateOffsets);
     observer.observe(grid);
     return () => observer.disconnect();
-  }, [activeApp]);
+  }, [activeApp, transitionTab]);
 
   const handlePointerEnter = useCallback((event: PointerEvent<HTMLButtonElement>): void => {
     if (event.pointerType === 'touch') return;

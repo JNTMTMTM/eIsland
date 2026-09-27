@@ -25,6 +25,7 @@
  */
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { getAppLauncherExpansionOffsets } from '../utils/appLauncherExpansion';
 import type { MaxExpandTab } from '../../../../../../store/types';
 import type {
   AppNavigationTransition,
@@ -35,10 +36,20 @@ import type {
 const TRANSITION_DURATION_MS = 400;
 const TRANSITION_FALLBACK_MS = TRANSITION_DURATION_MS + 100;
 
+interface TransitionItem {
+  circle: HTMLElement;
+  visual: HTMLElement;
+  position: { x: number; y: number; width: number };
+  circleTransform: string;
+  visualTransform: string;
+}
+
 interface TransitionRun {
   transition: AppNavigationTransition;
   stageWidth: number;
   stageHeight: number;
+  items: TransitionItem[];
+  activeIndex: number;
   animations: Animation[];
   timer: number | null;
   settled: boolean;
@@ -66,7 +77,6 @@ export function useAppNavigationTransition(options: UseAppNavigationTransitionOp
   const stageRef = useRef<HTMLDivElement>(null);
   const launcherRef = useRef<HTMLDivElement>(null);
   const applicationRef = useRef<HTMLDivElement>(null);
-  const iconRef = useRef<HTMLDivElement>(null);
   const latestRef = useRef(options);
   latestRef.current = options;
   const reducedMotionRef = useRef(false);
@@ -114,7 +124,25 @@ export function useAppNavigationTransition(options: UseAppNavigationTransitionOp
       || ![bounds.left, bounds.top, icon.left, icon.top].every(Number.isFinite)) return null;
     if (icon.left < bounds.left || icon.top < bounds.top || icon.left + icon.width > bounds.left + bounds.width
       || icon.top + icon.height > bounds.top + bounds.height) return null;
+    const items = Array.from(launcher.querySelectorAll('.max-expand-app-launcher-item')).map((button): TransitionItem | null => {
+      const itemCircle = button.querySelector<HTMLElement>('.max-expand-app-launcher-circle');
+      const visual = button.querySelector<HTMLElement>('.max-expand-app-launcher-visual');
+      if (!itemCircle || !visual || typeof itemCircle.animate !== 'function' || typeof visual.animate !== 'function') return null;
+      const itemBounds = itemCircle.getBoundingClientRect();
+      return {
+        visual,
+        circle: itemCircle,
+        position: { x: itemBounds.left + itemBounds.width / 2, y: itemBounds.top + itemBounds.height / 2, width: itemBounds.width },
+        circleTransform: window.getComputedStyle(itemCircle).transform.replace('none', ''),
+        visualTransform: window.getComputedStyle(visual).transform.replace('none', ''),
+      };
+    });
+    if (!items.every((item): item is TransitionItem => item !== null)) return null;
+    const activeIndex = items.findIndex((item) => item.circle === circle);
+    if (activeIndex < 0) return null;
     return {
+      items,
+      activeIndex,
       transition: {
         direction,
         tab,
@@ -193,9 +221,7 @@ export function useAppNavigationTransition(options: UseAppNavigationTransitionOp
     }
     const application = applicationRef.current;
     const launcher = launcherRef.current;
-    const icon = iconRef.current;
-    if (!application || !launcher || !icon || typeof application.animate !== 'function'
-      || typeof launcher.animate !== 'function' || typeof icon.animate !== 'function') {
+    if (!application || !launcher || typeof application.animate !== 'function' || typeof launcher.animate !== 'function') {
       settle(run, true);
       return;
     }
@@ -204,33 +230,46 @@ export function useAppNavigationTransition(options: UseAppNavigationTransitionOp
     const x = left + width / 2 - run.stageWidth / 2;
     const y = top + height / 2 - run.stageHeight / 2;
     const compact = `translate(${x}px, ${y}px) scale(${scale})`;
-    const applicationFrames: Keyframe[] = [
-      { transform: compact, transformOrigin: '50% 50%', opacity: 0 },
-      { transform: 'translate(0px, 0px) scale(1)', transformOrigin: '50% 50%', opacity: 1 },
+    const opening = transition.direction === 'open';
+    const fullSize = 'translate(0px, 0px) scale(1)';
+    const applicationFrames: Keyframe[] = opening ? [
+      { transform: compact, opacity: 0, offset: 0 },
+      { transform: compact, opacity: 0, offset: .3, easing: 'cubic-bezier(.22,1,.36,1)' },
+      { transform: fullSize, opacity: 1, offset: 1 },
+    ] : [
+      { transform: fullSize, opacity: 1, offset: 0, easing: 'cubic-bezier(.4,0,.2,1)' },
+      { transform: compact, opacity: 0, offset: .7 },
+      { transform: compact, opacity: 0, offset: 1 },
     ];
     const launcherFrames: Keyframe[] = [
-      { transform: 'scale(1)', opacity: 1 },
-      { transform: 'scale(1.06)', opacity: 0 },
+      { opacity: 1, offset: 0 }, { opacity: 1, offset: .3 },
+      { opacity: 0, offset: .85 }, { opacity: 0, offset: 1 },
     ];
-    const iconFrames: Keyframe[] = transition.direction === 'open' ? [
-      { transform: 'scale(1)', opacity: 1, offset: 0 },
-      { transform: 'scale(1.65)', opacity: 1, offset: .25 },
-      { transform: 'scale(3)', opacity: 0, offset: .65 },
-      { transform: 'scale(3)', opacity: 0, offset: 1 },
-    ] : [
-      { transform: 'scale(2)', opacity: 0, offset: 0 },
-      { transform: 'scale(1.65)', opacity: 0, offset: .45 },
-      { transform: 'scale(1)', opacity: 1, offset: 1 },
-    ];
-    if (transition.direction === 'close') {
-      applicationFrames.reverse();
-      launcherFrames.reverse();
-    }
-    const timing: KeyframeAnimationOptions = { duration: TRANSITION_DURATION_MS, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' };
+    // 所有图标使用同一组缩放进度，推挤距离随圆的实际半径同步变化。
+    const progress = [0, .1, .2, .3, .4, .5, .65, .85, 1].map((offset) => {
+      const expansion = offset <= .3 ? 1 + offset * 2 : Math.min(2.4, 1.6 + (offset - .3) * .8 / .35);
+      return {
+        offset,
+        expansion,
+        offsets: getAppLauncherExpansionOffsets(run.items.map((item) => item.position), run.activeIndex, expansion),
+      };
+    });
+    const directedLauncherFrames = opening ? launcherFrames : [...launcherFrames].reverse().map((frame) => ({ ...frame, offset: 1 - (frame.offset ?? 0) }));
+    const directedProgress = opening ? progress : [...progress].reverse().map((frame) => ({ ...frame, offset: 1 - frame.offset }));
+    const timing: KeyframeAnimationOptions = { duration: TRANSITION_DURATION_MS, easing: 'linear', fill: 'both' };
     try {
       run.animations.push(application.animate(applicationFrames, timing));
-      run.animations.push(launcher.animate(launcherFrames, timing));
-      run.animations.push(icon.animate(iconFrames, { ...timing, easing: 'linear' }));
+      run.animations.push(launcher.animate(directedLauncherFrames, timing));
+      const selected = run.items[run.activeIndex];
+      run.animations.push(selected.circle.animate(directedProgress.map(({ offset, expansion }) => ({
+        offset, transform: `${selected.circleTransform} scale(${expansion})`,
+      })), timing));
+      run.items.forEach((item, index) => {
+        // 零位移项也固定当前变换，避免未结束的 hover 动画继续移动圆心。
+        run.animations.push(item.visual.animate(directedProgress.map(({ offset, offsets }) => ({
+          offset, transform: `${item.visualTransform} translate3d(${offsets[index].x}px, ${offsets[index].y}px, 0)`,
+        })), timing));
+      });
       run.timer = window.setTimeout(() => settle(run, true), TRANSITION_FALLBACK_MS);
     } catch {
       // 不支持当前动画实现时仍完成用户请求，不能把页面留在过渡锁中。
@@ -249,5 +288,5 @@ export function useAppNavigationTransition(options: UseAppNavigationTransitionOp
     };
   }, [transition, settle]);
 
-  return { stageRef, launcherRef, applicationRef, iconRef, transition, selectApp, backToLauncher };
+  return { stageRef, launcherRef, applicationRef, transition, selectApp, backToLauncher };
 }
