@@ -30,10 +30,7 @@ import { MAX_EXPAND_APPS, MAX_EXPAND_APP_TABS } from '../config/appLauncherConfi
 import { getAppLauncherHoverOffsets } from '../utils/appLauncherHover';
 import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent, ReactElement } from 'react';
 import type { MaxExpandTab } from '../../../../../../store/types';
-
-interface MaxExpandAppLauncherProps {
-  onSelectApp: (tab: MaxExpandTab) => void;
-}
+import type { AppLauncherHoverOffset, MaxExpandAppLauncherProps } from '../types/appLauncherTypes';
 
 /**
  * 渲染应用导航页，保留原生按钮的键盘导航与焦点行为。
@@ -47,7 +44,7 @@ export default function MaxExpandAppLauncher({ onSelectApp }: MaxExpandAppLaunch
   const hoveredAppRef = useRef<MaxExpandTab | null>(null);
   const focusedAppRef = useRef<MaxExpandTab | null>(null);
   const [activeApp, setActiveApp] = useState<MaxExpandTab | null>(null);
-  const [offsets, setOffsets] = useState<Array<{ x: number; y: number }>>([]);
+  const [offsets, setOffsets] = useState<AppLauncherHoverOffset[]>([]);
 
   useLayoutEffect(() => {
     const grid = gridRef.current;
