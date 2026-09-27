@@ -19,19 +19,92 @@
 .settings-content.max-expand-app-mode {
   position: relative;
   box-sizing: border-box;
-  padding-right: 62px;
-  padding-bottom: 16px;
-
-}
-
-.settings-content.max-expand-app-mode-launcher {
   padding-right: 16px;
+  padding-bottom: 16px;
 
 }
 
 .max-expand-app-mode > .max-expand-tab-content {
   min-width: 0;
   min-height: 0;
+
+}
+
+.max-expand-app-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+
+}
+
+.max-expand-app-launcher-layer,
+.max-expand-app-application-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  transform-origin: center;
+
+}
+
+.max-expand-app-launcher-layer {
+  opacity: 0;
+
+}
+
+.max-expand-app-stage[data-launcher-visible="true"] > .max-expand-app-launcher-layer {
+  opacity: 1;
+
+}
+
+.max-expand-app-stage[data-launcher-visible="false"]:not([data-transition]) > .max-expand-app-launcher-layer {
+  visibility: hidden;
+
+}
+
+.max-expand-app-application-layer {
+  z-index: 1;
+  box-sizing: border-box;
+  padding-right: 46px;
+
+}
+
+.max-expand-app-application-layer > .max-expand-app-controls {
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+}
+
+.max-expand-app-stage[data-transition] {
+  pointer-events: none;
+
+}
+
+.max-expand-app-stage[data-transition] > .max-expand-app-launcher-layer,
+.max-expand-app-stage[data-transition] > .max-expand-app-application-layer {
+  will-change: transform, opacity;
+
+}
+
+.max-expand-app-launcher-circle.max-expand-app-transition-icon {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+  pointer-events: none;
+  transition: none;
+  will-change: transform, opacity;
+
+}
+
+.max-expand-app-transition-icon > .max-expand-app-icon-img {
+  width: 50%;
+  height: 50%;
 
 }
 
@@ -166,6 +239,11 @@
 
 .max-expand-app-launcher-item:active .max-expand-app-launcher-circle {
   transform: translateZ(0) scale(1.12);
+
+}
+
+.max-expand-app-launcher-item[data-transition-active="true"] .max-expand-app-launcher-circle {
+  opacity: 0;
 
 }
 

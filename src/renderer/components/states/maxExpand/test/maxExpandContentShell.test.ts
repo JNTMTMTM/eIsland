@@ -21,8 +21,7 @@ import { Children, createElement, isValidElement, type ReactElement, type ReactN
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MaxExpandContentShell } from '../MaxExpandContentShell';
-import MaxExpandAppLauncher from '../components/app';
-import MaxExpandAppControls from '../components/MaxExpandAppControls';
+import { MaxExpandAppNavigation } from '../components/app';
 import type { IslandSlice, MaxExpandTab } from '../../../../store/types';
 
 // 保留 Hook 依赖和清理，使用原生 EventTarget 验证注册到窗口及内容容器的交互。
@@ -97,17 +96,33 @@ vi.mock('../components/app', () => ({
     'data-launcher': true,
     onClick: () => props.onSelectApp('calendar'),
   }),
-}));
-vi.mock('../components/MaxExpandAppControls', () => ({
-  default: (props: { onBackToLauncher: () => void }) => createElement('button', {
+  MaxExpandAppNavigation: (props: {
+    launcherVisible: boolean;
+    onSelectApp: (tab: MaxExpandTab) => void;
+    onBackToLauncher: () => void;
+    children: ReactNode;
+  }) => createElement('div', {
+    'data-app-navigation': true,
+    'data-launcher-visible': props.launcherVisible,
+  },
+  createElement('button', {
+    'data-launcher': true,
+    hidden: !props.launcherVisible,
+    onClick: () => props.onSelectApp('calendar'),
+  }),
+  !props.launcherVisible && createElement('div', {}, props.children, createElement('button', {
     'data-home-control': true,
     onClick: props.onBackToLauncher,
-  }),
+  }))),
 }));
 
 interface TreeProps {
   children?: ReactNode;
   ref?: { current: unknown };
+  activeTab?: MaxExpandTab;
+  launcherVisible?: boolean;
+  animationEnabled?: boolean;
+  contentActive?: boolean;
   onSelectApp?: (tab: MaxExpandTab) => void;
   onBackToLauncher?: () => void;
 }
@@ -185,6 +200,7 @@ describe('MaxExpandContentShell app mode', () => {
     const { markup } = render();
 
     expect(markup).toContain('data-launcher="true"');
+    expect(markup).toContain('data-launcher-visible="true"');
     expect(markup).not.toContain('data-home-control');
     expect(markup).not.toContain('settings-nav-dots');
     expect(renderActiveTab).not.toHaveBeenCalled();
@@ -195,18 +211,29 @@ describe('MaxExpandContentShell app mode', () => {
 
   it('点击应用后渲染该应用和控制条，返回导航页后卸载应用', () => {
     const home = render();
-    findComponent(home.tree, MaxExpandAppLauncher)?.props.onSelectApp?.('calendar');
+    const homeNavigation = findComponent(home.tree, MaxExpandAppNavigation);
+    expect(homeNavigation?.props).toMatchObject({
+      activeTab: 'todo',
+      launcherVisible: true,
+      animationEnabled: false,
+      contentActive: true,
+    });
+    homeNavigation?.props.onSelectApp?.('calendar');
     const application = render();
+    const appNavigation = findComponent(application.tree, MaxExpandAppNavigation);
 
     expect(application.markup).toContain('data-active-app="calendar"');
     expect(application.markup).toContain('data-home-control="true"');
-    expect(application.markup).not.toContain('data-launcher');
+    expect(application.markup).toContain('data-launcher-visible="false"');
+    expect(application.markup).toContain('data-launcher="true" hidden=""');
     expect(application.markup).not.toContain('settings-nav-dots');
+    expect(appNavigation?.props).toMatchObject({ activeTab: 'calendar', launcherVisible: false });
 
-    findComponent(application.tree, MaxExpandAppControls)?.props.onBackToLauncher?.();
+    appNavigation?.props.onBackToLauncher?.();
     renderActiveTab.mockClear();
     const returnedHome = render().markup;
     expect(returnedHome).toContain('data-launcher="true"');
+    expect(returnedHome).toContain('data-launcher-visible="true"');
     expect(returnedHome).not.toContain('data-home-control');
     expect(renderActiveTab).not.toHaveBeenCalled();
     expect(mocks.store.showMaxExpandLauncher).toHaveBeenCalledOnce();
@@ -237,6 +264,7 @@ describe('MaxExpandContentShell app mode', () => {
     expect(mocks.store.setMaxExpandTab).toHaveBeenLastCalledWith('calendar');
     expect(legacy.markup).toContain('settings-nav-dots');
     expect(legacy.markup).not.toContain('data-home-control');
+    expect(legacy.markup).not.toContain('data-app-navigation');
     expect(legacy.markup.indexOf('title="maxExpand.nav.calendar"')).toBeLessThan(legacy.markup.indexOf('title="maxExpand.nav.todo"'));
     expect(legacy.markup).not.toContain('title="maxExpand.nav.alarm"');
     render();

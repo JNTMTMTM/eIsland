@@ -36,9 +36,10 @@ import type { AppLauncherHoverOffset, MaxExpandAppLauncherProps } from '../types
  * 渲染应用导航页，保留原生按钮的键盘导航与焦点行为。
  * @param props - 应用导航页属性。
  * @param props.onSelectApp - 打开指定 MaxExpand 应用的回调。
+ * @param props.transitionTab - 当前由缩放过渡图标接管显示的应用。
  * @returns 应用导航页。
  */
-export default function MaxExpandAppLauncher({ onSelectApp }: MaxExpandAppLauncherProps): ReactElement {
+export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: MaxExpandAppLauncherProps): ReactElement {
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement>(null);
   const hoveredAppRef = useRef<MaxExpandTab | null>(null);
@@ -107,6 +108,7 @@ export default function MaxExpandAppLauncher({ onSelectApp }: MaxExpandAppLaunch
               <button className={`max-expand-app-launcher-item${activeApp === tab ? ' is-active' : ''}`}
                 key={tab}
                 data-app={tab}
+                data-transition-active={transitionTab === tab || undefined}
                 type="button"
                 title={label}
                 aria-label={label}

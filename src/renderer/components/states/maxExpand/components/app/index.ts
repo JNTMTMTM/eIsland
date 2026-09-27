@@ -25,3 +25,4 @@
  */
 
 export { default } from './components/MaxExpandAppLauncher';
+export { default as MaxExpandAppNavigation } from './components/MaxExpandAppNavigation';

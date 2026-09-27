@@ -38,8 +38,7 @@ import {
 } from './config/shellConstants';
 import { useNavLayout } from './hooks/useNavLayout';
 import { useAppMode } from './hooks/useAppMode';
-import MaxExpandAppLauncher from './components/app';
-import MaxExpandAppControls from './components/MaxExpandAppControls';
+import { MaxExpandAppNavigation } from './components/app';
 import { useTabAnimation } from './hooks/useTabAnimation';
 import { useContentReady } from './hooks/useContentReady';
 import { shouldIgnoreWheelEvent } from './hooks/useWheelNavigation';
@@ -185,16 +184,6 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
     navigateTab(id);
   };
 
-  const handleSelectApp = useCallback((tab: MaxExpandTab): void => {
-    setSlideDir('right');
-    setActiveTab(tab);
-  }, [setActiveTab]);
-
-  const handleBackToLauncher = useCallback((): void => {
-    setSlideDir('left');
-    showMaxExpandLauncher();
-  }, [showMaxExpandLauncher]);
-
   const launcherVisible = appModeEnabled && maxExpandLauncherVisible;
 
   const loadingFallback = (
@@ -203,22 +192,27 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
 
   let content: React.ReactElement | null = loadingFallback;
   if (appModeLoaded) {
-    content = launcherVisible
-      ? <MaxExpandAppLauncher onSelectApp={handleSelectApp} />
-      : renderActiveTab(activeTab, loadingFallback, contentReady);
+    content = launcherVisible ? null : renderActiveTab(activeTab, loadingFallback, contentReady);
   }
 
   return (
     <div className={`settings-content${appModeEnabled ? ' max-expand-app-mode' : ''}${launcherVisible ? ' max-expand-app-mode-launcher' : ''}`} ref={contentRef}>
       <div className="max-expand-tab-content" onClick={(e) => e.stopPropagation()}>
-        <div className={`max-expand-tab-transition${tabAnimation ? ` max-expand-tab-slide-${slideDir}` : ''}`} key={launcherVisible ? 'app-launcher' : activeTab}>
-          {content}
-        </div>
+        {appModeLoaded && appModeEnabled ? (
+          <MaxExpandAppNavigation activeTab={activeTab} launcherVisible={launcherVisible}
+            animationEnabled={tabAnimation} contentActive={contentActive}
+            onSelectApp={setActiveTab} onBackToLauncher={showMaxExpandLauncher}
+          >
+            {content}
+          </MaxExpandAppNavigation>
+        ) : (
+          <div className={`max-expand-tab-transition${tabAnimation ? ` max-expand-tab-slide-${slideDir}` : ''}`} key={activeTab}>
+            {content}
+          </div>
+        )}
       </div>
 
-      {appModeEnabled ? (
-        !launcherVisible && <MaxExpandAppControls onBackToLauncher={handleBackToLauncher} />
-      ) : (
+      {!appModeEnabled && (
         <div className="settings-nav-dots" onClick={(e) => e.stopPropagation()} style={appModeLoaded && navLayoutLoaded ? undefined : { visibility: 'hidden' }}>
           {filteredNavDots.map(({ id, label }) => (
             <button
