@@ -17,10 +17,11 @@
  * @author 鸡哥
  */
 
-import { useCallback } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MAX_EXPAND_APPS, MAX_EXPAND_APP_TABS } from '../config/appLauncherConfig';
-import type { CSSProperties, MouseEvent, ReactElement } from 'react';
+import { getAppLauncherHoverOffsets } from '../utils/appLauncherHover';
+import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent, ReactElement } from 'react';
 import type { MaxExpandTab } from '../../../../store/types';
 
 interface MaxExpandAppLauncherProps {
@@ -35,6 +36,57 @@ interface MaxExpandAppLauncherProps {
  */
 export default function MaxExpandAppLauncher({ onSelectApp }: MaxExpandAppLauncherProps): ReactElement {
   const { t } = useTranslation();
+  const gridRef = useRef<HTMLDivElement>(null);
+  const hoveredAppRef = useRef<MaxExpandTab | null>(null);
+  const focusedAppRef = useRef<MaxExpandTab | null>(null);
+  const [activeApp, setActiveApp] = useState<MaxExpandTab | null>(null);
+  const [offsets, setOffsets] = useState<Array<{ x: number; y: number }>>([]);
+
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    if (!activeApp) {
+      setOffsets([]);
+      return;
+    }
+    const updateOffsets = (): void => {
+      const buttons = Array.from(grid.querySelectorAll<HTMLButtonElement>(':scope > button'));
+      // 只测量固定按钮，视觉层的动画不会反过来改变避让计算和鼠标命中。
+      const positions = buttons.map((button) => ({
+        x: button.offsetLeft + button.offsetWidth / 2,
+        y: button.offsetTop + button.offsetHeight / 2,
+        width: button.offsetWidth,
+      }));
+      setOffsets(getAppLauncherHoverOffsets(positions, MAX_EXPAND_APP_TABS.indexOf(activeApp)));
+    };
+    updateOffsets();
+    const observer = new ResizeObserver(updateOffsets);
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, [activeApp]);
+
+  const handlePointerEnter = useCallback((event: PointerEvent<HTMLButtonElement>): void => {
+    if (event.pointerType === 'touch') return;
+    hoveredAppRef.current = event.currentTarget.dataset.app as MaxExpandTab;
+    setActiveApp(hoveredAppRef.current);
+  }, []);
+
+  const handlePointerLeave = useCallback((): void => {
+    hoveredAppRef.current = null;
+    setActiveApp(focusedAppRef.current);
+  }, []);
+
+  const handleFocus = useCallback((event: FocusEvent<HTMLButtonElement>): void => {
+    if (!event.currentTarget.matches(':focus-visible')) return;
+    focusedAppRef.current = event.currentTarget.dataset.app as MaxExpandTab;
+    setActiveApp(hoveredAppRef.current ?? focusedAppRef.current);
+  }, []);
+
+  const handleBlur = useCallback((): void => {
+    focusedAppRef.current = null;
+    setActiveApp(hoveredAppRef.current);
+  }, []);
+
   const handleSelectApp = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
     onSelectApp(event.currentTarget.dataset.app as MaxExpandTab);
   }, [onSelectApp]);
@@ -42,25 +94,36 @@ export default function MaxExpandAppLauncher({ onSelectApp }: MaxExpandAppLaunch
   return (
     <section className="max-expand-app-launcher" aria-label={t('maxExpand.appMode.title')}>
       <div className="max-expand-app-launcher-scroll">
-        <div className="max-expand-app-launcher-grid">
-          {MAX_EXPAND_APP_TABS.map((tab) => {
+        <div className="max-expand-app-launcher-grid" ref={gridRef}>
+          {MAX_EXPAND_APP_TABS.map((tab, index) => {
             const { icon, color } = MAX_EXPAND_APPS[tab];
             const label = t(`maxExpand.nav.${tab}`);
 
             return (
-              <button className="max-expand-app-launcher-item"
+              <button className={`max-expand-app-launcher-item${activeApp === tab ? ' is-active' : ''}`}
                 key={tab}
                 data-app={tab}
                 type="button"
                 title={label}
                 aria-label={label}
-                style={{ '--max-expand-app-color': color } as CSSProperties}
+                style={{
+                  '--max-expand-app-color': color,
+                  '--max-expand-app-offset-x': `${offsets[index]?.x ?? 0}px`,
+                  '--max-expand-app-offset-y': `${offsets[index]?.y ?? 0}px`,
+                } as CSSProperties}
                 onClick={handleSelectApp}
+                onPointerEnter={handlePointerEnter}
+                onPointerLeave={handlePointerLeave}
+                onPointerCancel={handlePointerLeave}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               >
-                <span className="max-expand-app-launcher-circle">
-                  <img className="max-expand-app-icon-img" src={icon} alt="" draggable={false} />
+                <span className="max-expand-app-launcher-visual">
+                  <span className="max-expand-app-launcher-circle">
+                    <img className="max-expand-app-icon-img" src={icon} alt="" draggable={false} />
+                  </span>
+                  <span className="max-expand-app-launcher-label">{label}</span>
                 </span>
-                <span className="max-expand-app-launcher-label">{label}</span>
               </button>
             );
           })}

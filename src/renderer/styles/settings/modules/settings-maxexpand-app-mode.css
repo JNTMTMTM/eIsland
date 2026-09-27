@@ -58,6 +58,7 @@
 }
 
 .max-expand-app-launcher-grid {
+  position: relative;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
@@ -66,7 +67,7 @@
   width: 100%;
   max-width: 440px;
   min-height: 100%;
-  padding: 8px 4px 12px;
+  padding: 20px;
   margin: 0 auto;
 
 }
@@ -75,7 +76,6 @@
   display: flex;
   flex-direction: column;
   grid-column: span 2;
-  gap: 6px;
   align-items: center;
   min-width: 0;
   padding: 4px 0;
@@ -83,11 +83,25 @@
   color: inherit;
   appearance: none;
   cursor: pointer;
+  user-select: none;
   background: transparent;
   border: 0;
   border-radius: 12px;
   outline-offset: 2px;
   -webkit-app-region: no-drag;
+
+}
+
+.max-expand-app-launcher-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  pointer-events: none;
+  transition: transform .2s ease;
+  transform: translate3d(var(--max-expand-app-offset-x, 0), var(--max-expand-app-offset-y, 0), 0);
+  will-change: transform;
 
 }
 
@@ -108,15 +122,25 @@
   border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 50%;
   box-shadow: inset 0 1px 2px rgb(255 255 255 / 16%), 0 3px 10px rgb(0 0 0 / 12%);
-  transition: transform .16s ease, box-shadow .16s ease;
+  transition: transform .2s ease, box-shadow .2s ease;
+  transform: translateZ(0) scale(1);
+  transform-origin: center;
+  backface-visibility: hidden;
+  will-change: transform;
 
 }
 
 .max-expand-app-icon-img {
-  width: 48%;
-  height: 48%;
-  object-fit: contain;
+  display: block;
+  flex: 0 0 auto;
+  width: 32px;
+  max-width: 50%;
+  height: 32px;
+  max-height: 50%;
   pointer-events: none;
+  transform: translateZ(0);
+  object-fit: contain;
+  backface-visibility: hidden;
   filter: brightness(0) invert(1);
 
 }
@@ -134,15 +158,14 @@
 
 }
 
-.max-expand-app-launcher-item:hover .max-expand-app-launcher-circle,
-.max-expand-app-launcher-item:focus-visible .max-expand-app-launcher-circle {
+.max-expand-app-launcher-item.is-active .max-expand-app-launcher-circle {
   box-shadow: inset 0 1px 2px rgb(255 255 255 / 20%), 0 5px 14px rgb(0 0 0 / 20%);
-  transform: translateY(-2px) scale(1.05);
+  transform: translateZ(0) scale(1.2);
 
 }
 
 .max-expand-app-launcher-item:active .max-expand-app-launcher-circle {
-  transform: scale(.95);
+  transform: translateZ(0) scale(1.12);
 
 }
 
@@ -271,6 +294,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .max-expand-app-launcher-visual,
   .max-expand-app-launcher-circle,
   .max-expand-app-home-button {
     transition: none;
