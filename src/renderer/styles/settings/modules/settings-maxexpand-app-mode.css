@@ -47,29 +47,6 @@
 
 }
 
-.max-expand-app-launcher-header {
-  flex-shrink: 0;
-  padding: 6px 8px 10px;
-  text-align: center;
-
-}
-
-.max-expand-app-launcher-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.4;
-
-}
-
-.max-expand-app-launcher-hint {
-  margin: 3px 0 0;
-  font-size: 10px;
-  line-height: 1.4;
-  color: rgb(var(--color-text-rgb), .48);
-
-}
-
 .max-expand-app-launcher-scroll {
   flex: 1;
   min-height: 0;

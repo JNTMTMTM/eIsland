@@ -41,10 +41,6 @@ export default function MaxExpandAppLauncher({ onSelectApp }: MaxExpandAppLaunch
 
   return (
     <section className="max-expand-app-launcher" aria-label={t('maxExpand.appMode.title')}>
-      <header className="max-expand-app-launcher-header">
-        <h2 className="max-expand-app-launcher-title">{t('maxExpand.appMode.title')}</h2>
-        <p className="max-expand-app-launcher-hint">{t('maxExpand.appMode.hint')}</p>
-      </header>
       <div className="max-expand-app-launcher-scroll">
         <div className="max-expand-app-launcher-grid">
           {MAX_EXPAND_APP_TABS.map((tab) => {
