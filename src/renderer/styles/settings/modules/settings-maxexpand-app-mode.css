@@ -220,6 +220,25 @@
 
 }
 
+@container (width >= 520px) {
+  .max-expand-app-launcher-grid {
+    grid-template-columns: repeat(14, minmax(0, 1fr));
+    max-width: 616px;
+
+  }
+
+  .max-expand-app-launcher-item:nth-child(9n + 6) {
+    grid-column: span 2;
+
+  }
+
+  .max-expand-app-launcher-item:nth-child(13n + 8) {
+    grid-column: 2 / span 2;
+
+  }
+
+}
+
 @container (width < 320px) {
   .max-expand-app-launcher-grid {
     gap: 4px 0;
