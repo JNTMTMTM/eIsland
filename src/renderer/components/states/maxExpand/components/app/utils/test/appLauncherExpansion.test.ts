@@ -90,21 +90,21 @@ describe('getAppLauncherExpansionOffsets', () => {
     { label: '7/6', rows: [7, 6, 5], diameter: 64, activeIndex: 9 },
     { label: '5/4', rows: [5, 4, 5, 4], diameter: 56, activeIndex: 6 },
     { label: '3/2', rows: [3, 2, 3, 2, 3, 2, 3], diameter: 40, activeIndex: 8 },
-  ])('$label 错列密集布局中放大 2.4 倍后所有圆均保留间隙', ({ rows, diameter, activeIndex }) => {
+  ].flatMap((layout) => [2.4, 3.2].map((scale) => ({ scale, ...layout }))))('$label 错列密集布局中放大 $scale 倍后所有圆均保留间隙', ({ rows, diameter, activeIndex, scale }) => {
     const grid = honeycomb(rows, diameter);
-    const offsets = getAppLauncherExpansionOffsets(grid, activeIndex, 2.4);
+    const offsets = getAppLauncherExpansionOffsets(grid, activeIndex, scale);
 
     expect(offsets[activeIndex]).toEqual({ x: 0, y: 0 });
-    expectSeparated(grid, offsets, activeIndex, 2.4);
+    expectSeparated(grid, offsets, activeIndex, scale);
   });
 
-  it('已放大的悬停圆和边缘图标使用各自真实直径进行避让', () => {
+  it.each([2.4, 3.2])('已放大的悬停圆和边缘图标在 %s 倍缩放时使用各自真实直径避让', (scale) => {
     const grid = honeycomb([7, 6, 5], 64);
     grid[0] = { ...grid[0], width: 76.8 };
-    const offsets = getAppLauncherExpansionOffsets(grid, 0, 2.4);
+    const offsets = getAppLauncherExpansionOffsets(grid, 0, scale);
 
     expect(offsets[0]).toEqual({ x: 0, y: 0 });
-    expectSeparated(grid, offsets, 0, 2.4);
+    expectSeparated(grid, offsets, 0, scale);
   });
 
   it('重复计算不累计位移或修改输入，整体平移不改变相对避让结果', () => {

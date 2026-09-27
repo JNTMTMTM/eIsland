@@ -33,8 +33,9 @@ import type {
   UseAppNavigationTransitionResult,
 } from '../types/appTransitionTypes';
 
-const TRANSITION_DURATION_MS = 400;
+const TRANSITION_DURATION_MS = 280;
 const TRANSITION_FALLBACK_MS = TRANSITION_DURATION_MS + 100;
+const TRANSITION_ICON_SCALE = 3.2;
 
 interface TransitionItem {
   circle: HTMLElement;
@@ -245,18 +246,28 @@ export function useAppNavigationTransition(options: UseAppNavigationTransitionOp
       { opacity: 1, offset: 0 }, { opacity: 1, offset: .3 },
       { opacity: 0, offset: .85 }, { opacity: 0, offset: 1 },
     ];
-    // 所有图标使用同一组缩放进度，推挤距离随圆的实际半径同步变化。
+    // 沿上一帧继续推挤，避免独立解算时相邻图标交换绕行方向。
+    let positions = run.items.map((item) => item.position);
     const progress = [0, .1, .2, .3, .4, .5, .65, .85, 1].map((offset) => {
-      const expansion = offset <= .3 ? 1 + offset * 2 : Math.min(2.4, 1.6 + (offset - .3) * .8 / .35);
+      const expansion = 1 + (TRANSITION_ICON_SCALE - 1) * Math.min(1, offset / .65);
+      const displacements = getAppLauncherExpansionOffsets(positions, run.activeIndex, expansion);
+      positions = positions.map((position, index) => ({
+        ...position,
+        x: position.x + displacements[index].x,
+        y: position.y + displacements[index].y,
+      }));
       return {
         offset,
         expansion,
-        offsets: getAppLauncherExpansionOffsets(run.items.map((item) => item.position), run.activeIndex, expansion),
+        offsets: positions.map((position, index) => ({
+          x: position.x - run.items[index].position.x,
+          y: position.y - run.items[index].position.y,
+        })),
       };
     });
     const directedLauncherFrames = opening ? launcherFrames : [...launcherFrames].reverse().map((frame) => ({ ...frame, offset: 1 - (frame.offset ?? 0) }));
     const directedProgress = opening ? progress : [...progress].reverse().map((frame) => ({ ...frame, offset: 1 - frame.offset }));
-    const timing: KeyframeAnimationOptions = { duration: TRANSITION_DURATION_MS, easing: 'linear', fill: 'both' };
+    const timing: KeyframeAnimationOptions = { duration: TRANSITION_DURATION_MS, easing: 'cubic-bezier(.3,0,.2,1)', fill: 'both' };
     try {
       run.animations.push(application.animate(applicationFrames, timing));
       run.animations.push(launcher.animate(directedLauncherFrames, timing));

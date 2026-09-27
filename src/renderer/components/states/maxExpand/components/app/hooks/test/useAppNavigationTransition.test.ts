@@ -25,6 +25,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MAX_EXPAND_APP_TABS } from '../../config/appLauncherConfig';
+import { getAppLauncherHoverOffsets } from '../../utils/appLauncherHover';
 import { useAppNavigationTransition } from '../useAppNavigationTransition';
 import type { MaxExpandTab } from '../../../../../../../store/types';
 import type { UseAppNavigationTransitionOptions, UseAppNavigationTransitionResult } from '../../types/appTransitionTypes';
@@ -233,10 +235,10 @@ describe('useAppNavigationTransition', () => {
     expect(applicationFrames[0]).toEqual(expect.objectContaining({ transform: 'translate(-130px, -50px) scale(0.15)', opacity: 0 }));
     expect(applicationFrames.at(-1)).toEqual(expect.objectContaining({ transform: 'translate(0px, 0px) scale(1)', opacity: 1 }));
     const [selected, rightNeighbor] = items;
-    expect(selected.circle.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ easing: 'linear' }));
+    expect(selected.circle.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ duration: 380, easing: 'cubic-bezier(.3,0,.2,1)' }));
     const circleFrames = selected.circle.animate.mock.calls[0][0] as Keyframe[];
     expect(circleFrames[0].transform).toBe(`${selected.circle.transform} scale(1)`);
-    expect(circleFrames.at(-1)?.transform).toBe(`${selected.circle.transform} scale(2.4)`);
+    expect(circleFrames.at(-1)?.transform).toBe(`${selected.circle.transform} scale(3.2)`);
     const selectedVisualFrames = selected.visual.animate.mock.calls[0][0] as Keyframe[];
     expect(selectedVisualFrames.every((frame) => frame.transform === `${selected.visual.transform} translate3d(0px, 0px, 0)`)).toBe(true);
     const neighborFrames = rightNeighbor.visual.animate.mock.calls[0][0] as Keyframe[];
@@ -280,7 +282,7 @@ describe('useAppNavigationTransition', () => {
     expect(applicationFrames.at(-1)).toEqual(expect.objectContaining({ transform: 'translate(6px, 6px) scale(0.18)', opacity: 0 }));
     const [, selected] = items;
     const circleFrames = selected.circle.animate.mock.calls[0][0] as Keyframe[];
-    expect(circleFrames[0].transform).toBe(`${selected.circle.transform} scale(2.4)`);
+    expect(circleFrames[0].transform).toBe(`${selected.circle.transform} scale(3.2)`);
     expect(circleFrames.at(-1)?.transform).toBe(`${selected.circle.transform} scale(1)`);
     expect(options.launcherVisible).toBe(false);
 
@@ -289,6 +291,71 @@ describe('useAppNavigationTransition', () => {
     expect(options.launcherVisible).toBe(true);
     expect(result.transition).toBeNull();
     expect(onBackToLauncher).toHaveBeenCalledOnce();
+  });
+
+  it.each(['open', 'close'] as const)('中等宽度 %s 动画的相邻采样之间保持图标顺序，不互相穿过', (direction) => {
+    const activeIndex = 17;
+    const positions = [5, 4, 5, 4].flatMap((count, row) => Array.from(Array.from({ length: count }).keys(), (column) => ({
+      x: 60 + (column + row % 2 / 2) * 65.6,
+      y: 60 + row * 94,
+      width: 63.6,
+    })));
+    const hoverOffsets = getAppLauncherHoverOffsets(positions, activeIndex);
+    stageBounds = { left: 0, top: 0, width: 400, height: 440 };
+    items = MAX_EXPAND_APP_TABS.map((tab, index) => {
+      const width = 55.2 * (index === activeIndex ? 1.2 : 1);
+      const circle = {
+        animate: vi.fn(createAnimation),
+        getBoundingClientRect: () => ({
+          width, height: width,
+          left: positions[index].x + hoverOffsets[index].x - width / 2,
+          top: positions[index].y + hoverOffsets[index].y - width / 2,
+        }),
+        transform: index === activeIndex ? 'matrix(1.2, 0, 0, 1.2, 0, 0)' : 'matrix(1, 0, 0, 1, 0, 0)',
+      };
+      const visual = {
+        animate: vi.fn(createAnimation),
+        transform: `matrix(1, 0, 0, 1, ${hoverOffsets[index].x}, ${hoverOffsets[index].y})`,
+      };
+      return {
+        tab, circle, visual,
+        querySelector: vi.fn((selector: string) => selector === '.max-expand-app-launcher-circle' ? circle : visual),
+      };
+    });
+    options.activeTab = MAX_EXPAND_APP_TABS[activeIndex];
+    options.launcherVisible = direction === 'open';
+    const actions = render();
+    if (direction === 'open') actions.selectApp(options.activeTab);
+    else actions.backToLauncher();
+    expect(render().transition?.direction).toBe(direction);
+
+    const leftFrames = items[15].visual.animate.mock.calls[0][0] as Keyframe[];
+    const rightFrames = items[16].visual.animate.mock.calls[0][0] as Keyframe[];
+    const centerAtFrame = (index: number, frame: Keyframe): { x: number; y: number } => {
+      const translation = String(frame.transform).match(/translate3d\(([-+\d.e]+)px, ([-+\d.e]+)px, 0\)/);
+      expect(translation).not.toBeNull();
+      const bounds = items[index].circle.getBoundingClientRect();
+      return {
+        x: bounds.left + bounds.width / 2 + Number(translation?.[1]),
+        y: bounds.top + bounds.height / 2 + Number(translation?.[2]),
+      };
+    };
+    expect(leftFrames.map((frame) => frame.offset)).toEqual(rightFrames.map((frame) => frame.offset));
+    leftFrames.slice(1).forEach((leftFrame, previousIndex) => {
+      const leftBefore = centerAtFrame(15, leftFrames[previousIndex]);
+      const leftAfter = centerAtFrame(15, leftFrame);
+      const rightBefore = centerAtFrame(16, rightFrames[previousIndex]);
+      const rightAfter = centerAtFrame(16, rightFrames[previousIndex + 1]);
+      for (let step = 0; step <= 10; step += 1) {
+        const progress = step / 10;
+        const dx = rightBefore.x + (rightAfter.x - rightBefore.x) * progress
+          - leftBefore.x - (leftAfter.x - leftBefore.x) * progress;
+        const dy = rightBefore.y + (rightAfter.y - rightBefore.y) * progress
+          - leftBefore.y - (leftAfter.y - leftBefore.y) * progress;
+        expect(dx, `segment ${previousIndex}, step ${step}`).toBeGreaterThan(0);
+        expect(Math.hypot(dx, dy), `segment ${previousIndex}, step ${step}`).toBeGreaterThanOrEqual(55.2 - .0001);
+      }
+    });
   });
 
   it('同一事件批次和播放期间忽略重复选择与返回，结束后可以继续操作', async () => {
@@ -445,7 +512,7 @@ describe('useAppNavigationTransition', () => {
     options.launcherVisible = false;
     render().backToLauncher();
     render();
-    await vi.advanceTimersByTimeAsync(499);
+    await vi.advanceTimersByTimeAsync(379);
     expect(onBackToLauncher).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     expect(render().transition).toBeNull();
