@@ -1,0 +1,4643 @@
+{
+  "common": {
+    "appName": "eIsland",
+    "errors": {
+      "rootMountNotFound": "未找到 #root 掛載節點"
+    }
+  },
+  "standalone": {
+    "tabs": {
+      "todo": "待辦事項",
+      "countdown": "倒數日",
+      "urlFavorites": "URL 收藏",
+      "album": "相冊",
+      "mail": "郵箱",
+      "localFileSearch": "文件查找",
+      "clipboardHistory": "剪貼板歷史",
+      "memo": "備忘錄",
+      "alarm": "鬧鐘",
+      "toolbox": "工具箱",
+      "settings": "設置"
+    },
+    "controls": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "close": "關閉"
+    }
+  },
+  "capture": {
+    "source": {
+      "plugin": "使用插件",
+      "js": "使用js"
+    },
+    "tools": {
+      "select": "選區",
+      "mosaic": "馬賽克",
+      "line": "直線",
+      "rect": "矩形",
+      "pen": "畫筆",
+      "undo": "撤銷",
+      "color": "顏色",
+      "size": "粗細",
+      "save": "保存",
+      "cancel": "取消",
+      "done": "完成"
+    }
+  },
+  "guide": {
+    "actions": {
+      "skip": "一鍵跳過",
+      "prev": "上一步",
+      "next": "下一步",
+      "start": "開始使用",
+      "loginNow": "立即登錄",
+      "registerNow": "立即註冊"
+    },
+    "language": {
+      "title": "選擇語言",
+      "subtitle": "選擇你偏好的語言以繼續",
+      "zhCN": "中文",
+      "enUS": "English",
+      "jaJP": "日本語",
+      "koKR": "한국어",
+      "frFR": "Français",
+      "deDE": "Deutsch",
+      "esES": "Español",
+      "ruRU": "Русский",
+      "zhTW": "繁體中文"
+    },
+    "smtc": {
+      "title": "SMTC 媒體測試",
+      "subtitle": "檢測系統媒體會話是否可用",
+      "hint": "請使用播放器播放一首歌",
+      "player": "播放器",
+      "unknownPlayer": "未知",
+      "state": "狀態",
+      "playing": "播放中",
+      "paused": "已暫停",
+      "prev": "上一曲",
+      "next": "下一曲",
+      "pause": "暫停",
+      "play": "播放"
+    },
+    "whitelist": {
+      "title": "選擇播放器",
+      "subtitle": "選擇需要監聽的播放器",
+      "qqmusic": "QQ 音樂",
+      "netease": "網易雲音樂",
+      "sodamusic": "汽水音樂",
+      "kugou": "酷狗音樂",
+      "applemusic": "Apple Music",
+      "spotify": "Spotify"
+    },
+    "theme": {
+      "title": "外觀設置",
+      "subtitle": "選擇主題模式並調整透明度",
+      "modeLabel": "主題模式",
+      "opacityLabel": "透明度",
+      "dark": "深色",
+      "light": "淺色",
+      "system": "跟隨系統"
+    },
+    "shape": {
+      "title": "靈動島形態",
+      "subtitle": "選擇靈動島的外觀形態",
+      "notch": "劉海屏",
+      "pill": "靈動島",
+      "notchDesc": "貼於屏幕頂部，模擬劉海屏效果",
+      "pillDesc": "懸浮於屏幕中，膠囊形狀更靈動"
+    },
+    "lyricMode": {
+      "title": "歌詞顯示模式",
+      "subtitle": "選擇歌詞的高亮顯示方式",
+      "normal": "普通模式",
+      "karaoke": "逐字模式",
+      "normalDesc": "歌詞以純文本方式整行高亮顯示",
+      "karaokeDesc": "歌詞逐字掃光高亮，卡拉 OK 效果",
+      "sampleLyrics": {
+        "0": "這是一句測試歌詞",
+        "1": "音樂在空中飄蕩",
+        "2": "旋律輕輕迴響",
+        "3": "每個音符都在歌唱"
+      }
+    },
+    "update": {
+      "title": "選擇更新源",
+      "subtitle": "選擇檢查更新時使用的下載源"
+    },
+    "github": {
+      "title": "開源信息",
+      "subtitle": "eIsland 是一個開源項目",
+      "links": {
+        "repo": "GitHub",
+        "website": "官網",
+        "docs": "文檔",
+        "devDocs": "開發文檔"
+      },
+      "license": "GPL-3.0 許可證",
+      "depsTitle": "開源框架 & 依賴 & 項目"
+    },
+    "sponsors": {
+      "title": "贊助商",
+      "subtitle": "感謝贊助商的支持"
+    },
+    "welcome": {
+      "title": "歡迎使用 eIsland",
+      "subtitle": "配置完成，開始體驗靈動島吧",
+      "desc": "一款靈感來自 Apple 靈動島的 Windows 桌面浮窗小組件，\n讓你的桌面更加靈動、高效。"
+    },
+    "sections": {
+      "basic": {
+        "title": "基本交互",
+        "desc": "通過鼠標與靈動島進行交互，解鎖不同狀態。"
+      },
+      "music": {
+        "title": "音樂與歌詞",
+        "desc": "自動識別正在播放的音樂，實時顯示同步歌詞。"
+      },
+      "tools": {
+        "title": "實用工具",
+        "desc": "擴展面板中集成了多種實用功能。"
+      },
+      "settings": {
+        "title": "個性化設置",
+        "desc": "在擴展面板的設置中自定義你的靈動島體驗。"
+      },
+      "auth": {
+        "title": "賬號服務",
+        "desc": "現在就登錄或註冊，開啟跨設備同步與賬號管理。",
+        "tipSync": "登錄後可同步賬號資料。",
+        "tipMode": "可使用綜合市場功能。"
+      }
+    },
+    "interactionCards": {
+      "scroll": {
+        "title": "基本交互",
+        "desc": "在靈動島頂部滾動鼠標滾輪，切換靈動島狀態。"
+      },
+      "hover": {
+        "title": "懸停展開",
+        "desc": "將鼠標懸停在靈動島上方，即可展開預覽面板。"
+      },
+      "click": {
+        "title": "單擊操作",
+        "desc": "單擊靈動島，打開完整的操作面板。"
+      },
+      "retract": {
+        "title": "自動收回",
+        "desc": "將鼠標移開靈動島，自動收回至待機狀態。"
+      }
+    },
+    "musicCards": {
+      "smtc": {
+        "title": "SMTC 自動檢測",
+        "desc": "自動識別正在播放的音樂源，實時同步播放信息。"
+      },
+      "lyrics": {
+        "title": "歌詞匹配與同步",
+        "desc": "多源歌詞自動匹配，實時滾動顯示當前歌詞。"
+      },
+      "karaoke": {
+        "title": "逐字掃光模式",
+        "desc": "支持逐字高亮的卡拉 OK 歌詞顯示模式。"
+      }
+    },
+    "toolCards": {
+      "todo": {
+        "title": "待辦事項",
+        "desc": "在擴展面板中管理你的待辦任務清單。"
+      },
+      "ai": {
+        "title": "AI 對話助手",
+        "desc": "內置 AI 對話，隨時獲取智能回答與建議。"
+      },
+      "timer": {
+        "title": "倒數日與計時器",
+        "desc": "設置倒計時或倒數日，精準跟蹤重要時刻。"
+      },
+      "pomodoro": {
+        "title": "番茄鍾專注",
+        "desc": "番茄工作法，幫助你保持高效專注。"
+      }
+    },
+    "settingCards": {
+      "theme": {
+        "title": "主題切換",
+        "desc": "在深色、淺色和跟隨系統之間自由切換。"
+      },
+      "opacity": {
+        "title": "透明度調整",
+        "desc": "自定義靈動島的背景透明度。"
+      },
+      "position": {
+        "title": "位置微調",
+        "desc": "微調靈動島在屏幕頂部的水平與垂直偏移。"
+      },
+      "autostart": {
+        "title": "開機自啟",
+        "desc": "設置靈動島是否隨系統啟動自動運行。"
+      },
+      "shortcut": {
+        "title": "快捷鍵",
+        "desc": "通過全局快捷鍵快速控制靈動島。"
+      }
+    },
+    "hints": {
+      "basicWheel": "在此區域附近滾動滾輪可切換靈動島狀態",
+      "musicWheel": "滾動查看更多音樂功能",
+      "toolsWheel": "滾動查看更多實用工具",
+      "settingsWheel": "滾動查看個性化設置"
+    },
+    "tipsAria": "要點",
+    "nav": {
+      "pageAria": "第 {{index}} 頁"
+    },
+    "mini": {
+      "music": {
+        "playing": "正在播放",
+        "karaokeSample": "這是一句歌詞",
+        "sampleLyrics": {
+          "0": "這是一句歌詞示例",
+          "1": "音樂在空中飄蕩",
+          "2": "旋律輕輕迴響"
+        }
+      },
+      "tool": {
+        "todo": {
+          "title": "待辦事項",
+          "items": {
+            "design": "完成設計稿",
+            "weeklyReport": "發送週報郵件",
+            "notes": "整理項目筆記"
+          }
+        },
+        "ai": {
+          "title": "AI 對話",
+          "hello": "你好"
+        },
+        "timer": {
+          "badge": "倒數日",
+          "name": "重要截止日",
+          "days": "{{days}}天",
+          "expired": "已到期"
+        },
+        "pomodoro": {
+          "focusing": "專注中"
+        }
+      },
+      "setting": {
+        "theme": {
+          "dark": "深色",
+          "light": "淺色",
+          "system": "系統",
+          "auto": "自動"
+        },
+        "autostart": {
+          "on": "已開啟",
+          "highPriority": "高優先級",
+          "off": "已關閉"
+        },
+        "controls": {
+          "autostart": {
+            "disabled": "關閉",
+            "enabled": "開啟",
+            "highPriority": "高優先級"
+          }
+        },
+        "shortcut": {
+          "toggleIsland": "隱藏/顯示",
+          "quitIsland": "關閉靈動島",
+          "resetPosition": "還原默認位置快捷鍵",
+          "screenshot": "選區截圖",
+          "switchSong": "切換歌曲"
+        }
+      }
+    }
+  },
+  "todo": {
+    "title": "待辦事項",
+    "addPlaceholder": "添加待辦...",
+    "addSubPlaceholder": "添加子任務...",
+    "priorityTitle": "緊急程度 {{label}}",
+    "sizeTitle": "事件大小 {{label}}",
+    "markDone": "標記完成",
+    "markUndone": "標記未完成",
+    "delete": "刪除",
+    "descPlaceholder": "添加詳細描述...",
+    "editDescTitle": "編輯描述",
+    "subtasks": "子任務",
+    "empty": "暫無待辦",
+    "add": "添加",
+    "doneCount": "已完成 {{count}}",
+    "undoneCount": "未完成 {{count}}",
+    "deadline": "截止日期",
+    "clearDeadline": "清除",
+    "noDeadline": "未設置截止日期",
+    "previousMonth": "上個月",
+    "nextMonth": "下個月",
+    "chooseDeadline": "截止日期設為 {{date}}",
+    "editTitle": "編輯任務標題",
+    "editSubTitle": "編輯子任務標題",
+    "editTitleHint": "點擊編輯，回車保存，Esc 取消",
+    "expand": "展開",
+    "collapse": "收起"
+  },
+  "countdown": {
+    "editTitle": "編輯事件",
+    "newTitleWithDate": "新建事件 - {{date}}",
+    "newTitlePlaceholder": "< 選擇日期以添加事件",
+    "namePlaceholder": "事件名稱",
+    "descPlaceholder": "描述（可選）",
+    "preview": "預覽",
+    "empty": "選擇日期並添加事件",
+    "datePlaceholder": "YYYY-MM-DD",
+    "days": {
+      "after": "還有 {{days}} 天",
+      "today": "就是今天",
+      "before": "{{days}} 天前",
+      "placeholder": "-- 天",
+      "tomorrow": "明天",
+      "yesterday": "昨天",
+      "elapsed": "已過 {{days}} 天",
+      "remainingUnit": "天后",
+      "pastUnit": "天前",
+      "elapsedUnit": "天 · 已過"
+    },
+    "types": {
+      "countdown": "倒數日",
+      "anniversary": "紀念日",
+      "birthday": "生日",
+      "holiday": "節日",
+      "exam": "考試"
+    },
+    "form": {
+      "type": "類型",
+      "color": "顏色",
+      "customColor": "自定義顏色",
+      "background": "背景",
+      "useAlbumCover": "使用當前專輯封面",
+      "noPlayingSong": "暫無正在播放的歌曲",
+      "albumBackground": "專輯背景",
+      "selectImageFile": "從文件選擇圖片",
+      "customBackground": "自定義背景",
+      "clearBackground": "清除背景",
+      "opacity": "透明度"
+    },
+    "actions": {
+      "add": "添加",
+      "save": "保存",
+      "cancel": "取消",
+      "delete": "刪除"
+    },
+    "manage": {
+      "new": "新增倒數日",
+      "back": "返回事件",
+      "summary": "{{count}} 個進行中的事件",
+      "active": "進行中",
+      "pinned": "已置頂",
+      "archived": "已歸檔",
+      "filter": "事件狀態",
+      "search": "搜索名稱或描述",
+      "allTypes": "全部分類",
+      "sort": "排序方式",
+      "sort_nearest": "最近到期",
+      "sort_name": "按名稱",
+      "sort_date": "按日期",
+      "resultCount": "顯示 {{count}} 個事件",
+      "loading": "正在加載事件…",
+      "empty": "沒有符合條件的事件。可以新增事件，或調整搜索與篩選。",
+      "edit": "編輯事件",
+      "pin": "置頂",
+      "unpin": "取消置頂",
+      "copy": "複製事件",
+      "copyName": "{{name}}（副本）",
+      "archive": "歸檔",
+      "restore": "恢復並繼續計時",
+      "delete": "刪除",
+      "deleted": "已刪除「{{name}}」",
+      "undo": "撤銷",
+      "date": "日期",
+      "mode": "計時方式",
+      "down": "倒數日",
+      "up": "正數日",
+      "expiry": "到期處理",
+      "continue": "繼續顯示已過天數",
+      "yearly": "每年重複",
+      "autoArchive": "到期次日自動歸檔",
+      "includeToday": "起始日記為第 1 天",
+      "borderColor": "邊框顏色",
+      "backgroundStyle": "背景樣式",
+      "colorValue": "選擇顏色 {{color}}",
+      "saving": "保存中…",
+      "saveError": "讀取或保存失敗，請重試；未保存的編輯仍保留。",
+      "imageError": "圖片載入失敗，請重新選擇。",
+      "previousMonth": "上個月",
+      "nextMonth": "下個月",
+      "chooseDate": "選擇日期",
+      "month": "月份",
+      "closeEditor": "關閉編輯面板"
+    }
+  },
+  "hover": {
+    "nav": {
+      "time": "工具",
+      "lyrics": "歌曲",
+      "weather": "天氣",
+      "expand": "展開",
+      "switchToPage": "切換到{{label}}頁面"
+    },
+    "actions": {
+      "hideIsland": "隱藏靈動島",
+      "hide": "隱藏",
+      "quitIsland": "退出靈動島",
+      "quit": "退出"
+    },
+    "tools": {
+      "screenshot": "截圖",
+      "taskManager": "任務管理器"
+    },
+    "media": {
+      "brightness": "亮度",
+      "volume": "音量"
+    },
+    "brightness": {
+      "title": "屏幕亮度",
+      "hint": "拖動調節",
+      "sliderLabel": "屏幕亮度",
+      "unavailable": "不可用"
+    },
+    "volume": {
+      "title": "系統音量",
+      "hint": "拖動調節",
+      "sliderLabel": "系統音量",
+      "unavailable": "不可用"
+    },
+    "timer": {
+      "title": "倒計時",
+      "editHint": "滾動滾輪編輯時間",
+      "actions": {
+        "start": "開始",
+        "pause": "暫停",
+        "resume": "繼續",
+        "reset": "重置"
+      }
+    },
+    "music": {
+      "unknownArtist": "未知藝術家",
+      "unknownTitle": "未知歌曲",
+      "prev": "上一曲",
+      "pause": "暫停",
+      "play": "播放",
+      "next": "下一曲"
+    },
+    "time": {
+      "lunarPrefix": "農曆"
+    },
+    "weather": {
+      "refreshTitle": "點擊刷新天氣",
+      "today": "今天",
+      "unknownCity": "未知",
+      "na": "N/A",
+      "week": {
+        "tomorrow": "明",
+        "dayAfterTomorrow": "後"
+      },
+      "rainPrefix": "雨",
+      "windPrefix": "風"
+    }
+  },
+  "weatherAbbr": {
+    "thunder": "雷雨",
+    "snow": "降雪",
+    "hail": "冰雹",
+    "sleet": "雨夾雪",
+    "freezingRain": "凍雨",
+    "heavyRain": "暴雨",
+    "shower": "陣雨",
+    "drizzle": "毛毛雨",
+    "rain": "降雨",
+    "sandstorm": "沙塵暴",
+    "haze": "霾",
+    "fog": "霧",
+    "wind": "大風",
+    "hot": "高溫",
+    "cold": "低溫",
+    "overcast": "陰天",
+    "cloudy": "多雲",
+    "sunny": "晴天",
+    "unknown": "未知"
+  },
+  "announcement": {
+    "loading": "正在加載公告…",
+    "empty": "暫無公告內容",
+    "subtitle": "當前已是最新版本，以下為最新公告內容。",
+    "defaultTitle": "系統公告",
+    "updatedAt": "更新時間：{{time}}",
+    "showList": "展開公告列表",
+    "hideList": "收起公告列表",
+    "qqQrAlt": "QQ 群二維碼",
+    "close": "關閉",
+    "adSpace": "廣告位招租",
+    "adPrev": "上一張",
+    "adNext": "下一張",
+    "questionnaireBanner": {
+      "title": "未完成問卷：{{count}} 份",
+      "open": "前往填寫",
+      "dismiss": "忽略當前問卷"
+    }
+  },
+  "questionnaire": {
+    "loading": "正在加載問卷…",
+    "emptyTitle": "當前暫無有效問卷",
+    "emptyDescription": "請稍後再來查看。",
+    "retry": "重新加載",
+    "close": "關閉",
+    "reportIssue": "報告問題",
+    "hideList": "收起問卷列表",
+    "showList": "展開問卷列表",
+    "subtitle": "請完成以下問題並提交反饋。",
+    "progress": "已完成 {{completed}} / {{total}}",
+    "validUntil": "有效期至 {{time}}",
+    "required": "必填",
+    "textPlaceholder": "請輸入純文本答案",
+    "saveDraft": "保存草稿",
+    "draftSaved": "草稿已保存到本地",
+    "loginRequired": "登錄後才可提交，當前仍可保存草稿",
+    "requiredIncomplete": "請完成所有必填題",
+    "alreadySubmitted": "你已經提交過這份問卷",
+    "submitFailed": "提交失敗，請稍後重試",
+    "submitting": "提交中…",
+    "submit": "提交問卷",
+    "continue": "填寫下一份",
+    "questionNavigation": "題目導航",
+    "questionnaireNavigation": "問卷列表",
+    "jumpToQuestion": "跳轉到第 {{number}} 題",
+    "completedTitle": "問卷已提交",
+    "completedDescription": "感謝你的反饋，答案已成功保存。",
+    "rewardDays": "已獲贈 {{days}} 天 Pro 會員",
+    "rewardExpireAt": "新的到期時間：{{time}}",
+    "noReward": "本問卷未配置 Pro 獎勵",
+    "rewardBanner": "完成本問卷可獲贈 {{days}} 天 Pro 會員"
+  },
+  "notification": {
+    "alarm": {
+      "title": "鬧鐘",
+      "body": "{{time}}",
+      "bodyWithLabel": "{{time}} — {{label}}"
+    },
+    "timer": {
+      "title": "計時器",
+      "finished": "倒計時已結束"
+    },
+    "sourceSwitch": {
+      "title": "檢測到其他播放源"
+    },
+    "cliSessionDetected": {
+      "body": "檢測到新的 {{provider}} 活動，是否切換到 CLI 面板查看？"
+    },
+    "update": {
+      "availableTitle": "發現新版本",
+      "availableBody": "是否立即下載？",
+      "currentSource": "當前更新源：{{source}}",
+      "downloadingTitle": "正在下載更新",
+      "downloadingPreparing": "正在準備下載更新…",
+      "downloadingBodyProgress": "已下載 {{percent}} · {{speed}} · 預計剩餘 {{eta}}",
+      "downloadingSpeedUnknown": "計算中",
+      "downloadingEtaUnknown": "計算中",
+      "readyTitle": "更新就緒",
+      "readyBody": "新版本 v{{version}} 已下載完成，是否立即安裝？"
+    },
+    "weatherAlert": {
+      "title": "天氣預警提醒",
+      "defaultTitle": "天氣預警",
+      "unknownCity": "當前位置",
+      "bodySingle": "{{city}}：{{title}}",
+      "bodyWithMore": "{{city}}：{{title}}，另有 {{count}} 條預警。",
+      "timeLabel": "更新時間",
+      "timeUnknown": "未知"
+    },
+    "clipboard": {
+      "detectedTitle": "檢測到鏈接",
+      "officialBadge": "官網",
+      "prevUrl": "上一個鏈接",
+      "nextUrl": "下一個鏈接",
+      "jumpToFavorites": "前往 URL 收藏"
+    },
+    "pomodoro": {
+      "title": "番茄鍾",
+      "workFinished": "專注時間結束，開始休息吧",
+      "breakFinished": "休息時間結束，開始專注吧"
+    },
+    "externalAgent": {
+      "title": "檢測到桌面 Agent",
+      "body": "{{agentName}} 已開始工作",
+      "stoppedTitle": "桌面 Agent 已關閉",
+      "stoppedBody": "{{agentName}} 已停止工作"
+    },
+    "actions": {
+      "gotIt": "知道了",
+      "installRestart": "安裝並重啟",
+      "later": "稍後",
+      "downloadUpdate": "下載更新",
+      "downloadNow": "立即下載",
+      "configureUpdateSource": "自行配置更新源",
+      "restartNow": "立即重啟",
+      "openAllLinks": "打開全部鏈接",
+      "openLink": "打開鏈接",
+      "favorited": "已收藏",
+      "favorite": "收藏",
+      "addBlacklist": "加入黑名單",
+      "hide": "隱藏",
+      "ignore": "忽略",
+      "switch": "切換",
+      "switchCliState": "切換到靈動島",
+      "snooze5m": "稍後 5m",
+      "snooze15m": "稍後 15m",
+      "snooze1h": "稍後 1h",
+      "closeAndContinueUpdateCheck": "關閉並繼續檢查更新",
+      "complete": "完成"
+    }
+  },
+  "expanded": {
+    "loadingPage": "正在加載{{page}}…",
+    "loadingDescriptions": {
+      "overview": "準備總覽與快捷操作。",
+      "song": "準備歌曲信息與播放控制。",
+      "tools": "準備實用工具與快捷入口。",
+      "translation": "準備翻譯輸入與結果面板。",
+      "performanceMonitor": "準備系統性能與硬件狀態面板。"
+    },
+    "nav": {
+      "hover": "返回",
+      "overview": "總覽",
+      "song": "歌曲",
+      "tools": "工具",
+      "translation": "翻譯",
+      "performanceMonitor": "性能監控",
+      "maxExpand": "最大展開",
+      "switchToPage": "切換到{{label}}頁面"
+    },
+    "performanceMonitor": {
+      "title": "系統性能",
+      "subtitle": "實時硬件狀態與溫度",
+      "hardwareSettingsLink": "和您的硬件不一樣？點擊前往調整",
+      "startMonitor": "開始監控",
+      "stopMonitor": "停止監控",
+      "hidePage": "隱藏本頁面",
+      "startHint": "首次進入請點擊開始監控",
+      "loading": "正在讀取系統性能數據...",
+      "error": "系統性能數據暫不可用",
+      "labels": {
+        "cpu": "CPU",
+        "gpu": "GPU",
+        "memory": "內存",
+        "disk": "磁盤",
+        "available": "可用",
+        "host": "主機",
+        "os": "系統",
+        "cpuModel": "處理器",
+        "gpuModel": "顯卡",
+        "uptime": "運行"
+      },
+      "status": {
+        "unavailable": "不可用",
+        "noGpu": "未檢測到顯卡"
+      }
+    },
+    "settingsTab": {
+      "label": "設置"
+    },
+    "translation": {
+      "title": "快速翻譯",
+      "sourceLabel": "源語言",
+      "targetLabel": "目標語言",
+      "inputTitle": "原文",
+      "outputTitle": "譯文",
+      "languageAria": "翻譯語言選擇"
+    }
+  },
+  "toolsTab": {
+    "defaultAppName": "應用",
+    "title": "快捷啟動",
+    "count": "{{count}} 項",
+    "empty": "暫無快捷啟動項",
+    "launchTitle": "點擊啟動",
+    "editNameByDoubleClick": "雙擊編輯名稱",
+    "editName": "編輯名稱",
+    "delete": "刪除",
+    "drop": {
+      "releaseToAdd": "鬆開添加",
+      "onlyExe": "僅支持 .exe 或 .lnk 文件",
+      "duplicate": "已存在該應用",
+      "dragExe": "拖入 .exe 或 .lnk"
+    }
+  },
+  "overview": {
+    "song": {
+      "nowPlaying": "正在播放",
+      "unknownTitle": "未知歌曲",
+      "unknownArtist": "未知藝術家",
+      "prev": "上一首",
+      "pause": "暫停",
+      "play": "播放",
+      "next": "下一首",
+      "lyric": "歌詞",
+      "information": "歌曲信息",
+      "mute": "靜音",
+      "unmute": "取消靜音",
+      "empty": "暫無播放中的歌曲"
+    },
+    "album": {
+      "title": "相冊輪播",
+      "count": "{{count}} 項",
+      "empty": "相冊暫無媒體",
+      "open": "點擊進入相冊",
+      "prev": "上一張",
+      "next": "下一張",
+      "pause": "暫停輪播",
+      "play": "繼續輪播",
+      "position": "{{index}} / {{total}}",
+      "videoTag": "視頻"
+    },
+    "countdown": {
+      "title": "倒數日",
+      "empty": "暫無倒數日"
+    },
+    "alarm": {
+      "title": "鬧鐘",
+      "empty": "在鬧鐘頁面選擇最多兩個鬧鐘展示",
+      "syncError": "保存失敗，請重試",
+      "enabled": "已開啟",
+      "add": "展示到 Overview",
+      "remove": "從 Overview 移除",
+      "limit": "最多展示兩個鬧鐘"
+    },
+    "worldClock": {
+      "title": "世界時鐘",
+      "previewFirstCity": "上海",
+      "previewSecondCity": "紐約",
+      "empty": "在全展開世界時鐘中選擇最多兩個時區"
+    },
+    "breakReminder": {
+      "title": "休息提醒",
+      "count": "{{count}} 項",
+      "empty": "暫無啟用的提醒",
+      "remain": "{{min}} 分鐘",
+      "due": "即將提醒"
+    },
+    "pomodoro": {
+      "title": "番茄鍾",
+      "completedTitle": "已完成番茄數",
+      "tomato": "番茄",
+      "resetCount": "重置計數",
+      "reset": "重置",
+      "start": "開始",
+      "pause": "暫停",
+      "skip": "跳過",
+      "phases": {
+        "work": "專注中",
+        "shortBreak": "短休息",
+        "longBreak": "長休息"
+      }
+    },
+    "mokugyo": {
+      "title": "電子木魚",
+      "hint": "點擊木魚積攢專注",
+      "strike": "敲一下",
+      "total": "累計功德",
+      "plusOne": "功德+1"
+    },
+    "urlFavorites": {
+      "title": "URL 收藏",
+      "count": "{{count}} 條",
+      "empty": "暫無收藏",
+      "viewAll": "查看全部 {{count}} 條收藏"
+    },
+    "shortcuts": {
+      "title": "快捷啟動",
+      "editTitle": "編輯快捷啟動",
+      "count": "{{count}} 項",
+      "emptyHint": "在系統工具中添加"
+    },
+    "todo": {
+      "title": "待辦事項",
+      "goToPage": "前往待辦事項頁面",
+      "empty": "暫無待辦",
+      "delete": "刪除",
+      "completed": "已完成 {{count}}"
+    },
+    "time": {
+      "date": "{{yyyy}}年{{month}}月{{day}}日 {{dayName}}",
+      "weekdays": {
+        "0": "週日",
+        "1": "週一",
+        "2": "週二",
+        "3": "週三",
+        "4": "週四",
+        "5": "週五",
+        "6": "週六"
+      },
+      "yi": "宜",
+      "ji": "忌"
+    }
+  },
+  "songTab": {
+    "meta": {
+      "notPlaying": "未在播放"
+    },
+    "controls": {
+      "prev": "上一曲",
+      "pause": "暫停",
+      "play": "播放",
+      "next": "下一曲"
+    },
+    "lyrics": {
+      "loading": "正在加載歌詞",
+      "empty": "暫無歌詞",
+      "enjoyMusic": "享受音樂"
+    },
+    "onboarding": {
+      "title": "音樂總覽",
+      "desc": "播放音樂後，這裡將展示實時信息",
+      "feature1": "封面碟片、實時歌詞與頻譜動畫",
+      "feature2": "時間、天氣與倒計時一覽",
+      "hint": "播放任意歌曲即可開始"
+    },
+    "time": {
+      "weekdays": {
+        "0": "週日",
+        "1": "週一",
+        "2": "週二",
+        "3": "週三",
+        "4": "週四",
+        "5": "週五",
+        "6": "週六"
+      }
+    },
+    "countdown": {
+      "expired": "已到期",
+      "dayHour": "{{days}}天{{hours}}時",
+      "hourMinute": "{{hours}}時{{minutes}}分",
+      "minute": "{{minutes}}分"
+    }
+  },
+  "aiChat": {
+    "title": "mihtnelis Agent",
+    "notConfigured": "未配置",
+    "localModelGenerated": "本地模型生成",
+    "customDirectGenerated": "本地直連 LLM 提供商",
+    "actions": {
+      "clear": "清空",
+      "newChat": "新建對話",
+      "deleteSession": "刪除會話",
+      "loadMoreHistory": "加載更多對話",
+      "reportIssue": "報告問題",
+      "stop": "停止",
+      "send": "發送",
+      "quote": "引用",
+      "copy": "複製"
+    },
+    "session": {
+      "historyTitle": "歷史會話",
+      "toggleHistory": "展開歷史會話",
+      "untitled": "新對話"
+    },
+    "modelCard": {
+      "title": "模型選擇卡片",
+      "focusMode": "專注模式",
+      "contextLimit": "上下文",
+      "customApiMode": "調用模式",
+      "customApiModeTitle": "選擇自定義 API 調用模式",
+      "customApiModeRelay": "服務器轉發",
+      "customApiModeDirect": "直連"
+    },
+    "skills": {
+      "title": "Skills",
+      "add": "+ 添加",
+      "enable": "啟用",
+      "disable": "禁用",
+      "remove": "移除",
+      "dropHint": "拖入 .md 文件或點擊添加"
+    },
+    "attachments": {
+      "add": "添加文本附件",
+      "remove": "移除附件"
+    },
+    "codeBlock": {
+      "copy": "複製",
+      "copied": "已複製"
+    },
+    "messages": {
+      "missingApiKeyWarn": "請先在「設置 → AI配置」中填寫 API Key。",
+      "unknownError": "未知錯誤",
+      "contextLimitExceeded": "⚠️ 當前會話已累計使用 {{used}} tokens，超出上下文限制（{{max}} tokens）。請新建會話繼續對話。",
+      "emptyWithApiKey": "有什麼可以幫你的？",
+      "emptyWithoutApiKey": "請先在「設置 → AI配置」中填寫 API Key",
+      "emptyGreetingVariants": {
+        "0": "你好呀，今天想一起處理點什麼？",
+        "1": "嗨，我在這兒，隨時可以幫你。",
+        "2": "歡迎回來，先聊聊你現在最想解決的問題吧。",
+        "3": "今天也一起高效一點，你想從哪件事開始？"
+      },
+      "aiGeneratedDisclaimer": "內容由 AI 生成，請仔細甄別。",
+      "localModelGenerated": "本地模型生成",
+      "agentError": "mihtnelis agent 返回錯誤",
+      "noModelOutput": "⚠️ 未收到模型輸出，請檢查 DeepSeek 配置與服務端日誌。",
+      "noModelOutputOllama": "⚠️ 未收到模型輸出，請檢查 Ollama 服務是否運行中。",
+      "noModelOutputCustomDirect": "⚠️ 未收到模型輸出，請檢查自定義 API 端點和密鑰是否正確。",
+      "localToolExecuteFailed": "本地工具執行失敗",
+      "localToolSubmitFailed": "本地工具結果提交失敗",
+      "apiRequestFailed": "API 請求失敗 ({{status}}): {{detail}}",
+      "cannotReadResponseStream": "無法讀取響應流"
+    },
+    "timeline": {
+      "todoList": "任務清單",
+      "todoTitle": "待辦事項",
+      "todo": {
+        "toggle": "展開或摺疊任務清單"
+      },
+      "thinkingProcess": "思考過程 #{{index}}",
+      "thinking": {
+        "thinking": "思考中…",
+        "thought": "思考",
+        "elapsed": " 用時 {{seconds}} 秒",
+        "toggleThought": "展開或摺疊思考過程"
+      },
+      "toolResultTitle": "工具返回結果",
+      "toolStatus": {
+        "pending": "執行中",
+        "success": "完成",
+        "failed": "失敗"
+      }
+    },
+    "localToolAccess": {
+      "title": "本地高風險操作授權",
+      "requestHint": "Agent 請求執行以下本地操作，是否允許？",
+      "argumentsTitle": "參數",
+      "toolLabel": "工具",
+      "purposeTitle": "用途",
+      "purposeFallback": "未提供用途說明",
+      "riskLabel": "風險等級",
+      "screenshotTag": "截圖",
+      "riskLevel": {
+        "high": "高"
+      },
+      "allow": "允許執行",
+      "deny": "拒絕執行",
+      "expiredHint": "本地工具授權請求已失效，請重新發起請求後再授權。"
+    },
+    "webAccess": {
+      "title": "網頁訪問授權",
+      "allow": "允許訪問",
+      "deny": "拒絕訪問",
+      "requestHint": "Agent 需要訪問以下 URL，是否允許？",
+      "allowedHint": "已授權，下一輪可繼續讀取該 URL。",
+      "deniedHint": "已拒絕該 URL 訪問。",
+      "expiredHint": "網頁授權請求已失效，請重新發起請求後再授權。",
+      "policyLabel": "此域名授權策略",
+      "policy": {
+        "ask": "每次都詢問",
+        "allow": "始終批准",
+        "deny": "始終禁止"
+      }
+    },
+    "auth": {
+      "entryTitle": "登錄後即可使用 AI 智能助手",
+      "gotoLogin": "前往登錄",
+      "gotoRegister": "前往註冊",
+      "hint": "mihtnelis Agent 為登錄用戶提供 AI 對話、工具調用與知識檢索服務。"
+    },
+    "input": {
+      "generatingPlaceholder": "生成中...",
+      "placeholder": "輸入消息..."
+    },
+    "contextUsage": {
+      "title": "上下文使用量",
+      "inline": "{{used}} / {{max}} · {{percent}}",
+      "tooltip": "上下文使用：{{used}} / {{max}}（{{percent}}）",
+      "aria": "上下文使用情況：{{used}} / {{max}}（{{percent}}）"
+    },
+    "agentMode": {
+      "switch": "切換 Agent 模式"
+    },
+    "feedback": {
+      "issueTitle": "Agent輸出不符合預期 - {{traceId}}"
+    }
+  },
+  "urlFavoritesTab": {
+    "title": "URL 收藏",
+    "count": "{{count}} 條",
+    "filteredCount": "{{count}} / {{total}} 條",
+    "empty": "還沒有收藏，先添加一個 URL 吧。",
+    "openWebsiteTitle": "點擊打開網站",
+    "resolvingTitle": "讀取網頁名稱中…",
+    "noNote": "未備註",
+    "input": {
+      "placeholderWithItems": "輸入並添加新的 URL 收藏",
+      "placeholderEmpty": "輸入 URL，例如 github.com"
+    },
+    "actions": {
+      "add": "添加",
+      "save": "保存",
+      "manageFolders": "分組",
+      "manageImportExport": "導入導出",
+      "import": "導入",
+      "export": "導出",
+      "expand": "展開",
+      "collapse": "收起",
+      "removeAria": "刪除 URL 收藏"
+    },
+    "import": {
+      "formatAria": "導入格式"
+    },
+    "export": {
+      "formatAria": "導出格式"
+    },
+    "folders": {
+      "all": "全部",
+      "uncategorized": "未分類",
+      "newPlaceholder": "新建文件夾",
+      "create": "新建",
+      "clearCurrent": "清空當前分類",
+      "emptyFiltered": "當前文件夾還沒有收藏。"
+    },
+    "messages": {
+      "importSuccess": "已導入 {{count}} 條收藏",
+      "importEmpty": "未識別到可導入的收藏",
+      "importFailed": "導入失敗，請檢查文件格式",
+      "exportSuccess": "已導出 {{count}} 條收藏",
+      "exportFailed": "導出失敗，請稍後重試"
+    },
+    "editor": {
+      "urlLabel": "URL",
+      "urlPlaceholder": "編輯 URL",
+      "noteLabel": "備註",
+      "notePlaceholder": "輸入備註",
+      "folderLabel": "文件夾",
+      "folderPlaceholder": "輸入文件夾名稱，留空為未分類"
+    }
+  },
+  "mailTab": {
+    "title": "郵箱",
+    "accounts": {
+      "unnamed": "未命名"
+    },
+    "introTitle": "客戶端直連郵箱（無服務器）",
+    "introDesc": "收信用 IMAP，發信用 SMTP。請先在設置中填寫服務器參數與賬號認證信息。",
+    "goSettings": "前往郵箱設置",
+    "inboxTitle": "收件箱（最近 10 封）",
+    "emptyInbox": "暫無郵件或讀取失敗",
+    "composeTitle": "發送郵件",
+    "fields": {
+      "to": "收件人",
+      "subject": "主題",
+      "subjectPlaceholder": "輸入主題",
+      "content": "正文",
+      "contentPlaceholder": "輸入正文"
+    },
+    "actions": {
+      "refresh": "刷新收件箱",
+      "refreshing": "刷新中…",
+      "send": "發送",
+      "sending": "發送中…"
+    },
+    "messages": {
+      "loading": "正在獲取郵件…",
+      "inboxFetchFailed": "收件箱讀取失敗",
+      "inboxFetchTimeout": "收件箱讀取超時，請檢查網絡或郵箱配置",
+      "needRecipient": "請填寫收件人郵箱",
+      "sendFailed": "發送失敗，請稍後重試",
+      "sendSuccess": "發送成功"
+    },
+    "emptyGuide": {
+      "title": "配置郵箱 IMAP 賬戶後即可在此收取和查看郵件",
+      "hint": "需要填寫 IMAP 服務器地址、認證用戶名和密鑰。",
+      "action": "前往設置",
+      "imapHelp": "如何獲取 IMAP 信息"
+    },
+    "fallbacks": {
+      "noSubject": "(無主題)",
+      "noSender": "-"
+    }
+  },
+  "clipboardHistoryTab": {
+    "title": "剪貼板歷史",
+    "count": "{{count}} 條",
+    "filteredCount": "{{count}} / {{total}} 條",
+    "empty": "暫時沒有記錄，複製一些文本後會顯示在這裡。",
+    "emptyFiltered": "當前類型下沒有記錄。",
+    "messages": {
+      "copySuccess": "已複製到剪貼板",
+      "copyFailed": "複製失敗，請稍後重試",
+      "exportSuccess": "已導出 {{count}} 條剪貼板記錄",
+      "exportFailed": "導出失敗，請稍後重試"
+    },
+    "filters": {
+      "aria": "剪貼板類型篩選",
+      "all": "全部",
+      "url": "URL",
+      "text": "純文本"
+    },
+    "actions": {
+      "clear": "清空",
+      "export": "導出",
+      "exportAllTitle": "導出全部記錄",
+      "exportSelectedTitle": "導出已選記錄",
+      "select": "選擇",
+      "cancelSelect": "取消",
+      "save": "保存",
+      "selectAll": "全選",
+      "deleteSelected": "刪除已選",
+      "clearRange": "清理範圍",
+      "rangeAria": "選擇清理時間範圍",
+      "selectItemAria": "選擇該剪貼板記錄",
+      "copyTitle": "複製到剪貼板",
+      "copyAria": "複製該記錄到剪貼板",
+      "expand": "展開",
+      "collapse": "收起",
+      "removeAria": "刪除該剪貼板記錄"
+    },
+    "ranges": {
+      "lastHour": "最近 1 小時",
+      "today": "今天",
+      "last7Days": "最近 7 天",
+      "last30Days": "最近 30 天",
+      "olderThan30Days": "30 天前"
+    }
+  },
+  "albumTab": {
+    "title": "相冊",
+    "count": "{{count}} 項",
+    "dropHint": "釋放鼠標即可導入媒體文件",
+    "empty": {
+      "title": "還沒有媒體內容",
+      "desc": "拖拽圖片/視頻到這裡，或點擊“添加媒體”",
+      "filteredTitle": "當前篩選下沒有內容",
+      "filteredDesc": "切換為全部/圖片/視頻查看"
+    },
+    "actions": {
+      "add": "添加媒體",
+      "remove": "移除",
+      "removeAria": "移除媒體 {{name}}",
+      "selectAllVisible": "全選當前",
+      "unselectAllVisible": "取消全選",
+      "clearSelection": "取消選擇",
+      "removeSelected": "刪除已選",
+      "select": "選擇",
+      "cancelSelect": "取消選擇"
+    },
+    "selection": {
+      "selectedCount": "已選 {{count}} 項",
+      "toggle": "選擇媒體 {{name}}",
+      "hint": "點擊圖片進行選擇"
+    },
+    "sort": {
+      "label": "排序",
+      "addedDesc": "最近添加優先",
+      "addedAsc": "最早添加優先",
+      "nameAsc": "文件名升序",
+      "nameDesc": "文件名降序",
+      "durationDesc": "時長從長到短",
+      "durationAsc": "時長從短到長"
+    },
+    "filter": {
+      "label": "媒體篩選",
+      "all": "全部",
+      "image": "僅圖片",
+      "video": "僅視頻"
+    },
+    "group": {
+      "label": "瀏覽方式",
+      "none": "全部",
+      "folder": "按文件夾",
+      "date": "按日期",
+      "all": "全部媒體",
+      "count": "{{count}} 項",
+      "unknownFolder": "未知文件夾",
+      "unknownDate": "未知日期"
+    },
+    "columns": {
+      "aria": "調整每行列數",
+      "smaller": "減少列數",
+      "larger": "增加列數"
+    },
+    "thumb": {
+      "loading": "加載中…",
+      "failed": "加載失敗"
+    },
+    "viewer": {
+      "back": "返回總覽",
+      "prev": "上一張",
+      "next": "下一張",
+      "zoomIn": "放大",
+      "zoomOut": "縮小",
+      "zoomOne": "實際大小（1:1）",
+      "zoomFit": "適應窗口",
+      "fit": "適應",
+      "play": "播放",
+      "pause": "暫停",
+      "mute": "靜音",
+      "unmute": "取消靜音",
+      "hideControls": "隱藏控制條",
+      "showControls": "顯示控制條",
+      "seek": "進度",
+      "volume": "音量",
+      "openInExplorer": "在資源管理器中打開",
+      "saveAs": "另存為",
+      "loading": "媒體加載中…",
+      "failed": "媒體加載失敗"
+    },
+    "meta": {
+      "title": "媒體信息",
+      "name": "文件名",
+      "format": "格式",
+      "resolution": "分辨率",
+      "duration": "時長",
+      "size": "文件大小",
+      "addedAt": "添加時間",
+      "path": "完整路徑",
+      "mediaType": "媒體類型",
+      "mediaTypeImage": "圖片",
+      "mediaTypeVideo": "視頻",
+      "codec": "編碼",
+      "fps": "幀率",
+      "setAsIslandBackground": "設為靈動島背景",
+      "exifTitle": "EXIF 信息",
+      "exifEmpty": "未讀取到 EXIF 信息",
+      "make": "廠商",
+      "model": "機型",
+      "dateTimeOriginal": "拍攝時間",
+      "exposure": "曝光時間",
+      "fNumber": "光圈",
+      "iso": "ISO",
+      "focalLength": "焦距"
+    },
+    "status": {
+      "added": "已添加 {{count}} 個媒體文件",
+      "allDuplicated": "媒體文件已存在，未重複添加",
+      "unsupportedOnly": "未識別到受支持的圖片/視頻格式",
+      "zoomReset": "已恢復到實際大小",
+      "openInExplorerFailed": "無法定位 {{name}}，文件可能已被移動或刪除",
+      "saveAsSuccess": "已保存 {{name}}",
+      "saveAsCanceled": "已取消保存",
+      "saveAsFailed": "保存 {{name}} 失敗，請稍後重試",
+      "removedSelected": "已刪除 {{count}} 個媒體文件",
+      "setIslandBackgroundSuccess": "已將 {{name}} 設為靈動島背景",
+      "setIslandBackgroundFailed": "設置靈動島背景失敗，請稍後重試"
+    }
+  },
+  "sliderCaptcha": {
+    "title": "滑塊驗證",
+    "subtitle": "由 Pyisland Server & eIsland 提供質詢服務",
+    "hint": "請先計算下方算式結果，再將滑塊拖到對應值",
+    "traceCode": "traceCode: {{code}}",
+    "equationLabel": "算式挑戰",
+    "currentValueLabel": "當前值",
+    "valueRange": "範圍 {{min}} - {{max}}",
+    "actions": {
+      "cancel": "取消",
+      "confirm": "確認"
+    }
+  },
+  "miniGameTab": {
+    "sidebar": {
+      "index": "快速導航"
+    },
+    "index": {
+      "title": "快速導航",
+      "reset": "恢復默認",
+      "edit": "編輯",
+      "done": "完成",
+      "searchPlaceholder": "搜索遊戲項...",
+      "searchClear": "清空搜索",
+      "searchEmpty": "沒有找到匹配的遊戲項",
+      "hintEdit": "拖拽卡片可調整排列順序，點擊「完成」保存。",
+      "hintView": "點擊卡片可快速跳轉到對應遊戲。",
+      "ariaNav": "小遊戲快速導航",
+      "removeCard": "刪除 {{label}}",
+      "ariaAddPanel": "可添加導航卡片",
+      "addableTitle": "可添加卡片",
+      "emptyAddable": "當前沒有可添加的卡片"
+    },
+    "nav": {
+      "game-2048": {
+        "label": "2048",
+        "desc": "經典數字合併小遊戲，支持成績與排行榜。"
+      },
+      "game-gomoku": {
+        "label": "五子棋",
+        "desc": "本地雙人五子棋對戰，先連成五子獲勝。"
+      }
+    },
+    "games": {
+      "2048": "2048",
+      "gomoku": "五子棋"
+    },
+    "comingSoon": "即將上線",
+    "unknownUser": "未知用戶",
+    "loginRequired": "請先登錄以查看成績與排行榜",
+    "loading": "加載中...",
+    "loadError": "數據加載失敗",
+    "retry": "重試",
+    "refresh": "刷新",
+    "myBest": "個人最高分",
+    "highScore": "最高分",
+    "duration": "用時",
+    "moves": "步數",
+    "plays": "遊玩次數",
+    "noRecord": "暫無記錄",
+    "leaderboard": "排行榜",
+    "myRank": "您的排名",
+    "leaderboardRestartHint": "重啟後進行的對局成績不會計入排行榜，請保持當前會話完成遊戲。",
+    "rankUnavailable": "未上榜",
+    "lbUser": "用戶",
+    "lbScore": "分數",
+    "lbEmpty": "暫無排行數據",
+    "auth": {
+      "entryTitle": "登錄後查看排行榜與個人成績",
+      "gotoLogin": "前往登錄",
+      "gotoRegister": "前往註冊",
+      "hint": "登錄後可同步遊戲成績、查看排行榜並與其他玩家競爭。"
+    },
+    "game2048": {
+      "score": "分數",
+      "best": "最高",
+      "newGame": "新遊戲",
+      "gameOver": "遊戲結束",
+      "tryAgain": "再來一局",
+      "hint": "使用方向鍵或 WASD 滑動方塊"
+    },
+    "gomoku": {
+      "hint": "黑白雙方輪流落子，先連成五子者獲勝。",
+      "mode": "對戰模式",
+      "modePve": "人機對戰",
+      "modePvp": "人人對戰",
+      "difficulty": "選擇對局難度",
+      "difficultyNovice": "新手",
+      "difficultyEasy": "簡單",
+      "difficultyHard": "困難",
+      "difficultyExpert": "專家",
+      "difficultyMaster": "大師",
+      "status": "當前狀態",
+      "thinking": "正在思考",
+      "turnBlack": "黑棋回合",
+      "turnWhite": "白棋回合",
+      "winnerBlack": "黑棋獲勝",
+      "winnerWhite": "白棋獲勝",
+      "victory": "勝利",
+      "defeat": "失敗",
+      "draw": "平局",
+      "restart": "重新開始",
+      "highlightLastMove": "高亮上一手",
+      "unrankedHint": "五子棋暫不接入在線排行榜。",
+      "boardAria": "五子棋棋盤",
+      "cellAria": "第 {{row}} 行第 {{col}} 列"
+    }
+  },
+  "stockTab": {
+    "title": "股票行情",
+    "subtitle": "搜索股票代碼並查看實時價格、漲跌幅和專業 K 線。",
+    "autoRefresh": "每 30 秒自動刷新",
+    "sidebar": {
+      "toggle": "展開/收起側邊欄",
+      "deleteFavorite": "刪除自選",
+      "favorites": "自選",
+      "search": "搜索",
+      "favoritesHint": "管理您的自選股列表",
+      "searchHint": "按名稱或代碼搜索股票",
+      "favoriteSearchLabel": "搜索自選",
+      "favoriteSearchPlaceholder": "輸入自選名稱或代碼",
+      "selectedCount": "已選 {{count}} 項",
+      "deleteSelected": "刪除",
+      "noFavoriteMatches": "未找到匹配的自選股",
+      "noFavorites": "暫無自選股"
+    },
+    "empty": {
+      "name": "未選擇股票",
+      "chart": "暫無 K 線數據"
+    },
+    "loading": {
+      "chart": "正在加載 K 線..."
+    },
+    "period": {
+      "day": "日 K 線",
+      "week": "周 K 線",
+      "month": "月 K 線",
+      "short": {
+        "day": "日",
+        "week": "周",
+        "month": "月"
+      }
+    },
+    "actions": {
+      "search": "搜索",
+      "searching": "搜索中...",
+      "clear": "清除",
+      "addFavorite": "添加",
+      "addFavoriteWithName": "添加 {{name}} 到自選",
+      "removeFavorite": "移除 {{name}} 自選",
+      "refresh": "刷新行情"
+    },
+    "search": {
+      "aria": "股票搜索與篩選",
+      "keywordLabel": "搜索股票",
+      "keywordPlaceholder": "輸入名稱或代碼"
+    },
+    "metrics": {
+      "aria": "股票關鍵指標",
+      "updatedAt": "更新於 {{time}}",
+      "previousClose": "昨收",
+      "high": "最高",
+      "low": "最低",
+      "volume": "成交量",
+      "amount": "成交額",
+      "source": "數據源"
+    },
+    "chart": {
+      "aria": "股票 K 線圖",
+      "title": "股票 K 線",
+      "candlestick": "K 線",
+      "volume": "成交量",
+      "priceAxis": "價格",
+      "volumeAxis": "成交量",
+      "exportMenu": "圖表導出菜單",
+      "range": {
+        "1m": "1月",
+        "3m": "3月",
+        "6m": "6月",
+        "1y": "1年",
+        "all": "全部"
+      }
+    },
+    "error": {
+      "default": "行情加載失敗，請稍後重試。",
+      "symbolFormat": "請輸入帶市場前綴的股票代碼，例如 SH600519、SZ000651、HK00700 或 USMSFT。"
+    }
+  },
+  "stt": {
+    "label": "識別結果",
+    "asrQuickAdd": "ASR快速添加",
+    "actions": {
+      "sendToAgent": "發送給Agent",
+      "added": "已添加",
+      "addToMemo": "添加到備忘錄",
+      "addTodo": "添加待辦",
+      "copied": "已複製",
+      "copy": "複製",
+      "ignore": "忽略"
+    }
+  },
+  "agent": {
+    "actions": {
+      "denyAuth": "不授權",
+      "allowAuth": "授權",
+      "close": "關閉"
+    },
+    "liquidOrb": {
+      "ariaLabel": "動態液態玻璃球",
+      "loadingLabel": "正在加載液態玻璃球預覽"
+    }
+  },
+  "cli": {
+    "permission": {
+      "allow": "批准",
+      "always": "永久批准",
+      "deny": "拒絕"
+    }
+  },
+  "maxExpand": {
+    "appMode": {
+      "title": "應用",
+      "hint": "選擇一個應用開始使用",
+      "backToLauncher": "返回應用導航頁",
+      "controls": "應用控制欄"
+    },
+    "calendar": {
+      "today": "今天",
+      "daysAfter": "{{count}} 天后",
+      "daysBefore": "{{count}} 天前",
+      "details": "日期詳情",
+      "expandDetails": "展開日期詳情",
+      "collapseDetails": "收起日期詳情",
+      "goToToday": "今日",
+      "yearOverview": "全年概覽",
+      "monthView": "月視圖",
+      "selectedDate": "所選日期",
+      "lunarDate": "農曆",
+      "holidays": "公共假日",
+      "scheduledTodos": "當日待辦",
+      "scheduledCountdowns": "當日倒數日",
+      "countdownEvent": "倒數日 · {{name}}：{{date}}",
+      "eventPeriod": "{{name}}：{{start}} → {{end}}",
+      "eventCompleted": "已完成",
+      "currentRegion": "當前位置的國家或地區",
+      "holidaysLocationUnavailable": "當前位置缺少國家信息，暫無法匹配節假日",
+      "subdivision": "地區",
+      "nationalHolidays": "全國假日",
+      "holidaysLoading": "正在加載節假日…",
+      "holidaysUnsupported": "暫未提供該地區或年份的節假日數據",
+      "holidaysError": "節假日加載失敗",
+      "holidaysRetry": "重試",
+      "noHoliday": "當日無公共假日",
+      "dayOfMonth": "本月第 {{day}} / {{total}} 天",
+      "daysAfter_one": "{{count}} 天后",
+      "daysAfter_other": "{{count}} 天后",
+      "daysBefore_one": "{{count}} 天前",
+      "daysBefore_other": "{{count}} 天前"
+    },
+    "loading": "正在加載最大展開界面...",
+    "loadingPage": "正在加載{{page}}…",
+    "loadingDescriptions": {
+      "aiChat": "準備對話與會話管理界面。",
+      "todo": "準備待辦列表與任務管理界面。",
+      "urlFavorites": "準備收藏列表與分類視圖。",
+      "localFileSearch": "準備文件檢索與結果列表。",
+      "clipboardHistory": "準備剪貼板記錄與篩選界面。",
+      "album": "準備相冊與媒體瀏覽界面。",
+      "mail": "準備郵箱與郵件閱讀界面。",
+      "memo": "準備備忘錄列表與編輯界面。",
+      "countdown": "準備日期事件與倒數日視圖。",
+      "alarm": "準備鬧鐘列表與提醒設置。",
+      "toolbox": "準備工具列表與快捷入口。",
+      "miniGame": "準備遊戲列表與遊玩界面。",
+      "stock": "準備股票行情展示界面。",
+      "cli": "準備會話列表與運行記錄。",
+      "calculator": "準備計算面板與輸入控件。",
+      "worldClock": "準備城市時鐘與時區視圖。",
+      "calendar": "準備日曆與日期詳情。",
+      "settings": "準備設置分類與配置面板。"
+    },
+    "nav": {
+      "expanded": "返回",
+      "todo": "待辦",
+      "urlFavorites": "URL 收藏",
+      "album": "相冊",
+      "mail": "郵箱",
+      "localFileSearch": "文件查找",
+      "clipboardHistory": "剪貼板",
+      "aiChat": "AI 對話",
+      "memo": "備忘錄",
+      "countdown": "倒數日",
+      "alarm": "鬧鐘",
+      "toolbox": "工具箱",
+      "miniGame": "小遊戲",
+      "cli": "CLI 控制台",
+      "stock": "股票行情",
+      "calculator": "計算器",
+      "worldClock": "世界時鐘",
+      "calendar": "日曆",
+      "settings": "設置",
+      "switchTo": "切換到{{label}}"
+    },
+    "cli": {
+      "eyebrow": "CLI 活動",
+      "title": "CLI 控制台",
+      "subtitle": "實時彙總 Claude Code 與 Codex CLI 的會話、提示詞、工具調用和模型輸出。Claude Code 使用本地 Hook，Codex 自動讀取本機會話記錄。",
+      "provider": {
+        "label": "切換 CLI 活動來源",
+        "claude": "Claude",
+        "codex": "Codex"
+      },
+      "enableHook": "啟用狀態 Hook",
+      "disableHook": "關閉狀態 Hook",
+      "enableMonitor": "啟用 Codex 會話監視",
+      "disableMonitor": "關閉 Codex 會話監視",
+      "clear": "清空記錄",
+      "hookStatus": "Hook 狀態",
+      "receiverStatus": "接收器",
+      "pendingAuth": "待授權",
+      "activeSessions": "活躍會話",
+      "phase": {
+        "waiting": "等待授權",
+        "running": "運行中",
+        "completed": "已完成",
+        "idle": "空閒"
+      },
+      "enabled": "已啟用",
+      "disabled": "未啟用",
+      "running": "運行中",
+      "stopped": "未運行",
+      "receiverUrl": "接收地址",
+      "settingsPath": "配置文件",
+      "sessions": "對話鏈路",
+      "events": "事件流",
+      "loading": "加載中",
+      "updatedAt": "更新於 {{time}}",
+      "emptySessions": "當前來源暫無 CLI 會話。",
+      "emptyEvents": "啟動新的 CLI 會話後，活動會顯示在這裡。",
+      "allSessions": "全部會話",
+      "allSessionsHint": "顯示當前來源的全部 CLI 事件流",
+      "allLabel": "all",
+      "filterAria": "事件篩選",
+      "heatmapAria": "活動熱力圖",
+      "heatmap": {
+        "session": "會話開始",
+        "tool": "工具調用",
+        "prompt": "提示詞輸入",
+        "loggedIn": "已登錄",
+        "month": {
+          "jan": "1月",
+          "feb": "2月",
+          "mar": "3月",
+          "apr": "4月",
+          "may": "5月",
+          "jun": "6月",
+          "jul": "7月",
+          "aug": "8月",
+          "sep": "9月",
+          "oct": "10月",
+          "nov": "11月",
+          "dec": "12月"
+        }
+      },
+      "enterCliState": "進入實時流",
+      "prevPage": "上一頁",
+      "nextPage": "下一頁",
+      "bulkSelect": "批量選擇",
+      "cancelSelection": "取消選擇",
+      "selectedCount": "已選 {{count}} 項",
+      "deleteSelected": "刪除所選",
+      "expand": "展開",
+      "collapse": "收起",
+      "permissionProject": "授權項目：{{project}}",
+      "filters": {
+        "all": "全部",
+        "message": "對話",
+        "tool": "工具調用",
+        "output": "輸出",
+        "permission": "授權"
+      },
+      "detail": {
+        "userInput": "用戶輸入",
+        "assistantOutput": "模型輸出",
+        "toolUseId": "工具調用 ID",
+        "toolInput": "工具入參",
+        "toolResult": "工具結果",
+        "model": "模型",
+        "notification": "通知",
+        "eventSubtype": "事件子類型",
+        "error": "錯誤信息",
+        "reason": "原因",
+        "rawEvent": "原始事件"
+      }
+    },
+    "toolbox": {
+      "sidebar": {
+        "index": "快速導航",
+        "download": "多線程下載",
+        "software": "常用軟件",
+        "translate": "文本翻譯",
+        "fileService": "文件服務",
+        "encodingService": "編碼服務",
+        "networkService": "網絡服務",
+        "fileCompression": "文件壓縮",
+        "fileCompressionShort": "文件壓縮",
+        "formatFactory": "格式工廠"
+      },
+      "index": {
+        "title": "快速導航",
+        "reset": "恢復默認",
+        "edit": "編輯",
+        "done": "完成",
+        "searchPlaceholder": "搜索工具項...",
+        "searchClear": "清空搜索",
+        "searchEmpty": "沒有找到匹配的工具項",
+        "hintEdit": "拖拽卡片可調整排列順序，點擊「完成」保存。",
+        "hintView": "點擊卡片可快速跳轉到對應工具頁。",
+        "ariaNav": "工具箱快速導航",
+        "removeCard": "刪除 {{label}}",
+        "ariaAddPanel": "可添加導航卡片",
+        "addableTitle": "可添加卡片",
+        "emptyAddable": "當前沒有可添加的卡片"
+      },
+      "nav": {
+        "download-create": {
+          "label": "創建下載",
+          "desc": "配置下載地址、保存路徑和線程參數並啟動任務。"
+        },
+        "download-history": {
+          "label": "下載歷史",
+          "desc": "查看下載任務進度、狀態並執行暫停/繼續等操作。"
+        },
+        "software": {
+          "label": "常用軟件",
+          "desc": "快速訪問常用軟件下載入口與反饋通道。"
+        },
+        "translate": {
+          "label": "文本翻譯",
+          "desc": "輸入文本並在多語言間進行翻譯。"
+        },
+        "fileService-hash": {
+          "label": "文件哈希校驗",
+          "desc": "計算並比對文件哈希值，校驗文件完整性。"
+        },
+        "encodingService-json": {
+          "label": "JSON 編解碼",
+          "desc": "對文本執行 JSON 編碼與解碼轉換。"
+        },
+        "encodingService-base64": {
+          "label": "Base64 編解碼",
+          "desc": "對文本執行 Base64 編碼與解碼轉換。"
+        },
+        "networkService": {
+          "label": "網絡服務",
+          "desc": "查詢 IP 信息與網絡相關工具結果。"
+        },
+        "fileCompression-imageCompression": {
+          "label": "圖像壓縮",
+          "desc": "批量壓縮圖片並設置輸出目錄與質量。"
+        },
+        "fileCompression-history": {
+          "label": "壓縮歷史",
+          "desc": "查看壓縮任務結果並快速打開輸出目錄。"
+        },
+        "formatFactory-image": {
+          "label": "圖片轉換",
+          "desc": "將圖片轉換為目標格式並調整輸出參數。"
+        },
+        "formatFactory-video": {
+          "label": "視頻轉換",
+          "desc": "對視頻執行轉封裝、轉碼或音軌提取。"
+        }
+      },
+      "software": {
+        "title": "常用軟件",
+        "subtitle": "快速訪問和管理常用軟件。",
+        "empty": "暫無常用軟件",
+        "loading": "加載中…",
+        "refresh": "刷新界面",
+        "feedback": "反饋問題",
+        "download": "前往下載",
+        "items": {
+          "steam": "全球最大的遊戲平臺，海量遊戲資源。"
+        }
+      },
+      "download": {
+        "title": "多線程下載",
+        "subtitle": "支持多線程下載，可自定義保存位置並查看實時進度。",
+        "pages": {
+          "create": "創建下載",
+          "history": "歷史任務"
+        },
+        "form": {
+          "urlLabel": "下載地址",
+          "urlPlaceholder": "輸入下載 URL，例如 https://example.com/file.zip",
+          "savePathLabel": "保存位置",
+          "savePathPlaceholder": "不填寫時將使用系統下載目錄",
+          "pickPath": "選擇路徑",
+          "defaultDirHint": "默認目錄：{{dir}}",
+          "threadsLabel": "下載線程數 (1-16)",
+          "start": "開始下載",
+          "starting": "啟動中...",
+          "cancelCurrent": "取消當前任務"
+        },
+        "tasks": {
+          "title": "下載任務",
+          "subtitle": "展示最近任務的進度、速度與狀態。",
+          "empty": "暫無下載任務",
+          "etaLabel": "預計結束",
+          "remainingLabel": "剩餘時間",
+          "elapsedLabel": "已使用下載時間",
+          "pause": "暫停",
+          "resume": "繼續",
+          "delete": "刪除記錄",
+          "openFolder": "打開文件所在位置"
+        },
+        "status": {
+          "downloading": "下載中",
+          "paused": "已暫停",
+          "completed": "已完成",
+          "failed": "失敗",
+          "canceled": "已取消"
+        },
+        "messages": {
+          "started": "已創建下載任務",
+          "startFailed": "啟動下載失敗",
+          "pickPathFailed": "選擇保存路徑失敗",
+          "cancelSuccess": "已取消下載任務",
+          "cancelFailed": "取消下載失敗",
+          "pauseSuccess": "已暫停下載任務",
+          "pauseFailed": "暫停下載失敗",
+          "resumeSuccess": "已繼續下載任務",
+          "resumeFailed": "繼續下載失敗",
+          "removeSuccess": "已刪除下載記錄",
+          "removeFailed": "刪除下載記錄失敗",
+          "openFolderFailed": "打開文件所在位置失敗"
+        }
+      },
+      "translate": {
+        "title": "文本翻譯",
+        "subtitle": "由騰訊雲提供機器翻譯服務",
+        "inputPlaceholder": "輸入要翻譯的文本…",
+        "outputPlaceholder": "翻譯結果將顯示在此處",
+        "translateBtn": "翻譯",
+        "translating": "翻譯中…",
+        "swap": "交換語言",
+        "clear": "清空",
+        "copy": "複製",
+        "loginRequired": "請先登錄後再使用翻譯服務",
+        "error": "翻譯失敗，請稍後重試",
+        "lang": {
+          "auto": "自動檢測",
+          "zh": "中文",
+          "en": "英語",
+          "ja": "日語",
+          "ko": "韓語",
+          "fr": "法語",
+          "de": "德語",
+          "es": "西班牙語",
+          "ru": "俄語"
+        }
+      },
+      "fileService": {
+        "hash": {
+          "title": "文件哈希校驗",
+          "subtitle": "選擇文件並計算哈希值，可與預期值對比校驗文件完整性",
+          "pickFile": "選擇文件",
+          "noFile": "未選擇文件",
+          "expectedPlaceholder": "輸入預期哈希值進行校驗（可選）",
+          "computeBtn": "計算哈希",
+          "computing": "計算中…",
+          "copy": "複製",
+          "match": "校驗通過：哈希值一致",
+          "mismatch": "校驗失敗：哈希值不一致"
+        }
+      },
+      "encodingService": {
+        "json": {
+          "title": "JSON 編解碼",
+          "subtitle": "支持 JSON 字符串編碼與解碼",
+          "inputPlaceholder": "輸入待處理文本（編碼）或 JSON 字符串（解碼）",
+          "outputPlaceholder": "處理結果將顯示在這裡",
+          "encodeBtn": "JSON 編碼",
+          "decodeBtn": "JSON 解碼",
+          "encodeError": "JSON 編碼失敗",
+          "decodeError": "JSON 解碼失敗，請檢查輸入格式"
+        },
+        "base64": {
+          "title": "Base64 編解碼",
+          "subtitle": "支持 UTF-8 文本與 Base64 互轉",
+          "inputPlaceholder": "輸入待處理文本（編碼）或 Base64 字符串（解碼）",
+          "outputPlaceholder": "處理結果將顯示在這裡",
+          "encodeBtn": "Base64 編碼",
+          "decodeBtn": "Base64 解碼",
+          "encodeError": "Base64 編碼失敗",
+          "decodeError": "Base64 解碼失敗，請檢查輸入內容"
+        }
+      },
+      "networkService": {
+        "title": "IP 信息查詢",
+        "subtitle": "IP 信息查詢工具",
+        "ipinfo": {
+          "ipPlaceholder": "輸入要查詢的 IP 地址",
+          "fillLocal": "本機 IP",
+          "queryBtn": "查詢",
+          "querying": "查詢中...",
+          "emptyIp": "請輸入 IP 地址",
+          "failed": "查詢失敗，請稍後重試",
+          "httpError": "請求失敗：HTTP {{status}}",
+          "nonJson": "接口返回了非 JSON 內容",
+          "resultTitle": "查詢結果",
+          "region": "地理位置",
+          "llc": "歸屬機構",
+          "latitude": "緯度",
+          "longitude": "經度",
+          "ipRange": "IP 段"
+        },
+        "librespeed": {
+          "urlPlaceholder": "輸入 LibreSpeed 地址，例如 http://127.0.0.1:19366",
+          "applyBtn": "應用地址",
+          "testBtn": "開始測試",
+          "testing": "測試中...",
+          "failed": "測試失敗，請稍後重試",
+          "ping": "延遲",
+          "download": "下載速度",
+          "upload": "上傳速度",
+          "resultTitle": "測試結果",
+          "result": "結果"
+        }
+      },
+      "fileCompression": {
+        "title": "文件壓縮",
+        "pages": {
+          "imageCompression": "圖像壓縮",
+          "history": "歷史任務"
+        },
+        "subtitle": "選擇圖片並配置輸出目錄，輸出格式與原圖一致。",
+        "pickImages": "選擇圖片",
+        "pickFile": "選擇圖片",
+        "selectedCount": "已選擇 {{count}} 張圖片",
+        "noImages": "未選擇圖片",
+        "noFile": "未選擇圖片",
+        "outputDir": "輸出目錄",
+        "outputDirPlaceholder": "不填寫時默認輸出到首張圖片所在目錄",
+        "outputPlaceholder": "不填寫時默認輸出到首張圖片所在目錄",
+        "pickOutputDir": "選擇目錄",
+        "quality": "壓縮質量",
+        "qualityHint": "可選範圍 10-100，數值越高質量越高",
+        "startBtn": "開始壓縮",
+        "compressing": "壓縮中...",
+        "comingSoon": "文件壓縮功能已可用。",
+        "resultsTitle": "壓縮結果",
+        "resultsSubtitle": "成功 {{success}} / 共 {{total}}",
+        "pendingListTitle": "待處理文件",
+        "resultsEmpty": "暫無壓縮結果",
+        "openOutput": "打開位置",
+        "removeTask": "刪除任務",
+        "resultSuccess": "{{before}} → {{after}} · 壓縮率 {{ratio}}",
+        "resultFailed": "壓縮失敗：{{reason}}",
+        "taskMeta": "狀態：{{status}} · 質量：{{quality}}",
+        "status": {
+          "completed": "已完成",
+          "failed": "失敗"
+        },
+        "messages": {
+          "pickFailed": "選擇圖片失敗",
+          "pickOutputDirFailed": "選擇輸出目錄失敗",
+          "startFailed": "啟動壓縮失敗，請稍後重試",
+          "done": "壓縮完成：成功 {{success}} / {{total}}",
+          "openFolderFailed": "打開輸出位置失敗",
+          "removeFailed": "刪除任務失敗"
+        }
+      },
+      "formatFactory": {
+        "pages": {
+          "image": "圖片轉換",
+          "video": "視頻轉換"
+        },
+        "image": {
+          "title": "圖片格式轉換",
+          "subtitle": "選擇圖片文件並轉換為目標格式，支持 PNG、JPG、WebP、BMP、ICO",
+          "pickFile": "選擇圖片",
+          "targetFormat": "目標格式",
+          "targetSize": "目標尺寸",
+          "quality": "輸出質量",
+          "convertBtn": "開始轉換",
+          "converting": "轉換中…",
+          "success": "轉換成功 → {{path}}",
+          "failed": "轉換失敗，請稍後重試",
+          "meta": {
+            "name": "文件名",
+            "mediaType": "媒體類型",
+            "mediaTypeImage": "圖片",
+            "mime": "MIME",
+            "format": "格式",
+            "resolution": "分辨率",
+            "size": "文件大小",
+            "pixels": "像素總數",
+            "aspectRatio": "寬高比",
+            "targetFormat": "目標格式",
+            "path": "完整路徑"
+          }
+        },
+        "video": {
+          "title": "視頻軌道提取",
+          "subtitle": "從視頻文件中提取音軌或視頻軌，支持常見音視頻封裝格式",
+          "pickFile": "選擇視頻文件",
+          "trackType": "提取類型",
+          "trackAudio": "音軌",
+          "trackVideo": "視頻軌",
+          "outputFormat": "輸出格式",
+          "extractBtn": "開始提取",
+          "extracting": "提取中…",
+          "success": "提取成功 → {{path}}",
+          "failed": "提取失敗，請稍後重試",
+          "meta": {
+            "name": "文件名",
+            "format": "封裝格式",
+            "size": "文件大小",
+            "path": "完整路徑"
+          }
+        }
+      }
+    },
+    "localFileSearch": {
+      "title": "本地文件查找",
+      "count": "{{count}} 項",
+      "pickDir": "選擇目錄",
+      "search": "搜索",
+      "config": "配置",
+      "limitLabel": "最大結果數",
+      "depthLabel": "最大深度",
+      "matchScopeLabel": "匹配範圍",
+      "matchScopeName": "文件名",
+      "matchScopePath": "完整路徑",
+      "matchModeLabel": "匹配方式",
+      "matchModeContains": "包含",
+      "matchModeStartsWith": "前綴",
+      "matchModeEndsWith": "後綴",
+      "matchModeExact": "精確匹配",
+      "includeFolders": "結果包含文件夾",
+      "includeFiles": "結果包含文件",
+      "includeHidden": "包含隱藏項",
+      "caseSensitive": "區分大小寫",
+      "extensionsLabel": "文件後綴",
+      "extensionsPlaceholder": "如 pdf,docx,ts",
+      "excludeDirsLabel": "排除目錄",
+      "excludeDirsPlaceholder": "如 dist,build,coverage",
+      "searching": "搜索中…",
+      "loading": "正在檢索本地文件…",
+      "empty": "暫無結果，試試更換關鍵詞或目錄。",
+      "rootPlaceholder": "選擇或輸入搜索目錄，例如 C:\\Users",
+      "keywordPlaceholder": "輸入文件名關鍵詞，例如 report、.pdf"
+    },
+    "memo": {
+      "search": "搜索標題、正文或標籤…",
+      "tagFilter": "標籤篩選",
+      "allTags": "全部標籤",
+      "filterByTag": "按標籤篩選",
+      "tagPlaceholder": "添加標籤",
+      "addTag": "添加標籤",
+      "removeTag": "移除標籤",
+      "noTags": "暫無標籤",
+      "add": "新建",
+      "loading": "加載中…",
+      "empty": "暫無備忘錄",
+      "untitled": "無標題",
+      "noContent": "無內容",
+      "pinned": "已置頂",
+      "titlePlaceholder": "標題",
+      "contentPlaceholder": "在這裡寫點什麼…",
+      "editMode": "編輯",
+      "previewMode": "預覽",
+      "splitMode": "分屏",
+      "editTags": "編輯標籤",
+      "markdownModeGroup": "Markdown 視圖模式",
+      "bookmark": "標記書籤",
+      "unbookmark": "取消書籤",
+      "bookmarked": "已標記",
+      "showAll": "顯示全部",
+      "showBookmarked": "僅顯示書籤",
+      "bulkSelect": "批量選擇",
+      "cancelSelection": "取消選擇",
+      "selectedCount": "已選 {{count}} 項",
+      "deleteSelected": "刪除所選",
+      "pin": "置頂",
+      "unpin": "取消置頂",
+      "delete": "刪除",
+      "created": "創建於",
+      "updated": "更新於",
+      "selectHint": "選擇或新建一條備忘錄"
+    },
+    "alarm": {
+      "title": "鬧鐘",
+      "add": "新建鬧鐘",
+      "newTitle": "新建鬧鐘",
+      "editTitle": "編輯鬧鐘",
+      "loading": "加載中…",
+      "empty": "暫無鬧鐘，點擊右上角新建",
+      "labelField": "備註",
+      "labelPlaceholder": "鬧鐘備註（可選）",
+      "repeatField": "重複",
+      "ringtoneField": "鈴聲",
+      "previewRingtone": "試聽",
+      "pausePreviewRingtone": "暫停",
+      "loopPlayback": "循環播放鈴聲",
+      "cancel": "取消",
+      "save": "保存",
+      "delete": "刪除",
+      "turnOn": "開啟",
+      "turnOff": "關閉",
+      "disabled": "已關閉",
+      "repeatOnce": "僅一次",
+      "repeatEveryday": "每天",
+      "repeatWeekdays": "工作日",
+      "repeatWeekend": "週末",
+      "ringIn": "{{h}}小時{{m}}分鐘後",
+      "ringInMin": "{{m}}分鐘後",
+      "ringTomorrow": "明天",
+      "ringInDays": "{{n}}天后",
+      "weekday": {
+        "sun": "日",
+        "mon": "一",
+        "tue": "二",
+        "wed": "三",
+        "thu": "四",
+        "fri": "五",
+        "sat": "六"
+      },
+      "ringtones": {
+        "alarm1": "系統鈴聲 1",
+        "alarm2": "核彈",
+        "alarm3": "奶蛙捧腹大笑"
+      }
+    },
+    "worldClock": {
+      "title": "世界時鐘",
+      "addCity": "添加城市",
+      "closePicker": "關閉添加城市",
+      "local": "本地",
+      "searchTimezone": "搜索時區...",
+      "alreadyAdded": "已添加",
+      "noResults": "未找到結果",
+      "removeCity": "移除",
+      "addToOverview": "添加到總覽",
+      "removeFromOverview": "從總覽移除",
+      "overviewLimitReached": "總覽最多顯示兩個時區",
+      "cityLabels": {
+        "Beijing": "北京",
+        "Guangzhou": "廣州",
+        "Shenzhen": "深圳",
+        "Chengdu": "成都",
+        "Chongqing": "重慶",
+        "Harbin": "哈爾濱",
+        "Hangzhou": "杭州",
+        "Nanjing": "南京",
+        "Wuhan": "武漢",
+        "Xian": "西安",
+        "Tianjin": "天津",
+        "Suzhou": "蘇州",
+        "New_Delhi": "新德里",
+        "Mumbai": "孟買",
+        "Bengaluru": "班加羅爾",
+        "Chennai": "金奈",
+        "Abu_Dhabi": "阿布扎比",
+        "San_Francisco": "舊金山",
+        "Seattle": "西雅圖",
+        "Las_Vegas": "拉斯維加斯",
+        "Washington": "華盛頓",
+        "Boston": "波士頓",
+        "Miami": "邁阿密",
+        "Atlanta": "亞特蘭大",
+        "Houston": "休斯敦",
+        "Dallas": "達拉斯",
+        "Ottawa": "渥太華",
+        "Montreal": "蒙特利爾",
+        "Calgary": "卡爾加里",
+        "Quebec_City": "魁北克市",
+        "Rio_de_Janeiro": "里約熱內盧",
+        "Brasilia": "巴西利亞",
+        "Wellington": "惠靈頓",
+        "Canberra": "堪培拉",
+        "Frankfurt": "法蘭克福",
+        "Munich": "慕尼黑",
+        "Milan": "米蘭",
+        "Barcelona": "巴塞羅那",
+        "Manchester": "曼徹斯特",
+        "Geneva": "日內瓦",
+        "Cape_Town": "開普敦"
+      },
+      "timezoneLabels": {
+        "UTC": "協調世界時",
+        "Asia_Shanghai": "上海",
+        "Asia_Beijing": "北京",
+        "Asia_Chongqing": "重慶",
+        "Asia_Harbin": "哈爾濱",
+        "Asia_Urumqi": "烏魯木齊",
+        "Asia_Hong_Kong": "香港",
+        "Asia_Macau": "澳門",
+        "Asia_Taipei": "臺北",
+        "Asia_Tokyo": "東京",
+        "Asia_Seoul": "首爾",
+        "Asia_Pyongyang": "平壤",
+        "Asia_Singapore": "新加坡",
+        "Asia_Kuala_Lumpur": "吉隆坡",
+        "Asia_Bangkok": "曼谷",
+        "Asia_Ho_Chi_Minh": "胡志明市",
+        "Asia_Phnom_Penh": "金邊",
+        "Asia_Vientiane": "萬象",
+        "Asia_Yangon": "仰光",
+        "Asia_Kathmandu": "加德滿都",
+        "Asia_Thimphu": "廷布",
+        "Asia_Colombo": "科倫坡",
+        "Asia_Dhaka": "達卡",
+        "Asia_Kolkata": "加爾各答",
+        "Asia_Karachi": "卡拉奇",
+        "Asia_Tashkent": "塔什干",
+        "Asia_Almaty": "阿拉木圖",
+        "Asia_Bishkek": "比什凱克",
+        "Asia_Dushanbe": "杜尚別",
+        "Asia_Ashgabat": "阿什哈巴德",
+        "Asia_Kabul": "喀布爾",
+        "Asia_Tehran": "德黑蘭",
+        "Asia_Baghdad": "巴格達",
+        "Asia_Dubai": "迪拜",
+        "Asia_Muscat": "馬斯喀特",
+        "Asia_Qatar": "多哈",
+        "Asia_Bahrain": "巴林",
+        "Asia_Kuwait": "科威特",
+        "Asia_Riyadh": "利雅得",
+        "Asia_Aden": "亞丁",
+        "Asia_Amman": "安曼",
+        "Asia_Beirut": "貝魯特",
+        "Asia_Damascus": "大馬士革",
+        "Asia_Jerusalem": "耶路撒冷",
+        "Asia_Nicosia": "尼科西亞",
+        "Asia_Brunei": "文萊",
+        "Asia_Jakarta": "雅加達",
+        "Asia_Makassar": "望加錫",
+        "Asia_Jayapura": "查亞普拉",
+        "Asia_Manila": "馬尼拉",
+        "Asia_Choibalsan": "喬巴山",
+        "Asia_Hovd": "科布多",
+        "Asia_Ulaanbaatar": "烏蘭巴托",
+        "Asia_Novosibirsk": "新西伯利亞",
+        "Asia_Omsk": "鄂木斯克",
+        "Asia_Yekaterinburg": "葉卡捷琳堡",
+        "Asia_Krasnoyarsk": "克拉斯諾亞爾斯克",
+        "Asia_Irkutsk": "伊爾庫茨克",
+        "Asia_Chita": "赤塔",
+        "Asia_Yakutsk": "雅庫茨克",
+        "Asia_Vladivostok": "海參崴",
+        "Asia_Sakhalin": "庫頁島",
+        "Asia_Magadan": "馬加丹",
+        "Asia_Kamchatka": "堪察加",
+        "Asia_Anadyr": "阿納德爾",
+        "Asia_Tomsk": "托木斯克",
+        "Asia_Barnaul": "巴爾瑙爾",
+        "Asia_Khandyga": "漢德加",
+        "Europe_London": "倫敦",
+        "Europe_Dublin": "都柏林",
+        "Europe_Paris": "巴黎",
+        "Europe_Berlin": "柏林",
+        "Europe_Madrid": "馬德里",
+        "Europe_Rome": "羅馬",
+        "Europe_Amsterdam": "阿姆斯特丹",
+        "Europe_Brussels": "布魯塞爾",
+        "Europe_Zurich": "蘇黎世",
+        "Europe_Vienna": "維也納",
+        "Europe_Prague": "布拉格",
+        "Europe_Warsaw": "華沙",
+        "Europe_Budapest": "布達佩斯",
+        "Europe_Bucharest": "布加勒斯特",
+        "Europe_Sofia": "索菲亞",
+        "Europe_Athens": "雅典",
+        "Europe_Lisbon": "里斯本",
+        "Europe_Stockholm": "斯德哥爾摩",
+        "Europe_Oslo": "奧斯陸",
+        "Europe_Copenhagen": "哥本哈根",
+        "Europe_Helsinki": "赫爾辛基",
+        "Europe_Tallinn": "塔林",
+        "Europe_Riga": "里加",
+        "Europe_Vilnius": "維爾紐斯",
+        "Europe_Minsk": "明斯克",
+        "Europe_Kiev": "基輔",
+        "Europe_Kyiv": "基輔",
+        "Europe_Moscow": "莫斯科",
+        "Europe_Volgograd": "伏爾加格勒",
+        "Europe_Samara": "薩馬拉",
+        "Europe_Simferopol": "辛菲羅波爾",
+        "Europe_Istanbul": "伊斯坦布爾",
+        "Europe_Belgrade": "貝爾格萊德",
+        "Europe_Zagreb": "薩格勒布",
+        "Europe_Ljubljana": "盧布爾雅那",
+        "Europe_Bratislava": "布拉迪斯拉發",
+        "Europe_Luxembourg": "盧森堡",
+        "Europe_Monaco": "摩納哥",
+        "Europe_Andorra": "安道爾",
+        "Europe_Malta": "馬耳他",
+        "Europe_Tirane": "地拉那",
+        "Europe_Chisinau": "基希訥烏",
+        "Europe_Skopje": "斯科普里",
+        "Europe_Podgorica": "波德戈裡察",
+        "Europe_Sarajevo": "薩拉熱窩",
+        "Europe_Gibraltar": "直布羅陀",
+        "Europe_Guernsey": "根西",
+        "Europe_Isle_of_Man": "馬恩島",
+        "Europe_Jersey": "澤西",
+        "Europe_Mariehamn": "瑪麗港",
+        "Europe_San_Marino": "聖馬力諾",
+        "Europe_Vatican": "梵蒂岡",
+        "Europe_Ulyanovsk": "烏里揚諾夫斯克",
+        "Europe_Astrakhan": "阿斯特拉罕",
+        "Europe_Kirov": "基洛夫",
+        "Europe_Saratov": "薩拉托夫",
+        "Africa_Cairo": "開羅",
+        "Africa_Lagos": "拉各斯",
+        "Africa_Nairobi": "內羅畢",
+        "Africa_Johannesburg": "約翰內斯堡",
+        "Africa_Casablanca": "卡薩布蘭卡",
+        "Africa_Tunis": "突尼斯",
+        "Africa_Algiers": "阿爾及爾",
+        "Africa_Accra": "阿克拉",
+        "Africa_Addis_Ababa": "亞的斯亞貝巴",
+        "Africa_Dar_es_Salaam": "達累斯薩拉姆",
+        "Africa_Kampala": "坎帕拉",
+        "Africa_Kinshasa": "金沙薩",
+        "Africa_Lubumbashi": "盧本巴希",
+        "Africa_Khartoum": "喀土穆",
+        "Africa_Tripoli": "的黎波里",
+        "Africa_Maputo": "馬普托",
+        "Africa_Harare": "哈拉雷",
+        "Africa_Windhoek": "溫得和克",
+        "Africa_Luanda": "羅安達",
+        "Africa_Abidjan": "阿比讓",
+        "Africa_Dakar": "達喀爾",
+        "Africa_Douala": "杜阿拉",
+        "Africa_Libreville": "利伯維爾",
+        "Africa_Brazzaville": "布拉柴維爾",
+        "Africa_Bangui": "班吉",
+        "Africa_Niamey": "尼亞美",
+        "Africa_Bamako": "巴馬科",
+        "Africa_Ouagadougou": "瓦加杜古",
+        "Africa_Conakry": "科納克里",
+        "Africa_Freetown": "弗里敦",
+        "Africa_Monrovia": "蒙羅維亞",
+        "Africa_Lome": "洛美",
+        "Africa_Porto-Novo": "波多諾伏",
+        "Africa_Nouakchott": "努瓦克肖特",
+        "Africa_Bujumbura": "布瓊布拉",
+        "Africa_Kigali": "基加利",
+        "Africa_Mogadishu": "摩加迪沙",
+        "Africa_Asmara": "阿斯馬拉",
+        "Africa_Djibouti": "吉布提",
+        "Africa_Malabo": "馬拉博",
+        "Africa_Sao_Tome": "聖多美",
+        "Africa_Lusaka": "盧薩卡",
+        "Africa_Blantyre": "布蘭太爾",
+        "Africa_Gaborone": "哈博羅內",
+        "Africa_Maseru": "馬塞盧",
+        "Africa_Mbabane": "姆巴巴內",
+        "America_New_York": "紐約",
+        "America_Los_Angeles": "洛杉磯",
+        "America_Chicago": "芝加哥",
+        "America_Denver": "丹佛",
+        "America_Phoenix": "鳳凰城",
+        "America_Anchorage": "安克雷奇",
+        "America_Honolulu": "檀香山",
+        "America_Detroit": "底特律",
+        "America_Indiana_Indianapolis": "印第安納波利斯",
+        "America_Kentucky_Louisville": "路易斯維爾",
+        "America_North_Dakota_Center": "北達科他",
+        "America_Boise": "博伊西",
+        "America_Menominee": "梅諾米尼",
+        "America_Toronto": "多倫多",
+        "America_Vancouver": "溫哥華",
+        "America_Edmonton": "埃德蒙頓",
+        "America_Winnipeg": "溫尼伯",
+        "America_Halifax": "哈利法克斯",
+        "America_St_Johns": "聖約翰斯",
+        "America_Regina": "里賈納",
+        "America_Moncton": "蒙克頓",
+        "America_Goose_Bay": "鵝灣",
+        "America_Glace_Bay": "格萊斯灣",
+        "America_Blanc-Sablon": "白沙布隆",
+        "America_Iqaluit": "伊卡盧伊特",
+        "America_Rankin_Inlet": "蘭金",
+        "America_Resolute": "雷索盧特",
+        "America_Dawson_Creek": "道森克里克",
+        "America_Whitehorse": "白馬市",
+        "America_Yellowknife": "黃刀鎮",
+        "America_Cambridge_Bay": "劍橋灣",
+        "America_Inuvik": "伊努維克",
+        "America_Dawson": "道森",
+        "America_Creston": "克雷斯頓",
+        "America_Fort_Nelson": "納爾遜堡",
+        "America_Mexico_City": "墨西哥城",
+        "America_Tijuana": "蒂華納",
+        "America_Cancun": "坎昆",
+        "America_Mazatlan": "馬薩特蘭",
+        "America_Hermosillo": "埃莫西約",
+        "America_Chihuahua": "奇瓦瓦",
+        "America_Monterrey": "蒙特雷",
+        "America_Matamoros": "馬塔莫羅斯",
+        "America_Ojinaga": "奧希納加",
+        "America_Merida": "梅里達",
+        "America_Bahia_Banderas": "巴伊亞班德拉斯",
+        "America_Havana": "哈瓦那",
+        "America_Jamaica": "牙買加",
+        "America_Port-au-Prince": "太子港",
+        "America_Nassau": "拿騷",
+        "America_Grand_Turk": "大特克",
+        "America_Barbados": "巴巴多斯",
+        "America_Martinique": "馬提尼克",
+        "America_Guadeloupe": "瓜德羅普",
+        "America_Santo_Domingo": "聖多明各",
+        "America_Puerto_Rico": "波多黎各",
+        "America_Cayman": "開曼",
+        "America_Panama": "巴拿馬",
+        "America_Costa_Rica": "哥斯達黎加",
+        "America_Managua": "馬那瓜",
+        "America_Tegucigalpa": "特古西加爾巴",
+        "America_El_Salvador": "薩爾瓦多",
+        "America_Guatemala": "危地馬拉",
+        "America_Belize": "伯利茲",
+        "America_Bogota": "波哥大",
+        "America_Lima": "利馬",
+        "America_Caracas": "加拉加斯",
+        "America_Guyana": "圭亞那",
+        "America_Paramaribo": "帕拉馬裡博",
+        "America_Cayenne": "卡宴",
+        "America_Asuncion": "亞松森",
+        "America_Montevideo": "蒙得維的亞",
+        "America_Buenos_Aires": "布宜諾斯艾利斯",
+        "America_Argentina_Cordoba": "科爾多瓦",
+        "America_Argentina_Mendoza": "門多薩",
+        "America_Argentina_Tucuman": "圖庫曼",
+        "America_Argentina_La_Rioja": "拉里奧哈",
+        "America_Argentina_San_Juan": "聖胡安",
+        "America_Argentina_Salta": "薩爾塔",
+        "America_Argentina_San_Luis": "聖路易斯",
+        "America_Argentina_Rio_Gallegos": "里奧加耶戈斯",
+        "America_Argentina_Ushuaia": "烏斯懷亞",
+        "America_Sao_Paulo": "聖保羅",
+        "America_Manaus": "馬瑙斯",
+        "America_Belem": "貝倫",
+        "America_Fortaleza": "福塔萊薩",
+        "America_Recife": "累西腓",
+        "America_Bahia": "巴伊亞",
+        "America_Cuiaba": "庫亞巴",
+        "America_Campo_Grande": "大坎普",
+        "America_Porto_Velho": "韋柳港",
+        "America_Boa_Vista": "博阿維斯塔",
+        "America_Rio_Branco": "里奧布蘭科",
+        "America_Noronha": "諾羅尼亞",
+        "America_Santiago": "聖地亞哥",
+        "America_Guayaquil": "瓜亞基爾",
+        "America_La_Paz": "拉巴斯",
+        "America_Araguaina": "阿拉瓜伊納",
+        "America_Santarem": "聖塔倫",
+        "America_Eirunepe": "埃魯內佩",
+        "America_Maceio": "馬塞約",
+        "America_Pangnirtung": "龐納唐",
+        "America_Atikokan": "阿蒂科肯",
+        "America_Nipigon": "尼皮貢",
+        "America_Thunder_Bay": "桑德貝",
+        "America_Rainy_River": "雷尼河",
+        "America_Swift_Current": "雨燕溪",
+        "Antarctica_McMurdo": "麥克默多",
+        "Antarctica_Casey": "凱西",
+        "Antarctica_Davis": "戴維斯",
+        "Antarctica_Mawson": "莫森",
+        "Antarctica_Palmer": "帕爾默",
+        "Antarctica_Rothera": "羅瑟拉",
+        "Antarctica_Syowa": "昭和",
+        "Antarctica_Troll": "特羅爾",
+        "Antarctica_Vostok": "沃斯托克",
+        "Antarctica_DumontDUrville": "迪蒙迪維爾",
+        "Antarctica_Macquarie": "麥誇裡",
+        "Australia_Sydney": "悉尼",
+        "Australia_Melbourne": "墨爾本",
+        "Australia_Brisbane": "布里斯班",
+        "Australia_Perth": "珀斯",
+        "Australia_Adelaide": "阿德萊德",
+        "Australia_Hobart": "霍巴特",
+        "Australia_Darwin": "達爾文",
+        "Australia_Lord_Howe": "豪勳爵島",
+        "Australia_Lindeman": "林德曼",
+        "Australia_Eucla": "尤克拉",
+        "Australia_Broken_Hill": "布羅肯希爾",
+        "Australia_Currie": "柯里",
+        "Pacific_Auckland": "奧克蘭",
+        "Pacific_Fiji": "斐濟",
+        "Pacific_Guam": "關島",
+        "Pacific_Port_Moresby": "莫爾茲比港",
+        "Pacific_Noumea": "努美阿",
+        "Pacific_Tongatapu": "湯加塔布",
+        "Pacific_Apia": "阿皮亞",
+        "Pacific_Chatham": "查塔姆",
+        "Pacific_Easter": "復活節島",
+        "Pacific_Galapagos": "加拉帕戈斯",
+        "Pacific_Gambier": "甘比爾",
+        "Pacific_Guadalcanal": "瓜達爾卡納爾",
+        "Pacific_Kiritimati": "聖誕島",
+        "Pacific_Kosrae": "科斯雷",
+        "Pacific_Kwajalein": "誇賈林",
+        "Pacific_Majuro": "馬朱羅",
+        "Pacific_Marquesas": "馬克薩斯",
+        "Pacific_Midway": "中途島",
+        "Pacific_Nauru": "瑙魯",
+        "Pacific_Niue": "紐埃",
+        "Pacific_Norfolk": "諾福克",
+        "Pacific_Pago_Pago": "帕果帕果",
+        "Pacific_Palau": "帕勞",
+        "Pacific_Pitcairn": "皮特凱恩",
+        "Pacific_Pohnpei": "波納佩",
+        "Pacific_Rarotonga": "拉羅湯加",
+        "Pacific_Tahiti": "塔希提",
+        "Pacific_Tarawa": "塔拉瓦",
+        "Pacific_Funafuti": "富納富提",
+        "Pacific_Efate": "埃法特",
+        "Pacific_Wake": "威克島",
+        "Pacific_Wallis": "瓦利斯",
+        "Pacific_Bougainville": "布干維爾",
+        "Pacific_Chuuk": "楚克",
+        "Atlantic_Reykjavik": "雷克雅未克",
+        "Atlantic_Azores": "亞速爾",
+        "Atlantic_Cape_Verde": "佛得角",
+        "Atlantic_Bermuda": "百慕大",
+        "Atlantic_Canary": "加那利",
+        "Atlantic_Faroe": "法羅",
+        "Atlantic_Madeira": "馬德拉",
+        "Atlantic_South_Georgia": "南喬治亞",
+        "Atlantic_Stanley": "斯坦利",
+        "Atlantic_St_Helena": "聖赫勒拿",
+        "Indian_Maldives": "馬爾代夫",
+        "Indian_Mauritius": "毛里求斯",
+        "Indian_Reunion": "留尼汪",
+        "Indian_Mahe": "馬埃",
+        "Indian_Antananarivo": "塔那那利佛",
+        "Indian_Comoro": "科摩羅",
+        "Indian_Mayotte": "馬約特",
+        "Indian_Kerguelen": "凱爾蓋朗",
+        "Indian_Christmas": "聖誕島",
+        "Indian_Cocos": "科科斯",
+        "Indian_Chagos": "查戈斯",
+        "Africa_Asmera": "阿斯馬拉",
+        "Africa_Banjul": "班珠爾",
+        "Africa_Bissau": "比紹",
+        "Africa_Ceuta": "休達",
+        "Africa_El_Aaiun": "阿尤恩",
+        "Africa_Juba": "朱巴",
+        "Africa_Ndjamena": "恩賈梅納",
+        "America_Adak": "埃達克",
+        "America_Anguilla": "安圭拉",
+        "America_Antigua": "安提瓜",
+        "America_Aruba": "阿魯巴",
+        "America_Catamarca": "卡塔馬卡",
+        "America_Argentina_Catamarca": "卡塔馬卡",
+        "America_Ciudad_Juarez": "華雷斯城",
+        "America_Coral_Harbour": "珊瑚港",
+        "America_Cordoba": "科爾多瓦",
+        "America_Coyhaique": "科伊海克",
+        "America_Curacao": "庫拉索",
+        "America_Danmarkshavn": "丹麥港",
+        "America_Dominica": "多米尼克",
+        "America_Godthab": "努克",
+        "America_Nuuk": "努克",
+        "America_Grenada": "格林納達",
+        "America_Indiana_Knox": "諾克斯",
+        "America_Indiana_Marengo": "馬倫戈",
+        "America_Indiana_Petersburg": "彼得斯堡",
+        "America_Indiana_Tell_City": "特爾城",
+        "America_Indiana_Vevay": "韋韋",
+        "America_Indiana_Vincennes": "文森斯",
+        "America_Indiana_Winamac": "威納馬克",
+        "America_Indianapolis": "印第安納波利斯",
+        "America_Jujuy": "胡胡伊",
+        "America_Argentina_Jujuy": "胡胡伊",
+        "America_Argentina_Buenos_Aires": "布宜諾斯艾利斯",
+        "America_Juneau": "朱諾",
+        "America_Kentucky_Monticello": "蒙蒂塞洛",
+        "America_Kralendijk": "克拉倫代克",
+        "America_Louisville": "路易斯維爾",
+        "America_Lower_Princes": "下太子區",
+        "America_Marigot": "馬裡戈",
+        "America_Mendoza": "門多薩",
+        "America_Metlakatla": "梅特拉卡特拉",
+        "America_Miquelon": "密克隆",
+        "America_Montserrat": "蒙特塞拉特",
+        "America_Nome": "諾姆",
+        "America_North_Dakota_Beulah": "比尤拉",
+        "America_North_Dakota_New_Salem": "新塞勒姆",
+        "America_Port_of_Spain": "西班牙港",
+        "America_Punta_Arenas": "蓬塔阿雷納斯",
+        "America_Scoresbysund": "伊托科爾托米特",
+        "America_Sitka": "錫特卡",
+        "America_St_Barthelemy": "聖巴泰勒米",
+        "America_St_Kitts": "聖基茨",
+        "America_St_Lucia": "聖盧西亞",
+        "America_St_Thomas": "聖托馬斯",
+        "America_St_Vincent": "聖文森特",
+        "America_Thule": "圖勒",
+        "America_Tortola": "托爾托拉",
+        "America_Yakutat": "亞庫塔特",
+        "Arctic_Longyearbyen": "朗伊爾城",
+        "Asia_Aqtau": "阿克套",
+        "Asia_Aqtobe": "阿克托別",
+        "Asia_Atyrau": "阿特勞",
+        "Asia_Baku": "巴庫",
+        "Asia_Calcutta": "加爾各答",
+        "Asia_Dili": "帝力",
+        "Asia_Famagusta": "法馬古斯塔",
+        "Asia_Gaza": "加沙",
+        "Asia_Hebron": "希伯倫",
+        "Asia_Katmandu": "加德滿都",
+        "Asia_Kuching": "古晉",
+        "Asia_Novokuznetsk": "新庫茲涅茨克",
+        "Asia_Oral": "烏拉爾斯克",
+        "Asia_Pontianak": "坤甸",
+        "Asia_Qostanay": "科斯塔奈",
+        "Asia_Qyzylorda": "克孜勒奧爾達",
+        "Asia_Rangoon": "仰光",
+        "Asia_Saigon": "胡志明市",
+        "Asia_Samarkand": "撒馬爾罕",
+        "Asia_Srednekolymsk": "中科雷姆斯克",
+        "Asia_Tbilisi": "第比利斯",
+        "Asia_Ust-Nera": "烏斯季涅拉",
+        "Asia_Yerevan": "埃里溫",
+        "Atlantic_Faeroe": "法羅群島",
+        "Europe_Busingen": "比辛根",
+        "Europe_Kaliningrad": "加里寧格勒",
+        "Europe_Vaduz": "瓦杜茲",
+        "Pacific_Enderbury": "恩德伯裡島",
+        "Pacific_Kanton": "坎頓島",
+        "Pacific_Fakaofo": "法考福",
+        "Pacific_Honolulu": "檀香山",
+        "Pacific_Ponape": "波納佩",
+        "Pacific_Saipan": "塞班島",
+        "Pacific_Truk": "楚克"
+      }
+    }
+  },
+  "calculator": {
+    "modes": {
+      "arithmetic": "四則運算",
+      "scientific": "科學計算",
+      "coordinate": "繪圖",
+      "unitConversion": "單位換算"
+    },
+    "sidebar": {
+      "expand": "展開",
+      "collapse": "收起"
+    },
+    "functions": {
+      "logn": "任意底數對數",
+      "fraction": "分數",
+      "sum": "有限求和",
+      "integral": "定積分",
+      "derivative": "指定點微分",
+      "variable": "變量 x"
+    },
+    "coordinate": {
+      "placeholder": "輸入函數，如 x^2, sin(x)",
+      "error": "無效的表達式",
+      "plot": "函數圖像",
+      "toggleKeys": "切換輸入面板"
+    }
+  },
+  "settings": {
+    "navigation": {
+      "expand": "展開頁面導航",
+      "collapse": "收起頁面導航"
+    },
+    "sidebar": {
+      "title": "設置"
+    },
+    "labels": {
+      "index": "快速導航",
+      "app": "軟件設置",
+      "layout-preview": "佈局預覽",
+      "expand-layout": "展開佈局",
+      "maxexpand-layout": "全展開佈局",
+      "album": "相冊配置",
+      "hide-process-list": "隱藏窗口管理",
+      "position": "位置校準",
+      "theme": "主題外觀",
+      "language": "語言切換",
+      "behavior": "交互行為",
+      "animation": "軟件動畫",
+      "url-parser": "URL解析",
+      "clipboard-history": "剪貼板歷史",
+      "alarm": "鬧鐘配置",
+      "break-reminder": "休息提醒",
+      "autostart": "實用工具",
+      "sound": "聲音設置",
+      "notification": "通知設置",
+      "performance": "性能設置",
+      "performance-monitor": "性能監控",
+      "screenshot-settings": "截圖設置",
+      "network": "網絡配置",
+      "mail": "郵箱配置",
+      "weather": "天氣配置",
+      "music": "歌曲設置",
+      "music-whitelist": "播放器白名單",
+      "music-lyrics": "歌詞源",
+      "music-smtc": "SMTC",
+      "music-providers": "歌詞提供源",
+      "ai": "AI Agent",
+      "general": "通用配置",
+      "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama 本地",
+      "orb-style": "Orb 樣式",
+      "shortcut": "快捷鍵",
+      "user": "用戶中心",
+      "update": "更新設置",
+      "pluginMarket": "綜合市場",
+      "about": "關於軟件"
+    },
+    "mail": {
+      "pagination": "郵箱配置分頁",
+      "accounts": {
+        "unnamed": "未命名賬戶",
+        "add": "添加賬戶",
+        "remove": "移除",
+        "empty": "暫無賬戶，請點擊上方 + 添加郵箱賬戶",
+        "label": "賬戶備註",
+        "labelHint": "自定義名稱，方便區分多個郵箱",
+        "labelPlaceholder": "工作郵箱 / 個人郵箱"
+      },
+      "account": {
+        "title": "賬戶信息",
+        "hint": "郵箱地址用於展示與默認發件人信息。",
+        "emailAddress": "郵箱地址",
+        "emailAddressHint": "你的完整郵箱地址，例如 name@qq.com",
+        "authUser": "認證用戶名",
+        "authUserHint": "通常與郵箱地址相同",
+        "authSecret": "認證密鑰 / 應用專用密碼",
+        "authSecretHint": "郵箱授權碼或應用專用密碼，非登錄密碼"
+      },
+      "imap": {
+        "title": "IMAP",
+        "hint": "用於收信、同步收件箱和文件夾狀態。",
+        "quickFill": "快速填充",
+        "selectProvider": "選擇郵箱服務商自動填充",
+        "host": "IMAP 服務器",
+        "port": "IMAP 端口",
+        "secure": "啟用 TLS / SSL",
+        "providers": {
+          "qq": "QQ 郵箱",
+          "netease163": "網易 163",
+          "netease126": "網易 126",
+          "neteaseYeah": "網易 yeah",
+          "sina": "新浪郵箱",
+          "sohu": "搜狐郵箱",
+          "aliyun": "阿里郵箱",
+          "foxmail": "Foxmail",
+          "outlook": "Outlook / Hotmail",
+          "gmail": "Gmail"
+        }
+      },
+      "smtp": {
+        "hint": "用於發信。建議使用服務商推薦端口和加密方式。",
+        "host": "SMTP 服務器",
+        "port": "SMTP 端口",
+        "secure": "啟用 TLS / SSL"
+      },
+      "actions": {
+        "title": "保存配置",
+        "hint": "當前僅保存本地配置。下一步可接入 IMAP 收信與 SMTP 發信實現。",
+        "save": "保存郵箱配置"
+      },
+      "preferences": {
+        "title": "收信設置",
+        "hint": "控制每次獲取郵件的數量和其他收信行為。",
+        "fetchLimit": "每次獲取郵件數",
+        "fetchLimitHint": "刷新收件箱時一次拉取的郵件數量，範圍 1–30"
+      }
+    },
+    "mailPages": {
+      "account": "賬戶",
+      "imap": "IMAP",
+      "smtp": "SMTP",
+      "preferences": "收信設置"
+    },
+    "weatherPages": {
+      "location": "定位配置",
+      "provider": "接口配置"
+    },
+    "aiPages": {
+      "general": "通用配置",
+      "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama 本地",
+      "orb-style": "Orb 樣式"
+    },
+    "musicPages": {
+      "whitelist": "白名單",
+      "lyrics": "歌詞源",
+      "smtc": "SMTC",
+      "providers": "提供源"
+    },
+    "networkPages": {
+      "timeout": "請求超時",
+      "data-center": "數據中心"
+    },
+    "updatePages": {
+      "update-check": "檢查更新",
+      "info-sync": "信息同步"
+    },
+    "index": {
+      "title": "快速導航",
+      "reset": "恢復默認",
+      "done": "完成",
+      "edit": "編輯",
+      "searchPlaceholder": "搜索配置項...",
+      "searchEmpty": "沒有找到匹配的配置項",
+      "searchClear": "清空搜索",
+      "hintEdit": "拖拽卡片可調整排列順序，點擊「完成」保存。",
+      "hintView": "點擊卡片可快速跳轉到對應配置頁。",
+      "ariaNav": "設置快速導航",
+      "removeCard": "刪除 {{label}}",
+      "ariaAddPanel": "可添加導航卡片",
+      "addableTitle": "可添加卡片",
+      "emptyAddable": "當前沒有可添加的卡片"
+    },
+    "language": {
+      "title": "顯示語言",
+      "hint": "切換後將立即應用到支持多語言的界面文案",
+      "options": {
+        "zh-CN": "簡體中文",
+        "en-US": "English",
+        "zh-TW": "繁體中文"
+      },
+      "current": {
+        "zh-CN": "當前語言：簡體中文",
+        "en-US": "Current language: English",
+        "zh-TW": "當前語言：繁體中文"
+      }
+    },
+    "app": {
+      "pagination": "軟件設置分頁",
+      "performance": {
+        "title": "性能設置",
+        "hint": "性能相關配置。",
+        "modeTitle": "啟用性能模式",
+        "modeHint": "啟用後 MaxExpand 首次進入將延遲加載各頁面，降低首次切換卡頓；關閉後使用舊版一次性加載方式。",
+        "modeToggle": "啟用性能模式",
+        "frameRateLimitTitle": "解除幀率限制",
+        "frameRateLimitHint": "啟用後將解除 Chromium 幀率上限，適用於高刷新率顯示器。更改後需重啟應用生效。",
+        "frameRateLimitToggle": "解除幀率限制",
+        "frameRateLimitRestartHint": "幀率限制設置已變更，重啟後生效。"
+      },
+      "performanceMonitor": {
+        "title": "性能監控",
+        "hint": "性能監控展示與硬件狀態配置。",
+        "hardwareTitle": "監控硬件",
+        "hardwareHint": "選擇性能監控圖表讀取的 CPU、GPU 和磁盤目標。",
+        "hardware": {
+          "cpu": "CPU",
+          "gpu": "GPU",
+          "disk": "磁盤"
+        },
+        "hardwareOptions": {
+          "allCpu": "全部 CPU",
+          "autoGpu": "自動選擇 GPU",
+          "allDisks": "全部磁盤"
+        },
+        "colorsTitle": "圖表顏色",
+        "colorsHint": "調整 Expand 性能監控中 CPU、GPU、內存和磁盤圖表顏色。",
+        "resetColors": "恢復默認顏色",
+        "colors": {
+          "cpu": "CPU",
+          "gpu": "GPU",
+          "memory": "內存",
+          "disk": "磁盤"
+        }
+      },
+      "screenshotSettings": {
+        "title": "截圖設置",
+        "hint": "截圖相關配置。",
+        "engineTitle": "截圖引擎",
+        "engineHint": "選擇截圖使用的引擎。插件模式支持多顯示器截圖，JS 模式兼容性更好。",
+        "enginePlugin": "插件模式",
+        "engineJs": "JS 模式",
+        "ocrEngineTitle": "OCR 識別方案",
+        "ocrEngineHint": "本地 OCR 使用 Tesseract.js 在設備上識別，不上傳圖片；服務端 OCR 使用雲端識別和計費。",
+        "ocrEngineLocal": "本地 OCR",
+        "ocrEngineServer": "服務端 OCR",
+        "translateTitle": "截圖翻譯語言",
+        "translateHint": "配置截圖翻譯的源語言和目標語言。"
+      },
+      "notifications": {
+        "configChanged": {
+          "title": "配置變更",
+          "body": "獨立窗口模式設置已變更。"
+        },
+        "windowControlsChanged": {
+          "body": "獨立窗口控制按鈕樣式已變更。"
+        },
+        "displayChanged": {
+          "body": "目標顯示器已變更，是否立即重啟生效？"
+        }
+      },
+      "layout": {
+        "previewTitle": "總覽佈局預覽",
+        "previewHint": "實時顯示左右控件組合後的 Expand 態靈動島樣式，切換下方控件可即時預覽。",
+        "widgetPickerTitle": "控件組合",
+        "widgetPickerHint": "分別選擇左右兩側展示的控件，切換後自動保存。",
+        "leftWidget": "左側控件",
+        "rightWidget": "右側控件",
+        "clockStyleTitle": "中間時鐘樣式",
+        "clockStyleHint": "選擇總覽中間時鐘區域樣式，切換後自動保存。",
+        "gradientEditorTitle": "漸變顏色編輯",
+        "gradientEditorHint": "選擇一個基準色，自動生成漸變時鐘字體。",
+        "gradientBaseColor": "基準色",
+        "musicBgTitle": "Hover 音樂背景樣式",
+        "musicBgHint": "預覽並選擇 Hover 態歌曲界面的背景波浪效果樣式。",
+        "musicBgCurrent": "目前狀態",
+        "musicBgModified": "修改後效果",
+        "musicBgSilky": "絲滑波浪",
+        "musicBgWave": "音頻波浪",
+        "gradientStart": "起始色",
+        "gradientMiddle": "中間色",
+        "gradientEnd": "結束色",
+        "clockStyleNames": {
+          "classic": "經典樣式",
+          "gradient": "漸變樣式",
+          "minimal": "極簡藝術"
+        },
+        "widgetNames": {
+          "shortcuts": "快捷啟動",
+          "todo": "待辦事項",
+          "song": "歌曲",
+          "countdown": "倒數日",
+          "pomodoro": "番茄鍾",
+          "urlFavorites": "URL 收藏",
+          "album": "相冊輪播",
+          "mokugyo": "電子木魚",
+          "breakReminder": "休息提醒",
+          "alarm": "鬧鐘",
+          "worldClock": "世界時鐘"
+        },
+        "previewMock": {
+          "previewTag": "預覽",
+          "shortcutA": "應用A",
+          "shortcutB": "應用B",
+          "shortcutC": "應用C",
+          "todoA": "示例待辦 A",
+          "todoB": "示例待辦 B",
+          "todoC": "示例待辦 C",
+          "songTitle": "示例歌曲",
+          "songArtist": "示例藝術家",
+          "songAlbum": "示例專輯",
+          "samplePreview": "示例預覽",
+          "albumFile": "示例圖片.jpg",
+          "urlNoteGithub": "代碼託管",
+          "urlNoteStackOverflow": "技術問答",
+          "breakSedentary": "站起來活動",
+          "breakGeneric": "休息一下",
+          "date": "2026年01月01日 星期四",
+          "lunar": "乙巳年 臘月十二",
+          "yiItems": "祈福 · 出行 · 開市",
+          "jiItems": "動土 · 安葬 · 破土"
+        }
+      },
+      "expandLayout": {
+        "previewTitle": "展開導航預覽",
+        "previewHint": "預覽展開態底部導航點順序，灰色表示已隱藏頁面。",
+        "orderTitle": "頁面排序與可見性（展開）",
+        "orderHint": "拖拽調整展開態頁面順序，點擊開關切換是否顯示。當前顯示 {{count}} / {{total}} 個頁面。",
+        "orderHintStatic": "拖拽調整展開態頁面順序，點擊開關切換是否顯示。",
+        "moveUp": "上移",
+        "moveDown": "下移",
+        "hideTab": "隱藏此頁面",
+        "showTab": "顯示此頁面",
+        "alwaysVisible": "此頁面不可隱藏",
+        "resetDefault": "恢復默認",
+        "tabLabels": {
+          "overview": "總覽",
+          "song": "歌曲",
+          "tools": "工具",
+          "translation": "翻譯",
+          "performanceMonitor": "性能監控"
+        }
+      },
+      "maxExpandLayout": {
+        "appModeTitle": "啟用界面應用化模式",
+        "appModeHint": "通過應用導航頁打開全部應用，右側按鈕返回導航頁；啟用後不使用下方的頁面排序與可見性配置。",
+        "previewTitle": "全展開導航預覽",
+        "previewHint": "預覽底部導航點的排列順序，灰色表示已隱藏的頁面。",
+        "backLabel": "返回",
+        "settingsLabel": "設置",
+        "orderTitle": "頁面排序與可見性",
+        "orderHint": "拖拽調整頁面順序，點擊開關切換是否顯示。當前顯示 {{count}} / {{total}} 個頁面。",
+        "orderHintStatic": "拖拽調整頁面順序，點擊開關切換是否顯示。",
+        "moveUp": "上移",
+        "moveDown": "下移",
+        "hideTab": "隱藏此頁面",
+        "showTab": "顯示此頁面",
+        "alwaysVisible": "此頁面不可隱藏",
+        "resetDefault": "恢復默認",
+        "tabLabels": {
+          "todo": "待辦事項",
+          "urlFavorites": "URL 收藏",
+          "album": "相冊",
+          "mail": "郵箱",
+          "localFileSearch": "文件查找",
+          "clipboardHistory": "剪貼板",
+          "aiChat": "AI 對話",
+          "memo": "備忘錄",
+          "countdown": "倒數日",
+          "alarm": "鬧鐘",
+          "toolbox": "工具箱",
+          "miniGame": "小遊戲",
+          "stock": "股票行情",
+          "cli": "CLI 控制台",
+          "calculator": "計算器",
+          "worldClock": "世界時鐘",
+          "calendar": "日曆"
+        }
+      },
+      "hideProcess": {
+        "title": "隱藏窗口管理",
+        "hint": "當下方黑名單進程對應窗口處於焦點狀態時，將立即隱藏靈動島；失去焦點後自動顯示。",
+        "fullscreenTitle": "全屏時自動隱藏",
+        "fullscreenHint": "檢測到任意窗口進入全屏後自動隱藏靈動島，退出全屏後自動顯示。",
+        "fullscreenToggle": "啟用全屏窗口自動隱藏",
+        "runningTitle": "當前運行的窗口",
+        "runningHint": "在列表中點擊可將窗口加入 / 移出黑名單，支持按進程名搜索。",
+        "searchPlaceholder": "搜索進程名",
+        "refreshing": "刷新中…",
+        "refresh": "刷新窗口",
+        "empty": "暫無隱藏窗口",
+        "removeWindow": "移除該窗口"
+      },
+      "position": {
+        "title": "靈動島位置偏移",
+        "hint": "調整後自動保存，重啟後會按該位置校準。",
+        "lockTitle": "鎖定靈動島位置",
+        "lockHint": "啟用後僅在 pill 模式下禁止通過鼠標拖動靈動島，位置校準仍可使用。",
+        "lockToggle": "鎖定 pill 模式下的靈動島位置",
+        "quickAdjustTitle": "快速微調",
+        "quickAdjustHint": "每次按鈕點擊以 10px 步進移動靈動島位置，並自動保存。",
+        "displayTitle": "顯示器選擇",
+        "displayHint": "多顯示器環境可指定靈動島顯示器。",
+        "displayLabel": "目標顯示器",
+        "displayPrimaryOption": "主顯示器（推薦）",
+        "displayOption": "顯示器 {{index}}（{{width}}×{{height}}）",
+        "displayPrimarySuffix": " · 主顯示器",
+        "preciseTitle": "精確偏移",
+        "preciseHint": "手動輸入水平 / 垂直偏移量（單位 px），回車或點擊“應用”後生效。",
+        "moveLeft": "左移 10",
+        "moveRight": "右移 10",
+        "moveUp": "上移 10",
+        "moveDown": "下移 10",
+        "xLabel": "水平偏移 X（px）",
+        "yLabel": "垂直偏移 Y（px）",
+        "apply": "應用",
+        "cancel": "取消",
+        "resetDefault": "重置為默認位置"
+      },
+      "theme": {
+        "title": "主題模式",
+        "hint": "選擇深色、淺色或跟隨系統主題",
+        "musicOuterGlowTitle": "音樂外光圈特效",
+        "musicOuterGlowHint": "控制歌曲播放時專輯封面外圈的跑馬燈/光暈動態效果。",
+        "musicOuterGlowToggle": "啟用歌曲播放外光圈跑馬燈特效",
+        "windowControlsTitle": "獨立窗口控制按鈕樣式",
+        "windowControlsHint": "啟用後，獨立窗口右上角將顯示 macOS 風格三色圓點控制按鈕",
+        "windowControlsMacToggle": "使用 Mac 風格窗口控制按鈕",
+        "dark": "深色模式",
+        "light": "淺色模式",
+        "system": "跟隨系統",
+        "builtinWallpaper": "內置壁紙",
+        "builtinWallpaperHint": "選擇一張內置壁紙作為靈動島背景",
+        "customImage": "自定義圖片",
+        "customImageHint": "從本地選擇圖片，支持 jpg / png / gif / webp",
+        "changeImage": "更換圖片",
+        "selectImage": "選擇圖片",
+        "customVideo": "自定義視頻",
+        "customVideoHint": "從本地選擇視頻，僅支持 mp4 格式",
+        "changeVideo": "更換視頻",
+        "selectVideo": "選擇視頻",
+        "videoFitHint": "視頻填充模式",
+        "videoFitCover": "覆蓋（裁切）",
+        "videoFitContain": "完整（留邊）",
+        "videoMutedToggle": "靜音播放視頻",
+        "videoLoopToggle": "循環播放視頻",
+        "videoVolumeHint": "背景視頻音量（0 - 100%），取消靜音後生效",
+        "videoRateHint": "播放速度",
+        "videoHwDecodeToggle": "啟用硬件解碼",
+        "syncDesktopWallpaperTitle": "同步系統桌面壁紙",
+        "syncDesktopWallpaperHint": "背景圖片/視頻變化時，同步更新 Windows 系統桌面壁紙（視頻將使用封面圖）",
+        "syncDesktopWallpaperToggle": "背景變化時同步到系統桌面",
+        "clearBackground": "清除背景",
+        "previewAlt": "背景預覽",
+        "previewLabel": "實時預覽",
+        "bgCardTitle": "壁紙背景",
+        "bgCardSubtitle": "選擇內置壁紙，或從本地導入圖片 / 視頻作為靈動島背景",
+        "effectCardTitle": "背景顯示效果",
+        "effectCardSubtitle": "調整背景的透明度與模糊度",
+        "opacityTitle": "背景透明度",
+        "blurTitle": "背景模糊度",
+        "videoCardTitle": "視頻播放",
+        "videoCardSubtitle": "背景視頻的填充、聲音與播放控制",
+        "videoAudioTitle": "聲音與循環",
+        "videoPerfTitle": "性能",
+        "imageOpacityHint": "背景圖片透明度（0% - 100%），數值越高圖片越明顯",
+        "imageBlurHint": "背景圖片模糊度（0px - 20px），數值越高越模糊",
+        "islandOpacityTitle": "靈動島透明度",
+        "islandOpacityHint": "數值越低越透明（10% - 100%）",
+        "autoDimTitle": "閒置自動降低不透明度",
+        "autoDimHint": "開啟後，靈動島在指定時間內無鼠標操作時將自動降低不透明度，鼠標移入後恢復",
+        "autoDimToggle": "啟用閒置自動降低不透明度",
+        "autoDimDelayHint": "無操作多少秒後自動降低（1 - 120 秒）",
+        "uiFontTitle": "界面字體",
+        "uiFontHint": "選擇靈動島界面使用的字體",
+        "lyricsFontTitle": "歌詞字體",
+        "lyricsFontHint": "選擇歌詞顯示使用的字體",
+        "fontDefault": "系統默認",
+        "fontMicrosoftYahei": "微軟雅黑",
+        "fontSimhei": "黑體",
+        "fontSimsun": "宋體",
+        "fontKaiti": "楷體",
+        "fontFangsong": "仿宋",
+        "fontCascadiaCode": "Cascadia Code",
+        "fontJetbrainsMono": "JetBrains Mono",
+        "fontConsolas": "Consolas",
+        "addCustomFont": "添加字體",
+        "defaultOpacitySuffix": "（默認透明度 {{opacity}}%）"
+      },
+      "behavior": {
+        "mouseLeaveTitle": "鼠標移開自動收回",
+        "mouseLeaveHint": "啟用後，鼠標離開靈動島時將自動回到空閒狀態",
+        "expandLeaveToggle": "展開態（Expand）鼠標移開後自動收回",
+        "maxExpandLeaveToggle": "最大展開態（MaxExpand）鼠標移開後自動收回",
+        "idleClickExpandTitle": "空閒態點擊展開",
+        "idleClickExpandHint": "啟用後，鼠標懸停在靈動島上不會自動展開，需要點擊才能展開，後續交互不受影響",
+        "idleClickExpandToggle": "空閒狀態下點擊展開（禁用懸停自動展開）",
+        "windowModeTitle": "獨立窗口模式",
+        "windowModeHint": "啟用後，待辦事項、倒數日、設置將在獨立窗口中打開，而非靈動島內",
+        "integratedMode": "集成在靈動島中",
+        "standaloneMode": "獨立窗口",
+        "hoverScreenshotModeTitle": "懸停界面截圖按鈕模式",
+        "hoverScreenshotModeHint": "配置 hover 界面的截圖按鈕觸發選區截圖或顯示器截圖",
+        "hoverScreenshotModeLabel": "截圖方式",
+        "hoverScreenshotModeRegion": "選區截圖",
+        "hoverScreenshotModeDisplay": "顯示器截圖",
+        "shapeModeTitle": "島嶼形態",
+        "shapeModeHint": "切換靈動島的外觀形態，劉海屏貼於屏幕頂部，靈動島為膠囊形狀",
+        "shapeModeNotch": "劉海屏",
+        "shapeModePill": "靈動島"
+      },
+      "animation": {
+        "springTitle": "靈動島彈性動畫",
+        "springHint": "關閉後，展開和收起動畫將變得更加平滑內斂，消除彈跳感",
+        "springToggle": "啟用彈性動畫",
+        "animSpeedTitle": "靈動島動畫速度",
+        "animSpeedHint": "控制靈動島狀態切換時的過渡動畫快慢",
+        "animSpeed_slow": "慢",
+        "animSpeed_medium": "中",
+        "animSpeed_fast": "快",
+        "expandTabSwitchTitle": "Expand 切換動畫",
+        "expandTabSwitchHint": "啟用後，展開態切換頁面時將播放左右滑動過渡動畫",
+        "expandTabSwitchToggle": "啟用切換動畫",
+        "maxExpandTabSwitchTitle": "MaxExpand 切換動畫",
+        "maxExpandTabSwitchHint": "啟用後，最大展開態切換頁面時將播放左右滑動過渡動畫",
+        "maxExpandTabSwitchToggle": "啟用切換動畫",
+        "startupAnimationTitle": "是否顯示啟動動畫",
+        "startupAnimationHint": "開啟後每次啟動顯示啟動動畫，關閉後不顯示",
+        "startupAnimationToggle": "顯示啟動動畫",
+        "splashBgColorTitle": "啟動畫面背景顏色",
+        "splashBgColorHint": "自定義啟動畫面的背景顏色",
+        "resetDefault": "恢復默認",
+        "previewPlay": "預覽",
+        "previewStop": "停止"
+      },
+      "album": {
+        "carouselTitle": "相冊輪播方式",
+        "carouselHint": "配置總覽相冊卡片的輪播順序、頻率、展示內容與點擊行為",
+        "intervalLabel": "輪播間隔",
+        "interval3s": "3 秒",
+        "interval5s": "5 秒",
+        "interval8s": "8 秒",
+        "orderLabel": "輪播順序",
+        "orderSequential": "順序輪播",
+        "orderRandom": "隨機輪播",
+        "filterLabel": "展示資源",
+        "filterHint": "選擇總覽相冊卡片參與輪播的資源類型",
+        "filterAll": "全部",
+        "filterImage": "僅圖片",
+        "filterVideo": "僅視頻",
+        "clickBehaviorLabel": "點擊卡片行為",
+        "clickBehaviorHint": "配置點擊總覽相冊卡片後的行為",
+        "clickBehaviorOpen": "打開相冊頁",
+        "clickBehaviorNone": "無動作",
+        "playbackTitle": "自動播放與視頻行為",
+        "playbackHint": "僅影響總覽相冊輪播卡片，不影響相冊主頁面。",
+        "autoRotateToggle": "啟用自動輪播",
+        "videoAutoPlayToggle": "視頻自動播放",
+        "videoMutedToggle": "視頻靜音播放"
+      },
+      "urlParser": {
+        "title": "剪貼板 URL 監聽",
+        "hint": "啟用後，檢測到剪貼板含鏈接時會彈出詢問通知",
+        "enableToggle": "啟用剪貼板 URL 監聽",
+        "detectModes": "識別項目",
+        "detectModesHint": "選擇剪貼板中被識別為 URL 的匹配範圍，並可在收藏界面臨時靜音通知。",
+        "modeHttpsOnly": "強制包含 https 頭",
+        "modeHttpHttps": "包含 http 頭",
+        "modeDomainOnly": "僅含有域名",
+        "suppressInFavorites": "在 URL 收藏界面時不彈通知",
+        "blacklistTitle": "URL 黑名單（按域名）",
+        "blacklistHint": "命中黑名單域名時：單個鏈接不彈窗，多鏈接自動剔除",
+        "blacklistPlaceholder": "輸入域名，如 example.com",
+        "addDomain": "添加域名",
+        "emptyBlacklist": "暫無黑名單域名",
+        "removeDomain": "移除該域名",
+        "errors": {
+          "invalidDomain": "請輸入有效域名",
+          "domainExists": "該域名已在黑名單中",
+          "saveFailed": "保存失敗，請稍後重試"
+        }
+      },
+      "autostart": {
+        "toolsHint": "常用應用操作與日誌工具",
+        "quit": "關閉靈動島",
+        "restart": "重啟靈動島",
+        "openLogs": "打開日誌文件夾",
+        "clearLogs": "清理日誌緩存",
+        "logsClearing": "清理中…",
+        "logsCleared": "已清理 {{kb}} KB",
+        "logsClearFailed": "清理失敗",
+        "title": "開機自啟",
+        "hint": "設置系統啟動時是否自動運行靈動島",
+        "options": {
+          "disabled": "禁用",
+          "enabled": "啟用",
+          "highPriority": "高優先級"
+        },
+        "status": {
+          "disabled": "當前已禁用開機自啟。",
+          "enabled": "系統登錄後將自動啟動靈動島。",
+          "highPriority": "以高優先級啟動，更早完成加載。"
+        }
+      }
+    },
+    "common": {
+      "add": "添加",
+      "remove": "移除",
+      "save": "保存",
+      "saveFailed": "保存失敗：{{error}}",
+      "unknownError": "未知錯誤"
+    },
+    "clipboardHistory": {
+      "enabled": {
+        "title": "歷史記錄開關",
+        "hint": "關閉後不再追加新的剪貼板記錄，已有記錄會保留。",
+        "toggle": "啟用剪貼板歷史記錄"
+      },
+      "limit": {
+        "title": "最大保留條數",
+        "hint": "新記錄會在前端按該條數滾動保存。",
+        "options": {
+          "10": "10 條",
+          "20": "20 條",
+          "30": "30 條",
+          "50": "50 條"
+        }
+      },
+      "exitMaxExpandOnCopy": {
+        "title": "複製後自動退出",
+        "hint": "複製歷史項後自動退出最大展開；有歌曲時回到歌曲態，無歌曲時回到 idle。",
+        "toggle": "啟用複製後退出最大展開"
+      },
+      "actions": {
+        "title": "數據管理",
+        "hint": "可一鍵清空已保存的剪貼板歷史記錄。",
+        "clear": "清空歷史記錄"
+      },
+      "messages": {
+        "clearSuccess": "剪貼板歷史已清空",
+        "clearFailed": "清空失敗，請稍後重試"
+      }
+    },
+    "alarm": {
+      "sound": {
+        "title": "提醒音",
+        "hint": "鬧鐘到點時播放提示音效。",
+        "toggle": "啟用鬧鐘提醒音"
+      },
+      "notification": {
+        "title": "系統通知",
+        "hint": "鬧鐘觸發時發送系統通知提醒。",
+        "toggle": "啟用系統通知"
+      },
+      "snooze": {
+        "title": "貪睡時長",
+        "hint": "點擊貪睡後延遲再次提醒的分鐘數。",
+        "options": {
+          "1": "1 分鐘",
+          "3": "3 分鐘",
+          "5": "5 分鐘",
+          "10": "10 分鐘",
+          "15": "15 分鐘"
+        }
+      },
+      "autoDismiss": {
+        "title": "自動關閉",
+        "hint": "鬧鐘響鈴後自動關閉的分鐘數，設為「不自動關閉」則需手動操作。",
+        "never": "不自動關閉",
+        "options": {
+          "1": "1 分鐘",
+          "3": "3 分鐘",
+          "5": "5 分鐘",
+          "10": "10 分鐘"
+        }
+      }
+    },
+    "sound": {
+      "global": {
+        "title": "全局音量",
+        "hint": "影響鬧鐘與音效的整體輸出音量。"
+      },
+      "alarmVolume": {
+        "title": "鬧鐘音量",
+        "hint": "僅影響鬧鐘響鈴與試聽音量。"
+      },
+      "effectVolume": {
+        "title": "音效音量",
+        "hint": "影響 STT 觸發音與木魚敲擊音。"
+      }
+    },
+    "notification": {
+      "pageTitle": "通知設置",
+      "pageHint": "配置靈動島通知提醒與展示行為。",
+      "sound": {
+        "title": "通知音效",
+        "hint": "通知觸發時播放一次提示音。",
+        "toggle": "啟用通知音效"
+      },
+      "agentNotification": {
+        "title": "Agent 啟動通知",
+        "hint": "檢測到桌面 Agent 啟動或關閉時彈出靈動島通知。",
+        "toggle": "啟用 Agent 啟動通知"
+      }
+    },
+    "breakReminder": {
+      "listTitle": "提醒事項",
+      "listHint": "開啟後，到達設定的間隔時間將彈出休息提醒通知。",
+      "addBtn": "新建提醒",
+      "deleteBtn": "刪除",
+      "nameLabel": "提醒名稱",
+      "intervalLabel": "間隔（分鐘）",
+      "enabledLabel": "啟用",
+      "emptyHint": "暫無提醒事項，點擊上方按鈕新建。",
+      "resetBtn": "恢復默認",
+      "defaultSedentary": "起來動動",
+      "defaultHydration": "喝水",
+      "notificationTitle": "休息提醒",
+      "notificationBody": "該{{name}}啦！"
+    },
+    "network": {
+      "timeout": {
+        "title": "請求超時時間",
+        "hint": "設置網絡請求的最長等待時間，網絡較差時可適當增大",
+        "presetTitle": "常用預設",
+        "customTitle": "自定義秒數",
+        "customHint": "輸入 1 - 120 之間的秒數，回車或失去焦點後應用。",
+        "unitSecond": "秒",
+        "options": {
+          "ms5000": "5 秒",
+          "ms10000": "10 秒（默認）",
+          "ms15000": "15 秒",
+          "ms20000": "20 秒",
+          "ms30000": "30 秒"
+        }
+      },
+      "staticAssetNode": {
+        "title": "靜態資源節點",
+        "hint": "所有用戶默認使用 R2，可選擇 R2/COS/OSS。",
+        "proOnlyHint": "當前賬戶不可用",
+        "proHint": "可切換 COS/OSS 節點（也可繼續使用 R2）。"
+      },
+      "updateSource": {
+        "title": "更新源",
+        "hint": "選擇應用補丁包的下載來源，不同源在各地區速度有差異",
+        "sourceHint": "Cloudflare R2：全球訪問穩定，綜合速度均衡\nESA CDN：ESA全球CDN，所有用戶可用\nTencent COS：國內網絡通常更快\nAliyun OSS：國內節點覆蓋廣，峰值速度高\nGitHub Releases：海外鏈路較穩，國內可能偏慢"
+      },
+      "pagination": "網絡配置分頁"
+    },
+    "weather": {
+      "locationPriority": {
+        "title": "定位來源優先級",
+        "hint": "選擇天氣定位優先使用 IP 自動定位或自定義位置"
+      },
+      "customCityTitle": "自定義城市",
+      "customCityHint": "僅在“自定義位置優先”生效，可先測試再保存；支持中文 / 拼音 / 英文。",
+      "cityName": "城市名稱",
+      "cityPlaceholder": "例如：杭州 / Tokyo / New York",
+      "testing": "測試中...",
+      "testCustomLocation": "測試自定義位置（多接口）",
+      "saveLocation": "保存定位配置",
+      "providerPriority": {
+        "title": "天氣接口優先級",
+        "hint": "可選擇優先使用 Open-Meteo、UAPI 或和風天氣，失敗時自動切換到可用源"
+      },
+      "alert": {
+        "title": "啟動天氣預警提醒",
+        "hint": "應用啟動自動檢查更新前，先請求和風天氣預警並提示；確認關閉後再繼續檢查更新。",
+        "enabled": "開啟預警提醒",
+        "disabled": "關閉預警提醒"
+      },
+      "proBadge": "",
+      "proOnlyHint": "當前賬戶不可用",
+      "options": {
+        "locationPriority": {
+          "ip": "IP 定位優先",
+          "custom": "自定義位置優先"
+        },
+        "providerPriority": {
+          "openMeteo": "Open-Meteo 優先",
+          "uapi": "UAPI 優先",
+          "qweatherPro": "和風天氣優先"
+        }
+      },
+      "messages": {
+        "switchPriorityFailed": "切換優先級失敗：{{error}}",
+        "testFailed": "測試失敗：{{error}}",
+        "cityRequired": "請先輸入城市名稱後再測試",
+        "cityResolveFailed": "城市解析失敗：{{error}}",
+        "providerNonJson": "{{name}} 返回了非 JSON",
+        "providerAvailable": "{{name}} 可用",
+        "providerUnavailable": "{{name}} 不可用：{{error}}",
+        "proLoginRequired": "請先登錄賬號",
+        "testResult": "{{city}}（{{lat}}, {{lng}}） - {{details}}",
+        "detailSeparator": "；",
+        "customNeedsCity": "選擇“自定義位置優先”時請先輸入城市名稱",
+        "priorityApplied": "定位來源優先級已應用",
+        "customMissingFallback": "已切換為自定義位置優先，但未配置城市，將自動回退到 IP 定位",
+        "configSavedWithCity": "天氣定位配置已保存（{{city}} {{lat}}, {{lng}}）",
+        "configSaved": "天氣定位配置已保存"
+      },
+      "adcode": {
+        "missingParams": "District API 缺少查詢參數（adcode 或 keyword）",
+        "httpError": "Adcode API HTTP {{status}}：{{body}}",
+        "nonJson": "Adcode API 返回了非 JSON 內容，請檢查網絡環境",
+        "errorCode": "Adcode API 返回錯誤碼 {{code}}",
+        "emptyKeyword": "請輸入城市名稱",
+        "notFound": "未查詢到該城市，請嘗試更完整名稱",
+        "noCoords": "查詢結果缺少經緯度信息"
+      },
+      "pagination": "天氣配置分頁"
+    },
+    "music": {
+      "whitelist": {
+        "title": "播放器白名單",
+        "hint": "只有白名單內的播放器才會觸發歌曲信息獲取",
+        "empty": "暫無已加入的播放器",
+        "addTitle": "添加播放器",
+        "addHint": "手動輸入播放器進程名，或自動從當前 SMTC 會話中檢測",
+        "detectedTitle": "當前檢測到",
+        "placeholder": "輸入播放器進程名（如 Spotify.exe）",
+        "fetching": "獲取中…",
+        "fetchSourceProcess": "獲取播放進程",
+        "added": "已添加",
+        "alreadyExists": "已在白名單中"
+      },
+      "lyrics": {
+        "enabledTitle": "歌詞功能",
+        "enabledHint": "關閉後不再發送歌詞相關網絡請求，不顯示歌詞，不切換到歌詞狀態",
+        "enabledToggle": "啟用歌詞功能",
+        "translationTitle": "翻譯歌詞",
+        "translationHint": "關閉後不顯示翻譯歌詞，不切換到翻譯歌詞狀態",
+        "translationToggle": "顯示翻譯歌詞",
+        "title": "歌詞源",
+        "hint": "自動模式根據 SMTC 檢測到的播放器進程選擇對應源，失敗後依次嘗試其他源，最後使用 LRCLIB 兜底",
+        "displayTitle": "歌詞顯示",
+        "displayHint": "控制歌詞界面的展示效果",
+        "sourceOptions": {
+          "auto": "自動（跟隨播放器）",
+          "neteaseOnly": "僅網易雲",
+          "qqmusicOnly": "僅 QQ音樂",
+          "kugouOnly": "僅酷狗",
+          "sodamusicOnly": "僅汽水音樂",
+          "applemusicOnly": "僅 Apple Music",
+          "spotifyOnly": "僅 Spotify",
+          "moekoeOnly": "僅 MoeKoe",
+          "lrclibOnly": "僅 LRCLIB"
+        },
+        "karaokeTitle": "逐字掃光",
+        "karaokeHint": "啟用後歌詞將以逐字高亮方式顯示",
+        "karaokeToggle": "啟用逐字掃光效果",
+        "clockTitle": "歌詞時鐘",
+        "clockHint": "在歌詞界面封面與歌詞之間顯示當前北京時間",
+        "clockToggle": "顯示當前時間",
+        "calibrateTitle": "歌詞校準",
+        "calibrateHint": "歌詞獲取後延遲讀取 SMTC 時間戳，修正歌詞時間偏移",
+        "calibrateToggle": "啟用歌詞校準",
+        "calibrateDelayLabel": "觸發延遲（秒）"
+      },
+      "smtc": {
+        "title": "SMTC 自動取消訂閱",
+        "hint": "用於清理長時間無更新的播放會話，默認永不取消訂閱",
+        "unsubscribeMs": "取消訂閱時間（毫秒）",
+        "neverUnsubscribe": "永不取消訂閱",
+        "invalidMsValue": "請輸入有效毫秒值（>= 1000）或開啟「永不取消訂閱」",
+        "saveFailed": "保存失敗，請稍後重試",
+        "savedNeverUnsubscribe": "已保存：永不自動取消訂閱",
+        "savedAutoUnsubscribe": "已保存：{{ms}} ms 自動取消訂閱"
+      },
+      "providers": {
+        "mode": {
+          "title": "汽水音樂請求模式",
+          "hint": "默認使用非登錄態；登錄態需要先完成汽水音樂登錄",
+          "guest": "非登錄態",
+          "logged-in": "登錄態"
+        },
+        "sodaMusic": {
+          "title": "汽水音樂提供方",
+          "login": "登錄"
+        }
+      },
+      "pagination": "歌曲設置分頁"
+    },
+    "musicProviderLogin": {
+      "title": "音樂提供商賬號連接",
+      "connected": "已連接",
+      "notConnected": "未連接",
+      "loading": "正在生成二維碼…",
+      "qrUnavailable": "二維碼暫不可用",
+      "success": "登錄成功",
+      "successTitle": "汽水音樂已連接",
+      "qishui": {
+        "name": "汽水音樂",
+        "instruction": "使用汽水音樂 App 掃碼登錄"
+      },
+      "status": {
+        "idle": "準備登錄",
+        "waiting": "等待掃碼確認…",
+        "scanned": "已掃碼，請在手機上確認…",
+        "confirmed": "登錄成功，會話已安全保存",
+        "expired": "二維碼已過期，請刷新",
+        "rate_limited": "請求較頻繁，稍後自動繼續檢查…",
+        "mfa_cancelled": "二次驗證已取消，請刷新二維碼後重試",
+        "error": "登錄狀態檢查失敗，正在重試…"
+      },
+      "steps": {
+        "openDouyin": "打開手機上的抖音 App",
+        "scan": "使用掃一掃掃描左側二維碼",
+        "confirm": "在手機上確認授權登錄"
+      },
+      "actions": {
+        "back": "返回提供商設置",
+        "refresh": "刷新二維碼",
+        "logout": "退出登錄",
+        "done": "完成"
+      }
+    },
+    "hotkey": {
+      "duplicateHotkey": "重複快捷鍵",
+      "registerFailed": "快捷鍵註冊失敗",
+      "registerFailedRetry": "快捷鍵註冊失敗，請嘗試其他組合"
+    },
+    "shortcut": {
+      "pages": {
+        "window": "窗口控制",
+        "display": "顯示模式",
+        "agent": "AI Agent",
+        "capture": "截圖",
+        "clipboard": "剪貼板",
+        "media": "媒體控制"
+      },
+      "common": {
+        "recordingValue": "請按下快捷鍵組合…",
+        "notSetValue": "未設置",
+        "recordingBtn": "錄入中",
+        "editBtn": "修改",
+        "clearBtn": "清除"
+      },
+      "window": {
+        "toggleIsland": {
+          "title": "隱藏/顯示快捷鍵",
+          "hint": "點擊“修改”後按下組合鍵（如 Alt+X、Ctrl+Shift+H）"
+        },
+        "quitApp": {
+          "title": "關閉靈動島快捷鍵",
+          "hint": "按下此快捷鍵將立即關閉靈動島應用（如 Alt+Q、Ctrl+Shift+Q）"
+        },
+        "resetPosition": {
+          "title": "還原默認位置快捷鍵",
+          "hint": "按下此快捷鍵將把靈動島恢復到默認頂部居中位置"
+        },
+        "toggleTray": {
+          "title": "隱藏/顯示托盤圖標快捷鍵",
+          "hint": "按下此快捷鍵將隱藏或顯示系統托盤中的靈動島圖標"
+        },
+        "showConfig": {
+          "title": "顯示配置窗口快捷鍵",
+          "hint": "僅在獨立窗口模式下生效：按下後將打開獨立配置窗口並切換到設置頁"
+        },
+        "openClipboardHistory": {
+          "title": "打開剪貼板歷史快捷鍵",
+          "hint": "按下後將打開靈動島並直接切換到剪貼板歷史界面"
+        },
+        "togglePassthrough": {
+          "title": "切換鼠標穿透快捷鍵",
+          "hint": "按下此快捷鍵將鎖定或解鎖鼠標穿透狀態，鎖定後靈動島不會攔截鼠標事件"
+        },
+        "toggleUiLock": {
+          "title": "切換 UI 狀態鎖定快捷鍵",
+          "hint": "按下後鎖定當前 UI 狀態，鎖定期間不會因鼠標進入/移出或自動邏輯切換狀態，再次按下解鎖"
+        },
+        "agentVoiceInput": {
+          "title": "Agent 語音輸入快捷鍵",
+          "hint": "長按此快捷鍵將觸發 Agent 語音輸入，釋放後自動關閉"
+        },
+        "toggleShapeMode": {
+          "title": "切換形態模式快捷鍵",
+          "hint": "按下此快捷鍵將在劉海屏與靈動島形態之間快速切換"
+        }
+      },
+      "capture": {
+        "screenshot": {
+          "title": "選區截圖快捷鍵",
+          "hint": "按下此快捷鍵將觸發截圖選區流程（如 Alt+A、Ctrl+Shift+A）"
+        }
+      },
+      "media": {
+        "nextSong": {
+          "title": "快速切換歌曲快捷鍵",
+          "hint": "按下後觸發系統下一曲媒體按鍵（僅白名單播放器生效）"
+        },
+        "playPause": {
+          "title": "暫停/播放歌曲快捷鍵",
+          "hint": "按下後觸發系統播放/暫停媒體按鍵（僅白名單播放器生效）"
+        }
+      },
+      "pagination": "快捷鍵設置分頁"
+    },
+    "update": {
+      "versionCardTitle": "版本信息",
+      "versionCardHint": "查看當前版本並選擇更新源，應用所有補丁包均通過該更新源下載",
+      "autoPromptTitle": "更新提示",
+      "autoPromptHintStatic": "控制是否自動提示版本更新和公告展示策略",
+      "autoPromptEnabled": "自動提示版本更新",
+      "announcementShowModeAlways": "每次都顯示公告",
+      "announcementShowModeVersionOnly": "僅版本更新時顯示公告",
+      "actionCardTitle": "檢查與安裝",
+      "actionCardHint": "手動觸發檢查，有新版本時可下載安裝；下載完成後點擊“安裝並重啟”應用更新",
+      "currentVersion": "當前版本",
+      "source": "更新源",
+      "sourceHint": "Cloudflare R2：全球訪問穩定，綜合速度均衡\nESA CDN：ESA全球CDN，所有用戶可用\nTencent COS：國內網絡通常更快\nAliyun OSS：國內節點覆蓋廣，峰值速度高\nGitHub Releases：海外鏈路較穩，國內可能偏慢",
+      "proOnlyTag": "",
+      "proOnlyError": "當前賬戶不可用該更新源",
+      "proOnlyNeedLogin": "請先登錄賬號後再使用該更新源",
+      "sourceResolveFailed": "獲取更新源地址失敗",
+      "latestVersion": "最新版本",
+      "downloadingFrom": "正在從 {{source}} 下載更新…",
+      "preparingDownload": "準備下載…",
+      "downloadFailed": "下載失敗，請稍後重試",
+      "actions": {
+        "check": "檢查更新",
+        "checking": "檢查中…",
+        "latest": "已是最新版本",
+        "download": "下載更新",
+        "installRestart": "安裝並重啟",
+        "retry": "重試",
+        "resetGuide": "下次啟動顯示引導"
+      },
+      "guideCardTitle": "引導界面",
+      "guideCardHint": "重新顯示首次啟動引導界面",
+      "guideResetSuccess": "設置成功，下次啟動將顯示引導界面",
+      "guideResetError": "設置失敗，請稍後重試",
+      "pagination": "更新設置分頁"
+    },
+    "pluginMarket": {
+      "pagination": "綜合市場分頁",
+      "search": {
+        "wallpaperTitle": "綜合市場",
+        "wallpaperHint": "瀏覽並應用社區分享的壁紙資源，支持圖片和視頻壁紙",
+        "contributionTitle": "壁紙貢獻",
+        "contributionHint": "上傳你的壁紙作品，分享給社區用戶",
+        "editTitle": "壁紙管理",
+        "editHint": "查看和編輯你已貢獻的壁紙作品，管理審核狀態"
+      },
+      "auth": {
+        "entryTitle": "登錄後即可訪問綜合市場內容",
+        "gotoLogin": "前往登錄",
+        "gotoRegister": "前往註冊",
+        "hint": "登錄後可瀏覽壁紙內容。"
+      },
+      "pages": {
+        "wallpaper": "壁紙",
+        "contribution": "貢獻",
+        "edit": "修改壁紙",
+        "apps": "應用"
+      },
+      "apps": {
+        "comingSoon": "敬請期待",
+        "comingSoonHint": "應用市場功能即將上線"
+      },
+      "tag": {
+        "placeholder": "輸入標籤後回車或逗號確認",
+        "createNew": "創建新標籤",
+        "removeTag": "移除標籤"
+      },
+      "contribution": {
+        "title": "貢獻你的壁紙"
+      },
+      "edit": {
+        "searchPlaceholder": "搜索自己的壁紙",
+        "actions": {
+          "backToMarket": "返回綜合市場"
+        },
+        "feedback": {
+          "emptyMine": "你還沒有上傳過壁紙",
+          "selectHint": "請選擇左側壁紙查看元數據"
+        },
+        "meta": {
+          "status": "狀態"
+        },
+        "status": {
+          "published": "已發佈",
+          "pending": "待審核",
+          "rejected": "已拒絕",
+          "delisted": "已下架",
+          "deleted": "已刪除"
+        }
+      },
+      "wallpaper": {
+        "searchPlaceholder": "搜索標題/作者/描述/標籤",
+        "sort": {
+          "newest": "最新",
+          "rating": "評分最高",
+          "apply": "應用最多"
+        },
+        "badges": {
+          "video": "視頻"
+        },
+        "videoControls": {
+          "play": "播放",
+          "pause": "暫停",
+          "mute": "靜音",
+          "unmute": "取消靜音",
+          "volume": "音量",
+          "rate": "速度"
+        },
+        "ratingLevels": {
+          "1": "很差",
+          "2": "較差",
+          "3": "一般",
+          "4": "不錯",
+          "5": "超讚"
+        },
+        "rating": {
+          "current": "當前評分",
+          "help": "點擊星星選擇分數，5 分表示最喜歡"
+        },
+        "upload": {
+          "titlePlaceholder": "標題",
+          "tagsPlaceholder": "標籤（逗號分隔）",
+          "descriptionPlaceholder": "描述",
+          "typeImage": "圖片",
+          "typeVideo": "視頻",
+          "chooseFile": "選擇圖片文件",
+          "chooseVideoFile": "選擇視頻文件",
+          "noFile": "未選擇文件",
+          "progress": "上傳進度",
+          "videoMeta": "時長 {{seconds}}s / 幀率 {{fps}} fps / 分辨率 {{width}}x{{height}}",
+          "transcodePreparing": "正在準備視頻…",
+          "transcodeRemux": "原生規格兼容，正在快速封裝…",
+          "transcodeEncoding": "正在本地轉碼視頻（libx264 / aac）…",
+          "transcodeCopy": "未檢測到 ffmpeg，正在直接複製原始文件…",
+          "transcodeMode": {
+            "remux": "已快速封裝",
+            "transcode": "已本地轉碼",
+            "copy": "已直接複製"
+          },
+          "copyright": "我確認擁有該圖片版權或已獲授權",
+          "copyrightInfoPlaceholder": "聲明版權信息（如原創、授權來源、授權編號）",
+          "previewGenerating": "正在生成預覽…"
+        },
+        "meta": {
+          "description": "描述",
+          "tags": "標籤",
+          "rating": "評分",
+          "apply": "應用次數",
+          "copyrightInfo": "版權聲明"
+        },
+        "report": {
+          "copyright": "版權問題",
+          "illegal": "違規內容",
+          "other": "其他",
+          "detailPlaceholder": "舉報補充說明（可選）"
+        },
+        "actions": {
+          "search": "搜索",
+          "refresh": "刷新壁紙列表",
+          "expandSearch": "展開搜索",
+          "collapseSearch": "收起搜索",
+          "prevPage": "上一頁",
+          "nextPage": "下一頁",
+          "upload": "上傳壁紙",
+          "uploading": "上傳中…",
+          "apply": "應用為背景",
+          "applying": "應用中…",
+          "rate": "提交評分",
+          "rating": "提交中…",
+          "report": "舉報",
+          "reporting": "提交中…",
+          "expandRate": "評分",
+          "collapseRate": "收起評分",
+          "expandReport": "舉報",
+          "collapseReport": "收起舉報",
+          "submitReport": "提交舉報",
+          "editMetadata": "編輯元數據",
+          "cancelEdit": "取消編輯",
+          "saveMetadata": "保存元數據",
+          "savingMetadata": "保存中…",
+          "delete": "刪除壁紙",
+          "deleting": "刪除中…",
+          "confirmDelete": "確認刪除該壁紙？",
+          "confirmDeleteBtn": "確認刪除",
+          "cancelDelete": "取消"
+        },
+        "feedback": {
+          "loading": "加載中…",
+          "empty": "暫無壁紙",
+          "selectHint": "請選擇左側壁紙查看詳情",
+          "loadFailed": "加載失敗",
+          "detailFailed": "加載詳情失敗",
+          "titleRequired": "請填寫標題",
+          "fileRequired": "請選擇圖片文件",
+          "copyrightRequired": "請先勾選版權聲明",
+          "copyrightInfoRequired": "請填寫版權聲明信息",
+          "fileTooLarge": "圖片不能超過 20MB",
+          "videoTypeInvalid": "僅支持 mp4 視頻文件",
+          "videoTooLarge": "視頻不能超過 100MB",
+          "uploadFailed": "上傳失敗",
+          "uploadSuccess": "上傳成功，等待審核",
+          "applying": "應用中…",
+          "applyFailed": "應用失敗",
+          "applySuccess": "已應用壁紙背景",
+          "rating": "評分提交中…",
+          "rateFailed": "評分失敗",
+          "rateSuccess": "評分成功",
+          "reporting": "舉報提交中…",
+          "reportFailed": "舉報失敗",
+          "reportSuccess": "舉報已提交",
+          "deleting": "刪除中…",
+          "deleteFailed": "刪除失敗",
+          "deleteSuccess": "刪除成功",
+          "saving": "保存中…",
+          "updateFailed": "保存失敗",
+          "updateSuccess": "已保存，等待審核"
+        },
+        "pagination": {
+          "page": "第 {{page}} / {{total}} 頁"
+        }
+      }
+    },
+    "ai": {
+      "apiKey": "API Key",
+      "apiEndpoint": "API Endpoint",
+      "model": "模型",
+      "deepseekThinking": "DeepSeek Thinking 模式",
+      "deepseekThinkingOptions": {
+        "off": "關閉",
+        "on": "開啟"
+      },
+      "deepseekReasoningEffort": "DeepSeek 推理強度",
+      "mimoReasoningEffort": "Mimo 推理強度",
+      "ollamaReasoningEffort": "思考強度",
+      "customReasoningEffort": "推理強度",
+      "minimaxReasoningEffort": "MiniMax 推理強度",
+      "deepseekReasoningEffortOptions": {
+        "low": "低 (low)",
+        "medium": "中 (medium)",
+        "high": "高 (high)"
+      },
+      "mcpEndpoint": "MCP Endpoint",
+      "mcpPlaceholder": "http://localhost:3000/mcp (可選)",
+      "systemPrompt": "System Prompt",
+      "promptPlaceholder": "你是一個有用的助手。",
+      "saveTitle": "保存 (Ctrl+Enter)",
+      "editPromptTitle": "編輯 Prompt",
+      "credentialsTitle": "模型憑據",
+      "credentialsHint": "兼容 OpenAI 接口協議，填寫你的 API Key、Endpoint 與模型名稱",
+      "agentModel": "Agent 模型",
+      "agentModelFetching": "正在獲取…",
+      "agentModelFetchBtn": "獲取可用模型",
+      "agentModelDropdown": "模型下拉選擇",
+      "agentModelSelectPlaceholder": "請選擇模型",
+      "agentModelFetchNeedEndpoint": "請先填寫 API Endpoint",
+      "agentModelFetchOk": "已獲取 {{count}} 個模型",
+      "agentModelFetchEmpty": "未獲取到模型，請檢查接口是否支持 /models",
+      "agentModelFetchFail": "獲取模型列表失敗，請檢查 Endpoint / Key",
+      "mcpTitle": "MCP 工具接入",
+      "mcpHint": "可選，配置 MCP 服務端點後 Agent 可調用對接的外部工具",
+      "systemPromptHint": "用於限定 Agent 的角色與風格，留空則使用默認提示詞",
+      "workspaceTitle": "Agent 工作區",
+      "workspaceHint": "配置 Agent 可操作的文件目錄，所有文件讀寫、搜索、命令執行僅限於工作區內",
+      "workspaceAdd": "+ 添加工作區文件夾",
+      "workspaceRemove": "移除",
+      "workspaceEmpty": "未配置工作區，Agent 文件操作將被禁止",
+      "ollamaTitle": "Ollama 本地模型",
+      "ollamaHint": "配置本地 Ollama 服務地址與默認模型，在模型下拉中選擇 ollama 即可使用",
+      "ollamaModel": "模型名稱",
+      "ollamaFetching": "正在獲取…",
+      "ollamaFetchBtn": "獲取本地模型列表",
+      "ollamaFetchEmpty": "未檢測到本地 Ollama 模型",
+      "ollamaFetchOk": "已找到 {{count}} 個本地模型",
+      "ollamaFetchFail": "獲取模型列表失敗，請檢查 Ollama 服務",
+      "ollamaBaseUrl": "服務地址",
+      "ollamaDetecting": "正在檢測…",
+      "ollamaDetectBtn": "自動檢測 Ollama 端口",
+      "ollamaDetectOk": "已檢測到 {{url}}",
+      "ollamaDetectFail": "未檢測到運行中的 Ollama 服務，請確認已啟動 ollama serve",
+      "r1pxcConfigTitle": "r1pxc Agent 頭像配置",
+      "r1pxcConfigHint": "支持拖入圖片或從文件資源管理器選擇，不支持 URL",
+      "r1pxcAvatarReplace": "點擊或拖入圖片以替換頭像",
+      "r1pxcAvatarUploadHint": "拖入圖片，或點擊從文件資源管理器選擇",
+      "r1pxcAvatarClear": "清除頭像",
+      "r1pxcAvatarFileTypeError": "請選擇圖片文件（png/jpg/webp 等）",
+      "r1pxcAvatarReadError": "頭像讀取失敗，請換一張圖片重試",
+      "sttOrbTitle": "STT 界面 Orb",
+      "sttOrbHint": "控制語音輸入界面是否顯示液態 Orb 動畫，關閉後將使用簡約指示點代替",
+      "sttOrbToggle": "在 STT 界面啟用 Agent Orb",
+      "orbColorTitle": "Orb 顏色自定義",
+      "orbColorHint": "自定義液態 Orb 的主色調，留空則使用默認顏色",
+      "orbColorA": "主色 A",
+      "orbColorB": "主色 B",
+      "orbColorPlaceholder": "留空使用默認，如 #d86bff",
+      "orbColorReset": "重置為默認",
+      "pagination": "AI 設置分頁"
+    },
+    "about": {
+      "pagination": "關於軟件分頁",
+      "pages": {
+        "development": "開發信息",
+        "feedback": "問題反饋",
+        "feedbackHistory": "反饋記錄"
+      },
+      "authorAvatarAlt": "作者頭像",
+      "githubHome": "GitHub 主頁",
+      "notice": "本軟件開源免費，如果你在任何地方付費購買了本軟件，請立即退款並給差評。",
+      "links": {
+        "website": "官網",
+        "docs": "文檔站",
+        "sourceCode": "開源代碼",
+        "license": "開源協議",
+        "iconLibrary": "圖標庫",
+        "icpRecord": "ICP備案",
+        "publicSecurityRecord": "公安備案"
+      },
+      "depsTitle": "開源框架、依賴 & 項目",
+      "wallpaperTitle": "壁紙素材",
+      "wallpaper": {
+        "source": "來源",
+        "capture": "拍攝",
+        "link": "原始鏈接",
+        "notice": "所有 NASA 圖像均按照 NASA 圖像使用政策使用，不暗示 NASA 對本項目的任何認可。"
+      },
+      "feedback": {
+        "intro": "問題反饋會進入管理後臺審核，請儘量提供完整復現信息。",
+        "types": {
+          "bug": "Bug 問題",
+          "feature": "功能建議",
+          "experience": "體驗優化",
+          "other": "其他"
+        },
+        "fields": {
+          "type": "反饋類型",
+          "contact": "聯繫方式（選填）",
+          "contactPlaceholder": "郵箱、QQ 或其他可聯繫信息",
+          "title": "標題",
+          "titlePlaceholder": "請簡要描述你遇到的問題",
+          "content": "詳細描述",
+          "contentPlaceholder": "請提供復現步驟、實際結果、期望結果等信息",
+          "logFile": "日誌文件（選填，<=5MB）",
+          "logFilePlaceholder": "可上傳日誌輔助定位問題",
+          "logFileView": "查看已上傳日誌",
+          "logFileMeta": "文件大小：{{size}}MB",
+          "screenshotFile": "問題截圖（選填，<=10MB）",
+          "screenshotFileMeta": "文件大小：{{size}}MB",
+          "logNotePlaceholder": "備註（選填）",
+          "logNoteSubmitPrefix": "日誌備註："
+        },
+        "actions": {
+          "submit": "提交反饋",
+          "submitting": "提交中…",
+          "refresh": "刷新",
+          "openGithubIssue": "前往 GitHub 提交 Issue",
+          "useBoundEmail": "填充郵箱",
+          "uploadLog": "上傳日誌",
+          "uploadingLog": "上傳中…",
+          "clearLog": "移除日誌",
+          "uploadScreenshot": "上傳截圖",
+          "uploadingScreenshot": "上傳中…",
+          "clearScreenshot": "移除截圖"
+        },
+        "messages": {
+          "loginRequired": "請先登錄後再使用反饋功能",
+          "titleRequired": "請填寫反饋標題",
+          "contentRequired": "請填寫詳細描述",
+          "captchaCancelled": "請完成滑塊驗證後再提交反饋",
+          "boundEmailNotFound": "當前賬號未找到綁定郵箱",
+          "boundEmailFilled": "已自動填充當前賬號郵箱",
+          "logOnly": "僅支持上傳 .log 日誌文件",
+          "logReadFailed": "日誌文件讀取失敗，請重試",
+          "logTooLarge": "日誌文件不能超過 5MB",
+          "logUploadSuccess": "日誌上傳成功，提交反饋時會自動攜帶",
+          "logUploadFailed": "日誌上傳失敗，請稍後重試",
+          "screenshotOnly": "僅支持上傳圖片截圖文件",
+          "screenshotReadFailed": "截圖文件讀取失敗，請重試",
+          "screenshotTooLarge": "截圖文件不能超過 10MB",
+          "screenshotUploadSuccess": "截圖上傳成功，提交反饋時會自動攜帶",
+          "screenshotUploadFailed": "截圖上傳失敗，請稍後重試",
+          "openGithubIssueFailed": "打開 GitHub Issue 失敗，請稍後重試",
+          "submitSuccess": "反饋已提交，感謝你的建議",
+          "submitFailed": "反饋提交失敗，請稍後重試",
+          "loadFailed": "反饋記錄加載失敗",
+          "prefilledFromAgent": "已自動填充 Agent 輸出，你可以補充復現步驟後直接提交。"
+        },
+        "qqGroup": {
+          "label": "加入 QQ 群獲取更快反饋響應",
+          "join": "一鍵加群"
+        },
+        "history": {
+          "title": "我的反饋記錄",
+          "loading": "加載反饋記錄中…",
+          "empty": "暫無反饋記錄",
+          "loginHint": "登錄後可查看你提交過的反饋記錄",
+          "adminReply": "管理員回覆：{{reply}}",
+          "meta": "類型：{{type}} · 提交於：{{time}}",
+          "filters": {
+            "all": "全部狀態",
+            "pending": "待處理",
+            "resolved": "已處理",
+            "rejected": "已拒絕"
+          },
+          "status": {
+            "pending": "待處理",
+            "resolved": "已處理",
+            "rejected": "已拒絕"
+          }
+        }
+      },
+      "copyright": "© JNTMTMTM, pyisland.com 版權所有",
+      "slogan": "算法詮釋一切 質疑即是認可",
+      "authorName": "雞哥"
+    },
+    "user": {
+      "pagination": "用戶中心分頁",
+      "auth": {
+        "login": "登錄",
+        "register": "註冊",
+        "loginBtn": "登錄",
+        "registerBtn": "註冊並登錄",
+        "hint": "登錄註冊服務由 eIsland server 提供",
+        "entryTitle": "登錄後可管理頭像、資料與賬號安全設置",
+        "gotoLogin": "前往登錄",
+        "gotoRegister": "前往註冊",
+        "forgotPassword": "忘記密碼",
+        "resetPassword": "重置密碼",
+        "resetPasswordHint": "通過郵箱驗證碼校驗身份後，可繼續修改登錄密碼",
+        "resetPasswordBtn": "重置密碼"
+      },
+      "fields": {
+        "username": "用戶名",
+        "nickname": "暱稱",
+        "usernamePlaceholder": "2-32 位，支持中英文 / 數字 / 下劃線",
+        "account": "用戶名或郵箱",
+        "accountPlaceholder": "請輸入用戶名或郵箱",
+        "boundEmail": "綁定郵箱",
+        "email": "郵箱",
+        "emailPlaceholder": "請輸入郵箱地址",
+        "emailCode": "郵箱驗證碼",
+        "emailCodePlaceholder": "請輸入郵箱驗證碼",
+        "password": "密碼",
+        "passwordPlaceholder": "至少 8 位，含字母與數字",
+        "confirmPassword": "確認密碼",
+        "confirmPasswordPlaceholder": "請再次輸入密碼",
+        "avatarUrlPlaceholder": "或直接粘貼頭像 URL",
+        "gender": "性別",
+        "genderCustom": "自定義性別",
+        "genderCustomPlaceholder": "最長 64 個字符",
+        "birthday": "生日",
+        "newPassword": "新密碼",
+        "newPasswordPlaceholder": "留空則不修改，至少 8 位含字母數字",
+        "currentPassword": "當前密碼",
+        "currentPasswordPlaceholder": "輸入當前密碼進行確認"
+      },
+      "sections": {
+        "avatar": "頭像",
+        "avatarHint": "上傳新頭像",
+        "profile": "基本資料",
+        "profileHint": "完善公開資料信息，便於賬號識別",
+        "password": "修改密碼",
+        "passwordHint": "留空則保持當前密碼不變",
+        "danger": "危險操作"
+      },
+      "card": {
+        "memberSince": "加入時間",
+        "proExpireAt": "Pro到期時間",
+        "balance": "餘額",
+        "loginDays": "登錄天數",
+        "expandHeatmap": "展開熱力圖",
+        "collapseHeatmap": "收起熱力圖"
+      },
+      "infoNav": {
+        "editDesc": "修改性別、生日等基本資料",
+        "avatarDesc": "上傳或更換賬號頭像",
+        "passwordDesc": "通過郵箱驗證碼修改登錄密碼",
+        "proDesc": "查看 Pro 計劃權益及當前訂閱價格",
+        "rechargeDesc": "為 AI 助手對話餘額充值",
+        "ordersDesc": "查看訂單狀態、繼續支付或主動關閉待支付訂單",
+        "logoutDesc": "退出當前賬號或註銷",
+        "oauthDesc": "查看已綁定的第三方登錄賬號",
+        "ocrDesc": "查看歷史 OCR 文字識別記錄",
+        "imageTranslationDesc": "查看歷史圖片翻譯記錄",
+        "questionnaireDesc": "查看歷史問卷填寫記錄"
+      },
+      "pages": {
+        "info": "用戶信息",
+        "edit": "修改信息",
+        "password": "修改密碼",
+        "pro": "PRO功能",
+        "recharge": "餘額充值",
+        "orders": "我的訂單",
+        "account": "關於賬戶",
+        "oauth": "第三方應用綁定",
+        "image-translation": "圖片翻譯",
+        "ocr-history": "OCR記錄",
+        "questionnaire": "問卷記錄",
+        "switchTo": "切換到{{label}}"
+      },
+      "oauth": {
+        "subtitle": "管理已綁定的第三方登錄賬號",
+        "loading": "加載中…",
+        "empty": "暫無第三方綁定",
+        "provider": {
+          "wechat": "微信"
+        },
+        "fields": {
+          "username": "用戶名",
+          "providerUserId": "第三方用戶ID",
+          "boundAt": "綁定時間"
+        },
+        "actions": {
+          "unbind": "解除綁定",
+          "unbinding": "解除中…"
+        },
+        "feedback": {
+          "unbindSuccess": "已解除綁定",
+          "unbindFailed": "解除綁定失敗"
+        }
+      },
+      "imageTranslation": {
+        "subtitle": "查看原始圖片與翻譯後的結果圖片",
+        "loading": "加載圖片翻譯記錄中…",
+        "loadFailed": "加載圖片翻譯記錄失敗",
+        "empty": "暫無圖片翻譯記錄",
+        "languageConnector": "到",
+        "sourceImage": "翻譯前",
+        "sourceImageAlt": "翻譯前圖片",
+        "resultImage": "翻譯後",
+        "resultImageAlt": "翻譯後圖片",
+        "resultPending": "等待翻譯結果",
+        "resultUnavailable": "無可用結果圖片",
+        "previewLabel": "圖片預覽",
+        "actions": {
+          "downloadSource": "下載原始截圖",
+          "downloadResult": "下載翻譯截圖",
+          "downloading": "下載中…",
+          "downloadStarted": "已開始下載",
+          "downloadFailed": "下載失敗",
+          "remove": "抹掉此記錄",
+          "removing": "抹掉中…",
+          "removeSuccess": "圖片及翻譯記錄已抹掉",
+          "removeFailed": "抹掉圖片失敗"
+        },
+        "pagination": {
+          "label": "圖片翻譯歷史分頁",
+          "previous": "上一頁",
+          "next": "下一頁",
+          "summary": "第 {{page}} / {{totalPages}} 頁，共 {{total}} 條"
+        },
+        "status": {
+          "queued": "排隊中",
+          "processing": "翻譯中",
+          "succeeded": "已完成",
+          "failed": "失敗",
+          "unknown": "未知"
+        }
+      },
+      "questionnaire": {
+        "subtitle": "查看歷史問卷填寫記錄",
+        "loading": "加載問卷記錄中…",
+        "loadFailed": "加載問卷記錄失敗",
+        "empty": "暫無問卷記錄",
+        "submittedAt": "提交時間：{{time}}",
+        "rewardDays": "獎勵 PRO {{days}} 天",
+        "rewardExpireAt": "PRO 到期時間：{{time}}",
+        "noReward": "無 PRO 獎勵",
+        "viewDetails": "查看填寫結果",
+        "hideDetails": "收起填寫結果",
+        "erase": "刪除我的提交記錄",
+        "confirmErase": "確認刪除",
+        "cancelErase": "取消",
+        "erasing": "刪除中…",
+        "eraseSuccess": "問卷提交記錄已刪除，可重新提交但不會再次獲得獎勵",
+        "eraseFailed": "刪除問卷提交記錄失敗"
+      },
+      "ocrHistory": {
+        "subtitle": "查看原始圖片與 OCR 識別文本",
+        "loading": "加載 OCR 歷史記錄中…",
+        "loadFailed": "加載 OCR 歷史記錄失敗",
+        "empty": "暫無 OCR 歷史記錄",
+        "record": "OCR #{{id}}",
+        "sourceImage": "原始圖片",
+        "sourceImageAlt": "OCR 原始圖片",
+        "recognizedText": "識別文本",
+        "emptyText": "未識別到文本",
+        "actions": {
+          "downloadSource": "下載原圖",
+          "downloading": "下載中…",
+          "downloadStarted": "已開始下載",
+          "downloadFailed": "下載失敗",
+          "copyText": "複製所有文本",
+          "copying": "複製中…",
+          "copySuccess": "文本已複製",
+          "copyFailed": "複製文本失敗",
+          "remove": "抹掉此記錄",
+          "removing": "抹掉中…",
+          "removeFailed": "抹掉記錄失敗"
+        },
+        "pagination": {
+          "label": "OCR 歷史分頁",
+          "previous": "上一頁",
+          "next": "下一頁",
+          "summary": "第 {{page}} / {{totalPages}} 頁，共 {{total}} 條"
+        }
+      },
+      "recharge": {
+        "title": "餘額充值",
+        "subtitle": "充值後可用於 AI 助手對話消耗",
+        "paymentTitle": "Agent 餘額充值",
+        "paymentSubtitle": "選擇支付方式後完成支付，餘額將自動到賬。",
+        "rechargeAmountLabel": "充值金額",
+        "currentBalance": "當前餘額",
+        "customPlaceholder": "自定義",
+        "selectAmount": "請選擇充值金額",
+        "confirm": "確認充值 ¥{{amount}}",
+        "submitting": "充值中…",
+        "success": "充值成功",
+        "fail": "充值失敗，請稍後重試"
+      },
+      "orders": {
+        "title": "我的訂單",
+        "subtitle": "查詢當前賬號訂單，並可繼續支付或關閉待支付訂單",
+        "loading": "訂單加載中…",
+        "empty": "暫無訂單記錄",
+        "actions": {
+          "refresh": "刷新訂單",
+          "refreshing": "刷新中…",
+          "continuePay": "繼續支付",
+          "closeOrder": "關閉訂單",
+          "closing": "關閉中…"
+        },
+        "feedback": {
+          "loadFailed": "加載訂單失敗",
+          "closeFailed": "關閉訂單失敗，請稍後重試",
+          "closeSuccess": "訂單已關閉"
+        },
+        "pagination": {
+          "label": "訂單歷史分頁",
+          "previous": "上一頁",
+          "next": "下一頁",
+          "summary": "第 {{page}} / {{totalPages}} 頁，共 {{total}} 條"
+        }
+      },
+      "pro": {
+        "title": "產品類型",
+        "subtitle": "根據你的使用場景選擇 Free 或 Pro 版本",
+        "free": {
+          "name": "Free",
+          "price": "¥0 / 月",
+          "desc": "基礎功能可用，適合輕度日常使用。",
+          "feature1": "基礎靈動島組件",
+          "feature2": "常規設置與個性化",
+          "feature3": "社區公開內容瀏覽"
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "¥15 / 月",
+          "priceLoading": "價格加載中…",
+          "priceUnavailable": "價格待定",
+          "desc": "完整高級能力與持續更新支持。",
+          "feature1": "全部 Free 權益",
+          "feature2": "高級功能與擴展",
+          "feature3": "優先體驗新功能"
+        },
+        "billingCycle": {
+          "month": "月"
+        }
+      },
+      "payment": {
+        "title": "購買 Pro",
+        "subtitle": "選擇支付方式後前往官網完成支付，支付成功後賬號會自動同步 Pro 權益。",
+        "method": "支付方式",
+        "wechat": "微信支付",
+        "alipay": "支付寶",
+        "orderTitle": "確認訂單",
+        "receiptEmailLabel": "收據發送郵箱",
+        "receiptEmailPlaceholder": "請輸入接收收據的郵箱地址",
+        "fillAccountEmail": "填充本賬號郵箱",
+        "priceLabel": "價格",
+        "subscriptionPeriodLabel": "訂閱時間",
+        "expireLabel": "訂單到期時間",
+        "confirmPay": "創建訂單",
+        "emailInvalid": "請輸入有效的收據郵箱地址",
+        "loginRequired": "登錄狀態已失效，請重新登錄後再試。",
+        "createOrderFailed": "創建支付訂單失敗，請稍後重試。",
+        "payUrlMissing": "訂單創建成功但未返回支付鏈接，請稍後重試。",
+        "openPayFailed": "無法打開支付頁面，請稍後重試。",
+        "refreshStatusFailed": "刷新支付狀態失敗，請稍後重試。",
+        "boundEmailNotFound": "當前賬號未找到綁定郵箱",
+        "channelsUnavailable": "當前支付通道暫不可用，請稍後重試。",
+        "creatingOrder": "創建訂單中...",
+        "pendingTitle": "待支付界面",
+        "orderNoLabel": "訂單號",
+        "payAmountLabel": "付款金額",
+        "payStatusLabel": "支付狀態",
+        "productTypeLabel": "購買類型",
+        "createdAtLabel": "下單時間",
+        "paidAtLabel": "支付時間",
+        "productType": {
+          "PRO_MONTH": "Pro 月度訂閱",
+          "AGENT_RECHARGE": "餘額充值",
+          "unknown": "未知類型"
+        },
+        "refreshStatus": "刷新支付狀態",
+        "refreshingStatus": "刷新中...",
+        "openPaymentPage": "打開支付界面",
+        "viewOrders": "查看訂單",
+        "goUserCenter": "前往用戶中心",
+        "status": {
+          "paying": "待支付",
+          "success": "已支付",
+          "closed": "已關閉",
+          "failed": "支付失敗",
+          "unknown": "未知"
+        },
+        "wechatHint": "推薦使用微信掃碼完成支付",
+        "alipayHint": "推薦使用支付寶掃碼完成支付",
+        "scanQrHint": "請使用微信掃一掃完成支付",
+        "scanQrSubhint": "掃碼後請在手機上完成支付，支付結果將自動同步",
+        "showQrCode": "顯示二維碼",
+        "hideQrCode": "收起二維碼",
+        "selectMethodHint": "請選擇上方支付方式後再創建訂單。",
+        "fallbackHint": "如果掃碼不可用，可點擊下方按鈕前往官網支付頁面。",
+        "goCheckout": "前往官網支付"
+      },
+      "gender": {
+        "male": "男",
+        "female": "女",
+        "custom": "自定義",
+        "undisclosed": "不願透露"
+      },
+      "actions": {
+        "refresh": "刷新資料",
+        "refreshing": "刷新中…",
+        "refreshHint": "郵箱用於接收驗證和通知",
+        "refreshHint2": "加入日期以服務端記錄為準",
+        "refreshingHint": "同步服務器中的最新個人信息",
+        "chooseAvatar": "選擇圖片上傳",
+        "uploading": "上傳中…",
+        "show": "顯示",
+        "hide": "隱藏",
+        "showPassword": "顯示密碼",
+        "hidePassword": "隱藏密碼",
+        "saveProfile": "保存資料",
+        "saving": "保存中…",
+        "changePassword": "修改密碼",
+        "changingPassword": "修改中…",
+        "logout": "退出登錄",
+        "loggingOut": "登出中…",
+        "backToCenter": "返回上一頁",
+        "cancelLogin": "取消",
+        "cancelRegister": "取消註冊",
+        "unregister": "註銷賬號",
+        "confirmUnregister": "確認註銷",
+        "unregistering": "註銷中…",
+        "cancel": "取消",
+        "cancelChanges": "取消更改",
+        "sendCode": "發送驗證碼",
+        "sendCodeCooldown": "{{seconds}}s後重試",
+        "reportIssue": "報告問題",
+        "currentPlan": "當前可用",
+        "buyPro": "購買 Pro",
+        "renewPro": "前往續費",
+        "proActivated": "已開通 Pro"
+      },
+      "danger": {
+        "hint": "註銷後賬號與關聯資料將被立即刪除，無法恢復，請謹慎操作。"
+      },
+      "feedback": {
+        "submitting": "處理中…",
+        "loadingProfile": "加載賬號資料中…",
+        "needLogin": "請先登錄後再上傳頭像",
+        "loadFailed": "加載資料失敗",
+        "sessionExpired": "登錄已過期，請重新登錄",
+        "usernameRequired": "請輸入用戶名",
+        "usernameFormatInvalid": "用戶名僅支持中文、英文和數字",
+        "accountRequired": "請輸入用戶名或郵箱",
+        "passwordRequired": "請輸入密碼",
+        "confirmPasswordRequired": "請再次輸入密碼",
+        "passwordNotMatch": "兩次輸入的密碼不一致",
+        "emailRequired": "請輸入郵箱",
+        "emailInvalid": "請輸入有效郵箱地址",
+        "emailCodeRequired": "請輸入郵箱驗證碼",
+        "emailCodeSending": "發送中…",
+        "emailCodeSent": "驗證碼已發送，請查收郵箱",
+        "emailCodeSendFailed": "驗證碼發送失敗",
+        "resetPasswordFailed": "重置密碼失敗",
+        "resetPasswordSuccess": "密碼重置成功，請使用新密碼登錄",
+        "captchaCancelled": "請完成滑塊驗證後再發送驗證碼",
+        "avatarTooLarge": "頭像文件不能超過 5MB",
+        "avatarNotImage": "僅支持上傳圖片文件",
+        "avatarUploaded": "頭像已更新",
+        "avatarUploadFailed": "頭像上傳失敗",
+        "avatarUploadTooFrequent": "頭像上傳過於頻繁，請稍後再試",
+        "passwordTooShort": "密碼至少 8 位且包含字母與數字",
+        "usernameInvalid": "用戶名格式不正確",
+        "passwordMismatch": "兩次密碼不一致",
+        "passwordConfirmRequired": "請再次輸入新密碼進行確認",
+        "passwordConfirmMismatch": "兩次輸入的新密碼不一致",
+        "saveFailed": "保存失敗",
+        "saveSuccess": "資料已更新",
+        "refreshSuccess": "資料已刷新",
+        "refreshFailed": "刷新資料失敗",
+        "passwordChangeSuccess": "密碼已更新",
+        "logoutSuccess": "已退出登錄",
+        "logoutLocalOnly": "服務端響應異常，已在本地清除登錄態",
+        "unregisterPasswordRequired": "請輸入當前密碼以確認註銷",
+        "unregisterFailed": "註銷失敗",
+        "unregisterSuccess": "賬號已註銷",
+        "operationFailed": "操作失敗",
+        "loginSuccess": "登錄成功",
+        "registerSuccess": "註冊成功",
+        "passwordConfirmNeedsPassword": "請先輸入當前密碼",
+        "birthdayInvalid": "請輸入有效的生日日期",
+        "emailVerificationRequired": "當前登錄風險較高，請先完成郵箱驗證"
+      }
+    },
+    "nav": {
+      "guide": {
+        "label": "使用教程",
+        "desc": "查看靈動島功能引導與操作說明。"
+      },
+      "layout-preview": {
+        "label": "佈局預覽",
+        "desc": "進入佈局預覽並調整左右控件展示。"
+      },
+      "expand-layout": {
+        "label": "展開佈局",
+        "desc": "調整展開界面頁面順序與顯示開關。"
+      },
+      "maxexpand-layout": {
+        "label": "全展開佈局",
+        "desc": "調整頁面順序與顯示開關。"
+      },
+      "album": {
+        "label": "相冊配置",
+        "desc": "相冊輪播與相冊入口相關配置。"
+      },
+      "hide-process-list": {
+        "label": "隱藏窗口管理",
+        "desc": "管理隱藏窗口名單與自動隱藏規則。"
+      },
+      "position": {
+        "label": "位置校準",
+        "desc": "動態調整靈動島位置並保存"
+      },
+      "theme": {
+        "label": "主題外觀",
+        "desc": "切換深色、淺色或跟隨系統主題。"
+      },
+      "language": {
+        "label": "語言切換",
+        "desc": "切換應用顯示語言並即時生效。"
+      },
+      "behavior": {
+        "label": "交互行為",
+        "desc": "配置鼠標移開後是否自動收回。"
+      },
+      "animation": {
+        "label": "軟件動畫",
+        "desc": "靈動島彈性動畫與動畫速度配置。"
+      },
+      "break-reminder": {
+        "label": "休息提醒",
+        "desc": "定時休息與喝水提醒。"
+      },
+      "url-parser": {
+        "label": "URL解析",
+        "desc": "配置剪貼板 URL 識別模式與黑名單。"
+      },
+      "clipboard-history": {
+        "label": "剪貼板歷史",
+        "desc": "配置剪貼板歷史記錄能力與條數。"
+      },
+      "alarm": {
+        "label": "鬧鐘配置",
+        "desc": "配置鬧鐘提醒音、貪睡與通知行為。"
+      },
+      "autostart": {
+        "label": "實用工具",
+        "desc": "應用控制、日誌與開機啟動配置。"
+      },
+      "sound": {
+        "label": "聲音設置",
+        "desc": "音效、通知聲音與音頻輸出配置。"
+      },
+      "notification": {
+        "label": "通知設置",
+        "desc": "配置靈動島通知提醒與展示行為。"
+      },
+      "performance": {
+        "label": "性能設置",
+        "desc": "性能相關配置。"
+      },
+      "performance-monitor": {
+        "label": "性能監控",
+        "desc": "性能監控展示與硬件狀態配置。"
+      },
+      "screenshot-settings": {
+        "label": "截圖設置",
+        "desc": "截圖相關配置。"
+      },
+      "network": {
+        "label": "網絡配置",
+        "desc": "請求超時與網絡行為設置"
+      },
+      "mail": {
+        "label": "郵箱配置",
+        "desc": "配置 IMAP 收信參數"
+      },
+      "weather": {
+        "label": "天氣配置",
+        "desc": "天氣接口優先級設置"
+      },
+      "ai": {
+        "label": "AI Agent",
+        "desc": "AI 服務與 Prompt 配置"
+      },
+      "shortcut": {
+        "label": "快捷鍵",
+        "desc": "隱藏、關閉、截圖快捷鍵"
+      },
+      "update": {
+        "label": "更新設置",
+        "desc": "檢查與下載軟件更新"
+      },
+      "pluginMarket": {
+        "label": "綜合市場",
+        "desc": "綜合市場入口與壁紙管理"
+      },
+      "user": {
+        "label": "用戶中心",
+        "desc": "登錄、註冊、修改、註銷等賬號操作"
+      },
+      "user-pro": {
+        "label": "PRO功能",
+        "desc": "查看 Pro 計劃權益及當前訂閱價格"
+      },
+      "user-recharge": {
+        "label": "餘額充值",
+        "desc": "為 AI 助手對話餘額充值"
+      },
+      "about": {
+        "label": "關於軟件",
+        "desc": "版本信息與項目鏈接"
+      },
+      "music-whitelist": {
+        "label": "播放器白名單",
+        "desc": "配置允許接入靈動島的播放器。"
+      },
+      "music-lyrics": {
+        "label": "歌詞源",
+        "desc": "選擇歌詞來源與顯示模式。"
+      },
+      "music-smtc": {
+        "label": "SMTC",
+        "desc": "系統媒體傳輸控制相關配置。"
+      },
+      "music-providers": {
+        "label": "歌詞提供源",
+        "desc": "配置歌詞獲取來源與優先級。"
+      }
+    }
+  },
+  "idle": {
+    "pomodoro": {
+      "label": "番茄鍾"
+    }
+  },
+  "oauth": {
+    "divider": "或",
+    "github": {
+      "login": "GitHub",
+      "loading": "連接中"
+    },
+    "microsoft": {
+      "login": "Microsoft",
+      "loading": "連接中"
+    },
+    "wechat": {
+      "login": "WeChat",
+      "loading": "連接中"
+    },
+    "gitee": {
+      "login": "Gitee",
+      "loading": "連接中"
+    },
+    "kook": {
+      "login": "KOOK",
+      "loading": "連接中"
+    },
+    "setPassword": {
+      "title": "設置密碼",
+      "hint": "OAuth 登錄成功，請設置密碼以完成註冊",
+      "submit": "設置密碼並註冊"
+    },
+    "bindOAuth": {
+      "title": "綁定賬號",
+      "hint": "該郵箱已註冊，請輸入密碼將第三方賬號綁定到已有賬號",
+      "submit": "綁定並登錄",
+      "bindSuccess": "綁定成功",
+      "bindFailed": "綁定失敗"
+    },
+    "bindEmail": {
+      "title": "綁定郵箱",
+      "hint": "請綁定郵箱以完成註冊",
+      "submit": "驗證並繼續",
+      "verifyFailed": "驗證碼錯誤"
+    },
+    "feedback": {
+      "loginCancelled": "登錄已取消或超時"
+    }
+  }
+}

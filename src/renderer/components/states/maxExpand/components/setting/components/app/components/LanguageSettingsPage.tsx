@@ -52,7 +52,8 @@ export function LanguageSettingsPage({ appLanguage, applyAppLanguage }: Language
             {([
               { value: 'zh-CN', label: t('settings.language.options.zh-CN', { defaultValue: '简体中文' }) },
               { value: 'en-US', label: t('settings.language.options.en-US', { defaultValue: 'English' }) },
-            ] as Array<{ value: 'zh-CN' | 'en-US'; label: string }>).map((opt) => {
+              { value: 'zh-TW', label: t('settings.language.options.zh-TW', { defaultValue: '繁體中文' }) },
+            ] as Array<{ value: 'zh-CN' | 'en-US' | 'zh-TW'; label: string }>).map((opt) => {
               const iconSrc = resolveCountryIcon(opt.value);
               return (
                 <button
@@ -70,7 +71,9 @@ export function LanguageSettingsPage({ appLanguage, applyAppLanguage }: Language
           <div className="settings-music-hint">
             {appLanguage === 'zh-CN'
               ? t('settings.language.current.zh-CN', { defaultValue: '当前语言：简体中文' })
-              : t('settings.language.current.en-US', { defaultValue: 'Current language: English' })}
+              : appLanguage === 'zh-TW'
+                ? t('settings.language.current.zh-TW', { defaultValue: '當前語言：繁體中文' })
+                : t('settings.language.current.en-US', { defaultValue: 'Current language: English' })}
           </div>
         </div>
       </div>

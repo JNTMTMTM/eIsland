@@ -28,8 +28,11 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative, extname } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..');
-const ZH_PATH = join(ROOT, 'i18n', 'zh-CN.json');
-const EN_PATH = join(ROOT, 'i18n', 'en-US.json');
+const LOCALE_FILES = [
+  { path: join(ROOT, 'i18n', 'zh-CN.json'), label: 'zh-CN' },
+  { path: join(ROOT, 'i18n', 'en-US.json'), label: 'en-US' },
+  { path: join(ROOT, 'i18n', 'zh-TW.json'), label: 'zh-TW' },
+];
 const SRC_DIR = join(ROOT, 'src');
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', 'out', 'test', '__tests__']);
@@ -78,28 +81,31 @@ function collectSourceFiles(dir: string): string[] {
 
 // ── Check 1: 翻译文件键对齐 ──
 
-const zh = loadJson(ZH_PATH, 'zh-CN');
-const en = loadJson(EN_PATH, 'en-US');
-const zhKeys = new Set(flattenKeys(zh));
-const enKeys = new Set(flattenKeys(en));
-const allKeys = new Set([...zhKeys, ...enKeys]);
+const localeData = LOCALE_FILES.map((f) => ({
+  ...f,
+  data: loadJson(f.path, f.label),
+}));
+const localeKeySets = localeData.map((l) => ({ label: l.label, keys: new Set(flattenKeys(l.data)) }));
+const allKeys = new Set(localeKeySets.flatMap((s) => [...s.keys]));
 
-const missingInEn = [...zhKeys].filter((k) => !enKeys.has(k)).sort();
-const missingInZh = [...enKeys].filter((k) => !zhKeys.has(k)).sort();
-
-console.log(`[INFO] zh-CN: ${zhKeys.size} keys | en-US: ${enKeys.size} keys`);
-
-if (missingInEn.length > 0) {
-  console.log(`\n[FAIL] en-US 缺少 ${missingInEn.length} 个翻译键（zh-CN 中存在）:`);
-  for (const key of missingInEn) console.log(`  - ${key}`);
+const alignmentIssues: string[] = [];
+for (let i = 0; i < localeKeySets.length; i++) {
+  for (let j = 0; j < localeKeySets.length; j++) {
+    if (i === j) continue;
+    const missing = [...localeKeySets[i].keys].filter((k) => !localeKeySets[j].keys.has(k)).sort();
+    if (missing.length > 0) {
+      alignmentIssues.push(`${localeKeySets[j].label} 缺少 ${missing.length} 个翻译键（${localeKeySets[i].label} 中存在）:`);
+      for (const key of missing) alignmentIssues.push(`  - ${key}`);
+    }
+  }
 }
 
-if (missingInZh.length > 0) {
-  console.log(`\n[FAIL] zh-CN 缺少 ${missingInZh.length} 个翻译键（en-US 中存在）:`);
-  for (const key of missingInZh) console.log(`  - ${key}`);
-}
+for (const l of localeKeySets) console.log(`[INFO] ${l.label}: ${l.keys.size} keys`);
 
-if (missingInEn.length === 0 && missingInZh.length === 0) {
+if (alignmentIssues.length > 0) {
+  console.log(`\n[FAIL] 翻译文件键不对齐:`);
+  for (const line of alignmentIssues) console.log(`  ${line}`);
+} else {
   console.log('[PASS] 翻译文件键完全一致。');
 }
 
@@ -230,10 +236,10 @@ if (hardcodedIssues.length > 0) {
 
 // ── Summary ──
 
-const totalIssues = missingInEn.length + missingInZh.length + missingKeyIssues.length + hardcodedIssues.length;
+const totalIssues = alignmentIssues.length + missingKeyIssues.length + hardcodedIssues.length;
 
 console.log('\n[SUMMARY]');
-console.log(`  翻译文件缺失键: ${missingInEn.length + missingInZh.length}`);
+console.log(`  翻译文件对齐问题: ${alignmentIssues.filter((l) => l.startsWith('  - ')).length}`);
 console.log(`  t() 引用无效键: ${missingKeyIssues.length}`);
 console.log(`  硬编码中文: ${hardcodedIssues.length}`);
 console.log(`  总计问题: ${totalIssues}`);

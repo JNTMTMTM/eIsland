@@ -116,8 +116,8 @@ export interface AppSettingsSectionProps {
   ) => Promise<void>;
   standaloneMacControls: boolean;
   setStandaloneMacControls: (value: boolean) => void;
-  appLanguage: 'zh-CN' | 'en-US';
-  applyAppLanguage: (language: 'zh-CN' | 'en-US') => void;
+  appLanguage: 'zh-CN' | 'en-US' | 'zh-TW';
+  applyAppLanguage: (language: 'zh-CN' | 'en-US' | 'zh-TW') => void;
   islandOpacity: number;
   applyIslandOpacity: (value: number) => void;
   opacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };
