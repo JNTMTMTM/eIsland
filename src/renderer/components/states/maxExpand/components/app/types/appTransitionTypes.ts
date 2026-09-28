@@ -20,12 +20,13 @@
 
 /**
  * @file appTransitionTypes.ts
- * @description 应用导航缩放过渡的几何信息与 Hook 接口。
+ * @description 应用导航缩放过渡的几何信息、运行状态与 Hook 接口。
  * @author 鸡哥
  */
 
 import type { RefObject } from 'react';
 import type { MaxExpandTab } from '../../../../../../store/types';
+import type { AppLauncherPosition } from './appLauncherTypes';
 
 /** 图标在动画舞台内的实际边界，包含悬停产生的缩放与避让位移。 */
 export interface AppTransitionIcon {
@@ -40,6 +41,40 @@ export interface AppNavigationTransition {
   direction: 'open' | 'close';
   tab: MaxExpandTab;
   icon: AppTransitionIcon;
+}
+
+/** 过渡中单个按钮的图层、初始中心坐标与基线变换。 */
+export interface TransitionItem {
+  /** 图标圆元素 */
+  circle: HTMLElement;
+  /** 承载避让位移的视觉层元素 */
+  visual: HTMLElement;
+  /** 按钮初始圆心与直径 */
+  position: AppLauncherPosition;
+  /** 圆元素自身的基线 transform */
+  circleTransform: string;
+  /** 视觉层自身的基线 transform */
+  visualTransform: string;
+}
+
+/** 一次过渡的完整运行时状态，中断时按该对象清理动画与定时器。 */
+export interface TransitionRun {
+  /** 对外暴露的过渡几何信息 */
+  transition: AppNavigationTransition;
+  /** 舞台宽度 */
+  stageWidth: number;
+  /** 舞台高度 */
+  stageHeight: number;
+  /** 参与动画的按钮图层 */
+  items: TransitionItem[];
+  /** 放大图标的索引 */
+  activeIndex: number;
+  /** 已启动的 Web Animations */
+  animations: Animation[];
+  /** 兜底结算定时器 */
+  timer: number | null;
+  /** 是否已结算，防止重复收尾 */
+  settled: boolean;
 }
 
 /** 应用导航的目标状态、动画条件及状态更新入口。 */

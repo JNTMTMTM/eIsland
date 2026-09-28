@@ -34,10 +34,30 @@ export interface MaxExpandAppLauncherProps {
   transitionTab?: MaxExpandTab;
 }
 
-/** 单个应用图标的悬停避让位移（像素） */
+/** 图标避让位移（像素） */
 export interface AppLauncherHoverOffset {
   /** 水平位移 */
   x: number;
   /** 垂直位移 */
   y: number;
+}
+
+/** 图标圆心坐标与直径 */
+export interface AppLauncherPosition {
+  /** 圆心横坐标 */
+  x: number;
+  /** 圆心纵坐标 */
+  y: number;
+  /** 图标直径 */
+  width: number;
+}
+
+/** 图标圆心坐标与直径，坐标已包含悬停变换 */
+export interface AppLauncherExpansionPosition {
+  /** 圆心横坐标 */
+  x: number;
+  /** 圆心纵坐标 */
+  y: number;
+  /** 图标直径 */
+  width: number;
 }

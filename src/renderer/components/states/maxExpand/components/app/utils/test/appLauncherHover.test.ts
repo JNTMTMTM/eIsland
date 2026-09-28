@@ -26,7 +26,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { getAppLauncherHoverOffsets } from '../appLauncherHover';
-import type { AppLauncherPosition } from '../appLauncherHover';
+import type { AppLauncherPosition } from '../../types/appLauncherTypes';
 
 describe('getAppLauncherHoverOffsets', () => {
   const positions = [

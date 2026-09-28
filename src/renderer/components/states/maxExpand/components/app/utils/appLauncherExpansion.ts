@@ -5,10 +5,17 @@
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
  *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -17,15 +24,8 @@
  * @author 鸡哥
  */
 
-export interface AppLauncherExpansionPosition {
-  x: number;
-  y: number;
-  width: number;
-}
-
-const ICON_GAP = 6;
-const MAX_SEPARATION_PASSES = 120;
-const SEPARATION_TOLERANCE = .0001;
+import { ICON_GAP, MAX_SEPARATION_PASSES, SEPARATION_TOLERANCE } from '../config/appLauncherExpansionConfig';
+import type { AppLauncherExpansionPosition, AppLauncherHoverOffset } from '../types/appLauncherTypes';
 
 /**
  * 固定选中图标的圆心，将放大造成的碰撞逐圈向外传播。
@@ -38,7 +38,7 @@ export function getAppLauncherExpansionOffsets(
   positions: readonly AppLauncherExpansionPosition[],
   activeIndex: number,
   scale: number,
-): Array<{ x: number; y: number }> {
+): AppLauncherHoverOffset[] {
   const active = positions[activeIndex];
   if (!active || scale <= 1 || !Number.isFinite(scale)) {
     return positions.map(() => ({ x: 0, y: 0 }));

@@ -25,36 +25,16 @@
  */
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { TRANSITION_DURATION_MS, TRANSITION_FALLBACK_MS, TRANSITION_ICON_SCALE } from '../config/appTransitionConfig';
 import { getAppLauncherExpansionOffsets } from '../utils/appLauncherExpansion';
 import type { MaxExpandTab } from '../../../../../../store/types';
 import type {
   AppNavigationTransition,
+  TransitionItem,
+  TransitionRun,
   UseAppNavigationTransitionOptions,
   UseAppNavigationTransitionResult,
 } from '../types/appTransitionTypes';
-
-const TRANSITION_DURATION_MS = 280;
-const TRANSITION_FALLBACK_MS = TRANSITION_DURATION_MS + 100;
-const TRANSITION_ICON_SCALE = 3.2;
-
-interface TransitionItem {
-  circle: HTMLElement;
-  visual: HTMLElement;
-  position: { x: number; y: number; width: number };
-  circleTransform: string;
-  visualTransform: string;
-}
-
-interface TransitionRun {
-  transition: AppNavigationTransition;
-  stageWidth: number;
-  stageHeight: number;
-  items: TransitionItem[];
-  activeIndex: number;
-  animations: Animation[];
-  timer: number | null;
-  settled: boolean;
-}
 
 function releaseRun(run: TransitionRun): void {
   if (run.timer !== null) window.clearTimeout(run.timer);

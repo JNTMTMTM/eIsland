@@ -24,11 +24,7 @@
  * @author 鸡哥
  */
 
-export interface AppLauncherPosition {
-  x: number;
-  y: number;
-  width: number;
-}
+import type { AppLauncherHoverOffset, AppLauncherPosition } from '../types/appLauncherTypes';
 
 /**
  * 将附近图标沿悬停项的径向推开，保持网格布局及命中区域不变。
@@ -39,7 +35,7 @@ export interface AppLauncherPosition {
 export function getAppLauncherHoverOffsets(
   positions: readonly AppLauncherPosition[],
   activeIndex: number,
-): Array<{ x: number; y: number }> {
+): AppLauncherHoverOffset[] {
   const active = positions[activeIndex];
   return positions.map((position) => {
     if (!active) return { x: 0, y: 0 };
