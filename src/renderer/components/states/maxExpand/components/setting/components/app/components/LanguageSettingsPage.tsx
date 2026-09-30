@@ -27,6 +27,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppSettingsSectionProps } from './types';
+import type { AppLanguage } from '../../../../../../../../i18n';
 import { resolveCountryIcon } from '../../../../../../../../utils/SvgIcon/country-icon';
 
 type LanguageSettingsPageProps = Pick<AppSettingsSectionProps, 'appLanguage' | 'applyAppLanguage'>;
@@ -53,7 +54,8 @@ export function LanguageSettingsPage({ appLanguage, applyAppLanguage }: Language
               { value: 'zh-CN', label: t('settings.language.options.zh-CN', { defaultValue: '简体中文' }) },
               { value: 'en-US', label: t('settings.language.options.en-US', { defaultValue: 'English' }) },
               { value: 'zh-TW', label: t('settings.language.options.zh-TW', { defaultValue: '繁體中文' }) },
-            ] as Array<{ value: 'zh-CN' | 'en-US' | 'zh-TW'; label: string }>).map((opt) => {
+              { value: 'ja-JP', label: t('settings.language.options.ja-JP', { defaultValue: '日本語' }) },
+            ] as Array<{ value: AppLanguage; label: string }>).map((opt) => {
               const iconSrc = resolveCountryIcon(opt.value);
               return (
                 <button
@@ -69,11 +71,7 @@ export function LanguageSettingsPage({ appLanguage, applyAppLanguage }: Language
             })}
           </div>
           <div className="settings-music-hint">
-            {appLanguage === 'zh-CN'
-              ? t('settings.language.current.zh-CN', { defaultValue: '当前语言：简体中文' })
-              : appLanguage === 'zh-TW'
-                ? t('settings.language.current.zh-TW', { defaultValue: '當前語言：繁體中文' })
-                : t('settings.language.current.en-US', { defaultValue: 'Current language: English' })}
+            {t(`settings.language.current.${appLanguage}`)}
           </div>
         </div>
       </div>

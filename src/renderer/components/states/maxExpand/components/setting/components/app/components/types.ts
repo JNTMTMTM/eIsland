@@ -25,6 +25,7 @@
  */
 
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
+import type { AppLanguage } from '../../../../../../../../i18n';
 import type { AppSettingsPageKey, ExpandNavLayoutConfig, MaxExpandNavLayoutConfig } from '../../../utils/settingsConfig';
 import type {
   OverviewClockStyle,
@@ -116,8 +117,8 @@ export interface AppSettingsSectionProps {
   ) => Promise<void>;
   standaloneMacControls: boolean;
   setStandaloneMacControls: (value: boolean) => void;
-  appLanguage: 'zh-CN' | 'en-US' | 'zh-TW';
-  applyAppLanguage: (language: 'zh-CN' | 'en-US' | 'zh-TW') => void;
+  appLanguage: AppLanguage;
+  applyAppLanguage: (language: AppLanguage) => void;
   islandOpacity: number;
   applyIslandOpacity: (value: number) => void;
   opacitySaveTimerRef: { current: ReturnType<typeof setTimeout> | null };

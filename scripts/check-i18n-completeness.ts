@@ -28,11 +28,11 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative, extname } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..');
-const LOCALE_FILES = [
-  { path: join(ROOT, 'i18n', 'zh-CN.json'), label: 'zh-CN' },
-  { path: join(ROOT, 'i18n', 'en-US.json'), label: 'en-US' },
-  { path: join(ROOT, 'i18n', 'zh-TW.json'), label: 'zh-TW' },
-];
+const LOCALE_DIR = join(ROOT, 'i18n');
+const LOCALE_FILES = readdirSync(LOCALE_DIR)
+  .filter((file) => file.endsWith('.json'))
+  .sort()
+  .map((file) => ({ path: join(LOCALE_DIR, file), label: file.slice(0, -'.json'.length) }));
 const SRC_DIR = join(ROOT, 'src');
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', 'out', 'test', '__tests__']);
@@ -40,18 +40,23 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
 
 type Issue = { file: string; line: number; rule: string; message: string };
 
-/** 递归展开嵌套对象为点分隔的键路径 */
-function flattenKeys(obj: Record<string, unknown>, prefix = ''): string[] {
-  const keys: string[] = [];
-  for (const [k, v] of Object.entries(obj)) {
+/**
+ * 递归展开翻译对象，以校验键及插值变量。
+ * @param obj - 嵌套翻译对象
+ * @param prefix - 当前键路径前缀
+ * @returns 键路径与翻译值的映射
+ */
+function flattenTranslations(obj: Record<string, unknown>, prefix = ''): Record<string, unknown> {
+  const values: Record<string, unknown> = {};
+  Object.entries(obj).forEach(([k, v]) => {
     const path = prefix ? `${prefix}.${k}` : k;
     if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
-      keys.push(...flattenKeys(v as Record<string, unknown>, path));
+      Object.assign(values, flattenTranslations(v as Record<string, unknown>, path));
     } else {
-      keys.push(path);
+      values[path] = v;
     }
-  }
-  return keys;
+  });
+  return values;
 }
 
 /** 读取并解析 JSON 文件 */
@@ -83,9 +88,9 @@ function collectSourceFiles(dir: string): string[] {
 
 const localeData = LOCALE_FILES.map((f) => ({
   ...f,
-  data: loadJson(f.path, f.label),
+  data: flattenTranslations(loadJson(f.path, f.label)),
 }));
-const localeKeySets = localeData.map((l) => ({ label: l.label, keys: new Set(flattenKeys(l.data)) }));
+const localeKeySets = localeData.map((l) => ({ label: l.label, keys: new Set(Object.keys(l.data)) }));
 const allKeys = new Set(localeKeySets.flatMap((s) => [...s.keys]));
 
 const alignmentIssues: string[] = [];
@@ -107,6 +112,35 @@ if (alignmentIssues.length > 0) {
   for (const line of alignmentIssues) console.log(`  ${line}`);
 } else {
   console.log('[PASS] 翻译文件键完全一致。');
+}
+
+// ── 翻译值及插值变量校验 ──
+
+const translationIssues: string[] = [];
+const referenceLocale = localeData.find((locale) => locale.label === 'en-US');
+if (!referenceLocale) translationIssues.push('缺少基准语言 en-US.json');
+
+localeData.forEach((locale) => {
+  Object.entries(locale.data).forEach(([key, value]) => {
+    const reference = referenceLocale?.data[key];
+    if (typeof value !== 'string' || (!value.trim() && reference !== '')) {
+      translationIssues.push(`${locale.label}: ${key} 必须是字符串且不得遗漏非空原文`);
+      return;
+    }
+    if (typeof reference !== 'string') return;
+    const expected = (reference.match(/\{\{[^{}]+\}\}/g) ?? []).sort();
+    const actual = (value.match(/\{\{[^{}]+\}\}/g) ?? []).sort();
+    if (JSON.stringify(expected) !== JSON.stringify(actual)) {
+      translationIssues.push(`${locale.label}: ${key} 插值变量不一致，预期 ${JSON.stringify(expected)}，实际 ${JSON.stringify(actual)}`);
+    }
+  });
+});
+
+if (translationIssues.length > 0) {
+  console.log(`\n[FAIL] 翻译值或插值变量存在 ${translationIssues.length} 个问题:`);
+  translationIssues.forEach((issue) => console.log(`  - ${issue}`));
+} else {
+  console.log('[PASS] 翻译值有效且插值变量完全一致。');
 }
 
 // ── Check 2: 源码 t() 调用的键是否存在于翻译文件中 ──
@@ -236,10 +270,12 @@ if (hardcodedIssues.length > 0) {
 
 // ── Summary ──
 
-const totalIssues = alignmentIssues.length + missingKeyIssues.length + hardcodedIssues.length;
+const alignmentIssueCount = alignmentIssues.filter((line) => line.startsWith('  - ')).length;
+const totalIssues = alignmentIssueCount + translationIssues.length + missingKeyIssues.length + hardcodedIssues.length;
 
 console.log('\n[SUMMARY]');
-console.log(`  翻译文件对齐问题: ${alignmentIssues.filter((l) => l.startsWith('  - ')).length}`);
+console.log(`  翻译文件对齐问题: ${alignmentIssueCount}`);
+console.log(`  翻译值或插值变量问题: ${translationIssues.length}`);
 console.log(`  t() 引用无效键: ${missingKeyIssues.length}`);
 console.log(`  硬编码中文: ${hardcodedIssues.length}`);
 console.log(`  总计问题: ${totalIssues}`);

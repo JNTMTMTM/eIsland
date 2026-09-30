@@ -1,0 +1,4645 @@
+{
+  "common": {
+    "appName": "eIsland",
+    "errors": {
+      "rootMountNotFound": "#root マウントノードが見つかりません"
+    }
+  },
+  "standalone": {
+    "tabs": {
+      "todo": "タスク",
+      "countdown": "カウントダウン",
+      "urlFavorites": "URL お気に入り",
+      "album": "アルバム",
+      "mail": "メール",
+      "localFileSearch": "ファイル検索",
+      "clipboardHistory": "クリップボード",
+      "memo": "メモ",
+      "alarm": "アラーム",
+      "toolbox": "ツールボックス",
+      "settings": "設定"
+    },
+    "controls": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "close": "閉じる"
+    }
+  },
+  "capture": {
+    "source": {
+      "plugin": "プラグインを使用",
+      "js": "JS を使用"
+    },
+    "tools": {
+      "select": "範囲選択",
+      "mosaic": "モザイク",
+      "line": "直線",
+      "rect": "長方形",
+      "pen": "ペン",
+      "undo": "元に戻す",
+      "color": "色",
+      "size": "太さ",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "done": "完了"
+    }
+  },
+  "guide": {
+    "actions": {
+      "skip": "ガイドをスキップ",
+      "prev": "戻る",
+      "next": "次へ",
+      "start": "使い始める",
+      "loginNow": "今すぐログイン",
+      "registerNow": "今すぐ登録"
+    },
+    "language": {
+      "title": "言語を選択",
+      "subtitle": "使用する言語を選択して続行してください",
+      "zhCN": "中文",
+      "enUS": "English",
+      "jaJP": "日本語",
+      "koKR": "한국어",
+      "frFR": "Français",
+      "deDE": "Deutsch",
+      "esES": "Español",
+      "ruRU": "Русский",
+      "zhTW": "繁體中文"
+    },
+    "smtc": {
+      "title": "SMTC メディアテスト",
+      "subtitle": "システムのメディア再生コントロールが使用できるか確認します",
+      "hint": "メディアプレーヤーで曲を再生してください",
+      "player": "プレーヤー",
+      "unknownPlayer": "不明",
+      "state": "状態",
+      "playing": "再生中",
+      "paused": "一時停止中",
+      "prev": "前の曲",
+      "next": "次の曲",
+      "pause": "一時停止",
+      "play": "再生"
+    },
+    "whitelist": {
+      "title": "プレーヤーを選択",
+      "subtitle": "監視するプレーヤーを選択してください",
+      "qqmusic": "QQ Music",
+      "netease": "NetEase Cloud Music",
+      "sodamusic": "Soda Music",
+      "kugou": "KuGou",
+      "applemusic": "Apple Music",
+      "spotify": "Spotify"
+    },
+    "theme": {
+      "title": "外観",
+      "subtitle": "テーマモードと不透明度を設定してください",
+      "modeLabel": "テーマモード",
+      "opacityLabel": "不透明度",
+      "dark": "ダーク",
+      "light": "ライト",
+      "system": "システムに合わせる"
+    },
+    "shape": {
+      "title": "アイランドの形状",
+      "subtitle": "Dynamic Island の形状を選択してください",
+      "notch": "ノッチ型",
+      "pill": "カプセル型",
+      "notchDesc": "画面上端に固定し、ノッチのある画面を再現します",
+      "pillDesc": "画面上に浮かぶカプセル型で、より軽やかな印象に"
+    },
+    "lyricMode": {
+      "title": "歌詞の表示モード",
+      "subtitle": "歌詞のハイライト方法を選択してください",
+      "normal": "通常",
+      "karaoke": "カラオケ",
+      "normalDesc": "歌詞をプレーンテキストで表示し、行全体をハイライトします",
+      "karaokeDesc": "カラオケのように、歌詞を一文字ずつ順にハイライトします",
+      "sampleLyrics": {
+        "0": "これは歌詞のサンプルです",
+        "1": "音楽が空に漂う",
+        "2": "メロディーが優しく響く",
+        "3": "すべての音符が歌っている"
+      }
+    },
+    "update": {
+      "title": "更新元を選択",
+      "subtitle": "更新の確認時に使用するダウンロード元を選択してください"
+    },
+    "github": {
+      "title": "オープンソース",
+      "subtitle": "eIsland はオープンソースプロジェクトです",
+      "links": {
+        "repo": "GitHub",
+        "website": "公式サイト",
+        "docs": "ドキュメント",
+        "devDocs": "開発者向けドキュメント"
+      },
+      "license": "GPL-3.0 ライセンス",
+      "depsTitle": "オープンソースのフレームワーク・依存関係・プロジェクト"
+    },
+    "sponsors": {
+      "title": "スポンサー",
+      "subtitle": "スポンサーの皆様のご支援に感謝します"
+    },
+    "welcome": {
+      "title": "eIsland へようこそ",
+      "subtitle": "設定が完了しました。Dynamic Island を使い始めましょう",
+      "desc": "Apple Dynamic Island に着想を得た Windows デスクトップ用フローティングウィジェット。\nデスクトップをもっと生き生きと、使いやすく。"
+    },
+    "sections": {
+      "basic": {
+        "title": "基本操作",
+        "desc": "マウスで Dynamic Island を操作し、さまざまな表示状態に切り替えられます。"
+      },
+      "music": {
+        "title": "音楽と歌詞",
+        "desc": "再生中の音楽を自動検出し、同期した歌詞をリアルタイムで表示します。"
+      },
+      "tools": {
+        "title": "便利なツール",
+        "desc": "展開パネルには、さまざまな便利な機能がそろっています。"
+      },
+      "settings": {
+        "title": "カスタマイズ",
+        "desc": "設定で Dynamic Island を好みに合わせてカスタマイズできます。"
+      },
+      "auth": {
+        "title": "アカウントサービス",
+        "desc": "ログインまたは新規登録して、デバイス間の同期とアカウント管理を利用しましょう。",
+        "tipSync": "ログインするとプロフィールを同期できます。",
+        "tipMode": "総合マーケット機能を利用できます。"
+      }
+    },
+    "interactionCards": {
+      "scroll": {
+        "title": "基本操作",
+        "desc": "Dynamic Island の上でマウスホイールを回すと、表示状態が切り替わります。"
+      },
+      "hover": {
+        "title": "ホバーで展開",
+        "desc": "Dynamic Island にマウスを合わせると、プレビューパネルが展開します。"
+      },
+      "click": {
+        "title": "クリック操作",
+        "desc": "Dynamic Island をクリックすると、操作パネル全体が開きます。"
+      },
+      "retract": {
+        "title": "自動で折りたたむ",
+        "desc": "Dynamic Island からマウスを離すと、自動で待機状態に戻ります。"
+      }
+    },
+    "musicCards": {
+      "smtc": {
+        "title": "SMTC 自動検出",
+        "desc": "再生中の音楽ソースを自動検出し、再生情報をリアルタイムで同期します。"
+      },
+      "lyrics": {
+        "title": "歌詞の検索と同期",
+        "desc": "複数のソースから歌詞を自動検索し、再生に合わせてスクロール表示します。"
+      },
+      "karaoke": {
+        "title": "カラオケハイライトモード",
+        "desc": "カラオケのように歌詞を一文字ずつハイライトする表示に対応しています。"
+      }
+    },
+    "toolCards": {
+      "todo": {
+        "title": "タスク",
+        "desc": "展開パネルでタスクリストを管理できます。"
+      },
+      "ai": {
+        "title": "AI アシスタント",
+        "desc": "内蔵の AI チャットで、いつでも回答や提案を得られます。"
+      },
+      "timer": {
+        "title": "カウントダウンとタイマー",
+        "desc": "タイマーやイベントを設定して、大切な時までの残り時間を正確に確認できます。"
+      },
+      "pomodoro": {
+        "title": "ポモドーロで集中",
+        "desc": "ポモドーロ・テクニックで、効率よく集中を続けられます。"
+      }
+    },
+    "settingCards": {
+      "theme": {
+        "title": "テーマの切り替え",
+        "desc": "ダーク、ライト、システムに合わせる設定を自由に切り替えられます。"
+      },
+      "opacity": {
+        "title": "不透明度の調整",
+        "desc": "Dynamic Island の背景の不透明度を調整できます。"
+      },
+      "position": {
+        "title": "位置の微調整",
+        "desc": "画面上部での水平・垂直位置を微調整できます。"
+      },
+      "autostart": {
+        "title": "自動起動",
+        "desc": "システム起動時に Dynamic Island を自動で起動するか設定できます。"
+      },
+      "shortcut": {
+        "title": "ショートカット",
+        "desc": "グローバルショートカットで Dynamic Island をすばやく操作できます。"
+      }
+    },
+    "hints": {
+      "basicWheel": "この領域でホイールを回すと Dynamic Island の表示状態が切り替わります",
+      "musicWheel": "スクロールして音楽機能をさらに見る",
+      "toolsWheel": "スクロールして便利なツールをさらに見る",
+      "settingsWheel": "スクロールしてカスタマイズ設定を見る"
+    },
+    "tipsAria": "ポイント",
+    "nav": {
+      "pageAria": "{{index}} ページ"
+    },
+    "mini": {
+      "music": {
+        "playing": "再生中",
+        "karaokeSample": "これは歌詞のサンプルです",
+        "sampleLyrics": {
+          "0": "これは歌詞のサンプルです",
+          "1": "音楽が空に漂う",
+          "2": "メロディーが優しく響く"
+        }
+      },
+      "tool": {
+        "todo": {
+          "title": "タスク",
+          "items": {
+            "design": "デザイン案を仕上げる",
+            "weeklyReport": "週報メールを送る",
+            "notes": "プロジェクトのメモを整理する"
+          }
+        },
+        "ai": {
+          "title": "AI チャット",
+          "hello": "こんにちは"
+        },
+        "timer": {
+          "badge": "カウントダウン",
+          "name": "重要な締め切り",
+          "days": "{{days}} 日",
+          "expired": "期限切れ"
+        },
+        "pomodoro": {
+          "focusing": "集中中"
+        }
+      },
+      "setting": {
+        "theme": {
+          "dark": "ダーク",
+          "light": "ライト",
+          "system": "システム",
+          "auto": "自動"
+        },
+        "autostart": {
+          "on": "有効",
+          "highPriority": "高優先度",
+          "off": "無効"
+        },
+        "controls": {
+          "autostart": {
+            "disabled": "オフ",
+            "enabled": "オン",
+            "highPriority": "高優先度"
+          }
+        },
+        "shortcut": {
+          "toggleIsland": "非表示/表示",
+          "quitIsland": "eIsland を終了",
+          "resetPosition": "位置をリセットするショートカット",
+          "screenshot": "範囲指定スクリーンショット",
+          "switchSong": "曲を切り替える"
+        }
+      }
+    }
+  },
+  "todo": {
+    "title": "タスク",
+    "addPlaceholder": "タスクを追加...",
+    "addSubPlaceholder": "サブタスクを追加...",
+    "priorityTitle": "優先度 {{label}}",
+    "sizeTitle": "規模 {{label}}",
+    "markDone": "完了にする",
+    "markUndone": "未完了にする",
+    "delete": "削除",
+    "descPlaceholder": "詳しい説明を追加...",
+    "editDescTitle": "説明を編集",
+    "subtasks": "サブタスク",
+    "empty": "タスクはまだありません",
+    "add": "追加",
+    "doneCount": "{{count}} 件完了",
+    "undoneCount": "残り {{count}} 件",
+    "deadline": "期限",
+    "clearDeadline": "クリア",
+    "noDeadline": "期限なし",
+    "previousMonth": "前の月",
+    "nextMonth": "次の月",
+    "chooseDeadline": "期限を {{date}} に設定",
+    "editTitle": "タスク名を編集",
+    "editSubTitle": "サブタスク名を編集",
+    "editTitleHint": "クリックで編集、Enter で保存、Esc でキャンセル",
+    "expand": "展開",
+    "collapse": "折りたたむ"
+  },
+  "countdown": {
+    "editTitle": "イベントを編集",
+    "newTitleWithDate": "新しいイベント - {{date}}",
+    "newTitlePlaceholder": "< 日付を選択してイベントを追加",
+    "namePlaceholder": "イベント名",
+    "descPlaceholder": "説明（任意）",
+    "preview": "プレビュー",
+    "empty": "日付を選択してイベントを追加してください",
+    "datePlaceholder": "YYYY-MM-DD",
+    "days": {
+      "after": "あと {{days}} 日",
+      "today": "今日",
+      "before": "{{days}} 日前",
+      "placeholder": "-- 日",
+      "tomorrow": "明日",
+      "yesterday": "昨日",
+      "elapsed": "{{days}} 日経過",
+      "remainingUnit": "日後",
+      "pastUnit": "日前",
+      "elapsedUnit": "日経過"
+    },
+    "types": {
+      "countdown": "カウントダウン",
+      "anniversary": "記念日",
+      "birthday": "誕生日",
+      "holiday": "祝日",
+      "exam": "試験"
+    },
+    "form": {
+      "type": "種類",
+      "color": "色",
+      "customColor": "カスタムカラー",
+      "background": "背景",
+      "useAlbumCover": "現在のアルバムカバーを使用",
+      "noPlayingSong": "再生中の曲はありません",
+      "albumBackground": "アルバム",
+      "selectImageFile": "画像ファイルを選択",
+      "customBackground": "カスタム",
+      "clearBackground": "背景をクリア",
+      "opacity": "不透明度"
+    },
+    "actions": {
+      "add": "追加",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "delete": "削除"
+    },
+    "manage": {
+      "new": "新しいイベント",
+      "back": "イベント一覧に戻る",
+      "summary": "進行中のイベント {{count}} 件",
+      "active": "進行中",
+      "pinned": "ピン留め済み",
+      "archived": "アーカイブ済み",
+      "filter": "イベントの状態",
+      "search": "名前やメモを検索",
+      "allTypes": "すべてのカテゴリ",
+      "sort": "イベントの並べ替え",
+      "sort_nearest": "期限が近い順",
+      "sort_name": "名前順",
+      "sort_date": "日付順",
+      "resultCount": "{{count}} 件のイベントを表示中",
+      "loading": "イベントを読み込み中…",
+      "empty": "一致するイベントがありません。イベントを追加するか、検索条件やフィルターを変更してください。",
+      "edit": "イベントを編集",
+      "pin": "ピン留め",
+      "unpin": "ピン留めを解除",
+      "copy": "イベントを複製",
+      "copyName": "{{name}}（コピー）",
+      "archive": "アーカイブ",
+      "restore": "復元してカウントを続ける",
+      "delete": "削除",
+      "deleted": "「{{name}}」を削除しました",
+      "undo": "元に戻す",
+      "date": "日付",
+      "mode": "カウント方法",
+      "down": "カウントダウン",
+      "up": "カウントアップ",
+      "expiry": "日付を過ぎた後の動作",
+      "continue": "経過日数を表示し続ける",
+      "yearly": "毎年繰り返す",
+      "autoArchive": "翌日にアーカイブ",
+      "includeToday": "開始日を 1 日目として数える",
+      "borderColor": "枠線の色",
+      "backgroundStyle": "背景スタイル",
+      "colorValue": "色 {{color}} を選択",
+      "saving": "保存中…",
+      "saveError": "読み込みまたは保存に失敗しました。もう一度お試しください。未保存の編集内容は保持されています。",
+      "imageError": "画像を読み込めませんでした。もう一度選択してください。",
+      "previousMonth": "前の月",
+      "nextMonth": "次の月",
+      "chooseDate": "日付を選択",
+      "month": "月",
+      "closeEditor": "編集パネルを閉じる"
+    }
+  },
+  "hover": {
+    "nav": {
+      "time": "ツール",
+      "lyrics": "音楽",
+      "weather": "天気",
+      "expand": "展開",
+      "switchToPage": "{{label}} ページに切り替え"
+    },
+    "actions": {
+      "hideIsland": "Dynamic Island を非表示",
+      "hide": "非表示",
+      "quitIsland": "Dynamic Island を終了",
+      "quit": "終了"
+    },
+    "tools": {
+      "screenshot": "スクリーンショット",
+      "taskManager": "タスク マネージャー"
+    },
+    "media": {
+      "brightness": "明るさ",
+      "volume": "音量"
+    },
+    "brightness": {
+      "title": "画面の明るさ",
+      "hint": "ドラッグで調整",
+      "sliderLabel": "画面の明るさ",
+      "unavailable": "利用できません"
+    },
+    "volume": {
+      "title": "システム音量",
+      "hint": "ドラッグで調整",
+      "sliderLabel": "システム音量",
+      "unavailable": "利用できません"
+    },
+    "timer": {
+      "title": "タイマー",
+      "editHint": "ホイールを回して時間を変更",
+      "actions": {
+        "start": "開始",
+        "pause": "一時停止",
+        "resume": "再開",
+        "reset": "リセット"
+      }
+    },
+    "music": {
+      "unknownArtist": "不明なアーティスト",
+      "unknownTitle": "不明な曲名",
+      "prev": "前の曲",
+      "pause": "一時停止",
+      "play": "再生",
+      "next": "次の曲"
+    },
+    "time": {
+      "lunarPrefix": "旧暦"
+    },
+    "weather": {
+      "refreshTitle": "クリックで天気を更新",
+      "today": "今日",
+      "unknownCity": "不明",
+      "na": "N/A",
+      "week": {
+        "tomorrow": "明日",
+        "dayAfterTomorrow": "2日後"
+      },
+      "rainPrefix": "雨",
+      "windPrefix": "風"
+    }
+  },
+  "weatherAbbr": {
+    "thunder": "雷雨",
+    "snow": "雪",
+    "hail": "ひょう",
+    "sleet": "みぞれ",
+    "freezingRain": "着氷性の雨",
+    "heavyRain": "大雨",
+    "shower": "にわか雨",
+    "drizzle": "霧雨",
+    "rain": "雨",
+    "sandstorm": "砂嵐",
+    "haze": "煙霧",
+    "fog": "霧",
+    "wind": "強風",
+    "hot": "高温",
+    "cold": "低温",
+    "overcast": "曇り",
+    "cloudy": "雲多め",
+    "sunny": "晴れ",
+    "unknown": "不明"
+  },
+  "announcement": {
+    "loading": "お知らせを読み込み中…",
+    "empty": "お知らせはありません",
+    "subtitle": "最新バージョンを使用しています。最新のお知らせは以下をご覧ください。",
+    "defaultTitle": "システムからのお知らせ",
+    "updatedAt": "更新日時: {{time}}",
+    "showList": "お知らせ一覧を展開",
+    "hideList": "お知らせ一覧を折りたたむ",
+    "qqQrAlt": "QQ グループの QR コード",
+    "close": "閉じる",
+    "adSpace": "広告掲載募集中",
+    "adPrev": "前へ",
+    "adNext": "次へ",
+    "questionnaireBanner": {
+      "title": "未回答のアンケート: {{count}} 件",
+      "open": "回答する",
+      "dismiss": "現在のアンケートを無視"
+    }
+  },
+  "questionnaire": {
+    "loading": "アンケートを読み込み中…",
+    "emptyTitle": "受付中のアンケートはありません",
+    "emptyDescription": "後でもう一度ご確認ください。",
+    "retry": "再読み込み",
+    "close": "閉じる",
+    "reportIssue": "問題を報告",
+    "hideList": "アンケート一覧を折りたたむ",
+    "showList": "アンケート一覧を表示",
+    "subtitle": "以下の質問に回答して、フィードバックを送信してください。",
+    "progress": "回答済み {{completed}} / {{total}}",
+    "validUntil": "回答期限: {{time}}",
+    "required": "必須",
+    "textPlaceholder": "プレーンテキストで回答を入力",
+    "saveDraft": "下書きを保存",
+    "draftSaved": "下書きをローカルに保存しました",
+    "loginRequired": "送信するにはログインしてください。下書きは保存できます。",
+    "requiredIncomplete": "必須の質問にすべて回答してください",
+    "alreadySubmitted": "このアンケートは回答済みです",
+    "submitFailed": "送信に失敗しました。後でもう一度お試しください。",
+    "submitting": "送信中…",
+    "submit": "送信",
+    "continue": "次のアンケートへ",
+    "questionNavigation": "質問ナビゲーション",
+    "questionnaireNavigation": "アンケート一覧",
+    "jumpToQuestion": "質問 {{number}} に移動",
+    "completedTitle": "アンケートを送信しました",
+    "completedDescription": "ご協力ありがとうございます。回答を保存しました。",
+    "rewardDays": "Pro の利用期間を {{days}} 日分獲得しました",
+    "rewardExpireAt": "新しい有効期限: {{time}}",
+    "noReward": "このアンケートには Pro 特典はありません",
+    "rewardBanner": "このアンケートに回答すると Pro を {{days}} 日間利用できます"
+  },
+  "notification": {
+    "alarm": {
+      "title": "アラーム",
+      "body": "{{time}}",
+      "bodyWithLabel": "{{time}} — {{label}}"
+    },
+    "timer": {
+      "title": "タイマー",
+      "finished": "タイマーが終了しました"
+    },
+    "sourceSwitch": {
+      "title": "別の再生ソースを検出しました"
+    },
+    "cliSessionDetected": {
+      "body": "新しい {{provider}} のアクティビティを検出しました。CLI パネルに切り替えますか？"
+    },
+    "update": {
+      "availableTitle": "新しいバージョンがあります",
+      "availableBody": "今すぐダウンロードしますか？",
+      "currentSource": "現在の OSS: {{source}}",
+      "downloadingTitle": "更新をダウンロード中",
+      "downloadingPreparing": "更新のダウンロードを準備中...",
+      "downloadingBodyProgress": "ダウンロード済み {{percent}} · {{speed}} · 残り約 {{eta}}",
+      "downloadingSpeedUnknown": "計算中",
+      "downloadingEtaUnknown": "計算中",
+      "readyTitle": "更新の準備ができました",
+      "readyBody": "バージョン v{{version}} をダウンロードしました。今すぐインストールしますか？"
+    },
+    "weatherAlert": {
+      "title": "気象警報のお知らせ",
+      "defaultTitle": "気象警報",
+      "unknownCity": "現在地",
+      "bodySingle": "{{city}}: {{title}}",
+      "bodyWithMore": "{{city}}: {{title}}、ほか {{count}} 件の警報。",
+      "timeLabel": "更新日時",
+      "timeUnknown": "不明"
+    },
+    "clipboard": {
+      "detectedTitle": "リンクを検出しました",
+      "officialBadge": "公式",
+      "prevUrl": "前のリンク",
+      "nextUrl": "次のリンク",
+      "jumpToFavorites": "URL お気に入りへ移動"
+    },
+    "pomodoro": {
+      "title": "ポモドーロ",
+      "workFinished": "集中時間が終わりました。休憩しましょう",
+      "breakFinished": "休憩が終わりました。集中を再開しましょう"
+    },
+    "externalAgent": {
+      "title": "デスクトップエージェントを検出しました",
+      "body": "{{agentName}} が作業を開始しました",
+      "stoppedTitle": "デスクトップエージェントが終了しました",
+      "stoppedBody": "{{agentName}} が作業を停止しました"
+    },
+    "actions": {
+      "gotIt": "確認",
+      "installRestart": "インストールして再起動",
+      "later": "後で",
+      "downloadUpdate": "更新をダウンロード",
+      "downloadNow": "今すぐダウンロード",
+      "configureUpdateSource": "更新元を設定",
+      "restartNow": "今すぐ再起動",
+      "openAllLinks": "すべてのリンクを開く",
+      "openLink": "リンクを開く",
+      "favorited": "お気に入りに追加済み",
+      "favorite": "お気に入りに追加",
+      "addBlacklist": "ブラックリストに追加",
+      "hide": "非表示",
+      "ignore": "無視",
+      "switch": "切り替え",
+      "switchCliState": "アイランドに切り替え",
+      "snooze5m": "5分後に再通知",
+      "snooze15m": "15分後に再通知",
+      "snooze1h": "1時間後に再通知",
+      "closeAndContinueUpdateCheck": "閉じて更新の確認を続ける",
+      "complete": "完了"
+    }
+  },
+  "expanded": {
+    "loadingPage": "{{page}} を読み込み中…",
+    "loadingDescriptions": {
+      "overview": "概要とクイック操作を準備しています。",
+      "song": "曲の情報と再生コントロールを準備しています。",
+      "tools": "ツールとショートカットを準備しています。",
+      "translation": "翻訳の入力欄と結果パネルを準備しています。",
+      "performanceMonitor": "システムパフォーマンスとハードウェアの状態パネルを準備しています。"
+    },
+    "nav": {
+      "hover": "戻る",
+      "overview": "概要",
+      "song": "音楽",
+      "tools": "ツール",
+      "translation": "翻訳",
+      "performanceMonitor": "パフォーマンスモニター",
+      "maxExpand": "最大まで展開",
+      "switchToPage": "{{label}} ページに切り替え"
+    },
+    "performanceMonitor": {
+      "title": "システムパフォーマンス",
+      "subtitle": "ハードウェアの状態と温度をリアルタイムで表示",
+      "hardwareSettingsLink": "ハードウェアの表示が違いますか？クリックして調整",
+      "startMonitor": "監視を開始",
+      "stopMonitor": "監視を停止",
+      "hidePage": "このページを非表示",
+      "startHint": "初回は「監視を開始」をクリックしてください",
+      "loading": "システムパフォーマンスのデータを読み込み中...",
+      "error": "システムパフォーマンスのデータを取得できません",
+      "labels": {
+        "cpu": "CPU",
+        "gpu": "GPU",
+        "memory": "メモリ",
+        "disk": "ディスク",
+        "available": "利用可能",
+        "host": "ホスト",
+        "os": "OS",
+        "cpuModel": "プロセッサ",
+        "gpuModel": "GPU",
+        "uptime": "稼働時間"
+      },
+      "status": {
+        "unavailable": "利用できません",
+        "noGpu": "GPU が検出されませんでした"
+      }
+    },
+    "settingsTab": {
+      "label": "設定"
+    },
+    "translation": {
+      "title": "クイック翻訳",
+      "sourceLabel": "翻訳元",
+      "targetLabel": "翻訳先",
+      "inputTitle": "原文",
+      "outputTitle": "翻訳結果",
+      "languageAria": "翻訳言語の選択"
+    }
+  },
+  "toolsTab": {
+    "defaultAppName": "アプリ",
+    "title": "クイック起動",
+    "count": "{{count}} 件",
+    "empty": "クイック起動の項目はありません",
+    "launchTitle": "クリックで起動",
+    "editNameByDoubleClick": "ダブルクリックで名前を編集",
+    "editName": "名前を編集",
+    "delete": "削除",
+    "drop": {
+      "releaseToAdd": "ドロップして追加",
+      "onlyExe": ".exe または .lnk ファイルのみ対応しています",
+      "duplicate": "このアプリはすでに登録されています",
+      "dragExe": ".exe または .lnk をここにドラッグ"
+    }
+  },
+  "overview": {
+    "song": {
+      "nowPlaying": "再生中",
+      "unknownTitle": "不明な曲名",
+      "unknownArtist": "不明なアーティスト",
+      "prev": "前の曲",
+      "pause": "一時停止",
+      "play": "再生",
+      "next": "次の曲",
+      "lyric": "歌詞",
+      "information": "曲の情報",
+      "mute": "ミュート",
+      "unmute": "ミュート解除",
+      "empty": "再生中の曲はありません"
+    },
+    "album": {
+      "title": "アルバムのスライドショー",
+      "count": "{{count}} 件",
+      "empty": "アルバムにメディアがありません",
+      "open": "アルバムを開く",
+      "prev": "前へ",
+      "next": "次へ",
+      "pause": "スライドショーを一時停止",
+      "play": "スライドショーを再開",
+      "position": "{{index}} / {{total}}",
+      "videoTag": "動画"
+    },
+    "countdown": {
+      "title": "カウントダウン",
+      "empty": "カウントダウンのイベントはありません"
+    },
+    "alarm": {
+      "title": "アラーム",
+      "empty": "アラームページで最大二つのアラームを選択してください",
+      "syncError": "保存できませんでした。もう一度お試しください。",
+      "enabled": "オン",
+      "add": "概要に表示",
+      "remove": "概要から削除",
+      "limit": "最大二つのアラームを表示できます"
+    },
+    "worldClock": {
+      "title": "世界時計",
+      "previewFirstCity": "上海",
+      "previewSecondCity": "ニューヨーク",
+      "empty": "世界時計の全画面表示で最大二つのタイムゾーンを選択してください"
+    },
+    "breakReminder": {
+      "title": "休憩リマインダー",
+      "count": "{{count}} 件",
+      "empty": "有効なリマインダーはありません",
+      "remain": "{{min}} 分",
+      "due": "まもなく通知"
+    },
+    "pomodoro": {
+      "title": "ポモドーロ",
+      "completedTitle": "完了したポモドーロ数",
+      "tomato": "トマト",
+      "resetCount": "カウントをリセット",
+      "reset": "リセット",
+      "start": "開始",
+      "pause": "一時停止",
+      "skip": "スキップ",
+      "phases": {
+        "work": "集中",
+        "shortBreak": "短い休憩",
+        "longBreak": "長い休憩"
+      }
+    },
+    "mokugyo": {
+      "title": "電子木魚",
+      "hint": "木魚を叩いて集中力を高めましょう",
+      "strike": "一回叩く",
+      "total": "累計功徳",
+      "plusOne": "功徳 +1"
+    },
+    "urlFavorites": {
+      "title": "URL お気に入り",
+      "count": "{{count}} 件",
+      "empty": "お気に入りはありません",
+      "viewAll": "お気に入り全 {{count}} 件を表示"
+    },
+    "shortcuts": {
+      "title": "クイック起動",
+      "editTitle": "クイック起動を編集",
+      "count": "{{count}} 件",
+      "emptyHint": "ツールでアプリを追加してください"
+    },
+    "todo": {
+      "title": "タスク",
+      "goToPage": "タスクページへ移動",
+      "empty": "タスクはありません",
+      "delete": "削除",
+      "completed": "{{count}} 件完了"
+    },
+    "time": {
+      "date": "{{yyyy}}-{{month}}-{{day}} {{dayName}}",
+      "weekdays": {
+        "0": "日",
+        "1": "月",
+        "2": "火",
+        "3": "水",
+        "4": "木",
+        "5": "金",
+        "6": "土"
+      },
+      "yi": "吉",
+      "ji": "忌"
+    }
+  },
+  "songTab": {
+    "meta": {
+      "notPlaying": "再生していません"
+    },
+    "controls": {
+      "prev": "前の曲",
+      "pause": "一時停止",
+      "play": "再生",
+      "next": "次の曲"
+    },
+    "lyrics": {
+      "loading": "歌詞を読み込み中",
+      "empty": "歌詞はありません",
+      "enjoyMusic": "音楽をお楽しみください"
+    },
+    "onboarding": {
+      "title": "音楽の概要",
+      "desc": "音楽を再生すると、ここにリアルタイムの情報が表示されます",
+      "feature1": "カバーディスク、リアルタイムの歌詞、波形アニメーション",
+      "feature2": "時刻、天気、カウントダウンをひと目で確認",
+      "hint": "好きな曲を再生して始めましょう"
+    },
+    "time": {
+      "weekdays": {
+        "0": "日",
+        "1": "月",
+        "2": "火",
+        "3": "水",
+        "4": "木",
+        "5": "金",
+        "6": "土"
+      }
+    },
+    "countdown": {
+      "expired": "期限切れ",
+      "dayHour": "{{days}}日 {{hours}}時間",
+      "hourMinute": "{{hours}}時間 {{minutes}}分",
+      "minute": "{{minutes}}分"
+    }
+  },
+  "aiChat": {
+    "title": "mihtnelis Agent",
+    "notConfigured": "未設定",
+    "localModelGenerated": "ローカルモデルで生成",
+    "customDirectGenerated": "LLMプロバイダーに直接接続",
+    "actions": {
+      "clear": "クリア",
+      "newChat": "新しいチャット",
+      "deleteSession": "セッションを削除",
+      "loadMoreHistory": "履歴をさらに読み込む",
+      "reportIssue": "問題を報告",
+      "stop": "停止",
+      "send": "送信",
+      "quote": "引用",
+      "copy": "コピー"
+    },
+    "session": {
+      "historyTitle": "セッション履歴",
+      "toggleHistory": "セッション履歴の表示を切り替え",
+      "untitled": "新しいチャット"
+    },
+    "modelCard": {
+      "title": "モデル選択カード",
+      "focusMode": "集中モード",
+      "contextLimit": "コンテキスト",
+      "customApiMode": "呼び出しモード",
+      "customApiModeTitle": "カスタムAPIの呼び出しモードを選択",
+      "customApiModeRelay": "サーバー経由",
+      "customApiModeDirect": "直接接続"
+    },
+    "skills": {
+      "title": "スキル",
+      "add": "+ 追加",
+      "enable": "有効にする",
+      "disable": "無効にする",
+      "remove": "削除",
+      "dropHint": ".mdファイルをここにドロップするか、追加をクリック"
+    },
+    "attachments": {
+      "add": "テキストファイルを添付",
+      "remove": "添付ファイルを削除"
+    },
+    "codeBlock": {
+      "copy": "コピー",
+      "copied": "コピーしました"
+    },
+    "messages": {
+      "missingApiKeyWarn": "先に「設定 → AI設定」でAPI Keyを入力してください。",
+      "unknownError": "不明なエラー",
+      "contextLimitExceeded": "⚠️ 現在のセッションではすでに{{used}}トークンを使用し、コンテキストの上限（{{max}}トークン）を超えています。続けるには新しいセッションを開始してください。",
+      "emptyWithApiKey": "何かお手伝いしましょうか？",
+      "emptyWithoutApiKey": "先に「設定 → AI設定」でAPI Keyを入力してください",
+      "emptyGreetingVariants": {
+        "0": "こんにちは。今日は何に取り組みましょうか？",
+        "1": "こんにちは。いつでもお手伝いできます。",
+        "2": "おかえりなさい。まず何を解決しましょうか？",
+        "3": "今日も効率よく進めましょう。何から始めますか？"
+      },
+      "aiGeneratedDisclaimer": "この内容はAIが生成しています。内容をよく確認してください。",
+      "localModelGenerated": "ローカルモデルで生成",
+      "agentError": "mihtnelis agentがエラーを返しました",
+      "noModelOutput": "⚠️ モデルの出力を受信できませんでした。DeepSeekの設定とサーバーログを確認してください。",
+      "noModelOutputOllama": "⚠️ モデルの出力を受信できませんでした。Ollamaサービスが実行中か確認してください。",
+      "noModelOutputCustomDirect": "⚠️ モデルの出力を受信できませんでした。カスタムAPIのエンドポイントとキーを確認してください。",
+      "localToolExecuteFailed": "ローカルツールの実行に失敗しました",
+      "localToolSubmitFailed": "ローカルツールの結果の送信に失敗しました",
+      "apiRequestFailed": "APIリクエストに失敗しました ({{status}}): {{detail}}",
+      "cannotReadResponseStream": "レスポンスストリームを読み取れません"
+    },
+    "timeline": {
+      "todoList": "タスクリスト",
+      "todoTitle": "タスク",
+      "todo": {
+        "toggle": "タスクリストを展開または折りたたむ"
+      },
+      "thinkingProcess": "思考過程 #{{index}}",
+      "thinking": {
+        "thinking": "思考中…",
+        "thought": "思考",
+        "elapsed": " {{seconds}}秒",
+        "toggleThought": "思考過程を展開または折りたたむ"
+      },
+      "toolResultTitle": "ツールの実行結果",
+      "toolStatus": {
+        "pending": "実行中",
+        "success": "完了",
+        "failed": "失敗"
+      }
+    },
+    "localToolAccess": {
+      "title": "高リスクのローカル操作の許可",
+      "requestHint": "エージェントが次のローカル操作の実行を求めています。許可しますか？",
+      "argumentsTitle": "引数",
+      "toolLabel": "ツール",
+      "purposeTitle": "目的",
+      "purposeFallback": "目的の説明がありません",
+      "riskLabel": "リスクレベル",
+      "screenshotTag": "スクリーンショット",
+      "riskLevel": {
+        "high": "高"
+      },
+      "allow": "実行を許可",
+      "deny": "実行を拒否",
+      "expiredHint": "ローカルツールの許可リクエストは期限切れです。再度リクエストしてから許可してください。"
+    },
+    "webAccess": {
+      "title": "Webアクセスの許可",
+      "allow": "アクセスを許可",
+      "deny": "アクセスを拒否",
+      "requestHint": "エージェントが次のURLにアクセスする必要があります。許可しますか？",
+      "allowedHint": "許可しました。次のターンでこのURLの読み取りを再試行できます。",
+      "deniedHint": "このURLへのアクセスを拒否しました。",
+      "expiredHint": "Webアクセスの許可リクエストは期限切れです。再度リクエストしてから許可してください。",
+      "policyLabel": "ドメインの許可ポリシー",
+      "policy": {
+        "ask": "毎回確認",
+        "allow": "常に許可",
+        "deny": "常に拒否"
+      }
+    },
+    "auth": {
+      "entryTitle": "ログインしてAIアシスタントを利用",
+      "gotoLogin": "ログインへ",
+      "gotoRegister": "新規登録へ",
+      "hint": "mihtnelis Agentは、ログイン済みのユーザーにAIチャット、ツール呼び出し、ナレッジ検索を提供します。"
+    },
+    "input": {
+      "generatingPlaceholder": "生成中...",
+      "placeholder": "メッセージを入力..."
+    },
+    "contextUsage": {
+      "title": "コンテキスト使用量",
+      "inline": "{{used}} / {{max}} · {{percent}}",
+      "tooltip": "コンテキスト使用量: {{used}} / {{max}} ({{percent}})",
+      "aria": "コンテキスト使用量: {{used}} / {{max}} ({{percent}})"
+    },
+    "agentMode": {
+      "switch": "エージェントモードを切り替え"
+    },
+    "feedback": {
+      "issueTitle": "エージェントの出力が想定と異なる - {{traceId}}"
+    }
+  },
+  "urlFavoritesTab": {
+    "title": "URLのお気に入り",
+    "count": "{{count}}件",
+    "filteredCount": "{{count}} / {{total}}件",
+    "empty": "お気に入りはまだありません。URLを追加してください。",
+    "openWebsiteTitle": "クリックしてWebサイトを開く",
+    "resolvingTitle": "Webページのタイトルを取得中…",
+    "noNote": "メモなし",
+    "input": {
+      "placeholderWithItems": "新しいお気に入りのURLを入力して追加",
+      "placeholderEmpty": "URLを入力（例: github.com）"
+    },
+    "actions": {
+      "add": "追加",
+      "save": "保存",
+      "manageFolders": "グループ",
+      "manageImportExport": "インポート / エクスポート",
+      "import": "インポート",
+      "export": "エクスポート",
+      "expand": "展開",
+      "collapse": "折りたたむ",
+      "removeAria": "お気に入りのURLを削除"
+    },
+    "import": {
+      "formatAria": "インポート形式"
+    },
+    "export": {
+      "formatAria": "エクスポート形式"
+    },
+    "folders": {
+      "all": "すべて",
+      "uncategorized": "未分類",
+      "newPlaceholder": "新しいフォルダー",
+      "create": "作成",
+      "clearCurrent": "現在のフォルダーを空にする",
+      "emptyFiltered": "現在のフォルダーにお気に入りはありません。"
+    },
+    "messages": {
+      "importSuccess": "お気に入りを{{count}}件インポートしました",
+      "importEmpty": "インポートできるお気に入りが見つかりません",
+      "importFailed": "インポートに失敗しました。ファイル形式を確認してください",
+      "exportSuccess": "お気に入りを{{count}}件エクスポートしました",
+      "exportFailed": "エクスポートに失敗しました。もう一度お試しください"
+    },
+    "editor": {
+      "urlLabel": "URL",
+      "urlPlaceholder": "URLを編集",
+      "noteLabel": "メモ",
+      "notePlaceholder": "メモを入力",
+      "folderLabel": "フォルダー",
+      "folderPlaceholder": "フォルダー名を入力（空欄の場合は未分類）"
+    }
+  },
+  "mailTab": {
+    "title": "メール",
+    "accounts": {
+      "unnamed": "名前なし"
+    },
+    "introTitle": "メールに直接接続（サーバー不要）",
+    "introDesc": "受信にはIMAP、送信にはSMTPを使用します。まず設定でサーバーと認証情報を設定してください。",
+    "goSettings": "メール設定へ",
+    "inboxTitle": "受信トレイ（最新10件）",
+    "emptyInbox": "メールがないか、受信トレイの取得に失敗しました",
+    "composeTitle": "メールを送信",
+    "fields": {
+      "to": "宛先",
+      "subject": "件名",
+      "subjectPlaceholder": "件名を入力",
+      "content": "本文",
+      "contentPlaceholder": "本文を入力"
+    },
+    "actions": {
+      "refresh": "受信トレイを更新",
+      "refreshing": "更新中...",
+      "send": "送信",
+      "sending": "送信中..."
+    },
+    "messages": {
+      "loading": "メールを読み込み中…",
+      "inboxFetchFailed": "受信トレイの読み込みに失敗しました",
+      "inboxFetchTimeout": "受信トレイの取得がタイムアウトしました。ネットワークまたはメール設定を確認してください",
+      "needRecipient": "宛先のメールアドレスを入力してください",
+      "sendFailed": "送信に失敗しました。もう一度お試しください",
+      "sendSuccess": "メールを送信しました"
+    },
+    "emptyGuide": {
+      "title": "IMAPアカウントを設定すると、ここでメールの受信と閲覧ができます",
+      "hint": "まずIMAPホスト、認証ユーザー名、認証用シークレットを入力してください。",
+      "action": "設定へ",
+      "imapHelp": "IMAP情報の取得方法"
+    },
+    "fallbacks": {
+      "noSubject": "(件名なし)",
+      "noSender": "-"
+    }
+  },
+  "clipboardHistoryTab": {
+    "title": "クリップボード履歴",
+    "count": "{{count}}件",
+    "filteredCount": "{{count}} / {{total}}件",
+    "empty": "履歴はまだありません。テキストをコピーすると、ここに表示されます。",
+    "emptyFiltered": "選択した種類の履歴はありません。",
+    "messages": {
+      "copySuccess": "クリップボードにコピーしました",
+      "copyFailed": "コピーに失敗しました。もう一度お試しください",
+      "exportSuccess": "クリップボード履歴を{{count}}件エクスポートしました",
+      "exportFailed": "エクスポートに失敗しました。もう一度お試しください"
+    },
+    "filters": {
+      "aria": "クリップボードの種類で絞り込み",
+      "all": "すべて",
+      "url": "URL",
+      "text": "プレーンテキスト"
+    },
+    "actions": {
+      "clear": "クリア",
+      "export": "エクスポート",
+      "exportAllTitle": "すべての履歴をエクスポート",
+      "exportSelectedTitle": "選択した履歴をエクスポート",
+      "select": "選択",
+      "cancelSelect": "キャンセル",
+      "save": "保存",
+      "selectAll": "すべて選択",
+      "deleteSelected": "選択項目を削除",
+      "clearRange": "削除する期間",
+      "rangeAria": "削除する期間を選択",
+      "selectItemAria": "このクリップボード履歴を選択",
+      "copyTitle": "クリップボードにコピー",
+      "copyAria": "この履歴をクリップボードにコピー",
+      "expand": "展開",
+      "collapse": "折りたたむ",
+      "removeAria": "このクリップボード履歴を削除"
+    },
+    "ranges": {
+      "lastHour": "過去1時間",
+      "today": "今日",
+      "last7Days": "過去7日間",
+      "last30Days": "過去30日間",
+      "olderThan30Days": "30日より前"
+    }
+  },
+  "albumTab": {
+    "title": "アルバム",
+    "count": "{{count}}件",
+    "dropHint": "ドロップしてメディアファイルをインポート",
+    "empty": {
+      "title": "メディアはまだありません",
+      "desc": "画像や動画をここにドラッグするか、「メディアを追加」をクリック",
+      "filteredTitle": "現在の条件に一致する項目はありません",
+      "filteredDesc": "すべて / 画像 / 動画を切り替えてください"
+    },
+    "actions": {
+      "add": "メディアを追加",
+      "remove": "削除",
+      "removeAria": "メディア{{name}}を削除",
+      "selectAllVisible": "すべて選択",
+      "unselectAllVisible": "すべて選択解除",
+      "clearSelection": "選択を解除",
+      "removeSelected": "選択項目を削除",
+      "select": "選択",
+      "cancelSelect": "キャンセル"
+    },
+    "selection": {
+      "selectedCount": "{{count}}件選択中",
+      "toggle": "メディア{{name}}を選択",
+      "hint": "項目をクリックして選択"
+    },
+    "sort": {
+      "label": "並べ替え",
+      "addedDesc": "追加日時が新しい順",
+      "addedAsc": "追加日時が古い順",
+      "nameAsc": "名前 A → Z",
+      "nameDesc": "名前 Z → A",
+      "durationDesc": "再生時間 長い → 短い",
+      "durationAsc": "再生時間 短い → 長い"
+    },
+    "filter": {
+      "label": "メディアの絞り込み",
+      "all": "すべて",
+      "image": "画像",
+      "video": "動画"
+    },
+    "group": {
+      "label": "表示モード",
+      "none": "すべて",
+      "folder": "フォルダー別",
+      "date": "日付別",
+      "all": "すべてのメディア",
+      "count": "{{count}}件",
+      "unknownFolder": "不明なフォルダー",
+      "unknownDate": "日付不明"
+    },
+    "columns": {
+      "aria": "1行あたりの列数を調整",
+      "smaller": "列数を減らす",
+      "larger": "列数を増やす"
+    },
+    "thumb": {
+      "loading": "読み込み中…",
+      "failed": "読み込みに失敗しました"
+    },
+    "viewer": {
+      "back": "一覧に戻る",
+      "prev": "前へ",
+      "next": "次へ",
+      "zoomIn": "拡大",
+      "zoomOut": "縮小",
+      "zoomOne": "実際のサイズ (1:1)",
+      "zoomFit": "ウィンドウに合わせる",
+      "fit": "フィット",
+      "play": "再生",
+      "pause": "一時停止",
+      "mute": "ミュート",
+      "unmute": "ミュート解除",
+      "hideControls": "操作バーを非表示",
+      "showControls": "操作バーを表示",
+      "seek": "再生位置",
+      "volume": "音量",
+      "openInExplorer": "エクスプローラーで表示",
+      "saveAs": "名前を付けて保存",
+      "loading": "メディアを読み込み中…",
+      "failed": "メディアの読み込みに失敗しました"
+    },
+    "meta": {
+      "title": "メディア情報",
+      "name": "名前",
+      "format": "形式",
+      "resolution": "解像度",
+      "duration": "再生時間",
+      "size": "サイズ",
+      "addedAt": "追加日時",
+      "path": "フルパス",
+      "mediaType": "メディアの種類",
+      "mediaTypeImage": "画像",
+      "mediaTypeVideo": "動画",
+      "codec": "コーデック",
+      "fps": "FPS",
+      "setAsIslandBackground": "アイランドの背景に設定",
+      "exifTitle": "EXIF",
+      "exifEmpty": "EXIFデータなし",
+      "make": "メーカー",
+      "model": "機種",
+      "dateTimeOriginal": "撮影日時",
+      "exposure": "露出時間",
+      "fNumber": "絞り値",
+      "iso": "ISO",
+      "focalLength": "焦点距離"
+    },
+    "status": {
+      "added": "メディアファイルを{{count}}件インポートしました",
+      "allDuplicated": "メディアファイルはすでに存在するため、重複をスキップしました",
+      "unsupportedOnly": "対応している画像・動画形式が見つかりません",
+      "zoomReset": "実際のサイズに戻しました",
+      "openInExplorerFailed": "{{name}}が見つかりません。ファイルが移動または削除された可能性があります。",
+      "saveAsSuccess": "{{name}}を保存しました",
+      "saveAsCanceled": "保存をキャンセルしました",
+      "saveAsFailed": "{{name}}の保存に失敗しました。もう一度お試しください。",
+      "removedSelected": "メディアファイルを{{count}}件削除しました",
+      "setIslandBackgroundSuccess": "{{name}}をアイランドの背景に設定しました",
+      "setIslandBackgroundFailed": "アイランドの背景の設定に失敗しました。もう一度お試しください。"
+    }
+  },
+  "sliderCaptcha": {
+    "title": "スライダー認証",
+    "subtitle": "認証サービス提供: Pyisland Server & eIsland",
+    "hint": "下の式を計算し、答えの値までスライダーをドラッグしてください",
+    "traceCode": "traceCode: {{code}}",
+    "equationLabel": "計算問題",
+    "currentValueLabel": "現在の値",
+    "valueRange": "範囲 {{min}} - {{max}}",
+    "actions": {
+      "cancel": "キャンセル",
+      "confirm": "確認"
+    }
+  },
+  "miniGameTab": {
+    "sidebar": {
+      "index": "ナビゲーション"
+    },
+    "index": {
+      "title": "クイックナビゲーション",
+      "reset": "リセット",
+      "edit": "編集",
+      "done": "完了",
+      "searchPlaceholder": "ゲームを検索...",
+      "searchClear": "検索をクリア",
+      "searchEmpty": "一致するゲームはありません",
+      "hintEdit": "カードをドラッグして並べ替え、「完了」をクリックして保存します。",
+      "hintView": "カードをクリックすると対応するゲームに移動します。",
+      "ariaNav": "ミニゲームのクイックナビゲーション",
+      "removeCard": "{{label}}を削除",
+      "ariaAddPanel": "追加可能なナビゲーションカード",
+      "addableTitle": "追加可能なカード",
+      "emptyAddable": "追加できるカードはありません"
+    },
+    "nav": {
+      "game-2048": {
+        "label": "2048",
+        "desc": "数字を合体させる定番のミニゲーム。スコアとランキングに対応。"
+      },
+      "game-gomoku": {
+        "label": "五目並べ",
+        "desc": "ローカルで2人対戦する五目並べ。先に石を5つ並べた方が勝ちです。"
+      }
+    },
+    "games": {
+      "2048": "2048",
+      "gomoku": "五目並べ"
+    },
+    "comingSoon": "近日公開",
+    "unknownUser": "不明なユーザー",
+    "loginRequired": "スコアとランキングを見るにはログインしてください",
+    "loading": "読み込み中...",
+    "loadError": "データの読み込みに失敗しました",
+    "retry": "再試行",
+    "refresh": "更新",
+    "myBest": "自己ベスト",
+    "highScore": "ハイスコア",
+    "duration": "所要時間",
+    "moves": "手数",
+    "plays": "プレイ回数",
+    "noRecord": "記録はまだありません",
+    "leaderboard": "ランキング",
+    "myRank": "あなたの順位",
+    "leaderboardRestartHint": "再起動後に開始したゲームのスコアはランキングに反映されません。",
+    "rankUnavailable": "ランク外",
+    "lbUser": "ユーザー",
+    "lbScore": "スコア",
+    "lbEmpty": "ランキングデータはまだありません",
+    "auth": {
+      "entryTitle": "ログインしてランキングとスコアを表示",
+      "gotoLogin": "ログイン",
+      "gotoRegister": "新規登録",
+      "hint": "ログインするとスコアを同期し、ランキングを確認して他のプレイヤーと競えます。"
+    },
+    "game2048": {
+      "score": "スコア",
+      "best": "ベスト",
+      "newGame": "新しいゲーム",
+      "gameOver": "ゲームオーバー",
+      "tryAgain": "もう一度プレイ",
+      "hint": "矢印キーまたはWASDでタイルをスライド"
+    },
+    "gomoku": {
+      "hint": "黒と白が交互に石を置き、先に5つ並べた方が勝ちです。",
+      "mode": "対戦モード",
+      "modePve": "AIと対戦",
+      "modePvp": "人と対戦",
+      "difficulty": "対戦の難易度を選択",
+      "difficultyNovice": "入門",
+      "difficultyEasy": "初級",
+      "difficultyHard": "上級",
+      "difficultyExpert": "達人",
+      "difficultyMaster": "名人",
+      "status": "状態",
+      "thinking": "思考中...",
+      "turnBlack": "黒の手番",
+      "turnWhite": "白の手番",
+      "winnerBlack": "黒の勝ち",
+      "winnerWhite": "白の勝ち",
+      "victory": "勝利",
+      "defeat": "敗北",
+      "draw": "引き分け",
+      "restart": "最初から",
+      "highlightLastMove": "直前の手を強調表示",
+      "unrankedHint": "五目並べはまだオンラインランキングに対応していません。",
+      "boardAria": "五目並べの盤面",
+      "cellAria": "{{row}}行{{col}}列"
+    }
+  },
+  "stockTab": {
+    "title": "株式相場",
+    "subtitle": "銘柄コードを検索し、リアルタイムの株価、騰落率、本格的なローソク足チャートを表示します。",
+    "autoRefresh": "30秒ごとに自動更新",
+    "sidebar": {
+      "toggle": "サイドバーの表示を切り替え",
+      "deleteFavorite": "お気に入りを削除",
+      "favorites": "お気に入り",
+      "search": "検索",
+      "favoritesHint": "ウォッチリストを管理",
+      "searchHint": "名前または銘柄コードで株式を検索",
+      "favoriteSearchLabel": "お気に入りを検索",
+      "favoriteSearchPlaceholder": "検索",
+      "selectedCount": "{{count}}件選択中",
+      "deleteSelected": "削除",
+      "noFavoriteMatches": "一致するお気に入りはありません",
+      "noFavorites": "お気に入りはまだありません"
+    },
+    "empty": {
+      "name": "銘柄が選択されていません",
+      "chart": "ローソク足データなし"
+    },
+    "loading": {
+      "chart": "ローソク足データを読み込み中..."
+    },
+    "period": {
+      "day": "日足",
+      "week": "週足",
+      "month": "月足",
+      "short": {
+        "day": "日",
+        "week": "週",
+        "month": "月"
+      }
+    },
+    "actions": {
+      "search": "検索",
+      "searching": "検索中...",
+      "clear": "クリア",
+      "addFavorite": "追加",
+      "addFavoriteWithName": "{{name}}をお気に入りに追加",
+      "removeFavorite": "{{name}}をお気に入りから削除",
+      "refresh": "相場データを更新"
+    },
+    "search": {
+      "aria": "株式の検索と絞り込み",
+      "keywordLabel": "株式を検索",
+      "keywordPlaceholder": "名前または銘柄コードを入力"
+    },
+    "metrics": {
+      "aria": "株式の主要指標",
+      "updatedAt": "更新日時: {{time}}",
+      "previousClose": "前日終値",
+      "high": "高値",
+      "low": "安値",
+      "volume": "出来高",
+      "amount": "売買代金",
+      "source": "データ提供元"
+    },
+    "chart": {
+      "aria": "株価のローソク足チャート",
+      "title": "株価のローソク足",
+      "candlestick": "ローソク足",
+      "volume": "出来高",
+      "priceAxis": "株価",
+      "volumeAxis": "出来高",
+      "exportMenu": "チャートのエクスポートメニュー",
+      "range": {
+        "1m": "1か月",
+        "3m": "3か月",
+        "6m": "6か月",
+        "1y": "1年",
+        "all": "すべて"
+      }
+    },
+    "error": {
+      "default": "相場データの読み込みに失敗しました。しばらくしてからもう一度お試しください。",
+      "symbolFormat": "SH600519、SZ000651、HK00700、USMSFTなど、市場の接頭辞を含む銘柄コードを入力してください。"
+    }
+  },
+  "stt": {
+    "label": "認識結果",
+    "asrQuickAdd": "ASRクイック追加",
+    "actions": {
+      "sendToAgent": "エージェントに送信",
+      "added": "追加しました",
+      "addToMemo": "メモに追加",
+      "addTodo": "タスクを追加",
+      "copied": "コピーしました",
+      "copy": "コピー",
+      "ignore": "無視"
+    }
+  },
+  "agent": {
+    "actions": {
+      "denyAuth": "拒否",
+      "allowAuth": "許可",
+      "close": "閉じる"
+    },
+    "liquidOrb": {
+      "ariaLabel": "動くリキッドガラスの球体",
+      "loadingLabel": "リキッドガラスの球体のプレビューを読み込み中"
+    }
+  },
+  "cli": {
+    "permission": {
+      "allow": "許可",
+      "always": "常に許可",
+      "deny": "拒否"
+    }
+  },
+  "maxExpand": {
+    "appMode": {
+      "title": "アプリ",
+      "hint": "アプリを選んで使い始めましょう",
+      "backToLauncher": "アプリ一覧に戻る",
+      "controls": "アプリの操作"
+    },
+    "calendar": {
+      "today": "今日",
+      "daysAfter_one": "{{count}} 日後",
+      "daysAfter_other": "{{count}} 日後",
+      "daysBefore_one": "{{count}} 日前",
+      "daysBefore_other": "{{count}} 日前",
+      "daysAfter": "{{count}} 日後",
+      "daysBefore": "{{count}} 日前",
+      "details": "日付の詳細",
+      "expandDetails": "日付の詳細を展開",
+      "collapseDetails": "日付の詳細を折りたたむ",
+      "goToToday": "今日",
+      "yearOverview": "年間表示",
+      "monthView": "月表示",
+      "selectedDate": "選択した日付",
+      "lunarDate": "旧暦",
+      "holidays": "祝日",
+      "scheduledTodos": "当日の ToDo",
+      "scheduledCountdowns": "カウントダウンの予定",
+      "countdownEvent": "カウントダウン · {{name}}: {{date}}",
+      "eventPeriod": "{{name}}: {{start}} → {{end}}",
+      "eventCompleted": "完了",
+      "currentRegion": "現在地の国または地域",
+      "holidaysLocationUnavailable": "現在地の国の情報を取得できません",
+      "subdivision": "地域",
+      "nationalHolidays": "国の祝日",
+      "holidaysLoading": "祝日を読み込み中…",
+      "holidaysUnsupported": "この地域または年の祝日データはありません",
+      "holidaysError": "祝日を読み込めませんでした",
+      "holidaysRetry": "再試行",
+      "noHoliday": "この日に祝日はありません",
+      "dayOfMonth": "今月 {{total}} 日中の {{day}} 日目"
+    },
+    "loading": "最大展開ビューを読み込み中...",
+    "loadingPage": "{{page}} を読み込み中…",
+    "loadingDescriptions": {
+      "aiChat": "チャットと会話の管理画面を準備しています。",
+      "todo": "ToDo リストとタスクの管理画面を準備しています。",
+      "urlFavorites": "保存したリンクとカテゴリの表示を準備しています。",
+      "localFileSearch": "ファイル検索と検索結果の表示を準備しています。",
+      "clipboardHistory": "クリップボード履歴とフィルターを準備しています。",
+      "album": "アルバムとメディアの閲覧画面を準備しています。",
+      "mail": "メールボックスとメールの閲覧画面を準備しています。",
+      "memo": "メモ一覧とエディターを準備しています。",
+      "countdown": "予定とカウントダウンの表示を準備しています。",
+      "alarm": "アラーム一覧とリマインダーの設定画面を準備しています。",
+      "toolbox": "ツール一覧とショートカットを準備しています。",
+      "miniGame": "ゲーム一覧とプレイ画面を準備しています。",
+      "stock": "株価の表示を準備しています。",
+      "cli": "セッション一覧とアクティビティログを準備しています。",
+      "calculator": "電卓と入力欄を準備しています。",
+      "worldClock": "各都市の時計とタイムゾーンの表示を準備しています。",
+      "calendar": "カレンダーと日付の詳細を準備しています。",
+      "settings": "設定カテゴリと設定画面を準備しています。"
+    },
+    "nav": {
+      "expanded": "戻る",
+      "todo": "タスク",
+      "urlFavorites": "URL のお気に入り",
+      "album": "アルバム",
+      "mail": "メール",
+      "localFileSearch": "ファイル検索",
+      "clipboardHistory": "クリップボード",
+      "aiChat": "AI チャット",
+      "memo": "メモ",
+      "countdown": "カウントダウン",
+      "alarm": "アラーム",
+      "toolbox": "ツールボックス",
+      "miniGame": "ミニゲーム",
+      "cli": "CLI コンソール",
+      "stock": "株価",
+      "calculator": "電卓",
+      "worldClock": "世界時計",
+      "calendar": "カレンダー",
+      "settings": "設定",
+      "switchTo": "{{label}} に切り替え"
+    },
+    "cli": {
+      "eyebrow": "CLI アクティビティ",
+      "title": "CLI コンソール",
+      "subtitle": "Claude Code と Codex CLI のセッション、プロンプト、ツール呼び出し、モデルの出力をリアルタイムで確認できます。Claude Code はローカルフックを使用し、Codex のセッションは自動で検出されます。",
+      "provider": {
+        "label": "CLI アクティビティの取得元を切り替え",
+        "claude": "Claude",
+        "codex": "Codex"
+      },
+      "enableHook": "ステータスフックを有効化",
+      "disableHook": "ステータスフックを無効化",
+      "enableMonitor": "Codex セッション監視を有効化",
+      "disableMonitor": "Codex セッション監視を無効化",
+      "clear": "記録を消去",
+      "hookStatus": "フックの状態",
+      "receiverStatus": "受信プロセス",
+      "pendingAuth": "承認待ち",
+      "activeSessions": "アクティブなセッション",
+      "phase": {
+        "waiting": "承認待ち",
+        "running": "実行中",
+        "completed": "完了",
+        "idle": "待機中"
+      },
+      "enabled": "有効",
+      "disabled": "無効",
+      "running": "実行中",
+      "stopped": "停止中",
+      "receiverUrl": "受信 URL",
+      "settingsPath": "設定ファイル",
+      "sessions": "会話",
+      "events": "イベントストリーム",
+      "loading": "読み込み中",
+      "updatedAt": "更新日時: {{time}}",
+      "emptySessions": "選択した取得元に CLI セッションはありません。",
+      "emptyEvents": "CLI セッションを新しく開始すると、ここにアクティビティが表示されます。",
+      "allSessions": "すべてのセッション",
+      "allSessionsHint": "選択した取得元の CLI イベントをすべて表示",
+      "allLabel": "すべて",
+      "filterAria": "イベントフィルター",
+      "heatmapAria": "アクティビティのヒートマップ",
+      "heatmap": {
+        "session": "セッション",
+        "tool": "ツール呼び出し",
+        "prompt": "プロンプト",
+        "loggedIn": "ログイン済み",
+        "month": {
+          "jan": "1月",
+          "feb": "2月",
+          "mar": "3月",
+          "apr": "4月",
+          "may": "5月",
+          "jun": "6月",
+          "jul": "7月",
+          "aug": "8月",
+          "sep": "9月",
+          "oct": "10月",
+          "nov": "11月",
+          "dec": "12月"
+        }
+      },
+      "enterCliState": "リアルタイムイベントストリーム",
+      "prevPage": "前のページ",
+      "nextPage": "次のページ",
+      "bulkSelect": "まとめて選択",
+      "cancelSelection": "選択を解除",
+      "selectedCount": "{{count}} 件を選択中",
+      "deleteSelected": "選択した項目を削除",
+      "expand": "展開",
+      "collapse": "折りたたむ",
+      "permissionProject": "承認対象: {{project}}",
+      "filters": {
+        "all": "すべて",
+        "message": "会話",
+        "tool": "ツール呼び出し",
+        "output": "出力",
+        "permission": "承認"
+      },
+      "detail": {
+        "userInput": "ユーザーの入力",
+        "assistantOutput": "モデルの出力",
+        "toolUseId": "ツール呼び出し ID",
+        "toolInput": "ツールの入力",
+        "toolResult": "ツールの結果",
+        "model": "モデル",
+        "notification": "通知",
+        "eventSubtype": "イベントのサブタイプ",
+        "error": "エラー",
+        "reason": "理由",
+        "rawEvent": "元のイベント"
+      }
+    },
+    "toolbox": {
+      "sidebar": {
+        "index": "ナビゲーション",
+        "download": "マルチスレッドダウンロード",
+        "software": "ソフトウェア",
+        "translate": "翻訳",
+        "fileService": "ファイルツール",
+        "encodingService": "エンコードツール",
+        "networkService": "ネットワークツール",
+        "fileCompression": "ファイル圧縮",
+        "fileCompressionShort": "圧縮",
+        "formatFactory": "形式変換"
+      },
+      "index": {
+        "title": "クイックナビゲーション",
+        "reset": "リセット",
+        "edit": "編集",
+        "done": "完了",
+        "searchPlaceholder": "ツールを検索...",
+        "searchClear": "検索をクリア",
+        "searchEmpty": "一致するツールが見つかりません",
+        "hintEdit": "カードをドラッグして並べ替え、「完了」をクリックして保存します。",
+        "hintView": "カードをクリックすると、対応するツールのページに移動します。",
+        "ariaNav": "ツールボックスのクイックナビゲーション",
+        "removeCard": "{{label}} を削除",
+        "ariaAddPanel": "追加できるナビゲーションカード",
+        "addableTitle": "追加できるカード",
+        "emptyAddable": "追加できるカードはありません"
+      },
+      "nav": {
+        "download-create": {
+          "label": "ダウンロードを作成",
+          "desc": "URL、保存先、スレッド数を設定してタスクを開始します。"
+        },
+        "download-history": {
+          "label": "ダウンロード履歴",
+          "desc": "タスクの進行状況を確認し、一時停止や再開などの操作を行います。"
+        },
+        "software": {
+          "label": "ソフトウェア",
+          "desc": "よく使うソフトウェアのダウンロード先やフィードバック窓口にすばやくアクセスできます。"
+        },
+        "translate": {
+          "label": "テキスト翻訳",
+          "desc": "複数の言語間でテキストを翻訳します。"
+        },
+        "fileService-hash": {
+          "label": "ファイルのハッシュ検証",
+          "desc": "ファイルのハッシュ値を計算・比較して、整合性を検証します。"
+        },
+        "encodingService-json": {
+          "label": "JSON エンコード／デコード",
+          "desc": "テキストを JSON 形式でエンコード・デコードします。"
+        },
+        "encodingService-base64": {
+          "label": "Base64 エンコード／デコード",
+          "desc": "テキストを Base64 形式でエンコード・デコードします。"
+        },
+        "networkService": {
+          "label": "ネットワークツール",
+          "desc": "IP 情報を照会し、ネットワーク関連の結果を確認します。"
+        },
+        "fileCompression-imageCompression": {
+          "label": "画像圧縮",
+          "desc": "画像をすばやく一括圧縮します。"
+        },
+        "fileCompression-history": {
+          "label": "圧縮履歴",
+          "desc": "圧縮タスクを確認し、出力先をすばやく開けます。"
+        },
+        "formatFactory-image": {
+          "label": "画像変換",
+          "desc": "出力オプションを指定して画像を目的の形式に変換します。"
+        },
+        "formatFactory-video": {
+          "label": "動画変換",
+          "desc": "動画のコンテナ変換、再エンコード、トラック抽出を行います。"
+        }
+      },
+      "software": {
+        "title": "よく使うソフトウェア",
+        "subtitle": "よく使うソフトウェアにすばやくアクセスし、管理できます。",
+        "empty": "ソフトウェアはまだ追加されていません",
+        "loading": "読み込み中...",
+        "refresh": "ページを更新",
+        "feedback": "問題を報告",
+        "download": "ダウンロード",
+        "items": {
+          "steam": "世界最大のゲームプラットフォーム。"
+        }
+      },
+      "download": {
+        "title": "マルチスレッドダウンロード",
+        "subtitle": "マルチスレッドでダウンロードし、保存先を指定して進捗をリアルタイムで確認できます。",
+        "pages": {
+          "create": "作成",
+          "history": "履歴"
+        },
+        "form": {
+          "urlLabel": "ダウンロード URL",
+          "urlPlaceholder": "ファイルの URL を入力（例: https://example.com/file.zip）",
+          "savePathLabel": "保存先",
+          "savePathPlaceholder": "空欄の場合はシステムのダウンロードフォルダーに保存",
+          "pickPath": "保存先を選択",
+          "defaultDirHint": "既定のフォルダー: {{dir}}",
+          "threadsLabel": "スレッド数 (1-16)",
+          "start": "ダウンロードを開始",
+          "starting": "開始中...",
+          "cancelCurrent": "現在のタスクをキャンセル"
+        },
+        "tasks": {
+          "title": "ダウンロードタスク",
+          "subtitle": "最近のタスクの進捗、速度、状態を表示します。",
+          "empty": "ダウンロードタスクはまだありません",
+          "etaLabel": "完了予定時刻",
+          "remainingLabel": "残り時間",
+          "elapsedLabel": "経過時間",
+          "pause": "一時停止",
+          "resume": "再開",
+          "delete": "削除",
+          "openFolder": "フォルダーを開く"
+        },
+        "status": {
+          "downloading": "ダウンロード中",
+          "paused": "一時停止中",
+          "completed": "完了",
+          "failed": "失敗",
+          "canceled": "キャンセル済み"
+        },
+        "messages": {
+          "started": "ダウンロードタスクを作成しました",
+          "startFailed": "ダウンロードを開始できませんでした",
+          "pickPathFailed": "保存先を選択できませんでした",
+          "cancelSuccess": "ダウンロードタスクをキャンセルしました",
+          "cancelFailed": "ダウンロードをキャンセルできませんでした",
+          "pauseSuccess": "ダウンロードタスクを一時停止しました",
+          "pauseFailed": "ダウンロードを一時停止できませんでした",
+          "resumeSuccess": "ダウンロードタスクを再開しました",
+          "resumeFailed": "ダウンロードを再開できませんでした",
+          "removeSuccess": "ダウンロードタスクを削除しました",
+          "removeFailed": "ダウンロードタスクを削除できませんでした",
+          "openFolderFailed": "ファイルの保存先を開けませんでした"
+        }
+      },
+      "translate": {
+        "title": "テキスト翻訳",
+        "subtitle": "Tencent Cloud による機械翻訳",
+        "inputPlaceholder": "翻訳するテキストを入力...",
+        "outputPlaceholder": "ここに翻訳結果が表示されます",
+        "translateBtn": "翻訳",
+        "translating": "翻訳中...",
+        "swap": "言語を入れ替え",
+        "clear": "クリア",
+        "copy": "コピー",
+        "loginRequired": "翻訳を利用するにはログインしてください",
+        "error": "翻訳できませんでした。しばらくしてから再試行してください",
+        "lang": {
+          "auto": "自動検出",
+          "zh": "中国語",
+          "en": "英語",
+          "ja": "日本語",
+          "ko": "韓国語",
+          "fr": "フランス語",
+          "de": "ドイツ語",
+          "es": "スペイン語",
+          "ru": "ロシア語"
+        }
+      },
+      "fileService": {
+        "hash": {
+          "title": "ファイルのハッシュ検証",
+          "subtitle": "ファイルを選択し、ハッシュ値を計算してファイルの整合性を検証します",
+          "pickFile": "ファイルを選択",
+          "noFile": "ファイルが選択されていません",
+          "expectedPlaceholder": "検証用のハッシュ期待値を入力（任意）",
+          "computeBtn": "ハッシュを計算",
+          "computing": "計算中...",
+          "copy": "コピー",
+          "match": "検証成功: ハッシュ値が一致しています",
+          "mismatch": "検証失敗: ハッシュ値が一致しません"
+        }
+      },
+      "encodingService": {
+        "json": {
+          "title": "JSON エンコード／デコード",
+          "subtitle": "プレーンテキストを JSON 文字列にエンコード、または JSON 文字列をデコードします",
+          "inputPlaceholder": "エンコードするテキスト、またはデコードする JSON 文字列を入力",
+          "outputPlaceholder": "ここに結果が表示されます",
+          "encodeBtn": "JSON エンコード",
+          "decodeBtn": "JSON デコード",
+          "encodeError": "JSON エンコードに失敗しました",
+          "decodeError": "JSON デコードに失敗しました。入力形式を確認してください"
+        },
+        "base64": {
+          "title": "Base64 エンコード／デコード",
+          "subtitle": "UTF-8 テキストと Base64 を相互変換します",
+          "inputPlaceholder": "エンコードするテキスト、またはデコードする Base64 文字列を入力",
+          "outputPlaceholder": "ここに結果が表示されます",
+          "encodeBtn": "Base64 エンコード",
+          "decodeBtn": "Base64 デコード",
+          "encodeError": "Base64 エンコードに失敗しました",
+          "decodeError": "Base64 デコードに失敗しました。入力内容を確認してください"
+        }
+      },
+      "networkService": {
+        "title": "IP 情報の照会",
+        "subtitle": "IP 情報を調べるツール",
+        "ipinfo": {
+          "ipPlaceholder": "IP アドレスを入力",
+          "fillLocal": "自分の IP",
+          "queryBtn": "照会",
+          "querying": "照会中...",
+          "emptyIp": "IP アドレスを入力してください",
+          "failed": "照会できませんでした。しばらくしてから再試行してください",
+          "httpError": "リクエスト失敗: HTTP {{status}}",
+          "nonJson": "API が JSON 以外の内容を返しました",
+          "resultTitle": "照会結果",
+          "region": "地域",
+          "llc": "組織",
+          "latitude": "緯度",
+          "longitude": "経度",
+          "ipRange": "IP 範囲"
+        },
+        "librespeed": {
+          "urlPlaceholder": "LibreSpeed の URL を入力（例: http://127.0.0.1:19366）",
+          "applyBtn": "URL を適用",
+          "testBtn": "速度テストを実行",
+          "testing": "テスト中...",
+          "failed": "テストに失敗しました。再試行してください",
+          "ping": "Ping",
+          "download": "ダウンロード速度",
+          "upload": "アップロード速度",
+          "resultTitle": "テスト結果",
+          "result": "結果"
+        }
+      },
+      "fileCompression": {
+        "title": "ファイル圧縮",
+        "pages": {
+          "imageCompression": "画像圧縮",
+          "history": "履歴"
+        },
+        "subtitle": "画像と出力先フォルダーを選択します。出力形式は元の画像と同じです。",
+        "pickImages": "画像を選択",
+        "pickFile": "画像を選択",
+        "selectedCount": "画像を {{count}} 枚選択中",
+        "noImages": "画像が選択されていません",
+        "noFile": "画像が選択されていません",
+        "outputDir": "出力先フォルダー",
+        "outputDirPlaceholder": "空欄の場合は最初の画像と同じフォルダーに出力",
+        "outputPlaceholder": "空欄の場合は最初の画像と同じフォルダーに出力",
+        "pickOutputDir": "フォルダーを選択",
+        "quality": "圧縮品質",
+        "qualityHint": "範囲は 10-100。値が大きいほど高画質になります",
+        "startBtn": "圧縮を開始",
+        "compressing": "圧縮中...",
+        "comingSoon": "ファイル圧縮を利用できます。",
+        "resultsTitle": "圧縮結果",
+        "resultsSubtitle": "成功 {{success}} / {{total}}",
+        "pendingListTitle": "処理待ちのファイル",
+        "resultsEmpty": "圧縮結果はまだありません",
+        "openOutput": "保存先を開く",
+        "removeTask": "タスクを削除",
+        "resultSuccess": "{{before}} → {{after}} · {{ratio}} 削減",
+        "resultFailed": "圧縮失敗: {{reason}}",
+        "taskMeta": "状態: {{status}} · 品質: {{quality}}",
+        "status": {
+          "completed": "完了",
+          "failed": "失敗"
+        },
+        "messages": {
+          "pickFailed": "画像を選択できませんでした",
+          "pickOutputDirFailed": "出力先フォルダーを選択できませんでした",
+          "startFailed": "圧縮を開始できませんでした。しばらくしてから再試行してください",
+          "done": "圧縮完了: {{success}} / {{total}}",
+          "openFolderFailed": "出力先を開けませんでした",
+          "removeFailed": "タスクを削除できませんでした"
+        }
+      },
+      "formatFactory": {
+        "pages": {
+          "image": "画像変換",
+          "video": "動画変換"
+        },
+        "image": {
+          "title": "画像形式の変換",
+          "subtitle": "画像を選択して別の形式に変換します。PNG、JPG、WebP、BMP、ICO に対応",
+          "pickFile": "画像を選択",
+          "targetFormat": "変換先の形式",
+          "targetSize": "変換後のサイズ",
+          "quality": "出力品質",
+          "convertBtn": "変換",
+          "converting": "変換中...",
+          "success": "変換完了 → {{path}}",
+          "failed": "変換できませんでした。しばらくしてから再試行してください",
+          "meta": {
+            "name": "ファイル名",
+            "mediaType": "メディアの種類",
+            "mediaTypeImage": "画像",
+            "mime": "MIME",
+            "format": "形式",
+            "resolution": "解像度",
+            "size": "ファイルサイズ",
+            "pixels": "総画素数",
+            "aspectRatio": "アスペクト比",
+            "targetFormat": "変換先の形式",
+            "path": "フルパス"
+          }
+        },
+        "video": {
+          "title": "動画のトラック抽出",
+          "subtitle": "動画ファイルから音声または映像トラックを抽出します。一般的なコンテナ形式に対応",
+          "pickFile": "動画ファイルを選択",
+          "trackType": "抽出する種類",
+          "trackAudio": "音声トラック",
+          "trackVideo": "映像トラック",
+          "outputFormat": "出力形式",
+          "extractBtn": "抽出",
+          "extracting": "抽出中...",
+          "success": "抽出完了 → {{path}}",
+          "failed": "抽出できませんでした。しばらくしてから再試行してください",
+          "meta": {
+            "name": "ファイル名",
+            "format": "コンテナ",
+            "size": "ファイルサイズ",
+            "path": "フルパス"
+          }
+        }
+      }
+    },
+    "localFileSearch": {
+      "title": "ローカルファイル検索",
+      "count": "{{count}} 件",
+      "pickDir": "フォルダーを選択",
+      "search": "検索",
+      "config": "設定",
+      "limitLabel": "検索結果の上限",
+      "depthLabel": "最大階層数",
+      "matchScopeLabel": "検索対象",
+      "matchScopeName": "ファイル名",
+      "matchScopePath": "フルパス",
+      "matchModeLabel": "一致条件",
+      "matchModeContains": "部分一致",
+      "matchModeStartsWith": "前方一致",
+      "matchModeEndsWith": "後方一致",
+      "matchModeExact": "完全一致",
+      "includeFolders": "検索結果にフォルダーを含める",
+      "includeFiles": "検索結果にファイルを含める",
+      "includeHidden": "隠し項目を含める",
+      "caseSensitive": "大文字と小文字を区別する",
+      "extensionsLabel": "ファイルの拡張子",
+      "extensionsPlaceholder": "例: pdf,docx,ts",
+      "excludeDirsLabel": "除外するフォルダー",
+      "excludeDirsPlaceholder": "例: dist,build,coverage",
+      "searching": "検索中...",
+      "loading": "ローカルファイルをスキャン中...",
+      "empty": "検索結果はありません。別のキーワードやフォルダーをお試しください。",
+      "rootPlaceholder": "検索元のフォルダーを選択または入力（例: C:\\Users）",
+      "keywordPlaceholder": "ファイル名のキーワードを入力（例: report, .pdf）"
+    },
+    "memo": {
+      "search": "タイトル、本文、タグを検索...",
+      "tagFilter": "タグで絞り込み",
+      "allTags": "すべてのタグ",
+      "filterByTag": "タグで絞り込み",
+      "tagPlaceholder": "タグを追加",
+      "addTag": "タグを追加",
+      "removeTag": "タグを削除",
+      "noTags": "タグはありません",
+      "add": "新規作成",
+      "loading": "読み込み中...",
+      "empty": "メモはまだありません",
+      "untitled": "無題",
+      "noContent": "内容なし",
+      "pinned": "ピン留め済み",
+      "titlePlaceholder": "タイトル",
+      "contentPlaceholder": "ここに入力...",
+      "editMode": "編集",
+      "previewMode": "プレビュー",
+      "splitMode": "分割表示",
+      "editTags": "タグを編集",
+      "markdownModeGroup": "Markdown の表示モード",
+      "bookmark": "ブックマークに追加",
+      "unbookmark": "ブックマークを解除",
+      "bookmarked": "ブックマーク済み",
+      "showAll": "すべて表示",
+      "showBookmarked": "ブックマークのみ",
+      "bulkSelect": "まとめて選択",
+      "cancelSelection": "選択を解除",
+      "selectedCount": "{{count}} 件を選択中",
+      "deleteSelected": "選択した項目を削除",
+      "pin": "ピン留め",
+      "unpin": "ピン留めを解除",
+      "delete": "削除",
+      "created": "作成日時",
+      "updated": "更新日時",
+      "selectHint": "メモを選択するか、新しく作成してください"
+    },
+    "alarm": {
+      "title": "アラーム",
+      "add": "新しいアラーム",
+      "newTitle": "新しいアラーム",
+      "editTitle": "アラームを編集",
+      "loading": "読み込み中...",
+      "empty": "アラームはまだありません。+ を押して作成できます。",
+      "labelField": "ラベル",
+      "labelPlaceholder": "ラベル（任意）",
+      "repeatField": "繰り返し",
+      "ringtoneField": "アラーム音",
+      "previewRingtone": "試聴",
+      "pausePreviewRingtone": "一時停止",
+      "loopPlayback": "アラーム音を繰り返し再生",
+      "cancel": "キャンセル",
+      "save": "保存",
+      "delete": "削除",
+      "turnOn": "オンにする",
+      "turnOff": "オフにする",
+      "disabled": "オフ",
+      "repeatOnce": "1回のみ",
+      "repeatEveryday": "毎日",
+      "repeatWeekdays": "平日",
+      "repeatWeekend": "週末",
+      "ringIn": "{{h}} 時間 {{m}} 分後",
+      "ringInMin": "{{m}} 分後",
+      "ringTomorrow": "明日",
+      "ringInDays": "{{n}} 日後",
+      "weekday": {
+        "sun": "日",
+        "mon": "月",
+        "tue": "火",
+        "wed": "水",
+        "thu": "木",
+        "fri": "金",
+        "sat": "土"
+      },
+      "ringtones": {
+        "alarm1": "システムのアラーム音 1",
+        "alarm2": "Nuke",
+        "alarm3": "NL の笑い声"
+      }
+    },
+    "worldClock": {
+      "title": "世界時計",
+      "addCity": "都市を追加",
+      "closePicker": "都市の選択を閉じる",
+      "local": "ローカル",
+      "searchTimezone": "タイムゾーンを検索...",
+      "alreadyAdded": "追加済み",
+      "noResults": "該当する結果がありません",
+      "removeCity": "削除",
+      "addToOverview": "概要に追加",
+      "removeFromOverview": "概要から削除",
+      "overviewLimitReached": "概要には最大2つのタイムゾーンを表示できます",
+      "cityLabels": {
+        "Beijing": "北京",
+        "Guangzhou": "広州",
+        "Shenzhen": "深圳",
+        "Chengdu": "成都",
+        "Chongqing": "重慶",
+        "Harbin": "ハルビン",
+        "Hangzhou": "杭州",
+        "Nanjing": "南京",
+        "Wuhan": "武漢",
+        "Xian": "西安",
+        "Tianjin": "天津",
+        "Suzhou": "蘇州",
+        "New_Delhi": "ニューデリー",
+        "Mumbai": "ムンバイ",
+        "Bengaluru": "ベンガルール",
+        "Chennai": "チェンナイ",
+        "Abu_Dhabi": "アブダビ",
+        "San_Francisco": "サンフランシスコ",
+        "Seattle": "シアトル",
+        "Las_Vegas": "ラスベガス",
+        "Washington": "ワシントンD.C.",
+        "Boston": "ボストン",
+        "Miami": "マイアミ",
+        "Atlanta": "アトランタ",
+        "Houston": "ヒューストン",
+        "Dallas": "ダラス",
+        "Ottawa": "オタワ",
+        "Montreal": "モントリオール",
+        "Calgary": "カルガリー",
+        "Quebec_City": "ケベック・シティ",
+        "Rio_de_Janeiro": "リオデジャネイロ",
+        "Brasilia": "ブラジリア",
+        "Wellington": "ウェリントン",
+        "Canberra": "キャンベラ",
+        "Frankfurt": "フランクフルト",
+        "Munich": "ミュンヘン",
+        "Milan": "ミラノ",
+        "Barcelona": "バルセロナ",
+        "Manchester": "マンチェスター",
+        "Geneva": "ジュネーブ",
+        "Cape_Town": "ケープタウン"
+      },
+      "timezoneLabels": {
+        "UTC": "協定世界時",
+        "Asia_Shanghai": "上海",
+        "Asia_Beijing": "北京",
+        "Asia_Chongqing": "重慶",
+        "Asia_Harbin": "ハルビン",
+        "Asia_Urumqi": "ウルムチ",
+        "Asia_Hong_Kong": "香港",
+        "Asia_Macau": "マカオ",
+        "Asia_Taipei": "台北",
+        "Asia_Tokyo": "東京",
+        "Asia_Seoul": "ソウル",
+        "Asia_Pyongyang": "平壌",
+        "Asia_Singapore": "シンガポール",
+        "Asia_Kuala_Lumpur": "クアラルンプール",
+        "Asia_Bangkok": "バンコク",
+        "Asia_Ho_Chi_Minh": "ホーチミン市",
+        "Asia_Phnom_Penh": "プノンペン",
+        "Asia_Vientiane": "ビエンチャン",
+        "Asia_Yangon": "ヤンゴン",
+        "Asia_Kathmandu": "カトマンズ",
+        "Asia_Thimphu": "ティンプー",
+        "Asia_Colombo": "コロンボ",
+        "Asia_Dhaka": "ダッカ",
+        "Asia_Kolkata": "コルカタ",
+        "Asia_Karachi": "カラチ",
+        "Asia_Tashkent": "タシケント",
+        "Asia_Almaty": "アルマトイ",
+        "Asia_Bishkek": "ビシュケク",
+        "Asia_Dushanbe": "ドゥシャンベ",
+        "Asia_Ashgabat": "アシガバート",
+        "Asia_Kabul": "カブール",
+        "Asia_Tehran": "テヘラン",
+        "Asia_Baghdad": "バグダッド",
+        "Asia_Dubai": "ドバイ",
+        "Asia_Muscat": "マスカット",
+        "Asia_Qatar": "ドーハ",
+        "Asia_Bahrain": "バーレーン",
+        "Asia_Kuwait": "クウェート",
+        "Asia_Riyadh": "リヤド",
+        "Asia_Aden": "アデン",
+        "Asia_Amman": "アンマン",
+        "Asia_Beirut": "ベイルート",
+        "Asia_Damascus": "ダマスカス",
+        "Asia_Jerusalem": "エルサレム",
+        "Asia_Nicosia": "ニコシア",
+        "Asia_Brunei": "ブルネイ",
+        "Asia_Jakarta": "ジャカルタ",
+        "Asia_Makassar": "マカッサル",
+        "Asia_Jayapura": "ジャヤプラ",
+        "Asia_Manila": "マニラ",
+        "Asia_Choibalsan": "チョイバルサン",
+        "Asia_Hovd": "ホブド",
+        "Asia_Ulaanbaatar": "ウランバートル",
+        "Asia_Novosibirsk": "ノヴォシビルスク",
+        "Asia_Omsk": "オムスク",
+        "Asia_Yekaterinburg": "エカテリンブルク",
+        "Asia_Krasnoyarsk": "クラスノヤルスク",
+        "Asia_Irkutsk": "イルクーツク",
+        "Asia_Chita": "チタ",
+        "Asia_Yakutsk": "ヤクーツク",
+        "Asia_Vladivostok": "ウラジオストク",
+        "Asia_Sakhalin": "サハリン",
+        "Asia_Magadan": "マガダン",
+        "Asia_Kamchatka": "カムチャツカ",
+        "Asia_Anadyr": "アナディリ",
+        "Asia_Tomsk": "トムスク",
+        "Asia_Barnaul": "バルナウル",
+        "Asia_Khandyga": "ハンディガ",
+        "Europe_London": "ロンドン",
+        "Europe_Dublin": "ダブリン",
+        "Europe_Paris": "パリ",
+        "Europe_Berlin": "ベルリン",
+        "Europe_Madrid": "マドリード",
+        "Europe_Rome": "ローマ",
+        "Europe_Amsterdam": "アムステルダム",
+        "Europe_Brussels": "ブリュッセル",
+        "Europe_Zurich": "チューリッヒ",
+        "Europe_Vienna": "ウィーン",
+        "Europe_Prague": "プラハ",
+        "Europe_Warsaw": "ワルシャワ",
+        "Europe_Budapest": "ブダペスト",
+        "Europe_Bucharest": "ブカレスト",
+        "Europe_Sofia": "ソフィア",
+        "Europe_Athens": "アテネ",
+        "Europe_Lisbon": "リスボン",
+        "Europe_Stockholm": "ストックホルム",
+        "Europe_Oslo": "オスロ",
+        "Europe_Copenhagen": "コペンハーゲン",
+        "Europe_Helsinki": "ヘルシンキ",
+        "Europe_Tallinn": "タリン",
+        "Europe_Riga": "リガ",
+        "Europe_Vilnius": "ビリニュス",
+        "Europe_Minsk": "ミンスク",
+        "Europe_Kiev": "キーウ",
+        "Europe_Kyiv": "キーウ",
+        "Europe_Moscow": "モスクワ",
+        "Europe_Volgograd": "ヴォルゴグラード",
+        "Europe_Samara": "サマラ",
+        "Europe_Simferopol": "シンフェロポリ",
+        "Europe_Istanbul": "イスタンブール",
+        "Europe_Belgrade": "ベオグラード",
+        "Europe_Zagreb": "ザグレブ",
+        "Europe_Ljubljana": "リュブリャナ",
+        "Europe_Bratislava": "ブラチスラバ",
+        "Europe_Luxembourg": "ルクセンブルク",
+        "Europe_Monaco": "モナコ",
+        "Europe_Andorra": "アンドラ",
+        "Europe_Malta": "マルタ",
+        "Europe_Tirane": "ティラナ",
+        "Europe_Chisinau": "キシナウ",
+        "Europe_Skopje": "スコピエ",
+        "Europe_Podgorica": "ポドゴリツァ",
+        "Europe_Sarajevo": "サラエボ",
+        "Europe_Gibraltar": "ジブラルタル",
+        "Europe_Guernsey": "ガーンジー",
+        "Europe_Isle_of_Man": "マン島",
+        "Europe_Jersey": "ジャージー",
+        "Europe_Mariehamn": "マリエハムン",
+        "Europe_San_Marino": "サンマリノ",
+        "Europe_Vatican": "バチカン",
+        "Europe_Ulyanovsk": "ウリヤノフスク",
+        "Europe_Astrakhan": "アストラハン",
+        "Europe_Kirov": "キーロフ",
+        "Europe_Saratov": "サラトフ",
+        "Africa_Cairo": "カイロ",
+        "Africa_Lagos": "ラゴス",
+        "Africa_Nairobi": "ナイロビ",
+        "Africa_Johannesburg": "ヨハネスブルグ",
+        "Africa_Casablanca": "カサブランカ",
+        "Africa_Tunis": "チュニス",
+        "Africa_Algiers": "アルジェ",
+        "Africa_Accra": "アクラ",
+        "Africa_Addis_Ababa": "アディスアベバ",
+        "Africa_Dar_es_Salaam": "ダルエスサラーム",
+        "Africa_Kampala": "カンパラ",
+        "Africa_Kinshasa": "キンシャサ",
+        "Africa_Lubumbashi": "ルブンバシ",
+        "Africa_Khartoum": "ハルツーム",
+        "Africa_Tripoli": "トリポリ",
+        "Africa_Maputo": "マプト",
+        "Africa_Harare": "ハラレ",
+        "Africa_Windhoek": "ウィントフック",
+        "Africa_Luanda": "ルアンダ",
+        "Africa_Abidjan": "アビジャン",
+        "Africa_Dakar": "ダカール",
+        "Africa_Douala": "ドゥアラ",
+        "Africa_Libreville": "リーブルビル",
+        "Africa_Brazzaville": "ブラザビル",
+        "Africa_Bangui": "バンギ",
+        "Africa_Niamey": "ニアメ",
+        "Africa_Bamako": "バマコ",
+        "Africa_Ouagadougou": "ワガドゥグー",
+        "Africa_Conakry": "コナクリ",
+        "Africa_Freetown": "フリータウン",
+        "Africa_Monrovia": "モンロビア",
+        "Africa_Lome": "ロメ",
+        "Africa_Porto-Novo": "ポルトノボ",
+        "Africa_Nouakchott": "ヌアクショット",
+        "Africa_Bujumbura": "ブジュンブラ",
+        "Africa_Kigali": "キガリ",
+        "Africa_Mogadishu": "モガディシュ",
+        "Africa_Asmara": "アスマラ",
+        "Africa_Djibouti": "ジブチ",
+        "Africa_Malabo": "マラボ",
+        "Africa_Sao_Tome": "サントメ",
+        "Africa_Lusaka": "ルサカ",
+        "Africa_Blantyre": "ブランタイア",
+        "Africa_Gaborone": "ハボローネ",
+        "Africa_Maseru": "マセル",
+        "Africa_Mbabane": "ムババーネ",
+        "America_New_York": "ニューヨーク",
+        "America_Los_Angeles": "ロサンゼルス",
+        "America_Chicago": "シカゴ",
+        "America_Denver": "デンバー",
+        "America_Phoenix": "フェニックス",
+        "America_Anchorage": "アンカレッジ",
+        "America_Honolulu": "ホノルル",
+        "America_Detroit": "デトロイト",
+        "America_Indiana_Indianapolis": "インディアナポリス",
+        "America_Kentucky_Louisville": "ルイビル",
+        "America_North_Dakota_Center": "ノースダコタ",
+        "America_Boise": "ボイシ",
+        "America_Menominee": "メノミニー",
+        "America_Toronto": "トロント",
+        "America_Vancouver": "バンクーバー",
+        "America_Edmonton": "エドモントン",
+        "America_Winnipeg": "ウィニペグ",
+        "America_Halifax": "ハリファックス",
+        "America_St_Johns": "セントジョンズ",
+        "America_Regina": "レジャイナ",
+        "America_Moncton": "モンクトン",
+        "America_Goose_Bay": "グースベイ",
+        "America_Glace_Bay": "グレースベイ",
+        "America_Blanc-Sablon": "ブラン・サブロン",
+        "America_Iqaluit": "イカルイト",
+        "America_Rankin_Inlet": "ランキン・インレット",
+        "America_Resolute": "レゾリュート",
+        "America_Dawson_Creek": "ドーソン・クリーク",
+        "America_Whitehorse": "ホワイトホース",
+        "America_Yellowknife": "イエローナイフ",
+        "America_Cambridge_Bay": "ケンブリッジベイ",
+        "America_Inuvik": "イヌヴィック",
+        "America_Dawson": "ドーソン",
+        "America_Creston": "クレストン",
+        "America_Fort_Nelson": "フォート・ネルソン",
+        "America_Mexico_City": "メキシコシティ",
+        "America_Tijuana": "ティフアナ",
+        "America_Cancun": "カンクン",
+        "America_Mazatlan": "マサトラン",
+        "America_Hermosillo": "エルモシージョ",
+        "America_Chihuahua": "チワワ",
+        "America_Monterrey": "モンテレイ",
+        "America_Matamoros": "マタモロス",
+        "America_Ojinaga": "オヒナガ",
+        "America_Merida": "メリダ",
+        "America_Bahia_Banderas": "バイア・バンデラス",
+        "America_Havana": "ハバナ",
+        "America_Jamaica": "ジャマイカ",
+        "America_Port-au-Prince": "ポルトープランス",
+        "America_Nassau": "ナッソー",
+        "America_Grand_Turk": "グランドターク",
+        "America_Barbados": "バルバドス",
+        "America_Martinique": "マルティニーク",
+        "America_Guadeloupe": "グアドループ",
+        "America_Santo_Domingo": "サントドミンゴ",
+        "America_Puerto_Rico": "プエルトリコ",
+        "America_Cayman": "ケイマン",
+        "America_Panama": "パナマ",
+        "America_Costa_Rica": "コスタリカ",
+        "America_Managua": "マナグア",
+        "America_Tegucigalpa": "テグシガルパ",
+        "America_El_Salvador": "エルサルバドル",
+        "America_Guatemala": "グアテマラ",
+        "America_Belize": "ベリーズ",
+        "America_Bogota": "ボゴタ",
+        "America_Lima": "リマ",
+        "America_Caracas": "カラカス",
+        "America_Guyana": "ガイアナ",
+        "America_Paramaribo": "パラマリボ",
+        "America_Cayenne": "カイエンヌ",
+        "America_Asuncion": "アスンシオン",
+        "America_Montevideo": "モンテビデオ",
+        "America_Buenos_Aires": "ブエノスアイレス",
+        "America_Argentina_Cordoba": "コルドバ",
+        "America_Argentina_Mendoza": "メンドーサ",
+        "America_Argentina_Tucuman": "トゥクマン",
+        "America_Argentina_La_Rioja": "ラ・リオハ",
+        "America_Argentina_San_Juan": "サンフアン",
+        "America_Argentina_Salta": "サルタ",
+        "America_Argentina_San_Luis": "サンルイス",
+        "America_Argentina_Rio_Gallegos": "リオ・ガジェゴス",
+        "America_Argentina_Ushuaia": "ウシュアイア",
+        "America_Sao_Paulo": "サンパウロ",
+        "America_Manaus": "マナウス",
+        "America_Belem": "ベレン",
+        "America_Fortaleza": "フォルタレザ",
+        "America_Recife": "レシフェ",
+        "America_Bahia": "バイーア",
+        "America_Cuiaba": "クイアバ",
+        "America_Campo_Grande": "カンポ・グランデ",
+        "America_Porto_Velho": "ポルト・ヴェーリョ",
+        "America_Boa_Vista": "ボア・ヴィスタ",
+        "America_Rio_Branco": "リオ・ブランコ",
+        "America_Noronha": "ノローニャ",
+        "America_Santiago": "サンティアゴ",
+        "America_Guayaquil": "グアヤキル",
+        "America_La_Paz": "ラパス",
+        "America_Araguaina": "アラグアイナ",
+        "America_Santarem": "サンタレン",
+        "America_Eirunepe": "エイルネペ",
+        "America_Maceio": "マセイオ",
+        "America_Pangnirtung": "パングナータング",
+        "America_Atikokan": "アティコーカン",
+        "America_Nipigon": "ニピゴン",
+        "America_Thunder_Bay": "サンダーベイ",
+        "America_Rainy_River": "レイニーリバー",
+        "America_Swift_Current": "スウィフトカレント",
+        "Antarctica_McMurdo": "マクマード",
+        "Antarctica_Casey": "ケーシー",
+        "Antarctica_Davis": "デービス",
+        "Antarctica_Mawson": "モーソン",
+        "Antarctica_Palmer": "パーマー",
+        "Antarctica_Rothera": "ロゼラ",
+        "Antarctica_Syowa": "昭和",
+        "Antarctica_Troll": "トロール",
+        "Antarctica_Vostok": "ボストーク",
+        "Antarctica_DumontDUrville": "デュモン・デュルビル",
+        "Antarctica_Macquarie": "マッコーリー",
+        "Australia_Sydney": "シドニー",
+        "Australia_Melbourne": "メルボルン",
+        "Australia_Brisbane": "ブリスベン",
+        "Australia_Perth": "パース",
+        "Australia_Adelaide": "アデレード",
+        "Australia_Hobart": "ホバート",
+        "Australia_Darwin": "ダーウィン",
+        "Australia_Lord_Howe": "ロード・ハウ",
+        "Australia_Lindeman": "リンデマン",
+        "Australia_Eucla": "ユークラ",
+        "Australia_Broken_Hill": "ブロークンヒル",
+        "Australia_Currie": "カリー",
+        "Pacific_Auckland": "オークランド",
+        "Pacific_Fiji": "フィジー",
+        "Pacific_Guam": "グアム",
+        "Pacific_Port_Moresby": "ポートモレスビー",
+        "Pacific_Noumea": "ヌメア",
+        "Pacific_Tongatapu": "トンガタプ",
+        "Pacific_Apia": "アピア",
+        "Pacific_Chatham": "チャタム",
+        "Pacific_Easter": "イースター島",
+        "Pacific_Galapagos": "ガラパゴス",
+        "Pacific_Gambier": "ガンビエ",
+        "Pacific_Guadalcanal": "ガダルカナル",
+        "Pacific_Kiritimati": "キリスィマス",
+        "Pacific_Kosrae": "コスラエ",
+        "Pacific_Kwajalein": "クェゼリン",
+        "Pacific_Majuro": "マジュロ",
+        "Pacific_Marquesas": "マルケサス",
+        "Pacific_Midway": "ミッドウェー",
+        "Pacific_Nauru": "ナウル",
+        "Pacific_Niue": "ニウエ",
+        "Pacific_Norfolk": "ノーフォーク",
+        "Pacific_Pago_Pago": "パゴパゴ",
+        "Pacific_Palau": "パラオ",
+        "Pacific_Pitcairn": "ピトケアン",
+        "Pacific_Pohnpei": "ポンペイ",
+        "Pacific_Rarotonga": "ラロトンガ",
+        "Pacific_Tahiti": "タヒチ",
+        "Pacific_Tarawa": "タラワ",
+        "Pacific_Funafuti": "フナフティ",
+        "Pacific_Efate": "エファテ",
+        "Pacific_Wake": "ウェーク",
+        "Pacific_Wallis": "ウォリス",
+        "Pacific_Bougainville": "ブーゲンビル",
+        "Pacific_Chuuk": "チューク",
+        "Atlantic_Reykjavik": "レイキャビク",
+        "Atlantic_Azores": "アゾレス",
+        "Atlantic_Cape_Verde": "カーボベルデ",
+        "Atlantic_Bermuda": "バミューダ",
+        "Atlantic_Canary": "カナリア",
+        "Atlantic_Faroe": "フェロー",
+        "Atlantic_Madeira": "マデイラ",
+        "Atlantic_South_Georgia": "サウスジョージア",
+        "Atlantic_Stanley": "スタンリー",
+        "Atlantic_St_Helena": "セントヘレナ",
+        "Indian_Maldives": "モルディブ",
+        "Indian_Mauritius": "モーリシャス",
+        "Indian_Reunion": "レユニオン",
+        "Indian_Mahe": "マヘ",
+        "Indian_Antananarivo": "アンタナナリボ",
+        "Indian_Comoro": "コモロ",
+        "Indian_Mayotte": "マヨット",
+        "Indian_Kerguelen": "ケルゲレン",
+        "Indian_Christmas": "クリスマス島",
+        "Indian_Cocos": "ココス",
+        "Indian_Chagos": "チャゴス",
+        "Africa_Asmera": "アスマラ",
+        "Africa_Banjul": "バンジュール",
+        "Africa_Bissau": "ビサウ",
+        "Africa_Ceuta": "セウタ",
+        "Africa_El_Aaiun": "アイウン",
+        "Africa_Juba": "ジュバ",
+        "Africa_Ndjamena": "ンジャメナ",
+        "America_Adak": "アダック",
+        "America_Anguilla": "アンギラ",
+        "America_Antigua": "アンティグア",
+        "America_Aruba": "アルバ",
+        "America_Catamarca": "カタマルカ",
+        "America_Argentina_Catamarca": "カタマルカ",
+        "America_Ciudad_Juarez": "シウダー・フアレス",
+        "America_Coral_Harbour": "コーラルハーバー",
+        "America_Cordoba": "コルドバ",
+        "America_Coyhaique": "コイハイケ",
+        "America_Curacao": "キュラソー",
+        "America_Danmarkshavn": "ダンマークスハウン",
+        "America_Dominica": "ドミニカ",
+        "America_Godthab": "ヌーク",
+        "America_Nuuk": "ヌーク",
+        "America_Grenada": "グレナダ",
+        "America_Indiana_Knox": "ノックス",
+        "America_Indiana_Marengo": "マレンゴ",
+        "America_Indiana_Petersburg": "ピーターズバーグ",
+        "America_Indiana_Tell_City": "テルシティ",
+        "America_Indiana_Vevay": "ヴィーヴィー",
+        "America_Indiana_Vincennes": "ビンセンズ",
+        "America_Indiana_Winamac": "ウィナマック",
+        "America_Indianapolis": "インディアナポリス",
+        "America_Jujuy": "フフイ",
+        "America_Argentina_Jujuy": "フフイ",
+        "America_Argentina_Buenos_Aires": "ブエノスアイレス",
+        "America_Juneau": "ジュノー",
+        "America_Kentucky_Monticello": "モンティチェロ",
+        "America_Kralendijk": "クラレンダイク",
+        "America_Louisville": "ルイビル",
+        "America_Lower_Princes": "ローワー・プリンセズ・クォーター",
+        "America_Marigot": "マリゴ",
+        "America_Mendoza": "メンドーサ",
+        "America_Metlakatla": "メトラカトラ",
+        "America_Miquelon": "ミクロン",
+        "America_Montserrat": "モントセラト",
+        "America_Nome": "ノーム",
+        "America_North_Dakota_Beulah": "ビューラ",
+        "America_North_Dakota_New_Salem": "ニューセーラム",
+        "America_Port_of_Spain": "ポートオブスペイン",
+        "America_Punta_Arenas": "プンタ・アレーナス",
+        "America_Scoresbysund": "イトコルトルミット",
+        "America_Sitka": "シトカ",
+        "America_St_Barthelemy": "サン・バルテルミー",
+        "America_St_Kitts": "セントキッツ",
+        "America_St_Lucia": "セントルシア",
+        "America_St_Thomas": "セントトーマス",
+        "America_St_Vincent": "セントビンセント",
+        "America_Thule": "チューレ",
+        "America_Tortola": "トルトラ",
+        "America_Yakutat": "ヤクタット",
+        "Arctic_Longyearbyen": "ロングイェールビーン",
+        "Asia_Aqtau": "アクタウ",
+        "Asia_Aqtobe": "アクトベ",
+        "Asia_Atyrau": "アティラウ",
+        "Asia_Baku": "バクー",
+        "Asia_Calcutta": "コルカタ",
+        "Asia_Dili": "ディリ",
+        "Asia_Famagusta": "ファマグスタ",
+        "Asia_Gaza": "ガザ",
+        "Asia_Hebron": "ヘブロン",
+        "Asia_Katmandu": "カトマンズ",
+        "Asia_Kuching": "クチン",
+        "Asia_Novokuznetsk": "ノヴォクズネツク",
+        "Asia_Oral": "オラル",
+        "Asia_Pontianak": "ポンティアナック",
+        "Asia_Qostanay": "コスタナイ",
+        "Asia_Qyzylorda": "クズロルダ",
+        "Asia_Rangoon": "ヤンゴン",
+        "Asia_Saigon": "ホーチミン市",
+        "Asia_Samarkand": "サマルカンド",
+        "Asia_Srednekolymsk": "スレドネコリムスク",
+        "Asia_Tbilisi": "トビリシ",
+        "Asia_Ust-Nera": "ウスチネラ",
+        "Asia_Yerevan": "エレバン",
+        "Atlantic_Faeroe": "フェロー諸島",
+        "Europe_Busingen": "ビュージンゲン",
+        "Europe_Kaliningrad": "カリーニングラード",
+        "Europe_Vaduz": "ファドゥーツ",
+        "Pacific_Enderbury": "エンダーベリー",
+        "Pacific_Kanton": "カントン",
+        "Pacific_Fakaofo": "ファカオフォ",
+        "Pacific_Honolulu": "ホノルル",
+        "Pacific_Ponape": "ポンペイ",
+        "Pacific_Saipan": "サイパン",
+        "Pacific_Truk": "チューク"
+      }
+    }
+  },
+  "calculator": {
+    "modes": {
+      "arithmetic": "四則演算",
+      "scientific": "関数電卓",
+      "coordinate": "グラフ",
+      "unitConversion": "単位換算"
+    },
+    "sidebar": {
+      "expand": "展開",
+      "collapse": "折りたたむ"
+    },
+    "functions": {
+      "logn": "任意の底の対数",
+      "fraction": "分数",
+      "sum": "有限和",
+      "integral": "定積分",
+      "derivative": "指定点での微分係数",
+      "variable": "変数x"
+    },
+    "coordinate": {
+      "placeholder": "関数を入力（例: x^2, sin(x)）",
+      "error": "無効な式",
+      "plot": "関数のグラフ",
+      "toggleKeys": "入力パネルを切り替え"
+    }
+  },
+  "settings": {
+    "navigation": {
+      "expand": "ページナビゲーションを展開",
+      "collapse": "ページナビゲーションを折りたたむ"
+    },
+    "sidebar": {
+      "title": "設定"
+    },
+    "labels": {
+      "index": "クイックナビゲーション",
+      "app": "アプリ設定",
+      "layout-preview": "レイアウトプレビュー",
+      "expand-layout": "Expand レイアウト",
+      "maxexpand-layout": "MaxExpand レイアウト",
+      "album": "アルバム設定",
+      "hide-process-list": "非表示対象ウィンドウの管理",
+      "position": "位置調整",
+      "theme": "テーマ",
+      "language": "言語",
+      "behavior": "操作設定",
+      "animation": "アニメーション",
+      "url-parser": "URL 解析",
+      "clipboard-history": "クリップボード履歴",
+      "alarm": "アラーム設定",
+      "break-reminder": "休憩リマインダー",
+      "autostart": "ユーティリティ",
+      "sound": "サウンド設定",
+      "notification": "通知設定",
+      "performance": "パフォーマンス設定",
+      "performance-monitor": "パフォーマンスモニター",
+      "screenshot-settings": "スクリーンショット設定",
+      "network": "ネットワーク",
+      "mail": "メール",
+      "weather": "天気",
+      "music": "音楽",
+      "music-whitelist": "プレーヤーの許可リスト",
+      "music-lyrics": "歌詞の取得元",
+      "music-smtc": "SMTC",
+      "music-providers": "歌詞プロバイダー",
+      "ai": "AIエージェント",
+      "general": "一般",
+      "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama ローカル",
+      "orb-style": "Orb スタイル",
+      "shortcut": "ショートカット",
+      "user": "アカウント",
+      "update": "更新",
+      "pluginMarket": "総合マーケット",
+      "about": "このアプリについて"
+    },
+    "mail": {
+      "pagination": "メール設定のページ切り替え",
+      "accounts": {
+        "unnamed": "名前のないアカウント",
+        "add": "アカウントを追加",
+        "remove": "削除",
+        "empty": "アカウントがありません。上の + をクリックしてメールアカウントを追加してください。",
+        "label": "アカウント名",
+        "labelHint": "複数のアカウントを区別するための任意の名前",
+        "labelPlaceholder": "仕事用 / 個人用"
+      },
+      "account": {
+        "title": "アカウント",
+        "hint": "メールアドレスは表示と既定の差出人情報に使用します。",
+        "emailAddress": "メールアドレス",
+        "emailAddressHint": "完全なメールアドレス（例：name@qq.com）",
+        "authUser": "認証ユーザー名",
+        "authUserHint": "通常はメールアドレスと同じです",
+        "authSecret": "認証キー / アプリパスワード",
+        "authSecretHint": "ログインパスワードではなく、メールの認証コードまたはアプリパスワードを入力してください"
+      },
+      "imap": {
+        "title": "IMAP",
+        "hint": "メールの受信とメールボックスのフォルダー同期に使用します。",
+        "quickFill": "自動入力",
+        "selectProvider": "プロバイダーを選択して自動入力",
+        "host": "IMAP ホスト",
+        "port": "IMAP ポート",
+        "secure": "TLS / SSL を使用",
+        "providers": {
+          "qq": "QQ Mail",
+          "netease163": "NetEase 163",
+          "netease126": "NetEase 126",
+          "neteaseYeah": "NetEase yeah",
+          "sina": "Sina Mail",
+          "sohu": "Sohu Mail",
+          "aliyun": "Aliyun Mail",
+          "foxmail": "Foxmail",
+          "outlook": "Outlook / Hotmail",
+          "gmail": "Gmail"
+        }
+      },
+      "smtp": {
+        "hint": "メールの送信に使用します。プロバイダーが推奨するポートと暗号化方式を使用してください。",
+        "host": "SMTP ホスト",
+        "port": "SMTP ポート",
+        "secure": "TLS / SSL を使用"
+      },
+      "actions": {
+        "title": "保存",
+        "hint": "現在はローカル設定の保存のみ対応しています。次の段階で IMAP 受信 + SMTP 送信を実装します。",
+        "save": "メール設定を保存"
+      },
+      "preferences": {
+        "title": "受信設定",
+        "hint": "一度に取得するメール数など、受信トレイの動作を設定します。",
+        "fetchLimit": "取得件数の上限",
+        "fetchLimitHint": "受信トレイの更新時に取得するメール数（1–30）"
+      }
+    },
+    "mailPages": {
+      "account": "アカウント",
+      "imap": "IMAP",
+      "smtp": "SMTP",
+      "preferences": "受信設定"
+    },
+    "weatherPages": {
+      "location": "位置情報",
+      "provider": "プロバイダー"
+    },
+    "aiPages": {
+      "general": "一般",
+      "r1pxc": "r1pxc Agent",
+      "ollama": "Ollama ローカル",
+      "orb-style": "Orb スタイル"
+    },
+    "musicPages": {
+      "whitelist": "許可リスト",
+      "lyrics": "歌詞",
+      "smtc": "SMTC",
+      "providers": "プロバイダー"
+    },
+    "networkPages": {
+      "timeout": "タイムアウト",
+      "data-center": "データセンター"
+    },
+    "updatePages": {
+      "update-check": "更新を確認",
+      "info-sync": "情報の同期"
+    },
+    "index": {
+      "title": "クイックナビゲーション",
+      "reset": "既定に戻す",
+      "done": "完了",
+      "edit": "編集",
+      "searchPlaceholder": "設定項目を検索...",
+      "searchEmpty": "一致する設定項目が見つかりません",
+      "searchClear": "検索をクリア",
+      "hintEdit": "カードをドラッグして並べ替え、「完了」をクリックして保存します。",
+      "hintView": "カードをクリックすると、対応する設定ページに移動します。",
+      "ariaNav": "設定のクイックナビゲーション",
+      "removeCard": "{{label}} を削除",
+      "ariaAddPanel": "追加できるナビゲーションカード",
+      "addableTitle": "追加できるカード",
+      "emptyAddable": "追加できるカードはありません"
+    },
+    "language": {
+      "title": "表示言語",
+      "hint": "変更は多言語対応の画面テキストにすぐに反映されます",
+      "options": {
+        "zh-CN": "简体中文",
+        "en-US": "English",
+        "zh-TW": "繁體中文",
+        "ja-JP": "日本語"
+      },
+      "current": {
+        "zh-CN": "現在の言語：简体中文",
+        "en-US": "現在の言語：English",
+        "zh-TW": "現在の言語：繁體中文",
+        "ja-JP": "現在の言語：日本語"
+      }
+    },
+    "app": {
+      "pagination": "アプリ設定のページ切り替え",
+      "performance": {
+        "title": "パフォーマンス設定",
+        "hint": "パフォーマンスに関する設定です。",
+        "modeTitle": "パフォーマンスモードを有効にする",
+        "modeHint": "有効にすると、MaxExpand の各ページを初めて開くときに読み込み、初回の切り替え時の遅延を減らします。無効にすると、従来どおり一括で読み込みます。",
+        "modeToggle": "パフォーマンスモードを有効にする",
+        "frameRateLimitTitle": "フレームレート制限を解除",
+        "frameRateLimitHint": "有効にすると、Chromium のフレームレート上限を解除します。高リフレッシュレートのディスプレイに適しています。反映にはアプリの再起動が必要です。",
+        "frameRateLimitToggle": "フレームレート制限を解除",
+        "frameRateLimitRestartHint": "フレームレート制限の設定が変更されました。再起動すると適用されます。"
+      },
+      "performanceMonitor": {
+        "title": "パフォーマンスモニター",
+        "hint": "パフォーマンスモニターの表示とハードウェアの状態を設定します。",
+        "hardwareTitle": "監視対象のハードウェア",
+        "hardwareHint": "パフォーマンスモニターのグラフに表示する CPU、GPU、ディスクを選択します。",
+        "hardware": {
+          "cpu": "CPU",
+          "gpu": "GPU",
+          "disk": "ディスク"
+        },
+        "hardwareOptions": {
+          "allCpu": "すべての CPU",
+          "autoGpu": "GPU を自動選択",
+          "allDisks": "すべてのディスク"
+        },
+        "colorsTitle": "グラフの色",
+        "colorsHint": "Expand のパフォーマンスモニターで、CPU、GPU、メモリ、ディスクのグラフの色を調整します。",
+        "resetColors": "既定の色に戻す",
+        "colors": {
+          "cpu": "CPU",
+          "gpu": "GPU",
+          "memory": "メモリ",
+          "disk": "ディスク"
+        }
+      },
+      "screenshotSettings": {
+        "title": "スクリーンショット設定",
+        "hint": "スクリーンショットに関する設定です。",
+        "engineTitle": "スクリーンショットエンジン",
+        "engineHint": "スクリーンショット用のエンジンを選択します。プラグインモードは複数のディスプレイの撮影に対応し、JS モードは互換性に優れています。",
+        "enginePlugin": "プラグインモード",
+        "engineJs": "JS モード",
+        "ocrEngineTitle": "OCR エンジン",
+        "ocrEngineHint": "ローカル OCR は Tesseract.js を使ってデバイス上で認識し、画像をアップロードしません。サーバー OCR はクラウドで認識し、料金が発生します。",
+        "ocrEngineLocal": "ローカル OCR",
+        "ocrEngineServer": "サーバー OCR",
+        "translateTitle": "スクリーンショットの翻訳言語",
+        "translateHint": "スクリーンショットの翻訳元と翻訳先の言語を設定します。"
+      },
+      "notifications": {
+        "configChanged": {
+          "title": "設定が変更されました",
+          "body": "独立ウィンドウモードの設定が変更されました。"
+        },
+        "windowControlsChanged": {
+          "body": "独立ウィンドウの操作ボタンのスタイルが変更されました。"
+        },
+        "displayChanged": {
+          "body": "対象ディスプレイが変更されました。今すぐ再起動して適用しますか？"
+        }
+      },
+      "layout": {
+        "previewTitle": "概要レイアウトのプレビュー",
+        "previewHint": "選択したウィジェットを配置した Expand 状態のアイランドをリアルタイムでプレビューします。",
+        "widgetPickerTitle": "ウィジェットの配置",
+        "widgetPickerHint": "左右それぞれに表示するウィジェットを選択します。変更は自動で保存されます。",
+        "leftWidget": "左のウィジェット",
+        "rightWidget": "右のウィジェット",
+        "clockStyleTitle": "中央の時計のスタイル",
+        "clockStyleHint": "概要画面の中央に表示する時計のスタイルを選択します。変更は自動で保存されます。",
+        "gradientEditorTitle": "グラデーションの色を編集",
+        "gradientEditorHint": "基準色を選ぶと、時計の文字色のグラデーションを自動生成します。",
+        "gradientBaseColor": "基準色",
+        "musicBgTitle": "Hover 音楽背景のスタイル",
+        "musicBgHint": "Hover 状態の音楽画面に表示する背景の波形エフェクトをプレビューして選択します。",
+        "musicBgCurrent": "現在の状態",
+        "musicBgModified": "変更後",
+        "musicBgSilky": "滑らかな波",
+        "musicBgWave": "音声波形",
+        "gradientStart": "開始色",
+        "gradientMiddle": "中間色",
+        "gradientEnd": "終了色",
+        "clockStyleNames": {
+          "classic": "クラシック",
+          "gradient": "グラデーション",
+          "minimal": "ミニマルアート"
+        },
+        "widgetNames": {
+          "shortcuts": "クイック起動",
+          "todo": "ToDo",
+          "song": "楽曲",
+          "countdown": "カウントダウン",
+          "pomodoro": "ポモドーロ",
+          "urlFavorites": "URL のお気に入り",
+          "album": "アルバムのスライドショー",
+          "mokugyo": "木魚",
+          "breakReminder": "休憩リマインダー",
+          "alarm": "アラーム",
+          "worldClock": "世界時計"
+        },
+        "previewMock": {
+          "previewTag": "プレビュー",
+          "shortcutA": "アプリ A",
+          "shortcutB": "アプリ B",
+          "shortcutC": "アプリ C",
+          "todoA": "サンプル ToDo A",
+          "todoB": "サンプル ToDo B",
+          "todoC": "サンプル ToDo C",
+          "songTitle": "サンプル曲",
+          "songArtist": "サンプルアーティスト",
+          "songAlbum": "サンプルアルバム",
+          "samplePreview": "サンプルプレビュー",
+          "albumFile": "sample-image.jpg",
+          "urlNoteGithub": "コードホスティング",
+          "urlNoteStackOverflow": "技術 Q&A",
+          "breakSedentary": "立って体を動かしましょう",
+          "breakGeneric": "少し休憩しましょう",
+          "date": "2026-01-01 木曜日",
+          "lunar": "乙巳年 旧暦師走",
+          "yiItems": "祈願 · 外出 · 開業",
+          "jiItems": "着工 · 埋葬 · 墓地の掘削"
+        }
+      },
+      "expandLayout": {
+        "previewTitle": "Expand ナビゲーションのプレビュー",
+        "previewHint": "Expand 状態の下部ナビゲーションの順序をプレビューします。薄く表示された項目は非表示です。",
+        "orderTitle": "ページの順序と表示（Expand）",
+        "orderHint": "ドラッグで Expand のページを並べ替え、スイッチで表示/非表示を切り替えます。現在の表示数：{{count}} / {{total}}。",
+        "orderHintStatic": "ドラッグで Expand のページを並べ替え、スイッチで表示/非表示を切り替えます。",
+        "moveUp": "上へ移動",
+        "moveDown": "下へ移動",
+        "hideTab": "このページを非表示にする",
+        "showTab": "このページを表示する",
+        "alwaysVisible": "このページは非表示にできません",
+        "resetDefault": "既定に戻す",
+        "tabLabels": {
+          "overview": "概要",
+          "song": "音楽",
+          "tools": "ツール",
+          "translation": "翻訳",
+          "performanceMonitor": "パフォーマンスモニター"
+        }
+      },
+      "maxExpandLayout": {
+        "appModeTitle": "アプリモードを有効にする",
+        "appModeHint": "ランチャーから各アプリを開き、右側のボタンで戻ります。アプリモードでは、下のページの順序と表示の設定は適用されません。",
+        "previewTitle": "MaxExpand ナビゲーションのプレビュー",
+        "previewHint": "下部ナビゲーションの順序をプレビューします。薄く表示された項目は非表示です。",
+        "backLabel": "戻る",
+        "settingsLabel": "設定",
+        "orderTitle": "ページの順序と表示",
+        "orderHint": "ドラッグでページを並べ替え、スイッチで表示/非表示を切り替えます。現在の表示数：{{count}} / {{total}}。",
+        "orderHintStatic": "ドラッグでページを並べ替え、スイッチで表示/非表示を切り替えます。",
+        "moveUp": "上へ移動",
+        "moveDown": "下へ移動",
+        "hideTab": "このページを非表示にする",
+        "showTab": "このページを表示する",
+        "alwaysVisible": "このページは非表示にできません",
+        "resetDefault": "既定に戻す",
+        "tabLabels": {
+          "todo": "ToDo",
+          "urlFavorites": "URL のお気に入り",
+          "album": "アルバム",
+          "mail": "メール",
+          "localFileSearch": "ファイル検索",
+          "clipboardHistory": "クリップボード",
+          "aiChat": "AI チャット",
+          "memo": "メモ",
+          "countdown": "カウントダウン",
+          "alarm": "アラーム",
+          "toolbox": "ツールボックス",
+          "miniGame": "ミニゲーム",
+          "stock": "株価情報",
+          "cli": "CLI コンソール",
+          "calculator": "電卓",
+          "worldClock": "世界時計",
+          "calendar": "カレンダー"
+        }
+      },
+      "hideProcess": {
+        "title": "非表示対象ウィンドウの管理",
+        "hint": "ブロックリスト内のプロセスのウィンドウにフォーカスがある間、Dynamic Island を自動で非表示にします。",
+        "fullscreenTitle": "全画面表示中は自動で非表示",
+        "fullscreenHint": "ウィンドウが全画面表示になると Dynamic Island を自動で非表示にし、全画面表示を終了すると再表示します。",
+        "fullscreenToggle": "全画面表示中の自動非表示を有効にする",
+        "runningTitle": "現在実行中のウィンドウ",
+        "runningHint": "行をクリックすると、ブロックリストへの追加/削除ができます。プロセス名で検索できます。",
+        "searchPlaceholder": "プロセス名を検索",
+        "refreshing": "更新中...",
+        "refresh": "ウィンドウ一覧を更新",
+        "empty": "非表示対象のウィンドウはありません",
+        "removeWindow": "このウィンドウを削除"
+      },
+      "position": {
+        "title": "Dynamic Island の位置オフセット",
+        "hint": "調整後に自動で保存されます。",
+        "lockTitle": "Dynamic Island の位置をロック",
+        "lockHint": "有効にすると、pill モードでのみマウスによるドラッグを無効にします。位置調整は引き続き利用できます。",
+        "lockToggle": "pill モードで Dynamic Island の位置をロック",
+        "quickAdjustTitle": "かんたん微調整",
+        "quickAdjustHint": "クリックするたびにアイランドを 10px 移動し、自動で保存します。",
+        "displayTitle": "ディスプレイの選択",
+        "displayHint": "複数のディスプレイを使用している場合、Dynamic Island を表示するディスプレイを選択します。再起動後に反映されます。",
+        "displayLabel": "対象ディスプレイ",
+        "displayPrimaryOption": "メインディスプレイ（推奨）",
+        "displayOption": "ディスプレイ {{index}} ({{width}}×{{height}})",
+        "displayPrimarySuffix": " · メイン",
+        "preciseTitle": "オフセットの詳細設定",
+        "preciseHint": "水平 / 垂直オフセット（px）を入力し、Enter キーを押すか「適用」をクリックして確定します。",
+        "moveLeft": "左へ 10",
+        "moveRight": "右へ 10",
+        "moveUp": "上へ 10",
+        "moveDown": "下へ 10",
+        "xLabel": "水平 X（px）",
+        "yLabel": "垂直 Y（px）",
+        "apply": "適用",
+        "cancel": "キャンセル",
+        "resetDefault": "既定の位置に戻す"
+      },
+      "theme": {
+        "title": "テーマモード",
+        "hint": "ダーク、ライト、システムに合わせる、から選択します",
+        "musicOuterGlowTitle": "音楽再生時の外周発光エフェクト",
+        "musicOuterGlowHint": "音楽再生中にアルバムカバーの周囲を流れる光のアニメーションを設定します。",
+        "musicOuterGlowToggle": "音楽再生中に外周を流れる発光エフェクトを有効にする",
+        "windowControlsTitle": "独立ウィンドウの操作ボタンのスタイル",
+        "windowControlsHint": "有効にすると、独立ウィンドウの右上に macOS 風の信号色の丸い操作ボタンを表示します",
+        "windowControlsMacToggle": "Mac 風のウィンドウ操作ボタンを使用",
+        "dark": "ダーク",
+        "light": "ライト",
+        "system": "システムに合わせる",
+        "builtinWallpaper": "内蔵の壁紙",
+        "builtinWallpaperHint": "内蔵画像を選択してアイランドの背景に設定します",
+        "customImage": "カスタム画像",
+        "customImageHint": "ローカル画像を選択：jpg / png / gif / webp",
+        "changeImage": "画像を変更",
+        "selectImage": "画像を選択",
+        "customVideo": "カスタム動画",
+        "customVideoHint": "ローカル動画を選択します。mp4 のみ対応しています。",
+        "changeVideo": "動画を変更",
+        "selectVideo": "動画を選択",
+        "videoFitHint": "動画の表示方法",
+        "videoFitCover": "領域を埋める（切り抜き）",
+        "videoFitContain": "全体を表示（余白あり）",
+        "videoMutedToggle": "動画をミュート",
+        "videoLoopToggle": "動画をループ再生",
+        "videoVolumeHint": "背景動画の音量（0 - 100%）。ミュートを解除すると反映されます。",
+        "videoRateHint": "再生速度",
+        "videoHwDecodeToggle": "ハードウェアデコードを有効にする",
+        "syncDesktopWallpaperTitle": "デスクトップの壁紙を同期",
+        "syncDesktopWallpaperHint": "背景の画像/動画を変更すると、Windows のデスクトップの壁紙にも反映します（動画の場合は抽出したカバー画像を使用します）",
+        "syncDesktopWallpaperToggle": "背景の変更をデスクトップに同期",
+        "clearBackground": "背景をクリア",
+        "previewAlt": "背景のプレビュー",
+        "previewLabel": "リアルタイムプレビュー",
+        "bgCardTitle": "背景の壁紙",
+        "bgCardSubtitle": "内蔵の壁紙を選ぶか、ローカルの画像 / 動画を読み込んでアイランドの背景に設定します",
+        "effectCardTitle": "背景の表示効果",
+        "effectCardSubtitle": "背景の不透明度とぼかしを調整します",
+        "opacityTitle": "背景の不透明度",
+        "blurTitle": "背景のぼかし",
+        "videoCardTitle": "動画再生",
+        "videoCardSubtitle": "背景動画の表示方法、音声、再生を設定します",
+        "videoAudioTitle": "音声とループ",
+        "videoPerfTitle": "パフォーマンス",
+        "imageOpacityHint": "背景の不透明度（0% - 100%）",
+        "imageBlurHint": "背景のぼかし（0px - 20px）",
+        "islandOpacityTitle": "アイランドの不透明度",
+        "islandOpacityHint": "値が低いほど透明になります（10% - 100%）",
+        "autoDimTitle": "操作がないときに自動で薄くする",
+        "autoDimHint": "有効にすると、指定した時間マウス操作がない場合にアイランドの不透明度を下げます。カーソルを重ねると元に戻ります",
+        "autoDimToggle": "操作がないときに自動で薄くする機能を有効にする",
+        "autoDimDelayHint": "操作がなくなってから薄くするまでの秒数（1 - 120s）",
+        "uiFontTitle": "UI フォント",
+        "uiFontHint": "アイランドの画面に使用するフォントを選択します",
+        "lyricsFontTitle": "歌詞のフォント",
+        "lyricsFontHint": "歌詞の表示に使用するフォントを選択します",
+        "fontDefault": "システムの既定",
+        "fontMicrosoftYahei": "Microsoft YaHei",
+        "fontSimhei": "SimHei",
+        "fontSimsun": "SimSun",
+        "fontKaiti": "KaiTi",
+        "fontFangsong": "FangSong",
+        "fontCascadiaCode": "Cascadia Code",
+        "fontJetbrainsMono": "JetBrains Mono",
+        "fontConsolas": "Consolas",
+        "addCustomFont": "フォントを追加",
+        "defaultOpacitySuffix": " （既定の不透明度 {{opacity}}%）"
+      },
+      "behavior": {
+        "mouseLeaveTitle": "マウスを離すと自動で折りたたむ",
+        "mouseLeaveHint": "カーソルがアイランドの外に出ると折りたたみます",
+        "expandLeaveToggle": "Expand 状態でマウスを離すと折りたたむ",
+        "maxExpandLeaveToggle": "MaxExpand 状態でマウスを離すと折りたたむ",
+        "idleClickExpandTitle": "待機中はクリックで展開",
+        "idleClickExpandHint": "有効にすると、Dynamic Island にカーソルを重ねても自動展開せず、クリックで展開します。その後の操作は変わりません。",
+        "idleClickExpandToggle": "待機中はクリックで展開（ホバーによる自動展開を無効化）",
+        "windowModeTitle": "独立ウィンドウモード",
+        "windowModeHint": "有効にすると、ToDo、カウントダウン、設定を Dynamic Island の内部ではなく、独立したウィンドウで開きます",
+        "integratedMode": "Dynamic Island 内に表示",
+        "standaloneMode": "独立ウィンドウ",
+        "hoverScreenshotModeTitle": "ホバー画面のスクリーンショットボタンの動作",
+        "hoverScreenshotModeHint": "ホバー画面のスクリーンショットボタンで、範囲指定かディスプレイ全体のどちらを撮影するか設定します",
+        "hoverScreenshotModeLabel": "スクリーンショットの撮影方法",
+        "hoverScreenshotModeRegion": "範囲指定で撮影",
+        "hoverScreenshotModeDisplay": "ディスプレイ全体を撮影",
+        "shapeModeTitle": "アイランドの形状",
+        "shapeModeHint": "アイランドの形状を切り替えます。ノッチ型は画面上部に固定され、ピル型は楕円形で浮かぶように表示されます",
+        "shapeModeNotch": "ノッチ型",
+        "shapeModePill": "ピル型"
+      },
+      "animation": {
+        "springTitle": "スプリングアニメーション",
+        "springHint": "無効にすると弾む動きを抑え、切り替えを滑らかにします",
+        "springToggle": "スプリングアニメーションを有効にする",
+        "animSpeedTitle": "アイランドのアニメーション速度",
+        "animSpeedHint": "アイランドの状態が切り替わる際のアニメーション速度を設定します",
+        "animSpeed_slow": "遅い",
+        "animSpeed_medium": "標準",
+        "animSpeed_fast": "速い",
+        "expandTabSwitchTitle": "Expand のタブ切り替えアニメーション",
+        "expandTabSwitchHint": "Expand モードでページを切り替える際にスライドアニメーションを表示します",
+        "expandTabSwitchToggle": "タブ切り替えアニメーションを有効にする",
+        "maxExpandTabSwitchTitle": "MaxExpand のタブ切り替えアニメーション",
+        "maxExpandTabSwitchHint": "MaxExpand モードでページを切り替える際にスライドアニメーションを表示します",
+        "maxExpandTabSwitchToggle": "タブ切り替えアニメーションを有効にする",
+        "startupAnimationTitle": "起動アニメーションを表示",
+        "startupAnimationHint": "有効にすると、アプリを起動するたびに起動アニメーションを表示します。無効にするとスキップします。",
+        "startupAnimationToggle": "起動アニメーションを表示",
+        "splashBgColorTitle": "起動画面の背景色",
+        "splashBgColorHint": "起動画面の背景色を変更します",
+        "resetDefault": "既定に戻す",
+        "previewPlay": "プレビュー",
+        "previewStop": "停止"
+      },
+      "album": {
+        "carouselTitle": "アルバムのスライドショーモード",
+        "carouselHint": "概要画面のアルバムカードの表示順、切り替え間隔、メディアの種類、クリック時の動作を設定します",
+        "intervalLabel": "切り替え間隔",
+        "interval3s": "3秒",
+        "interval5s": "5秒",
+        "interval8s": "8秒",
+        "orderLabel": "表示順",
+        "orderSequential": "順番に表示",
+        "orderRandom": "ランダム",
+        "filterLabel": "メディアの絞り込み",
+        "filterHint": "概要画面のアルバムカードに表示するメディアの種類を選択します",
+        "filterAll": "すべて",
+        "filterImage": "画像のみ",
+        "filterVideo": "動画のみ",
+        "clickBehaviorLabel": "カードをクリックしたときの動作",
+        "clickBehaviorHint": "概要画面のアルバムカードをクリックしたときの動作を設定します",
+        "clickBehaviorOpen": "アルバムページを開く",
+        "clickBehaviorNone": "何もしない",
+        "playbackTitle": "自動再生と動画の動作",
+        "playbackHint": "概要画面のアルバムスライドショーカードにのみ適用され、アルバムのメインページには影響しません。",
+        "autoRotateToggle": "自動スライドショーを有効にする",
+        "videoAutoPlayToggle": "動画を自動再生",
+        "videoMutedToggle": "動画をミュート"
+      },
+      "urlParser": {
+        "title": "クリップボードの URL 監視",
+        "hint": "クリップボードで URL を検出すると確認メッセージを表示します",
+        "enableToggle": "クリップボードの URL 監視を有効にする",
+        "detectModes": "検出モード",
+        "detectModesHint": "URL として扱う形式を選択します。お気に入り画面を開いている間は通知を抑制することもできます。",
+        "modeHttpsOnly": "https で始まる URL のみ",
+        "modeHttpHttps": "http/https を許可",
+        "modeDomainOnly": "ドメイン名のみでも許可",
+        "suppressInFavorites": "お気に入り画面では通知しない",
+        "blacklistTitle": "URL ブロックリスト（ドメイン単位）",
+        "blacklistHint": "ブロックしたドメインは通知から除外します",
+        "blacklistPlaceholder": "ドメインを入力（例：example.com）",
+        "addDomain": "ドメインを追加",
+        "emptyBlacklist": "ブロックされたドメインはありません",
+        "removeDomain": "ドメインを削除",
+        "errors": {
+          "invalidDomain": "有効なドメインを入力してください",
+          "domainExists": "このドメインはブロックリストに登録済みです",
+          "saveFailed": "保存に失敗しました。もう一度お試しください"
+        }
+      },
+      "autostart": {
+        "toolsHint": "よく使うアプリ操作とログツール",
+        "quit": "eIsland を終了",
+        "restart": "eIsland を再起動",
+        "openLogs": "ログフォルダーを開く",
+        "clearLogs": "ログキャッシュを消去",
+        "logsClearing": "消去中...",
+        "logsCleared": "{{kb}} KB を消去しました",
+        "logsClearFailed": "消去に失敗しました",
+        "title": "自動起動",
+        "hint": "システムへのログイン時の起動動作を設定します",
+        "options": {
+          "disabled": "無効",
+          "enabled": "有効",
+          "highPriority": "高優先度"
+        },
+        "status": {
+          "disabled": "自動起動は無効です。",
+          "enabled": "ログイン時に eIsland を起動します。",
+          "highPriority": "高い優先度で起動し、読み込みを速めます。"
+        }
+      }
+    },
+    "common": {
+      "add": "追加",
+      "remove": "削除",
+      "save": "保存",
+      "saveFailed": "保存に失敗しました：{{error}}",
+      "unknownError": "不明なエラー"
+    },
+    "clipboardHistory": {
+      "enabled": {
+        "title": "履歴の記録",
+        "hint": "無効にすると、新しいクリップボード履歴は追加されません。既存の履歴は保持されます。",
+        "toggle": "クリップボード履歴を有効にする"
+      },
+      "limit": {
+        "title": "最大保存件数",
+        "hint": "上限を超えた履歴は、古いものから削除されます。",
+        "options": {
+          "10": "10 件",
+          "20": "20 件",
+          "30": "30 件",
+          "50": "50 件"
+        }
+      },
+      "exitMaxExpandOnCopy": {
+        "title": "コピー後に自動で閉じる",
+        "hint": "履歴の項目をコピーすると、最大展開を自動で終了します。音楽の再生中は歌詞表示に、それ以外は待機状態に戻ります。",
+        "toggle": "コピー後に最大展開を終了する"
+      },
+      "actions": {
+        "title": "データ管理",
+        "hint": "保存済みのクリップボード履歴をまとめて削除できます。",
+        "clear": "履歴を消去"
+      },
+      "messages": {
+        "clearSuccess": "クリップボード履歴を消去しました",
+        "clearFailed": "消去に失敗しました。もう一度お試しください"
+      }
+    },
+    "alarm": {
+      "sound": {
+        "title": "アラーム音",
+        "hint": "アラームの時刻になったら音を鳴らします。",
+        "toggle": "アラーム音を有効にする"
+      },
+      "notification": {
+        "title": "システム通知",
+        "hint": "アラームの作動時にシステム通知を送信します。",
+        "toggle": "システム通知を有効にする"
+      },
+      "snooze": {
+        "title": "スヌーズ間隔",
+        "hint": "スヌーズしてから再度通知するまでの時間（分）。",
+        "options": {
+          "1": "1 分",
+          "3": "3 分",
+          "5": "5 分",
+          "10": "10 分",
+          "15": "15 分"
+        }
+      },
+      "autoDismiss": {
+        "title": "自動停止",
+        "hint": "指定した分数が経過すると、アラームを自動停止します。「自動停止しない」を選ぶと手動で停止する必要があります。",
+        "never": "自動停止しない",
+        "options": {
+          "1": "1 分",
+          "3": "3 分",
+          "5": "5 分",
+          "10": "10 分"
+        }
+      }
+    },
+    "sound": {
+      "global": {
+        "title": "全体の音量",
+        "hint": "アラームと効果音の全体的な出力音量を調整します。"
+      },
+      "alarmVolume": {
+        "title": "アラームの音量",
+        "hint": "アラームの鳴動音と試聴時の音量にのみ適用されます。"
+      },
+      "effectVolume": {
+        "title": "効果音の音量",
+        "hint": "STT の開始音と木魚の打音に適用されます。"
+      }
+    },
+    "notification": {
+      "pageTitle": "通知設定",
+      "pageHint": "Dynamic Island の通知と表示動作を設定します。",
+      "sound": {
+        "title": "通知音",
+        "hint": "通知が届いたときに音を一度鳴らします。",
+        "toggle": "通知音を有効にする"
+      },
+      "agentNotification": {
+        "title": "Agent の起動通知",
+        "hint": "デスクトップの Agent が起動または終了したときに、Dynamic Island に通知を表示します。",
+        "toggle": "Agent の起動通知を有効にする"
+      }
+    },
+    "breakReminder": {
+      "listTitle": "リマインダー",
+      "listHint": "有効にすると、設定した間隔で休憩リマインダーを表示します。",
+      "addBtn": "リマインダーを追加",
+      "deleteBtn": "削除",
+      "nameLabel": "名前",
+      "intervalLabel": "間隔（分）",
+      "enabledLabel": "有効",
+      "emptyHint": "リマインダーはまだありません。上のボタンから追加してください。",
+      "resetBtn": "既定に戻す",
+      "defaultSedentary": "立って体を動かす",
+      "defaultHydration": "水分補給",
+      "notificationTitle": "休憩リマインダー",
+      "notificationBody": "{{name}}の時間です！"
+    },
+    "network": {
+      "timeout": {
+        "title": "リクエストのタイムアウト",
+        "hint": "ネットワークリクエストの最大待機時間を設定します",
+        "presetTitle": "よく使う設定",
+        "customTitle": "秒数を指定",
+        "customHint": "1 - 120 秒の範囲で入力してください。Enter キーを押すか、入力欄からフォーカスを外すと適用されます。",
+        "unitSecond": "秒",
+        "options": {
+          "ms5000": "5秒",
+          "ms10000": "10秒（既定）",
+          "ms15000": "15秒",
+          "ms20000": "20秒",
+          "ms30000": "30秒"
+        }
+      },
+      "staticAssetNode": {
+        "title": "静的アセットの配信ノード",
+        "hint": "既定ではすべてのユーザーが R2 を使用します。R2/COS/OSS から選択できます。",
+        "proOnlyHint": "現在のアカウントでは利用できません",
+        "proHint": "COS/OSS ノードに切り替えるか、R2 を引き続き使用できます。"
+      },
+      "updateSource": {
+        "title": "更新の取得元",
+        "hint": "アプリのパッチのダウンロード元を選択します。取得元によって地域ごとの速度が異なります",
+        "sourceHint": "Cloudflare R2：世界各地で安定した接続とバランスのよい速度\nESA CDN：ESA のグローバル CDN。すべてのユーザーが利用可能\nTencent COS：中国では通常、より高速\nAliyun OSS：中国国内を広くカバーし、ピーク速度が高速\nGitHub Releases：中国国外では安定。中国では遅い場合があります"
+      },
+      "pagination": "ネットワーク設定のページ切り替え"
+    },
+    "weather": {
+      "locationPriority": {
+        "title": "位置情報の優先順位",
+        "hint": "IP による自動位置情報と指定した場所のどちらを優先するか選択します"
+      },
+      "customCityTitle": "都市を指定",
+      "customCityHint": "「指定した場所を優先」の場合のみ使用します。保存前にテストできます。中国語 / ピンイン / 英語に対応しています。",
+      "cityName": "都市名",
+      "cityPlaceholder": "例：Hangzhou / Tokyo / New York",
+      "testing": "テスト中...",
+      "testCustomLocation": "指定した場所をテスト（複数の API）",
+      "saveLocation": "位置情報の設定を保存",
+      "providerPriority": {
+        "title": "天気プロバイダーの優先順位",
+        "hint": "Open-Meteo、UAPI、QWeather のいずれかを優先し、失敗時は自動で別の取得元に切り替えます"
+      },
+      "alert": {
+        "title": "起動時の気象警報",
+        "hint": "起動時の自動更新確認の前に QWeather の警報を取得します。警報を確認して閉じると、更新確認を続行します。",
+        "enabled": "警報の表示を有効にする",
+        "disabled": "警報の表示を無効にする"
+      },
+      "proBadge": "",
+      "proOnlyHint": "現在のアカウントでは利用できません",
+      "options": {
+        "locationPriority": {
+          "ip": "IP の位置情報を優先",
+          "custom": "指定した場所を優先"
+        },
+        "providerPriority": {
+          "openMeteo": "Open-Meteo を優先",
+          "uapi": "UAPI を優先",
+          "qweatherPro": "QWeather を優先"
+        }
+      },
+      "messages": {
+        "switchPriorityFailed": "優先順位の切り替えに失敗しました：{{error}}",
+        "testFailed": "テストに失敗しました：{{error}}",
+        "cityRequired": "テストする前に都市名を入力してください",
+        "cityResolveFailed": "都市の特定に失敗しました：{{error}}",
+        "providerNonJson": "{{name}} が JSON 以外のデータを返しました",
+        "providerAvailable": "{{name}} は利用可能です",
+        "providerUnavailable": "{{name}} は利用できません：{{error}}",
+        "proLoginRequired": "先にログインしてください",
+        "testResult": "{{city}} ({{lat}}, {{lng}}) - {{details}}",
+        "detailSeparator": "; ",
+        "customNeedsCity": "「指定した場所を優先」を選ぶ前に都市名を入力してください",
+        "priorityApplied": "位置情報の優先順位を適用しました",
+        "customMissingFallback": "指定した場所を優先する設定に切り替えましたが、都市が未設定のため IP の位置情報を使用します",
+        "configSavedWithCity": "天気の位置情報を保存しました ({{city}} {{lat}}, {{lng}})",
+        "configSaved": "天気の位置情報を保存しました"
+      },
+      "adcode": {
+        "missingParams": "District API のクエリパラメーター（adcode または keyword）がありません",
+        "httpError": "Adcode API HTTP {{status}}: {{body}}",
+        "nonJson": "Adcode API が JSON 以外の内容を返しました。ネットワークを確認してください",
+        "errorCode": "Adcode API がエラーコード {{code}} を返しました",
+        "emptyKeyword": "都市名を入力してください",
+        "notFound": "一致する都市が見つかりません。より詳しい名前を入力してください",
+        "noCoords": "検索結果に座標情報がありません"
+      },
+      "pagination": "天気設定のページ切り替え"
+    },
+    "music": {
+      "whitelist": {
+        "title": "プレーヤーの許可リスト",
+        "hint": "許可リスト内のプレーヤーからのみ楽曲情報を取得します",
+        "empty": "プレーヤーはまだ追加されていません",
+        "addTitle": "プレーヤーを追加",
+        "addHint": "プレーヤーのプロセス名を入力するか、現在の SMTC セッションから検出します",
+        "detectedTitle": "現在検出されているプレーヤー",
+        "placeholder": "プレーヤーのプロセス名を入力（例：Spotify.exe）",
+        "fetching": "取得中...",
+        "fetchSourceProcess": "再生中のプロセスを取得",
+        "added": "追加済み",
+        "alreadyExists": "許可リストに登録済みです"
+      },
+      "lyrics": {
+        "enabledTitle": "歌詞機能",
+        "enabledHint": "無効にすると、歌詞のネットワークリクエストを送信せず、歌詞の表示や歌詞状態への切り替えも行いません",
+        "enabledToggle": "歌詞機能を有効にする",
+        "translationTitle": "歌詞の翻訳",
+        "translationHint": "無効にすると、歌詞の翻訳を表示せず、翻訳歌詞状態への切り替えも行いません",
+        "translationToggle": "歌詞の翻訳を表示",
+        "title": "歌詞の取得元",
+        "hint": "自動モードでは SMTC で検出したプレーヤーに応じて取得元を選び、取得できない場合は LRCLIB を使用します",
+        "displayTitle": "歌詞の表示",
+        "displayHint": "画面上の歌詞の表示効果を設定します",
+        "sourceOptions": {
+          "auto": "自動（プレーヤーに合わせる）",
+          "neteaseOnly": "NetEase のみ",
+          "qqmusicOnly": "QQ Music のみ",
+          "kugouOnly": "KuGou のみ",
+          "sodamusicOnly": "Soda Music のみ",
+          "applemusicOnly": "Apple Music のみ",
+          "spotifyOnly": "Spotify のみ",
+          "moekoeOnly": "MoeKoe のみ",
+          "lrclibOnly": "LRCLIB のみ"
+        },
+        "karaokeTitle": "カラオケハイライト",
+        "karaokeHint": "歌詞を語ごとにハイライトします",
+        "karaokeToggle": "カラオケハイライトを有効にする",
+        "clockTitle": "歌詞画面の時計",
+        "clockHint": "カバー画像と歌詞の間に現在の北京時間を表示します",
+        "clockToggle": "現在時刻を表示",
+        "calibrateTitle": "歌詞のタイミング補正",
+        "calibrateHint": "歌詞取得後に SMTC のタイムスタンプを読み取り、タイミングのずれを補正します",
+        "calibrateToggle": "歌詞のタイミング補正を有効にする",
+        "calibrateDelayLabel": "補正までの遅延（秒）"
+      },
+      "smtc": {
+        "title": "SMTC の自動購読解除",
+        "hint": "長時間更新のないセッションを整理します",
+        "unsubscribeMs": "購読解除までの時間（ms）",
+        "neverUnsubscribe": "購読を解除しない",
+        "invalidMsValue": "有効なミリ秒値（>= 1000）を入力するか、「購読を解除しない」を有効にしてください",
+        "saveFailed": "保存に失敗しました。しばらくしてからもう一度お試しください",
+        "savedNeverUnsubscribe": "保存しました：自動で購読を解除しません",
+        "savedAutoUnsubscribe": "保存しました：{{ms}} ms 後に自動で購読を解除します"
+      },
+      "providers": {
+        "mode": {
+          "title": "Soda Music のリクエストモード",
+          "hint": "既定ではゲストモードを使用します。ログインモードには Soda Music アカウントの連携が必要です",
+          "guest": "ゲストモード",
+          "logged-in": "ログインモード"
+        },
+        "sodaMusic": {
+          "title": "Soda Music プロバイダー",
+          "login": "ログイン"
+        }
+      },
+      "pagination": "音楽設定のページ切り替え"
+    },
+    "musicProviderLogin": {
+      "title": "音楽プロバイダーのアカウント連携",
+      "connected": "連携済み",
+      "notConnected": "未連携",
+      "loading": "QR コードを生成中...",
+      "qrUnavailable": "QR コードを利用できません",
+      "success": "ログインしました",
+      "successTitle": "Soda Music と連携しました",
+      "qishui": {
+        "name": "Soda Music",
+        "instruction": "Soda Music アプリでスキャンしてログインしてください"
+      },
+      "status": {
+        "idle": "ログインの準備ができました",
+        "waiting": "スキャンと確認を待っています...",
+        "scanned": "スキャン済みです。スマートフォンで確認してください...",
+        "confirmed": "ログインしました。セッションを安全に保存しました",
+        "expired": "QR コードの有効期限が切れました。更新して続行してください",
+        "rate_limited": "リクエストが多すぎます。しばらくすると自動で確認を再開します...",
+        "mfa_cancelled": "追加認証がキャンセルされました。QR コードを更新してもう一度お試しください",
+        "error": "ログイン状態の確認に失敗しました。再試行中..."
+      },
+      "steps": {
+        "openDouyin": "スマートフォンで Douyin アプリを開きます",
+        "scan": "スキャン機能で左の QR コードを読み取ります",
+        "confirm": "スマートフォンでログインを承認します"
+      },
+      "actions": {
+        "back": "プロバイダー設定に戻る",
+        "refresh": "QR コードを更新",
+        "logout": "ログアウト",
+        "done": "完了"
+      }
+    },
+    "hotkey": {
+      "duplicateHotkey": "ショートカットキーが重複しています",
+      "registerFailed": "ショートカットキーの登録に失敗しました",
+      "registerFailedRetry": "ショートカットキーの登録に失敗しました。別の組み合わせをお試しください"
+    },
+    "shortcut": {
+      "pages": {
+        "window": "ウィンドウ操作",
+        "display": "表示モード",
+        "agent": "AIエージェント",
+        "capture": "スクリーンショット",
+        "clipboard": "クリップボード",
+        "media": "メディア操作"
+      },
+      "common": {
+        "recordingValue": "ショートカットキーの組み合わせを押してください...",
+        "notSetValue": "未設定",
+        "recordingBtn": "入力待ち",
+        "editBtn": "編集",
+        "clearBtn": "クリア"
+      },
+      "window": {
+        "toggleIsland": {
+          "title": "アイランドの表示/非表示ショートカット",
+          "hint": "「編集」をクリックしてキーを押してください（例：Alt+X、Ctrl+Shift+H）"
+        },
+        "quitApp": {
+          "title": "eIsland の終了ショートカット",
+          "hint": "押すと eIsland をすぐに終了します"
+        },
+        "resetPosition": {
+          "title": "位置をリセットするショートカット",
+          "hint": "押すとアイランドを既定の位置（画面上部中央）に戻します"
+        },
+        "toggleTray": {
+          "title": "トレイアイコンの表示/非表示ショートカット",
+          "hint": "押すとトレイアイコンの表示/非表示を切り替えます"
+        },
+        "showConfig": {
+          "title": "設定ウィンドウの表示ショートカット",
+          "hint": "独立ウィンドウモードでのみ有効です。押すと独立した設定ウィンドウを開き、設定ページに切り替えます"
+        },
+        "openClipboardHistory": {
+          "title": "クリップボード履歴を開くショートカット",
+          "hint": "押すと Dynamic Island を開き、クリップボード履歴に直接移動します"
+        },
+        "togglePassthrough": {
+          "title": "マウス透過の切り替えショートカット",
+          "hint": "押すとマウス透過状態をロック/解除します。ロック中は Dynamic Island がマウスイベントを受け取りません"
+        },
+        "toggleUiLock": {
+          "title": "UI 状態のロック切り替えショートカット",
+          "hint": "押すと現在の UI 状態をロックします。ロック中はマウスの出入りや自動処理で状態が変わりません。もう一度押すと解除します"
+        },
+        "agentVoiceInput": {
+          "title": "Agent の音声入力ショートカット",
+          "hint": "長押しすると Agent の音声入力を開始し、離すと自動で閉じます"
+        },
+        "toggleShapeMode": {
+          "title": "形状モードの切り替えショートカット",
+          "hint": "押すとノッチ型とピル型をすばやく切り替えます"
+        }
+      },
+      "capture": {
+        "screenshot": {
+          "title": "範囲指定スクリーンショットのショートカット",
+          "hint": "押すとスクリーンショットの範囲選択を開始します"
+        }
+      },
+      "media": {
+        "nextSong": {
+          "title": "次の曲のショートカット",
+          "hint": "システムの「次の曲」メディアキーを送信します"
+        },
+        "playPause": {
+          "title": "再生/一時停止ショートカット",
+          "hint": "システムの「再生/一時停止」メディアキーを送信します"
+        }
+      },
+      "pagination": "ショートカット設定のページ切り替え"
+    },
+    "update": {
+      "versionCardTitle": "バージョン情報",
+      "versionCardHint": "現在のバージョンを確認し、更新元を選択します。すべてのパッチは選択した更新元からダウンロードされます。",
+      "autoPromptTitle": "更新通知",
+      "autoPromptHintStatic": "新しいバージョンの自動通知とお知らせの表示方法を設定します",
+      "autoPromptEnabled": "新しいバージョンを自動で通知",
+      "announcementShowModeAlways": "お知らせを毎回表示",
+      "announcementShowModeVersionOnly": "バージョン更新時のみお知らせを表示",
+      "actionCardTitle": "確認とインストール",
+      "actionCardHint": "手動で更新を確認します。新しいバージョンがある場合はダウンロードできます。完了後、「インストールして再起動」をクリックして適用します。",
+      "currentVersion": "現在のバージョン",
+      "source": "更新元",
+      "sourceHint": "Cloudflare R2: 世界各地から安定してアクセスでき、速度も良好\nESA CDN: すべてのユーザーが利用できるESAのグローバルCDN\nTencent COS: 中国本土では通常より高速\nAliyun OSS: 中国国内の広範な拠点と高い最大転送速度\nGitHub Releases: 海外からの接続は安定していますが、中国本土では遅くなる場合があります",
+      "proOnlyTag": "",
+      "proOnlyError": "現在のアカウントではこの更新元を利用できません",
+      "proOnlyNeedLogin": "この更新元を利用するにはログインしてください",
+      "sourceResolveFailed": "更新元のURLを取得できませんでした",
+      "latestVersion": "最新バージョン",
+      "downloadingFrom": "{{source}} から更新をダウンロード中...",
+      "preparingDownload": "ダウンロードを準備中...",
+      "downloadFailed": "ダウンロードに失敗しました。しばらくしてから再試行してください。",
+      "actions": {
+        "check": "更新を確認",
+        "checking": "確認中...",
+        "latest": "最新バージョンです",
+        "download": "更新をダウンロード",
+        "installRestart": "インストールして再起動",
+        "retry": "再試行",
+        "resetGuide": "次回起動時にガイドを表示"
+      },
+      "guideCardTitle": "ガイド",
+      "guideCardHint": "初回起動時のガイドをもう一度表示します",
+      "guideResetSuccess": "設定しました。次回起動時にガイドが表示されます",
+      "guideResetError": "設定に失敗しました。しばらくしてから再試行してください",
+      "pagination": "更新設定のページ切り替え"
+    },
+    "pluginMarket": {
+      "pagination": "総合マーケットのページ切り替え",
+      "search": {
+        "wallpaperTitle": "総合マーケット",
+        "wallpaperHint": "コミュニティが共有した壁紙を閲覧して適用できます。画像と動画の壁紙に対応しています",
+        "contributionTitle": "壁紙の投稿",
+        "contributionHint": "作成した壁紙をアップロードしてコミュニティで共有できます",
+        "editTitle": "壁紙の管理",
+        "editHint": "投稿した壁紙の閲覧・編集と審査状況の確認ができます"
+      },
+      "auth": {
+        "entryTitle": "ログインすると総合マーケットを利用できます",
+        "gotoLogin": "ログインへ",
+        "gotoRegister": "新規登録へ",
+        "hint": "ログインすると壁紙を閲覧できます。"
+      },
+      "pages": {
+        "wallpaper": "壁紙",
+        "contribution": "投稿",
+        "edit": "壁紙の編集",
+        "apps": "アプリ"
+      },
+      "apps": {
+        "comingSoon": "近日公開",
+        "comingSoonHint": "アプリマーケットは近日公開予定です"
+      },
+      "tag": {
+        "placeholder": "タグを入力し、Enterまたはカンマで確定",
+        "createNew": "新しいタグを作成",
+        "removeTag": "タグを削除"
+      },
+      "contribution": {
+        "title": "壁紙を投稿"
+      },
+      "edit": {
+        "searchPlaceholder": "自分の壁紙を検索",
+        "actions": {
+          "backToMarket": "マーケットに戻る"
+        },
+        "feedback": {
+          "emptyMine": "まだ壁紙をアップロードしていません",
+          "selectHint": "左側で壁紙を選択するとメタデータが表示されます"
+        },
+        "meta": {
+          "status": "状態"
+        },
+        "status": {
+          "published": "公開済み",
+          "pending": "審査待ち",
+          "rejected": "却下",
+          "delisted": "公開停止",
+          "deleted": "削除済み"
+        }
+      },
+      "wallpaper": {
+        "searchPlaceholder": "タイトル・作者・説明・タグを検索",
+        "badges": {
+          "video": "動画"
+        },
+        "videoControls": {
+          "play": "再生",
+          "pause": "一時停止",
+          "mute": "ミュート",
+          "unmute": "ミュート解除",
+          "volume": "音量",
+          "rate": "再生速度"
+        },
+        "ratingLevels": {
+          "1": "とても悪い",
+          "2": "悪い",
+          "3": "普通",
+          "4": "良い",
+          "5": "とても良い"
+        },
+        "rating": {
+          "current": "現在の評価",
+          "help": "星をクリックして評価してください。星5つが最高評価です。"
+        },
+        "sort": {
+          "newest": "新しい順",
+          "rating": "評価が高い順",
+          "apply": "適用回数が多い順"
+        },
+        "upload": {
+          "titlePlaceholder": "タイトル",
+          "tagsPlaceholder": "タグ（カンマ区切り）",
+          "descriptionPlaceholder": "説明",
+          "transcodePreparing": "動画を準備中…",
+          "transcodeRemux": "対応コーデックのため、高速で再多重化中…",
+          "transcodeEncoding": "ローカルで変換中（libx264 / aac）…",
+          "transcodeCopy": "ffmpegが見つからないため、元のファイルを直接コピー中…",
+          "transcodeMode": {
+            "remux": "高速再多重化",
+            "transcode": "ローカル変換",
+            "copy": "直接コピー"
+          },
+          "typeImage": "画像",
+          "typeVideo": "動画",
+          "chooseFile": "画像ファイルを選択",
+          "chooseVideoFile": "動画ファイルを選択",
+          "noFile": "ファイル未選択",
+          "progress": "アップロードの進行状況",
+          "videoMeta": "再生時間 {{seconds}}s / フレームレート {{fps}} fps / 解像度 {{width}}x{{height}}",
+          "copyright": "著作権を所有しているか、使用許可を得ていることを確認しました",
+          "copyrightInfoPlaceholder": "著作権に関する情報（オリジナル作品、許可元、ライセンス番号など）",
+          "previewGenerating": "プレビューを生成中..."
+        },
+        "meta": {
+          "description": "説明",
+          "tags": "タグ",
+          "rating": "評価",
+          "apply": "適用回数",
+          "copyrightInfo": "著作権情報"
+        },
+        "report": {
+          "copyright": "著作権の問題",
+          "illegal": "違法なコンテンツ",
+          "other": "その他",
+          "detailPlaceholder": "通報の詳細（任意）"
+        },
+        "actions": {
+          "search": "検索",
+          "refresh": "壁紙一覧を更新",
+          "expandSearch": "検索を開く",
+          "collapseSearch": "検索を閉じる",
+          "prevPage": "前へ",
+          "nextPage": "次へ",
+          "upload": "壁紙をアップロード",
+          "uploading": "アップロード中...",
+          "apply": "背景に設定",
+          "applying": "適用中...",
+          "rate": "評価を送信",
+          "rating": "送信中...",
+          "report": "通報",
+          "reporting": "送信中...",
+          "expandRate": "評価",
+          "collapseRate": "評価を閉じる",
+          "expandReport": "通報",
+          "collapseReport": "通報を閉じる",
+          "submitReport": "通報を送信",
+          "editMetadata": "メタデータを編集",
+          "cancelEdit": "編集をキャンセル",
+          "saveMetadata": "メタデータを保存",
+          "savingMetadata": "保存中...",
+          "delete": "壁紙を削除",
+          "deleting": "削除中...",
+          "confirmDelete": "この壁紙を削除しますか？",
+          "confirmDeleteBtn": "削除を確定",
+          "cancelDelete": "キャンセル"
+        },
+        "feedback": {
+          "loading": "読み込み中...",
+          "empty": "壁紙はまだありません",
+          "selectHint": "左側の一覧から壁紙を選択してください",
+          "loadFailed": "壁紙の読み込みに失敗しました",
+          "detailFailed": "詳細の読み込みに失敗しました",
+          "titleRequired": "タイトルを入力してください",
+          "fileRequired": "画像ファイルを選択してください",
+          "copyrightRequired": "著作権に関する確認にチェックを入れてください",
+          "copyrightInfoRequired": "著作権に関する情報を入力してください",
+          "fileTooLarge": "画像は20MB以下にしてください",
+          "videoTypeInvalid": "mp4動画ファイルのみ対応しています",
+          "videoTooLarge": "動画は100MB以下にしてください",
+          "uploadFailed": "アップロードに失敗しました",
+          "uploadSuccess": "アップロードしました。審査をお待ちください",
+          "applying": "適用中...",
+          "applyFailed": "壁紙の適用に失敗しました",
+          "applySuccess": "壁紙を適用しました",
+          "rating": "評価を送信中...",
+          "rateFailed": "評価の送信に失敗しました",
+          "rateSuccess": "評価を送信しました",
+          "reporting": "通報を送信中...",
+          "reportFailed": "通報の送信に失敗しました",
+          "reportSuccess": "通報を送信しました",
+          "deleting": "削除中...",
+          "deleteFailed": "削除に失敗しました",
+          "deleteSuccess": "削除しました",
+          "saving": "保存中...",
+          "updateFailed": "保存に失敗しました",
+          "updateSuccess": "保存しました。審査をお待ちください"
+        },
+        "pagination": {
+          "page": "{{page}} / {{total}} ページ"
+        }
+      }
+    },
+    "ai": {
+      "apiKey": "APIキー",
+      "apiEndpoint": "APIエンドポイント",
+      "model": "モデル",
+      "deepseekThinking": "DeepSeek思考モード",
+      "deepseekThinkingOptions": {
+        "off": "オフ",
+        "on": "オン"
+      },
+      "deepseekReasoningEffort": "DeepSeekの推論レベル",
+      "mimoReasoningEffort": "Mimoの推論レベル",
+      "ollamaReasoningEffort": "推論レベル",
+      "customReasoningEffort": "推論レベル",
+      "minimaxReasoningEffort": "MiniMaxの推論レベル",
+      "deepseekReasoningEffortOptions": {
+        "low": "低 (low)",
+        "medium": "中 (medium)",
+        "high": "高 (high)"
+      },
+      "mcpEndpoint": "MCPエンドポイント",
+      "mcpPlaceholder": "http://localhost:3000/mcp (任意)",
+      "systemPrompt": "システムプロンプト",
+      "promptPlaceholder": "あなたは役に立つアシスタントです。",
+      "saveTitle": "保存 (Ctrl+Enter)",
+      "editPromptTitle": "プロンプトを編集",
+      "credentialsTitle": "モデルの認証情報",
+      "credentialsHint": "OpenAI互換プロトコルに対応しています。APIキー、エンドポイント、モデル名を入力してください。",
+      "agentModel": "エージェントのモデル",
+      "agentModelFetching": "取得中...",
+      "agentModelFetchBtn": "利用可能なモデルを取得",
+      "agentModelDropdown": "モデルのドロップダウン",
+      "agentModelSelectPlaceholder": "モデルを選択してください",
+      "agentModelFetchNeedEndpoint": "先にAPIエンドポイントを入力してください",
+      "agentModelFetchOk": "{{count}}個のモデルを取得しました",
+      "agentModelFetchEmpty": "モデルが返されませんでした。/modelsに対応しているか確認してください",
+      "agentModelFetchFail": "モデル一覧を取得できませんでした。エンドポイントとキーを確認してください",
+      "mcpTitle": "MCPツール連携",
+      "mcpHint": "任意の設定です。MCPエンドポイントを設定すると、エージェントが外部ツールを呼び出せます。",
+      "systemPromptHint": "エージェントの役割や応答スタイルを指定します。空欄の場合は既定のプロンプトを使用します。",
+      "workspaceTitle": "エージェントのワークスペース",
+      "workspaceHint": "エージェントがアクセスできるフォルダーを設定します。ファイルの読み書き、検索、コマンド実行はすべてワークスペース内に制限されます。",
+      "workspaceAdd": "+ ワークスペースフォルダーを追加",
+      "workspaceRemove": "削除",
+      "workspaceEmpty": "ワークスペースが未設定のため、エージェントのファイル操作はできません。",
+      "ollamaTitle": "Ollamaのローカルモデル",
+      "ollamaHint": "ローカルのOllamaエンドポイントと既定のモデルを設定します。モデルのドロップダウンでollamaを選択すると利用できます。",
+      "ollamaModel": "モデル名",
+      "ollamaFetching": "取得中...",
+      "ollamaFetchBtn": "ローカルモデル一覧を取得",
+      "ollamaFetchEmpty": "ローカルのOllamaモデルが見つかりませんでした",
+      "ollamaFetchOk": "{{count}}個のローカルモデルが見つかりました",
+      "ollamaFetchFail": "モデル一覧を取得できませんでした。Ollamaサービスを確認してください",
+      "ollamaBaseUrl": "サービスURL",
+      "ollamaDetecting": "検出中...",
+      "ollamaDetectBtn": "Ollamaのポートを自動検出",
+      "ollamaDetectOk": "{{url}} を検出しました",
+      "ollamaDetectFail": "実行中のOllamaサービスが見つかりませんでした。`ollama serve`が起動しているか確認してください",
+      "r1pxcConfigTitle": "r1pxcエージェントのアバター設定",
+      "r1pxcConfigHint": "画像のドラッグ＆ドロップまたはファイル選択でアップロードできます。URLには対応していません",
+      "r1pxcAvatarReplace": "クリックまたは画像をドロップしてアバターを変更",
+      "r1pxcAvatarUploadHint": "画像をドロップするか、クリックしてエクスプローラーから選択",
+      "r1pxcAvatarClear": "アバターを削除",
+      "r1pxcAvatarFileTypeError": "画像ファイル（png/jpg/webpなど）を選択してください",
+      "r1pxcAvatarReadError": "アバターを読み込めませんでした。別の画像をお試しください",
+      "sttOrbTitle": "STT画面のOrb",
+      "sttOrbHint": "音声入力画面の液体風Orbアニメーションを切り替えます。オフにするとシンプルな点のインジケーターを表示します",
+      "sttOrbToggle": "STT画面でAgent Orbを有効にする",
+      "orbColorTitle": "Orbの色をカスタマイズ",
+      "orbColorHint": "液体風Orbのメインカラーを設定します。空欄の場合は既定の色を使用します",
+      "orbColorA": "カラーA",
+      "orbColorB": "カラーB",
+      "orbColorPlaceholder": "空欄で既定の色を使用、例: #d86bff",
+      "orbColorReset": "既定に戻す",
+      "pagination": "AI設定のページ切り替え"
+    },
+    "about": {
+      "pagination": "アプリ情報のページ切り替え",
+      "pages": {
+        "development": "開発情報",
+        "feedback": "問題の報告",
+        "feedbackHistory": "フィードバック履歴"
+      },
+      "authorAvatarAlt": "作者のアバター",
+      "githubHome": "GitHubホーム",
+      "notice": "このソフトウェアはオープンソースで無料です。有料で購入した場合は、直ちに返金を申請してください。",
+      "links": {
+        "website": "公式サイト",
+        "docs": "ドキュメント",
+        "sourceCode": "ソースコード",
+        "license": "ライセンス",
+        "iconLibrary": "アイコンライブラリ",
+        "icpRecord": "ICP登録情報",
+        "publicSecurityRecord": "公安登録情報"
+      },
+      "depsTitle": "フレームワーク・依存ライブラリ・プロジェクト",
+      "wallpaperTitle": "壁紙の出典",
+      "wallpaper": {
+        "source": "出典",
+        "capture": "撮影者",
+        "link": "元のリンク",
+        "notice": "NASAの画像はNASAの画像利用ポリシーに従って使用しており、NASAによる推奨を意味するものではありません。"
+      },
+      "feedback": {
+        "intro": "問題の報告は管理画面で確認されます。可能な限り、詳しい再現手順を記載してください。",
+        "types": {
+          "bug": "不具合",
+          "feature": "機能の要望",
+          "experience": "使いやすさの改善",
+          "other": "その他"
+        },
+        "fields": {
+          "type": "フィードバックの種類",
+          "contact": "連絡先（任意）",
+          "contactPlaceholder": "メールアドレス、QQなどの連絡先",
+          "title": "タイトル",
+          "titlePlaceholder": "問題の概要を入力してください",
+          "content": "詳細",
+          "contentPlaceholder": "再現手順、実際の結果、期待する結果を入力してください",
+          "logFile": "ログファイル（任意、<=5MB）",
+          "logFilePlaceholder": "問題の調査に役立つログをアップロード",
+          "logFileView": "アップロード済みのログを表示",
+          "logFileMeta": "サイズ: {{size}}MB",
+          "screenshotFile": "スクリーンショット（任意、<=10MB）",
+          "screenshotFileMeta": "サイズ: {{size}}MB",
+          "logNotePlaceholder": "備考（任意）",
+          "logNoteSubmitPrefix": "ログの備考: "
+        },
+        "actions": {
+          "submit": "フィードバックを送信",
+          "submitting": "送信中…",
+          "refresh": "更新",
+          "openGithubIssue": "GitHub Issueを開く",
+          "useBoundEmail": "メールアドレスを入力",
+          "uploadLog": "ログをアップロード",
+          "uploadingLog": "アップロード中…",
+          "clearLog": "ログを削除",
+          "uploadScreenshot": "スクリーンショットをアップロード",
+          "uploadingScreenshot": "アップロード中…",
+          "clearScreenshot": "スクリーンショットを削除"
+        },
+        "messages": {
+          "loginRequired": "フィードバック機能を利用するにはログインしてください",
+          "titleRequired": "フィードバックのタイトルを入力してください",
+          "contentRequired": "詳しい説明を入力してください",
+          "captchaCancelled": "スライダー認証を完了してからフィードバックを送信してください",
+          "boundEmailNotFound": "現在のアカウントに登録されたメールアドレスが見つかりません",
+          "boundEmailFilled": "現在のアカウントのメールアドレスを自動入力しました",
+          "logOnly": ".logファイルのみ対応しています",
+          "logReadFailed": "ログファイルを読み込めませんでした。再試行してください。",
+          "logTooLarge": "ログファイルは5MB以下にしてください",
+          "logUploadSuccess": "ログをアップロードしました。フィードバックに添付されます",
+          "logUploadFailed": "ログのアップロードに失敗しました。しばらくしてから再試行してください。",
+          "screenshotOnly": "画像形式のスクリーンショットのみ対応しています",
+          "screenshotReadFailed": "スクリーンショットを読み込めませんでした。再試行してください。",
+          "screenshotTooLarge": "スクリーンショットは10MB以下にしてください",
+          "screenshotUploadSuccess": "スクリーンショットをアップロードしました。フィードバックに添付されます",
+          "screenshotUploadFailed": "スクリーンショットのアップロードに失敗しました。しばらくしてから再試行してください。",
+          "openGithubIssueFailed": "GitHub Issueを開けませんでした。しばらくしてから再試行してください。",
+          "submitSuccess": "フィードバックを送信しました。ご意見ありがとうございます。",
+          "submitFailed": "フィードバックの送信に失敗しました。しばらくしてから再試行してください。",
+          "loadFailed": "フィードバック履歴の読み込みに失敗しました",
+          "prefilledFromAgent": "エージェントの出力を自動入力しました。再現手順を追記して送信できます。"
+        },
+        "qqGroup": {
+          "label": "QQグループに参加すると、より早くフィードバックへの返答を受け取れます",
+          "join": "グループに参加"
+        },
+        "history": {
+          "title": "自分のフィードバック履歴",
+          "loading": "フィードバック履歴を読み込み中…",
+          "empty": "フィードバック履歴はまだありません",
+          "loginHint": "ログインすると送信したフィードバックの履歴を確認できます",
+          "adminReply": "管理者の返信: {{reply}}",
+          "meta": "種類: {{type}} · 送信日時: {{time}}",
+          "filters": {
+            "all": "すべての状態",
+            "pending": "対応待ち",
+            "resolved": "対応済み",
+            "rejected": "却下"
+          },
+          "status": {
+            "pending": "対応待ち",
+            "resolved": "対応済み",
+            "rejected": "却下"
+          }
+        }
+      },
+      "copyright": "© JNTMTMTM, pyisland.com. すべての権利を保有します。",
+      "slogan": "アルゴリズムがすべてを解き明かす",
+      "authorName": "JNTMTMTM"
+    },
+    "user": {
+      "pagination": "アカウントのページ切り替え",
+      "auth": {
+        "login": "ログイン",
+        "register": "新規登録",
+        "loginBtn": "ログイン",
+        "registerBtn": "アカウントを作成",
+        "hint": "ログインと新規登録はeIsland serverが提供しています",
+        "entryTitle": "ログインするとアバター、プロフィール、アカウントのセキュリティ設定を管理できます",
+        "gotoLogin": "ログインへ",
+        "gotoRegister": "新規登録へ",
+        "forgotPassword": "パスワードを忘れた場合",
+        "resetPassword": "パスワードをリセット",
+        "resetPasswordHint": "メールの認証コードで本人確認を行ってから、新しいパスワードを設定します",
+        "resetPasswordBtn": "パスワードをリセット"
+      },
+      "fields": {
+        "username": "ユーザー名",
+        "nickname": "ニックネーム",
+        "usernamePlaceholder": "2-32文字、文字（CJKを含む）/ 数字 / アンダースコア",
+        "account": "ユーザー名またはメールアドレス",
+        "accountPlaceholder": "ユーザー名またはメールアドレスを入力",
+        "boundEmail": "登録メールアドレス",
+        "email": "メールアドレス",
+        "emailPlaceholder": "メールアドレスを入力",
+        "emailCode": "メール認証コード",
+        "emailCodePlaceholder": "メールの認証コードを入力",
+        "password": "パスワード",
+        "passwordPlaceholder": "英字と数字を含む8文字以上",
+        "confirmPassword": "パスワードの確認",
+        "confirmPasswordPlaceholder": "パスワードを再入力",
+        "avatarUrlPlaceholder": "またはアバターのURLを直接貼り付け",
+        "gender": "性別",
+        "genderCustom": "性別を自由入力",
+        "genderCustomPlaceholder": "64文字以内",
+        "birthday": "生年月日",
+        "newPassword": "新しいパスワード",
+        "newPasswordPlaceholder": "空欄で変更なし。英字と数字を含む8文字以上",
+        "currentPassword": "現在のパスワード",
+        "currentPasswordPlaceholder": "確認のため現在のパスワードを入力"
+      },
+      "sections": {
+        "avatar": "アバター",
+        "avatarHint": "新しいアバターをアップロード",
+        "profile": "プロフィール",
+        "profileHint": "アカウントを識別しやすくするため、公開プロフィールを入力してください",
+        "password": "パスワードを変更",
+        "passwordHint": "空欄の場合は現在のパスワードを変更しません",
+        "danger": "取り消せない操作"
+      },
+      "card": {
+        "memberSince": "登録日",
+        "proExpireAt": "Proの有効期限",
+        "balance": "残高",
+        "loginDays": "ログイン日数",
+        "expandHeatmap": "ヒートマップを展開",
+        "collapseHeatmap": "ヒートマップを折りたたむ"
+      },
+      "infoNav": {
+        "editDesc": "性別や生年月日などのプロフィールを編集します",
+        "avatarDesc": "アカウントのアバターをアップロード・変更します",
+        "passwordDesc": "メール認証でログインパスワードを変更します",
+        "proDesc": "Proプランの特典と現在のサブスクリプション料金を確認します",
+        "rechargeDesc": "AIアシスタントとの会話に使用する残高をチャージします",
+        "ordersDesc": "注文状況の確認、支払いの続行、未払い注文のキャンセルができます",
+        "logoutDesc": "ログアウトまたはアカウントを削除します",
+        "oauthDesc": "連携済みの外部ログインアカウントを確認します",
+        "ocrDesc": "過去のOCR文字認識履歴を確認します",
+        "imageTranslationDesc": "過去の画像翻訳履歴を確認します",
+        "questionnaireDesc": "過去のアンケート回答履歴を確認します"
+      },
+      "pages": {
+        "info": "プロフィール",
+        "edit": "プロフィールを編集",
+        "password": "パスワードを変更",
+        "pro": "PRO機能",
+        "recharge": "残高チャージ",
+        "orders": "注文履歴",
+        "account": "アカウント",
+        "oauth": "外部アプリ連携",
+        "image-translation": "画像翻訳",
+        "ocr-history": "OCR履歴",
+        "questionnaire": "アンケート履歴",
+        "switchTo": "{{label}}に切り替え"
+      },
+      "oauth": {
+        "subtitle": "連携済みの外部ログインアカウントを管理します",
+        "loading": "読み込み中…",
+        "empty": "外部アカウントとの連携はありません",
+        "provider": {
+          "wechat": "WeChat"
+        },
+        "fields": {
+          "username": "ユーザー名",
+          "providerUserId": "外部サービスのユーザーID",
+          "boundAt": "連携日時"
+        },
+        "actions": {
+          "unbind": "連携を解除",
+          "unbinding": "解除中…"
+        },
+        "feedback": {
+          "unbindSuccess": "連携を解除しました",
+          "unbindFailed": "連携の解除に失敗しました"
+        }
+      },
+      "imageTranslation": {
+        "subtitle": "元の画像と翻訳後の画像を並べて確認できます",
+        "loading": "画像翻訳履歴を読み込み中…",
+        "loadFailed": "画像翻訳履歴の読み込みに失敗しました",
+        "empty": "画像翻訳履歴はありません",
+        "languageConnector": "→",
+        "sourceImage": "翻訳前",
+        "sourceImageAlt": "翻訳前の元画像",
+        "resultImage": "翻訳後",
+        "resultImageAlt": "翻訳結果の画像",
+        "resultPending": "翻訳結果を待機中",
+        "resultUnavailable": "結果画像はありません",
+        "previewLabel": "画像プレビュー",
+        "actions": {
+          "downloadSource": "元画像をダウンロード",
+          "downloadResult": "翻訳画像をダウンロード",
+          "downloading": "ダウンロード中…",
+          "downloadStarted": "ダウンロードを開始しました",
+          "downloadFailed": "ダウンロードに失敗しました",
+          "remove": "履歴を削除",
+          "removing": "削除中…",
+          "removeSuccess": "画像と翻訳履歴を削除しました",
+          "removeFailed": "画像の削除に失敗しました"
+        },
+        "pagination": {
+          "label": "画像翻訳履歴のページ切り替え",
+          "previous": "前へ",
+          "next": "次へ",
+          "summary": "{{page}} / {{totalPages}} ページ、全{{total}}件"
+        },
+        "status": {
+          "queued": "順番待ち",
+          "processing": "翻訳中",
+          "succeeded": "完了",
+          "failed": "失敗",
+          "unknown": "不明"
+        }
+      },
+      "questionnaire": {
+        "subtitle": "アンケートの回答履歴を確認します",
+        "loading": "アンケート履歴を読み込み中…",
+        "loadFailed": "アンケート履歴の読み込みに失敗しました",
+        "empty": "アンケート履歴はまだありません",
+        "submittedAt": "送信日時: {{time}}",
+        "rewardDays": "PRO特典: {{days}}日間",
+        "rewardExpireAt": "PROの有効期限: {{time}}",
+        "noReward": "PRO特典なし",
+        "viewDetails": "回答を表示",
+        "hideDetails": "回答を非表示",
+        "erase": "自分の回答を削除",
+        "confirmErase": "削除を確定",
+        "cancelErase": "キャンセル",
+        "erasing": "削除中…",
+        "eraseSuccess": "アンケートの回答を削除しました。再回答できますが、特典は再付与されません",
+        "eraseFailed": "アンケートの回答を削除できませんでした"
+      },
+      "ocrHistory": {
+        "subtitle": "元の画像とOCRで認識したテキストを並べて確認できます",
+        "loading": "OCR履歴を読み込み中…",
+        "loadFailed": "OCR履歴の読み込みに失敗しました",
+        "empty": "OCR履歴はありません",
+        "record": "OCR #{{id}}",
+        "sourceImage": "元画像",
+        "sourceImageAlt": "OCRの元画像",
+        "recognizedText": "認識されたテキスト",
+        "emptyText": "テキストは認識されませんでした",
+        "actions": {
+          "downloadSource": "元画像をダウンロード",
+          "downloading": "ダウンロード中…",
+          "downloadStarted": "ダウンロードを開始しました",
+          "downloadFailed": "ダウンロードに失敗しました",
+          "copyText": "すべてのテキストをコピー",
+          "copying": "コピー中…",
+          "copySuccess": "テキストをコピーしました",
+          "copyFailed": "テキストのコピーに失敗しました",
+          "remove": "履歴を削除",
+          "removing": "削除中…",
+          "removeFailed": "履歴の削除に失敗しました"
+        },
+        "pagination": {
+          "label": "OCR履歴のページ切り替え",
+          "previous": "前へ",
+          "next": "次へ",
+          "summary": "{{page}} / {{totalPages}} ページ、全{{total}}件"
+        }
+      },
+      "recharge": {
+        "title": "残高をチャージ",
+        "subtitle": "チャージした残高はAIアシスタントとの会話に使用できます",
+        "paymentTitle": "エージェントの残高チャージ",
+        "paymentSubtitle": "支払い方法を選択してお支払いください。残高は自動で反映されます。",
+        "rechargeAmountLabel": "チャージ金額",
+        "currentBalance": "現在の残高",
+        "customPlaceholder": "金額を指定",
+        "selectAmount": "金額を選択してください",
+        "confirm": "¥{{amount}}のチャージを確定",
+        "submitting": "処理中…",
+        "success": "チャージしました",
+        "fail": "チャージに失敗しました。しばらくしてから再試行してください"
+      },
+      "orders": {
+        "title": "注文履歴",
+        "subtitle": "アカウントの注文を確認し、支払いの続行や未払い注文のキャンセルができます",
+        "loading": "注文を読み込み中…",
+        "empty": "注文履歴はまだありません",
+        "actions": {
+          "refresh": "注文を更新",
+          "refreshing": "更新中…",
+          "continuePay": "支払いを続行",
+          "closeOrder": "注文をキャンセル",
+          "closing": "キャンセル中…"
+        },
+        "feedback": {
+          "loadFailed": "注文の読み込みに失敗しました",
+          "closeFailed": "注文をキャンセルできませんでした。しばらくしてから再試行してください",
+          "closeSuccess": "注文をキャンセルしました"
+        },
+        "pagination": {
+          "label": "注文履歴のページ切り替え",
+          "previous": "前へ",
+          "next": "次へ",
+          "summary": "{{page}} / {{totalPages}} ページ、全{{total}}件"
+        }
+      },
+      "pro": {
+        "title": "プラン",
+        "subtitle": "用途に合わせてFreeまたはProを選択してください",
+        "free": {
+          "name": "Free",
+          "price": "¥0 / 月",
+          "desc": "日常の軽い利用に適した基本機能を提供します。",
+          "feature1": "Dynamic Islandの基本ウィジェット",
+          "feature2": "標準設定とカスタマイズ",
+          "feature3": "コミュニティの公開コンテンツの閲覧"
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "¥15 / 月",
+          "priceLoading": "料金を読み込み中…",
+          "priceUnavailable": "料金未定",
+          "desc": "すべての高度な機能と継続的な更新を提供します。",
+          "feature1": "Freeのすべての機能",
+          "feature2": "Pro限定の機能と拡張機能",
+          "feature3": "新機能の先行利用"
+        },
+        "billingCycle": {
+          "month": "月"
+        }
+      },
+      "payment": {
+        "title": "Proを購入",
+        "subtitle": "支払い方法を選択し、公式サイトでお支払いください。支払いが完了すると、このアカウントにProの特典が反映されます。",
+        "method": "支払い方法",
+        "wechat": "WeChat Pay",
+        "alipay": "Alipay",
+        "orderTitle": "注文を確認",
+        "receiptEmailLabel": "領収書の送信先メールアドレス",
+        "receiptEmailPlaceholder": "領収書を受け取るメールアドレスを入力",
+        "fillAccountEmail": "アカウントのメールアドレスを使用",
+        "priceLabel": "料金",
+        "subscriptionPeriodLabel": "サブスクリプション期間",
+        "expireLabel": "注文の有効期限",
+        "confirmPay": "注文を作成",
+        "emailInvalid": "領収書の送信先に有効なメールアドレスを入力してください",
+        "loginRequired": "ログインの有効期限が切れました。再度ログインしてお試しください。",
+        "createOrderFailed": "支払い注文を作成できませんでした。しばらくしてから再試行してください。",
+        "payUrlMissing": "注文は作成されましたが、支払いリンクを取得できませんでした。しばらくしてから再試行してください。",
+        "openPayFailed": "支払いページを開けませんでした。しばらくしてから再試行してください。",
+        "refreshStatusFailed": "支払い状況を更新できませんでした。しばらくしてから再試行してください。",
+        "boundEmailNotFound": "現在のアカウントに登録されたメールアドレスが見つかりません",
+        "channelsUnavailable": "支払いサービスは一時的に利用できません。しばらくしてから再試行してください。",
+        "creatingOrder": "注文を作成中...",
+        "pendingTitle": "支払い待ち",
+        "orderNoLabel": "注文番号",
+        "payAmountLabel": "支払い金額",
+        "payStatusLabel": "支払い状況",
+        "productTypeLabel": "種類",
+        "createdAtLabel": "注文日時",
+        "paidAtLabel": "支払い日時",
+        "productType": {
+          "PRO_MONTH": "Pro月額プラン",
+          "AGENT_RECHARGE": "残高チャージ",
+          "unknown": "不明"
+        },
+        "refreshStatus": "支払い状況を更新",
+        "refreshingStatus": "更新中...",
+        "openPaymentPage": "支払いページを開く",
+        "viewOrders": "注文を表示",
+        "goUserCenter": "アカウント画面へ",
+        "status": {
+          "paying": "支払い待ち",
+          "success": "支払い済み",
+          "closed": "終了",
+          "failed": "支払い失敗",
+          "unknown": "不明"
+        },
+        "wechatHint": "推奨: WeChatでスキャン",
+        "alipayHint": "推奨: Alipayでスキャン",
+        "scanQrHint": "WeChatでスキャンしてお支払いください",
+        "scanQrSubhint": "スキャン後、スマートフォンでお支払いください。結果は自動で更新されます。",
+        "showQrCode": "QRコードを表示",
+        "hideQrCode": "QRコードを非表示",
+        "selectMethodHint": "上の支払い方法を選択してから注文を作成してください。",
+        "fallbackHint": "スキャンできない場合は、下のボタンからWebの決済ページを開いてください。",
+        "goCheckout": "Webで支払う"
+      },
+      "gender": {
+        "male": "男性",
+        "female": "女性",
+        "custom": "自由入力",
+        "undisclosed": "回答しない"
+      },
+      "actions": {
+        "refresh": "プロフィールを再取得",
+        "refreshing": "更新中…",
+        "refreshHint": "認証と通知の受信に使用します",
+        "refreshHint2": "登録日はサーバーの記録に基づきます",
+        "refreshingHint": "サーバーから最新のプロフィールを同期します",
+        "chooseAvatar": "画像をアップロード",
+        "uploading": "アップロード中…",
+        "show": "表示",
+        "hide": "非表示",
+        "showPassword": "パスワードを表示",
+        "hidePassword": "パスワードを非表示",
+        "saveProfile": "プロフィールを保存",
+        "saving": "保存中…",
+        "changePassword": "パスワードを変更",
+        "changingPassword": "変更中…",
+        "logout": "ログアウト",
+        "loggingOut": "ログアウト中…",
+        "backToCenter": "前のページに戻る",
+        "cancelLogin": "キャンセル",
+        "cancelRegister": "登録をキャンセル",
+        "unregister": "アカウントを削除",
+        "confirmUnregister": "削除を確定",
+        "unregistering": "削除中…",
+        "cancel": "キャンセル",
+        "cancelChanges": "変更を破棄",
+        "sendCode": "認証コードを送信",
+        "sendCodeCooldown": "{{seconds}}s後に再試行",
+        "reportIssue": "問題を報告",
+        "currentPlan": "現在のプラン",
+        "buyPro": "Proを購入",
+        "renewPro": "Proを更新",
+        "proActivated": "Pro有効"
+      },
+      "danger": {
+        "hint": "アカウントを削除すると関連データは直ちに削除され、元に戻せません。慎重に操作してください。"
+      },
+      "feedback": {
+        "submitting": "処理中…",
+        "loadingProfile": "アカウント情報を読み込み中…",
+        "needLogin": "アバターをアップロードするにはログインしてください",
+        "loadFailed": "プロフィールの読み込みに失敗しました",
+        "sessionExpired": "セッションの有効期限が切れました。再度ログインしてください。",
+        "usernameRequired": "ユーザー名を入力してください",
+        "usernameFormatInvalid": "ユーザー名には中国語、英字、数字のみ使用できます",
+        "accountRequired": "ユーザー名またはメールアドレスを入力してください",
+        "passwordRequired": "パスワードを入力してください",
+        "confirmPasswordRequired": "確認用のパスワードを入力してください",
+        "passwordNotMatch": "パスワードが一致しません",
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "emailCodeRequired": "メールの認証コードを入力してください",
+        "emailCodeSending": "送信中…",
+        "emailCodeSent": "認証コードを送信しました。受信トレイをご確認ください",
+        "emailCodeSendFailed": "認証コードの送信に失敗しました",
+        "resetPasswordFailed": "パスワードのリセットに失敗しました",
+        "resetPasswordSuccess": "パスワードをリセットしました。新しいパスワードでログインしてください",
+        "captchaCancelled": "スライダー認証を完了してから認証コードを送信してください",
+        "operationFailed": "操作に失敗しました",
+        "loginSuccess": "ログインしました",
+        "registerSuccess": "アカウントを作成してログインしました",
+        "avatarTooLarge": "アバターは5MB未満にしてください",
+        "avatarNotImage": "画像ファイルのみアップロードできます",
+        "avatarUploaded": "アバターを更新しました。",
+        "avatarUploadFailed": "アバターのアップロードに失敗しました",
+        "avatarUploadTooFrequent": "アバターのアップロード頻度が高すぎます。しばらくしてから再試行してください。",
+        "passwordTooShort": "パスワードは英字と数字を含む8文字以上にしてください",
+        "usernameInvalid": "ユーザー名の形式が正しくありません",
+        "passwordMismatch": "パスワードが一致しません",
+        "passwordConfirmNeedsPassword": "先に新しいパスワードを入力してください",
+        "passwordConfirmRequired": "確認のため新しいパスワードを再入力してください",
+        "passwordConfirmMismatch": "新しいパスワードが一致しません",
+        "birthdayInvalid": "生年月日はyyyy-MM-dd形式で入力してください",
+        "saveFailed": "保存に失敗しました",
+        "saveSuccess": "プロフィールを更新しました",
+        "refreshSuccess": "プロフィールを再取得しました",
+        "refreshFailed": "プロフィールを再取得できませんでした",
+        "passwordChangeSuccess": "パスワードを更新しました",
+        "logoutSuccess": "ログアウトしました",
+        "logoutLocalOnly": "サーバーの応答に異常があるため、この端末のみログアウトしました",
+        "unregisterPasswordRequired": "確認のため現在のパスワードを入力してください",
+        "unregisterFailed": "アカウントの削除に失敗しました",
+        "unregisterSuccess": "アカウントを削除しました",
+        "emailVerificationRequired": "ログインのリスクが高いため、先にメール認証を完了してください"
+      }
+    },
+    "nav": {
+      "guide": {
+        "label": "使い方ガイド",
+        "desc": "機能ガイドと操作方法を確認します。"
+      },
+      "layout-preview": {
+        "label": "レイアウトプレビュー",
+        "desc": "レイアウトプレビューで左右のウィジェットを調整します。"
+      },
+      "expand-layout": {
+        "label": "展開時のレイアウト",
+        "desc": "展開画面のページ順序と表示を設定します。"
+      },
+      "maxexpand-layout": {
+        "label": "MaxExpandレイアウト",
+        "desc": "ページ順序と表示を設定します。"
+      },
+      "album": {
+        "label": "アルバム設定",
+        "desc": "アルバムのスライド表示とアルバムを開く際の動作を設定します。"
+      },
+      "hide-process-list": {
+        "label": "非表示ウィンドウ一覧",
+        "desc": "非表示ウィンドウと自動非表示ルールを管理します。"
+      },
+      "position": {
+        "label": "位置調整",
+        "desc": "Dynamic Islandの位置を調整して保存します。"
+      },
+      "theme": {
+        "label": "テーマ",
+        "desc": "ダーク、ライト、システム設定に合わせるテーマを切り替えます。"
+      },
+      "language": {
+        "label": "言語",
+        "desc": "アプリの表示言語を切り替えます。"
+      },
+      "behavior": {
+        "label": "操作設定",
+        "desc": "マウスが離れたときの自動折りたたみを設定します。"
+      },
+      "animation": {
+        "label": "アニメーション",
+        "desc": "Dynamic Islandのバネのような動きとアニメーション速度を設定します。"
+      },
+      "break-reminder": {
+        "label": "休憩リマインダー",
+        "desc": "休憩と水分補給を定期的にお知らせします。"
+      },
+      "url-parser": {
+        "label": "URL解析",
+        "desc": "クリップボードのURL検出とブロックリストを設定します。"
+      },
+      "clipboard-history": {
+        "label": "クリップボード履歴",
+        "desc": "クリップボード履歴の動作と保存件数の上限を設定します。"
+      },
+      "alarm": {
+        "label": "アラーム設定",
+        "desc": "アラーム音、スヌーズ、通知の動作を設定します。"
+      },
+      "autostart": {
+        "label": "ユーティリティ",
+        "desc": "アプリの操作、ログ、起動オプションを設定します。"
+      },
+      "sound": {
+        "label": "サウンド設定",
+        "desc": "効果音、通知音、音声出力を設定します。"
+      },
+      "notification": {
+        "label": "通知設定",
+        "desc": "Dynamic Islandの通知と表示方法を設定します。"
+      },
+      "performance": {
+        "label": "パフォーマンス設定",
+        "desc": "パフォーマンスに関する設定を行います。"
+      },
+      "performance-monitor": {
+        "label": "パフォーマンスモニター",
+        "desc": "パフォーマンスモニターの表示とハードウェアの状態を設定します。"
+      },
+      "screenshot-settings": {
+        "label": "スクリーンショット設定",
+        "desc": "スクリーンショットに関する設定を行います。"
+      },
+      "network": {
+        "label": "ネットワーク",
+        "desc": "リクエストのタイムアウトとネットワークの動作を設定します"
+      },
+      "mail": {
+        "label": "メール",
+        "desc": "IMAPのメール受信設定を行います"
+      },
+      "weather": {
+        "label": "天気",
+        "desc": "天気情報の提供元の優先順位を設定します"
+      },
+      "ai": {
+        "label": "AIエージェント",
+        "desc": "AIサービスとプロンプトを設定します"
+      },
+      "shortcut": {
+        "label": "ショートカット",
+        "desc": "非表示、終了、スクリーンショットのショートカットキーを設定します"
+      },
+      "update": {
+        "label": "更新",
+        "desc": "アプリの更新を確認してダウンロードします"
+      },
+      "pluginMarket": {
+        "label": "総合マーケット",
+        "desc": "総合マーケットの利用と壁紙の管理ができます"
+      },
+      "user": {
+        "label": "アカウント",
+        "desc": "ログイン、プロフィール編集、アカウント削除を行います"
+      },
+      "user-pro": {
+        "label": "PRO機能",
+        "desc": "Proプランの特典と現在のサブスクリプション料金を確認します"
+      },
+      "user-recharge": {
+        "label": "残高チャージ",
+        "desc": "AIアシスタントとの会話に使用する残高をチャージします"
+      },
+      "about": {
+        "label": "このアプリについて",
+        "desc": "バージョン情報とプロジェクトへのリンクを確認します"
+      },
+      "music-whitelist": {
+        "label": "プレーヤーの許可リスト",
+        "desc": "接続を許可するプレーヤーを設定します。"
+      },
+      "music-lyrics": {
+        "label": "歌詞の取得元",
+        "desc": "歌詞の取得元と表示モードを選択します。"
+      },
+      "music-smtc": {
+        "label": "SMTC",
+        "desc": "システムメディアトランスポートコントロールを設定します。"
+      },
+      "music-providers": {
+        "label": "歌詞の提供元",
+        "desc": "歌詞の取得元と優先順位を設定します。"
+      }
+    }
+  },
+  "idle": {
+    "pomodoro": {
+      "label": "ポモドーロ"
+    }
+  },
+  "oauth": {
+    "divider": "または",
+    "github": {
+      "login": "GitHub",
+      "loading": "接続中…"
+    },
+    "microsoft": {
+      "login": "Microsoft",
+      "loading": "接続中…"
+    },
+    "wechat": {
+      "login": "WeChat",
+      "loading": "接続中…"
+    },
+    "gitee": {
+      "login": "Gitee",
+      "loading": "接続中…"
+    },
+    "kook": {
+      "login": "KOOK",
+      "loading": "接続中…"
+    },
+    "setPassword": {
+      "title": "パスワードを設定",
+      "hint": "OAuthログインに成功しました。パスワードを設定して登録を完了してください。",
+      "submit": "パスワードを設定して登録"
+    },
+    "bindOAuth": {
+      "title": "アカウントを連携",
+      "hint": "このメールアドレスはすでに登録されています。パスワードを入力してアカウントを連携してください。",
+      "submit": "連携してログイン",
+      "bindSuccess": "アカウントを連携しました",
+      "bindFailed": "アカウントの連携に失敗しました"
+    },
+    "bindEmail": {
+      "title": "メールアドレスを登録",
+      "hint": "メールアドレスを登録して新規登録を完了してください",
+      "submit": "確認して続行",
+      "verifyFailed": "確認コードが正しくありません"
+    },
+    "feedback": {
+      "loginCancelled": "ログインがキャンセルされたか、タイムアウトしました"
+    }
+  }
+}

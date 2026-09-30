@@ -2818,12 +2818,14 @@
       "options": {
         "zh-CN": "簡體中文",
         "en-US": "English",
-        "zh-TW": "繁體中文"
+        "zh-TW": "繁體中文",
+        "ja-JP": "日本語"
       },
       "current": {
         "zh-CN": "當前語言：簡體中文",
         "en-US": "Current language: English",
-        "zh-TW": "當前語言：繁體中文"
+        "zh-TW": "當前語言：繁體中文",
+        "ja-JP": "當前語言：日本語"
       }
     },
     "app": {

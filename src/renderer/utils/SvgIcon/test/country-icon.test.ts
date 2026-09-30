@@ -47,6 +47,7 @@ describe('resolveCountryCode', () => {
     expect(resolveCountryCode('zh-cn')).toBe('CHN');
     expect(resolveCountryCode('zh-tw')).toBe('CHN');
     expect(resolveCountryCode('en-us')).toBe('USA');
+    expect(resolveCountryCode('ja-JP')).toBe('JP');
   });
 
   it('resolves full name aliases', () => {
@@ -76,6 +77,7 @@ describe('resolveCountryIcon', () => {
     expect(resolveCountryIcon('cn')).toBe('./svg/countries/CHN.svg');
     expect(resolveCountryIcon('us')).toBe('./svg/countries/USA.svg');
     expect(resolveCountryIcon('jp')).toBe('./svg/countries/JP.svg');
+    expect(resolveCountryIcon('ja-JP')).toBe('./svg/countries/JP.svg');
     expect(resolveCountryIcon('kr')).toBe('./svg/countries/KR.svg');
     expect(resolveCountryIcon('fr')).toBe('./svg/countries/FR.svg');
     expect(resolveCountryIcon('de')).toBe('./svg/countries/DE.svg');
