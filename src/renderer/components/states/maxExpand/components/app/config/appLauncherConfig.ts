@@ -29,24 +29,24 @@ import type { MaxExpandTab } from '../../../../../../store/types';
 
 /** 完整应用映射保证新增 MaxExpand 页面时同步补齐导航入口。 */
 export const MAX_EXPAND_APPS = {
-  aiChat: { icon: SvgIcon.AI, color: '#7868e6' },
-  todo: { icon: SvgIcon.CHECKED, color: '#36a86e' },
-  urlFavorites: { icon: SvgIcon.BOOKMARK_ON, color: '#e4a22c' },
-  localFileSearch: { icon: SvgIcon.SEARCH, color: '#3e9db8' },
-  clipboardHistory: { icon: SvgIcon.COPY, color: '#4f83cb' },
-  album: { icon: SvgIcon.PHOTO_ALBUM, color: '#d875ae' },
-  mail: { icon: SvgIcon.MAIL, color: '#458fe1' },
-  memo: { icon: SvgIcon.MEMO, color: '#d9a23e' },
-  countdown: { icon: SvgIcon.TIMER, color: '#ed913f' },
-  alarm: { icon: SvgIcon.NOTIFICATION, color: '#e5675c' },
-  toolbox: { icon: SvgIcon.PLUGIN, color: '#71908a' },
-  miniGame: { icon: SvgIcon.INTERACTION, color: '#af72d4' },
-  stock: { icon: SvgIcon.STOCK_CHOOSE, color: '#4aa68b' },
-  cli: { icon: SvgIcon.CODING, color: '#738298' },
-  calculator: { icon: SvgIcon.SHORTCUT_KEY, color: '#c58046' },
-  worldClock: { icon: SvgIcon.LANGUAGE, color: '#489caf' },
-  calendar: { icon: SvgIcon.CALENDER, color: '#d86b72' },
-  settings: { icon: SvgIcon.SETTING, color: '#818694' },
-} as const satisfies Record<MaxExpandTab, { icon: string; color: string }>;
+  aiChat: { icon: SvgIcon.AI },
+  todo: { icon: SvgIcon.CHECKED },
+  urlFavorites: { icon: SvgIcon.BOOKMARK_ON },
+  localFileSearch: { icon: SvgIcon.SEARCH },
+  clipboardHistory: { icon: SvgIcon.COPY },
+  album: { icon: SvgIcon.PHOTO_ALBUM },
+  mail: { icon: SvgIcon.MAIL },
+  memo: { icon: SvgIcon.MEMO },
+  countdown: { icon: SvgIcon.TIMER },
+  alarm: { icon: SvgIcon.NOTIFICATION },
+  toolbox: { icon: SvgIcon.PLUGIN },
+  miniGame: { icon: SvgIcon.INTERACTION },
+  stock: { icon: SvgIcon.STOCK_CHOOSE },
+  cli: { icon: SvgIcon.CODING },
+  calculator: { icon: SvgIcon.SHORTCUT_KEY },
+  worldClock: { icon: SvgIcon.LANGUAGE },
+  calendar: { icon: SvgIcon.CALENDER },
+  settings: { icon: SvgIcon.SETTING },
+} as const satisfies Record<MaxExpandTab, { icon: string }>;
 
 export const MAX_EXPAND_APP_TABS = Object.keys(MAX_EXPAND_APPS) as MaxExpandTab[];

@@ -181,7 +181,7 @@
   justify-content: center;
   width: clamp(40px, 15cqw, 64px);
   height: clamp(40px, 15cqw, 64px);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--max-expand-app-color), #fff 16%), var(--max-expand-app-color));
+  background: linear-gradient(145deg, #444, #222);
   border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 50%;
   box-shadow: inset 0 1px 2px rgb(255 255 255 / 16%), 0 3px 10px rgb(0 0 0 / 12%);
@@ -300,7 +300,7 @@
 }
 
 [data-theme="light"] .max-expand-app-launcher-circle {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--max-expand-app-color), #fff 60%), color-mix(in srgb, var(--max-expand-app-color), #fff 25%));
+  background: linear-gradient(145deg, #fff, #ddd);
   border-color: rgb(0 0 0 / 4%);
 
 }

@@ -102,7 +102,7 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: Max
       <div className="max-expand-app-launcher-scroll">
         <div className="max-expand-app-launcher-grid" ref={gridRef}>
           {MAX_EXPAND_APP_TABS.map((tab, index) => {
-            const { icon, color } = MAX_EXPAND_APPS[tab];
+            const { icon } = MAX_EXPAND_APPS[tab];
             const label = t(`maxExpand.nav.${tab}`);
 
             return (
@@ -114,7 +114,6 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: Max
                 title={label}
                 aria-label={label}
                 style={{
-                  '--max-expand-app-color': color,
                   '--max-expand-app-offset-x': `${offsets[index]?.x ?? 0}px`,
                   '--max-expand-app-offset-y': `${offsets[index]?.y ?? 0}px`,
                 } as CSSProperties}
