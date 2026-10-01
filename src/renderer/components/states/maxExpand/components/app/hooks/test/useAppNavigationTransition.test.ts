@@ -235,7 +235,7 @@ describe('useAppNavigationTransition', () => {
     expect(applicationFrames[0]).toEqual(expect.objectContaining({ transform: 'translate(-130px, -50px) scale(0.15)', opacity: 0 }));
     expect(applicationFrames.at(-1)).toEqual(expect.objectContaining({ transform: 'translate(0px, 0px) scale(1)', opacity: 1 }));
     const [selected, rightNeighbor] = items;
-    expect(selected.circle.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ duration: 380, easing: 'cubic-bezier(.3,0,.2,1)' }));
+    expect(selected.circle.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ duration: 280, easing: 'cubic-bezier(.3,0,.2,1)' }));
     const circleFrames = selected.circle.animate.mock.calls[0][0] as Keyframe[];
     expect(circleFrames[0].transform).toBe(`${selected.circle.transform} scale(1)`);
     expect(circleFrames.at(-1)?.transform).toBe(`${selected.circle.transform} scale(3.2)`);
