@@ -149,7 +149,7 @@ describe('SvgIcon', () => {
 
   it('VIP and PRO should point to the same SVG path', () => {
     expect(SvgIcon.VIP).toBe(SvgIcon.PRO);
-    expect(SvgIcon.VIP).toBe('./svg/PRO.svg');
+    expect(SvgIcon.VIP).toBe('./svg/app/PRO.svg');
   });
 
   it('should not contain any undefined icon paths', () => {

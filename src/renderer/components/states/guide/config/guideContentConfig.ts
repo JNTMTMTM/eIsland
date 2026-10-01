@@ -231,7 +231,7 @@ export function getInteractionCards(t: TFunction): InteractionCard[] {
 export function getGuidePages(t: TFunction, showAuthPrompt: boolean): GuidePage[] {
   const pages: GuidePage[] = [
     {
-      imageSrc: './svg/eisland.svg',
+      imageSrc: './svg/app/eisland.svg',
       title: t('guide.welcome.title', { defaultValue: '欢迎使用 eIsland' }),
       desc: t('guide.welcome.desc', {
         defaultValue: '一款灵感来自 Apple 灵动岛的 Windows 桌面浮窗小组件，\n让你的桌面更加灵动、高效。',

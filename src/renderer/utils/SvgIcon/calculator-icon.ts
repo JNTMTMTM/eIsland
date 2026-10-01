@@ -24,15 +24,15 @@
  * @author 鸡哥
  */
 
-/** 计算器模块图标；COLLAPSE / EXPAND 复用 eIsland 共享图标（./svg/ 根目录） */
+/** 计算器模块图标；COLLAPSE / EXPAND 复用 eIsland 共享图标（./svg/app/ 目录） */
 export const CalculatorIcon = {
   ARITHMETIC: './svg/calculator/ARITHMETIC.svg',
   BACKSPACE: './svg/calculator/BACKSPACE.svg',
   CLEAR: './svg/calculator/CLEAR.svg',
-  COLLAPSE: './svg/COLLAPSE.svg',
+  COLLAPSE: './svg/app/COLLAPSE.svg',
   COORDINATE: './svg/calculator/COORDINATE.svg',
   DIVISION: './svg/calculator/DIVISION.svg',
-  EXPAND: './svg/EXPAND.svg',
+  EXPAND: './svg/app/EXPAND.svg',
   FRACTION: './svg/calculator/FRACTION.svg',
   INTEGRATION: './svg/calculator/INTEGRATION.svg',
   MINUS: './svg/calculator/MINUS.svg',
