@@ -32,6 +32,8 @@ export interface MaxExpandAppLauncherProps {
   onSelectApp: (tab: MaxExpandTab) => void;
   /** 正在原位放大或缩小并挤开周围图标的应用 */
   transitionTab?: MaxExpandTab;
+  /** 导航页可见且没有页面过渡时允许长按排序。 */
+  interactive?: boolean;
 }
 
 /** 图标避让位移（像素） */

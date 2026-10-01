@@ -1510,7 +1510,8 @@
       "title": "應用",
       "hint": "選擇一個應用開始使用",
       "backToLauncher": "返回應用導航頁",
-      "controls": "應用控制欄"
+      "controls": "應用控制欄",
+      "saveOrderFailed": "順序儲存失敗，請重試"
     },
     "calendar": {
       "today": "今天",
@@ -2976,7 +2977,7 @@
       },
       "maxExpandLayout": {
         "appModeTitle": "啟用界面應用化模式",
-        "appModeHint": "通過應用導航頁打開全部應用，右側按鈕返回導航頁；啟用後不使用下方的頁面排序與可見性配置。",
+        "appModeHint": "通過應用導航頁打開全部應用，右側按鈕返回導航頁；應用順序與下方頁面排序同步，也可長按圖示拖曳排序並在本機儲存。應用導航頁始終顯示全部應用。",
         "previewTitle": "全展開導航預覽",
         "previewHint": "預覽底部導航點的排列順序，灰色表示已隱藏的頁面。",
         "backLabel": "返回",

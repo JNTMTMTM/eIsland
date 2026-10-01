@@ -26,7 +26,9 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MAX_EXPAND_APPS, MAX_EXPAND_APP_TABS } from '../config/appLauncherConfig';
+import { MAX_EXPAND_APPS } from '../config/appLauncherConfig';
+import useAppLauncherDrag from '../hooks/useAppLauncherDrag';
+import useAppLauncherLayout from '../hooks/useAppLauncherLayout';
 import { getAppLauncherHoverOffsets } from '../utils/appLauncherHover';
 import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent, ReactElement } from 'react';
 import type { MaxExpandTab } from '../../../../../../store/types';
@@ -37,21 +39,27 @@ import type { AppLauncherHoverOffset, MaxExpandAppLauncherProps } from '../types
  * @param props - 应用导航页属性。
  * @param props.onSelectApp - 打开指定 MaxExpand 应用的回调。
  * @param props.transitionTab - 当前在网格内执行缩放挤压的应用。
+ * @param props.interactive - 是否允许在当前导航页长按排序。
  * @returns 应用导航页。
  */
-export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: MaxExpandAppLauncherProps): ReactElement {
+export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, interactive = true }: MaxExpandAppLauncherProps): ReactElement {
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement>(null);
   const hoveredAppRef = useRef<MaxExpandTab | null>(null);
   const focusedAppRef = useRef<MaxExpandTab | null>(null);
   const [activeApp, setActiveApp] = useState<MaxExpandTab | null>(null);
   const [offsets, setOffsets] = useState<AppLauncherHoverOffset[]>([]);
+  const { tabs, ready, saving, saveFailed, moveApp } = useAppLauncherLayout();
+  const { drag, onPointerDown, onPointerMove, onPointerUp, cancelDrag, consumeClick } = useAppLauncherDrag(
+    gridRef, interactive && !transitionTab && ready && !saving, moveApp,
+  );
+  const dragging = drag !== null;
 
   useLayoutEffect(() => {
     const grid = gridRef.current;
     // 切页期间由缩放动画接管位移，保留开始时的悬停位置以免跳动。
     if (!grid || transitionTab) return;
-    if (!activeApp) {
+    if (!activeApp || dragging) {
       setOffsets([]);
       return;
     }
@@ -63,13 +71,13 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: Max
         y: button.offsetTop + button.offsetHeight / 2,
         width: button.offsetWidth,
       }));
-      setOffsets(getAppLauncherHoverOffsets(positions, MAX_EXPAND_APP_TABS.indexOf(activeApp)));
+      setOffsets(getAppLauncherHoverOffsets(positions, tabs.indexOf(activeApp)));
     };
     updateOffsets();
     const observer = new ResizeObserver(updateOffsets);
     observer.observe(grid);
     return () => observer.disconnect();
-  }, [activeApp, transitionTab]);
+  }, [activeApp, transitionTab, dragging, tabs]);
 
   const handlePointerEnter = useCallback((event: PointerEvent<HTMLButtonElement>): void => {
     if (event.pointerType === 'touch') return;
@@ -94,33 +102,47 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: Max
   }, []);
 
   const handleSelectApp = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
+    if (consumeClick(event.detail === 0)) {
+      event.preventDefault();
+      return;
+    }
     onSelectApp(event.currentTarget.dataset.app as MaxExpandTab);
-  }, [onSelectApp]);
+  }, [consumeClick, onSelectApp]);
 
   return (
-    <section className="max-expand-app-launcher" aria-label={t('maxExpand.appMode.title')}>
+    <section className="max-expand-app-launcher" data-dragging={dragging || undefined}
+      aria-label={t('maxExpand.appMode.title')}
+    >
       <div className="max-expand-app-launcher-scroll">
         <div className="max-expand-app-launcher-grid" ref={gridRef}>
-          {MAX_EXPAND_APP_TABS.map((tab, index) => {
+          {tabs.map((tab, index) => {
             const { icon } = MAX_EXPAND_APPS[tab];
             const label = t(`maxExpand.nav.${tab}`);
+            const hoverOffset = dragging ? undefined : offsets[index];
+            const itemOffset = drag?.tab === tab ? drag : hoverOffset;
 
             return (
               <button className={`max-expand-app-launcher-item${activeApp === tab ? ' is-active' : ''}`}
                 key={tab}
                 data-app={tab}
                 data-transition-active={transitionTab === tab || undefined}
+                data-drag-source={drag?.tab === tab || undefined}
+                data-drop-target={drag?.target === tab && drag.tab !== tab || undefined}
                 type="button"
                 title={label}
                 aria-label={label}
                 style={{
-                  '--max-expand-app-offset-x': `${offsets[index]?.x ?? 0}px`,
-                  '--max-expand-app-offset-y': `${offsets[index]?.y ?? 0}px`,
+                  '--max-expand-app-offset-x': `${itemOffset?.x ?? 0}px`,
+                  '--max-expand-app-offset-y': `${itemOffset?.y ?? 0}px`,
                 } as CSSProperties}
                 onClick={handleSelectApp}
                 onPointerEnter={handlePointerEnter}
                 onPointerLeave={handlePointerLeave}
-                onPointerCancel={handlePointerLeave}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={cancelDrag}
+                onLostPointerCapture={cancelDrag}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
               >
@@ -135,6 +157,11 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab }: Max
           })}
         </div>
       </div>
+      {saveFailed && (
+        <p className="max-expand-app-launcher-error" role="status">
+          {t('maxExpand.appMode.saveOrderFailed')}
+        </p>
+      )}
     </section>
   );
 }

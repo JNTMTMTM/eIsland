@@ -136,6 +136,7 @@
 }
 
 .max-expand-app-launcher-item {
+  position: relative;
   display: flex;
   flex-direction: column;
   grid-column: span 2;
@@ -147,6 +148,7 @@
   appearance: none;
   cursor: pointer;
   user-select: none;
+  touch-action: none;
   background: transparent;
   border: 0;
   border-radius: 12px;
@@ -229,6 +231,48 @@
 
 .max-expand-app-launcher-item:active .max-expand-app-launcher-circle {
   transform: translateZ(0) scale(1.12);
+
+}
+
+.max-expand-app-launcher[data-dragging="true"] .max-expand-app-launcher-item {
+  cursor: grabbing;
+
+}
+
+.max-expand-app-launcher[data-dragging="true"] .max-expand-app-launcher-visual {
+  transition: none;
+
+}
+
+.max-expand-app-launcher[data-dragging="true"] .max-expand-app-launcher-circle {
+  transform: translateZ(0) scale(1);
+
+}
+
+.max-expand-app-launcher-item[data-drag-source="true"] {
+  z-index: 2;
+
+}
+
+.max-expand-app-launcher-item[data-drag-source="true"] .max-expand-app-launcher-circle {
+  box-shadow: 0 8px 20px rgb(0 0 0 / 25%);
+  transform: translateZ(0) scale(1.15);
+
+}
+
+.max-expand-app-launcher-item[data-drop-target="true"] .max-expand-app-launcher-circle {
+  outline: 2px solid rgb(var(--color-text-rgb), .75);
+  outline-offset: 3px;
+
+}
+
+.max-expand-app-launcher-error {
+  flex-shrink: 0;
+  margin: 8px 16px 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgb(var(--color-text-rgb), .5);
+  text-align: center;
 
 }
 

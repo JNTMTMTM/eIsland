@@ -50,3 +50,9 @@ export const MAX_EXPAND_APPS = {
 } as const satisfies Record<MaxExpandTab, { icon: string }>;
 
 export const MAX_EXPAND_APP_TABS = Object.keys(MAX_EXPAND_APPS) as MaxExpandTab[];
+
+/** 长按进入拖动的等待时长（毫秒）。 */
+export const APP_LAUNCHER_LONG_PRESS_MS = 450;
+
+/** 长按前允许的指针抖动距离（像素）。 */
+export const APP_LAUNCHER_MOVE_TOLERANCE = 8;

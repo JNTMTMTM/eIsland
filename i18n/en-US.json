@@ -1510,7 +1510,8 @@
       "title": "Apps",
       "hint": "Choose an app to get started",
       "backToLauncher": "Back to apps",
-      "controls": "App controls"
+      "controls": "App controls",
+      "saveOrderFailed": "Could not save the order. Please try again."
     },
     "calendar": {
       "today": "Today",
@@ -2976,7 +2977,7 @@
       },
       "maxExpandLayout": {
         "appModeTitle": "Enable App Mode",
-        "appModeHint": "Open any app from the launcher and return with the button on the right. The page order and visibility settings below do not apply in app mode.",
+        "appModeHint": "Open any app from the launcher and return with the button on the right. App order follows the page order below. Hold and drag icons to reorder and save locally. The launcher always shows all apps.",
         "previewTitle": "MaxExpand Navigation Preview",
         "previewHint": "Preview the bottom navigation order. Dimmed items are hidden.",
         "backLabel": "Back",

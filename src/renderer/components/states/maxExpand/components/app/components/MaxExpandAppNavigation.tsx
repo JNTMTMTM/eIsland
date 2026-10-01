@@ -62,7 +62,9 @@ export default function MaxExpandAppNavigation({
         inert={!launcherVisible || transitioning}
         aria-hidden={!launcherVisible || transitioning}
       >
-        <MaxExpandAppLauncher onSelectApp={selectApp} transitionTab={transition?.tab} />
+        <MaxExpandAppLauncher onSelectApp={selectApp} transitionTab={transition?.tab}
+          interactive={launcherVisible && !transitioning && contentActive}
+        />
       </div>
       {!launcherVisible && (
         <div className="max-expand-app-application-layer" ref={applicationRef} inert={transitioning}>
