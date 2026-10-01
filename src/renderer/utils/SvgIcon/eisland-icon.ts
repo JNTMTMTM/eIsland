@@ -132,7 +132,8 @@ export const SvgIcon = {
   BILIBILI: './svg/BILIBILI.svg',
   OCR: './svg/OCR.svg',
   QUESTIONNAIRE: './svg/QUESTIONNAIRE.svg',
-  CALENDER: './svg/CALENDER.svg'
+  CALENDER: './svg/CALENDER.svg',
+  COUNTDOWN: './svg/COUNTDOWN.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
