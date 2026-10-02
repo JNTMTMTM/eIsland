@@ -133,7 +133,8 @@ export const SvgIcon = {
   OCR: './svg/app/OCR.svg',
   QUESTIONNAIRE: './svg/app/QUESTIONNAIRE.svg',
   CALENDER: './svg/app/CALENDER.svg',
-  COUNTDOWN: './svg/app/COUNTDOWN.svg'
+  COUNTDOWN: './svg/app/COUNTDOWN.svg',
+  WORLDCLOCK: './svg/app/WORLDCLOCK.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
