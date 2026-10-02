@@ -111,6 +111,7 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
 
   return (
     <section className="max-expand-app-launcher" data-dragging={dragging || undefined}
+      data-saving={saving || undefined}
       aria-label={t('maxExpand.appMode.title')}
     >
       <div className="max-expand-app-launcher-scroll">
@@ -118,7 +119,7 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
           {tabs.map((tab, index) => {
             const { icon } = MAX_EXPAND_APPS[tab];
             const label = t(`maxExpand.nav.${tab}`);
-            const hoverOffset = dragging ? undefined : offsets[index];
+            const hoverOffset = dragging ? drag.offsets[index] : offsets[index];
             const itemOffset = drag?.tab === tab ? drag : hoverOffset;
 
             return (
@@ -128,7 +129,6 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
                 data-transition-active={transitionTab === tab || undefined}
                 data-drag-source={drag?.tab === tab || undefined}
                 data-hold-complete={pressedTab === tab && drag?.tab === tab || undefined}
-                data-drop-target={drag?.target === tab && drag.tab !== tab || undefined}
                 type="button"
                 title={label}
                 aria-label={label}

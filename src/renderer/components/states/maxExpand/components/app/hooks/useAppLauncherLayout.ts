@@ -26,7 +26,7 @@ import { getAppLauncherTabs, reorderAppLauncherLayout } from '../utils/appLaunch
 import type { MaxExpandTab } from '../../../../../../store/types';
 
 /**
- * 恢复本地布局并在成功保存后通知当前窗口，其他窗口由主进程同步。
+ * 当前窗口立即预览提交顺序，保存失败时恢复，其他窗口由主进程同步。
  * @returns 全部应用顺序、加载与保存状态、错误状态及移动入口。
  */
 export default function useAppLauncherLayout(): {
@@ -55,11 +55,12 @@ export default function useAppLauncherLayout(): {
     savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
+    window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: updated }));
     try {
       const saved = await window.api.storeWrite(MAXEXPAND_NAV_LAYOUT_STORE_KEY, updated);
       if (!saved) throw new Error('Layout save failed');
-      window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: updated }));
     } catch {
+      window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: navLayoutConfig }));
       if (mountedRef.current) setSaveFailed(true);
     } finally {
       savingRef.current = false;

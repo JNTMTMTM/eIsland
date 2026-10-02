@@ -21,14 +21,17 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { APP_LAUNCHER_LONG_PRESS_MS, APP_LAUNCHER_MOVE_TOLERANCE } from '../config/appLauncherConfig';
+import { getAppLauncherInsertionIndex, getAppLauncherReorderOffsets } from '../utils/appLauncherReorder';
 import type { PointerEvent, RefObject } from 'react';
 import type { MaxExpandTab } from '../../../../../../store/types';
+import type { AppLauncherHoverOffset, AppLauncherPosition } from '../types/appLauncherTypes';
 
 interface LauncherDrag {
   tab: MaxExpandTab;
   target: MaxExpandTab | null;
   x: number;
   y: number;
+  offsets: AppLauncherHoverOffset[];
 }
 
 interface LauncherPress {
@@ -39,10 +42,14 @@ interface LauncherPress {
   y: number;
   timer: number | null;
   dragging: boolean;
+  positions: AppLauncherPosition[];
+  tabs: MaxExpandTab[];
+  sourceIndex: number;
+  scrollTop: number;
 }
 
 /**
- * 在网格固定命中区域上拖动视觉层，松手后提交一次顺序调整。
+ * 拖动时按插入位置实时让出槽位，松手后提交一次顺序调整。
  * @param gridRef - 图标网格引用。
  * @param enabled - 导航可交互且布局已加载、没有正在保存时允许长按。
  * @param moveApp - 持久化源应用到目标位置。
@@ -89,10 +96,12 @@ export default function useAppLauncherDrag(
       }
     };
     window.addEventListener('blur', cancelDrag);
+    window.addEventListener('resize', cancelDrag);
     window.addEventListener('keydown', onKeyDown);
     return () => {
       cancelDrag();
       window.removeEventListener('blur', cancelDrag);
+      window.removeEventListener('resize', cancelDrag);
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [cancelDrag]);
@@ -110,19 +119,36 @@ export default function useAppLauncherDrag(
       y: event.clientY,
       timer: null,
       dragging: false,
+      positions: [],
+      tabs: [],
+      sourceIndex: -1,
+      scrollTop: 0,
     };
     pressRef.current = press;
     press.button.setPointerCapture(press.pointerId);
     setPressedTab(tab);
     press.timer = window.setTimeout(() => {
       press.timer = null;
+      const grid = gridRef.current;
+      if (!grid) {
+        cancelDrag();
+        return;
+      }
+      const buttons = Array.from(grid.querySelectorAll<HTMLButtonElement>(':scope > button'));
+      press.positions = buttons.map((button) => {
+        const bounds = button.getBoundingClientRect();
+        return { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2, width: bounds.width };
+      });
+      press.tabs = buttons.map((button) => button.dataset.app as MaxExpandTab);
+      press.sourceIndex = press.tabs.indexOf(tab);
+      press.scrollTop = grid.parentElement?.scrollTop ?? 0;
       press.dragging = true;
       suppressClickRef.current = true;
-      const nextDrag = { tab, target: tab, x: 0, y: 0 };
+      const nextDrag = { tab, target: tab, x: 0, y: 0, offsets: getAppLauncherReorderOffsets(press.positions, press.sourceIndex, press.sourceIndex) };
       dragRef.current = nextDrag;
       setDrag(nextDrag);
     }, APP_LAUNCHER_LONG_PRESS_MS);
-  }, [enabled]);
+  }, [enabled, gridRef, cancelDrag]);
 
   const onPointerMove = useCallback((event: PointerEvent<HTMLButtonElement>): void => {
     const press = pressRef.current;
@@ -140,20 +166,19 @@ export default function useAppLauncherDrag(
     const grid = gridRef.current;
     const viewport = grid?.parentElement?.getBoundingClientRect();
     let target: MaxExpandTab | null = null;
-    let distance = Number.POSITIVE_INFINITY;
-    // 使用按钮的固定位置命中目标，拖动视觉层不会改变检测区域。
+    let offsets = dragRef.current?.offsets ?? [];
+    const scrollDelta = (grid?.parentElement?.scrollTop ?? 0) - press.scrollTop;
+    // 固定槽位只在开始时测量一次，让位动画不会反过来改变插入判定。
     if (grid && viewport && event.clientX >= viewport.left && event.clientX <= viewport.right
       && event.clientY >= viewport.top && event.clientY <= viewport.bottom) {
-      Array.from(grid.querySelectorAll<HTMLButtonElement>(':scope > button')).forEach((button) => {
-        const bounds = button.getBoundingClientRect();
-        const nextDistance = Math.hypot(event.clientX - bounds.left - bounds.width / 2, event.clientY - bounds.top - bounds.height / 2);
-        if (nextDistance < distance) {
-          distance = nextDistance;
-          target = button.dataset.app as MaxExpandTab;
-        }
-      });
+      const source = press.positions[press.sourceIndex];
+      const settingsIndex = press.tabs.indexOf('settings');
+      const movablePositions = press.positions.slice(0, settingsIndex < 0 ? press.positions.length : settingsIndex);
+      const targetIndex = source ? getAppLauncherInsertionIndex(movablePositions, source.x + x, source.y + y + scrollDelta) : -1;
+      target = press.tabs[targetIndex] ?? null;
+      offsets = getAppLauncherReorderOffsets(press.positions, press.sourceIndex, targetIndex);
     }
-    const nextDrag = { x, y, tab: press.tab, target: target === 'settings' ? null : target };
+    const nextDrag = { x, offsets, target, y: y + scrollDelta, tab: press.tab };
     dragRef.current = nextDrag;
     setDrag(nextDrag);
   }, [gridRef, cancelDrag]);

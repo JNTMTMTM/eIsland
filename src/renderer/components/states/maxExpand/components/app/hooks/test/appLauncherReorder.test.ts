@@ -203,6 +203,7 @@ describe('应用导航排序', () => {
     storeWrite.mockImplementation(() => new Promise<boolean>((resolve) => { finishSave = resolve; }));
     const loaded = render(useAppLauncherLayout);
     const pending = loaded.moveApp('todo', 'calendar');
+    expect(render(useAppLauncherLayout).tabs.slice(0, 2)).toEqual(['todo', 'calendar']);
     await loaded.moveApp('album', 'mail');
     expect(storeWrite).toHaveBeenCalledOnce();
     expect(render(useAppLauncherLayout).saving).toBe(true);
@@ -223,7 +224,7 @@ describe('应用图标长按拖动', () => {
     getBoundingClientRect: () => ({ left: index * 80, top: 0, width: 60, height: 60 }),
   }));
   const gridRef = { current: {
-    parentElement: { getBoundingClientRect: () => ({ left: 0, right: 320, top: 0, bottom: 180 }) },
+    parentElement: { scrollTop: 0, getBoundingClientRect: () => ({ left: 0, right: 320, top: 0, bottom: 180 }) },
     querySelectorAll: () => buttons,
   } as unknown as HTMLDivElement };
 
@@ -246,6 +247,7 @@ describe('应用图标长按拖动', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     enabled = true;
+    if (gridRef.current?.parentElement) gridRef.current.parentElement.scrollTop = 0;
     vi.stubGlobal('window', Object.assign(new EventTarget(), {
       setTimeout: globalThis.setTimeout,
       clearTimeout: globalThis.clearTimeout,
@@ -276,7 +278,9 @@ describe('应用图标长按拖动', () => {
     expect(result.pressedTab).toBe('todo');
     expect(result.drag?.tab).toBe('todo');
     result.onPointerMove(pointer(110));
-    expect(renderDrag().drag).toEqual({ tab: 'todo', target: 'urlFavorites', x: 80, y: 0 });
+    expect(renderDrag().drag).toEqual({ tab: 'todo', target: 'urlFavorites', x: 80, y: 0, offsets: [
+      { x: 0, y: 0 }, { x: -80, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 },
+    ] });
     result.onPointerUp(pointer(110));
     expect(moveApp).toHaveBeenCalledExactlyOnceWith('todo', 'urlFavorites');
     expect(renderDrag().drag).toBeNull();
@@ -305,11 +309,12 @@ describe('应用图标长按拖动', () => {
     expect(renderDrag().drag).toBeNull();
   });
 
-  it.each(['cancel', 'blur', 'escape', 'disabled'])('%s 中断拖动不保存', (reason) => {
+  it.each(['cancel', 'blur', 'resize', 'escape', 'disabled'])('%s 中断拖动不保存', (reason) => {
     const result = startDrag();
     result.onPointerMove(pointer(110));
     if (reason === 'cancel') result.cancelDrag();
     if (reason === 'blur') window.dispatchEvent(new Event('blur'));
+    if (reason === 'resize') window.dispatchEvent(new Event('resize'));
     if (reason === 'escape') {
       const event = Object.assign(new Event('keydown', { cancelable: true }), { key: 'Escape' });
       window.dispatchEvent(event);
@@ -353,6 +358,36 @@ describe('应用图标长按拖动', () => {
     result.onPointerUp(pointer(110, 30, { pointerId: 2 }));
     expect(renderDrag().drag?.target).toBe('todo');
     result.onPointerUp(pointer(270));
+    expect(moveApp).toHaveBeenCalledExactlyOnceWith('todo', 'album');
+  });
+
+  it('横向拖动实时挤走多个相邻图标，反向拖回时恢复槽位且尚未保存', () => {
+    const result = startDrag();
+    result.onPointerMove(pointer(190));
+    expect(renderDrag().drag?.offsets).toEqual([
+      { x: 0, y: 0 }, { x: -80, y: 0 }, { x: -80, y: 0 }, { x: 0, y: 0 },
+    ]);
+    expect(renderDrag().drag?.target).toBe('album');
+    result.onPointerMove(pointer(30));
+    expect(renderDrag().drag?.offsets.every((offset) => offset.x === 0 && offset.y === 0)).toBe(true);
+    expect(renderDrag().drag?.target).toBe('todo');
     expect(moveApp).not.toHaveBeenCalled();
+  });
+
+  it('插入预览使用固定槽位，重复指针事件不会受让位动画影响', () => {
+    const result = startDrag();
+    result.onPointerMove(pointer(80));
+    const preview = renderDrag().drag;
+    result.onPointerMove(pointer(80));
+    expect(renderDrag().drag).toEqual(preview);
+    expect(moveApp).not.toHaveBeenCalled();
+  });
+
+  it('滚动时修正拖动位置，保持源图标跟随指针', () => {
+    const result = startDrag();
+    if (gridRef.current?.parentElement) gridRef.current.parentElement.scrollTop = 20;
+    result.onPointerMove(pointer(110));
+    expect(renderDrag().drag?.y).toBe(20);
+    expect(renderDrag().drag?.target).toBe('urlFavorites');
   });
 });
