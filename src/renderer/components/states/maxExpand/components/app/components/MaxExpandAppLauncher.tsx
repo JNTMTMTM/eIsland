@@ -26,7 +26,7 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MAX_EXPAND_APPS } from '../config/appLauncherConfig';
+import { APP_LAUNCHER_LONG_PRESS_MS, MAX_EXPAND_APPS } from '../config/appLauncherConfig';
 import useAppLauncherDrag from '../hooks/useAppLauncherDrag';
 import useAppLauncherLayout from '../hooks/useAppLauncherLayout';
 import { getAppLauncherHoverOffsets } from '../utils/appLauncherHover';
@@ -50,7 +50,7 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
   const [activeApp, setActiveApp] = useState<MaxExpandTab | null>(null);
   const [offsets, setOffsets] = useState<AppLauncherHoverOffset[]>([]);
   const { tabs, ready, saving, saveFailed, moveApp } = useAppLauncherLayout();
-  const { drag, onPointerDown, onPointerMove, onPointerUp, cancelDrag, consumeClick } = useAppLauncherDrag(
+  const { pressedTab, drag, onPointerDown, onPointerMove, onPointerUp, cancelDrag, consumeClick } = useAppLauncherDrag(
     gridRef, interactive && !transitionTab && ready && !saving, moveApp,
   );
   const dragging = drag !== null;
@@ -127,11 +127,13 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
                 data-app={tab}
                 data-transition-active={transitionTab === tab || undefined}
                 data-drag-source={drag?.tab === tab || undefined}
+                data-hold-complete={pressedTab === tab && drag?.tab === tab || undefined}
                 data-drop-target={drag?.target === tab && drag.tab !== tab || undefined}
                 type="button"
                 title={label}
                 aria-label={label}
                 style={{
+                  '--max-expand-app-hold-duration': `${APP_LAUNCHER_LONG_PRESS_MS}ms`,
                   '--max-expand-app-offset-x': `${itemOffset?.x ?? 0}px`,
                   '--max-expand-app-offset-y': `${itemOffset?.y ?? 0}px`,
                 } as CSSProperties}
@@ -149,6 +151,12 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
                 <span className="max-expand-app-launcher-visual">
                   <span className="max-expand-app-launcher-circle">
                     <img className="max-expand-app-icon-img" src={icon} alt="" draggable={false} />
+                    {pressedTab === tab && (
+                      <svg className="max-expand-app-hold-progress" viewBox="0 0 72 72" aria-hidden="true">
+                        <circle className="max-expand-app-hold-track" cx="36" cy="36" r="34" />
+                        <circle className="max-expand-app-hold-fill" cx="36" cy="36" r="34" pathLength="100" />
+                      </svg>
+                    )}
                   </span>
                   <span className="max-expand-app-launcher-label">{label}</span>
                 </span>

@@ -177,6 +177,7 @@
 }
 
 .max-expand-app-launcher-circle {
+  position: relative;
   display: flex;
   flex-shrink: 0;
   align-items: center;
@@ -207,6 +208,52 @@
   object-fit: contain;
   backface-visibility: hidden;
   filter: brightness(0) invert(1);
+
+}
+
+.max-expand-app-hold-progress {
+  position: absolute;
+  inset: -5px;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  color: rgb(var(--color-text-rgb));
+  pointer-events: none;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  transform: rotate(-90deg);
+
+}
+
+.max-expand-app-hold-track {
+  opacity: .2;
+
+}
+
+.max-expand-app-hold-fill {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  stroke-linecap: round;
+  animation: max-expand-app-hold-progress var(--max-expand-app-hold-duration) linear forwards;
+
+}
+
+.max-expand-app-launcher-item[data-hold-complete="true"] .max-expand-app-hold-fill {
+  stroke-dashoffset: 0;
+  animation: none;
+
+}
+
+@keyframes max-expand-app-hold-progress {
+  from {
+    stroke-dashoffset: 100;
+
+  }
+
+  to {
+    stroke-dashoffset: 0;
+
+  }
 
 }
 

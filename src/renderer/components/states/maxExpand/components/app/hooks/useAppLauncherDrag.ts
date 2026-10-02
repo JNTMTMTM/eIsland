@@ -46,13 +46,14 @@ interface LauncherPress {
  * @param gridRef - 图标网格引用。
  * @param enabled - 导航可交互且布局已加载、没有正在保存时允许长按。
  * @param moveApp - 持久化源应用到目标位置。
- * @returns 拖动视觉状态、指针处理函数与点击抑制入口。
+ * @returns 长按目标、拖动视觉状态、指针处理函数与点击抑制入口。
  */
 export default function useAppLauncherDrag(
   gridRef: RefObject<HTMLDivElement | null>,
   enabled: boolean,
   moveApp: (source: MaxExpandTab, target: MaxExpandTab) => Promise<void>,
 ): {
+  pressedTab: MaxExpandTab | null;
   drag: LauncherDrag | null;
   onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
   onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
@@ -61,6 +62,7 @@ export default function useAppLauncherDrag(
   consumeClick: (keyboard?: boolean) => boolean;
 } {
   const [drag, setDrag] = useState<LauncherDrag | null>(null);
+  const [pressedTab, setPressedTab] = useState<MaxExpandTab | null>(null);
   const pressRef = useRef<LauncherPress | null>(null);
   const dragRef = useRef<LauncherDrag | null>(null);
   const suppressClickRef = useRef(false);
@@ -72,6 +74,7 @@ export default function useAppLauncherDrag(
     if (press?.timer !== null && press?.timer !== undefined) window.clearTimeout(press.timer);
     if (press?.button.hasPointerCapture(press.pointerId)) press.button.releasePointerCapture(press.pointerId);
     setDrag(null);
+    setPressedTab(null);
   }, []);
 
   useEffect(() => {
@@ -110,6 +113,7 @@ export default function useAppLauncherDrag(
     };
     pressRef.current = press;
     press.button.setPointerCapture(press.pointerId);
+    setPressedTab(tab);
     press.timer = window.setTimeout(() => {
       press.timer = null;
       press.dragging = true;
@@ -176,5 +180,5 @@ export default function useAppLauncherDrag(
     return suppressed;
   }, []);
 
-  return { drag, onPointerDown, onPointerMove, onPointerUp, cancelDrag, consumeClick };
+  return { pressedTab, drag, onPointerDown, onPointerMove, onPointerUp, cancelDrag, consumeClick };
 }

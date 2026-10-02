@@ -261,22 +261,26 @@ describe('应用图标长按拖动', () => {
   it('短按保留打开应用行为且不会排序', () => {
     const result = renderDrag();
     result.onPointerDown(pointer());
+    expect(renderDrag().pressedTab).toBe('todo');
     vi.advanceTimersByTime(APP_LAUNCHER_LONG_PRESS_MS - 1);
     result.onPointerUp(pointer());
     vi.runAllTimers();
     expect(renderDrag().drag).toBeNull();
+    expect(renderDrag().pressedTab).toBeNull();
     expect(result.consumeClick()).toBe(false);
     expect(moveApp).not.toHaveBeenCalled();
   });
 
   it('长按后跟随指针，松手保存一次并抑制随后产生的点击', () => {
     const result = startDrag();
+    expect(result.pressedTab).toBe('todo');
     expect(result.drag?.tab).toBe('todo');
     result.onPointerMove(pointer(110));
     expect(renderDrag().drag).toEqual({ tab: 'todo', target: 'urlFavorites', x: 80, y: 0 });
     result.onPointerUp(pointer(110));
     expect(moveApp).toHaveBeenCalledExactlyOnceWith('todo', 'urlFavorites');
     expect(renderDrag().drag).toBeNull();
+    expect(renderDrag().pressedTab).toBeNull();
     expect(result.consumeClick()).toBe(true);
     expect(result.consumeClick()).toBe(false);
     expect(buttons[0].releasePointerCapture).toHaveBeenCalledWith(1);
@@ -288,6 +292,7 @@ describe('应用图标长按拖动', () => {
     result.onPointerMove(pointer(50));
     vi.runAllTimers();
     expect(renderDrag().drag).toBeNull();
+    expect(renderDrag().pressedTab).toBeNull();
     expect(moveApp).not.toHaveBeenCalled();
     expect(result.consumeClick()).toBe(true);
   });
@@ -315,6 +320,7 @@ describe('应用图标长按拖动', () => {
       renderDrag();
     }
     expect(renderDrag().drag).toBeNull();
+    expect(renderDrag().pressedTab).toBeNull();
     expect(moveApp).not.toHaveBeenCalled();
     expect(result.consumeClick()).toBe(true);
   });
@@ -340,6 +346,7 @@ describe('应用图标长按拖动', () => {
     result.onPointerDown(pointer(270, 30, { currentTarget: buttons[3] }));
     vi.runAllTimers();
     expect(renderDrag().drag).toBeNull();
+    expect(renderDrag().pressedTab).toBeNull();
     result.onPointerDown(pointer());
     vi.advanceTimersByTime(APP_LAUNCHER_LONG_PRESS_MS);
     result.onPointerMove(pointer(110, 30, { pointerId: 2 }));
