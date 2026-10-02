@@ -339,7 +339,7 @@
   flex-direction: column;
   gap: 8px;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 42px;
   padding: 6px 0;
   background: rgb(var(--color-text-rgb), .025);
@@ -348,8 +348,10 @@
 
 }
 
-.max-expand-app-home-button {
+.max-expand-app-control {
+  box-sizing: border-box;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 32px;
@@ -357,7 +359,6 @@
   padding: 7px;
   color: inherit;
   appearance: none;
-  cursor: pointer;
   background: rgb(var(--color-text-rgb), .07);
   border: 1px solid rgb(var(--color-text-rgb), .07);
   border-radius: 50%;
@@ -367,7 +368,12 @@
 
 }
 
-.max-expand-app-home-button:hover {
+.max-expand-app-home-button {
+  cursor: pointer;
+
+}
+
+.max-expand-app-control:hover {
   background: rgb(var(--color-text-rgb), .14);
 
 }
@@ -451,7 +457,7 @@
 @media (prefers-reduced-motion: reduce) {
   .max-expand-app-launcher-visual,
   .max-expand-app-launcher-circle,
-  .max-expand-app-home-button {
+  .max-expand-app-control {
     transition: none;
 
   }
