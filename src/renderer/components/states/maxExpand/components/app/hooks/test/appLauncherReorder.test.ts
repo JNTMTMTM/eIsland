@@ -222,9 +222,12 @@ describe('应用图标长按拖动', () => {
     hasPointerCapture: vi.fn().mockReturnValue(true),
     releasePointerCapture: vi.fn(),
     getBoundingClientRect: () => ({ left: index * 80, top: 0, width: 60, height: 60 }),
+    querySelector: (selector: string) => selector.endsWith('visual')
+      ? { getBoundingClientRect: () => ({ left: index * 80, top: 0, width: 60, height: 60 }) }
+      : { offsetWidth: 40, offsetHeight: 40, getBoundingClientRect: () => ({ left: index * 80 + 10, top: 10, width: 40, height: 40 }) },
   }));
   const gridRef = { current: {
-    parentElement: { scrollTop: 0, getBoundingClientRect: () => ({ left: 0, right: 320, top: 0, bottom: 180 }) },
+    parentElement: Object.assign(new EventTarget(), { scrollTop: 0, getBoundingClientRect: () => ({ left: 0, right: 320, top: 0, bottom: 180 }) }),
     querySelectorAll: () => buttons,
   } as unknown as HTMLDivElement };
 
@@ -301,12 +304,38 @@ describe('应用图标长按拖动', () => {
     expect(result.consumeClick()).toBe(true);
   });
 
-  it('松手时重新检测边界，拖出网格不会删除或调整入口', () => {
+  it('鼠标移出容器后图标停在边缘，松手保存容器内的插入位置', () => {
     const result = startDrag();
-    result.onPointerMove(pointer(110));
+    result.onPointerMove(pointer(400));
+    expect(renderDrag().drag?.x).toBe(260);
+    expect(renderDrag().drag?.target).toBe('album');
     result.onPointerUp(pointer(400));
-    expect(moveApp).not.toHaveBeenCalled();
+    expect(moveApp).toHaveBeenCalledExactlyOnceWith('todo', 'album');
     expect(renderDrag().drag).toBeNull();
+  });
+
+  it.each([
+    [-1000, 30, 0, 0], [1000, 30, 260, 0],
+    [30, -1000, 0, 0], [30, 1000, 0, 120],
+    [-1000, -1000, 0, 0], [1000, 1000, 260, 120],
+  ])('指针移到 (%s, %s) 时整个图标留在容器内', (x, y, expectedX, expectedY) => {
+    const result = startDrag();
+    result.onPointerMove(pointer(x, y));
+    expect(renderDrag().drag).toMatchObject({ x: expectedX, y: expectedY });
+    expect(moveApp).not.toHaveBeenCalled();
+  });
+
+  it('开始拖动时就为放大圆圈和外侧进度环预留空间', () => {
+    const selector = vi.spyOn(buttons[0], 'querySelector')
+      .mockReturnValueOnce({ getBoundingClientRect: () => ({ left: 0, top: 0, width: 60, height: 60 }) })
+      .mockReturnValueOnce({ offsetWidth: 64, offsetHeight: 64, getBoundingClientRect: () => ({ left: -2, top: -2, width: 64, height: 64 }) });
+    const result = startDrag();
+    selector.mockRestore();
+    expect(result.drag?.x).toBeCloseTo(12.55);
+    expect(result.drag?.y).toBeCloseTo(12.55);
+    result.onPointerMove(pointer(1000, 1000));
+    expect(renderDrag().drag?.x).toBeCloseTo(247.45);
+    expect(renderDrag().drag?.y).toBeCloseTo(107.45);
   });
 
   it.each(['cancel', 'blur', 'resize', 'escape', 'disabled'])('%s 中断拖动不保存', (reason) => {
@@ -389,5 +418,18 @@ describe('应用图标长按拖动', () => {
     result.onPointerMove(pointer(110));
     expect(renderDrag().drag?.y).toBe(20);
     expect(renderDrag().drag?.target).toBe('urlFavorites');
+    result.onPointerMove(pointer(110, 1000));
+    expect(renderDrag().drag?.y).toBe(140);
+  });
+
+  it('鼠标静止时滚动容器也会更新边界，不让图标滚出可见区域', () => {
+    startDrag();
+    const viewport = gridRef.current?.parentElement;
+    if (viewport) {
+      viewport.scrollTop = 100;
+      viewport.dispatchEvent(new Event('scroll'));
+    }
+    expect(renderDrag().drag?.y).toBe(100);
+    expect(moveApp).not.toHaveBeenCalled();
   });
 });

@@ -20,7 +20,30 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { getAppLauncherInsertionIndex, getAppLauncherReorderOffsets } from '../appLauncherReorder';
+import { clampAppLauncherDragOffset, getAppLauncherInsertionIndex, getAppLauncherReorderOffsets } from '../appLauncherReorder';
+
+describe('应用图标拖动边界', () => {
+  const viewport = { left: 100, right: 400, top: 200, bottom: 450 };
+  const bounds = { left: 150, right: 230, top: 250, bottom: 350 };
+
+  it.each([
+    [-1000, 0, -50, 0], [1000, 0, 170, 0],
+    [0, -1000, 0, -50], [0, 1000, 0, 100],
+    [-1000, -1000, -50, -50], [1000, 1000, 170, 100],
+  ])('限制位移 (%s, %s)，包含放大图标、进度圈与文字的完整边界', (x, y, expectedX, expectedY) => {
+    expect(clampAppLauncherDragOffset(bounds, viewport, x, y)).toEqual({ x: expectedX, y: expectedY });
+  });
+
+  it('容器内移动不改变位移，已有越界则立即移回可见区域', () => {
+    expect(clampAppLauncherDragOffset(bounds, viewport, 20, 30)).toEqual({ x: 20, y: 30 });
+    expect(clampAppLauncherDragOffset({ ...bounds, top: 180, bottom: 280 }, viewport, 0, 0)).toEqual({ x: 0, y: 20 });
+  });
+
+  it('容器无法容纳完整图标时禁止开始拖动', () => {
+    expect(clampAppLauncherDragOffset(bounds, { ...viewport, right: 150 }, 0, 0)).toBeNull();
+    expect(clampAppLauncherDragOffset(bounds, { ...viewport, bottom: 250 }, 0, 0)).toBeNull();
+  });
+});
 
 describe('应用图标插入预览', () => {
   const positions = [

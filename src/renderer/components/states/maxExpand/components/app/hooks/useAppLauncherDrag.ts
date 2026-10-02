@@ -20,8 +20,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { APP_LAUNCHER_LONG_PRESS_MS, APP_LAUNCHER_MOVE_TOLERANCE } from '../config/appLauncherConfig';
-import { getAppLauncherInsertionIndex, getAppLauncherReorderOffsets } from '../utils/appLauncherReorder';
+import { APP_LAUNCHER_DRAG_SCALE, APP_LAUNCHER_HOLD_RING_OUTSET, APP_LAUNCHER_LONG_PRESS_MS, APP_LAUNCHER_MOVE_TOLERANCE } from '../config/appLauncherConfig';
+import { clampAppLauncherDragOffset, getAppLauncherInsertionIndex, getAppLauncherReorderOffsets } from '../utils/appLauncherReorder';
 import type { PointerEvent, RefObject } from 'react';
 import type { MaxExpandTab } from '../../../../../../store/types';
 import type { AppLauncherHoverOffset, AppLauncherPosition } from '../types/appLauncherTypes';
@@ -40,12 +40,15 @@ interface LauncherPress {
   pointerId: number;
   x: number;
   y: number;
+  deltaX: number;
+  deltaY: number;
   timer: number | null;
   dragging: boolean;
   positions: AppLauncherPosition[];
   tabs: MaxExpandTab[];
   sourceIndex: number;
   scrollTop: number;
+  bounds: Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'> | null;
 }
 
 /**
@@ -117,12 +120,15 @@ export default function useAppLauncherDrag(
       pointerId: event.pointerId,
       x: event.clientX,
       y: event.clientY,
+      deltaX: 0,
+      deltaY: 0,
       timer: null,
       dragging: false,
       positions: [],
       tabs: [],
       sourceIndex: -1,
       scrollTop: 0,
+      bounds: null,
     };
     pressRef.current = press;
     press.button.setPointerCapture(press.pointerId);
@@ -142,46 +148,92 @@ export default function useAppLauncherDrag(
       press.tabs = buttons.map((button) => button.dataset.app as MaxExpandTab);
       press.sourceIndex = press.tabs.indexOf(tab);
       press.scrollTop = grid.parentElement?.scrollTop ?? 0;
+      const visual = press.button.querySelector<HTMLElement>('.max-expand-app-launcher-visual');
+      const circle = press.button.querySelector<HTMLElement>('.max-expand-app-launcher-circle');
+      const viewport = grid.parentElement?.getBoundingClientRect();
+      if (!visual || !circle || !viewport) {
+        cancelDrag();
+        return;
+      }
+      const buttonBounds = press.button.getBoundingClientRect();
+      const visualBounds = visual.getBoundingClientRect();
+      const circleBounds = circle.getBoundingClientRect();
+      // 视觉层只平移；以固定按钮还原原点，避免把悬停位移带入拖动边界。
+      const left = buttonBounds.left + (buttonBounds.width - visualBounds.width) / 2;
+      const top = buttonBounds.top + (buttonBounds.height - visualBounds.height) / 2;
+      const circleX = left + circleBounds.left + circleBounds.width / 2 - visualBounds.left;
+      const circleY = top + circleBounds.top + circleBounds.height / 2 - visualBounds.top;
+      const radiusX = (circle.offsetWidth / 2 + APP_LAUNCHER_HOLD_RING_OUTSET) * APP_LAUNCHER_DRAG_SCALE;
+      const radiusY = (circle.offsetHeight / 2 + APP_LAUNCHER_HOLD_RING_OUTSET) * APP_LAUNCHER_DRAG_SCALE;
+      press.bounds = {
+        left: Math.min(left, circleX - radiusX),
+        right: Math.max(left + visualBounds.width, circleX + radiusX),
+        top: Math.min(top, circleY - radiusY),
+        bottom: Math.max(top + visualBounds.height, circleY + radiusY),
+      };
+      const offset = clampAppLauncherDragOffset(press.bounds, viewport, 0, 0);
+      if (!offset) {
+        cancelDrag();
+        return;
+      }
       press.dragging = true;
       suppressClickRef.current = true;
-      const nextDrag = { tab, target: tab, x: 0, y: 0, offsets: getAppLauncherReorderOffsets(press.positions, press.sourceIndex, press.sourceIndex) };
+      const nextDrag = { tab, target: tab, x: offset.x, y: offset.y, offsets: getAppLauncherReorderOffsets(press.positions, press.sourceIndex, press.sourceIndex) };
       dragRef.current = nextDrag;
       setDrag(nextDrag);
     }, APP_LAUNCHER_LONG_PRESS_MS);
   }, [enabled, gridRef, cancelDrag]);
 
+  const updateDrag = useCallback((press: LauncherPress): void => {
+    const grid = gridRef.current;
+    const viewport = grid?.parentElement?.getBoundingClientRect();
+    const scrollDelta = (grid?.parentElement?.scrollTop ?? 0) - press.scrollTop;
+    if (!grid || !viewport || !press.bounds) {
+      cancelDrag();
+      return;
+    }
+    const bounds = { ...press.bounds, top: press.bounds.top - scrollDelta, bottom: press.bounds.bottom - scrollDelta };
+    const offset = clampAppLauncherDragOffset(bounds, viewport, press.deltaX, press.deltaY + scrollDelta);
+    if (!offset) {
+      cancelDrag();
+      return;
+    }
+    // 固定槽位只在开始时测量一次，让位动画不会反过来改变插入判定。
+    const source = press.positions[press.sourceIndex];
+    const settingsIndex = press.tabs.indexOf('settings');
+    const movablePositions = press.positions.slice(0, settingsIndex < 0 ? press.positions.length : settingsIndex);
+    const targetIndex = source ? getAppLauncherInsertionIndex(movablePositions, source.x + offset.x, source.y + offset.y) : -1;
+    const offsets = getAppLauncherReorderOffsets(press.positions, press.sourceIndex, targetIndex);
+    const nextDrag = { offsets, x: offset.x, y: offset.y, tab: press.tab, target: press.tabs[targetIndex] ?? null };
+    dragRef.current = nextDrag;
+    setDrag(nextDrag);
+  }, [gridRef, cancelDrag]);
+
+  useEffect(() => {
+    const viewport = gridRef.current?.parentElement;
+    const onScroll = (): void => {
+      const press = pressRef.current;
+      if (press?.dragging) updateDrag(press);
+    };
+    viewport?.addEventListener('scroll', onScroll);
+    return () => viewport?.removeEventListener('scroll', onScroll);
+  }, [gridRef, updateDrag]);
+
   const onPointerMove = useCallback((event: PointerEvent<HTMLButtonElement>): void => {
     const press = pressRef.current;
     if (!press || event.pointerId !== press.pointerId) return;
-    const x = event.clientX - press.x;
-    const y = event.clientY - press.y;
+    press.deltaX = event.clientX - press.x;
+    press.deltaY = event.clientY - press.y;
     if (!press.dragging) {
-      if (Math.hypot(x, y) > APP_LAUNCHER_MOVE_TOLERANCE) {
+      if (Math.hypot(press.deltaX, press.deltaY) > APP_LAUNCHER_MOVE_TOLERANCE) {
         suppressClickRef.current = true;
         cancelDrag();
       }
       return;
     }
     event.preventDefault();
-    const grid = gridRef.current;
-    const viewport = grid?.parentElement?.getBoundingClientRect();
-    let target: MaxExpandTab | null = null;
-    let offsets = dragRef.current?.offsets ?? [];
-    const scrollDelta = (grid?.parentElement?.scrollTop ?? 0) - press.scrollTop;
-    // 固定槽位只在开始时测量一次，让位动画不会反过来改变插入判定。
-    if (grid && viewport && event.clientX >= viewport.left && event.clientX <= viewport.right
-      && event.clientY >= viewport.top && event.clientY <= viewport.bottom) {
-      const source = press.positions[press.sourceIndex];
-      const settingsIndex = press.tabs.indexOf('settings');
-      const movablePositions = press.positions.slice(0, settingsIndex < 0 ? press.positions.length : settingsIndex);
-      const targetIndex = source ? getAppLauncherInsertionIndex(movablePositions, source.x + x, source.y + y + scrollDelta) : -1;
-      target = press.tabs[targetIndex] ?? null;
-      offsets = getAppLauncherReorderOffsets(press.positions, press.sourceIndex, targetIndex);
-    }
-    const nextDrag = { x, offsets, target, y: y + scrollDelta, tab: press.tab };
-    dragRef.current = nextDrag;
-    setDrag(nextDrag);
-  }, [gridRef, cancelDrag]);
+    updateDrag(press);
+  }, [updateDrag, cancelDrag]);
 
   const onPointerUp = useCallback((event: PointerEvent<HTMLButtonElement>): void => {
     const press = pressRef.current;

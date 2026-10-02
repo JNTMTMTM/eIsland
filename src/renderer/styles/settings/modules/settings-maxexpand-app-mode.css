@@ -213,9 +213,9 @@
 
 .max-expand-app-hold-progress {
   position: absolute;
-  inset: -5px;
-  width: calc(100% + 10px);
-  height: calc(100% + 10px);
+  inset: calc(-1 * var(--max-expand-app-hold-outset));
+  width: calc(100% + var(--max-expand-app-hold-outset) + var(--max-expand-app-hold-outset));
+  height: calc(100% + var(--max-expand-app-hold-outset) + var(--max-expand-app-hold-outset));
   color: rgb(var(--color-text-rgb));
   pointer-events: none;
   fill: none;
@@ -304,7 +304,8 @@
 
 .max-expand-app-launcher-item[data-drag-source="true"] .max-expand-app-launcher-circle {
   box-shadow: 0 8px 20px rgb(0 0 0 / 25%);
-  transform: translateZ(0) scale(1.15);
+  transition: none;
+  transform: translateZ(0) scale(var(--max-expand-app-drag-scale));
 
 }
 

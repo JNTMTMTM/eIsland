@@ -26,7 +26,7 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { APP_LAUNCHER_LONG_PRESS_MS, MAX_EXPAND_APPS } from '../config/appLauncherConfig';
+import { APP_LAUNCHER_DRAG_SCALE, APP_LAUNCHER_HOLD_RING_OUTSET, APP_LAUNCHER_LONG_PRESS_MS, MAX_EXPAND_APPS } from '../config/appLauncherConfig';
 import useAppLauncherDrag from '../hooks/useAppLauncherDrag';
 import useAppLauncherLayout from '../hooks/useAppLauncherLayout';
 import { getAppLauncherHoverOffsets } from '../utils/appLauncherHover';
@@ -134,6 +134,8 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
                 aria-label={label}
                 style={{
                   '--max-expand-app-hold-duration': `${APP_LAUNCHER_LONG_PRESS_MS}ms`,
+                  '--max-expand-app-drag-scale': APP_LAUNCHER_DRAG_SCALE,
+                  '--max-expand-app-hold-outset': `${APP_LAUNCHER_HOLD_RING_OUTSET}px`,
                   '--max-expand-app-offset-x': `${itemOffset?.x ?? 0}px`,
                   '--max-expand-app-offset-y': `${itemOffset?.y ?? 0}px`,
                 } as CSSProperties}

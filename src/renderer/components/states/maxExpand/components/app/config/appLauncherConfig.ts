@@ -56,3 +56,9 @@ export const APP_LAUNCHER_LONG_PRESS_MS = 450;
 
 /** 长按前允许的指针抖动距离（像素）。 */
 export const APP_LAUNCHER_MOVE_TOLERANCE = 8;
+
+/** 拖动时图标圆圈的放大倍率，用于同步视觉样式与边界计算。 */
+export const APP_LAUNCHER_DRAG_SCALE = 1.15;
+
+/** 长按进度圈超出图标圆圈的距离（像素）。 */
+export const APP_LAUNCHER_HOLD_RING_OUTSET = 5;

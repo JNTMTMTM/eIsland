@@ -22,6 +22,28 @@
 import type { AppLauncherHoverOffset, AppLauncherPosition } from '../types/appLauncherTypes';
 
 /**
+ * 将完整拖动视觉范围限制在可见容器内。
+ * @param bounds - 拖动图标、外圈和标签在当前滚动位置下的初始边界。
+ * @param viewport - 容器的可见边界。
+ * @param x - 指针请求的水平位移。
+ * @param y - 已包含滚动补偿的垂直位移。
+ * @returns 限制后的位移；容器无法容纳图标时返回 null。
+ */
+export function clampAppLauncherDragOffset(
+  bounds: Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'>,
+  viewport: Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'>,
+  x: number,
+  y: number,
+): AppLauncherHoverOffset | null {
+  const minX = viewport.left - bounds.left;
+  const maxX = viewport.right - bounds.right;
+  const minY = viewport.top - bounds.top;
+  const maxY = viewport.bottom - bounds.bottom;
+  if (minX > maxX || minY > maxY) return null;
+  return { x: Math.max(minX, Math.min(maxX, x)), y: Math.max(minY, Math.min(maxY, y)) };
+}
+
+/**
  * 先确定指针所在行，再按槽位中线确定插入位置，不依赖图标重叠。
  * @param positions - 拖动开始时的固定槽位圆心，按导航顺序排列，不包含设置入口。
  * @param x - 被拖动图标圆心的水平坐标。
