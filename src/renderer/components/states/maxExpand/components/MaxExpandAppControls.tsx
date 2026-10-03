@@ -63,7 +63,7 @@ export default function MaxExpandAppControls({ activeTab, onBackToLauncher }: Ma
         aria-label={backLabel}
         onClick={handleBackToLauncher}
       >
-        <img className="max-expand-app-control-icon-img" src={SvgIcon.LAYOUT} alt="" draggable={false} />
+        <img className="max-expand-app-control-icon-img" src={SvgIcon.APP} alt="" draggable={false} />
       </button>
     </nav>
   );
