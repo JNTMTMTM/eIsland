@@ -337,10 +337,31 @@
   font-size: 12px;
   font-weight: 600;
   color: rgb(var(--color-text-rgb), .8);
+  visibility: hidden;
   overflow-wrap: anywhere;
   text-align: center;
   pointer-events: none;
   user-select: none;
+  isolation: isolate;
+  border-radius: 16px;
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path .3s ease-in-out, visibility 0s .3s;
+
+}
+
+.max-expand-app-hide-zone[data-visible="true"] {
+  visibility: visible;
+  clip-path: inset(0 0 0 0);
+  transition-delay: 0s;
+
+}
+
+.max-expand-app-hide-zone::before,
+.max-expand-app-hide-zone::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
   background: linear-gradient(
     90deg,
     rgb(var(--max-expand-app-hide-zone-rgb), 0) 0%,
@@ -353,12 +374,30 @@
     rgb(var(--max-expand-app-hide-zone-rgb), .191) 87.5%,
     rgb(var(--max-expand-app-hide-zone-rgb), .2) 100%
   );
-  border-radius: 16px;
+  border-radius: inherit;
+  transition: opacity .2s ease-in-out;
 
 }
 
-.max-expand-app-hide-zone[data-active="true"] {
+.max-expand-app-hide-zone::before {
+  opacity: 1;
+
+}
+
+.max-expand-app-hide-zone::after {
   --max-expand-app-hide-zone-rgb: 239, 68, 68;
+
+  opacity: 0;
+
+}
+
+.max-expand-app-hide-zone[data-active="true"]::before {
+  opacity: 0;
+
+}
+
+.max-expand-app-hide-zone[data-active="true"]::after {
+  opacity: 1;
 
 }
 
@@ -500,6 +539,9 @@
 @media (prefers-reduced-motion: reduce) {
   .max-expand-app-launcher-visual,
   .max-expand-app-launcher-circle,
+  .max-expand-app-hide-zone,
+  .max-expand-app-hide-zone::before,
+  .max-expand-app-hide-zone::after,
   .max-expand-app-control {
     transition: none;
 

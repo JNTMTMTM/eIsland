@@ -168,11 +168,14 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
           })}
         </div>
       </div>
-      {dragging && (
-        <div className="max-expand-app-hide-zone" ref={hideZoneRef} data-active={drag.hideTarget || undefined} role="status">
-          {t(drag.hideTarget ? 'maxExpand.appMode.releaseToHide' : 'maxExpand.appMode.dragToHide')}
-        </div>
-      )}
+      <div className="max-expand-app-hide-zone" ref={hideZoneRef}
+        data-visible={dragging || undefined}
+        data-active={drag?.hideTarget || undefined}
+        role={dragging ? 'status' : undefined}
+        aria-hidden={!dragging}
+      >
+        {t(drag?.hideTarget ? 'maxExpand.appMode.releaseToHide' : 'maxExpand.appMode.dragToHide')}
+      </div>
       {saveFailed && (
         <p className="max-expand-app-launcher-error" role="status">
           {t('maxExpand.appMode.saveLayoutFailed')}
