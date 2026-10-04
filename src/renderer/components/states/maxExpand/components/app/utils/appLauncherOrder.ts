@@ -15,7 +15,7 @@
 
 /**
  * @file appLauncherOrder.ts
- * @description 应用导航与 MaxExpand Layout 共用排序，保留全部入口和传统导航可见性。
+ * @description 应用导航与 MaxExpand Layout 共用排序和可见性配置。
  * @author 鸡哥
  */
 
@@ -25,14 +25,16 @@ import type { MaxExpandTab } from '../../../../../../store/types';
 import type { MaxExpandNavLayoutConfig } from '../../setting/utils/settingsConfig';
 
 /**
- * 根据布局顺序排列全部应用，布局未包含的设置入口放在末尾。
- * @param layout - 持久化导航布局，隐藏标记只作用于传统导航。
- * @returns 无重复且完整的应用入口顺序。
+ * 根据布局顺序排列可见应用，布局未包含的设置入口放在末尾。
+ * @param layout - 持久化导航布局，包含排序与显示、隐藏配置。
+ * @returns 无重复的可见应用入口顺序。
  */
 export function getAppLauncherTabs(layout: MaxExpandNavLayoutConfig): MaxExpandTab[] {
-  const ids = normalizeMaxExpandNavLayoutConfig(layout).map((item) => item.id);
+  const normalized = normalizeMaxExpandNavLayoutConfig(layout);
+  const ids = normalized.map((item) => item.id);
   return [
-    ...ids.filter((id): id is MaxExpandTab => MAX_EXPAND_APP_TABS.includes(id as MaxExpandTab)),
+    ...normalized.filter((item) => item.visible).map((item) => item.id)
+      .filter((id): id is MaxExpandTab => MAX_EXPAND_APP_TABS.includes(id as MaxExpandTab)),
     ...MAX_EXPAND_APP_TABS.filter((tab) => !ids.includes(tab)),
   ];
 }

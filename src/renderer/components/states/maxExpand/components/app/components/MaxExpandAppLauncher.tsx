@@ -20,7 +20,7 @@
 
 /**
  * @file MaxExpandAppLauncher.tsx
- * @description 使用错列圆形图标呈现 MaxExpand 全部应用入口。
+ * @description 使用错列圆形图标呈现 MaxExpand Layout 配置为可见的应用入口。
  * @author 鸡哥
  */
 

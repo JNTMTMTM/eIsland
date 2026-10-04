@@ -15,7 +15,7 @@
 
 /**
  * @file useAppLauncherLayout.ts
- * @description 订阅并持久化应用导航与 MaxExpand Layout 共用的顺序。
+ * @description 订阅应用导航与 MaxExpand Layout 共用的排序及可见性，持久化拖动顺序。
  * @author 鸡哥
  */
 
@@ -27,7 +27,7 @@ import type { MaxExpandTab } from '../../../../../../store/types';
 
 /**
  * 当前窗口立即预览提交顺序，保存失败时恢复，其他窗口由主进程同步。
- * @returns 全部应用顺序、加载与保存状态、错误状态及移动入口。
+ * @returns 可见应用顺序、加载与保存状态、错误状态及移动入口。
  */
 export default function useAppLauncherLayout(): {
   tabs: MaxExpandTab[];
@@ -41,7 +41,8 @@ export default function useAppLauncherLayout(): {
   const [saveFailed, setSaveFailed] = useState(false);
   const savingRef = useRef(false);
   const mountedRef = useRef(true);
-  const tabs = useMemo(() => getAppLauncherTabs(navLayoutConfig), [navLayoutConfig]);
+  // 配置读取完成前不展示默认入口，避免已隐藏应用短暂出现并被打开。
+  const tabs = useMemo(() => navLayoutLoaded ? getAppLauncherTabs(navLayoutConfig) : [], [navLayoutConfig, navLayoutLoaded]);
 
   useEffect(() => {
     mountedRef.current = true;

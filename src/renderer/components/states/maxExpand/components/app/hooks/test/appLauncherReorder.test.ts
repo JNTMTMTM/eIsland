@@ -123,22 +123,30 @@ describe('应用导航排序', () => {
     vi.unstubAllGlobals();
   });
 
-  it('读取 Layout 顺序时不隐藏入口，并补齐缺失应用与设置', () => {
+  it('读取 Layout 顺序和可见性，隐藏入口不被补齐逻辑重新加入', () => {
     const layout = [{ id: 'calendar', visible: false }, { id: 'todo', visible: true }, { id: 'calendar', visible: true }, { id: 'removed-app', visible: true }];
     const tabs = getAppLauncherTabs(layout);
-    expect(tabs.slice(0, 2)).toEqual(['calendar', 'todo']);
+    expect(tabs.slice(0, 2)).toEqual(['todo', 'urlFavorites']);
+    expect(tabs).not.toContain('calendar');
     expect(tabs.at(-1)).toBe('settings');
-    expect(new Set(tabs).size).toBe(MAX_EXPAND_APP_TABS.length);
-    expect([...tabs].sort()).toEqual([...MAX_EXPAND_APP_TABS].sort());
+    expect(new Set(tabs).size).toBe(MAX_EXPAND_APP_TABS.length - 1);
+    expect([...tabs].sort()).toEqual(MAX_EXPAND_APP_TABS.filter((tab) => tab !== 'calendar').sort());
+  });
+
+  it('全部应用隐藏时仍保留设置入口，空配置按默认可见性展示', () => {
+    expect(getAppLauncherTabs(DEFAULT_MAXEXPAND_NAV_LAYOUT.map((item) => ({ ...item, visible: false })))).toEqual(['settings']);
+    expect(getAppLauncherTabs([])).toEqual([...DEFAULT_MAXEXPAND_NAV_LAYOUT.map((item) => item.id), 'settings']);
   });
 
   it('移动应用只调整顺序，保留全部应用与可见性且不修改原配置', () => {
     const layout = DEFAULT_MAXEXPAND_NAV_LAYOUT.map((item) => ({ ...item, visible: item.id !== 'calendar' }));
     const snapshot = structuredClone(layout);
-    const updated = reorderAppLauncherLayout(layout, 'calendar', 'todo');
-    expect(updated[0]).toEqual({ id: 'calendar', visible: false });
+    const updated = reorderAppLauncherLayout(layout, 'album', 'todo');
+    expect(updated[0]).toEqual({ id: 'album', visible: true });
     expect(updated[1].id).toBe('todo');
     expect(updated).toHaveLength(layout.length);
+    expect(updated).toContainEqual({ id: 'calendar', visible: false });
+    expect(getAppLauncherTabs(updated)).not.toContain('calendar');
     expect(layout).toEqual(snapshot);
     expect([...updated].sort((a, b) => a.id.localeCompare(b.id))).toEqual([...snapshot].sort((a, b) => a.id.localeCompare(b.id)));
   });
@@ -149,23 +157,26 @@ describe('应用导航排序', () => {
     expect(reorderAppLauncherLayout(DEFAULT_MAXEXPAND_NAV_LAYOUT, 'todo', 'todo')).toBe(DEFAULT_MAXEXPAND_NAV_LAYOUT);
   });
 
-  it('初始化读取完成前禁止排序，防止覆盖已保存顺序', async () => {
+  it('初始化读取完成前不展示入口且禁止排序，避免短暂显示隐藏应用', async () => {
     const initial = render(useAppLauncherLayout);
     expect(initial.ready).toBe(false);
-    await initial.moveApp('todo', 'calendar');
+    expect(initial.tabs).toEqual([]);
+    await initial.moveApp('album', 'todo');
     expect(storeWrite).not.toHaveBeenCalled();
     const loaded = render(useAppLauncherLayout);
     expect(loaded.ready).toBe(true);
-    expect(loaded.tabs.slice(0, 2)).toEqual(['calendar', 'todo']);
+    expect(loaded.tabs.slice(0, 2)).toEqual(['todo', 'urlFavorites']);
+    expect(loaded.tabs).not.toContain('calendar');
     expect(storeRead).toHaveBeenCalledWith(MAXEXPAND_NAV_LAYOUT_STORE_KEY);
   });
 
   it('拖动写回同一份本地 Layout，重新挂载恢复已保存的顺序', async () => {
     render(useAppLauncherLayout);
     await Promise.resolve();
-    await render(useAppLauncherLayout).moveApp('todo', 'calendar');
+    await render(useAppLauncherLayout).moveApp('album', 'todo');
     const saved = render(useAppLauncherLayout);
-    expect(saved.tabs.slice(0, 2)).toEqual(['todo', 'calendar']);
+    expect(saved.tabs.slice(0, 2)).toEqual(['album', 'todo']);
+    expect(saved.tabs).not.toContain('calendar');
     expect(storeWrite).toHaveBeenCalledWith(MAXEXPAND_NAV_LAYOUT_STORE_KEY, expect.arrayContaining([{ id: 'calendar', visible: false }]));
     resetHooks();
     render(useAppLauncherLayout);
@@ -173,15 +184,25 @@ describe('应用导航排序', () => {
     expect(render(useAppLauncherLayout).tabs).toEqual(saved.tabs);
   });
 
-  it.each(['local', 'remote'])('同步设置页的 %s 顺序变更', async (source) => {
+  it.each(['local', 'remote'])('同步设置页的 %s 顺序及显示隐藏变更', async (source) => {
     render(useAppLauncherLayout);
     await Promise.resolve();
-    const updated = [{ id: 'mail', visible: false }, { id: 'album', visible: false }];
+    const updated = [{ id: 'mail', visible: false }, { id: 'album', visible: true }, { id: 'calendar', visible: false }];
     if (source === 'local') window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: updated }));
     else listeners[0](`store:${MAXEXPAND_NAV_LAYOUT_STORE_KEY}`, updated);
     const result = render(useAppLauncherLayout);
-    expect(result.tabs.slice(0, 2)).toEqual(['mail', 'album']);
-    expect(result.tabs).toHaveLength(MAX_EXPAND_APP_TABS.length);
+    expect(result.tabs.slice(0, 2)).toEqual(['album', 'todo']);
+    expect(result.tabs).not.toContain('mail');
+    expect(result.tabs).not.toContain('calendar');
+    expect(result.tabs).toHaveLength(MAX_EXPAND_APP_TABS.length - 2);
+    const toggled = updated.map((item) => ({ ...item, visible: item.id === 'mail' }));
+    if (source === 'local') window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: toggled }));
+    else listeners[0](`store:${MAXEXPAND_NAV_LAYOUT_STORE_KEY}`, toggled);
+    const visible = render(useAppLauncherLayout).tabs;
+    expect(visible[0]).toBe('mail');
+    expect(visible).not.toContain('album');
+    expect(visible.at(-1)).toBe('settings');
+    expect(storeWrite).not.toHaveBeenCalled();
   });
 
   it.each(['false', 'reject'])('保存返回 %s 时保留已保存顺序并提供失败状态', async (failure) => {
@@ -189,7 +210,7 @@ describe('应用导航排序', () => {
     await Promise.resolve();
     const loaded = render(useAppLauncherLayout);
     storeWrite.mockImplementation(() => failure === 'false' ? Promise.resolve(false) : Promise.reject(new Error('disk unavailable')));
-    await loaded.moveApp('todo', 'calendar');
+    await loaded.moveApp('album', 'todo');
     const result = render(useAppLauncherLayout);
     expect(result.tabs).toEqual(loaded.tabs);
     expect(result.saveFailed).toBe(true);
@@ -202,8 +223,8 @@ describe('应用导航排序', () => {
     let finishSave!: (saved: boolean) => void;
     storeWrite.mockImplementation(() => new Promise<boolean>((resolve) => { finishSave = resolve; }));
     const loaded = render(useAppLauncherLayout);
-    const pending = loaded.moveApp('todo', 'calendar');
-    expect(render(useAppLauncherLayout).tabs.slice(0, 2)).toEqual(['todo', 'calendar']);
+    const pending = loaded.moveApp('album', 'todo');
+    expect(render(useAppLauncherLayout).tabs.slice(0, 2)).toEqual(['album', 'todo']);
     await loaded.moveApp('album', 'mail');
     expect(storeWrite).toHaveBeenCalledOnce();
     expect(render(useAppLauncherLayout).saving).toBe(true);
