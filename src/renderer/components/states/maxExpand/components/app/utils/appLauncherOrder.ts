@@ -59,3 +59,17 @@ export function reorderAppLauncherLayout(
   updated.splice(targetIndex, 0, moved);
   return updated;
 }
+
+/**
+ * 将拖入隐藏区的应用标记为隐藏，保留应用数据与原有顺序。
+ * @param layout - 当前导航布局。
+ * @param tab - 要隐藏的应用；设置入口始终保留。
+ * @returns 更新后的完整配置；固定或已隐藏入口返回原配置。
+ */
+export function hideAppLauncherLayout(layout: MaxExpandNavLayoutConfig, tab: MaxExpandTab): MaxExpandNavLayoutConfig {
+  if (tab === 'settings') return layout;
+  const normalized = normalizeMaxExpandNavLayoutConfig(layout);
+  const item = normalized.find((entry) => entry.id === tab);
+  if (!item?.visible) return layout;
+  return normalized.map((entry) => entry.id === tab ? { ...entry, visible: false } : entry);
+}

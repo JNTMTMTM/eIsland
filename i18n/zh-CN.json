@@ -1511,7 +1511,9 @@
       "hint": "选择一个应用开始使用",
       "backToLauncher": "返回应用导航页",
       "controls": "应用控制栏",
-      "saveOrderFailed": "顺序保存失败，请重试"
+      "dragToHide": "拖到这里隐藏应用",
+      "releaseToHide": "松手隐藏应用",
+      "saveLayoutFailed": "布局保存失败，请重试"
     },
     "calendar": {
       "today": "今天",

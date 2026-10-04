@@ -45,13 +45,14 @@ import type { AppLauncherHoverOffset, MaxExpandAppLauncherProps } from '../types
 export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, interactive = true }: MaxExpandAppLauncherProps): ReactElement {
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement>(null);
+  const hideZoneRef = useRef<HTMLDivElement>(null);
   const hoveredAppRef = useRef<MaxExpandTab | null>(null);
   const focusedAppRef = useRef<MaxExpandTab | null>(null);
   const [activeApp, setActiveApp] = useState<MaxExpandTab | null>(null);
   const [offsets, setOffsets] = useState<AppLauncherHoverOffset[]>([]);
-  const { tabs, ready, saving, saveFailed, moveApp } = useAppLauncherLayout();
+  const { tabs, ready, saving, saveFailed, moveApp, hideApp } = useAppLauncherLayout();
   const { pressedTab, drag, onPointerDown, onPointerMove, onPointerUp, cancelDrag, consumeClick } = useAppLauncherDrag(
-    gridRef, interactive && !transitionTab && ready && !saving, moveApp,
+    gridRef, interactive && !transitionTab && ready && !saving, moveApp, hideZoneRef, hideApp,
   );
   const dragging = drag !== null;
 
@@ -167,9 +168,14 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
           })}
         </div>
       </div>
+      {dragging && (
+        <div className="max-expand-app-hide-zone" ref={hideZoneRef} data-active={drag.hideTarget || undefined} role="status">
+          {t(drag.hideTarget ? 'maxExpand.appMode.releaseToHide' : 'maxExpand.appMode.dragToHide')}
+        </div>
+      )}
       {saveFailed && (
         <p className="max-expand-app-launcher-error" role="status">
-          {t('maxExpand.appMode.saveOrderFailed')}
+          {t('maxExpand.appMode.saveLayoutFailed')}
         </p>
       )}
     </section>

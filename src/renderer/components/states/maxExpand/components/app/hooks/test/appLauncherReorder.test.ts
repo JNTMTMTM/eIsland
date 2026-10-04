@@ -23,7 +23,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import useAppLauncherDrag from '../useAppLauncherDrag';
 import useAppLauncherLayout from '../useAppLauncherLayout';
 import { APP_LAUNCHER_LONG_PRESS_MS, MAX_EXPAND_APP_TABS } from '../../config/appLauncherConfig';
-import { getAppLauncherTabs, reorderAppLauncherLayout } from '../../utils/appLauncherOrder';
+import { getAppLauncherTabs, hideAppLauncherLayout, reorderAppLauncherLayout } from '../../utils/appLauncherOrder';
 import { DEFAULT_MAXEXPAND_NAV_LAYOUT, MAXEXPAND_NAV_LAYOUT_STORE_KEY } from '../../../setting/utils/settingsConfig';
 import type { PointerEvent } from 'react';
 
@@ -157,11 +157,24 @@ describe('应用导航排序', () => {
     expect(reorderAppLauncherLayout(DEFAULT_MAXEXPAND_NAV_LAYOUT, 'todo', 'todo')).toBe(DEFAULT_MAXEXPAND_NAV_LAYOUT);
   });
 
+  it('隐藏只更新可见性，保留应用顺序、其他隐藏配置与设置入口', () => {
+    const layout = DEFAULT_MAXEXPAND_NAV_LAYOUT.map((item) => ({ ...item, visible: item.id !== 'calendar' }));
+    const snapshot = structuredClone(layout);
+    const hidden = hideAppLauncherLayout(layout, 'todo');
+    expect(hidden.map((item) => item.id)).toEqual(layout.map((item) => item.id));
+    expect(hidden).toContainEqual({ id: 'todo', visible: false });
+    expect(hidden).toContainEqual({ id: 'calendar', visible: false });
+    expect(layout).toEqual(snapshot);
+    expect(hideAppLauncherLayout(hidden, 'todo')).toBe(hidden);
+    expect(hideAppLauncherLayout(layout, 'settings')).toBe(layout);
+  });
+
   it('初始化读取完成前不展示入口且禁止排序，避免短暂显示隐藏应用', async () => {
     const initial = render(useAppLauncherLayout);
     expect(initial.ready).toBe(false);
     expect(initial.tabs).toEqual([]);
     await initial.moveApp('album', 'todo');
+    await initial.hideApp('todo');
     expect(storeWrite).not.toHaveBeenCalled();
     const loaded = render(useAppLauncherLayout);
     expect(loaded.ready).toBe(true);
@@ -182,6 +195,44 @@ describe('应用导航排序', () => {
     render(useAppLauncherLayout);
     await Promise.resolve();
     expect(render(useAppLauncherLayout).tabs).toEqual(saved.tabs);
+  });
+
+  it('隐藏立即更新入口，保存到同一份 Layout，重启后保持隐藏且可从设置页恢复', async () => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const original = render(useAppLauncherLayout).tabs;
+    const pending = render(useAppLauncherLayout).hideApp('todo');
+    expect(render(useAppLauncherLayout).tabs).not.toContain('todo');
+    await pending;
+    expect(storeWrite).toHaveBeenCalledExactlyOnceWith(MAXEXPAND_NAV_LAYOUT_STORE_KEY,
+      expect.arrayContaining([{ id: 'todo', visible: false }, { id: 'calendar', visible: false }]));
+    resetHooks();
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    expect(render(useAppLauncherLayout).tabs).toEqual(original.filter((tab) => tab !== 'todo'));
+    const restored = (storedLayout as typeof DEFAULT_MAXEXPAND_NAV_LAYOUT).map((item) => ({ ...item, visible: item.id === 'todo' || item.visible }));
+    window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: restored }));
+    expect(render(useAppLauncherLayout).tabs).toEqual(original);
+  });
+
+  it.each(['false', 'reject'])('隐藏保存返回 %s 时恢复图标和可见性', async (failure) => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const original = render(useAppLauncherLayout).tabs;
+    storeWrite.mockImplementation(() => failure === 'false' ? Promise.resolve(false) : Promise.reject(new Error('disk unavailable')));
+    await render(useAppLauncherLayout).hideApp('todo');
+    expect(render(useAppLauncherLayout).tabs).toEqual(original);
+    expect(render(useAppLauncherLayout).saveFailed).toBe(true);
+  });
+
+  it('设置入口和已隐藏应用不会产生保存操作', async () => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const loaded = render(useAppLauncherLayout);
+    await loaded.hideApp('settings');
+    await loaded.hideApp('calendar');
+    expect(storeWrite).not.toHaveBeenCalled();
+    expect(render(useAppLauncherLayout).tabs.at(-1)).toBe('settings');
   });
 
   it.each(['local', 'remote'])('同步设置页的 %s 顺序及显示隐藏变更', async (source) => {
@@ -226,6 +277,7 @@ describe('应用导航排序', () => {
     const pending = loaded.moveApp('album', 'todo');
     expect(render(useAppLauncherLayout).tabs.slice(0, 2)).toEqual(['album', 'todo']);
     await loaded.moveApp('album', 'mail');
+    await loaded.hideApp('todo');
     expect(storeWrite).toHaveBeenCalledOnce();
     expect(render(useAppLauncherLayout).saving).toBe(true);
     finishSave(true);
@@ -237,6 +289,9 @@ describe('应用导航排序', () => {
 describe('应用图标长按拖动', () => {
   let enabled: boolean;
   const moveApp = vi.fn().mockResolvedValue(undefined);
+  const hideApp = vi.fn().mockResolvedValue(undefined);
+  const hideZoneRef = { current: null as HTMLDivElement | null };
+  const hideZone = { getBoundingClientRect: () => ({ left: 240, right: 312, top: 8, bottom: 172 }) } as HTMLDivElement;
   const buttons = ['todo', 'urlFavorites', 'album', 'settings'].map((tab, index) => ({
     dataset: { app: tab },
     setPointerCapture: vi.fn(),
@@ -253,7 +308,7 @@ describe('应用图标长按拖动', () => {
   } as unknown as HTMLDivElement };
 
   function renderDrag(): ReturnType<typeof useAppLauncherDrag> {
-    return render(() => useAppLauncherDrag(gridRef, enabled, moveApp));
+    return render(() => useAppLauncherDrag(gridRef, enabled, moveApp, hideZoneRef, hideApp));
   }
 
   function pointer(x = 30, y = 30, overrides = {}): PointerEvent<HTMLButtonElement> {
@@ -271,6 +326,7 @@ describe('应用图标长按拖动', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     enabled = true;
+    hideZoneRef.current = null;
     if (gridRef.current?.parentElement) gridRef.current.parentElement.scrollTop = 0;
     vi.stubGlobal('window', Object.assign(new EventTarget(), {
       setTimeout: globalThis.setTimeout,
@@ -302,7 +358,7 @@ describe('应用图标长按拖动', () => {
     expect(result.pressedTab).toBe('todo');
     expect(result.drag?.tab).toBe('todo');
     result.onPointerMove(pointer(110));
-    expect(renderDrag().drag).toEqual({ tab: 'todo', target: 'urlFavorites', x: 80, y: 0, offsets: [
+    expect(renderDrag().drag).toEqual({ tab: 'todo', target: 'urlFavorites', x: 80, y: 0, hideTarget: false, offsets: [
       { x: 0, y: 0 }, { x: -80, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 },
     ] });
     result.onPointerUp(pointer(110));
@@ -452,5 +508,82 @@ describe('应用图标长按拖动', () => {
     }
     expect(renderDrag().drag?.y).toBe(100);
     expect(moveApp).not.toHaveBeenCalled();
+  });
+
+  it('进入右侧隐藏区时清除排序预览，松手隐藏一次并抑制误点击', () => {
+    const result = startDrag();
+    hideZoneRef.current = hideZone;
+    result.onPointerMove(pointer(110));
+    result.onPointerMove(pointer(270, 90));
+    expect(renderDrag().drag).toMatchObject({ hideTarget: true, target: null });
+    expect(renderDrag().drag?.offsets.every(({ x, y }) => x === 0 && y === 0)).toBe(true);
+    expect(hideApp).not.toHaveBeenCalled();
+    result.onPointerUp(pointer(270, 90));
+    expect(hideApp).toHaveBeenCalledExactlyOnceWith('todo');
+    expect(moveApp).not.toHaveBeenCalled();
+    expect(renderDrag().drag).toBeNull();
+    expect(renderDrag().pressedTab).toBeNull();
+    expect(result.consumeClick()).toBe(true);
+  });
+
+  it('从隐藏区拖回网格时取消隐藏高亮并恢复排序', () => {
+    const result = startDrag();
+    hideZoneRef.current = hideZone;
+    result.onPointerMove(pointer(270, 90));
+    expect(renderDrag().drag?.hideTarget).toBe(true);
+    result.onPointerMove(pointer(110));
+    expect(renderDrag().drag).toMatchObject({ hideTarget: false, target: 'urlFavorites' });
+    result.onPointerUp(pointer(110));
+    expect(hideApp).not.toHaveBeenCalled();
+    expect(moveApp).toHaveBeenCalledExactlyOnceWith('todo', 'urlFavorites');
+  });
+
+  it.each([true, false])('按松手位置最终判断是否隐藏：%s', (hide) => {
+    const result = startDrag();
+    hideZoneRef.current = hideZone;
+    result.onPointerMove(hide ? pointer(110) : pointer(270, 90));
+    result.onPointerUp(hide ? pointer(270, 90) : pointer(110));
+    expect(hideApp).toHaveBeenCalledTimes(hide ? 1 : 0);
+    expect(moveApp).toHaveBeenCalledTimes(hide ? 0 : 1);
+  });
+
+  it.each(['cancel', 'blur', 'escape', 'disabled'])('隐藏区内 %s 取消不会隐藏或排序', (reason) => {
+    const result = startDrag();
+    hideZoneRef.current = hideZone;
+    result.onPointerMove(pointer(270, 90));
+    if (reason === 'cancel') result.cancelDrag();
+    if (reason === 'blur') window.dispatchEvent(new Event('blur'));
+    if (reason === 'escape') window.dispatchEvent(Object.assign(new Event('keydown'), { key: 'Escape' }));
+    if (reason === 'disabled') { enabled = false; renderDrag(); }
+    expect(hideApp).not.toHaveBeenCalled();
+    expect(moveApp).not.toHaveBeenCalled();
+    expect(renderDrag().drag).toBeNull();
+  });
+
+  it('指针拖出容器底部时图标仍被限制在容器内，但不会误隐藏', () => {
+    const result = startDrag();
+    hideZoneRef.current = hideZone;
+    result.onPointerMove(pointer(110, 1000));
+    expect(renderDrag().drag).toMatchObject({ y: 120, hideTarget: false });
+    result.onPointerUp(pointer(110, 1000));
+    expect(hideApp).not.toHaveBeenCalled();
+  });
+
+  it('指针越过右侧隐藏区拖出容器时不误隐藏，回到区域内恢复高亮', () => {
+    const result = startDrag();
+    hideZoneRef.current = hideZone;
+    result.onPointerMove(pointer(1000, 90));
+    expect(renderDrag().drag).toMatchObject({ x: 260, hideTarget: false });
+    result.onPointerMove(pointer(270, 90));
+    expect(renderDrag().drag?.hideTarget).toBe(true);
+    result.onPointerUp(pointer(1000, 90));
+    expect(hideApp).not.toHaveBeenCalled();
+  });
+
+  it('原本位于隐藏区位置的图标长按后直接松手不会误隐藏', () => {
+    const result = startDrag();
+    hideZoneRef.current = { getBoundingClientRect: () => ({ left: 0, right: 320, top: 0, bottom: 60 }) } as HTMLDivElement;
+    result.onPointerUp(pointer());
+    expect(hideApp).not.toHaveBeenCalled();
   });
 });

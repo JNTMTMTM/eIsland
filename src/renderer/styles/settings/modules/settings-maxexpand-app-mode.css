@@ -99,6 +99,7 @@
 }
 
 .max-expand-app-launcher {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -316,6 +317,48 @@
   line-height: 1.4;
   color: rgb(var(--color-text-rgb), .5);
   text-align: center;
+
+}
+
+.max-expand-app-hide-zone {
+  --max-expand-app-hide-zone-rgb: var(--color-text-rgb);
+
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(96px, 26%, 136px);
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .8);
+  overflow-wrap: anywhere;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--max-expand-app-hide-zone-rgb), 0) 0%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .009) 12.5%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .031) 25%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .063) 37.5%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .1) 50%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .137) 62.5%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .169) 75%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .191) 87.5%,
+    rgb(var(--max-expand-app-hide-zone-rgb), .2) 100%
+  );
+  border-radius: 16px;
+
+}
+
+.max-expand-app-hide-zone[data-active="true"] {
+  --max-expand-app-hide-zone-rgb: 239, 68, 68;
 
 }
 

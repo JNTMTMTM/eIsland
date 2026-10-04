@@ -1511,7 +1511,9 @@
       "hint": "アプリを選んで使い始めましょう",
       "backToLauncher": "アプリ一覧に戻る",
       "controls": "アプリの操作",
-      "saveOrderFailed": "順序を保存できませんでした。もう一度お試しください。"
+      "dragToHide": "ここにドラッグしてアプリを非表示",
+      "releaseToHide": "離してアプリを非表示",
+      "saveLayoutFailed": "レイアウトを保存できませんでした。もう一度お試しください。"
     },
     "calendar": {
       "today": "今日",

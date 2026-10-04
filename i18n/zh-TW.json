@@ -1511,7 +1511,9 @@
       "hint": "選擇一個應用開始使用",
       "backToLauncher": "返回應用導航頁",
       "controls": "應用控制欄",
-      "saveOrderFailed": "順序儲存失敗，請重試"
+      "dragToHide": "拖到這裡隱藏應用",
+      "releaseToHide": "放開以隱藏應用",
+      "saveLayoutFailed": "版面配置儲存失敗，請重試"
     },
     "calendar": {
       "today": "今天",

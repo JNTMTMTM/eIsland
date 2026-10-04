@@ -32,6 +32,7 @@ interface LauncherDrag {
   x: number;
   y: number;
   offsets: AppLauncherHoverOffset[];
+  hideTarget: boolean;
 }
 
 interface LauncherPress {
@@ -52,16 +53,20 @@ interface LauncherPress {
 }
 
 /**
- * 拖动时按插入位置实时让出槽位，松手后提交一次顺序调整。
+ * 拖动时按插入位置实时让出槽位，松手后提交排序或隐藏操作。
  * @param gridRef - 图标网格引用。
  * @param enabled - 导航可交互且布局已加载、没有正在保存时允许长按。
  * @param moveApp - 持久化源应用到目标位置。
+ * @param hideZoneRef - 拖动时显示的右侧隐藏区域。
+ * @param hideApp - 持久化应用隐藏状态。
  * @returns 长按目标、拖动视觉状态、指针处理函数与点击抑制入口。
  */
 export default function useAppLauncherDrag(
   gridRef: RefObject<HTMLDivElement | null>,
   enabled: boolean,
   moveApp: (source: MaxExpandTab, target: MaxExpandTab) => Promise<void>,
+  hideZoneRef: RefObject<HTMLDivElement | null>,
+  hideApp: (tab: MaxExpandTab) => Promise<void>,
 ): {
   pressedTab: MaxExpandTab | null;
   drag: LauncherDrag | null;
@@ -178,7 +183,7 @@ export default function useAppLauncherDrag(
       }
       press.dragging = true;
       suppressClickRef.current = true;
-      const nextDrag = { tab, target: tab, x: offset.x, y: offset.y, offsets: getAppLauncherReorderOffsets(press.positions, press.sourceIndex, press.sourceIndex) };
+      const nextDrag = { tab, target: tab, x: offset.x, y: offset.y, hideTarget: false, offsets: getAppLauncherReorderOffsets(press.positions, press.sourceIndex, press.sourceIndex) };
       dragRef.current = nextDrag;
       setDrag(nextDrag);
     }, APP_LAUNCHER_LONG_PRESS_MS);
@@ -202,12 +207,23 @@ export default function useAppLauncherDrag(
     const source = press.positions[press.sourceIndex];
     const settingsIndex = press.tabs.indexOf('settings');
     const movablePositions = press.positions.slice(0, settingsIndex < 0 ? press.positions.length : settingsIndex);
-    const targetIndex = source ? getAppLauncherInsertionIndex(movablePositions, source.x + offset.x, source.y + offset.y) : -1;
+    const zone = hideZoneRef.current?.getBoundingClientRect();
+    const pointerX = press.x + press.deltaX;
+    const pointerY = press.y + press.deltaY;
+    const centerX = (bounds.left + bounds.right) / 2 + offset.x;
+    const centerY = (bounds.top + bounds.bottom) / 2 + offset.y;
+    // 指针和受边界限制后的图标都需进入隐藏区，容器外松手不会误隐藏。
+    const hideTarget = zone !== undefined && Math.hypot(press.deltaX, press.deltaY) > APP_LAUNCHER_MOVE_TOLERANCE
+      && pointerX >= zone.left && pointerX <= zone.right
+      && pointerY >= zone.top && pointerY <= zone.bottom
+      && centerX >= zone.left && centerX <= zone.right && centerY >= zone.top && centerY <= zone.bottom;
+    let targetIndex = source ? getAppLauncherInsertionIndex(movablePositions, source.x + offset.x, source.y + offset.y) : -1;
+    if (hideTarget) targetIndex = press.sourceIndex;
     const offsets = getAppLauncherReorderOffsets(press.positions, press.sourceIndex, targetIndex);
-    const nextDrag = { offsets, x: offset.x, y: offset.y, tab: press.tab, target: press.tabs[targetIndex] ?? null };
+    const nextDrag = { offsets, hideTarget, x: offset.x, y: offset.y, tab: press.tab, target: hideTarget ? null : press.tabs[targetIndex] ?? null };
     dragRef.current = nextDrag;
     setDrag(nextDrag);
-  }, [gridRef, cancelDrag]);
+  }, [gridRef, hideZoneRef, cancelDrag]);
 
   useEffect(() => {
     const viewport = gridRef.current?.parentElement;
@@ -240,12 +256,15 @@ export default function useAppLauncherDrag(
     if (!press || event.pointerId !== press.pointerId) return;
     if (press.dragging) onPointerMove(event);
     const target = dragRef.current?.target;
-    if (press.dragging && target) {
+    if (press.dragging && dragRef.current?.hideTarget) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 保存函数内部处理失败并回滚，指针回调同步结束拖动。
+      void hideApp(press.tab);
+    } else if (press.dragging && target) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 保存函数内部处理错误，指针回调需同步结束拖动。
       void moveApp(press.tab, target);
     }
     cancelDrag();
-  }, [moveApp, cancelDrag, onPointerMove]);
+  }, [moveApp, hideApp, cancelDrag, onPointerMove]);
 
   const consumeClick = useCallback((keyboard = false): boolean => {
     if (keyboard && !pressRef.current?.dragging) {

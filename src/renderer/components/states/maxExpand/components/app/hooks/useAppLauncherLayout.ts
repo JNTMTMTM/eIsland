@@ -15,19 +15,20 @@
 
 /**
  * @file useAppLauncherLayout.ts
- * @description 订阅应用导航与 MaxExpand Layout 共用的排序及可见性，持久化拖动顺序。
+ * @description 订阅应用导航与 MaxExpand Layout 共用的排序及可见性，持久化拖动排序和隐藏操作。
  * @author 鸡哥
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavLayout } from '../../../hooks/useNavLayout';
 import { MAXEXPAND_NAV_LAYOUT_STORE_KEY } from '../../setting/utils/settingsConfig';
-import { getAppLauncherTabs, reorderAppLauncherLayout } from '../utils/appLauncherOrder';
+import { getAppLauncherTabs, hideAppLauncherLayout, reorderAppLauncherLayout } from '../utils/appLauncherOrder';
 import type { MaxExpandTab } from '../../../../../../store/types';
+import type { MaxExpandNavLayoutConfig } from '../../setting/utils/settingsConfig';
 
 /**
- * 当前窗口立即预览提交顺序，保存失败时恢复，其他窗口由主进程同步。
- * @returns 可见应用顺序、加载与保存状态、错误状态及移动入口。
+ * 当前窗口立即预览排序或隐藏结果，保存失败时恢复，其他窗口由主进程同步。
+ * @returns 可见应用顺序、加载与保存状态、错误状态及移动、隐藏入口。
  */
 export default function useAppLauncherLayout(): {
   tabs: MaxExpandTab[];
@@ -35,6 +36,7 @@ export default function useAppLauncherLayout(): {
   saving: boolean;
   saveFailed: boolean;
   moveApp: (source: MaxExpandTab, target: MaxExpandTab) => Promise<void>;
+  hideApp: (tab: MaxExpandTab) => Promise<void>;
 } {
   const { navLayoutConfig, navLayoutLoaded } = useNavLayout();
   const [saving, setSaving] = useState(false);
@@ -49,9 +51,8 @@ export default function useAppLauncherLayout(): {
     return () => { mountedRef.current = false; };
   }, []);
 
-  const moveApp = useCallback(async (source: MaxExpandTab, target: MaxExpandTab): Promise<void> => {
+  const saveLayout = useCallback(async (updated: MaxExpandNavLayoutConfig): Promise<void> => {
     if (!navLayoutLoaded || savingRef.current) return;
-    const updated = reorderAppLauncherLayout(navLayoutConfig, source, target);
     if (updated === navLayoutConfig) return;
     savingRef.current = true;
     setSaving(true);
@@ -69,5 +70,12 @@ export default function useAppLauncherLayout(): {
     }
   }, [navLayoutConfig, navLayoutLoaded]);
 
-  return { tabs, saving, saveFailed, moveApp, ready: navLayoutLoaded };
+  const moveApp = useCallback((source: MaxExpandTab, target: MaxExpandTab): Promise<void> => (
+    saveLayout(reorderAppLauncherLayout(navLayoutConfig, source, target))
+  ), [navLayoutConfig, saveLayout]);
+  const hideApp = useCallback((tab: MaxExpandTab): Promise<void> => (
+    saveLayout(hideAppLauncherLayout(navLayoutConfig, tab))
+  ), [navLayoutConfig, saveLayout]);
+
+  return { tabs, saving, saveFailed, moveApp, hideApp, ready: navLayoutLoaded };
 }

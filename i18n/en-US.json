@@ -1511,7 +1511,9 @@
       "hint": "Choose an app to get started",
       "backToLauncher": "Back to apps",
       "controls": "App controls",
-      "saveOrderFailed": "Could not save the order. Please try again."
+      "dragToHide": "Drag here to hide the app",
+      "releaseToHide": "Release to hide the app",
+      "saveLayoutFailed": "Could not save the layout. Please try again."
     },
     "calendar": {
       "today": "Today",
