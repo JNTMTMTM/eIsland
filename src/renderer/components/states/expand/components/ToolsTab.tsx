@@ -104,17 +104,19 @@ export function ToolsTab(): React.ReactElement {
     let hasInvalid = false;
     let hasValid = false;
     let hasDuplicate = false;
+    let addedCount = 0;
     for (let i = 0; i < files.length; i++) {
       const filePath = window.api.getPathForFile(files[i]);
       if (!filePath) continue;
       if (!/\.(exe|lnk)$/i.test(filePath)) { hasInvalid = true; continue; }
       if (apps.some(a => a.path === filePath)) { hasDuplicate = true; continue; }
-      if (apps.length >= MAX_APPS) break;
+      if (apps.length + addedCount >= MAX_APPS) break;
       hasValid = true;
       const name = filePath.split('\\').pop()?.replace(/\.(exe|lnk)$/i, '') || t('toolsTab.defaultAppName', { defaultValue: 'App' });
       try {
         const iconBase64 = await window.api.getFileIcon(filePath);
-        setApps(prev => [...prev, { id: Date.now() + Math.random(), name, path: filePath, iconBase64 }]);
+        setApps(prev => prev.length >= MAX_APPS ? prev : [...prev, { id: Date.now() + Math.random(), name, path: filePath, iconBase64 }]);
+        addedCount += 1;
       } catch { /* noop */ }
     }
     if (hasInvalid && !hasValid) {

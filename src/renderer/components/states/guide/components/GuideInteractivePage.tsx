@@ -46,7 +46,14 @@ interface GuideInteractivePageProps {
 /**
  * 渲染引导页互动卡片内容。
  * @param props - 互动卡片页面参数。
- * @returns 互动卡片页面。
+ * @param props.page - 当前引导页索引。
+ * @param props.cards - 互动卡片列表，空列表不渲染页面。
+ * @param props.cardIndex - 卡片索引，小数向下取整，NaN 使用首张，越界值限制到有效范围。
+ * @param props.hint - 卡片上方的互动提示。
+ * @param props.animDir - 卡片切换动画的方向。
+ * @param props.onWheel - 页面滚轮事件处理函数。
+ * @param props.renderMini - 使用规范化索引渲染互动演示。
+ * @returns 互动卡片页面，卡片列表为空时返回 null。
  */
 export function GuideInteractivePage({
   page,
@@ -56,8 +63,10 @@ export function GuideInteractivePage({
   animDir,
   onWheel,
   renderMini,
-}: GuideInteractivePageProps): ReactElement {
-  const safeIdx = Math.min(cardIndex, cards.length - 1);
+}: GuideInteractivePageProps): ReactElement | null {
+  if (cards.length === 0) return null;
+  const normalizedIdx = Number.isNaN(cardIndex) ? 0 : Math.floor(cardIndex);
+  const safeIdx = Math.max(0, Math.min(normalizedIdx, cards.length - 1));
   const card = cards[safeIdx];
 
   return (
@@ -68,7 +77,7 @@ export function GuideInteractivePage({
           {cards.map((_, i) => (
             <span
               key={i}
-              className={`guide-interact-dot${cardIndex === i ? ' active' : ''}`}
+              className={`guide-interact-dot${safeIdx === i ? ' active' : ''}`}
             />
           ))}
         </div>
@@ -76,7 +85,7 @@ export function GuideInteractivePage({
 
       <div
         className={`guide-interact-card ${animDir === 'down' ? 'guide-slide-up' : 'guide-slide-down'}`}
-        key={`card-${cardIndex}`}
+        key={`card-${safeIdx}`}
       >
         <div className="guide-interact-card-text">
           <img className={`guide-interact-icon${card.iconSrc === SvgIcon.POMODORO ? ' no-invert' : ''}`} src={card.iconSrc} alt="" aria-hidden="true" />
