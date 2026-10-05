@@ -26,14 +26,14 @@
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/index.css';
-import DynamicIsland from './components/DynamicIsland';
-import useIslandStore from './store/slices';
-import { hydrateWeatherLocationConfigFromStore } from './store/utils/storage';
-import { initTheme } from './utils/theme';
-import { initFonts } from './utils/font';
-import { bootstrapAuthSession } from './utils/authSession';
-import i18n from './i18n';
+import '../styles/index.css';
+import useIslandStore from '../store/slices';
+import { hydrateWeatherLocationConfigFromStore } from '../store/utils/storage';
+import { initTheme } from '../utils/theme';
+import { initFonts } from '../utils/font';
+import { bootstrapAuthSession } from '../utils/authSession';
+import i18n from '../i18n';
+import DynamicIsland from './DynamicIsland';
 
 function applyIslandOpacity(opacity: number): void {
   const safe = Math.max(10, Math.min(100, Math.round(opacity)));

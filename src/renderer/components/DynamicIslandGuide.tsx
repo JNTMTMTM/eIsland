@@ -27,24 +27,24 @@
  */
 
 import { StrictMode, useState, useCallback } from 'react';
-import type { ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/guide.css';
-import { WaveEffect } from './components/components/DynamicIslandSharedWaveEffect';
-import { LanguageStep } from './components/components/DynamicIslandGuidePages/language';
-import { WhitelistStep } from './components/components/DynamicIslandGuidePages/smtc-white-list';
-import { SmtcStep } from './components/components/DynamicIslandGuidePages/smtc-test';
-import { ThemeStep } from './components/components/DynamicIslandGuidePages/theme';
-import { ShapeStep } from './components/components/DynamicIslandGuidePages/shape';
-import { LyricModeStep } from './components/components/DynamicIslandGuidePages/lyric-mode';
-import { UpdateStep } from './components/components/DynamicIslandGuidePages/update';
-import { GithubStep } from './components/components/DynamicIslandGuidePages/github';
-import { SponsorStep } from './components/components/DynamicIslandGuidePages/sponsors';
-import { WelcomeStep } from './components/components/DynamicIslandGuidePages/welcome';
-import { ProcessIndicator } from './components/components/DynamicIslandProcessIndicator';
-import { useSmtcAccentColor } from './components/components/DynamicIslandGuidePages/smtc-test/hooks/useSmtcAccentColor';
-import type { GuideStep } from './types/DynamicIslandGuideTypes';
-import { GUIDE_STEP_INDEX, GUIDE_STEP_TOTAL } from './types/DynamicIslandGuideTypes';
+import '../styles/guide.css';
+import { GUIDE_STEP_INDEX, GUIDE_STEP_TOTAL } from '../types/DynamicIslandGuideTypes';
+import { WaveEffect } from './components/DynamicIslandSharedWaveEffect';
+import { LanguageStep } from './components/DynamicIslandGuidePages/language';
+import { WhitelistStep } from './components/DynamicIslandGuidePages/smtc-white-list';
+import { SmtcStep } from './components/DynamicIslandGuidePages/smtc-test';
+import { ThemeStep } from './components/DynamicIslandGuidePages/theme';
+import { ShapeStep } from './components/DynamicIslandGuidePages/shape';
+import { LyricModeStep } from './components/DynamicIslandGuidePages/lyric-mode';
+import { UpdateStep } from './components/DynamicIslandGuidePages/update';
+import { GithubStep } from './components/DynamicIslandGuidePages/github';
+import { SponsorStep } from './components/DynamicIslandGuidePages/sponsors';
+import { WelcomeStep } from './components/DynamicIslandGuidePages/welcome';
+import { ProcessIndicator } from './components/DynamicIslandProcessIndicator';
+import { useSmtcAccentColor } from './components/DynamicIslandGuidePages/smtc-test/hooks/useSmtcAccentColor';
+import type { ReactElement } from 'react';
+import type { GuideStep } from '../types/DynamicIslandGuideTypes';
 
 /** 引导窗口根组件 */
 function GuideApp(): ReactElement {

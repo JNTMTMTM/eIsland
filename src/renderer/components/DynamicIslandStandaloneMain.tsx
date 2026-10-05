@@ -26,15 +26,15 @@
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/index.css';
-import './styles/settings/settings.css';
-import './styles/standalone-window.css';
-import { StandaloneWindow } from './components/StandaloneWindow';
-import { initTheme } from './utils/theme';
-import { bootstrapAuthSession } from './utils/authSession';
-import useIslandStore from './store/slices';
-import type { NowPlayingInfo } from './store/types';
-import i18n from './i18n';
+import '../styles/index.css';
+import '../styles/settings/settings.css';
+import '../styles/standalone-window.css';
+import { initTheme } from '../utils/theme';
+import { bootstrapAuthSession } from '../utils/authSession';
+import useIslandStore from '../store/slices';
+import i18n from '../i18n';
+import { StandaloneWindow } from './StandaloneWindow';
+import type { NowPlayingInfo } from '../store/types';
 
 const root = document.getElementById('root');
 if (!root) {

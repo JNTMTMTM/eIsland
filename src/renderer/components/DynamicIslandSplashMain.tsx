@@ -26,9 +26,9 @@
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/splash.css';
-import { SplashScreen } from './components/SplashScreen';
-import i18n from './i18n';
+import '../styles/splash.css';
+import i18n from '../i18n';
+import { SplashScreen } from './SplashScreen';
 
 const root = document.getElementById('root');
 if (!root) {

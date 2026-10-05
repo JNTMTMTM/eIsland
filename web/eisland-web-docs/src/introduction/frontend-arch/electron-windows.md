@@ -24,7 +24,7 @@ This document covers all BrowserWindow instances in the eIsland application. The
 :::note
 All windows share the same preload script (`../preload/index.js`) except the Capture window, which uses `nodeIntegration: true` for direct Node.js access. The two glow windows (Agent Voice Input and CLI Glow) share the same HTML entry point.
 
-Renderer HTML sources live in `src/renderer/html/` and build to `out/renderer/html/`. React page URLs use `/html/<entry>.html`; their entry scripts remain in `src/renderer/` and are referenced with `../` from the source HTML files. The glow page uses `DynamicIslandAibackground/index.html`, with a bootstrap script in `js/index.js`, animation parameters in `js/config/animationConfig.js`, animation control in `js/utils/animationUtils.js`, Canvas drawing in `js/utils/canvasUtils.js`, and styles in `styles/index.css`.
+Renderer HTML sources live in `src/renderer/html/` and build to `out/renderer/html/`. React page URLs use `/html/<entry>.html`; their TSX entry scripts live in `src/renderer/components/` and are referenced with `../components/` from the source HTML files. The glow page uses `DynamicIslandAibackground/index.html`, with a bootstrap script in `js/index.js`, animation parameters in `js/config/animationConfig.js`, animation control in `js/utils/animationUtils.js`, Canvas drawing in `js/utils/canvasUtils.js`, and styles in `styles/index.css`.
 :::
 
 ---
