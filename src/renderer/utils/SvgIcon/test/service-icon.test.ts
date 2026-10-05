@@ -34,10 +34,10 @@ describe('ServiceIcon', () => {
     expect(ServiceIcon).toHaveProperty('TENCENTCLOUD');
   });
 
-  it('all values should be strings starting with ./svg/services/ and ending with .svg', () => {
+  it('all values should be strings starting with ../svg/services/ and ending with .svg', () => {
     Object.entries(ServiceIcon).forEach(([, value]) => {
       expect(typeof value).toBe('string');
-      expect(value).toMatch(/^\.\/svg\/services\/.+\.svg$/);
+      expect(value).toMatch(/^\.\.\/svg\/services\/.+\.svg$/);
     });
   });
 

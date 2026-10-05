@@ -53,7 +53,7 @@ describe('CalculatorIcon', () => {
   it('all values should be strings ending with .svg', () => {
     Object.entries(CalculatorIcon).forEach(([, value]) => {
       expect(typeof value).toBe('string');
-      expect(value).toMatch(/^\.\/svg\/.+\.svg$/);
+      expect(value).toMatch(/^\.\.\/svg\/.+\.svg$/);
     });
   });
 

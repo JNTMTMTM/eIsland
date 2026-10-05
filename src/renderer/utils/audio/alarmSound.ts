@@ -45,19 +45,19 @@ export const ALARM_SOUND_STOP_EVENT = 'alarm-sound-stop';
 export const SYSTEM_ALARM_RINGTONE_OPTIONS: SystemAlarmRingtoneOption[] = [
   {
     value: SystemAlarmRingtone.ALARM_1,
-    src: './audio/ALARM/ALARM_1.wav',
+    src: '../audio/ALARM/ALARM_1.wav',
     labelKey: 'maxExpand.alarm.ringtones.alarm1',
     defaultLabel: '系统铃声 1',
   },
   {
     value: SystemAlarmRingtone.ALARM_2,
-    src: './audio/ALARM/ALARM_2.wav',
+    src: '../audio/ALARM/ALARM_2.wav',
     labelKey: 'maxExpand.alarm.ringtones.alarm2',
     defaultLabel: '系统铃声 2',
   },
   {
     value: SystemAlarmRingtone.ALARM_3,
-    src: './audio/ALARM/ALARM_NAILONG_3.mp3',
+    src: '../audio/ALARM/ALARM_NAILONG_3.mp3',
     labelKey: 'maxExpand.alarm.ringtones.alarm3',
     defaultLabel: '奶蛙捧腹大笑',
   },
@@ -104,7 +104,7 @@ function cancelFadeAnimation(): void {
 }
 
 function getRingtoneSrc(ringtone: SystemAlarmRingtone): string {
-  return RINGTONE_SRC_MAP.get(ringtone) || RINGTONE_SRC_MAP.get(DEFAULT_SYSTEM_ALARM_RINGTONE) || './audio/ALARM/ALARM_1.wav';
+  return RINGTONE_SRC_MAP.get(ringtone) || RINGTONE_SRC_MAP.get(DEFAULT_SYSTEM_ALARM_RINGTONE) || '../audio/ALARM/ALARM_1.wav';
 }
 
 function ensureAudio(ringtone: SystemAlarmRingtone): HTMLAudioElement {

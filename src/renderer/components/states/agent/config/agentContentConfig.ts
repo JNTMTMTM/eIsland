@@ -27,12 +27,12 @@
 export type AgentPhase = 'connecting' | 'thinking' | 'toolCalling' | 'answering' | 'done' | 'error';
 
 export const PHASE_IMAGE: Record<AgentPhase, string> = {
-  connecting: 'image/AGENT_DEFAULT.png',
-  thinking: 'image/AGENT_THINKING.png',
-  toolCalling: 'image/AGENT_TOOL_CALLING.png',
-  answering: 'image/AGENT_FINAL_ANSWER.png',
-  done: 'image/AGENT_FINAL_ANSWER.png',
-  error: 'image/AGENT_CONFUSE.png',
+  connecting: '../image/AGENT_DEFAULT.png',
+  thinking: '../image/AGENT_THINKING.png',
+  toolCalling: '../image/AGENT_TOOL_CALLING.png',
+  answering: '../image/AGENT_FINAL_ANSWER.png',
+  done: '../image/AGENT_FINAL_ANSWER.png',
+  error: '../image/AGENT_CONFUSE.png',
 };
 
 export const PHASE_LABEL: Record<AgentPhase, string> = {

@@ -35,10 +35,10 @@ describe('GifIcon', () => {
     expect(GifIcon).toHaveProperty('CLAWD_WAVING');
   });
 
-  it('all values should be strings starting with ./gif/ and ending with .gif', () => {
+  it('all values should be strings starting with ../gif/ and ending with .gif', () => {
     Object.entries(GifIcon).forEach(([, value]) => {
       expect(typeof value).toBe('string');
-      expect(value).toMatch(/^\.\/gif\/.+\.gif$/);
+      expect(value).toMatch(/^\.\.\/gif\/.+\.gif$/);
     });
   });
 

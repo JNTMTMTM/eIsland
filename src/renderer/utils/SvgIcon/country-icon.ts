@@ -24,14 +24,14 @@
  * @author 鸡哥
  */
 
-const chinaIcon = './svg/countries/CHN.svg';
-const usaIcon = './svg/countries/USA.svg';
-const japanIcon = './svg/countries/JP.svg';
-const koreaIcon = './svg/countries/KR.svg';
-const franceIcon = './svg/countries/FR.svg';
-const germanyIcon = './svg/countries/DE.svg';
-const spainIcon = './svg/countries/ES.svg';
-const russiaIcon = './svg/countries/RU.svg';
+const chinaIcon = '../svg/countries/CHN.svg';
+const usaIcon = '../svg/countries/USA.svg';
+const japanIcon = '../svg/countries/JP.svg';
+const koreaIcon = '../svg/countries/KR.svg';
+const franceIcon = '../svg/countries/FR.svg';
+const germanyIcon = '../svg/countries/DE.svg';
+const spainIcon = '../svg/countries/ES.svg';
+const russiaIcon = '../svg/countries/RU.svg';
 
 export const COUNTRY_ALIASES: Record<string, string> = {
   cn: 'CHN',

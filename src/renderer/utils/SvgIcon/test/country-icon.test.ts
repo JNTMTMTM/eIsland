@@ -74,15 +74,15 @@ describe('resolveCountryCode', () => {
 
 describe('resolveCountryIcon', () => {
   it('returns SVG path for known country codes', () => {
-    expect(resolveCountryIcon('cn')).toBe('./svg/countries/CHN.svg');
-    expect(resolveCountryIcon('us')).toBe('./svg/countries/USA.svg');
-    expect(resolveCountryIcon('jp')).toBe('./svg/countries/JP.svg');
-    expect(resolveCountryIcon('ja-JP')).toBe('./svg/countries/JP.svg');
-    expect(resolveCountryIcon('kr')).toBe('./svg/countries/KR.svg');
-    expect(resolveCountryIcon('fr')).toBe('./svg/countries/FR.svg');
-    expect(resolveCountryIcon('de')).toBe('./svg/countries/DE.svg');
-    expect(resolveCountryIcon('es')).toBe('./svg/countries/ES.svg');
-    expect(resolveCountryIcon('ru')).toBe('./svg/countries/RU.svg');
+    expect(resolveCountryIcon('cn')).toBe('../svg/countries/CHN.svg');
+    expect(resolveCountryIcon('us')).toBe('../svg/countries/USA.svg');
+    expect(resolveCountryIcon('jp')).toBe('../svg/countries/JP.svg');
+    expect(resolveCountryIcon('ja-JP')).toBe('../svg/countries/JP.svg');
+    expect(resolveCountryIcon('kr')).toBe('../svg/countries/KR.svg');
+    expect(resolveCountryIcon('fr')).toBe('../svg/countries/FR.svg');
+    expect(resolveCountryIcon('de')).toBe('../svg/countries/DE.svg');
+    expect(resolveCountryIcon('es')).toBe('../svg/countries/ES.svg');
+    expect(resolveCountryIcon('ru')).toBe('../svg/countries/RU.svg');
   });
 
   it('returns undefined for unknown country codes', () => {
@@ -124,13 +124,13 @@ describe('CountryIcon', () => {
   });
 
   it('maps keys to SVG paths', () => {
-    expect(CountryIcon.CHN).toBe('./svg/countries/CHN.svg');
-    expect(CountryIcon.USA).toBe('./svg/countries/USA.svg');
-    expect(CountryIcon.JP).toBe('./svg/countries/JP.svg');
-    expect(CountryIcon.KR).toBe('./svg/countries/KR.svg');
-    expect(CountryIcon.FR).toBe('./svg/countries/FR.svg');
-    expect(CountryIcon.DE).toBe('./svg/countries/DE.svg');
-    expect(CountryIcon.ES).toBe('./svg/countries/ES.svg');
-    expect(CountryIcon.RU).toBe('./svg/countries/RU.svg');
+    expect(CountryIcon.CHN).toBe('../svg/countries/CHN.svg');
+    expect(CountryIcon.USA).toBe('../svg/countries/USA.svg');
+    expect(CountryIcon.JP).toBe('../svg/countries/JP.svg');
+    expect(CountryIcon.KR).toBe('../svg/countries/KR.svg');
+    expect(CountryIcon.FR).toBe('../svg/countries/FR.svg');
+    expect(CountryIcon.DE).toBe('../svg/countries/DE.svg');
+    expect(CountryIcon.ES).toBe('../svg/countries/ES.svg');
+    expect(CountryIcon.RU).toBe('../svg/countries/RU.svg');
   });
 });

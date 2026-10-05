@@ -31,7 +31,7 @@ const { SvgIconMock } = vi.hoisted(() => {
   const SvgIconMock: Record<string, string> = new Proxy(
     {},
     {
-      get: (_target, prop: string) => `./svg/${prop}.svg`,
+      get: (_target, prop: string) => `../svg/${prop}.svg`,
     },
   );
   return { SvgIconMock };

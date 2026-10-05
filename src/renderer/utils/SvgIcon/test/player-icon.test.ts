@@ -38,10 +38,10 @@ describe('PlayerIcon', () => {
     expect(PlayerIcon).toHaveProperty('SPOTIFY');
   });
 
-  it('all values should be strings starting with ./svg/player/ and ending with .svg', () => {
+  it('all values should be strings starting with ../svg/player/ and ending with .svg', () => {
     Object.entries(PlayerIcon).forEach(([, value]) => {
       expect(typeof value).toBe('string');
-      expect(value).toMatch(/^\.\/svg\/player\/.+\.svg$/);
+      expect(value).toMatch(/^\.\.\/svg\/player\/.+\.svg$/);
     });
   });
 
