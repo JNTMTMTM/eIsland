@@ -345,7 +345,7 @@
   isolation: isolate;
   border-radius: 16px;
   clip-path: inset(0 0 0 100%);
-  transition: clip-path .3s ease-in-out, visibility 0s .3s;
+  transition: clip-path .3s cubic-bezier(.45, 0, .2, 1), visibility 0s .3s;
 
 }
 
@@ -375,7 +375,7 @@
     rgb(var(--max-expand-app-hide-zone-rgb), .2) 100%
   );
   border-radius: inherit;
-  transition: opacity .2s ease-in-out;
+  transition: opacity .2s cubic-bezier(.4, 0, .2, 1);
 
 }
 
