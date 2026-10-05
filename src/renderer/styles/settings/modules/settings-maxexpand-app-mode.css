@@ -316,6 +316,11 @@
 
 }
 
+.max-expand-app-launcher-item[data-drag-source="true"][data-hide-target="true"] .max-expand-app-hold-progress {
+  color: rgb(239 68 68);
+
+}
+
 .max-expand-app-launcher-error {
   flex-shrink: 0;
   margin: 8px 16px 0;
