@@ -26,7 +26,7 @@
 
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 import { render, nodes, value, trigger, text } from '../../test/componentHarness';
-import { SettingsTab as Component } from '../SettingsTab';
+import { SettingsTab as Component } from '../setting';
 import { IndexSettingsSection } from '../setting/components/index/IndexSettingsSection';
 import { AppSettingsSection } from '../setting/components/app/AppSettingsSection';
 import { NetworkSettingsSection } from '../setting/components/network/NetworkSettingsSection';

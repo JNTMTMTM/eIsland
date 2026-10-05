@@ -32,7 +32,7 @@ import { AlbumTab } from '../states/maxExpand/components/album/components/AlbumT
 import { MailTab } from '../states/maxExpand/components/mail';
 import { LocalFileSearchTab } from '../states/maxExpand/components/localFileSearch/components/LocalFileSearchTab';
 import { ClipboardHistoryTab } from '../states/maxExpand/components/clipBoardHistory';
-import { SettingsTab } from '../states/maxExpand/components/SettingsTab';
+import { SettingsTab } from '../states/maxExpand/components/setting';
 import { MemoTab } from '../states/maxExpand/components/memo/components/MemoTab';
 import { AlarmTab } from '../states/maxExpand/components/alarm/components/AlarmTab';
 import { ToolboxTab } from '../states/maxExpand/components/ToolboxTab';

@@ -45,7 +45,7 @@ import { CliTab } from '../components/cli';
 import { CalculatorTab } from '../components/calculator';
 import { WorldClockTab } from '../components/worldClock';
 import { CalendarTab } from '../components/calendar';
-import { SettingsTab } from '../components/SettingsTab';
+import { SettingsTab } from '../components/setting';
 import { render, value } from './componentHarness';
 vi.mock('../components/agent/components/AiChatTab', () => ({ AiChatTab: () => null }));
 vi.mock('../components/todo/components/TodoTab', () => ({ TodoTab: () => null }));
@@ -64,7 +64,7 @@ vi.mock('../components/cli', () => ({ CliTab: () => null }));
 vi.mock('../components/calculator', () => ({ CalculatorTab: () => null }));
 vi.mock('../components/worldClock', () => ({ WorldClockTab: () => null }));
 vi.mock('../components/calendar', () => ({ CalendarTab: () => null }));
-vi.mock('../components/SettingsTab', () => ({ SettingsTab: () => null }));
+vi.mock('../components/setting', () => ({ SettingsTab: () => null }));
 describe('MaxExpandContentEager', () => {
   const cases = [['aiChat', AiChatTab], ['todo', TodoTab], ['urlFavorites', UrlFavoritesTab], ['localFileSearch', LocalFileSearchTab], ['clipboardHistory', ClipboardHistoryTab], ['album', AlbumTab], ['mail', MailTab], ['memo', MemoTab], ['countdown', CountdownTab], ['alarm', AlarmTab], ['toolbox', ToolboxTab], ['miniGame', MiniGameTab], ['stock', StockTab], ['cli', CliTab], ['calculator', CalculatorTab], ['worldClock', WorldClockTab], ['calendar', CalendarTab], ['settings', SettingsTab]] as const;
   it.each(cases)('renders the real routing branch for %s', (tab, child) => {
