@@ -103,6 +103,22 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   let pendingResizeTimer: ReturnType<typeof setTimeout> | null = null;
   let logicalWindowSize: { width: number; height: number } | null = null;
 
+  /**
+   * 首次 resize 前也按 idle 宽度返回逻辑边界，排除预留的透明区域。
+   * @param win - 灵动岛主窗口。
+   * @returns 可见区域的屏幕坐标与尺寸。
+   */
+  const getVisibleBounds = (win: BrowserWindow): Electron.Rectangle => {
+    const bounds = win.getBounds();
+    const width = logicalWindowSize?.width ?? options.sizes.islandWidth;
+    return {
+      x: Math.round(bounds.x + (bounds.width - width) / 2),
+      y: bounds.y,
+      width,
+      height: logicalWindowSize?.height ?? bounds.height,
+    };
+  };
+
   const withWindow = (fn: (win: BrowserWindow) => void): void => {
     const win = options.getMainWindow();
     if (!win || win.isDestroyed()) return;
@@ -153,7 +169,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
       withWindow((win) => {
         const targetBounds = getTargetBounds(win);
         const currentBounds = win.getBounds();
-        const currentSize = logicalWindowSize ?? currentBounds;
+        const currentSize = getVisibleBounds(win);
         const currentCenterX = currentBounds.x + currentBounds.width / 2;
         applyWindowGeometry(
           win,
@@ -341,15 +357,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     const win = options.getMainWindow();
     if (!win || win.isDestroyed()) return null;
 
-    const currentBounds = win.getBounds();
-    const bounds = logicalWindowSize
-      ? {
-        x: Math.round(currentBounds.x + (currentBounds.width - logicalWindowSize.width) / 2),
-        y: currentBounds.y,
-        width: logicalWindowSize.width,
-        height: logicalWindowSize.height,
-      }
-      : currentBounds;
+    const bounds = getVisibleBounds(win);
     const point = screen.getCursorScreenPoint();
     return {
       mousePosition: { x: point.x, y: point.y },
@@ -360,14 +368,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.handle('window:get-bounds', () => {
     const win = options.getMainWindow();
     if (win && !win.isDestroyed()) {
-      const bounds = win.getBounds();
-      if (!logicalWindowSize) return bounds;
-      return {
-        x: Math.round(bounds.x + (bounds.width - logicalWindowSize.width) / 2),
-        y: bounds.y,
-        width: logicalWindowSize.width,
-        height: logicalWindowSize.height,
-      };
+      return getVisibleBounds(win);
     }
     return null;
   });

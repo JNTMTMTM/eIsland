@@ -367,6 +367,7 @@ const mainWindowService = createMainWindowService({
   sizes: {
     islandWidth: ISLAND_WIDTH,
     islandHeight: ISLAND_HEIGHT,
+    backingWidth: Math.max(ISLAND_WIDTH, EXPANDED_WIDTH, NOTIFICATION_WIDTH, LYRICS_WIDTH, EXPANDED_FULL_WIDTH, SETTINGS_WIDTH),
   },
   onReadyToShow: async () => {
     await closeSplashWindow();
