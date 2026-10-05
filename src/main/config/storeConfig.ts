@@ -498,7 +498,7 @@ export function readToggleShapeModeHotkeyConfig(): string {
  */
 export function readWhitelistConfig(): string[] {
   const data = readJsonFile(WHITELIST_STORE_KEY);
-  return Array.isArray(data) ? data : DEFAULT_WHITELIST;
+  return Array.isArray(data) ? data.filter((item): item is string => typeof item === 'string') : DEFAULT_WHITELIST;
 }
 
 /**

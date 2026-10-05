@@ -28,7 +28,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAlbumMediaInfo, handleAlbumMediaRequest } from './albumMedia';
+import { getAlbumMediaInfo, handleAlbumMediaRequest } from '../albumMedia';
 import type { ReadStream } from 'node:fs';
 
 const { readFile, stat, streams } = vi.hoisted(() => ({ readFile: vi.fn(), stat: vi.fn(), streams: [] as ReadStream[] }));

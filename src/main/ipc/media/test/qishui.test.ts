@@ -5,10 +5,17 @@
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
  *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -18,6 +25,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { registerQishuiBusinessIpcHandlers } from '../qishui';
 
 const { handleMock, businessMock } = vi.hoisted(() => ({
   handleMock: vi.fn(),
@@ -42,8 +51,6 @@ const { handleMock, businessMock } = vi.hoisted(() => ({
 
 vi.mock('electron', () => ({ ipcMain: { handle: handleMock } }));
 vi.mock('../../../music/providers/qishuiBusinessService', () => ({ qishuiBusiness: businessMock }));
-
-import { registerQishuiBusinessIpcHandlers } from '../qishui';
 
 describe('qishui business ipc', () => {
   const handlers = new Map<string, (...args: unknown[]) => unknown>();

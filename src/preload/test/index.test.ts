@@ -20,13 +20,13 @@
 
 /**
  * @file index.test.ts
- * @description 单元测试文件
+ * @description 预加载 IPC 桥接、上下文隔离及事件监听清理回归测试。
  * @author 鸡哥
  */
 
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-type PreloadSetup = {
+interface PreloadSetup {
   sendMock: ReturnType<typeof vi.fn>;
   invokeMock: ReturnType<typeof vi.fn>;
   onMock: ReturnType<typeof vi.fn>;
@@ -35,14 +35,14 @@ type PreloadSetup = {
   getPathForFileMock: ReturnType<typeof vi.fn>;
   electronAPI: Record<string, unknown>;
   handlerMap: Map<string, (...args: unknown[]) => void>;
-};
+}
 
-type TestWindow = {
+interface TestWindow {
   electron?: unknown;
   api?: ExposedApi;
-};
+}
 
-type ExposedApi = {
+interface ExposedApi {
   storeRead: (key: string, strict?: boolean) => Promise<unknown>;
   storeCompareAndSwap: (key: string, expected: unknown, data: unknown) => Promise<'updated' | 'conflict' | 'error'>;
   setAlarmEnabled: (id: number, enabled: boolean) => Promise<boolean>;
@@ -57,11 +57,11 @@ type ExposedApi = {
   onNowPlayingInfo: (callback: (payload: unknown) => void) => () => void;
   getPathForFile: (file: File) => string;
   windowClose: () => void;
-};
+}
 
 const installTestWindow = (): TestWindow => {
   const current = (globalThis as { window?: unknown }).window;
-  if (current && typeof current === 'object') return current as TestWindow;
+  if (current && typeof current === 'object') return current;
   Object.defineProperty(globalThis, 'window', {
     value: {},
     configurable: true,
@@ -110,7 +110,7 @@ async function loadPreloadWithContextIsolation(contextIsolated: boolean): Promis
 
   installTestWindow();
 
-  await import('./index');
+  await import('../index');
 
   return {
     sendMock,

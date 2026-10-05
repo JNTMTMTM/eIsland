@@ -658,21 +658,59 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
   const transcriptToSession = new Map<string, string>();
   const cwdToSession = new Map<string, string>();
 
+  /** 等待用户授权决策的 hook 请求（按 sessionId 暂存其 HTTP 响应） */
+  const permissionWaiters = new Map<string, { response: http.ServerResponse; timer: ReturnType<typeof setTimeout>; identity: { sessionId: string } }>();
+
+  /** 向暂存的 hook 请求写回授权决策并结束响应 */
+  const respondPermission = (sessionId: string, decision: PermissionDecision | null): boolean => {
+    const waiter = permissionWaiters.get(sessionId);
+    if (!waiter) return false;
+    clearTimeout(waiter.timer);
+    permissionWaiters.delete(sessionId);
+    try {
+      waiter.response.writeHead(200, { 'content-type': 'application/json' });
+      waiter.response.end(JSON.stringify({ ok: true, decision }));
+    } catch { /* 响应已结束，忽略 */ }
+    return true;
+  };
+
   /** 将 fromId 会话的事件并入 toId 会话，并清理来源会话 */
   const mergeSession = (fromId: string, toId: string): void => {
     if (fromId === toId) return;
+    const waiter = permissionWaiters.get(fromId);
+    const targetWaiter = permissionWaiters.get(toId);
+    if (waiter) {
+      if (targetWaiter) {
+        // 目标请求与目标会话状态一致；释放来源请求，避免覆盖目标授权等待。
+        respondPermission(fromId, null);
+      } else {
+        permissionWaiters.delete(fromId);
+        waiter.identity.sessionId = toId;
+        permissionWaiters.set(toId, waiter);
+      }
+    }
     const from = sessions.get(fromId);
     events = events.map((e) => (e.sessionId === fromId ? { ...e, sessionId: toId } : e));
     if (from) {
       const to = sessions.get(toId);
       if (to) {
+        let { phase: mergedPhase, pendingPermission: mergedPermission } = to;
+        if (waiter && !targetWaiter) {
+          ({ phase: mergedPhase } = from);
+          mergedPermission = from.pendingPermission ? { ...from.pendingPermission, sessionId: toId } : null;
+        }
         const mergedEvents = [...to.events, ...from.events]
           .map((e) => (e.sessionId === fromId ? { ...e, sessionId: toId } : e))
           .sort((a, b) => b.createdAt - a.createdAt)
           .slice(0, MAX_SESSION_EVENTS);
-        sessions.set(toId, { ...to, events: mergedEvents, lastEventAt: Math.max(to.lastEventAt, from.lastEventAt) });
+        sessions.set(toId, { ...to, phase: mergedPhase, pendingPermission: mergedPermission, events: mergedEvents, lastEventAt: Math.max(to.lastEventAt, from.lastEventAt) });
       } else {
-        sessions.set(toId, { ...from, id: toId });
+        sessions.set(toId, {
+          ...from,
+          id: toId,
+          events: from.events.map((event) => ({ ...event, sessionId: toId })),
+          pendingPermission: from.pendingPermission ? { ...from.pendingPermission, sessionId: toId } : null,
+        });
       }
       sessions.delete(fromId);
     }
@@ -777,7 +815,15 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     const current = sessions.get(sessionId);
     const nextEvents = [event, ...(current?.events ?? [])].slice(0, MAX_SESSION_EVENTS);
     const nextPhase = phaseAfterEvent(current?.phase ?? 'idle', event);
+    let pendingPermission: ClaudeCodeHookEvent | null = null;
+    if (nextPhase === 'waiting_permission') {
+      pendingPermission = event;
+      if (event.eventName !== 'PermissionRequest' && current?.pendingPermission?.eventName === 'PermissionRequest') {
+        ({ pendingPermission } = current);
+      }
+    }
     sessions.set(sessionId, {
+      pendingPermission,
       id: sessionId,
       title: current?.title ?? sessionTitleFrom(cwd, sessionId),
       phase: nextPhase,
@@ -785,7 +831,6 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
       transcriptPath: transcriptPath ?? current?.transcriptPath ?? null,
       lastSummary: event.summary,
       lastEventAt: event.createdAt,
-      pendingPermission: nextPhase === 'waiting_permission' ? event : null,
       events: nextEvents,
     });
     const retainedSessionIds = new Set(limitRecentSessions(sessions.values()).map((session) => session.id));
@@ -795,22 +840,6 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     scheduleEventBackfill(event);
     emitSnapshot();
     return event;
-  };
-
-  /** 等待用户授权决策的 hook 请求（按 sessionId 暂存其 HTTP 响应） */
-  const permissionWaiters = new Map<string, { response: http.ServerResponse; timer: ReturnType<typeof setTimeout> }>();
-
-  /** 向暂存的 hook 请求写回授权决策并结束响应 */
-  const respondPermission = (sessionId: string, decision: PermissionDecision | null): boolean => {
-    const waiter = permissionWaiters.get(sessionId);
-    if (!waiter) return false;
-    clearTimeout(waiter.timer);
-    permissionWaiters.delete(sessionId);
-    try {
-      waiter.response.writeHead(200, { 'content-type': 'application/json' });
-      waiter.response.end(JSON.stringify({ ok: true, decision }));
-    } catch { /* 响应已结束，忽略 */ }
-    return true;
   };
 
   const resolvePermission = (sessionId: string, decision: PermissionDecision): ClaudeCodeStatusSnapshot => {
@@ -838,8 +867,10 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
         // 授权请求：暂存响应，等待用户在 UI 上做出决策（批准/永久批准/拒绝）
         if (event.eventName === 'PermissionRequest') {
           respondPermission(event.sessionId, null); // 清理同会话的旧等待
-          const timer = setTimeout(() => { respondPermission(event.sessionId, null); }, PERMISSION_WAIT_TIMEOUT_MS);
-          permissionWaiters.set(event.sessionId, { response, timer });
+          // 更新同一身份对象，让原定时器使用迁移后的 ID，保留原截止时间。
+          const identity = { sessionId: event.sessionId };
+          const timer = setTimeout(() => { respondPermission(identity.sessionId, null); }, PERMISSION_WAIT_TIMEOUT_MS);
+          permissionWaiters.set(event.sessionId, { response, timer, identity });
           return;
         }
         response.writeHead(200, { 'content-type': 'application/json' });

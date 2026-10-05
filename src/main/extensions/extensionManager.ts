@@ -331,11 +331,14 @@ export async function installExtension(
 }
 
 /**
- * 卸载扩展
- * @param extId - 扩展 ID
+ * 卸载已注册的扩展，拒绝未知 ID，避免删除扩展目录之外的文件。
+ * @param extId - 已注册的扩展 ID。
  */
 export function uninstallExtension(extId: string): void {
-  const installPath = join(getExtensionsDir(), extId);
+  const meta = getExtensionRegistry().find((entry) => entry.id === extId);
+  if (!meta) throw new Error(`Unknown extension: ${extId}`);
+
+  const installPath = join(getExtensionsDir(), meta.installDir);
   if (!existsSync(installPath)) return;
   rmSync(installPath, { recursive: true, force: true });
   console.log(`[Extension] ${extId} uninstalled`);
