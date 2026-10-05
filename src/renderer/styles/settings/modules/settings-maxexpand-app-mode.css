@@ -5,10 +5,17 @@
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
  *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -343,13 +350,15 @@
   user-select: none;
   isolation: isolate;
   border-radius: 16px;
+  opacity: 0;
   clip-path: inset(0 0 0 100%);
-  transition: clip-path .3s cubic-bezier(.45, 0, .2, 1), visibility 0s .3s;
+  transition: clip-path .3s cubic-bezier(.45, 0, .2, 1), opacity .3s cubic-bezier(.45, 0, .2, 1), visibility 0s .3s;
 
 }
 
 .max-expand-app-hide-zone[data-visible="true"] {
   visibility: visible;
+  opacity: 1;
   clip-path: inset(0 0 0 0);
   transition-delay: 0s;
 
