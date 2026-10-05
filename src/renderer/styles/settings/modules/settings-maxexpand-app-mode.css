@@ -320,7 +320,7 @@
 }
 
 .max-expand-app-hide-zone {
-  --max-expand-app-hide-zone-rgb: 255, 255, 255;
+  --max-expand-app-hide-zone-rgb: var(--color-text-rgb);
 
   position: absolute;
   top: 8px;
