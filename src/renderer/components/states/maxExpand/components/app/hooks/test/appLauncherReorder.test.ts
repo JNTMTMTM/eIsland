@@ -91,6 +91,22 @@ describe('应用导航排序', () => {
   const storeWrite = vi.fn();
   const unsubscribe = vi.fn();
 
+  function delaySaves(): {
+    layout: typeof DEFAULT_MAXEXPAND_NAV_LAYOUT;
+    finish: (saved: boolean) => void;
+    fail: (reason: Error) => void;
+  }[] {
+    const writes: ReturnType<typeof delaySaves> = [];
+    storeWrite.mockImplementation((key: string, layout: typeof DEFAULT_MAXEXPAND_NAV_LAYOUT) => new Promise<boolean>((resolve, reject) => {
+      expect(key).toBe(MAXEXPAND_NAV_LAYOUT_STORE_KEY);
+      writes.push({ layout, finish: (saved) => {
+        if (saved) storedLayout = structuredClone(layout);
+        resolve(saved);
+      }, fail: reject });
+    }));
+    return writes;
+  }
+
   beforeEach(() => {
     resetHooks();
     vi.clearAllMocks();
@@ -268,21 +284,133 @@ describe('应用导航排序', () => {
     expect(result.saving).toBe(false);
   });
 
-  it('保存中的后续排序不会并发覆盖配置', async () => {
+  it('连续排序和隐藏依次保存，旧回调与较早的配置回传不会覆盖最新预览', async () => {
     render(useAppLauncherLayout);
     await Promise.resolve();
-    let finishSave!: (saved: boolean) => void;
-    storeWrite.mockImplementation(() => new Promise<boolean>((resolve) => { finishSave = resolve; }));
+    const original = storedLayout as typeof DEFAULT_MAXEXPAND_NAV_LAYOUT;
+    const writes = delaySaves();
     const loaded = render(useAppLauncherLayout);
-    const pending = loaded.moveApp('album', 'todo');
-    expect(render(useAppLauncherLayout).tabs.slice(0, 2)).toEqual(['album', 'todo']);
-    await loaded.moveApp('album', 'mail');
-    await loaded.hideApp('todo');
+    const firstLayout = reorderAppLauncherLayout(original, 'album', 'todo');
+    const secondLayout = reorderAppLauncherLayout(firstLayout, 'album', 'mail');
+    const finalLayout = hideAppLauncherLayout(secondLayout, 'todo');
+    const first = loaded.moveApp('album', 'todo');
+    const second = loaded.moveApp('album', 'mail');
+    const third = loaded.hideApp('todo');
+    await Promise.resolve();
     expect(storeWrite).toHaveBeenCalledOnce();
+    expect(writes[0].layout).toEqual(firstLayout);
+    expect(render(useAppLauncherLayout).tabs).toEqual(getAppLauncherTabs(finalLayout));
+    listeners[0](`store:${MAXEXPAND_NAV_LAYOUT_STORE_KEY}`, firstLayout);
+    expect(render(useAppLauncherLayout).tabs).toEqual(getAppLauncherTabs(finalLayout));
+    writes[0].finish(true);
+    await first;
+    expect(storeWrite).toHaveBeenCalledTimes(2);
+    expect(writes[1].layout).toEqual(secondLayout);
     expect(render(useAppLauncherLayout).saving).toBe(true);
-    finishSave(true);
-    await pending;
+    writes[1].finish(true);
+    await second;
+    expect(storeWrite).toHaveBeenCalledTimes(3);
+    expect(writes[2].layout).toEqual(finalLayout);
+    expect(render(useAppLauncherLayout).saving).toBe(true);
+    writes[2].finish(true);
+    await third;
     expect(render(useAppLauncherLayout).saving).toBe(false);
+    expect(render(useAppLauncherLayout).saveFailed).toBe(false);
+    expect(storedLayout).toEqual(finalLayout);
+    resetHooks();
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    expect(render(useAppLauncherLayout).tabs).toEqual(getAppLauncherTabs(finalLayout));
+  });
+
+  it.each(['false', 'reject'])('较早保存返回 %s 时继续保存后续隐藏，保留全部操作', async (failure) => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const writes = delaySaves();
+    const loaded = render(useAppLauncherLayout);
+    const first = loaded.hideApp('todo');
+    const second = loaded.hideApp('album');
+    const latest = render(useAppLauncherLayout).tabs;
+    expect(latest).not.toContain('todo');
+    expect(latest).not.toContain('album');
+    await Promise.resolve();
+    if (failure === 'false') writes[0].finish(false);
+    else writes[0].fail(new Error('disk unavailable'));
+    await first;
+    expect(writes).toHaveLength(2);
+    expect(render(useAppLauncherLayout).tabs).toEqual(latest);
+    expect(render(useAppLauncherLayout).saving).toBe(true);
+    expect(render(useAppLauncherLayout).saveFailed).toBe(false);
+    writes[1].finish(true);
+    await second;
+    expect(storedLayout).toEqual(writes[1].layout);
+    expect(getAppLauncherTabs(storedLayout as typeof DEFAULT_MAXEXPAND_NAV_LAYOUT)).toEqual(latest);
+    expect(render(useAppLauncherLayout).saveFailed).toBe(false);
+    expect(render(useAppLauncherLayout).saving).toBe(false);
+  });
+
+  it.each(['false', 'reject'])('最后保存返回 %s 时恢复最近成功的布局，仍可接受新操作', async (failure) => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const writes = delaySaves();
+    const loaded = render(useAppLauncherLayout);
+    const first = loaded.hideApp('todo');
+    const second = loaded.hideApp('album');
+    await Promise.resolve();
+    writes[0].finish(true);
+    await first;
+    if (failure === 'false') writes[1].finish(false);
+    else writes[1].fail(new Error('disk unavailable'));
+    await second;
+    const result = render(useAppLauncherLayout);
+    expect(result.tabs).toEqual(getAppLauncherTabs(writes[0].layout));
+    expect(result.tabs).toContain('album');
+    expect(result.tabs).not.toContain('todo');
+    expect(result.saving).toBe(false);
+    expect(result.saveFailed).toBe(true);
+    const retry = result.hideApp('urlFavorites');
+    await Promise.resolve();
+    expect(writes[2].layout).toEqual(hideAppLauncherLayout(writes[0].layout, 'urlFavorites'));
+    writes[2].finish(true);
+    await retry;
+    expect(render(useAppLauncherLayout).saveFailed).toBe(false);
+    expect(render(useAppLauncherLayout).tabs).toEqual(getAppLauncherTabs(writes[2].layout));
+  });
+
+  it('连续保存全部失败时恢复原布局，原地操作不增加排队写入', async () => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const writes = delaySaves();
+    const loaded = render(useAppLauncherLayout);
+    const first = loaded.hideApp('todo');
+    const second = loaded.hideApp('album');
+    await loaded.hideApp('todo');
+    await loaded.moveApp('mail', 'mail');
+    writes[0].finish(false);
+    await first;
+    expect(writes).toHaveLength(2);
+    writes[1].finish(false);
+    await second;
+    expect(render(useAppLauncherLayout).tabs).toEqual(loaded.tabs);
+    expect(render(useAppLauncherLayout).saveFailed).toBe(true);
+  });
+
+  it('组件卸载后仍完成已接受的排队操作，重新挂载恢复最终布局', async () => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const writes = delaySaves();
+    const loaded = render(useAppLauncherLayout);
+    const first = loaded.hideApp('todo');
+    const second = loaded.hideApp('album');
+    await Promise.resolve();
+    resetHooks();
+    writes[0].finish(true);
+    await first;
+    writes[1].finish(true);
+    await second;
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    expect(render(useAppLauncherLayout).tabs).toEqual(getAppLauncherTabs(writes[1].layout));
   });
 });
 

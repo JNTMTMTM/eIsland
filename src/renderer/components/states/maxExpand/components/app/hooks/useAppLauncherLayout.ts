@@ -27,7 +27,7 @@ import type { MaxExpandTab } from '../../../../../../store/types';
 import type { MaxExpandNavLayoutConfig } from '../../setting/utils/settingsConfig';
 
 /**
- * 当前窗口立即预览排序或隐藏结果，保存失败时恢复，其他窗口由主进程同步。
+ * 当前窗口立即预览排序或隐藏结果，依次保存连续操作，失败时恢复最近已保存布局。
  * @returns 可见应用顺序、加载与保存状态、错误状态及移动、隐藏入口。
  */
 export default function useAppLauncherLayout(): {
@@ -41,41 +41,70 @@ export default function useAppLauncherLayout(): {
   const { navLayoutConfig, navLayoutLoaded } = useNavLayout();
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
-  const savingRef = useRef(false);
+  const [previewLayout, setPreviewLayout] = useState<MaxExpandNavLayoutConfig | null>(null);
+  const latestLayoutRef = useRef(navLayoutConfig);
+  const savedLayoutRef = useRef(navLayoutConfig);
+  const pendingSaveRef = useRef<Promise<void> | null>(null);
   const mountedRef = useRef(true);
+  const currentLayout = previewLayout ?? navLayoutConfig;
   // 配置读取完成前不展示默认入口，避免已隐藏应用短暂出现并被打开。
-  const tabs = useMemo(() => navLayoutLoaded ? getAppLauncherTabs(navLayoutConfig) : [], [navLayoutConfig, navLayoutLoaded]);
+  const tabs = useMemo(() => navLayoutLoaded ? getAppLauncherTabs(currentLayout) : [], [currentLayout, navLayoutLoaded]);
+
+  useEffect(() => {
+    if (pendingSaveRef.current) return;
+    latestLayoutRef.current = navLayoutConfig;
+    savedLayoutRef.current = navLayoutConfig;
+  }, [navLayoutConfig]);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
 
-  const saveLayout = useCallback(async (updated: MaxExpandNavLayoutConfig): Promise<void> => {
-    if (!navLayoutLoaded || savingRef.current) return;
-    if (updated === navLayoutConfig) return;
-    savingRef.current = true;
+  const saveLayout = useCallback((updated: MaxExpandNavLayoutConfig): Promise<void> => {
+    if (!navLayoutLoaded || updated === latestLayoutRef.current) return Promise.resolve();
+    latestLayoutRef.current = updated;
+    setPreviewLayout(updated);
     setSaving(true);
     setSaveFailed(false);
     window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: updated }));
-    try {
-      const saved = await window.api.storeWrite(MAXEXPAND_NAV_LAYOUT_STORE_KEY, updated);
-      if (!saved) throw new Error('Layout save failed');
-    } catch {
-      window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: navLayoutConfig }));
-      if (mountedRef.current) setSaveFailed(true);
-    } finally {
-      savingRef.current = false;
-      if (mountedRef.current) setSaving(false);
-    }
-  }, [navLayoutConfig, navLayoutLoaded]);
+    const previous = pendingSaveRef.current ?? Promise.resolve();
+    const save = async (): Promise<void> => {
+      await previous;
+      let failed = false;
+      try {
+        const saved = await window.api.storeWrite(MAXEXPAND_NAV_LAYOUT_STORE_KEY, updated);
+        if (!saved) throw new Error('Layout save failed');
+        savedLayoutRef.current = updated;
+      } catch {
+        failed = true;
+      } finally {
+        // 后续快照已包含先前操作，不能让较早保存的失败回滚最新预览。
+        if (latestLayoutRef.current === updated) {
+          if (failed) {
+            latestLayoutRef.current = savedLayoutRef.current;
+            if (mountedRef.current) setSaveFailed(true);
+          }
+          pendingSaveRef.current = null;
+          window.dispatchEvent(new CustomEvent('maxexpand-nav-layout-changed', { detail: latestLayoutRef.current }));
+          if (mountedRef.current) {
+            setPreviewLayout(null);
+            setSaving(false);
+          }
+        }
+      }
+    };
+    const pending = save();
+    pendingSaveRef.current = pending;
+    return pending;
+  }, [navLayoutLoaded]);
 
   const moveApp = useCallback((source: MaxExpandTab, target: MaxExpandTab): Promise<void> => (
-    saveLayout(reorderAppLauncherLayout(navLayoutConfig, source, target))
-  ), [navLayoutConfig, saveLayout]);
+    saveLayout(reorderAppLauncherLayout(latestLayoutRef.current, source, target))
+  ), [saveLayout]);
   const hideApp = useCallback((tab: MaxExpandTab): Promise<void> => (
-    saveLayout(hideAppLauncherLayout(navLayoutConfig, tab))
-  ), [navLayoutConfig, saveLayout]);
+    saveLayout(hideAppLauncherLayout(latestLayoutRef.current, tab))
+  ), [saveLayout]);
 
   return { tabs, saving, saveFailed, moveApp, hideApp, ready: navLayoutLoaded };
 }

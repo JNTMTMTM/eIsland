@@ -287,8 +287,7 @@
 
 }
 
-.max-expand-app-launcher-item[data-drag-source="true"] .max-expand-app-launcher-visual,
-.max-expand-app-launcher[data-saving="true"] .max-expand-app-launcher-visual {
+.max-expand-app-launcher-item[data-drag-source="true"] .max-expand-app-launcher-visual {
   transition: none;
 
 }

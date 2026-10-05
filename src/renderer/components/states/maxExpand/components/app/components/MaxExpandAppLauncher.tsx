@@ -52,7 +52,7 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
   const [offsets, setOffsets] = useState<AppLauncherHoverOffset[]>([]);
   const { tabs, ready, saving, saveFailed, moveApp, hideApp } = useAppLauncherLayout();
   const { pressedTab, drag, onPointerDown, onPointerMove, onPointerUp, cancelDrag, consumeClick } = useAppLauncherDrag(
-    gridRef, interactive && !transitionTab && ready && !saving, moveApp, hideZoneRef, hideApp,
+    gridRef, interactive && !transitionTab && ready, moveApp, hideZoneRef, hideApp,
   );
   const dragging = drag !== null;
 
