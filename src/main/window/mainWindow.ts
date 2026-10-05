@@ -189,9 +189,9 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     });
 
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/DynamicIslandIndex.html');
+      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/html/DynamicIslandIndex.html');
     } else {
-      mainWindow.loadFile(join(__dirname, '../renderer/DynamicIslandIndex.html'));
+      mainWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandIndex.html'));
     }
   }
 

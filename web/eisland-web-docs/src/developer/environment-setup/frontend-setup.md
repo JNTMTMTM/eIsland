@@ -249,7 +249,7 @@ The project uses **electron-vite** to manage three separate build targets:
 |--------|-------|--------|-------------|
 | **main** | `src/main/index.ts`, `src/main/smtcWorker.ts` | `out/main` | Node.js main process |
 | **preload** | `src/preload/index.ts` | `out/preload` | Context bridge |
-| **renderer** | `index.html`, `standalone.html`, `splash.html`, `AIbackground.html` | `out/renderer` | React UI (4 HTML entries) |
+| **renderer** | `src/renderer/html/DynamicIsland{Index,Standalone,Splash,Aibackground,Guide}.html` | `out/renderer/html` | React UI (5 HTML entries); assets in `out/renderer/assets` |
 
 ### Key Build Dependencies
 

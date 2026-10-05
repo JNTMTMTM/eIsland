@@ -13,16 +13,18 @@ This document covers all BrowserWindow instances in the eIsland application. The
 
 | Window | Source File | HTML Entry | Dimensions | Transparent |
 |--------|------------|------------|------------|-------------|
-| Main Island | `src/main/window/mainWindow.ts` | `DynamicIslandIndex.html` | 260×42 (dynamic) | Yes |
-| Splash | `src/main/window/splashWindow.ts` | `DynamicIslandSplash.html` | 600×400 | Yes |
-| Guide | `src/main/window/guideWindow.ts` | `DynamicIslandGuide.html` | 860×500 | Yes |
-| Standalone | `src/main/window/standaloneWindow.ts` | `DynamicIslandStandalone.html` | 1155×640 | No |
+| Main Island | `src/main/window/mainWindow.ts` | `html/DynamicIslandIndex.html` | 260×42 (dynamic) | Yes |
+| Splash | `src/main/window/splashWindow.ts` | `html/DynamicIslandSplash.html` | 600×400 | Yes |
+| Guide | `src/main/window/guideWindow.ts` | `html/DynamicIslandGuide.html` | 860×500 | Yes |
+| Standalone | `src/main/window/standaloneWindow.ts` | `html/DynamicIslandStandalone.html` | 1155×640 | No |
 | Capture | `src/main/window/captureWindow.ts` | `resources/capture.html` | Fullscreen | Yes |
-| Agent Voice Input | `src/main/index.ts` | `DynamicIslandAibackground.html` | Fullscreen | Yes |
-| CLI Glow | `src/main/index.ts` | `DynamicIslandAibackground.html` | Fullscreen | Yes |
+| Agent Voice Input | `src/main/index.ts` | `html/DynamicIslandAibackground.html` | Fullscreen | Yes |
+| CLI Glow | `src/main/index.ts` | `html/DynamicIslandAibackground.html` | Fullscreen | Yes |
 
 :::note
 All windows share the same preload script (`../preload/index.js`) except the Capture window, which uses `nodeIntegration: true` for direct Node.js access. The two glow windows (Agent Voice Input and CLI Glow) share the same HTML entry point.
+
+Renderer HTML sources live in `src/renderer/html/` and build to `out/renderer/html/`. Development URLs use `/html/<entry>.html`; React entry scripts remain in `src/renderer/` and are referenced with `../` from the source HTML files.
 :::
 
 ---
@@ -305,7 +307,7 @@ A fullscreen transparent overlay displaying the same neon edge glow effect as th
 
 ### Configuration
 
-The configuration is identical to the Agent Voice Input window — both share the same HTML entry point (`DynamicIslandAibackground.html`).
+The configuration is identical to the Agent Voice Input window — both share the same HTML entry point (`html/DynamicIslandAibackground.html`).
 
 ### IPC
 

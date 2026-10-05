@@ -70,7 +70,7 @@ export default defineConfig({
 |--------|-------|--------|-------------|
 | **main** | `src/main/index.ts`, `src/main/smtcWorker.ts` | `out/main` | Node.js main process with SMTC worker |
 | **preload** | `src/preload/index.ts` | `out/preload` | Context bridge between main and renderer |
-| **renderer** | `index.html`, `standalone.html`, `splash.html`, `AIbackground.html` | `out/renderer` | Chromium renderer with 4 HTML entry points |
+| **renderer** | `src/renderer/html/DynamicIsland{Index,Standalone,Splash,Aibackground,Guide}.html` | `out/renderer/html` | Chromium renderer with 5 HTML entry points; assets in `out/renderer/assets` |
 
 **Key Features:**
 - **externalizeDepsPlugin**: Excludes Node.js dependencies from main/preload bundles

@@ -214,9 +214,9 @@ function showAgentVoiceInputWindow(): void {
   agentVoiceInputWindow.removeMenu();
 
   if (app.isPackaged) {
-    agentVoiceInputWindow.loadFile(join(__dirname, '../renderer/DynamicIslandAibackground.html'));
+    agentVoiceInputWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandAibackground.html'));
   } else {
-    agentVoiceInputWindow.loadFile(join(__dirname, '../../src/renderer/DynamicIslandAibackground.html'));
+    agentVoiceInputWindow.loadFile(join(__dirname, '../../src/renderer/html/DynamicIslandAibackground.html'));
   }
 
   const voiceWindow = agentVoiceInputWindow;
@@ -300,9 +300,9 @@ function showCliGlowWindow(): void {
   cliGlowWindow.removeMenu();
 
   if (app.isPackaged) {
-    cliGlowWindow.loadFile(join(__dirname, '../renderer/DynamicIslandAibackground.html'));
+    cliGlowWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandAibackground.html'));
   } else {
-    cliGlowWindow.loadFile(join(__dirname, '../../src/renderer/DynamicIslandAibackground.html'));
+    cliGlowWindow.loadFile(join(__dirname, '../../src/renderer/html/DynamicIslandAibackground.html'));
   }
 
   const glowWindow = cliGlowWindow;

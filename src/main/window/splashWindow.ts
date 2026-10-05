@@ -170,9 +170,9 @@ function showSplashWindow(): void {
   });
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    splashWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/DynamicIslandSplash.html');
+    splashWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/html/DynamicIslandSplash.html');
   } else {
-    splashWindow.loadFile(join(__dirname, '../renderer/DynamicIslandSplash.html'));
+    splashWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandSplash.html'));
   }
 }
 
