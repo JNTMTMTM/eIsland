@@ -17,13 +17,13 @@ Register a new SVG file in the project's icon enum system and ensure test covera
 
 - User provides an SVG file path and asks to add it to the enum
 - User says "添加图标", "add icon", "补齐枚举", "注册 SVG"
-- User adds a new `.svg` file to `src/renderer/public/svg/` and wants it registered
+- User adds a new `.svg` file to `src/renderer/public/svg/app/` and wants it registered
 
 ## Project structure
 
 ```
 src/renderer/public/svg/
-├── *.svg                  → SvgIcon (eisland-icon.ts)
+├── app/*.svg              → SvgIcon (eisland-icon.ts)
 ├── agent/*.svg            → AgentIcon (agent-icon.ts)
 ├── countries/*.svg        → CountryIcon (country-icon.ts)
 └── devicons/*.svg         → DevIcon (dev-icon.ts)
@@ -49,7 +49,7 @@ Determine which enum the SVG belongs to based on its filesystem path:
 
 | SVG path | Enum file | Enum name | Path prefix |
 |----------|-----------|-----------|-------------|
-| `svg/FOO.svg` | `eisland-icon.ts` | `SvgIcon` | `./svg/` |
+| `svg/app/FOO.svg` | `eisland-icon.ts` | `SvgIcon` | `./svg/app/` |
 | `svg/agent/FOO.svg` | `agent-icon.ts` | `AgentIcon` | `./svg/agent/` |
 | `svg/countries/FOO.svg` | `country-icon.ts` | `CountryIcon` | `./svg/countries/` |
 | `svg/devicons/FOO.svg` | `dev-icon.ts` | `DevIcon` | `/svg/devicons/` |
@@ -71,7 +71,7 @@ Read the enum file, then add the new entry before the closing `} as const;`. Kee
 
 **eisland-icon.ts / agent-icon.ts pattern:**
 ```ts
-  NEW_ICON: './svg/NEW_ICON.svg',
+  NEW_ICON: './svg/app/NEW_ICON.svg',
 ```
 
 **country-icon.ts / dev-icon.ts:** These have aliases and resolver functions. Only add if the user explicitly asks, and follow the existing alias/resolver patterns.

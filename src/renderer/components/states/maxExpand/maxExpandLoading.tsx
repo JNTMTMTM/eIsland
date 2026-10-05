@@ -32,6 +32,7 @@ import type { MaxExpandTab } from '../../../store/types';
 interface MaxExpandLoadingProps {
   activeTab: MaxExpandTab;
   performanceModeEnabled: boolean;
+  launcherVisible?: boolean;
 }
 
 /**
@@ -39,15 +40,16 @@ interface MaxExpandLoadingProps {
  * @param props - 目标页面和性能模式开关。
  * @param props.activeTab - 正在准备的页面。
  * @param props.performanceModeEnabled - 是否启用性能模式。
+ * @param props.launcherVisible - 是否正在准备应用导航页。
  * @returns 加载反馈，普通模式返回 null。
  */
-export default function MaxExpandLoading({ activeTab, performanceModeEnabled }: MaxExpandLoadingProps): ReactElement | null {
+export default function MaxExpandLoading({ activeTab, performanceModeEnabled, launcherVisible = false }: MaxExpandLoadingProps): ReactElement | null {
   const { t } = useTranslation();
   if (!performanceModeEnabled) return null;
 
   return (
-    <IslandPageLoading title={t('maxExpand.loadingPage', { page: t(`maxExpand.nav.${activeTab}`) })}
-      description={t(`maxExpand.loadingDescriptions.${activeTab}`)}
+    <IslandPageLoading title={t('maxExpand.loadingPage', { page: t(launcherVisible ? 'maxExpand.appMode.title' : `maxExpand.nav.${activeTab}`) })}
+      description={t(launcherVisible ? 'maxExpand.appMode.hint' : `maxExpand.loadingDescriptions.${activeTab}`)}
       performanceModeEnabled={performanceModeEnabled}
     />
   );

@@ -164,12 +164,13 @@ export function useIslandNotificationSubscriptions(options: UseIslandNotificatio
       }
 
       const store = useIslandStore.getState();
-      const isToolboxTab = store.state === 'maxExpand' && store.maxExpandTab === 'toolbox';
-      const isSettingTab = store.state === 'maxExpand' && store.maxExpandTab === 'settings';
+      const appVisible = store.state === 'maxExpand' && !(store.maxExpandAppModeEnabled && store.maxExpandLauncherVisible);
+      const isToolboxTab = appVisible && store.maxExpandTab === 'toolbox';
+      const isSettingTab = appVisible && store.maxExpandTab === 'settings';
       if (isToolboxTab || isSettingTab) return;
       if (
         suppressInFavorites
-        && store.state === 'maxExpand'
+        && appVisible
         && (store.maxExpandTab === 'urlFavorites' || store.maxExpandTab === 'clipboardHistory' || store.maxExpandTab === 'aiChat')
       ) return;
 

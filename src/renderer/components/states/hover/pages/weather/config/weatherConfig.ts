@@ -25,4 +25,4 @@
  */
 
 /** 天气图标加载失败时的兜底图标路径 */
-export const FALLBACK_WEATHER_ICON = './svg/NA.svg';
+export const FALLBACK_WEATHER_ICON = './svg/app/NA.svg';

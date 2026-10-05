@@ -25,6 +25,7 @@
 
 import useIslandStore from '../../../store/isLandStore';
 import { usePerformanceMode } from './hooks/usePerformanceMode';
+import { useAppMode } from './hooks/useAppMode';
 import MaxExpandLoading from './maxExpandLoading';
 import type { ReactElement } from 'react';
 
@@ -34,6 +35,8 @@ import type { ReactElement } from 'react';
  */
 export default function MaxExpandTransitionLoading(): ReactElement {
   const activeTab = useIslandStore((store) => store.maxExpandTab);
+  const launcherVisible = useIslandStore((store) => store.maxExpandLauncherVisible);
+  const { appModeEnabled } = useAppMode();
   const performanceModeEnabled = usePerformanceMode();
-  return <MaxExpandLoading activeTab={activeTab} performanceModeEnabled={performanceModeEnabled} />;
+  return <MaxExpandLoading activeTab={activeTab} performanceModeEnabled={performanceModeEnabled} launcherVisible={appModeEnabled && launcherVisible} />;
 }

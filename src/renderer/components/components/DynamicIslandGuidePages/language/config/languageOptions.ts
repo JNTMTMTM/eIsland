@@ -38,7 +38,8 @@ export interface LanguageOption {
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
   { value: 'zh-CN', labelKey: 'guide.language.zhCN', icon: CountryIcon.CHN, available: true },
   { value: 'en-US', labelKey: 'guide.language.enUS', icon: CountryIcon.USA, available: true },
-  { value: 'ja-JP', labelKey: 'guide.language.jaJP', icon: CountryIcon.JP, available: false },
+  { value: 'zh-TW', labelKey: 'guide.language.zhTW', icon: CountryIcon.CHN, available: true },
+  { value: 'ja-JP', labelKey: 'guide.language.jaJP', icon: CountryIcon.JP, available: true },
   { value: 'ko-KR', labelKey: 'guide.language.koKR', icon: CountryIcon.KR, available: false },
   { value: 'fr-FR', labelKey: 'guide.language.frFR', icon: CountryIcon.FR, available: false },
   { value: 'de-DE', labelKey: 'guide.language.deDE', icon: CountryIcon.DE, available: false },

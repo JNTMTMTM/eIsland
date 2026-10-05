@@ -104,6 +104,59 @@ describe('createIslandSlice', () => {
     expect(api.expandWindowFull).toHaveBeenLastCalledWith(700);
   });
 
+  it('starts at the app launcher without changing the traditional default tab', () => {
+    const store = createSliceState(createIslandSlice);
+
+    store.getState().setMaxExpand();
+
+    expect(store.getState().state).toBe('maxExpand');
+    expect(store.getState().maxExpandLauncherVisible).toBe(true);
+    expect(store.getState().maxExpandTab).toBe('todo');
+  });
+
+  it('preserves a direct app selection when entering maxExpand', () => {
+    const store = createSliceState(createIslandSlice);
+
+    store.getState().setMaxExpandTab('clipboardHistory');
+    store.getState().setMaxExpand();
+
+    expect(store.getState().state).toBe('maxExpand');
+    expect(store.getState().maxExpandLauncherVisible).toBe(false);
+    expect(store.getState().maxExpandTab).toBe('clipboardHistory');
+  });
+
+  it('returns home without resizing and can reopen the same app', () => {
+    const store = createSliceState(createIslandSlice);
+    store.getState().setMaxExpand();
+    store.getState().setMaxExpandTab('calendar');
+    api.expandWindowSettings.mockClear();
+
+    store.getState().showMaxExpandLauncher();
+
+    expect(store.getState().state).toBe('maxExpand');
+    expect(store.getState().maxExpandLauncherVisible).toBe(true);
+    expect(store.getState().maxExpandTab).toBe('calendar');
+    expect(api.expandWindowSettings).not.toHaveBeenCalled();
+
+    store.getState().setMaxExpandTab('calendar');
+
+    expect(store.getState().maxExpandLauncherVisible).toBe(false);
+    expect(store.getState().maxExpandTab).toBe('calendar');
+  });
+
+  it('preserves the selected app when returning from authentication', () => {
+    const store = createSliceState(createIslandSlice);
+    store.getState().setMaxExpandTab('settings');
+    store.getState().setMaxExpand();
+    store.getState().setLogin();
+
+    store.getState().returnFromAuth();
+
+    expect(store.getState().state).toBe('maxExpand');
+    expect(store.getState().maxExpandLauncherVisible).toBe(false);
+    expect(store.getState().maxExpandTab).toBe('settings');
+  });
+
   it('stores auth return state when entering login', () => {
     const store = createSliceState(createIslandSlice);
 

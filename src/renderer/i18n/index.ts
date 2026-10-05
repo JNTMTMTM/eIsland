@@ -28,16 +28,20 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import zhCN from '../../../i18n/zh-CN.json';
 import enUS from '../../../i18n/en-US.json';
+import zhTW from '../../../i18n/zh-TW.json';
+import jaJP from '../../../i18n/ja-JP.json';
 
 const I18N_LANGUAGE_STORE_KEY = 'i18n-language';
-const SUPPORTED_LANGUAGES = ['zh-CN', 'en-US'] as const;
+const SUPPORTED_LANGUAGES = ['zh-CN', 'en-US', 'zh-TW', 'ja-JP'] as const;
 
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 function normalizeLanguage(raw: string | null | undefined): AppLanguage {
   if (!raw) return 'zh-CN';
+  if (raw === 'zh-TW' || raw === 'zh-Hant' || raw === 'zh-HK' || raw === 'zh-MO') return 'zh-TW';
   if (raw === 'zh' || raw === 'zh-CN' || raw === 'zh-Hans' || raw.startsWith('zh-')) return 'zh-CN';
   if (raw === 'en' || raw === 'en-US' || raw.startsWith('en-')) return 'en-US';
+  if (raw === 'ja' || raw === 'ja-JP' || raw.startsWith('ja-')) return 'ja-JP';
   return 'zh-CN';
 }
 
@@ -95,6 +99,12 @@ i18n
       },
       'en-US': {
         translation: enUS,
+      },
+      'zh-TW': {
+        translation: zhTW,
+      },
+      'ja-JP': {
+        translation: jaJP,
       },
     },
     lng: getInitialLanguage(),

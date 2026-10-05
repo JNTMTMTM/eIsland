@@ -1,0 +1,65 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file appLauncherTypes.ts
+ * @description MaxExpand 应用导航模块的类型定义。
+ * @author 鸡哥
+ */
+
+import type { MaxExpandTab } from '../../../../../../store/types';
+
+/** MaxExpandAppLauncher 组件入参 */
+export interface MaxExpandAppLauncherProps {
+  /** 打开指定 MaxExpand 应用的回调 */
+  onSelectApp: (tab: MaxExpandTab) => void;
+  /** 正在原位放大或缩小并挤开周围图标的应用 */
+  transitionTab?: MaxExpandTab;
+  /** 导航页可见且没有页面过渡时允许长按排序。 */
+  interactive?: boolean;
+}
+
+/** 图标避让位移（像素） */
+export interface AppLauncherHoverOffset {
+  /** 水平位移 */
+  x: number;
+  /** 垂直位移 */
+  y: number;
+}
+
+/** 图标圆心坐标与直径 */
+export interface AppLauncherPosition {
+  /** 圆心横坐标 */
+  x: number;
+  /** 圆心纵坐标 */
+  y: number;
+  /** 图标直径 */
+  width: number;
+}
+
+/** 图标圆心坐标与直径，坐标已包含悬停变换 */
+export interface AppLauncherExpansionPosition {
+  /** 圆心横坐标 */
+  x: number;
+  /** 圆心纵坐标 */
+  y: number;
+  /** 图标直径 */
+  width: number;
+}

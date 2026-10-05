@@ -32,7 +32,7 @@ jobs:
         id: check
         run: |
           set +e
-          node --experimental-strip-types scripts/check-i18n-completeness.ts 2>&1 | tee i18n-check.log
+          npm run i18n:check 2>&1 | tee i18n-check.log
           EXIT_CODE=${PIPESTATUS[0]}
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
           exit 0

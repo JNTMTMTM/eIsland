@@ -94,7 +94,7 @@ vi.mock('react-i18next', () => ({
 /*  Import after mocks are in place                                    */
 /* ------------------------------------------------------------------ */
 
-import { getLanguage, setLanguage } from '../index';
+import { getLanguage, setLanguage, type AppLanguage } from '../index';
 
 /* ------------------------------------------------------------------ */
 /*  Tests                                                              */
@@ -135,9 +135,14 @@ describe('i18n normalizeLanguage (tested via getLanguage / setLanguage)', () => 
       expect(getLanguage()).toBe('zh-CN');
     });
 
-    it('normalizes "zh-TW" to zh-CN (zh- prefix)', () => {
+    it('preserves "zh-TW"', () => {
       currentLanguage = 'zh-TW';
-      expect(getLanguage()).toBe('zh-CN');
+      expect(getLanguage()).toBe('zh-TW');
+    });
+
+    it.each(['ja', 'ja-JP'])('normalizes "%s" to ja-JP', (language) => {
+      currentLanguage = language;
+      expect(getLanguage()).toBe('ja-JP');
     });
 
     it('normalizes "en-GB" to en-US (en- prefix)', () => {
@@ -170,8 +175,15 @@ describe('i18n normalizeLanguage (tested via getLanguage / setLanguage)', () => 
     });
 
     it('normalizes unsupported locale before persisting', async () => {
-      await setLanguage('fr-FR');
+      await setLanguage('fr-FR' as AppLanguage);
       expect(window.api.storeWrite).toHaveBeenCalledWith('i18n-language', 'zh-CN');
+    });
+
+    it('switches to Japanese and persists it', async () => {
+      await setLanguage('ja-JP');
+      expect(getLanguage()).toBe('ja-JP');
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('i18n-language', 'ja-JP');
+      expect(window.api.storeWrite).toHaveBeenCalledWith('i18n-language', 'ja-JP');
     });
   });
 });

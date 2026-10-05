@@ -140,8 +140,10 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     }
 
     if (state === 'expanded' || state === 'maxExpand' || state === 'announcement') {
+      const store = useIslandStore.getState();
+      const launcherVisible = store.maxExpandAppModeEnabled && store.maxExpandLauncherVisible;
       // 退出 maxExpand 时，仅当当前在 CLI 子标签且存在活跃的 Claude 会话才进入 cli 态
-      if (state === 'maxExpand' && hasActiveCliSessionRef.current && useIslandStore.getState().maxExpandTab === 'cli') {
+      if (state === 'maxExpand' && !launcherVisible && hasActiveCliSessionRef.current && store.maxExpandTab === 'cli') {
         setCli();
         return;
       }

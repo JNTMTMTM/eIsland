@@ -865,6 +865,10 @@ app.whenReady().then(() => {
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
+    // 阻止 Electron 默认菜单的 F11 全屏快捷键，避免改变窗口布局。
+    window.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F11' || input.code === 'F11') event.preventDefault();
+    });
   });
 
   /**

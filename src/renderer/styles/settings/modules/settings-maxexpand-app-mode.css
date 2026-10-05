@@ -1,0 +1,542 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+/**
+ * @file settings-maxexpand-app-mode.css
+ * @description 应用化模式的蜂窝导航页与统一竖向控制条。
+ */
+
+.settings-content.max-expand-app-mode {
+  position: relative;
+  box-sizing: border-box;
+  padding-right: 16px;
+  padding-bottom: 16px;
+
+}
+
+.max-expand-app-mode > .max-expand-tab-content {
+  min-width: 0;
+  min-height: 0;
+
+}
+
+.max-expand-app-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+
+}
+
+.max-expand-app-launcher-layer,
+.max-expand-app-application-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  transform-origin: center;
+
+}
+
+.max-expand-app-launcher-layer {
+  opacity: 0;
+
+}
+
+.max-expand-app-stage[data-launcher-visible="true"] > .max-expand-app-launcher-layer {
+  opacity: 1;
+
+}
+
+.max-expand-app-stage[data-launcher-visible="false"]:not([data-transition]) > .max-expand-app-launcher-layer {
+  visibility: hidden;
+
+}
+
+.max-expand-app-application-layer {
+  z-index: 1;
+  box-sizing: border-box;
+  padding-right: 46px;
+
+}
+
+.max-expand-app-application-layer > .max-expand-app-controls {
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+}
+
+.max-expand-app-stage[data-transition] {
+  pointer-events: none;
+
+}
+
+.max-expand-app-stage[data-transition] > .max-expand-app-launcher-layer,
+.max-expand-app-stage[data-transition] > .max-expand-app-application-layer {
+  will-change: transform, opacity;
+
+}
+
+.max-expand-app-stage[data-transition] .max-expand-app-launcher-visual,
+.max-expand-app-stage[data-transition] .max-expand-app-launcher-circle {
+  transition: none;
+
+}
+
+.max-expand-app-launcher {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  color: rgb(var(--color-text-rgb));
+  container-type: inline-size;
+
+}
+
+.max-expand-app-launcher-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--color-text-rgb), .15) transparent;
+
+}
+
+.max-expand-app-launcher-grid {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 8px 2px;
+  align-content: center;
+  width: 100%;
+  max-width: 440px;
+  min-height: 100%;
+  padding: 20px;
+  margin: 0 auto;
+
+}
+
+.max-expand-app-launcher-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  grid-column: span 2;
+  align-items: center;
+  min-width: 0;
+  padding: 4px 0;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  outline-offset: 2px;
+  -webkit-app-region: no-drag;
+
+}
+
+.max-expand-app-launcher-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  pointer-events: none;
+  transition: transform .2s ease;
+  transform: translate3d(var(--max-expand-app-offset-x, 0), var(--max-expand-app-offset-y, 0), 0);
+  will-change: transform;
+
+}
+
+/* 五列与四列交错，所有按钮保持正常文档流以支持小尺寸滚动。 */
+.max-expand-app-launcher-item:nth-child(9n + 6) {
+  grid-column: 2 / span 2;
+
+}
+
+.max-expand-app-launcher-circle {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: clamp(40px, 15cqw, 64px);
+  height: clamp(40px, 15cqw, 64px);
+  background: linear-gradient(145deg, #444, #222);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgb(255 255 255 / 16%), 0 3px 10px rgb(0 0 0 / 12%);
+  transition: transform .2s ease, box-shadow .2s ease;
+  transform: translateZ(0) scale(1);
+  transform-origin: center;
+  backface-visibility: hidden;
+  will-change: transform;
+
+}
+
+.max-expand-app-icon-img {
+  display: block;
+  flex: 0 0 auto;
+  width: 32px;
+  max-width: 50%;
+  height: 32px;
+  max-height: 50%;
+  pointer-events: none;
+  transform: translateZ(0);
+  object-fit: contain;
+  backface-visibility: hidden;
+  filter: brightness(0) invert(1);
+
+}
+
+.max-expand-app-hold-progress {
+  position: absolute;
+  inset: calc(-1 * var(--max-expand-app-hold-outset));
+  width: calc(100% + var(--max-expand-app-hold-outset) + var(--max-expand-app-hold-outset));
+  height: calc(100% + var(--max-expand-app-hold-outset) + var(--max-expand-app-hold-outset));
+  color: rgb(var(--color-text-rgb));
+  pointer-events: none;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  transform: rotate(-90deg);
+
+}
+
+.max-expand-app-hold-track {
+  opacity: .2;
+
+}
+
+.max-expand-app-hold-fill {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  stroke-linecap: round;
+  animation: max-expand-app-hold-progress var(--max-expand-app-hold-duration) linear forwards;
+
+}
+
+.max-expand-app-launcher-item[data-hold-complete="true"] .max-expand-app-hold-fill {
+  stroke-dashoffset: 0;
+  animation: none;
+
+}
+
+@keyframes max-expand-app-hold-progress {
+  from {
+    stroke-dashoffset: 100;
+
+  }
+
+  to {
+    stroke-dashoffset: 0;
+
+  }
+
+}
+
+.max-expand-app-launcher-label {
+  width: 100%;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: rgb(var(--color-text-rgb), .74);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.max-expand-app-launcher-item.is-active .max-expand-app-launcher-circle {
+  box-shadow: inset 0 1px 2px rgb(255 255 255 / 20%), 0 5px 14px rgb(0 0 0 / 20%);
+  transform: translateZ(0) scale(1.2);
+
+}
+
+.max-expand-app-launcher-item:active .max-expand-app-launcher-circle {
+  transform: translateZ(0) scale(1.12);
+
+}
+
+.max-expand-app-launcher[data-dragging="true"] .max-expand-app-launcher-item {
+  cursor: grabbing;
+
+}
+
+.max-expand-app-launcher-item[data-drag-source="true"] .max-expand-app-launcher-visual {
+  transition: none;
+
+}
+
+.max-expand-app-launcher[data-dragging="true"] .max-expand-app-launcher-circle {
+  transform: translateZ(0) scale(1);
+
+}
+
+.max-expand-app-launcher-item[data-drag-source="true"] {
+  z-index: 2;
+
+}
+
+.max-expand-app-launcher-item[data-drag-source="true"] .max-expand-app-launcher-circle {
+  box-shadow: 0 8px 20px rgb(0 0 0 / 25%);
+  transition: none;
+  transform: translateZ(0) scale(var(--max-expand-app-drag-scale));
+
+}
+
+.max-expand-app-launcher-error {
+  flex-shrink: 0;
+  margin: 8px 16px 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgb(var(--color-text-rgb), .5);
+  text-align: center;
+
+}
+
+.max-expand-app-hide-zone {
+  --max-expand-app-hide-zone-rgb: 255, 255, 255;
+
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(96px, 26%, 136px);
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .8);
+  visibility: hidden;
+  overflow-wrap: anywhere;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  isolation: isolate;
+  border-radius: 16px;
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path .3s cubic-bezier(.45, 0, .2, 1), visibility 0s .3s;
+
+}
+
+.max-expand-app-hide-zone[data-visible="true"] {
+  visibility: visible;
+  clip-path: inset(0 0 0 0);
+  transition-delay: 0s;
+
+}
+
+.max-expand-app-hide-zone::before,
+.max-expand-app-hide-zone::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background: linear-gradient(
+    270deg,
+    rgb(var(--max-expand-app-hide-zone-rgb), .2) 0%,
+    rgb(var(--max-expand-app-hide-zone-rgb), 0) 100%
+  );
+  border-radius: inherit;
+  transition: opacity .2s cubic-bezier(.4, 0, .2, 1);
+
+}
+
+.max-expand-app-hide-zone::before {
+  opacity: 1;
+
+}
+
+.max-expand-app-hide-zone::after {
+  --max-expand-app-hide-zone-rgb: 239, 68, 68;
+
+  opacity: 0;
+
+}
+
+.max-expand-app-hide-zone[data-active="true"]::before {
+  opacity: 0;
+
+}
+
+.max-expand-app-hide-zone[data-active="true"]::after {
+  opacity: 1;
+
+}
+
+.max-expand-app-launcher-item[data-transition-active="true"] .max-expand-app-launcher-label {
+  opacity: 0;
+
+}
+
+.max-expand-app-launcher-item:focus-visible,
+.max-expand-app-home-button:focus-visible {
+  outline: 2px solid rgb(var(--color-text-rgb), .75);
+
+}
+
+.max-expand-app-controls {
+  position: absolute;
+  top: 16px;
+  right: 10px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  width: 42px;
+  padding: 6px 0;
+  background: rgb(var(--color-text-rgb), .025);
+  border-left: 1px solid rgb(var(--color-text-rgb), .07);
+  border-radius: 16px;
+
+}
+
+.max-expand-app-control {
+  box-sizing: border-box;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  color: inherit;
+  appearance: none;
+  background: rgb(var(--color-text-rgb), .07);
+  border: 1px solid rgb(var(--color-text-rgb), .07);
+  border-radius: 50%;
+  outline-offset: 2px;
+  transition: background .16s ease, transform .16s ease;
+  -webkit-app-region: no-drag;
+
+}
+
+.max-expand-app-home-button {
+  cursor: pointer;
+
+}
+
+.max-expand-app-control:hover {
+  background: rgb(var(--color-text-rgb), .14);
+
+}
+
+.max-expand-app-home-button:active {
+  transform: scale(.92);
+
+}
+
+.max-expand-app-control-icon-img {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: .85;
+  filter: brightness(0) invert(1);
+
+}
+
+[data-theme="light"] .max-expand-app-launcher-circle {
+  background: linear-gradient(145deg, #fff, #ddd);
+  border-color: rgb(0 0 0 / 4%);
+
+}
+
+[data-theme="light"] .max-expand-app-icon-img,
+[data-theme="light"] .max-expand-app-control-icon-img {
+  filter: brightness(0) invert(0);
+
+}
+
+@container (width >= 520px) {
+  .max-expand-app-launcher-grid {
+    grid-template-columns: repeat(14, minmax(0, 1fr));
+    max-width: 616px;
+
+  }
+
+  .max-expand-app-launcher-item:nth-child(9n + 6) {
+    grid-column: span 2;
+
+  }
+
+  .max-expand-app-launcher-item:nth-child(13n + 8) {
+    grid-column: 2 / span 2;
+
+  }
+
+}
+
+@container (width < 320px) {
+  .max-expand-app-launcher-grid {
+    gap: 4px 0;
+
+  }
+
+  .max-expand-app-launcher-label {
+    font-size: 9px;
+
+  }
+
+}
+
+@container (width < 260px) {
+  .max-expand-app-launcher-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+
+  }
+
+  .max-expand-app-launcher-item:nth-child(9n + 6) {
+    grid-column: span 2;
+
+  }
+
+  .max-expand-app-launcher-item:nth-child(5n + 4) {
+    grid-column: 2 / span 2;
+
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .max-expand-app-launcher-visual,
+  .max-expand-app-launcher-circle,
+  .max-expand-app-hide-zone,
+  .max-expand-app-hide-zone::before,
+  .max-expand-app-hide-zone::after,
+  .max-expand-app-control {
+    transition: none;
+
+  }
+
+}

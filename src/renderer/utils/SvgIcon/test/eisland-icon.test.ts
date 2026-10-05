@@ -137,6 +137,9 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('OCR');
     expect(SvgIcon).toHaveProperty('QUESTIONNAIRE');
     expect(SvgIcon).toHaveProperty('CALENDER');
+    expect(SvgIcon).toHaveProperty('COUNTDOWN');
+    expect(SvgIcon).toHaveProperty('WORLDCLOCK');
+    expect(SvgIcon).toHaveProperty('APP');
   });
 
   it('all values should be strings starting with ./svg/ and ending with .svg', () => {
@@ -148,7 +151,7 @@ describe('SvgIcon', () => {
 
   it('VIP and PRO should point to the same SVG path', () => {
     expect(SvgIcon.VIP).toBe(SvgIcon.PRO);
-    expect(SvgIcon.VIP).toBe('./svg/PRO.svg');
+    expect(SvgIcon.VIP).toBe('./svg/app/PRO.svg');
   });
 
   it('should not contain any undefined icon paths', () => {

@@ -42,6 +42,7 @@ import { useExpandNavLayout } from './hooks/useExpandNavLayout';
 import { useExpandTabAnimation } from './hooks/useExpandTabAnimation';
 import { useExpandWheelNav } from './hooks/useExpandWheelNav';
 import { getNavLabel } from './utils/getNavLabel';
+import { useAppMode } from '../maxExpand/hooks/useAppMode';
 
 /**
  * Expanded 状态内容组件
@@ -50,13 +51,14 @@ import { getNavLabel } from './utils/getNavLabel';
 export function ExpandedContent(): React.ReactElement {
   const { t } = useTranslation();
   const active = useIslandContentActive();
-  const { expandTab, setExpandTab, setHover, setMaxExpand, maxExpandTab, setMaxExpandTab } = useIslandStore(useShallow((state) => ({
+  const { expandTab, setExpandTab, setHover, setMaxExpand, maxExpandTab, setMaxExpandTab, showMaxExpandLauncher } = useIslandStore(useShallow((state) => ({
     expandTab: state.expandTab,
     setExpandTab: state.setExpandTab,
     setHover: state.setHover,
     setMaxExpand: state.setMaxExpand,
     maxExpandTab: state.maxExpandTab,
     setMaxExpandTab: state.setMaxExpandTab,
+    showMaxExpandLauncher: state.showMaxExpandLauncher,
   })));
   const contentRef = useRef<HTMLDivElement>(null);
   const expandTabRef = useRef(expandTab);
@@ -68,11 +70,12 @@ export function ExpandedContent(): React.ReactElement {
 
   const { navLayoutConfig, maxExpandNavLayoutConfig, preloadEagerWhenPerformanceModeDisabled } = useExpandNavLayout();
   const tabAnimation = useExpandTabAnimation();
+  const { appModeEnabled, appModeLoaded } = useAppMode();
 
   const firstVisibleMaxExpandTab = maxExpandNavLayoutConfig.find((item) => item.visible)?.id as MaxExpandTab | undefined;
-  const hasAvailableMaxExpandTab = startupMode === 'standalone'
-    ? firstVisibleMaxExpandTab !== undefined
-    : true;
+  const hasAvailableMaxExpandTab = appModeLoaded && (
+    appModeEnabled || startupMode !== 'standalone' || firstVisibleMaxExpandTab !== undefined
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +98,12 @@ export function ExpandedContent(): React.ReactElement {
 
   const handleSetMaxExpand = useCallback((): void => {
     if (!active || !hasAvailableMaxExpandTab) return;
+    if (appModeEnabled) {
+      showMaxExpandLauncher();
+      preloadEagerWhenPerformanceModeDisabled();
+      setMaxExpand();
+      return;
+    }
     const targetMaxExpandTab = firstVisibleMaxExpandTab ?? 'settings';
     if (!targetMaxExpandTab) return;
     const activeTabVisible = maxExpandTab === 'settings'
@@ -105,7 +114,7 @@ export function ExpandedContent(): React.ReactElement {
     }
     preloadEagerWhenPerformanceModeDisabled();
     setMaxExpand();
-  }, [active, firstVisibleMaxExpandTab, hasAvailableMaxExpandTab, maxExpandNavLayoutConfig, maxExpandTab, preloadEagerWhenPerformanceModeDisabled, setMaxExpand, setMaxExpandTab, startupMode]);
+  }, [active, appModeEnabled, showMaxExpandLauncher, firstVisibleMaxExpandTab, hasAvailableMaxExpandTab, maxExpandNavLayoutConfig, maxExpandTab, preloadEagerWhenPerformanceModeDisabled, setMaxExpand, setMaxExpandTab, startupMode]);
 
   useEffect(() => {
     if (!active) return;

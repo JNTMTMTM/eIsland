@@ -91,7 +91,8 @@ export function useClaudeCliSessionStatus(): {
           if (tracker.permissionIds.has(id)) return false;
           playNotificationSoundOnce();
           const store = useIslandStore.getState();
-          const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && store.maxExpandTab === 'cli');
+          const launcherVisible = store.maxExpandAppModeEnabled && store.maxExpandLauncherVisible;
+          const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && !launcherVisible && store.maxExpandTab === 'cli');
           if (!inCliView) {
             store.setCliProvider(provider);
             store.setCli();
@@ -102,7 +103,8 @@ export function useClaudeCliSessionStatus(): {
         const hasNewSessionStart = Boolean(topEventId && topEventId !== tracker.topEventId && isSessionStartEvent);
         if (hasNewSessionId || hasNewSessionStart) {
           const store = useIslandStore.getState();
-          const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && store.maxExpandTab === 'cli');
+          const launcherVisible = store.maxExpandAppModeEnabled && store.maxExpandLauncherVisible;
+          const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && !launcherVisible && store.maxExpandTab === 'cli');
           if (!inCliView) {
             void (async () => {
               const targetVolume = await readEffectiveAudioVolume('effect').catch(() => 1);

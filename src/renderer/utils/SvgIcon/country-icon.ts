@@ -46,6 +46,7 @@ export const COUNTRY_ALIASES: Record<string, string> = {
   jp: 'JP',
   japan: 'JP',
   ja: 'JP',
+  'ja-jp': 'JP',
   kr: 'KR',
   korea: 'KR',
   ko: 'KR',
