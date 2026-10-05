@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-09-24T20:00:15.421Z
+> 生成时间：2026-10-05T02:27:32.718Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,46 @@
 
 ## Unreleased
 
+- 2026-10-04 | 1b16b498 | 鸡哥 | Merge pull request #224 from JNTMTMTM/dev
+- 2026-10-05 | dcb23bbd | 鸡哥 | fix: adjust drag-and-drop visual transition for improved user experience
+- 2026-10-05 | 8c250596 | 鸡哥 | fix: update hide zone color and gradient for improved visibility
+- 2026-10-05 | 314a398d | 鸡哥 | fix: improve transition timing functions for better animation smoothness
+- 2026-10-05 | 19d6f0c6 | 鸡哥 | feat: enhance app hide zone visibility and animations for improved user experience
+- 2026-10-05 | 0695930c | 鸡哥 | feat: implement app hiding functionality with drag-and-drop support and update related translations
+- 2026-10-05 | dd3294c2 | 鸡哥 | refactor: improve descriptions and logic for app launcher layout and visibility handling
+- 2026-10-03 | 8559162b | 鸡哥 | feat: update MaxExpandAppControls to use APP icon in the navigation button
+- 2026-10-03 | e3246104 | 鸡哥 | feat: add APP icon to SvgIcon and corresponding test
+- 2026-10-02 | ff36f3c7 | 鸡哥 | feat: update MaxExpandAppControls to display current app icon and improve layout
+- 2026-10-02 | d69f8964 | 鸡哥 | fix: prevent default F11 fullscreen shortcut to maintain window layout
+- 2026-10-02 | 00b00a77 | 鸡哥 | fix: update worldClock icon assignment in app launcher configuration
+- 2026-10-02 | b7560e68 | 鸡哥 | feat: add WORLDCLOCK icon to SvgIcon and update tests
+- 2026-10-02 | 45d1e542 | 鸡哥 | fix: correct icon assignments for countdown and alarm in app launcher configuration
+- 2026-10-02 | d2183749 | 鸡哥 | feat: enhance app launcher drag-and-drop functionality with dynamic scaling and boundary constraints
+- 2026-10-02 | 2db9ba1e | 鸡哥 | feat: implement app launcher drag-and-drop enhancements with real-time preview and offsets calculation
+- 2026-10-02 | edac3961 | 鸡哥 | feat: enhance app launcher with long press functionality and visual feedback
+- 2026-10-02 | b308e0e2 | 鸡哥 | feat: implement app launcher drag-and-drop functionality with error handling
+- 2026-10-02 | 4e6c0a2e | 鸡哥 | fix: update animation duration in useAppNavigationTransition test for improved accuracy
+- 2026-10-02 | 6f07442d | 鸡哥 | refactor: refactor code structure for improved readability and maintainability
+- 2026-10-02 | 1abc483c | 鸡哥 | feat: add COUNTDOWN icon to SvgIcon and corresponding test
+- 2026-10-02 | 93b60e8b | 鸡哥 | refactor: simplify app launcher configuration by removing color properties and update styles for improved appearance
+- 2026-10-01 | 2a9dc93d | 鸡哥 | fix: change language flag icon styling to use object-fit contain
+- 2026-10-01 | 482ed0d3 | 鸡哥 | fix: update language icon styling for better image fitting
+- 2026-10-01 | f5932cfb | 鸡哥 | refactor: Refactor code structure for improved readability and maintainability
+- 2026-09-29 | 6e12e091 | 鸡哥 | Refactor code structure for improved readability and maintainability (#222)
+- 2026-09-28 | 958fea88 | 鸡哥 | feat: refactor app launcher transition logic and enhance type definitions
+- 2026-09-28 | 54a95c24 | 鸡哥 | feat: update app navigation transition timings and enhance hover offset calculations
+- 2026-09-28 | cfb0f1fa | 鸡哥 | feat: enhance app launcher functionality with expansion offsets and transition improvements
+- 2026-09-28 | 44fc9f52 | 鸡哥 | feat: implement MaxExpandAppNavigation component and transition handling
+- 2026-09-28 | ca44868d | 鸡哥 | feat: add type definitions for MaxExpand app launcher and update props interface
+- 2026-09-28 | 010ccc77 | 鸡哥 | feat: restructure MaxExpand app components and add app launcher functionality
+- 2026-09-28 | 8a923f08 | 鸡哥 | feat: implement hover offsets for app launcher icons and enhance interaction responsiveness
+- 2026-09-28 | 0bd51a8b | 鸡哥 | feat: enhance grid layout for MaxExpand app launcher in larger screens
+- 2026-09-28 | 29292aa6 | 鸡哥 | refactor: remove header section from MaxExpandAppLauncher component and associated styles
+- 2026-09-28 | ad85a1ef | 鸡哥 | feat: add MaxExpand app mode with launcher and controls
+- 2026-09-26 | 32eda2b7 | 鸡哥 | feat: add screenshot settings configuration to localization files
+- 2026-09-25 | 998d51da | 鸡哥 | feat: add app mode toggle for MaxExpand layout with localization support
+- 2026-09-25 | 33a06dff | 鸡哥 | refactor: rebuild IndexSettingsSection and introduce IndexSettingsSearch component
+- 2026-09-24 | 68d26bbc | eislandBot | docs: auto update CHANGE_LOG.md for #221 by @JNTMTMTM [skip ci]
 - 2026-09-24 | 41129cf3 | 鸡哥 | Merge pull request #221 from JNTMTMTM/dev
 - 2026-09-24 | 46c4a4f2 | 鸡哥 | refactor: streamline abort logic in disposeLocalOcrWorker and improve iterator handling in codexSessionParser
 - 2026-09-24 | ea9eef4f | 鸡哥 | feat: update licensing information and original author details in loading components
