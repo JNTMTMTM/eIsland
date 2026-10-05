@@ -9,6 +9,7 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "noEmit": true,
     "moduleResolution": "bundler",
     "types": ["electron-vite/node"]
   }
