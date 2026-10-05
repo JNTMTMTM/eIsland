@@ -37,7 +37,7 @@ Detailed reference for npm scripts defined in `package.json`.
 | Document | Description |
 |----------|-------------|
 | [Development Commands](commands/dev-commands.md) | `dev`, `build`, `preview` — building, running, and previewing the application |
-| [Testing Commands](commands/test-commands.md) | `test`, `test:preload`, `test:coverage` — running tests and measuring coverage |
+| [Testing Commands](commands/test-commands.md) | `test`, `test:node`, `test:renderer`, `test:preload`, `test:coverage` — grouped tests and coverage audits |
 | [Package Commands](commands/package-commands.md) | `package`, `postinstall` — building installers and managing native modules |
 | [Code Quality Commands](commands/quality-commands.md) | `comment:check`, `i18n:check` — validating comment standards and i18n completeness |
 | [Release Commands](commands/release-commands.md) | `release:notes`, `changelog:generate`, `release:upload*` — changelogs and artifact uploads |

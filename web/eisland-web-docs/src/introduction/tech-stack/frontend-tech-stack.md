@@ -1136,26 +1136,47 @@ function Controls() {
 ## Testing
 
 :::danger
-All frontend code changes must be verified through tests. The project contains **125 test files** with **2068 tests** covering main process, preload scripts, and renderer process.
+All frontend code changes must be verified through tests. The root application suite passed **197 test files** with **2691 tests** on **2026-10-05**, covering main process, preload scripts, and renderer code.
 :::
 
 ### Vitest Configuration
 
 ```ts
-// vitest.config.ts
-export default {
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
     clearMocks: true,
     restoreMocks: true,
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: { label: 'node', color: 'yellow' },
+          include: ['src/**/*.test.{ts,tsx}'],
+          exclude: ['src/renderer/**'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'renderer', color: 'magenta' },
+          include: ['src/renderer/**/*.test.{ts,tsx}'],
+        },
+      },
+    ],
   },
-};
+});
 ```
 
 ### Testing Patterns
 
-The project has **125 test files** with **2068 tests** across main process, preload, and renderer. All tests use `.test.ts` (no component rendering tests).
+Tests are grouped into `node` and `renderer` projects. Both currently use the Node.js environment and support `.test.ts` and `.test.tsx`. Existing tests use `.test.ts`, including component tests based on `React.createElement` and static rendering with `react-dom/server`.
+
+:::note
+Project names are CLI labels, not execution environments. DOM interaction tests require a configured environment such as `jsdom` or `happy-dom`. See [Testing Commands](/developer/commands/test-commands.md) for commands and the latest TSX coverage audit.
+:::
 
 #### Pattern 1: Slice Unit Testing
 
@@ -1264,12 +1285,17 @@ describe('formatTime', () => {
 
 ### Test Coverage by Domain
 
-| Domain | Test Files | Coverage |
-|--------|------------|----------|
-| **Main Process** | ~30 files | IPC handlers, services, utilities |
-| **Preload** | ~5 files | Bridge exposure, context isolation |
-| **Renderer Store** | ~20 files | All 7 slices, store aggregation |
-| **Renderer Utils** | ~35 files | Pure functions, helpers, parsers |
+The verified root application run on **2026-10-05** reported:
+
+| Project | Test Files | Passing Tests | Scope |
+|---------|------------|---------------|-------|
+| **node** | 59 | 778 | Tests under `src/` outside `src/renderer/`, including main process and preload |
+| **renderer** | 138 | 1913 | Renderer stores, utilities, hooks, and components |
+| **Total** | **197** | **2691** | Root application suite |
+
+:::warning
+Passing test counts do not imply broad UI coverage. The renderer TSX audit measured **2.38% line coverage**, with executed statements in **15 of 278 TSX files**. These figures exclude non-TSX source files and separate native plugin suites.
+:::
 
 ## Performance Optimizations
 
