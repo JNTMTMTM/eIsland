@@ -321,7 +321,7 @@
 }
 
 .max-expand-app-hide-zone {
-  --max-expand-app-hide-zone-rgb: var(--color-text-rgb);
+  --max-expand-app-hide-zone-rgb: 255, 255, 255;
 
   position: absolute;
   top: 8px;
@@ -363,16 +363,9 @@
   z-index: -1;
   content: "";
   background: linear-gradient(
-    90deg,
-    rgb(var(--max-expand-app-hide-zone-rgb), 0) 0%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .009) 12.5%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .031) 25%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .063) 37.5%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .1) 50%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .137) 62.5%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .169) 75%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .191) 87.5%,
-    rgb(var(--max-expand-app-hide-zone-rgb), .2) 100%
+    270deg,
+    rgb(var(--max-expand-app-hide-zone-rgb), .2) 0%,
+    rgb(var(--max-expand-app-hide-zone-rgb), 0) 100%
   );
   border-radius: inherit;
   transition: opacity .2s cubic-bezier(.4, 0, .2, 1);
