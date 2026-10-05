@@ -19,9 +19,9 @@
  * @author 鸡哥
  */
 
-import wallpaperArt002 from './art002e008487~orig.jpg';
-import wallpaperArt004 from './art002e004441~orig.jpg';
-import wallpaperArt006 from './art002e008486~orig.jpg';
+import wallpaperArt002 from './art002e008487-orig.jpg';
+import wallpaperArt004 from './art002e004441-orig.jpg';
+import wallpaperArt006 from './art002e008486-orig.jpg';
 
 export interface BuiltinWallpaper {
   id: string;

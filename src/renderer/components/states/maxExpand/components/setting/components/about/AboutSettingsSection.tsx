@@ -55,21 +55,21 @@ import { ALL_DEPENDENCIES } from '../../../../../../config/dynamicIslandDependen
 const WALLPAPER_SOURCES = [
   {
     name: 'Spaceship Earth',
-    fileName: 'art002e008487~orig.jpg',
+    fileName: 'art002e008487-orig.jpg',
     source: 'NASA',
     capture: 'Artemis II / iPhone 17 Pro Max',
     link: 'https://images.nasa.gov/details/art002e008487',
   },
   {
     name: 'A Crescent Earth',
-    fileName: 'art002e004441~orig.jpg',
+    fileName: 'art002e004441-orig.jpg',
     source: 'NASA',
     capture: 'Artemis II / NIKON Z9 35mm f/2',
     link: 'https://images.nasa.gov/details/art002e004441',
   },
   {
     name: 'Thinking of You, Earth',
-    fileName: 'art002e008486~orig.jpg',
+    fileName: 'art002e008486-orig.jpg',
     source: 'NASA',
     capture: 'Artemis II / iPhone 17 Pro Max',
     link: 'https://images.nasa.gov/details/art002e008486',

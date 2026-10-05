@@ -62,9 +62,9 @@ The following images used in this project are from the Artemis II mission:
 
 | Wallpaper Name | File Name | Capture Device | Original Link |
 |---------------|-----------|----------------|---------------|
-| Spaceship Earth | `art002e008487~orig.jpg` | iPhone 17 Pro Max | [images.nasa.gov](https://images.nasa.gov/details/art002e008487) |
-| A Crescent Earth | `art002e004441~orig.jpg` | NIKON Z9 35mm f/2 | [images.nasa.gov](https://images.nasa.gov/details/art002e004441) |
-| Thinking of You, Earth | `art002e008486~orig.jpg` | iPhone 17 Pro Max | [images.nasa.gov](https://images.nasa.gov/details/art002e008486) |
+| Spaceship Earth | `art002e008487-orig.jpg` | iPhone 17 Pro Max | [images.nasa.gov](https://images.nasa.gov/details/art002e008487) |
+| A Crescent Earth | `art002e004441-orig.jpg` | NIKON Z9 35mm f/2 | [images.nasa.gov](https://images.nasa.gov/details/art002e004441) |
+| Thinking of You, Earth | `art002e008486-orig.jpg` | iPhone 17 Pro Max | [images.nasa.gov](https://images.nasa.gov/details/art002e008486) |
 
 > All images are sourced from [NASA](https://www.nasa.gov/) (National Aeronautics and Space Administration)
 >
