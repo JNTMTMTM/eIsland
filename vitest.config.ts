@@ -24,11 +24,29 @@
  * @author 鸡哥
  */
 
-export default {
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
     clearMocks: true,
     restoreMocks: true,
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: { label: 'node', color: 'yellow' },
+          include: ['src/**/*.test.{ts,tsx}'],
+          exclude: ['src/renderer/**'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'renderer', color: 'magenta' },
+          include: ['src/renderer/**/*.test.{ts,tsx}'],
+        },
+      },
+    ],
   },
-};
+});

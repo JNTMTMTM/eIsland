@@ -13,6 +13,8 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "test": "vitest run",
+    "test:node": "vitest run --project node",
+    "test:renderer": "vitest run --project renderer",
     "test:preload": "vitest run src/preload/index.test.ts",
     "test:coverage": "vitest run --coverage",
     "postinstall": "electron-builder install-app-deps",
