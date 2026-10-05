@@ -201,7 +201,7 @@ export function MaxExpandContentShell({ renderActiveTab, deferContent = true, pe
         {appModeLoaded && appModeEnabled ? (
           <MaxExpandAppNavigation activeTab={activeTab} launcherVisible={launcherVisible}
             animationEnabled={tabAnimation} contentActive={contentActive}
-            onSelectApp={setActiveTab} onBackToLauncher={showMaxExpandLauncher}
+            onSelectApp={setActiveTab} onBackToExpanded={setExpanded} onBackToLauncher={showMaxExpandLauncher}
           >
             {content}
           </MaxExpandAppNavigation>

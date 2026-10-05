@@ -1510,6 +1510,7 @@
       "title": "アプリ",
       "hint": "アプリを選んで使い始めましょう",
       "backToLauncher": "アプリ一覧に戻る",
+      "backToExpanded": "展開画面に戻る",
       "controls": "アプリの操作",
       "dragToHide": "ここにドラッグしてアプリを非表示",
       "releaseToHide": "離してアプリを非表示",

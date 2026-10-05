@@ -413,6 +413,7 @@
 }
 
 .max-expand-app-launcher-item:focus-visible,
+.max-expand-app-back-button:focus-visible,
 .max-expand-app-home-button:focus-visible {
   outline: 2px solid rgb(var(--color-text-rgb), .75);
 
@@ -436,6 +437,13 @@
 
 }
 
+.max-expand-app-control-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+}
+
 .max-expand-app-control {
   box-sizing: border-box;
   display: flex;
@@ -456,6 +464,7 @@
 
 }
 
+.max-expand-app-back-button,
 .max-expand-app-home-button {
   cursor: pointer;
 
@@ -466,6 +475,7 @@
 
 }
 
+.max-expand-app-back-button:active,
 .max-expand-app-home-button:active {
   transform: scale(.92);
 

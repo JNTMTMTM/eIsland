@@ -36,6 +36,7 @@ interface MaxExpandAppNavigationProps {
   animationEnabled: boolean;
   contentActive: boolean;
   onSelectApp: (tab: MaxExpandTab) => void;
+  onBackToExpanded: () => void;
   onBackToLauncher: () => void;
   children: ReactNode;
 }
@@ -48,12 +49,13 @@ interface MaxExpandAppNavigationProps {
  * @param props.animationEnabled - 是否启用页面切换动画。
  * @param props.contentActive - MaxExpand 内容是否处于活动状态。
  * @param props.onSelectApp - 切换到指定应用。
+ * @param props.onBackToExpanded - 返回展开界面。
  * @param props.onBackToLauncher - 返回应用导航页。
  * @param props.children - 当前应用的内容。
  * @returns 导航层与应用层。
  */
 export default function MaxExpandAppNavigation({
-  activeTab, launcherVisible, animationEnabled, contentActive, onSelectApp, onBackToLauncher, children,
+  activeTab, launcherVisible, animationEnabled, contentActive, onSelectApp, onBackToExpanded, onBackToLauncher, children,
 }: MaxExpandAppNavigationProps): ReactElement {
   const { stageRef, launcherRef, applicationRef, transition, selectApp, backToLauncher } = useAppNavigationTransition({
     activeTab, launcherVisible, animationEnabled, contentActive, onSelectApp, onBackToLauncher,
@@ -76,7 +78,7 @@ export default function MaxExpandAppNavigation({
       {!launcherVisible && (
         <div className="max-expand-app-application-layer" ref={applicationRef} inert={transitioning}>
           <div className="max-expand-tab-transition" key={activeTab}>{children}</div>
-          <MaxExpandAppControls activeTab={activeTab} onBackToLauncher={backToLauncher} />
+          <MaxExpandAppControls activeTab={activeTab} onBackToExpanded={onBackToExpanded} onBackToLauncher={backToLauncher} />
         </div>
       )}
     </div>

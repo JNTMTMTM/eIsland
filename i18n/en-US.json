@@ -1510,6 +1510,7 @@
       "title": "Apps",
       "hint": "Choose an app to get started",
       "backToLauncher": "Back to apps",
+      "backToExpanded": "Back to expanded view",
       "controls": "App controls",
       "dragToHide": "Drag here to hide the app",
       "releaseToHide": "Release to hide the app",

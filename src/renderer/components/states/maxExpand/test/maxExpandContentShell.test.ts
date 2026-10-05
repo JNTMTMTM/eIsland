@@ -5,10 +5,17 @@
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
  *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -124,6 +131,7 @@ interface TreeProps {
   animationEnabled?: boolean;
   contentActive?: boolean;
   onSelectApp?: (tab: MaxExpandTab) => void;
+  onBackToExpanded?: () => void;
   onBackToLauncher?: () => void;
 }
 
@@ -237,6 +245,19 @@ describe('MaxExpandContentShell app mode', () => {
     expect(returnedHome).not.toContain('data-home-control');
     expect(renderActiveTab).not.toHaveBeenCalled();
     expect(mocks.store.showMaxExpandLauncher).toHaveBeenCalledOnce();
+  });
+
+  it('应用控制条返回展开界面时不打开应用导航页或切换应用', () => {
+    mocks.store.maxExpandLauncherVisible = false;
+    const application = render();
+    const navigation = findComponent(application.tree, MaxExpandAppNavigation);
+
+    expect(navigation?.props.onBackToExpanded).toBe(mocks.store.setExpanded);
+    navigation?.props.onBackToExpanded?.();
+
+    expect(mocks.store.setExpanded).toHaveBeenCalledOnce();
+    expect(mocks.store.showMaxExpandLauncher).not.toHaveBeenCalled();
+    expect(mocks.store.setMaxExpandTab).not.toHaveBeenCalled();
   });
 
   it('配置读取前保留指定应用且不注册传统 Tab 或滚轮处理', () => {
