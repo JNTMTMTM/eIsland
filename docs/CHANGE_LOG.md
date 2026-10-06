@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-05T02:27:32.718Z
+> 生成时间：2026-10-06T22:54:43.920Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,53 @@
 
 ## Unreleased
 
+- 2026-10-06 | 8662c5e8 | 鸡哥 | Merge pull request #225 from JNTMTMTM/dev
+- 2026-10-07 | f3fa638e | 鸡哥 | feat(miniGame): add Gomoku and 2048 game hooks, navigation, and leaderboard management
+- 2026-10-06 | 07bc0d51 | 鸡哥 | ci(pr-code-quality-review): enhance syntax checks and add test coverage
+- 2026-10-06 | 3e52282f | 鸡哥 | test(renderer): make payment and CLI assertions locale independent
+- 2026-10-06 | 61a96d0d | 鸡哥 | test(main): make Codex heatmap totals independent of timezone
+- 2026-10-06 | e20242c9 | 鸡哥 | test(config): split main, preload, shared and plugins into projects
+- 2026-10-06 | a9e04d19 | 鸡哥 | test(clipboard): cover lifecycle feedback and navigation fallback paths
+- 2026-10-06 | 8925dd0d | 鸡哥 | test(toolbox): cover persistence and initialization lifecycles
+- 2026-10-06 | f98c220e | 鸡哥 | test(cli): cover live status, permissions and karaoke settings
+- 2026-10-06 | 491e96c3 | 鸡哥 | test(tools): cover native service failures and response boundaries
+- 2026-10-06 | f73b2fcf | 鸡哥 | test(games): cover persisted 2048 state and reachable Gomoku AI positions
+- 2026-10-06 | 542b74bf | 鸡哥 | test(agent): cover stream responses, session status and CLI interactions
+- 2026-10-06 | 411a1e2b | 鸡哥 | test(renderer): cover announcement navigation and idle and password boundaries
+- 2026-10-06 | 9bc77bc5 | 鸡哥 | test(data-tools): cover stocks, mail, countdown and world clock boundaries
+- 2026-10-06 | 32bb69b3 | 鸡哥 | fix(stt): handle clipboard rejection and keep copying retryable
+- 2026-10-06 | d2807103 | 鸡哥 | fix(favorites): retain valid cached entries and cover lifecycle boundaries
+- 2026-10-06 | 9b397bba | 鸡哥 | test(auth): cover form, guide, payment and background lifecycles
+- 2026-10-06 | a04cc8e5 | 鸡哥 | test(productivity): cover calendar, alarm, calculator and launcher boundaries
+- 2026-10-06 | eede24d3 | 鸡哥 | fix(ui): harden asynchronous lifecycle and cover renderer interactions
+- 2026-10-06 | d9d560ca | 鸡哥 | fix(settings): validate input and cover tools and game boundaries
+- 2026-10-06 | c59ebf58 | 鸡哥 | fix(productivity): cover timers, navigation, and data tools
+- 2026-10-06 | c09fcd22 | 鸡哥 | fix(agent): harden chat initialization and asynchronous lifecycle
+- 2026-10-06 | eb25e9e1 | 鸡哥 | test(renderer): cover APIs, stores, and utility boundary cases
+- 2026-10-06 | 7d8f1ea0 | 鸡哥 | fix(media): preserve lyric syllables, Unicode titles, and Spotify HMAC keys
+- 2026-10-06 | bc7db7f9 | 鸡哥 | test(node): cover IPC boundaries and native plugin runtimes
+- 2026-10-06 | bb204c4d | 鸡哥 | test(config): add shared harnesses and complete runtime coverage scope
+- 2026-10-06 | ca5ec00a | 鸡哥 | style(test): standardize copyright headers and file descriptions
+- 2026-10-06 | 29983214 | 鸡哥 | fix(tsconfig): ensure noEmit is set to true for proper build configuration
+- 2026-10-06 | 3311bff1 | 鸡哥 | test: add type contracts and tests for various modules in the preload and shared directories
+- 2026-10-06 | 1648399f | 鸡哥 | feat(window): implement dynamic backing width for main window and add tests for expansion behavior
+- 2026-10-06 | 9996404f | 鸡哥 | refactor: update code structure for improved readability and maintainability
+- 2026-10-06 | 58b7a7ee | 鸡哥 | feat(settings): add comprehensive settings management and synchronization hooks
+- 2026-10-06 | 8e3e4d14 | 鸡哥 | style: enhance useIslandDrag with drag session management and mouse position handling (#223)
+- 2026-10-06 | 58106631 | 鸡哥 | test: Add unit tests for various utility functions in the renderer
+- 2026-10-05 | 5df20ebe | 鸡哥 | style: add backToExpanded functionality and update related UI components in MaxExpand
+- 2026-10-05 | 59a9b680 | 鸡哥 | style: add data-hide-target attribute for drag source visibility in MaxExpandAppLauncher
+- 2026-10-05 | 89a433ff | 鸡哥 | style: enhance transition effects for max-expand app hide zone visibility
+- 2026-10-05 | fd4640f4 | 鸡哥 | style: update max-expand app hide zone color to use variable for text color
+- 2026-10-05 | 0de3119c | 鸡哥 | style: update background colors for max-expand app mode elements
+- 2026-10-05 | 2b9aa77a | 鸡哥 | refactor: reorganize renderer components and update HTML entry points
+- 2026-10-05 | 7e3828a6 | 鸡哥 | refactor: update asset paths to use relative URLs
+- 2026-10-05 | 73a4b875 | 鸡哥 | docs: update renderer HTML entry points in multiple documentation files for clarity
+- 2026-10-05 | c0332699 | 鸡哥 | feat: implement full-screen edge glow effect with animation and canvas rendering
+- 2026-10-05 | e4b63825 | 鸡哥 | refactor: Update HTML file structure and update paths for renderer components
+- 2026-10-05 | b5ca495d | 鸡哥 | docs: update README and command documentation for improved clarity on testing commands and configurations
+- 2026-10-05 | cf50818d | 鸡哥 | feat: add project-specific test configurations for Vitest
+- 2026-10-05 | 72613af0 | eislandBot | docs: auto update CHANGE_LOG.md for #224 by @JNTMTMTM [skip ci]
 - 2026-10-04 | 1b16b498 | 鸡哥 | Merge pull request #224 from JNTMTMTM/dev
 - 2026-10-05 | dcb23bbd | 鸡哥 | fix: adjust drag-and-drop visual transition for improved user experience
 - 2026-10-05 | 8c250596 | 鸡哥 | fix: update hide zone color and gradient for improved visibility
