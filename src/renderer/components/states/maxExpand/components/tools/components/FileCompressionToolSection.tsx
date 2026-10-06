@@ -213,6 +213,10 @@ export function FileCompressionToolSection({
     });
   };
 
+  const statusHint = statusMessage
+    ? <div className="settings-music-hint">{statusMessage}</div>
+    : null;
+
   return (
     <div className="settings-app-pages-layout" ref={layoutRef}>
       <div className="settings-app-page-main">
@@ -291,7 +295,7 @@ export function FileCompressionToolSection({
                   </div>
                 )}
 
-                {!!statusMessage && <div className="settings-music-hint">{statusMessage}</div>}
+                {statusHint}
               </div>
             </div>
           </div>
@@ -359,6 +363,7 @@ export function FileCompressionToolSection({
                     {!!item.outputPath && <div className="settings-music-hint">{item.outputPath}</div>}
                   </div>
                 ))}
+                {statusHint}
               </div>
             </div>
           </div>

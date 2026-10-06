@@ -84,3 +84,10 @@ describe('AppSettingsSection', () => {
     expect(elementProps(findElement(updated, (node) => 'appSettingsPages' in node.props)).expanded).toBe(true);
   });
 });
+
+it('公开页面编号损坏时渲染空内容并保留导航', () => {
+  const props = makeAppSettingsProps(); props.appSettingsPage = 'unknown-runtime-page' as typeof props.appSettingsPage;
+  const tree = AppSettingsSection(props);
+  expect(elementProps(findElement(tree, (node) => elementProps(node).className === 'settings-app-page-main')).children).toBeNull();
+  expect(elements(tree).some((node) => typeof elementProps(node).onToggle === 'function')).toBe(true);
+});

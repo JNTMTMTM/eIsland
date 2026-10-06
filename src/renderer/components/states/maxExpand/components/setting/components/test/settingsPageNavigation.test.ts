@@ -60,3 +60,12 @@ describe('SettingsPageNavigation', () => {
     expect(onToggle).toHaveBeenCalledOnce();
   });
 });
+
+it('收起导航时开关显示展开图标且维持无障碍状态', () => {
+  const onToggle = vi.fn(); const tree = SettingsPageNavigationToggle({ onToggle, expanded: false, label: 'Show pages' });
+  expect(elementProps(tree)['aria-expanded']).toBe(false);
+  expect(elementProps(findElement(tree, (node) => node.type === 'img')).src).toBeTruthy();
+  const expanded = SettingsPageNavigationToggle({ onToggle, expanded: true, label: 'Hide pages' });
+  expect(elementProps(findElement(tree, (node) => node.type === 'img')).src).not.toBe(elementProps(findElement(expanded, (node) => node.type === 'img')).src);
+  invoke(findElement(tree, (node) => node.type === 'button'), 'onClick'); expect(onToggle).toHaveBeenCalledOnce();
+});

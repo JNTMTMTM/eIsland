@@ -20,7 +20,7 @@
 
 /**
  * @file settingsConfig.test.ts
- * @description Unit tests for normalizeExpandNavLayoutConfig and normalizeMaxExpandNavLayoutConfig
+ * @description 展开态与全展开导航配置标准化测试。
  * @author 鸡哥
  */
 

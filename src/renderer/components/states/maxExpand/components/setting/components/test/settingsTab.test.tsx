@@ -25,49 +25,49 @@
  */
 
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
-import { render, nodes, value, trigger, text } from '../../test/componentHarness';
-import { SettingsTab as Component } from '../setting';
-import { IndexSettingsSection } from '../setting/components/index/IndexSettingsSection';
-import { AppSettingsSection } from '../setting/components/app/AppSettingsSection';
-import { NetworkSettingsSection } from '../setting/components/network/NetworkSettingsSection';
-import { MailSettingsSection } from '../setting/components/mail/MailSettingsSection';
-import { WeatherSettingsSection } from '../setting/components/weather/WeatherSettingsSection';
-import { MusicSettingsSection } from '../setting/components/music/MusicSettingsSection';
-import { AiSettingsSection } from '../setting/components/ai/AiSettingsSection';
-import { ShortcutSettingsSection } from '../setting/components/shortcut/ShortcutSettingsSection';
-import { UserSettingsSection } from '../setting/components/user/UserSettingsSection';
-import { AboutSettingsSection } from '../setting/components/about/AboutSettingsSection';
-import { UpdateSettingsSection } from '../setting/components/update/UpdateSettingsSection';
-import { WallpaperMarketSection } from '../setting/components/pluginMarket/WallpaperMarketSection';
+import { render, nodes, value, trigger, text } from '../../../../test/componentHarness';
+import { SettingsTab as Component } from '../SettingsTab';
+import { IndexSettingsSection } from '../index/IndexSettingsSection';
+import { AppSettingsSection } from '../app/AppSettingsSection';
+import { NetworkSettingsSection } from '../network/NetworkSettingsSection';
+import { MailSettingsSection } from '../mail/MailSettingsSection';
+import { WeatherSettingsSection } from '../weather/WeatherSettingsSection';
+import { MusicSettingsSection } from '../music/MusicSettingsSection';
+import { AiSettingsSection } from '../ai/AiSettingsSection';
+import { ShortcutSettingsSection } from '../shortcut/ShortcutSettingsSection';
+import { UserSettingsSection } from '../user/UserSettingsSection';
+import { AboutSettingsSection } from '../about/AboutSettingsSection';
+import { UpdateSettingsSection } from '../update/UpdateSettingsSection';
+import { WallpaperMarketSection } from '../pluginMarket/WallpaperMarketSection';
 
-import { SettingsPageNavigation } from '../setting/components/SettingsPageNavigation';
-import { WallpaperContributionSection } from '../setting/components/pluginMarket/WallpaperContributionSection';
-import { WallpaperEditSection } from '../setting/components/pluginMarket/WallpaperEditSection';
+import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
+import { WallpaperContributionSection } from '../pluginMarket/WallpaperContributionSection';
+import { WallpaperEditSection } from '../pluginMarket/WallpaperEditSection';
 const state = vi.hoisted(() => ({ tab: 'index', hasLoginSession: true, setLogin: vi.fn(), setRegister: vi.fn(), setActiveTab: vi.fn(), setAiConfig: vi.fn(), aiConfig: { workspaces: ['C:/known'] }, handleCheckUpdate: vi.fn() }));
-vi.mock('../setting/hooks/useSettingsTabState', () => ({ useSettingsSidebarTabState: () => [state.tab, state.setActiveTab], useUserSessionState: () => ({ sessionToken: '', hasLoginSession: state.hasLoginSession }) }));
-vi.mock('../setting/hooks/useUpdateSettingsState', () => ({ default: () => ({ updateStatus: 'idle', handleCheckUpdate: state.handleCheckUpdate }) }));
-vi.mock('../setting/hooks/useBackgroundMediaSettingsState', () => ({ default: () => ({}) }));
-vi.mock('../../../../../store/slices', () => ({ default: (selector: (store: typeof state) => unknown) => selector(state) }));
-vi.mock('../../../../../utils/theme', () => ({ getThemeMode: () => 'system', setThemeMode: vi.fn() }));
-vi.mock('../../../../../i18n', () => ({ getLanguage: () => 'zh-CN', setLanguage: vi.fn().mockResolvedValue(undefined) }));
-vi.mock('../../../../../api/user/userAccountApi.client', () => ({ request: vi.fn() }));
-vi.mock('../../../expand/components/OverviewTab', () => ({ OVERVIEW_WIDGET_OPTIONS: [{ value: 'todo' }], OVERVIEW_CLOCK_STYLE_OPTIONS: [{ value: 'classic' }], normalizeOverviewLayoutConfig: (raw: unknown) => raw }));
-vi.mock('../setting/components/update/UpdateSettingsSection', () => ({ UpdateSettingsSection: () => null }));
-vi.mock('../setting/components/index/IndexSettingsSection', () => ({ IndexSettingsSection: () => null }));
-vi.mock('../setting/components/app/AppSettingsSection', () => ({ AppSettingsSection: () => null }));
-vi.mock('../setting/components/network/NetworkSettingsSection', () => ({ NetworkSettingsSection: () => null }));
-vi.mock('../setting/components/mail/MailSettingsSection', () => ({ MailSettingsSection: () => null }));
-vi.mock('../setting/components/weather/WeatherSettingsSection', () => ({ WeatherSettingsSection: () => null }));
-vi.mock('../setting/components/shortcut/ShortcutSettingsSection', () => ({ ShortcutSettingsSection: () => null }));
-vi.mock('../setting/components/music/MusicSettingsSection', () => ({ MusicSettingsSection: () => null }));
-vi.mock('../setting/components/ai/AiSettingsSection', () => ({ AiSettingsSection: () => null }));
-vi.mock('../setting/components/user/UserSettingsSection', () => ({ UserSettingsSection: () => null }));
-vi.mock('../setting/components/about/AboutSettingsSection', () => ({ AboutSettingsSection: () => null }));
-vi.mock('../setting/components/app/preview/OverviewPreview', () => ({ OverviewPreview: () => null }));
-vi.mock('../setting/components/pluginMarket/WallpaperMarketSection', () => ({ WallpaperMarketSection: () => null }));
-vi.mock('../setting/components/pluginMarket/WallpaperContributionSection', () => ({ WallpaperContributionSection: () => null }));
-vi.mock('../setting/components/pluginMarket/WallpaperEditSection', () => ({ WallpaperEditSection: () => null }));
-vi.mock('../setting/components/SettingsPageNavigation', () => ({ SettingsPageNavigation: () => null, SettingsPageNavigationToggle: () => null }));
+vi.mock('../../hooks/useSettingsTabState', () => ({ useSettingsSidebarTabState: () => [state.tab, state.setActiveTab], useUserSessionState: () => ({ sessionToken: '', hasLoginSession: state.hasLoginSession }) }));
+vi.mock('../../hooks/useUpdateSettingsState', () => ({ default: () => ({ updateStatus: 'idle', handleCheckUpdate: state.handleCheckUpdate }) }));
+vi.mock('../../hooks/useBackgroundMediaSettingsState', () => ({ default: () => ({}) }));
+vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (store: typeof state) => unknown) => selector(state) }));
+vi.mock('../../../../../../../utils/theme', () => ({ getThemeMode: () => 'system', setThemeMode: vi.fn() }));
+vi.mock('../../../../../../../i18n', () => ({ getLanguage: () => 'zh-CN', setLanguage: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('../../../../../../../api/user/userAccountApi.client', () => ({ request: vi.fn() }));
+vi.mock('../../../../../expand/components/OverviewTab', () => ({ OVERVIEW_WIDGET_OPTIONS: [{ value: 'todo' }], OVERVIEW_CLOCK_STYLE_OPTIONS: [{ value: 'classic' }], normalizeOverviewLayoutConfig: (raw: unknown) => raw }));
+vi.mock('../update/UpdateSettingsSection', () => ({ UpdateSettingsSection: () => null }));
+vi.mock('../index/IndexSettingsSection', () => ({ IndexSettingsSection: () => null }));
+vi.mock('../app/AppSettingsSection', () => ({ AppSettingsSection: () => null }));
+vi.mock('../network/NetworkSettingsSection', () => ({ NetworkSettingsSection: () => null }));
+vi.mock('../mail/MailSettingsSection', () => ({ MailSettingsSection: () => null }));
+vi.mock('../weather/WeatherSettingsSection', () => ({ WeatherSettingsSection: () => null }));
+vi.mock('../shortcut/ShortcutSettingsSection', () => ({ ShortcutSettingsSection: () => null }));
+vi.mock('../music/MusicSettingsSection', () => ({ MusicSettingsSection: () => null }));
+vi.mock('../ai/AiSettingsSection', () => ({ AiSettingsSection: () => null }));
+vi.mock('../user/UserSettingsSection', () => ({ UserSettingsSection: () => null }));
+vi.mock('../about/AboutSettingsSection', () => ({ AboutSettingsSection: () => null }));
+vi.mock('../app/preview/OverviewPreview', () => ({ OverviewPreview: () => null }));
+vi.mock('../pluginMarket/WallpaperMarketSection', () => ({ WallpaperMarketSection: () => null }));
+vi.mock('../pluginMarket/WallpaperContributionSection', () => ({ WallpaperContributionSection: () => null }));
+vi.mock('../pluginMarket/WallpaperEditSection', () => ({ WallpaperEditSection: () => null }));
+vi.mock('../SettingsPageNavigation', () => ({ SettingsPageNavigation: () => null, SettingsPageNavigationToggle: () => null }));
 
 describe('SettingsTab', () => {
   beforeEach(() => { state.hasLoginSession = true; });
@@ -153,5 +153,34 @@ describe('SettingsTab market branches', () => {
     expect(nodes(render(Component), WallpaperMarketSection)).toHaveLength(1);
     trigger(render(Component), SettingsPageNavigation, 'onSelectPage', 'apps');
     expect(text(render(Component))).toContain('settings.pluginMarket.apps.comingSoon');
+  });
+});
+
+describe('SettingsTab 实际侧栏与市场视图剩余回调', () => {
+  it('全部侧栏按钮转交自己的目标分类', () => {
+    state.tab = 'index';
+    const tree = render(Component);
+    const routes = ['index', 'app', 'pluginMarket', 'network', 'mail', 'weather', 'music', 'ai', 'shortcut', 'user', 'update', 'about'];
+    nodes(tree, '.max-expand-settings-sidebar-item').forEach((node, index) => {
+      const callback = node.props.onClick as () => void; callback();
+      expect(state.setActiveTab).toHaveBeenLastCalledWith(routes[index]);
+    });
+  });
+  it('市场搜索、详情与导航展开真实 updater 控制按钮高亮和禁用', () => {
+    state.tab = 'pluginMarket'; state.hasLoginSession = true;
+    let tree = render(Component);
+    const titleButtons = nodes(tree, '.settings-app-title-refresh-btn');
+    expect(titleButtons).toHaveLength(2);
+    const toggleSearch = value(tree, '.settings-app-title-refresh-btn', 'onClick', 1) as () => void; toggleSearch();
+    tree = render(Component); expect(value(tree, WallpaperMarketSection, 'searchExpanded')).toBe(true);
+    expect(nodes(tree, '.settings-app-title-refresh-btn')[1].props.className).toContain('active');
+    trigger(tree, SettingsPageNavigationToggle, 'onToggle');
+    tree = render(Component); expect(value(tree, SettingsPageNavigationToggle, 'label')).toContain('settings.navigation.collapse');
+    trigger(tree, WallpaperMarketSection, 'onDetailOpenChange', true);
+    tree = render(Component); expect(nodes(tree, '.settings-app-title-refresh-btn').every((node) => node.props.disabled === true)).toBe(true);
+    trigger(tree, SettingsPageNavigationToggle, 'onToggle');
+    tree = render(Component); expect(nodes(tree, '.settings-app-title-refresh-btn').every((node) => node.props.disabled === false)).toBe(true);
+    trigger(tree, WallpaperMarketSection, 'onDetailOpenChange', false);
+    expect(value(render(Component), SettingsPageNavigationToggle, 'expanded')).toBe(false);
   });
 });

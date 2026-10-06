@@ -1517,7 +1517,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
                     disabled={!!orderActionOutTradeNo}
                     onClick={() => void handleCloseOrder(order)}
                   >
-                    {orderActionOutTradeNo === order.outTradeNo
+                    {Boolean(order.outTradeNo) && orderActionOutTradeNo === order.outTradeNo
                       ? t('settings.user.orders.actions.closing', { defaultValue: '关闭中…' })
                       : t('settings.user.orders.actions.closeOrder', { defaultValue: '关闭订单' })}
                   </button>
