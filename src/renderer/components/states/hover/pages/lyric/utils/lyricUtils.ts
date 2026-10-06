@@ -34,7 +34,8 @@
 export function truncateByVisualWidth(text: string, maxWidth: number): string {
   let finalWidth = 0;
   let finalEnd = 0;
-  Array.from(text).every((ch) => {
+  const characters = Array.from(text);
+  characters.every((ch) => {
     const isEastAsianWide =
       /[一-鿿㐀-䶿　-〿＀-￯぀-ゟ゠-ヿ가-힯ᄀ-ᅟ㄰-㆏]/.test(ch);
     const charWidth = isEastAsianWide ? 2 : 1;
@@ -43,6 +44,6 @@ export function truncateByVisualWidth(text: string, maxWidth: number): string {
     finalEnd++;
     return true;
   });
-  if (finalEnd === text.length) return text;
-  return text.slice(0, finalEnd) + '…';
+  if (finalEnd === characters.length) return text;
+  return characters.slice(0, finalEnd).join('') + '…';
 }

@@ -47,17 +47,17 @@ const fetchLyricsFromAppleMusic = vi.hoisted(() => vi.fn());
 const fetchLyricsFromSpotify = vi.hoisted(() => vi.fn());
 const fetchLyricsFromMoeKoe = vi.hoisted(() => vi.fn());
 
-vi.mock('../lrcs/normal/providers/netease', () => ({ fetchLyricsFromNetease, fetchLyricsWithTranslationFromNetease }));
-vi.mock('../lrcs/normal/providers/qqmusic', () => ({ fetchLyricsFromQQMusic, fetchLyricsWithTranslationFromQQMusic }));
-vi.mock('../lrcs/normal/providers/kugou', () => ({ fetchLyricsFromKugou }));
-vi.mock('../lrcs/normal/providers/sodaMusic', () => ({ fetchLyricsFromSodaMusic, fetchLyricsWithTranslationFromSodaMusic }));
-vi.mock('../lrcs/normal/providers/lrclib', () => ({ fetchLyricsFromLrclib }));
-vi.mock('../lrcs/normal/providers/appleMusic', () => ({ fetchLyricsFromAppleMusic }));
-vi.mock('../lrcs/normal/providers/spotify', () => ({ fetchLyricsFromSpotify }));
-vi.mock('../lrcs/normal/providers/moeKoe', () => ({ fetchLyricsFromMoeKoe }));
+vi.mock('../normal/providers/netease', () => ({ fetchLyricsFromNetease, fetchLyricsWithTranslationFromNetease }));
+vi.mock('../normal/providers/qqmusic', () => ({ fetchLyricsFromQQMusic, fetchLyricsWithTranslationFromQQMusic }));
+vi.mock('../normal/providers/kugou', () => ({ fetchLyricsFromKugou }));
+vi.mock('../normal/providers/sodaMusic', () => ({ fetchLyricsFromSodaMusic, fetchLyricsWithTranslationFromSodaMusic }));
+vi.mock('../normal/providers/lrclib', () => ({ fetchLyricsFromLrclib }));
+vi.mock('../normal/providers/appleMusic', () => ({ fetchLyricsFromAppleMusic }));
+vi.mock('../normal/providers/spotify', () => ({ fetchLyricsFromSpotify }));
+vi.mock('../normal/providers/moeKoe', () => ({ fetchLyricsFromMoeKoe }));
 
-import type { LyricLine } from '../lrcs/index';
-import { getCurrentLyric, getNearbyLyrics, fetchLyrics, fetchLyricsWithTranslation } from '../lrcs/index';
+import type { LyricLine } from '../index';
+import { getCurrentLyric, getNearbyLyrics, fetchLyrics, fetchLyricsWithTranslation } from '../index';
 
 function makeLyric(time_ms: number, text: string): LyricLine {
   return { time_ms, text };

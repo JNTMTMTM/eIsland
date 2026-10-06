@@ -44,12 +44,12 @@ const mockSearchWithScoring = vi.hoisted(() => vi.fn<(input: unknown, searchFn: 
 
 /* ---------- module mocks ---------- */
 
-vi.mock('../request', () => ({
+vi.mock('../../request', () => ({
   requestJsonWithLog: mockRequestJsonWithLog,
   requestTextWithLog: mockRequestTextWithLog,
 }));
 
-vi.mock('../helpers', () => ({
+vi.mock('../../helpers', () => ({
   cleanTitle: mockCleanTitle,
   cleanArtist: mockCleanArtist,
   parseSyncedLrc: mockParseSyncedLrc,
@@ -59,14 +59,14 @@ vi.mock('../helpers', () => ({
   extractSyncedFromObject: mockExtractSyncedFromObject,
 }));
 
-vi.mock('../matcher', () => ({
+vi.mock('../../matcher', () => ({
   searchWithScoring: mockSearchWithScoring,
   makeSearchQueries: vi.fn((t: string, a: string) => [`${t} ${a}`]),
   scoreTrack: vi.fn(() => 0),
   bestMatch: vi.fn(() => null),
 }));
 
-vi.mock('../../../../../utils/logger', () => ({
+vi.mock('../../../../../../utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
@@ -85,11 +85,11 @@ afterEach(() => {
 
 /* ---------- imports under test ---------- */
 
-import { fetchLyricsFromKugou } from '../providers/kugou';
-import { fetchLyricsFromLrclib } from '../providers/lrclib';
-import { fetchLyricsFromNetease, fetchLyricsWithTranslationFromNetease } from '../providers/netease';
-import { fetchLyricsFromQQMusic, fetchLyricsWithTranslationFromQQMusic } from '../providers/qqmusic';
-import { fetchLyricsFromSodaMusic, fetchLyricsWithTranslationFromSodaMusic } from '../providers/sodaMusic';
+import { fetchLyricsFromKugou } from '../kugou';
+import { fetchLyricsFromLrclib } from '../lrclib';
+import { fetchLyricsFromNetease, fetchLyricsWithTranslationFromNetease } from '../netease';
+import { fetchLyricsFromQQMusic, fetchLyricsWithTranslationFromQQMusic } from '../qqmusic';
+import { fetchLyricsFromSodaMusic, fetchLyricsWithTranslationFromSodaMusic } from '../sodaMusic';
 
 /* ---------- helpers ---------- */
 

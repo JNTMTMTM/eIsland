@@ -114,8 +114,9 @@ export function parseSyncedLines(
   }
   const suffix = parseWithMode(lyrics, 'suffix', offsetKind);
   const prefix = parseWithMode(lyrics, 'prefix', offsetKind);
-  const suffixChars = suffix.reduce((sum, l) => sum + l.text.length, 0);
-  const prefixChars = prefix.reduce((sum, l) => sum + l.text.length, 0);
+  // 无音节时 text 保留整行回退文本，不能将这部分长度计入布局评分。
+  const suffixChars = suffix.reduce((sum, l) => sum + l.syllables.reduce((length, syllable) => length + syllable.text.length, 0), 0);
+  const prefixChars = prefix.reduce((sum, l) => sum + l.syllables.reduce((length, syllable) => length + syllable.text.length, 0), 0);
   return prefixChars > suffixChars ? prefix : suffix;
 }
 

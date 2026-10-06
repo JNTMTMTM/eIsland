@@ -25,7 +25,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import type { KaraokeLine } from '../types';
+import type { KaraokeLine } from '../../types';
 
 /* ---------- hoisted mock stubs ---------- */
 
@@ -45,36 +45,36 @@ const mockSearchWithScoring = vi.hoisted(() => vi.fn<(input: unknown, searchFn: 
 
 /* ---------- module mocks ---------- */
 
-vi.mock('../../normal/request', () => ({
+vi.mock('../../../normal/request', () => ({
   requestJsonWithLog: mockRequestJsonWithLog,
   requestTextWithLog: mockRequestTextWithLog,
 }));
 
-vi.mock('../../normal/helpers', () => ({
+vi.mock('../../../normal/helpers', () => ({
   cleanTitle: mockCleanTitle,
   cleanArtist: mockCleanArtist,
 }));
 
-vi.mock('../../normal/matcher', () => ({
+vi.mock('../../../normal/matcher', () => ({
   searchWithScoring: mockSearchWithScoring,
   makeSearchQueries: vi.fn((t: string, a: string) => [`${t} ${a}`]),
   scoreTrack: vi.fn(() => 0),
   bestMatch: vi.fn(() => null),
 }));
 
-vi.mock('../decrypt/krc', () => ({
+vi.mock('../../decrypt/krc', () => ({
   decryptKRC: mockDecryptKRC,
 }));
 
-vi.mock('../decrypt/qrc', () => ({
+vi.mock('../../decrypt/qrc', () => ({
   decryptQRC: mockDecryptQRC,
 }));
 
-vi.mock('../parsers', () => ({
+vi.mock('../../parsers', () => ({
   parseSyncedLines: mockParseSyncedLines,
 }));
 
-vi.mock('../../../../../utils/logger', () => ({
+vi.mock('../../../../../../utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
@@ -93,10 +93,10 @@ afterEach(() => {
 
 /* ---------- imports under test ---------- */
 
-import { fetchKaraokeFromKugou } from '../providers/kugou';
-import { fetchKaraokeFromNetease } from '../providers/netease';
-import { fetchKaraokeFromQQMusic } from '../providers/qqmusic';
-import { fetchKaraokeFromSodaMusic } from '../providers/sodaMusic';
+import { fetchKaraokeFromKugou } from '../kugou';
+import { fetchKaraokeFromNetease } from '../netease';
+import { fetchKaraokeFromQQMusic } from '../qqmusic';
+import { fetchKaraokeFromSodaMusic } from '../sodaMusic';
 
 /* ---------- helpers ---------- */
 
