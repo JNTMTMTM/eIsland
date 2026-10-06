@@ -75,6 +75,7 @@ let activeAudio: HTMLAudioElement | null = null;
 let activeRingtone: SystemAlarmRingtone | null = null;
 let fadeAnimationFrameId: number | null = null;
 let playbackMode: 'idle' | 'preview' | 'alarm' = 'idle';
+let playbackRequestId = 0;
 const previewStateListeners = new Set<(state: { playing: boolean; ringtone: SystemAlarmRingtone | null }) => void>();
 
 function notifyPreviewState(): void {
@@ -164,6 +165,7 @@ export function normalizeSystemAlarmRingtone(value: unknown): SystemAlarmRington
  * @param options - 闹钟播放配置。
  */
 export function playAlarmSound(options: { ringtone: SystemAlarmRingtone; loop: boolean }): void {
+  const requestId = ++playbackRequestId;
   const audio = ensureAudio(options.ringtone);
   setPlaybackMode('alarm');
   cancelFadeAnimation();
@@ -176,6 +178,7 @@ export function playAlarmSound(options: { ringtone: SystemAlarmRingtone; loop: b
   }
   audio.play().then(async () => {
     const targetVolume = await readEffectiveAudioVolume('alarm').catch(() => 1);
+    if (requestId !== playbackRequestId) return;
     fadeVolume(0, targetVolume, FADE_IN_DURATION_MS);
   }).catch(() => {});
 }
@@ -185,6 +188,7 @@ export function playAlarmSound(options: { ringtone: SystemAlarmRingtone; loop: b
  * @param ringtone - 需要预览的铃声。
  */
 export function previewAlarmSound(ringtone: SystemAlarmRingtone): void {
+  const requestId = ++playbackRequestId;
   const normalizedRingtone = normalizeSystemAlarmRingtone(ringtone);
   const isSamePreviewPlaying = playbackMode === 'preview'
     && activeAudio
@@ -220,6 +224,7 @@ export function previewAlarmSound(ringtone: SystemAlarmRingtone): void {
   audio.play().then(() => {
     const applyPreviewVolume = async (): Promise<void> => {
       const targetVolume = await readEffectiveAudioVolume('alarm').catch(() => 1);
+      if (requestId !== playbackRequestId) return;
       if (canResume) {
         audio.volume = targetVolume;
         notifyPreviewState();
@@ -230,6 +235,7 @@ export function previewAlarmSound(ringtone: SystemAlarmRingtone): void {
 
     void applyPreviewVolume();
   }).catch(() => {
+    if (requestId !== playbackRequestId) return;
     setPlaybackMode('idle');
   });
 }
@@ -239,6 +245,7 @@ export function previewAlarmSound(ringtone: SystemAlarmRingtone): void {
  */
 export function stopPreviewAlarmSound(): void {
   if (!activeAudio || playbackMode !== 'preview') return;
+  playbackRequestId += 1;
   cancelFadeAnimation();
   activeAudio.pause();
   try {
@@ -253,6 +260,7 @@ export function stopPreviewAlarmSound(): void {
  * 停止闹钟铃声播放。
  */
 export function stopAlarmSound(): void {
+  playbackRequestId += 1;
   if (!activeAudio) return;
   const audio = activeAudio;
   const from = Number.isFinite(audio.volume) ? audio.volume : 1;

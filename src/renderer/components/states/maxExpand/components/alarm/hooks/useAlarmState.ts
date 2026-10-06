@@ -303,7 +303,7 @@ export function useAlarmState(): AlarmState {
       return t('maxExpand.alarm.ringTomorrow', { defaultValue: '明天' });
     }
 
-    for (let offset = 0; offset < 7; offset++) {
+    for (let offset = 0; offset <= 7; offset++) {
       const checkDay = ((todayDay + offset) % 7) as Weekday;
       if (!alarm.repeat.includes(checkDay)) continue;
       if (offset === 0 && alarmMinutes > todayMinutes) {
