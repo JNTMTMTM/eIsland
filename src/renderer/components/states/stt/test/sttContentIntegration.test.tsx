@@ -179,21 +179,42 @@ describe('识别组件真实状态与持久化', () => {
     click(0);
     expect(store.getState().agentPrompt).toBe('');
   });
-  it('只读复现：原生剪贴板拒绝沿实际复制 Promise 向外传播，反馈仍可重试', async () => {
+  it('原生剪贴板拒绝被实际复制链捕获，保持重试且仅成功才显示已复制', async () => {
     const failure = new Error('clipboard denied');
     const pending = Promise.reject<void>(failure);
-    const then = vi.spyOn(pending, 'then');
+    const terminal: Promise<unknown>[] = [];
+    const nativeThen = pending.then.bind(pending);
+    const then = vi.spyOn(pending, 'then').mockImplementation((fulfilled, rejected) => {
+      const derived = nativeThen(fulfilled, rejected);
+      const nativeCatch = derived.catch.bind(derived);
+      vi.spyOn(derived, 'catch').mockImplementation((callback) => {
+        const result = nativeCatch(callback);
+        terminal.push(result);
+        return result;
+      });
+      return derived;
+    });
     copy.mockReturnValue(pending);
     bind(null);
     click(3);
     const sourceCall = then.mock.calls.findIndex(([, rejected]) => rejected === undefined);
     expect(then.mock.calls[sourceCall]).toHaveLength(1);
     const result = then.mock.results[sourceCall];
+    const derived = result.type === 'return' ? result.value as Promise<void> : Promise.resolve();
+    const productionCaught = terminal.length;
+    await derived.catch(() => undefined);
+    expect(productionCaught).toBeGreaterThan(0);
+    await Promise.all(terminal);
     expect(result.type).toBe('return');
-    // 在测试叶边界观察原始回调产生的拒绝，避免未处理拒绝污染其他用例；不替换被测处理函数。
-    if (result.type === 'return') await expect(result.value).rejects.toBe(failure);
+    // 测试侧只观察真实 Promise 链；失败反馈不得创建成功恢复计时器。
+    expect(vi.getTimerCount()).toBe(0);
     expect(text(view())).toContain('stt.actions.copy');
     expect(text(view())).not.toContain('stt.actions.copied');
+    copy.mockResolvedValue(undefined);
+    click(3);
+    await settle();
+    expect(text(view())).toContain('stt.actions.copied');
+    expect(copy).toHaveBeenCalledTimes(2);
   });
 
 });
