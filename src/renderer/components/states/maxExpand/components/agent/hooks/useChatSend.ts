@@ -561,7 +561,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
                 const last = copy[copy.length - 1];
                 if (!last || last.role !== 'assistant') return copy;
                 const toolCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
-                const idx = toolCalls.findIndex((tc) => tc.turn === payload.turn && tc.tool === payload.tool && tc.pending);
+                const idx = toolCalls.findIndex((tc) => tc && tc.turn === payload.turn && tc.tool === payload.tool && tc.pending);
                 if (idx >= 0) {
                   toolCalls[idx] = { ...toolCalls[idx], pending: false, success: payload.success, error: payload.error || '', result: payload.result, durationMs: payload.durationMs || 0 };
                 }

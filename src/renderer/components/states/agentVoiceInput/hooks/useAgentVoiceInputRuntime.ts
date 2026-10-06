@@ -156,7 +156,11 @@ export function useAgentVoiceInputRuntime(options: UseAgentVoiceInputRuntimeOpti
           video: false,
         });
 
-        if (!active) return;
+        if (!active) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          mediaStream = null;
+          return;
+        }
 
         const AudioContextCtor = getAudioContextCtor();
         if (!AudioContextCtor) {
