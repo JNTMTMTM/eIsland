@@ -25,8 +25,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushEffects, nodes, render, text, trigger, value } from '../../test/componentHarness';
-import { MiniGameTab } from '../MiniGameTab';
+import { flushEffects, nodes, render as renderComponent, text, trigger, value } from '../../test/componentHarness';
+import { expandMiniGameTree } from '../miniGame/test/expandMiniGameTree';
+import { MiniGameTab } from '../miniGame';
 import { Game2048 } from '../games/Game2048';
 import { GameGomoku, GOMOKU_SIZE } from '../games/GameGomoku';
 import type { ReactNode } from 'react';
@@ -51,6 +52,15 @@ vi.mock('../../../../../api/miniGame/miniGameScoreApi', () => ({
   getMyScore: mocks.score, getLeaderboard: mocks.leaderboard, checkLeaderboardRefreshCaptcha: mocks.refreshCheck,
   flushPendingSubmissions: mocks.flush, reportNewBest: mocks.report, startGameSession: mocks.session,
 }));
+
+/**
+ * 渲染真实页面并展开纯展示模块。
+ * @param component - 被测页面组件。
+ * @returns 完整的展示树。
+ */
+function render(component: unknown): ReactNode {
+  return expandMiniGameTree(renderComponent(component));
+}
 
 /**
  * 构造接口的成功响应。

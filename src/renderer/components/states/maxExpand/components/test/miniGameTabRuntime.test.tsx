@@ -76,7 +76,8 @@ vi.mock('../../../../../api/miniGame/miniGameScoreApi', () => ({
   reportNewBest: leaves.report,
   startGameSession: leaves.session
 }));
-let Component: typeof import('../MiniGameTab').MiniGameTab;
+let Component: typeof import('../miniGame').MiniGameTab;
+let expandMiniGameTree: typeof import('../miniGame/test/expandMiniGameTree').expandMiniGameTree;
 let game2048: typeof import('../games/Game2048').Game2048;
 let gomoku: typeof import('../games/GameGomoku').GameGomoku;
 let changed: (() => void) | undefined;
@@ -96,7 +97,7 @@ function success<T>(data: T): UserAccountResult<T> {
  * @returns 面板元素
  */
 function run(): ReactElement {
-  return renderHook(Component);
+  return expandMiniGameTree(renderHook(Component)) as ReactElement;
 }
 /** 完成初始异步生命周期。
  * @returns 真实当前树
@@ -182,7 +183,8 @@ beforeEach(async () => {
       storeWrite: leaves.write
     }
   });
-  Component = (await import('../MiniGameTab')).MiniGameTab;
+  expandMiniGameTree = (await import('../miniGame/test/expandMiniGameTree')).expandMiniGameTree;
+  Component = (await import('../miniGame')).MiniGameTab;
   game2048 = (await import('../games/Game2048')).Game2048;
   gomoku = (await import('../games/GameGomoku')).GameGomoku;
 });

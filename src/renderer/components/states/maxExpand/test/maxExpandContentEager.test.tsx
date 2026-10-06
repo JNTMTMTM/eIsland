@@ -39,7 +39,7 @@ import { MemoTab } from '../components/memo/components/MemoTab';
 import { CountdownTab } from '../components/countdown';
 import { AlarmTab } from '../components/alarm/components/AlarmTab';
 import { ToolboxTab } from '../components/ToolboxTab';
-import { MiniGameTab } from '../components/MiniGameTab';
+import { MiniGameTab } from '../components/miniGame';
 import { StockTab } from '../components/stock';
 import { CliTab } from '../components/cli';
 import { CalculatorTab } from '../components/calculator';
@@ -58,7 +58,7 @@ vi.mock('../components/memo/components/MemoTab', () => ({ MemoTab: () => null })
 vi.mock('../components/countdown', () => ({ CountdownTab: () => null }));
 vi.mock('../components/alarm/components/AlarmTab', () => ({ AlarmTab: () => null }));
 vi.mock('../components/ToolboxTab', () => ({ ToolboxTab: () => null }));
-vi.mock('../components/MiniGameTab', () => ({ MiniGameTab: () => null }));
+vi.mock('../components/miniGame', () => ({ MiniGameTab: () => null }));
 vi.mock('../components/stock', () => ({ StockTab: () => null }));
 vi.mock('../components/cli', () => ({ CliTab: () => null }));
 vi.mock('../components/calculator', () => ({ CalculatorTab: () => null }));
