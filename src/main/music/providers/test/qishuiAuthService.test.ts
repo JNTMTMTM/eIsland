@@ -81,6 +81,11 @@ describe('Qishui QR bridge loading and state', () => {
   });
 });
 describe('Qishui QR polling states', () => {
+  it('empty polling envelope uses waiting state without an invented error or message', async () => {
+    io.checkQrConnect.mockResolvedValue({});
+    const api = await import('../qishuiAuthService');
+    expect(await api.checkQishuiQrCode('token')).toMatchObject({ state: 'waiting', retryAfterMs: 0, loggedIn: false, message: undefined });
+  });
   it.each([[{ error_code: 2 }, 'expired', 0], [{ error_code: 7 }, 'rate_limited', 60_000], [{ status: 2 }, 'scanned', 0], [{ status: ' 2 ' }, 'scanned', 0], [{ status: 0 }, 'waiting', 0]])('maps %s to %s', async (data, state, retryAfterMs) => {
     io.checkQrConnect.mockResolvedValue({ data });
     const api = await import('../qishuiAuthService'); expect(await api.checkQishuiQrCode('token')).toMatchObject({ state, retryAfterMs, loggedIn: false });

@@ -20,7 +20,7 @@
 
 /**
  * @file hardware-info.smoke.ts
- * @description Smoke test for hardware info helper — prints all query results
+ * @description 硬件信息原生查询与结果输出冒烟测试。
  * @author 鸡哥
  */
 

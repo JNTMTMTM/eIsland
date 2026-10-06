@@ -1034,7 +1034,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
         snip:        { exe: 'snippingtool.exe', label: '截图工具' },
       };
 
-      const entry = builtinTargets[target];
+      const entry = Object.hasOwn(builtinTargets, target) ? builtinTargets[target] : undefined;
       if (entry) {
         if (entry.uri) {
           await shell.openExternal(entry.uri);

@@ -24,10 +24,12 @@
  * @author 鸡哥
  */
 
-import { describe, expect, it } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createRequire } from 'node:module';
+import { describe, expect, it } from 'vitest';
 
+const loadNative = createRequire(import.meta.url);
 const isWindows = process.platform === 'win32';
 /** Target framework moniker — keep in sync with eIslandScreenshotHelper.csproj */
 const TFM = 'net10.0-windows10.0.19041.0';
@@ -41,20 +43,20 @@ interface ScreenshotResult {
 }
 
 const screenshot = isWindows && hasNativeDll
-  ? (require('../') as {
-      capturePrimaryDisplayPng(): ScreenshotResult | null;
-      captureAllDisplaysPng(): ScreenshotResult | null;
-      getVisibleWindows(): Array<{
-        hwnd: string;
-        title: string;
-        processId: number;
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-      }>;
-      getLastError(): string;
-    })
+  ? (loadNative('../index.js') as {
+    capturePrimaryDisplayPng(): ScreenshotResult | null;
+    captureAllDisplaysPng(): ScreenshotResult | null;
+    getVisibleWindows(): Array<{
+      hwnd: string;
+      title: string;
+      processId: number;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }>;
+    getLastError(): string;
+  })
   : null;
 
 function expectValidPng(result: ScreenshotResult): void {
@@ -90,11 +92,19 @@ describe.skipIf(!isWindows || !hasNativeDll)('@eisland/windows-screenshot-helper
     if (result) expectValidPng(result);
   });
 
-  it('all-displays capture is >= primary display size', () => {
+  it('both captures contain valid PNG dimensions', () => {
     const primary = mod.capturePrimaryDisplayPng();
     const all = mod.captureAllDisplaysPng();
+    expect(primary).not.toBeNull();
+    expect(all).not.toBeNull();
     if (primary && all) {
-      expect(all.size).toBeGreaterThanOrEqual(primary.size);
+      // PNG 压缩大小受画面和采样时刻影响，IHDR 才记录真实图像尺寸。
+      [primary, all].forEach((result) => {
+        expectValidPng(result);
+        expect(result.data.subarray(12, 16).toString('ascii')).toBe('IHDR');
+        expect(result.data.readUInt32BE(16)).toBeGreaterThan(0);
+        expect(result.data.readUInt32BE(20)).toBeGreaterThan(0);
+      });
     }
   });
 
