@@ -70,7 +70,7 @@
     "lint:html": "html-validate \"{src,web}/**/*.html\" --max-warnings=0",
     "lint:comments": "eslint . --config scripts/lint/comments.config.mjs --max-warnings=0",
     "lint:all": "run-p --continue-on-error lint:eslint lint:css lint:html i18n:check",
-    "lint:config:test": "node --test scripts/lint/config.test.mjs",
+    "lint:config:test": "node --test scripts/lint/config.test.mjs scripts/lint/pr-code-quality-review.test.mjs",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "run-p --continue-on-error typecheck:node typecheck:web",
