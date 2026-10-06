@@ -20,7 +20,7 @@
 
 /**
  * @file vitest.config.ts
- * @description Vitest 测试配置文件
+ * @description 按主进程、预加载、共享模块、原生插件与渲染进程划分 Vitest 测试项目。
  * @author 鸡哥
  */
 
@@ -41,13 +41,32 @@ export default defineConfig({
       {
         extends: true,
         test: {
-          name: { label: 'node', color: 'yellow' },
+          name: { label: 'main', color: 'yellow' },
+          include: ['src/main/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'preload', color: 'cyan' },
+          include: ['src/preload/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'shared', color: 'green' },
+          include: ['src/shared/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'plugins', color: 'blue' },
           include: [
-            'src/**/*.test.{ts,tsx}',
             'plugins/**/test/ffiLoader.test.ts',
             'plugins/**/test/*Runtime.test.{ts,tsx,js,mjs}',
           ],
-          exclude: ['src/renderer/**'],
         },
       },
       {
