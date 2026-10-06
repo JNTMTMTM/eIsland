@@ -48,6 +48,15 @@ describe('ClipboardHistoryItemRow', () => {
     expect(props.onToggleExpand).toHaveBeenCalledWith(item);
     expect(props.onRemove).toHaveBeenCalledWith(1);
   });
+  it('保存按钮提交条目并展示选择模式收起状态', () => {
+    props.onSaveEdit.mockClear();
+    const tree = render(Component, { ...props, selectionMode: true, selectionCollapsing: true, selected: true, expanded: true, editText: 'updated' });
+    expect(nodes(tree, '.clipboard-history-summary-row--collapsing')).toHaveLength(1);
+    expect(nodes(tree, '.clipboard-history-item--selected')).toHaveLength(0);
+    trigger(tree, '.clipboard-history-save', 'onClick');
+    expect(props.onSaveEdit).toHaveBeenCalledWith(item.id);
+    props.onSaveEdit.mockClear();
+  });
   it('updates editor reference and commits only Ctrl or Meta Enter', () => {
     const tree = render(Component, props);
     const target = {};
