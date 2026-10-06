@@ -88,7 +88,7 @@ describe('支付公开表单的生命周期与缺省值', () => {
     runEffects();
     tree = renderWithHooks(() => PaymentPendingOrder(props));
     expect(elements(tree).some((node) => node.props.value === props.pendingOrder.payUrl)).toBe(false);
-    expect(textContent(tree)).toContain('显示二维码');
+    expect(textContent(tree)).toContain(i18n.t('settings.user.payment.showQrCode'));
   });
 
   it('二维码专用地址优先于支付链接且可正常收起', () => {
@@ -98,7 +98,7 @@ describe('支付公开表单的生命周期与缺省值', () => {
     invoke(findElement(tree, (node) => node.props.className === 'settings-user-primary-btn payment-confirm-btn'), 'onClick');
     tree = renderWithHooks(() => PaymentPendingOrder(props));
     expect(findElement(tree, (node) => node.props.value === props.pendingOrder.qrCodeUrl).props.level).toBe('M');
-    expect(textContent(tree)).toContain('收起二维码');
+    expect(textContent(tree)).toContain(i18n.t('settings.user.payment.hideQrCode'));
     invoke(findElement(tree, (node) => node.props.className === 'settings-user-primary-btn payment-confirm-btn'), 'onClick');
     tree = renderWithHooks(() => PaymentPendingOrder(props));
     expect(elements(tree).some((node) => node.props.value === props.pendingOrder.qrCodeUrl)).toBe(false);

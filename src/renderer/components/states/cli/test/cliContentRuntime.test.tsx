@@ -182,7 +182,7 @@ describe('CLI内容真实快照、歌词配置与状态集成', () => {
     await mount();
     const tree = publish([{ ...session('idle'), title: '' }], [{ ...event(), sessionId: 'different' }]);
     expect(findElement(tree, (node) => node.props.className === 'cli-state-icon').props.src).toBe(GifIcon.CLAWD_IDLE);
-    expect(textContent(tree)).toContain('会话'); expect(textContent(tree)).toContain(i18n.t('maxExpand.cli.emptyEvents'));
+    expect(textContent(tree)).toContain(i18n.t('maxExpand.cli.sessions')); expect(textContent(tree)).toContain(i18n.t('maxExpand.cli.emptyEvents'));
     expect(textContent(tree)).not.toContain('实时事件');
   });
 
