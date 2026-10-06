@@ -55,4 +55,22 @@ describe('StockSearchPanel', () => {
     trigger(render(Component, { ...props, searchResults: [item], favorites: [item] }), '.stock-search-result-add', 'onClick', event);
     expect(props.onRemoveFavorite).toHaveBeenCalledWith('AAPL');
   });
+  it('原生存储无关键词时回退空值，空格激活而其他键不触发选择', () => {
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: vi.fn() });
+    try {
+      const tree = render(Component, { ...props, searchResults: [item] });
+      expect(value(tree, 'input', 'value')).toBe('');
+      props.onSelectSymbol.mockClear();
+      const target = {};
+      const event = { target, currentTarget: target, key: 'Escape', preventDefault: vi.fn() };
+      trigger(tree, '.stock-search-result-item', 'onKeyDown', event);
+      expect(props.onSelectSymbol).not.toHaveBeenCalled();
+      trigger(tree, '.stock-search-result-item', 'onKeyDown', { ...event, key: ' ' });
+      trigger(tree, '.stock-search-result-item', 'onClick');
+      expect(props.onSelectSymbol.mock.calls).toEqual([['AAPL'], ['AAPL']]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
 });

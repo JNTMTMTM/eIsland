@@ -55,4 +55,10 @@ describe('MailInboxList', () => {
     expect(props.onToggleItem).toHaveBeenCalledTimes(3);
     expect(props.onToggleItem).toHaveBeenLastCalledWith('a');
   });
+  it('缺失预览与正文的合法空邮件使用空摘要', () => {
+    const tree = render(Component, { ...props, inbox: [{ uid: 'empty', subject: 'Empty', from: '', body: '', preview: '' }], loadingInbox: false });
+    expect(nodes(tree, '.settings-mail-tab-mail-item')).toHaveLength(1);
+    expect(text(tree)).toContain('Empty');
+  });
+
 });

@@ -43,6 +43,8 @@ describe('MailAccountTabs', () => {
     expect(text(tree)).toBe('Workb@example.commailTab.accounts.unnamed');
     expect(nodes(tree, '.active')).toHaveLength(1);
     expect(nodes(tree, '.is-collapsed')).toHaveLength(1);
+    const expanded = render(Component, { ...props, accounts: accountItems, collapsed: false });
+    expect(nodes(expanded, '.is-collapsed')).toHaveLength(0);
     trigger(tree, 'button', 'onClick');
     expect(props.onSwitchAccount).toHaveBeenCalledWith(accountItems[0]);
   });

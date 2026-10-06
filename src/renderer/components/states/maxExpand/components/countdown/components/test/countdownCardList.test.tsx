@@ -32,7 +32,11 @@ describe('CountdownCardList', () => {
   const item = { id: 1, name: 'Release', date: '2026-10-10', type: 'event', color: '#f00', pinned: false, archived: false };
   const props = { items: [], now: new Date(2026, 9, 6), saving: false, onStartEdit: vi.fn(), onDelete: vi.fn(), onAction: vi.fn() };
   it('renders empty state and routes edit, pin, copy, archive and delete', () => {
-    expect(text(render(Component, props))).toContain('countdown.manage.empty');
+    const empty = render(Component, props);
+    expect(text(empty)).toContain('countdown.manage.empty');
+    const stopPropagation = vi.fn();
+    trigger(empty, '.cd-cards-wrap', 'onWheel', { stopPropagation });
+    expect(stopPropagation).toHaveBeenCalledOnce();
     const tree = render(Component, { ...props, items: [item] });
     trigger(tree, CountdownCard, 'onClick');
     const buttons = nodes(tree, 'button');

@@ -40,5 +40,7 @@ describe('MailReader', () => {
     const body = render(Component, { item: { subject: 'Subject', from: 'Sender', body: '<p>Body</p>', preview: 'ignored' }, t: (key: string) => key });
     expect(value(body, 'iframe', 'srcDoc')).toContain('<p>Body</p>');
     expect(value(body, 'iframe', 'srcDoc')).not.toContain('ignored');
+    const empty = render(Component, { item: { subject: '', from: '', body: '', preview: '' }, t: (key: string) => key });
+    expect(value(empty, 'iframe', 'srcDoc')).toContain('>-<');
   });
 });

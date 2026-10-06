@@ -41,4 +41,15 @@ describe('EmptyMailGuide', () => {
     expect(onGoSettings).toHaveBeenCalledOnce();
     expect(clipboardOpenUrl).toHaveBeenCalledWith(MAIL_HELP_URL);
   });
+  it('原生帮助链接失败被真实事件捕获，仍保留设置操作', async () => {
+    const clipboardOpenUrl = vi.fn().mockRejectedValue(new Error('open denied'));
+    vi.stubGlobal('window', { api: { clipboardOpenUrl } });
+    const onGoSettings = vi.fn();
+    const tree = render(Component, { onGoSettings, t: (key: string) => key });
+    await trigger(tree, '.settings-user-secondary-btn', 'onClick');
+    await Promise.resolve();
+    trigger(tree, '.settings-user-primary-btn', 'onClick');
+    expect(onGoSettings).toHaveBeenCalledOnce();
+  });
+
 });

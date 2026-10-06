@@ -43,7 +43,7 @@ vi.mock('zustand', async () => {
 
 const first: CountdownItem = { id: 1, name: 'First', date: '2026-09-23', color: '#fff', type: 'countdown' };
 const second: CountdownItem = { id: 2, name: 'Second', date: '2026-09-24', color: '#fff', type: 'countdown' };
-const api = { storeRead: vi.fn(), storeCompareAndSwap: vi.fn(), onSettingsChanged: vi.fn() };
+const api = { storeRead: vi.fn(), storeCompareAndSwap: vi.fn(), onSettingsChanged: vi.fn<Window['api']['onSettingsChanged']>() };
 let useItems: typeof import('../useCountdownItems').useCountdownItems;
 let sync: (channel: string, data: unknown) => void;
 let cleanup: (() => void) | undefined;
@@ -135,10 +135,10 @@ describe('useCountdownItems', () => {
 
   it('does not replace a newer broadcast with a delayed successful save response', async () => {
     const state = await mountItems();
-    api.storeCompareAndSwap.mockImplementationOnce(async () => {
+    api.storeCompareAndSwap.mockImplementationOnce(() => {
       sync('store:countdown-dates', [first]);
       sync('store:countdown-dates', [first, second]);
-      return 'updated';
+      return Promise.resolve('updated');
     });
     expect(await state.updateItems(() => [first])).toBe(true);
     expect(useItems().items).toEqual([first, second]);
@@ -159,4 +159,31 @@ describe('useCountdownItems', () => {
     await Promise.resolve();
     expect(useItems()).toMatchObject({ loaded: true, error: false, items: [first] });
   });
+  it('首次加载前和已有保存进行中拒绝重复提交', async () => {
+    expect(await useItems().updateItems(() => [first])).toBe(false);
+    expect(api.storeRead).not.toHaveBeenCalled();
+    const state = await mountItems();
+    let resolve!: (result: string) => void;
+    api.storeCompareAndSwap.mockReturnValueOnce(new Promise((accept) => { resolve = accept; }));
+    const saving = state.updateItems(() => [first]);
+    await Promise.resolve();
+    expect(useItems().saving).toBe(true);
+    expect(await useItems().updateItems(() => [second])).toBe(false);
+    resolve('updated');
+    expect(await saving).toBe(true);
+    expect(api.storeCompareAndSwap).toHaveBeenCalledOnce();
+  });
+  it('第二个公开订阅复用原生监听，非目标频道不改变共享数据', async () => {
+    await mountItems();
+    useItems();
+    const effect = effectMock.mock.calls.at(-1)?.[0] as () => (() => void);
+    const secondCleanup = effect();
+    expect(api.onSettingsChanged).toHaveBeenCalledOnce();
+    sync('store:other', [first]);
+    expect(useItems().items).toEqual([]);
+    secondCleanup();
+    sync('store:countdown-dates', [first]);
+    expect(useItems().items).toEqual([first]);
+  });
+
 });

@@ -39,4 +39,13 @@ describe('QuestionnaireQuestion interactions', () => {
   it('adds and removes multiple-choice values without mutating the previous answer', () => { const answer = ['A']; const onChange = vi.fn(); const root = ((QuestionnaireQuestion({ answer, onChange, question: question('multiple_choice'), index: 0 }) as TreeElement)); const inputs = elements(root).filter((node) => node.type === 'input'); invoke(inputs[0], 'onChange'); invoke(inputs[1], 'onChange'); expect(onChange.mock.calls).toEqual([[[]], [['A', 'B']]]); expect(answer).toEqual(['A']); });
   it('normalizes nontext answer and forwards text updates with configured limit', () => { const onChange = vi.fn(); const root = ((QuestionnaireQuestion({ onChange, question: { ...question('text'), maxLength: 50 }, index: 0, answer: 2 }) as TreeElement)); const textarea = find(root, (node) => node.type === 'textarea'); expect(textarea.props).toMatchObject({ value: '', maxLength: 50 }); invoke(textarea, 'onChange', { target: { value: 'Words' } }); expect(onChange).toHaveBeenCalledWith('Words'); });
   it('guards read-only event callbacks and optional missing onChange', () => { const onChange = vi.fn(); const root = ((QuestionnaireQuestion({ onChange, question: question('rating'), index: 0, readOnly: true }) as TreeElement)); invoke(find(root, (node) => node.props.role === 'radio'), 'onClick'); expect(onChange).not.toHaveBeenCalled(); expect(() => invoke(find(((QuestionnaireQuestion({ question: question('rating'), index: 0 }) as TreeElement)), (node) => node.props.role === 'radio'), 'onClick')).not.toThrow(); });
+  it('非数组多选答案作为空选择，缺失文本上限回退并保留已输入长度', () => {
+    const onChange = vi.fn();
+    const multiple = QuestionnaireQuestion({ onChange, question: question('multiple_choice'), index: 0, answer: 'old' });
+    invoke(find(multiple, (node) => node.type === 'input'), 'onChange');
+    expect(onChange).toHaveBeenCalledWith(['A']);
+    const root = QuestionnaireQuestion({ question: question('text'), index: 0, answer: 'hello' });
+    expect(find(root, (node) => node.type === 'textarea').props).toMatchObject({ value: 'hello', maxLength: 2000 });
+  });
+
 });
