@@ -5,6 +5,8 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/shared/**/*",
+    "plugins/**/test/ffiLoader.test.ts",
+    "plugins/test/ffiLoaderHarness.ts",
     "scripts/**/*"
   ],
   "compilerOptions": {

@@ -24,19 +24,29 @@
  * @author 鸡哥
  */
 
-import { defineConfig } from 'vitest/config';
+import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
     environment: 'node',
     clearMocks: true,
     restoreMocks: true,
+    coverage: {
+      // 保留覆盖率目录中的源码哈希与不可达审计；每轮报告仍由报告器覆盖。
+      clean: false,
+      include: ['src/**/*.{ts,tsx,js}', 'plugins/*/*.js'],
+      exclude: [...coverageConfigDefaults.exclude, '**/test/**'],
+    },
     projects: [
       {
         extends: true,
         test: {
           name: { label: 'node', color: 'yellow' },
-          include: ['src/**/*.test.{ts,tsx}'],
+          include: [
+            'src/**/*.test.{ts,tsx}',
+            'plugins/**/test/ffiLoader.test.ts',
+            'plugins/**/test/*Runtime.test.{ts,tsx,js,mjs}',
+          ],
           exclude: ['src/renderer/**'],
         },
       },
