@@ -73,3 +73,8 @@ describe('DynamicIslandStateContent', () => {
     expect(elementProps(DynamicIslandStateContent({ ...props, state: 'notification' }))).toMatchObject({ title: 'Title', body: 'Body', type: 'default' });
   });
 });
+
+it('renders no page for a damaged runtime state from the public store boundary', () => {
+  const state = 'unknown-runtime-state' as ComponentProps<typeof DynamicIslandStateContent>['state'];
+  expect(DynamicIslandStateContent({ state, ...props })).toBeNull();
+});

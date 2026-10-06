@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShapeStep } from '../ShapeStep';
 import { elementProps, elements, findElement, invoke, resetState } from '../../../../../test/elementHarness';
@@ -55,4 +56,10 @@ describe('ShapeStep', () => {
     invoke(findElement(tree, (node) => elementProps(node).className === 'guide-prev-btn'), 'onClick');
     expect(onPrev).toHaveBeenCalledOnce();
   });
+});
+
+it('executes both actual preview components in the rendered markup', () => {
+  const markup = renderToStaticMarkup(ShapeStep({ onNext: vi.fn(), onPrev: vi.fn() }));
+  expect(markup).toContain('guide-shape-preview-svg');
+  expect(markup).toContain('M30 0 H90');
 });

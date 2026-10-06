@@ -52,3 +52,17 @@ describe('DynamicIslandBackground', () => {
     expect(props.onVideoLoadedMetadata).toHaveBeenCalledOnce();
   });
 });
+
+it.each([true, false])('renders hardware decode=%s and preserves ready handlers and video identity', (bgVideoHwDecode) => {
+  const onVideoCanPlay = vi.fn();
+  const onVideoLoadedMetadata = vi.fn();
+  const bgVideoElementRef = { current: null };
+  const tree = DynamicIslandBackground({ bgVideoHwDecode, bgVideoElementRef, onVideoCanPlay, onVideoLoadedMetadata, bgMedia: { type: 'video', previewUrl: 'video.mp4' }, bgVideoMuted: false, bgVideoVolume: 1, bgVideoFit: 'cover' });
+  const video = findElement(tree, (node) => node.type === 'video');
+  expect(video.key).toBe(bgVideoHwDecode ? 'video.mp4-hw' : 'video.mp4-sw');
+  expect(elementProps(video)).toMatchObject({ src: 'video.mp4', muted: false, ref: bgVideoElementRef, style: { objectFit: 'cover', imageRendering: bgVideoHwDecode ? undefined : 'auto' } });
+  invoke(video, 'onCanPlay', {});
+  invoke(video, 'onLoadedMetadata', {});
+  expect(onVideoCanPlay).toHaveBeenCalledOnce();
+  expect(onVideoLoadedMetadata).toHaveBeenCalledOnce();
+});

@@ -173,6 +173,7 @@ export function PerformanceMonitorTab(): React.ReactElement {
   const [chartColors, setChartColors] = useState<PerformanceMonitorChartColors>(DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS);
   const [hardwareSelection, setHardwareSelection] = useState<PerformanceMonitorHardwareSelection>(DEFAULT_PERFORMANCE_MONITOR_HARDWARE_SELECTION);
   const snapshotRef = useRef<PerformanceSnapshot | null>(snapshot);
+  const cancelMonitoringRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     snapshotRef.current = snapshot;
@@ -182,6 +183,8 @@ export function PerformanceMonitorTab(): React.ReactElement {
   useEffect(() => {
     if (!monitoringEnabled) return;
     let cancelled = false;
+    // 停止按钮在被动 Effect 清理前也必须使本轮异步采集失效。
+    cancelMonitoringRef.current = () => { cancelled = true; };
     let delayTimer: number | undefined;
     let intervalTimer: number | undefined;
     let inFlight = false;
@@ -269,6 +272,8 @@ export function PerformanceMonitorTab(): React.ReactElement {
   };
 
   const stopMonitoring = (): void => {
+    cancelMonitoringRef.current?.();
+    snapshotRef.current = null;
     setMonitoringEnabled(false);
     setSnapshot(null);
     setFailed(false);

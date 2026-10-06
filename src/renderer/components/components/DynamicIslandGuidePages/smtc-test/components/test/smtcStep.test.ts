@@ -74,3 +74,23 @@ describe('SmtcStep', () => {
     expect(api.mediaNext).toHaveBeenCalledOnce();
   });
 });
+
+it.each(['Spotify.exe', ''])('renders covers and album and controls source %s', (sourceAppId) => {
+  hooks.status = 'success';
+  hooks.meta = { sourceAppId, title: 'Song', artist: 'Singer', album: 'Album', coverImage: 'cover.png', isPlaying: false, dominantColor: [1, 2, 3] };
+  const tree = SmtcStep({ onNext: vi.fn(), onPrev: vi.fn() });
+  expect(elements(tree).find((node) => elementProps(node).className === 'guide-smtc-album')).toBeDefined();
+  expect(elements(tree).find((node) => elementProps(node).className === 'guide-smtc-player-icon')).toEqual(sourceAppId ? expect.anything() : undefined);
+  expect(textContent(tree)).toContain(sourceAppId ? 'Spotify' : 'guide.smtc.unknownPlayer');
+  invoke(findElement(tree, (node) => elementProps(node).title === 'guide.smtc.prev'), 'onClick');
+  expect(api.mediaPrev).toHaveBeenCalledOnce();
+  vi.stubGlobal('window', {});
+  ['guide.smtc.prev', 'guide.smtc.play', 'guide.smtc.next'].forEach((title) => {
+    expect(() => invoke(findElement(tree, (node) => elementProps(node).title === title), 'onClick')).not.toThrow();
+  });
+});
+it('renders no successful panel until metadata arrives', () => {
+  hooks.status = 'success';
+  hooks.meta = null;
+  expect(elements(SmtcStep({ onNext: vi.fn(), onPrev: vi.fn() })).some((node) => elementProps(node).className === 'guide-smtc-result')).toBe(false);
+});

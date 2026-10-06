@@ -26,7 +26,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SplashScreen } from '../SplashScreen';
-import { elementProps, findElement, invoke, resetState } from './elementHarness';
+import { elementProps, findElement, invoke, resetState, rewindState, hookMocks } from './elementHarness';
 const shell = vi.hoisted(() => ({ fadeOut: false, videoRef: { current: null }, handleVideoEnded: vi.fn() }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
@@ -55,4 +55,25 @@ describe('SplashScreen', () => {
     resetState(['#123456']);
     expect(elementProps(SplashScreen()).style).toEqual({ background: '#123456' });
   });
+});
+
+it.each(['#123456', null, 42, false])('loads the saved background color only for string values %j', async (value) => {
+  const storeRead = vi.fn<(key: string) => Promise<unknown>>().mockResolvedValue(value);
+  vi.stubGlobal('window', { api: { storeRead } });
+  SplashScreen();
+  hookMocks.useEffect.mock.calls[0][0]();
+  await Promise.resolve();
+  rewindState();
+  expect(elementProps(SplashScreen()).style).toEqual({ background: typeof value === 'string' ? value : '#000000' });
+  expect(storeRead).toHaveBeenCalledWith('splash-bg-color');
+});
+it('preserves the default background after a rejected store read', async () => {
+  const storeRead = vi.fn<(key: string) => Promise<unknown>>().mockRejectedValue(new Error('store'));
+  vi.stubGlobal('window', { api: { storeRead } });
+  SplashScreen();
+  hookMocks.useEffect.mock.calls[0][0]();
+  await Promise.resolve();
+  await Promise.resolve();
+  rewindState();
+  expect(elementProps(SplashScreen()).style).toEqual({ background: '#000000' });
 });

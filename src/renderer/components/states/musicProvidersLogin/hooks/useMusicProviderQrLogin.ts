@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -81,34 +86,39 @@ export function useMusicProviderQrLogin(provider: MusicProviderId): MusicProvide
 
   const refresh = useCallback(async () => {
     stopPolling();
+    const generation = generationRef.current;
     setLoading(true);
     setError('');
     setQrContent('');
     try {
       const result = await window.api.musicProviderAuthCreateQr(provider);
-      const generation = generationRef.current;
+      if (generation !== generationRef.current) return;
       tokenRef.current = result.token;
       setQrContent(result.qrContent);
       setAuthState(result.state);
       schedulePoll(generation, 1_200);
     } catch (cause) {
+      if (generation !== generationRef.current) return;
       setAuthState('error');
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
-      setLoading(false);
+      if (generation === generationRef.current) setLoading(false);
     }
   }, [provider, schedulePoll, stopPolling]);
 
   const logout = useCallback(async () => {
     stopPolling();
+    const generation = generationRef.current;
     setLoading(true);
     setError('');
     try {
       await window.api.musicProviderAuthClear(provider);
+      if (generation !== generationRef.current) return;
       setAuthState('idle');
       setQrContent('');
       await refresh();
     } catch (cause) {
+      if (generation !== generationRef.current) return;
       setAuthState('error');
       setError(cause instanceof Error ? cause.message : String(cause));
       setLoading(false);

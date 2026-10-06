@@ -55,3 +55,11 @@ describe('GithubStep', () => {
     expect(api.clipboardOpenUrl).toHaveBeenLastCalledWith(elementProps(anchor).href);
   });
 });
+
+it('contains rejected bridge requests after a link click', async () => {
+  api.clipboardOpenUrl.mockRejectedValueOnce(new Error('shell failed'));
+  const tree = GithubStep({ onNext: vi.fn(), onPrev: vi.fn() });
+  invoke(findElement(tree, (node) => elementProps(node).className === 'guide-github-link-btn'), 'onClick');
+  await Promise.resolve();
+  expect(api.clipboardOpenUrl).toHaveBeenCalledOnce();
+});

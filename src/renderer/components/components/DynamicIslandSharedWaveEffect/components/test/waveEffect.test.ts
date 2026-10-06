@@ -26,8 +26,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WaveEffect } from '../WaveEffect';
-import { elementProps, resetState } from '../../../../test/elementHarness';
-const { renderer } = vi.hoisted(() => ({ renderer: vi.fn() }));
+import { elementProps, resetState, rewindState, hookMocks } from '../../../../test/elementHarness';
+const { renderer } = vi.hoisted(() => ({ renderer: vi.fn<typeof import('../../hooks/useWaveRenderer')['useWaveRenderer']>() }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   ...(await import('../../../../test/elementHarness')).hookMocks,
@@ -52,4 +52,36 @@ describe('WaveEffect', () => {
     expect(renderer.mock.calls[0][2]).toBe(true);
     expect(renderer.mock.calls[0][3]).toBeUndefined();
   });
+});
+
+it.each(['#ff8000', 'invalid'])('applies explicit color %s through the actual conversion and avoids store reads', (color) => {
+  const storeRead = vi.fn<(key: string) => Promise<unknown>>();
+  vi.stubGlobal('window', { api: { storeRead } });
+  WaveEffect({ color });
+  hookMocks.useEffect.mock.calls[0][0]();
+  rewindState();
+  WaveEffect({ color });
+  expect(renderer.mock.lastCall?.[1]).toEqual(color === '#ff8000' ? [1, 128 / 255, 0] : [0.002, 0.004, 0.005]);
+  expect(storeRead).not.toHaveBeenCalled();
+});
+it.each(['#00ff80', '', null, 42])('uses only a nonempty persisted color %j', async (value) => {
+  const storeRead = vi.fn<(key: string) => Promise<unknown>>().mockResolvedValue(value);
+  vi.stubGlobal('window', { api: { storeRead } });
+  WaveEffect({});
+  hookMocks.useEffect.mock.calls[0][0]();
+  await Promise.resolve();
+  rewindState();
+  WaveEffect({});
+  expect(storeRead).toHaveBeenCalledWith('splash-bg-color');
+  expect(renderer.mock.lastCall?.[1]).toEqual(value === '#00ff80' ? [0, 1, 128 / 255] : [0.002, 0.004, 0.005]);
+});
+it('keeps the default shader color when storage rejects', async () => {
+  vi.stubGlobal('window', { api: { storeRead: vi.fn().mockRejectedValue(new Error('store')) } });
+  WaveEffect({});
+  hookMocks.useEffect.mock.calls[0][0]();
+  await Promise.resolve();
+  await Promise.resolve();
+  rewindState();
+  WaveEffect({});
+  expect(renderer.mock.lastCall?.[1]).toEqual([0.002, 0.004, 0.005]);
 });

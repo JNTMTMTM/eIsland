@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LyricModeStep } from '../LyricModeStep';
 import { elementProps, elements, findElement, invoke, resetState } from '../../../../../test/elementHarness';
@@ -53,4 +54,10 @@ describe('LyricModeStep', () => {
     const preview = findElement(tree, (node) => Array.isArray(elementProps(node).lyrics));
     expect(elementProps(preview).lyrics).toEqual(['guide.lyricMode.sampleLyrics.0', 'guide.lyricMode.sampleLyrics.1', 'guide.lyricMode.sampleLyrics.2', 'guide.lyricMode.sampleLyrics.3']);
   });
+});
+
+it('executes both actual preview components in the rendered markup', () => {
+  const markup = renderToStaticMarkup(LyricModeStep({ onNext: vi.fn(), onPrev: vi.fn() }));
+  expect(markup).toContain('guide-lyric-mode-line sweep');
+  expect(markup).toContain('guide-lyric-mode-line current');
 });
