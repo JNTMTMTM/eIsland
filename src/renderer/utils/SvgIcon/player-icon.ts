@@ -25,12 +25,12 @@
  */
 
 export const PlayerIcon = {
-  SODAMUSIC: './svg/player/sodamusic.svg',
-  QQMUSIC: './svg/player/qqmusic.svg',
-  NETEASE: './svg/player/netease.svg',
-  KUGOU: './svg/player/kugou.svg',
-  APPLE_MUSIC: './svg/player/applemusic.svg',
-  SPOTIFY: './svg/player/spotify.svg',
+  SODAMUSIC: '../svg/player/sodamusic.svg',
+  QQMUSIC: '../svg/player/qqmusic.svg',
+  NETEASE: '../svg/player/netease.svg',
+  KUGOU: '../svg/player/kugou.svg',
+  APPLE_MUSIC: '../svg/player/applemusic.svg',
+  SPOTIFY: '../svg/player/spotify.svg',
 } as const;
 
 export type PlayerIconKey = keyof typeof PlayerIcon;

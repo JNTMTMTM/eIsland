@@ -25,9 +25,9 @@
  */
 
 export const ServiceIcon = {
-  CLOUDFLARE: './svg/services/CLOUDFLARE.svg',
-  ALIBABACLOUD: './svg/services/ALIBABACLOUD.svg',
-  TENCENTCLOUD: './svg/services/TENCENTCLOUD.svg',
+  CLOUDFLARE: '../svg/services/CLOUDFLARE.svg',
+  ALIBABACLOUD: '../svg/services/ALIBABACLOUD.svg',
+  TENCENTCLOUD: '../svg/services/TENCENTCLOUD.svg',
 } as const;
 
 export type ServiceIconKey = keyof typeof ServiceIcon;

@@ -20,7 +20,7 @@
 
 /**
  * @file agent-icon.test.ts
- * @description unit test
+ * @description Agent 图标资源导出测试。
  * @author 鸡哥
  */
 
@@ -34,10 +34,10 @@ describe('AgentIcon', () => {
     expect(AgentIcon).toHaveProperty('CODEX');
   });
 
-  it('all values should be strings starting with ./svg/agent/ and ending with .svg', () => {
+  it('all values should be strings starting with ../svg/agent/ and ending with .svg', () => {
     Object.entries(AgentIcon).forEach(([, value]) => {
       expect(typeof value).toBe('string');
-      expect(value).toMatch(/^\.\/svg\/agent\/.+\.svg$/);
+      expect(value).toMatch(/^\.\.\/svg\/agent\/.+\.svg$/);
     });
   });
 

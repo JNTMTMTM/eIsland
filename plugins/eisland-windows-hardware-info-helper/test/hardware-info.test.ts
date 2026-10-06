@@ -14,13 +14,13 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
 
 /**
  * @file hardware-info.test.ts
- * @description Unit tests for hardware info helper query functions
+ * @description 硬件信息辅助模块查询函数单元测试。
  * @author 鸡哥
  */
 

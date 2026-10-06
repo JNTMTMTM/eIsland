@@ -5,10 +5,13 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/shared/**/*",
+    "plugins/**/test/ffiLoader.test.ts",
+    "plugins/test/ffiLoaderHarness.ts",
     "scripts/**/*"
   ],
   "compilerOptions": {
     "composite": true,
+    "noEmit": true,
     "moduleResolution": "bundler",
     "types": ["electron-vite/node"]
   }

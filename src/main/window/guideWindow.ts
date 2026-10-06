@@ -111,9 +111,9 @@ function showGuideWindow(): Promise<void> {
     });
 
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      guideWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/DynamicIslandGuide.html');
+      guideWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/html/DynamicIslandGuide.html');
     } else {
-      guideWindow.loadFile(join(__dirname, '../renderer/DynamicIslandGuide.html'));
+      guideWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandGuide.html'));
     }
   });
 }

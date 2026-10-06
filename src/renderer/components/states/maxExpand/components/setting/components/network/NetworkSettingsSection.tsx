@@ -172,7 +172,7 @@ export function NetworkSettingsSection(props: NetworkSettingsSectionProps): Reac
                       onChange={(e) => setCustomTimeoutInput(e.target.value)}
                       onBlur={() => {
                         const sec = parseFloat(customTimeoutInput);
-                        if (!isNaN(sec) && sec >= 1) {
+                        if (Number.isFinite(sec) && sec >= 1 && sec <= 120) {
                           const ms = Math.round(sec * 1000);
                           setNetworkTimeoutMs(ms);
                           saveNetworkConfig({ timeoutMs: ms, staticAssetNode });

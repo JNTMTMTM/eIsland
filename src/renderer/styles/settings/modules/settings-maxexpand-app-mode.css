@@ -5,10 +5,17 @@
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
  *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -185,7 +192,7 @@
   justify-content: center;
   width: clamp(40px, 15cqw, 64px);
   height: clamp(40px, 15cqw, 64px);
-  background: linear-gradient(145deg, #444, #222);
+  background: #333;
   border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 50%;
   box-shadow: inset 0 1px 2px rgb(255 255 255 / 16%), 0 3px 10px rgb(0 0 0 / 12%);
@@ -309,6 +316,11 @@
 
 }
 
+.max-expand-app-launcher-item[data-drag-source="true"][data-hide-target="true"] .max-expand-app-hold-progress {
+  color: rgb(239 68 68);
+
+}
+
 .max-expand-app-launcher-error {
   flex-shrink: 0;
   margin: 8px 16px 0;
@@ -320,7 +332,7 @@
 }
 
 .max-expand-app-hide-zone {
-  --max-expand-app-hide-zone-rgb: 255, 255, 255;
+  --max-expand-app-hide-zone-rgb: var(--color-text-rgb);
 
   position: absolute;
   top: 8px;
@@ -343,13 +355,15 @@
   user-select: none;
   isolation: isolate;
   border-radius: 16px;
+  opacity: 0;
   clip-path: inset(0 0 0 100%);
-  transition: clip-path .3s cubic-bezier(.45, 0, .2, 1), visibility 0s .3s;
+  transition: clip-path .3s cubic-bezier(.45, 0, .2, 1), opacity .3s cubic-bezier(.45, 0, .2, 1), visibility 0s .3s;
 
 }
 
 .max-expand-app-hide-zone[data-visible="true"] {
   visibility: visible;
+  opacity: 1;
   clip-path: inset(0 0 0 0);
   transition-delay: 0s;
 
@@ -399,6 +413,7 @@
 }
 
 .max-expand-app-launcher-item:focus-visible,
+.max-expand-app-back-button:focus-visible,
 .max-expand-app-home-button:focus-visible {
   outline: 2px solid rgb(var(--color-text-rgb), .75);
 
@@ -422,6 +437,13 @@
 
 }
 
+.max-expand-app-control-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+}
+
 .max-expand-app-control {
   box-sizing: border-box;
   display: flex;
@@ -442,6 +464,7 @@
 
 }
 
+.max-expand-app-back-button,
 .max-expand-app-home-button {
   cursor: pointer;
 
@@ -452,6 +475,7 @@
 
 }
 
+.max-expand-app-back-button:active,
 .max-expand-app-home-button:active {
   transform: scale(.92);
 
@@ -467,7 +491,7 @@
 }
 
 [data-theme="light"] .max-expand-app-launcher-circle {
-  background: linear-gradient(145deg, #fff, #ddd);
+  background: #eee;
   border-color: rgb(0 0 0 / 4%);
 
 }

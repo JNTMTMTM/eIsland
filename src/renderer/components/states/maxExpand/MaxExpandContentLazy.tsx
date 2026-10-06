@@ -36,12 +36,12 @@ const LocalFileSearchTab = lazy(() => import('./components/localFileSearch/compo
 const ClipboardHistoryTab = lazy(() => import('./components/clipBoardHistory').then((module) => ({ default: module.ClipboardHistoryTab })));
 const AlbumTab = lazy(() => import('./components/album/components/AlbumTab').then((module) => ({ default: module.AlbumTab })));
 const MailTab = lazy(() => import('./components/mail').then((module) => ({ default: module.MailTab })));
-const SettingsTab = lazy(() => import('./components/SettingsTab').then((module) => ({ default: module.SettingsTab })));
+const SettingsTab = lazy(() => import('./components/setting').then((module) => ({ default: module.SettingsTab })));
 const CountdownTab = lazy(() => import('./components/countdown').then((module) => ({ default: module.CountdownTab })));
 const MemoTab = lazy(() => import('./components/memo/components/MemoTab').then((module) => ({ default: module.MemoTab })));
 const AlarmTab = lazy(() => import('./components/alarm/components/AlarmTab').then((module) => ({ default: module.AlarmTab })));
 const ToolboxTab = lazy(() => import('./components/ToolboxTab').then((module) => ({ default: module.ToolboxTab })));
-const MiniGameTab = lazy(() => import('./components/MiniGameTab').then((module) => ({ default: module.MiniGameTab })));
+const MiniGameTab = lazy(() => import('./components/miniGame').then((module) => ({ default: module.MiniGameTab })));
 const StockTab = lazy(() => import('./components/stock').then((module) => ({ default: module.StockTab })));
 const CliTab = lazy(() => import('./components/cli').then((module) => ({ default: module.CliTab })));
 const CalculatorTab = lazy(() => import('./components/calculator').then((module) => ({ default: module.CalculatorTab })));

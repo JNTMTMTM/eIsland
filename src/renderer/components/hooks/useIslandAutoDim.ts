@@ -45,6 +45,7 @@ export function useIslandAutoDim(options: UseIslandAutoDimOptions): void {
   const { autoDimEnabledRef, autoDimDelayRef } = options;
 
   useEffect(() => {
+    let cancelled = false;
     let dimmed = false;
     let lastInWindowTime = Date.now();
     let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -78,6 +79,7 @@ export function useIslandAutoDim(options: UseIslandAutoDimOptions): void {
 
       try {
         const inWindow = await isMouseInWindow();
+        if (cancelled) return;
         if (inWindow) {
           lastInWindowTime = Date.now();
           if (dimmed) restore();
@@ -95,6 +97,7 @@ export function useIslandAutoDim(options: UseIslandAutoDimOptions): void {
     intervalId = setInterval(() => { void tick(); }, 1000);
 
     return () => {
+      cancelled = true;
       if (intervalId !== null) clearInterval(intervalId);
       if (dimmed) restore();
     };

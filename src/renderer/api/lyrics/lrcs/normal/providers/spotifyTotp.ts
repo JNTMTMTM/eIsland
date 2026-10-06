@@ -127,8 +127,10 @@ function sha1(data: Uint8Array): Uint8Array {
 /* ── HMAC-SHA-1 ────────────────────────────────────────────────────── */
 
 function hmacSha1(key: Uint8Array, data: Uint8Array): Uint8Array {
+  // RFC 2104：超过分组长度的密钥先取摘要，不能直接截断。
+  const normalizedKey = key.length > 64 ? sha1(key) : key;
   const k = new Uint8Array(64);
-  k.set(key.subarray(0, Math.min(key.length, 64)));
+  k.set(normalizedKey);
 
   const ipad = new Uint8Array(64);
   const opad = new Uint8Array(64);

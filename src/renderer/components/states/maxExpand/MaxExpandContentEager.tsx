@@ -34,12 +34,12 @@ import { LocalFileSearchTab } from './components/localFileSearch/components/Loca
 import { ClipboardHistoryTab } from './components/clipBoardHistory';
 import { AlbumTab } from './components/album/components/AlbumTab';
 import { MailTab } from './components/mail';
-import { SettingsTab } from './components/SettingsTab';
+import { SettingsTab } from './components/setting';
 import { CountdownTab } from './components/countdown';
 import { MemoTab } from './components/memo/components/MemoTab';
 import { AlarmTab } from './components/alarm/components/AlarmTab';
 import { ToolboxTab } from './components/ToolboxTab';
-import { MiniGameTab } from './components/MiniGameTab';
+import { MiniGameTab } from './components/miniGame';
 import { StockTab } from './components/stock';
 import { CliTab } from './components/cli';
 import { CalculatorTab } from './components/calculator';

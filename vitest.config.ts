@@ -20,15 +20,62 @@
 
 /**
  * @file vitest.config.ts
- * @description Vitest 测试配置文件
+ * @description 按主进程、预加载、共享模块、原生插件与渲染进程划分 Vitest 测试项目。
  * @author 鸡哥
  */
 
-export default {
+import { coverageConfigDefaults, defineConfig } from 'vitest/config';
+
+export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
     clearMocks: true,
     restoreMocks: true,
+    coverage: {
+      // 保留覆盖率目录中的源码哈希与不可达审计；每轮报告仍由报告器覆盖。
+      clean: false,
+      include: ['src/**/*.{ts,tsx,js}', 'plugins/*/*.js'],
+      exclude: [...coverageConfigDefaults.exclude, '**/test/**'],
+    },
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: { label: 'main', color: 'yellow' },
+          include: ['src/main/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'preload', color: 'cyan' },
+          include: ['src/preload/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'shared', color: 'green' },
+          include: ['src/shared/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'plugins', color: 'blue' },
+          include: [
+            'plugins/**/test/ffiLoader.test.ts',
+            'plugins/**/test/*Runtime.test.{ts,tsx,js,mjs}',
+          ],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'renderer', color: 'magenta' },
+          include: ['src/renderer/**/*.test.{ts,tsx}'],
+        },
+      },
+    ],
   },
-};
+});

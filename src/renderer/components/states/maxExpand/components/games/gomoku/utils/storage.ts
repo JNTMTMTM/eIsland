@@ -61,7 +61,7 @@ export function normalizeGomokuStoredState(raw: unknown): GameGomokuState | null
   const moves = Number.isInteger(candidate.moves)
     ? Math.min(GOMOKU_SIZE * GOMOKU_SIZE, Math.max(0, Number(candidate.moves)))
     : 0;
-  const scaleRaw = typeof candidate.scale === 'number' ? candidate.scale : 1;
+  const scaleRaw = typeof candidate.scale === 'number' && !Number.isNaN(candidate.scale) ? candidate.scale : 1;
   const scale = Math.min(1.8, Math.max(1, Number(scaleRaw.toFixed(2))));
   const rawLastMove = candidate.lastMove;
   const lastMove = Array.isArray(rawLastMove)

@@ -1510,6 +1510,7 @@
       "title": "应用",
       "hint": "选择一个应用开始使用",
       "backToLauncher": "返回应用导航页",
+      "backToExpanded": "返回展开界面",
       "controls": "应用控制栏",
       "dragToHide": "拖到这里隐藏应用",
       "releaseToHide": "松手隐藏应用",

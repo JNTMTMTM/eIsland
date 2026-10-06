@@ -20,7 +20,7 @@
 
 /**
  * @file installerConfig.test.ts
- * @description Tests the NSIS overwrite-install process detection configuration.
+ * @description NSIS 覆盖安装进程检测配置测试。
  * @author 鸡哥
  */
 

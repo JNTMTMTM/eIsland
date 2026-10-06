@@ -1779,8 +1779,6 @@ if (process.contextIsolated) {
     console.error('[Preload] contextBridge 注入失败:', err);
   }
 } else {
-  // @ts-expect-error 全局暴露兼容非隔离上下文
   window.electron = electronAPI;
-  // @ts-expect-error 同上
   window.api = api;
 }

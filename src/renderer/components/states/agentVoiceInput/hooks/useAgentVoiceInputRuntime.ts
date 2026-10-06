@@ -89,7 +89,7 @@ export function useAgentVoiceInputRuntime(options: UseAgentVoiceInputRuntimeOpti
 
     const start = async (): Promise<void> => {
       const targetVolume = await readEffectiveAudioVolume('effect').catch(() => 1);
-      const triggerSound = new Audio('./audio/AGENT.wav');
+      const triggerSound = new Audio('../audio/AGENT.wav');
       triggerSound.volume = targetVolume;
       void triggerSound.play().catch(() => {
         triggerSound.src = './public/audio/AGENT.wav';
@@ -156,7 +156,11 @@ export function useAgentVoiceInputRuntime(options: UseAgentVoiceInputRuntimeOpti
           video: false,
         });
 
-        if (!active) return;
+        if (!active) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          mediaStream = null;
+          return;
+        }
 
         const AudioContextCtor = getAudioContextCtor();
         if (!AudioContextCtor) {

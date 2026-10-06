@@ -253,6 +253,32 @@ describe('theme utils', () => {
     });
   });
 
+  it('contains a rejected transition ready promise after applying the target theme', async () => {
+    mocks.startViewTransitionMock.mockImplementation((update: () => void) => {
+      update();
+      return { ready: Promise.reject(new Error('transition aborted')) };
+    });
+    Object.assign(document, { startViewTransition: mocks.startViewTransitionMock });
+    const { setThemeMode, getThemeMode } = await import('../index');
+    await setThemeMode('light', { x: 10, y: 20 });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(getThemeMode()).toBe('light');
+    expect(mocks.setAttributeMock).toHaveBeenCalledWith('data-theme', 'light');
+    expect(mocks.startViewTransitionMock).toHaveBeenCalledTimes(1);
+    expect(mocks.animateMock).not.toHaveBeenCalled();
+  });
+
+  it('initializes listeners once while allowing repeated preference reads', async () => {
+    mocks.mqAddEventListenerMock.mockClear();
+    mocks.onSettingsChangedMock.mockClear();
+    mocks.themeModeGetMock.mockResolvedValue('dark');
+    const { initTheme } = await import('../index');
+    await initTheme();
+    await initTheme();
+    expect(mocks.mqAddEventListenerMock).toHaveBeenCalledTimes(1);
+    expect(mocks.onSettingsChangedMock).toHaveBeenCalledTimes(1);
+  });
+
   describe('settings changed callback', () => {
     it('updates mode on theme:mode channel', async () => {
       mocks.themeModeGetMock.mockResolvedValue('dark');

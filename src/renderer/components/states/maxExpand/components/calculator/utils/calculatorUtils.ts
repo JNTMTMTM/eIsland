@@ -51,7 +51,8 @@ export function formatDisplay(value: number): string {
   if (!Number.isFinite(value)) return 'Error';
   const text = String(value);
   if (text.replace(/[^0-9]/g, '').length > 12) {
-    return value.toPrecision(12).replace(/\.?0+$/, '');
+    // 只裁剪小数尾零，保留整数位及科学计数法指数中的零。
+    return value.toPrecision(12).replace(/(\.\d*?[1-9])0+(?=e|$)|\.0+(?=e|$)/, '$1');
   }
   return text;
 }

@@ -1510,6 +1510,7 @@
       "title": "應用",
       "hint": "選擇一個應用開始使用",
       "backToLauncher": "返回應用導航頁",
+      "backToExpanded": "返回展開介面",
       "controls": "應用控制欄",
       "dragToHide": "拖到這裡隱藏應用",
       "releaseToHide": "放開以隱藏應用",

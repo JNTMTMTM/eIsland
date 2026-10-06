@@ -183,15 +183,21 @@ If you see `MSB8036: The Windows SDK version was not found` or `node-gyp` build 
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `npm run test` | Run all tests once (`vitest run`) | Before committing code, or in CI pipelines |
+| `npm run test` | Run both named test projects once (`vitest run`) | Before committing code, or in CI pipelines |
+| `npm run test:node` | Run tests under `src/` outside `src/renderer/` | When modifying main process, preload, or other Node.js code |
+| `npm run test:renderer` | Run tests under `src/renderer/` | When modifying renderer stores, utilities, hooks, or components |
 | `npm run test:preload` | Run only `src/preload/index.test.ts` | When modifying preload bridge code — faster than running the full suite |
-| `npm run test:coverage` | Run all tests with Istanbul coverage report | Before opening a PR to verify coverage thresholds, or periodically to audit test gaps |
+| `npm run test:coverage` | Run both projects with V8 coverage reports | Before opening a PR, or periodically to audit test gaps |
 
 :::tip
 For iterative development, run `npx vitest` (without `run`) to start Vitest in **watch mode** — it re-runs affected tests on file save.
 :::
 
-**Test configuration:** Vitest with `node` environment, `clearMocks: true`, `restoreMocks: true`. Test files follow the pattern `src/**/*.test.ts`.
+**Test configuration:** Vitest defines `node` and `renderer` projects, both inheriting `environment: 'node'`, `clearMocks: true`, and `restoreMocks: true`. Both collect `.test.ts` and `.test.tsx`; the `node` project excludes `src/renderer/` to avoid duplicate collection.
+
+:::note
+The `renderer` label is a project name, not a DOM environment. See [Testing Commands](/developer/commands/test-commands.md) for project filters, the latest verified test counts, and a renderer TSX coverage audit command.
+:::
 
 ### Packaging & Release
 
@@ -243,7 +249,7 @@ The project uses **electron-vite** to manage three separate build targets:
 |--------|-------|--------|-------------|
 | **main** | `src/main/index.ts`, `src/main/smtcWorker.ts` | `out/main` | Node.js main process |
 | **preload** | `src/preload/index.ts` | `out/preload` | Context bridge |
-| **renderer** | `index.html`, `standalone.html`, `splash.html`, `AIbackground.html` | `out/renderer` | React UI (4 HTML entries) |
+| **renderer** | `src/renderer/html/DynamicIsland{Index,Standalone,Splash,Guide}.html`, `src/renderer/html/DynamicIslandAibackground/index.html` | `out/renderer/html` | Renderer UI (5 HTML entries); assets in `out/renderer/assets` |
 
 ### Key Build Dependencies
 

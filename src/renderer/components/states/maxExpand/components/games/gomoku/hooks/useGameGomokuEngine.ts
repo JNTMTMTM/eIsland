@@ -67,7 +67,7 @@ export function useGameGomokuEngine({
 
   const playMoveSound = useCallback(() => {
     if (!moveSoundRef.current) {
-      moveSoundRef.current = new Audio('./audio/GOMOKU.wav');
+      moveSoundRef.current = new Audio('../audio/GOMOKU.wav');
       moveSoundRef.current.preload = 'auto';
       moveSoundRef.current.loop = false;
     }
@@ -78,7 +78,7 @@ export function useGameGomokuEngine({
       // noop
     }
     audio.play().catch(() => {
-      audio.src = '/audio/GOMOKU.wav';
+      audio.src = '../audio/GOMOKU.wav';
       try {
         audio.currentTime = 0;
       } catch {

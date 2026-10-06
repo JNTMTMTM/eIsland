@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -24,10 +29,13 @@ import { limitRecentSessions, MAX_CLI_SESSIONS } from '../sessionLimits';
 
 describe('limitRecentSessions', () => {
   it('只保留最近活动的限定数量会话', () => {
-    const sessions = Array.from({ length: MAX_CLI_SESSIONS + 5 }, (_, index) => ({
-      id: `session-${index}`,
-      lastEventAt: index,
-    }));
+    const sessions = Array.from({ length: MAX_CLI_SESSIONS + 5 }, (entry, index) => {
+      void entry;
+      return {
+        id: `session-${index}`,
+        lastEventAt: index,
+      };
+    });
 
     const result = limitRecentSessions(sessions);
 

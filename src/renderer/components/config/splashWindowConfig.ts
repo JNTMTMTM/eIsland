@@ -25,7 +25,7 @@
  */
 
 /** 开场视频路径（public 目录） */
-export const SPLASH_VIDEO_SRC = './video/sign.webm';
+export const SPLASH_VIDEO_SRC = '../video/sign.webm';
 
 /** 视频播完后额外停留时间（毫秒） */
 export const SPLASH_POST_VIDEO_DELAY_MS = 1000;

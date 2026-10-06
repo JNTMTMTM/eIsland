@@ -33,6 +33,8 @@ import { readIslandShapeModeConfig, PILL_ISLAND_HEIGHT } from '../config/storeCo
 interface WindowSizeOptions {
   islandWidth: number;
   islandHeight: number;
+  /** 启动时预留展开宽度，避免首次扩宽时旧帧随原生窗口左移。 */
+  backingWidth: number;
 }
 
 interface CreateMainWindowServiceOptions {
@@ -126,12 +128,18 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
   function createWindow(): void {
     const initialBounds = getInitialIslandBounds();
     initialCenterX = initialBounds.x + options.sizes.islandWidth / 2;
+    const backingWidth = Math.max(options.sizes.backingWidth, initialBounds.width);
+    const backingBounds = {
+      ...initialBounds,
+      x: Math.round(initialCenterX - backingWidth / 2),
+      width: backingWidth,
+    };
 
     const mainWindow = new BrowserWindow({
-      width: options.sizes.islandWidth,
-      height: options.sizes.islandHeight,
-      x: initialBounds.x,
-      y: initialBounds.y,
+      width: backingBounds.width,
+      height: backingBounds.height,
+      x: backingBounds.x,
+      y: backingBounds.y,
       show: false,
       frame: false,
       transparent: true,
@@ -158,10 +166,17 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
     mainWindow.setIgnoreMouseEvents(true, { forward: true });
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
-    mainWindow.setBounds(initialBounds, false);
+    mainWindow.setBounds(backingBounds, false);
+    // 扩宽的透明区域在首帧前裁掉，保留 idle 的可见区域与鼠标命中范围。
+    mainWindow.setShape([{
+      x: Math.round((backingWidth - initialBounds.width) / 2),
+      y: 0,
+      width: initialBounds.width,
+      height: initialBounds.height,
+    }]);
 
     mainWindow.on('ready-to-show', async () => {
-      mainWindow.setBounds(initialBounds, false);
+      mainWindow.setBounds(backingBounds, false);
       if (options.onBeforeShow) {
         options.onBeforeShow();
       }
@@ -189,9 +204,9 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     });
 
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/DynamicIslandIndex.html');
+      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/html/DynamicIslandIndex.html');
     } else {
-      mainWindow.loadFile(join(__dirname, '../renderer/DynamicIslandIndex.html'));
+      mainWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandIndex.html'));
     }
   }
 

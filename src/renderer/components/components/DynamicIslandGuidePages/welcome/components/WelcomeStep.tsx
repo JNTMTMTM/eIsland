@@ -43,7 +43,7 @@ export function WelcomeStep({ onComplete, onPrev }: WelcomeStepProps): ReactElem
       </div>
       <div className="guide-welcome-video">
         <video
-          src="./video/sign.webm"
+          src="../video/sign.webm"
           autoPlay
           muted
           playsInline

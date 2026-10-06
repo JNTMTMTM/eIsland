@@ -20,7 +20,7 @@
 
 /**
  * @file player-icon.test.ts
- * @description unit test
+ * @description 媒体播放器图标资源导出测试。
  * @author 鸡哥
  */
 
@@ -38,10 +38,10 @@ describe('PlayerIcon', () => {
     expect(PlayerIcon).toHaveProperty('SPOTIFY');
   });
 
-  it('all values should be strings starting with ./svg/player/ and ending with .svg', () => {
+  it('all values should be strings starting with ../svg/player/ and ending with .svg', () => {
     Object.entries(PlayerIcon).forEach(([, value]) => {
       expect(typeof value).toBe('string');
-      expect(value).toMatch(/^\.\/svg\/player\/.+\.svg$/);
+      expect(value).toMatch(/^\.\.\/svg\/player\/.+\.svg$/);
     });
   });
 

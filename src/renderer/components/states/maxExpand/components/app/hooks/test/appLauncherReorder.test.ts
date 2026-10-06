@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -395,6 +400,22 @@ describe('应用导航排序', () => {
     expect(render(useAppLauncherLayout).saveFailed).toBe(true);
   });
 
+  it('卸载后保存失败不会更新已卸载状态，重新挂载保留原布局', async () => {
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    const writes = delaySaves();
+    const loaded = render(useAppLauncherLayout);
+    const pending = loaded.hideApp('todo');
+    await Promise.resolve();
+    resetHooks();
+    writes[0].finish(false);
+    await pending;
+    render(useAppLauncherLayout);
+    await Promise.resolve();
+    expect(render(useAppLauncherLayout).tabs).toEqual(loaded.tabs);
+    expect(render(useAppLauncherLayout).saveFailed).toBe(false);
+  });
+
   it('组件卸载后仍完成已接受的排队操作，重新挂载恢复最终布局', async () => {
     render(useAppLauncherLayout);
     await Promise.resolve();
@@ -479,6 +500,88 @@ describe('应用图标长按拖动', () => {
     expect(renderDrag().pressedTab).toBeNull();
     expect(result.consumeClick()).toBe(false);
     expect(moveApp).not.toHaveBeenCalled();
+  });
+
+  it('空闲滚动与非 Escape 键不启动拖动，容差内移动保留短按', () => {
+    const result = renderDrag();
+    gridRef.current?.parentElement?.dispatchEvent(new Event('scroll'));
+    window.dispatchEvent(Object.assign(new Event('keydown'), { key: 'Escape' }));
+    result.onPointerDown(pointer());
+    window.dispatchEvent(Object.assign(new Event('keydown'), { key: 'Enter' }));
+    result.onPointerMove(pointer(31, 31));
+    expect(renderDrag().pressedTab).toBe('todo');
+    result.onPointerUp(pointer(31, 31));
+    expect(renderDrag().pressedTab).toBeNull();
+    expect(result.consumeClick()).toBe(false);
+    expect(moveApp).not.toHaveBeenCalled();
+    expect(hideApp).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('网格引用在长按等待期间卸载时结束按压，不保存或留下计时器', () => {
+    const publicRef = gridRef as { current: HTMLDivElement | null };
+    const grid = publicRef.current;
+    const result = renderDrag();
+    result.onPointerDown(pointer());
+    publicRef.current = null;
+    try {
+      vi.advanceTimersByTime(APP_LAUNCHER_LONG_PRESS_MS);
+      expect(renderDrag().pressedTab).toBeNull();
+      expect(renderDrag().drag).toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+      expect(moveApp).not.toHaveBeenCalled();
+      expect(hideApp).not.toHaveBeenCalled();
+    } finally {
+      publicRef.current = grid;
+    }
+  });
+
+  it('可见视口无法容纳放大图标时安全取消长按', () => {
+    const viewport = gridRef.current.parentElement!;
+    const measure = vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      x: 0, y: 0, width: 40, height: 40, left: 0, right: 40, top: 0, bottom: 40, toJSON: () => ({}),
+    });
+    try {
+      expect(startDrag().drag).toBeNull();
+      expect(renderDrag().pressedTab).toBeNull();
+      expect(moveApp).not.toHaveBeenCalled();
+      expect(hideApp).not.toHaveBeenCalled();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      measure.mockRestore();
+    }
+  });
+
+  it('拖动期间视口尺寸失效时取消拖动，松手不再持久化旧预览', () => {
+    const result = startDrag();
+    const viewport = gridRef.current.parentElement!;
+    const measure = vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      x: 0, y: 0, width: 40, height: 40, left: 0, right: 40, top: 0, bottom: 40, toJSON: () => ({}),
+    });
+    try {
+      result.onPointerMove(pointer(110));
+      expect(renderDrag().drag).toBeNull();
+      result.onPointerUp(pointer(110));
+      expect(moveApp).not.toHaveBeenCalled();
+      expect(hideApp).not.toHaveBeenCalled();
+    } finally {
+      measure.mockRestore();
+    }
+  });
+
+  it('公共网格引用卸载后，迟到的原生滚动通知会清理拖动', () => {
+    const publicRef = gridRef as { current: HTMLDivElement | null };
+    const grid = publicRef.current!;
+    startDrag();
+    publicRef.current = null;
+    try {
+      grid.parentElement!.dispatchEvent(new Event('scroll'));
+      expect(renderDrag().drag).toBeNull();
+      expect(renderDrag().pressedTab).toBeNull();
+      expect(moveApp).not.toHaveBeenCalled();
+    } finally {
+      publicRef.current = grid;
+    }
   });
 
   it('长按后跟随指针，松手保存一次并抑制随后产生的点击', () => {

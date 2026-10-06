@@ -169,7 +169,7 @@ function isIslandInExpandedOrMaxExpandState(): boolean {
 
 /**
  * 创建全屏透明 Agent 语音输入窗口
- * @description 加载 DynamicIslandAibackground.html，显示 Agent 语音输入背景光效
+ * @description 加载 DynamicIslandAibackground/index.html，显示 Agent 语音输入背景光效
  */
 function showAgentVoiceInputWindow(): void {
   if (isIslandInExpandedOrMaxExpandState()) {
@@ -214,9 +214,9 @@ function showAgentVoiceInputWindow(): void {
   agentVoiceInputWindow.removeMenu();
 
   if (app.isPackaged) {
-    agentVoiceInputWindow.loadFile(join(__dirname, '../renderer/DynamicIslandAibackground.html'));
+    agentVoiceInputWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandAibackground/index.html'));
   } else {
-    agentVoiceInputWindow.loadFile(join(__dirname, '../../src/renderer/DynamicIslandAibackground.html'));
+    agentVoiceInputWindow.loadFile(join(__dirname, '../../src/renderer/html/DynamicIslandAibackground/index.html'));
   }
 
   const voiceWindow = agentVoiceInputWindow;
@@ -259,7 +259,7 @@ function hideAgentVoiceInputWindow(): void {
 
 /**
  * 显示 CLI 检测全屏边缘光效窗口
- * @description 独立于 Agent 语音输入窗口，加载 DynamicIslandAibackground.html，常驻直到用户响应弹窗后关闭
+ * @description 独立于 Agent 语音输入窗口，加载 DynamicIslandAibackground/index.html，常驻直到用户响应弹窗后关闭
  */
 function showCliGlowWindow(): void {
   if (cliGlowWindow && !cliGlowWindow.isDestroyed()) {
@@ -300,9 +300,9 @@ function showCliGlowWindow(): void {
   cliGlowWindow.removeMenu();
 
   if (app.isPackaged) {
-    cliGlowWindow.loadFile(join(__dirname, '../renderer/DynamicIslandAibackground.html'));
+    cliGlowWindow.loadFile(join(__dirname, '../renderer/html/DynamicIslandAibackground/index.html'));
   } else {
-    cliGlowWindow.loadFile(join(__dirname, '../../src/renderer/DynamicIslandAibackground.html'));
+    cliGlowWindow.loadFile(join(__dirname, '../../src/renderer/html/DynamicIslandAibackground/index.html'));
   }
 
   const glowWindow = cliGlowWindow;
@@ -367,6 +367,7 @@ const mainWindowService = createMainWindowService({
   sizes: {
     islandWidth: ISLAND_WIDTH,
     islandHeight: ISLAND_HEIGHT,
+    backingWidth: Math.max(ISLAND_WIDTH, EXPANDED_WIDTH, NOTIFICATION_WIDTH, LYRICS_WIDTH, EXPANDED_FULL_WIDTH, SETTINGS_WIDTH),
   },
   onReadyToShow: async () => {
     await closeSplashWindow();

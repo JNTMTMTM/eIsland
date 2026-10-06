@@ -108,7 +108,7 @@ export function useClaudeCliSessionStatus(): {
           if (!inCliView) {
             void (async () => {
               const targetVolume = await readEffectiveAudioVolume('effect').catch(() => 1);
-              const triggerSound = new Audio('./audio/AGENT.wav');
+              const triggerSound = new Audio('../audio/AGENT.wav');
               triggerSound.volume = targetVolume;
               void triggerSound.play().catch(() => {
                 triggerSound.src = './public/audio/AGENT.wav';

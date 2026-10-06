@@ -20,7 +20,7 @@
 
 /**
  * @file dev-icon.test.ts
- * @description unit test
+ * @description 开发语言图标资源与文件扩展名解析测试。
  * @author 鸡哥
  */
 
@@ -71,7 +71,7 @@ describe('DevIcon', () => {
 
   it('values are SVG path strings', () => {
     Object.values(DevIcon).forEach((value) => {
-      expect(value).toMatch(/^\/svg\/devicons\/.+\.svg$/);
+      expect(value).toMatch(/^\.\.\/svg\/devicons\/.+\.svg$/);
     });
   });
 });
@@ -104,15 +104,15 @@ describe('resolveDevIconLanguage', () => {
 
 describe('resolveDevIconByLanguage', () => {
   it('returns SVG path for known languages', () => {
-    expect(resolveDevIconByLanguage('javascript')).toBe('/svg/devicons/javascript-original.svg');
-    expect(resolveDevIconByLanguage('python')).toBe('/svg/devicons/python-original.svg');
-    expect(resolveDevIconByLanguage('react')).toBe('/svg/devicons/react-original.svg');
+    expect(resolveDevIconByLanguage('javascript')).toBe('../svg/devicons/javascript-original.svg');
+    expect(resolveDevIconByLanguage('python')).toBe('../svg/devicons/python-original.svg');
+    expect(resolveDevIconByLanguage('react')).toBe('../svg/devicons/react-original.svg');
   });
 
   it('resolves aliases then returns SVG path', () => {
-    expect(resolveDevIconByLanguage('js')).toBe('/svg/devicons/javascript-original.svg');
-    expect(resolveDevIconByLanguage('ts')).toBe('/svg/devicons/typescript-original.svg');
-    expect(resolveDevIconByLanguage('py')).toBe('/svg/devicons/python-original.svg');
+    expect(resolveDevIconByLanguage('js')).toBe('../svg/devicons/javascript-original.svg');
+    expect(resolveDevIconByLanguage('ts')).toBe('../svg/devicons/typescript-original.svg');
+    expect(resolveDevIconByLanguage('py')).toBe('../svg/devicons/python-original.svg');
   });
 
   it('returns undefined for unknown languages', () => {
@@ -123,16 +123,16 @@ describe('resolveDevIconByLanguage', () => {
 
 describe('resolveDevIconByFileName', () => {
   it('resolves files with known extensions', () => {
-    expect(resolveDevIconByFileName('app.ts')).toBe('/svg/devicons/typescript-original.svg');
-    expect(resolveDevIconByFileName('index.js')).toBe('/svg/devicons/javascript-original.svg');
-    expect(resolveDevIconByFileName('main.py')).toBe('/svg/devicons/python-original.svg');
-    expect(resolveDevIconByFileName('style.css')).toBe('/svg/devicons/css3-original.svg');
-    expect(resolveDevIconByFileName('page.html')).toBe('/svg/devicons/html5-original.svg');
+    expect(resolveDevIconByFileName('app.ts')).toBe('../svg/devicons/typescript-original.svg');
+    expect(resolveDevIconByFileName('index.js')).toBe('../svg/devicons/javascript-original.svg');
+    expect(resolveDevIconByFileName('main.py')).toBe('../svg/devicons/python-original.svg');
+    expect(resolveDevIconByFileName('style.css')).toBe('../svg/devicons/css3-original.svg');
+    expect(resolveDevIconByFileName('page.html')).toBe('../svg/devicons/html5-original.svg');
   });
 
   it('handles files with multiple dots', () => {
-    expect(resolveDevIconByFileName('config.test.ts')).toBe('/svg/devicons/typescript-original.svg');
-    expect(resolveDevIconByFileName('app.spec.js')).toBe('/svg/devicons/javascript-original.svg');
+    expect(resolveDevIconByFileName('config.test.ts')).toBe('../svg/devicons/typescript-original.svg');
+    expect(resolveDevIconByFileName('app.spec.js')).toBe('../svg/devicons/javascript-original.svg');
   });
 
   it('returns undefined for files without extension', () => {

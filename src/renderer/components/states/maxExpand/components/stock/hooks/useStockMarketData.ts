@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -86,6 +91,7 @@ export function useStockMarketData(): UseStockMarketDataResult {
     lastUpdatedAt: null,
   });
   const requestIdRef = useRef(0);
+  const searchRequestIdRef = useRef(0);
 
   const fetchMarketData = useCallback(async (symbol: string, period: StockMarketPeriod): Promise<void> => {
     const requestId = requestIdRef.current + 1;
@@ -159,9 +165,11 @@ export function useStockMarketData(): UseStockMarketDataResult {
   }, []);
 
   const search = useCallback(async (keyword: string): Promise<StockSearchItem[]> => {
+    const requestId = searchRequestIdRef.current + 1;
+    searchRequestIdRef.current = requestId;
     const normalizedKeyword = keyword.trim();
     if (!normalizedKeyword) {
-      setState((current) => ({ ...current, searchResults: [] }));
+      setState((current) => ({ ...current, searchResults: [], searching: false }));
       persistSearchResults([]);
       return [];
     }
@@ -171,6 +179,7 @@ export function useStockMarketData(): UseStockMarketDataResult {
       const normalizedSymbol = normalizeStockSymbol(normalizedKeyword);
       if (STOCK_SYMBOL_PATTERN.test(normalizedSymbol)) {
         const quote = normalizeStockQuote(await stocks.auto.getStock(normalizedSymbol), normalizedSymbol);
+        if (requestId !== searchRequestIdRef.current) return [];
         const results = [{
           code: quote.code,
           name: quote.name,
@@ -184,11 +193,13 @@ export function useStockMarketData(): UseStockMarketDataResult {
       }
 
       const rows = await stocks.auto.searchStocks(normalizedKeyword);
+      if (requestId !== searchRequestIdRef.current) return [];
       const results = normalizeStockSearchResults(rows);
       setState((current) => ({ ...current, searchResults: results, searching: false }));
       persistSearchResults(results);
       return results;
     } catch {
+      if (requestId !== searchRequestIdRef.current) return [];
       setState((current) => ({ ...current, searchResults: [], searching: false }));
       persistSearchResults([]);
       return [];
@@ -196,7 +207,8 @@ export function useStockMarketData(): UseStockMarketDataResult {
   }, []);
 
   const clearSearchResults = useCallback((): void => {
-    setState((current) => ({ ...current, searchResults: [] }));
+    searchRequestIdRef.current += 1;
+    setState((current) => ({ ...current, searchResults: [], searching: false }));
     persistSearchResults([]);
   }, []);
 

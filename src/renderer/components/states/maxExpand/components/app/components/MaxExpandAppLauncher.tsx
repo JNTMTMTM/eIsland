@@ -129,6 +129,7 @@ export default function MaxExpandAppLauncher({ onSelectApp, transitionTab, inter
                 data-app={tab}
                 data-transition-active={transitionTab === tab || undefined}
                 data-drag-source={drag?.tab === tab || undefined}
+                data-hide-target={drag?.tab === tab && drag.hideTarget || undefined}
                 data-hold-complete={pressedTab === tab && drag?.tab === tab || undefined}
                 type="button"
                 title={label}

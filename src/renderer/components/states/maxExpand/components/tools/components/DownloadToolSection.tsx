@@ -354,6 +354,9 @@ export function DownloadToolSection({
                     </div>
                   );
                 })}
+                {Boolean(statusMessage) && (
+                  <div className="settings-music-hint">{statusMessage}</div>
+                )}
               </div>
             </div>
           </div>

@@ -48,7 +48,7 @@ export const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
 export const LEGACY_COUNTDOWN_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
 export const STANDALONE_WINDOW_ACTIVE_TAB_STORE_KEY = 'standalone-window-active-tab';
 
-export const MOKUGYO_AUDIO_SRC = './audio/Mokugyo.wav';
+export const MOKUGYO_AUDIO_SRC = '../audio/Mokugyo.wav';
 export const MOKUGYO_HIT_ANIMATION_MS = 220;
 export const MOKUGYO_FLOAT_DURATION_MS = 900;
 export const OVERVIEW_ALBUM_MEDIA_LOAD_DELAY_MS = 680;

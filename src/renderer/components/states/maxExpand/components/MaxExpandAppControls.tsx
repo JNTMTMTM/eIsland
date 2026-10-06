@@ -20,7 +20,7 @@
 
 /**
  * @file MaxExpandAppControls.tsx
- * @description 应用化模式右侧控制条，顶部显示当前应用图标，底部提供返回应用导航页入口。
+ * @description 应用化模式右侧控制条，顶部显示当前应用图标，底部提供返回展开界面与应用导航页入口。
  * @author 鸡哥
  */
 
@@ -33,6 +33,7 @@ import type { MaxExpandTab } from '../../../../store/types';
 
 interface MaxExpandAppControlsProps {
   activeTab: MaxExpandTab;
+  onBackToExpanded: () => void;
   onBackToLauncher: () => void;
 }
 
@@ -40,31 +41,49 @@ interface MaxExpandAppControlsProps {
  * 渲染应用化模式的统一竖向控制条。
  * @param props - 控制条属性。
  * @param props.activeTab - 当前应用标识，用于显示对应图标与名称。
+ * @param props.onBackToExpanded - 返回展开界面的回调。
  * @param props.onBackToLauncher - 返回应用导航页的回调。
  * @returns 包含当前应用图标与返回按钮的导航控制条。
  */
-export default function MaxExpandAppControls({ activeTab, onBackToLauncher }: MaxExpandAppControlsProps): ReactElement {
+export default function MaxExpandAppControls({ activeTab, onBackToExpanded, onBackToLauncher }: MaxExpandAppControlsProps): ReactElement {
   const { t } = useTranslation();
   const appLabel = t(`maxExpand.nav.${activeTab}`);
   const backLabel = t('maxExpand.appMode.backToLauncher');
+  const expandedLabel = t('maxExpand.appMode.backToExpanded');
+  const handleBackToExpanded = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
+    onBackToExpanded();
+  }, [onBackToExpanded]);
   const handleBackToLauncher = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation();
     onBackToLauncher();
   }, [onBackToLauncher]);
 
+  /* eslint-disable better-tailwindcss/no-unknown-classes -- 此控制条的类由内容壳加载的 settings-maxexpand-app-mode.css 定义。 */
   return (
     <nav className="max-expand-app-controls" aria-label={t('maxExpand.appMode.controls')}>
       <span className="max-expand-app-control" title={appLabel}>
         <img className="max-expand-app-control-icon-img" src={MAX_EXPAND_APPS[activeTab].icon} alt={appLabel} draggable={false} />
       </span>
-      <button className="max-expand-app-control max-expand-app-home-button"
-        type="button"
-        title={backLabel}
-        aria-label={backLabel}
-        onClick={handleBackToLauncher}
-      >
-        <img className="max-expand-app-control-icon-img" src={SvgIcon.APP} alt="" draggable={false} />
-      </button>
+      <div className="max-expand-app-control-actions">
+        <button className="max-expand-app-control max-expand-app-back-button"
+          type="button"
+          title={expandedLabel}
+          aria-label={expandedLabel}
+          onClick={handleBackToExpanded}
+        >
+          <img className="max-expand-app-control-icon-img" src={SvgIcon.RETURN} alt="" draggable={false} />
+        </button>
+        <button className="max-expand-app-control max-expand-app-home-button"
+          type="button"
+          title={backLabel}
+          aria-label={backLabel}
+          onClick={handleBackToLauncher}
+        >
+          <img className="max-expand-app-control-icon-img" src={SvgIcon.APP} alt="" draggable={false} />
+        </button>
+      </div>
     </nav>
   );
+  /* eslint-enable better-tailwindcss/no-unknown-classes -- 控制条 JSX 结束，恢复后续代码的类名检查。 */
 }

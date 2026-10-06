@@ -25,10 +25,10 @@
  */
 
 export const GifIcon = {
-  CLAWD_IDLE: './gif/clawd-idle.gif',
-  CLAWD_REVIEW: './gif/clawd-review.gif',
-  CLAWD_WAITING: './gif/clawd-waiting.gif',
-  CLAWD_WAVING: './gif/clawd-waving.gif',
+  CLAWD_IDLE: '../gif/clawd-idle.gif',
+  CLAWD_REVIEW: '../gif/clawd-review.gif',
+  CLAWD_WAITING: '../gif/clawd-waiting.gif',
+  CLAWD_WAVING: '../gif/clawd-waving.gif',
 } as const;
 
 export type GifIconKey = keyof typeof GifIcon;

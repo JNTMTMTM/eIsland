@@ -28,6 +28,12 @@ import { describe, expect, it } from 'vitest';
 import { BUILTIN_WALLPAPERS, resolveBuiltinWallpaper } from '../builtinWallpapers';
 
 describe('BUILTIN_WALLPAPERS', () => {
+  it('avoids tilde paths rejected by Vite on Windows', () => {
+    BUILTIN_WALLPAPERS.forEach((wallpaper) => {
+      expect(wallpaper.src).not.toContain('~');
+    });
+  });
+
   it('should be a non-empty array', () => {
     expect(Array.isArray(BUILTIN_WALLPAPERS)).toBe(true);
     expect(BUILTIN_WALLPAPERS.length).toBeGreaterThan(0);

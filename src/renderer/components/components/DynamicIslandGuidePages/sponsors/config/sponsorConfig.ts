@@ -26,6 +26,6 @@
 
 /** 赞助商条目列表（public 目录） */
 export const SPONSOR_IMG_LIST: Array<{ src: string; name: string }> = [
-  { src: './logo/signpath.png', name: 'SignPath' },
-  { src: './logo/cloudflare.png', name: 'Cloudflare' },
+  { src: '../logo/signpath.png', name: 'SignPath' },
+  { src: '../logo/cloudflare.png', name: 'Cloudflare' },
 ];

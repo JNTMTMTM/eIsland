@@ -24,36 +24,36 @@
  * @author 鸡哥
  */
 
-const javascriptOriginalIcon = '/svg/devicons/javascript-original.svg';
-const typescriptOriginalIcon = '/svg/devicons/typescript-original.svg';
-const reactOriginalIcon = '/svg/devicons/react-original.svg';
-const pythonOriginalIcon = '/svg/devicons/python-original.svg';
-const javaOriginalIcon = '/svg/devicons/java-original.svg';
-const cOriginalIcon = '/svg/devicons/c-original.svg';
-const cplusplusOriginalIcon = '/svg/devicons/cplusplus-original.svg';
-const csharpOriginalIcon = '/svg/devicons/csharp-original.svg';
-const goOriginalIcon = '/svg/devicons/go-original.svg';
-const rustOriginalIcon = '/svg/devicons/rust-original.svg';
-const phpOriginalIcon = '/svg/devicons/php-original.svg';
-const rubyOriginalIcon = '/svg/devicons/ruby-original.svg';
-const swiftOriginalIcon = '/svg/devicons/swift-original.svg';
-const kotlinOriginalIcon = '/svg/devicons/kotlin-original.svg';
-const dartOriginalIcon = '/svg/devicons/dart-original.svg';
-const htmlOriginalIcon = '/svg/devicons/html5-original.svg';
-const cssOriginalIcon = '/svg/devicons/css3-original.svg';
-const sassOriginalIcon = '/svg/devicons/sass-original.svg';
-const lessFallbackIcon = '/svg/devicons/less-plain-wordmark.svg';
-const vueOriginalIcon = '/svg/devicons/vuejs-original.svg';
-const svelteOriginalIcon = '/svg/devicons/svelte-original.svg';
-const angularOriginalIcon = '/svg/devicons/angularjs-original.svg';
-const jsonOriginalIcon = '/svg/devicons/json-original.svg';
-const yamlOriginalIcon = '/svg/devicons/yaml-original.svg';
-const xmlOriginalIcon = '/svg/devicons/xml-original.svg';
-const bashOriginalIcon = '/svg/devicons/bash-original.svg';
-const powershellOriginalIcon = '/svg/devicons/powershell-original.svg';
-const dockerOriginalIcon = '/svg/devicons/docker-original.svg';
-const sqlOriginalIcon = '/svg/devicons/azuresqldatabase-original.svg';
-const markdownOriginalIcon = '/svg/devicons/markdown-original.svg';
+const javascriptOriginalIcon = '../svg/devicons/javascript-original.svg';
+const typescriptOriginalIcon = '../svg/devicons/typescript-original.svg';
+const reactOriginalIcon = '../svg/devicons/react-original.svg';
+const pythonOriginalIcon = '../svg/devicons/python-original.svg';
+const javaOriginalIcon = '../svg/devicons/java-original.svg';
+const cOriginalIcon = '../svg/devicons/c-original.svg';
+const cplusplusOriginalIcon = '../svg/devicons/cplusplus-original.svg';
+const csharpOriginalIcon = '../svg/devicons/csharp-original.svg';
+const goOriginalIcon = '../svg/devicons/go-original.svg';
+const rustOriginalIcon = '../svg/devicons/rust-original.svg';
+const phpOriginalIcon = '../svg/devicons/php-original.svg';
+const rubyOriginalIcon = '../svg/devicons/ruby-original.svg';
+const swiftOriginalIcon = '../svg/devicons/swift-original.svg';
+const kotlinOriginalIcon = '../svg/devicons/kotlin-original.svg';
+const dartOriginalIcon = '../svg/devicons/dart-original.svg';
+const htmlOriginalIcon = '../svg/devicons/html5-original.svg';
+const cssOriginalIcon = '../svg/devicons/css3-original.svg';
+const sassOriginalIcon = '../svg/devicons/sass-original.svg';
+const lessFallbackIcon = '../svg/devicons/less-plain-wordmark.svg';
+const vueOriginalIcon = '../svg/devicons/vuejs-original.svg';
+const svelteOriginalIcon = '../svg/devicons/svelte-original.svg';
+const angularOriginalIcon = '../svg/devicons/angularjs-original.svg';
+const jsonOriginalIcon = '../svg/devicons/json-original.svg';
+const yamlOriginalIcon = '../svg/devicons/yaml-original.svg';
+const xmlOriginalIcon = '../svg/devicons/xml-original.svg';
+const bashOriginalIcon = '../svg/devicons/bash-original.svg';
+const powershellOriginalIcon = '../svg/devicons/powershell-original.svg';
+const dockerOriginalIcon = '../svg/devicons/docker-original.svg';
+const sqlOriginalIcon = '../svg/devicons/azuresqldatabase-original.svg';
+const markdownOriginalIcon = '../svg/devicons/markdown-original.svg';
 
 export const DEVICON_LANGUAGE_ALIASES: Record<string, string> = {
   js: 'javascript',

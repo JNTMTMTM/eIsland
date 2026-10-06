@@ -13,16 +13,18 @@ This document covers all BrowserWindow instances in the eIsland application. The
 
 | Window | Source File | HTML Entry | Dimensions | Transparent |
 |--------|------------|------------|------------|-------------|
-| Main Island | `src/main/window/mainWindow.ts` | `DynamicIslandIndex.html` | 260×42 (dynamic) | Yes |
-| Splash | `src/main/window/splashWindow.ts` | `DynamicIslandSplash.html` | 600×400 | Yes |
-| Guide | `src/main/window/guideWindow.ts` | `DynamicIslandGuide.html` | 860×500 | Yes |
-| Standalone | `src/main/window/standaloneWindow.ts` | `DynamicIslandStandalone.html` | 1155×640 | No |
+| Main Island | `src/main/window/mainWindow.ts` | `html/DynamicIslandIndex.html` | 260×42 (dynamic) | Yes |
+| Splash | `src/main/window/splashWindow.ts` | `html/DynamicIslandSplash.html` | 600×400 | Yes |
+| Guide | `src/main/window/guideWindow.ts` | `html/DynamicIslandGuide.html` | 860×500 | Yes |
+| Standalone | `src/main/window/standaloneWindow.ts` | `html/DynamicIslandStandalone.html` | 1155×640 | No |
 | Capture | `src/main/window/captureWindow.ts` | `resources/capture.html` | Fullscreen | Yes |
-| Agent Voice Input | `src/main/index.ts` | `DynamicIslandAibackground.html` | Fullscreen | Yes |
-| CLI Glow | `src/main/index.ts` | `DynamicIslandAibackground.html` | Fullscreen | Yes |
+| Agent Voice Input | `src/main/index.ts` | `html/DynamicIslandAibackground/index.html` | Fullscreen | Yes |
+| CLI Glow | `src/main/index.ts` | `html/DynamicIslandAibackground/index.html` | Fullscreen | Yes |
 
 :::note
 All windows share the same preload script (`../preload/index.js`) except the Capture window, which uses `nodeIntegration: true` for direct Node.js access. The two glow windows (Agent Voice Input and CLI Glow) share the same HTML entry point.
+
+Renderer HTML sources live in `src/renderer/html/` and build to `out/renderer/html/`. React page URLs use `/html/<entry>.html`; their TSX entry scripts live in `src/renderer/components/` and are referenced with `../components/` from the source HTML files. The glow page uses `DynamicIslandAibackground/index.html`, with a bootstrap script in `js/index.js`, animation parameters in `js/config/animationConfig.js`, animation control in `js/utils/animationUtils.js`, Canvas drawing in `js/utils/canvasUtils.js`, and styles in `styles/index.css`.
 :::
 
 ---
@@ -305,7 +307,7 @@ A fullscreen transparent overlay displaying the same neon edge glow effect as th
 
 ### Configuration
 
-The configuration is identical to the Agent Voice Input window — both share the same HTML entry point (`DynamicIslandAibackground.html`).
+The configuration is identical to the Agent Voice Input window — both share the same HTML entry point (`html/DynamicIslandAibackground/index.html`). The animation module explicitly exposes `window.startFadeOut` so the Main Process can still invoke `startFadeOut()` through `executeJavaScript`.
 
 ### IPC
 

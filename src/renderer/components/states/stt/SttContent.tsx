@@ -102,12 +102,12 @@ export function SttContent(): ReactElement {
     void navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    });
+    }).catch(() => {});
   };
 
   return (
     <div className="stt-content">
-      <img className="stt-icon" src="image/STT_LISTENING.png" alt="" draggable={false} />
+      <img className="stt-icon" src="../image/STT_LISTENING.png" alt="" draggable={false} />
       <div className="stt-text-area">
         <span className="stt-text-label">{t('stt.label', { defaultValue: '识别结果' })}</span>
         <div

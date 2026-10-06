@@ -53,6 +53,7 @@ export function useLocalFileSearch(): UseLocalFileSearchReturn {
   const [results, setResults] = useState<LocalFileSearchItem[]>([]);
   const [iconMap, setIconMap] = useState<Record<string, string>>({});
   const iconLoadingPathsRef = useRef<Set<string>>(new Set());
+  const searchRequestIdRef = useRef(0);
 
   /** 启动时从持久化加载搜索根目录 */
   useEffect(() => {
@@ -108,10 +109,12 @@ export function useLocalFileSearch(): UseLocalFileSearchReturn {
 
   /** 执行搜索 */
   const handleSearch = (): void => {
+    const requestId = ++searchRequestIdRef.current;
     const trimmedRootDir = rootDir.trim();
     const trimmedKeyword = keyword.trim();
     if (!trimmedRootDir || !trimmedKeyword) {
       setResults([]);
+      setLoading(false);
       return;
     }
     const parsedExtensions = parseCsvValues(extensionsInput);
@@ -129,10 +132,13 @@ export function useLocalFileSearch(): UseLocalFileSearchReturn {
       extensions: parsedExtensions,
       excludeDirs: parsedExcludeDirs,
     }).then((items) => {
+      if (requestId !== searchRequestIdRef.current) return;
       setResults(Array.isArray(items) ? items : []);
     }).catch(() => {
+      if (requestId !== searchRequestIdRef.current) return;
       setResults([]);
     }).finally(() => {
+      if (requestId !== searchRequestIdRef.current) return;
       setLoading(false);
     });
   };

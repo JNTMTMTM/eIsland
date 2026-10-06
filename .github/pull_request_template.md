@@ -10,7 +10,7 @@
 >
 > The following 6 items are author self-checks. The `PR Code Quality Review` workflow reports their status but does not fail on unchecked items.
 >
-> That workflow runs a limited set of hard-coded pattern checks on selected changed frontend files. It does not execute ESLint, Stylelint, HTML Validate, or `npm run lint:all`; a PASS is not full standards validation.
+> That workflow runs a limited set of syntax checks for JavaScript/TypeScript/JSX and pattern checks for CSS/HTML on selected changed frontend files. It does not execute ESLint, Stylelint, HTML Validate, or `npm run lint:all`; a PASS is not full standards validation.
 >
 > Run `npm run lint:all` locally for ESLint, CSS/SCSS, HTML, and i18n checks. Use `npm run lint:report` or `npm run lint:report:json` to save ESLint results in `reports/` (created automatically, including on lint failure).
 

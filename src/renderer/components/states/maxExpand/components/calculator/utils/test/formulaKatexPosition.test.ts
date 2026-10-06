@@ -11,6 +11,11 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -20,7 +25,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { FormulaKatexAnchor } from '../formulaKatexCompiler';
+import { compileFormulaToKatex, type FormulaKatexAnchor } from '../formulaKatexCompiler';
 import { getFormulaKatexCaret, getFormulaKatexCursorAtPoint } from '../formulaKatexPosition';
 
 function anchor(startOffset: number, endOffset: number): FormulaKatexAnchor {
@@ -36,12 +41,33 @@ function emptyAnchor(segmentIndex: number, id: string): FormulaKatexAnchor {
   return {
     id,
     kind: 'token',
-    start: { path: [], segmentIndex, offset: 0 },
-    end: { path: [], segmentIndex, offset: 0 },
+    start: { segmentIndex, path: [], offset: 0 },
+    end: { segmentIndex, path: [], offset: 0 },
   };
 }
 
 describe('formulaKatexPosition', () => {
+  it('maps real compiled fraction slots independently and rejects stale segment coordinates', () => {
+    const compiled = compileFormulaToKatex({ segments: [{
+      type: 'structure',
+      value: {
+        id: 'fraction', kind: 'fraction', slots: {
+          numerator: { segments: [{ type: 'text', value: 'x' }] },
+          denominator: { segments: [{ type: 'text', value: '2' }] },
+        },
+      },
+    }] });
+    const numerator = compiled.anchors.find((item) => item.start.path.some((step) => step.slot === 'numerator'))!;
+    const denominator = compiled.anchors.find((item) => item.start.path.some((step) => step.slot === 'denominator'))!;
+    const measured = [
+      { anchor: denominator, rect: { left: 20, top: 30, width: 10, height: 20 } },
+      { anchor: numerator, rect: { left: 20, top: 4, width: 10, height: 20 } },
+    ];
+    expect(getFormulaKatexCaret(numerator.start, measured)).toEqual({ left: 20, top: 4, height: 20 });
+    expect(getFormulaKatexCaret(denominator.end, measured)).toEqual({ left: 30, top: 30, height: 20 });
+    expect(getFormulaKatexCaret({ ...numerator.start, segmentIndex: 5 }, measured)).toBeNull();
+  });
+
   it('按光标边界计算覆盖层位置', () => {
     const first = anchor(0, 1);
     const second = anchor(1, 2);

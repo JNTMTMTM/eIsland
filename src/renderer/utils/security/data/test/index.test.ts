@@ -20,7 +20,7 @@
 
 /**
  * @file index.test.ts
- * @description unit test
+ * @description 安全认证 Base32 字符表与 TOTP 默认参数导出测试。
  * @author 鸡哥
  */
 

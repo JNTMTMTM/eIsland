@@ -314,7 +314,7 @@ export function registerWallpaperVideoIpcHandlers(): void {
     }
 
     const preferRemux = options.preferRemux !== false;
-    const useRemux = preferRemux && shouldRemux(probe);
+    let useRemux = preferRemux && shouldRemux(probe);
 
     // 发送开始事件
     if (sender && progressChannel) {
@@ -358,7 +358,9 @@ export function registerWallpaperVideoIpcHandlers(): void {
         ], handleStderrProgress);
         if (result.code !== 0 || !existsSync(playbackPath)) {
           // fallback to transcode
-          return await transcode(sourcePath, playbackPath, coverPath, probe, sender, progressChannel, handleStderrProgress);
+          const outcome = await transcode(sourcePath, playbackPath, coverPath, probe, sender, progressChannel, handleStderrProgress);
+          if (!outcome.ok) return outcome;
+          useRemux = false;
         }
       } else {
         const outcome = await transcode(sourcePath, playbackPath, coverPath, probe, sender, progressChannel, handleStderrProgress);

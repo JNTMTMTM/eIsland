@@ -20,7 +20,7 @@
 
 /**
  * @file countdown.test.ts
- * @description Unit tests for countdown.ts utility functions.
+ * @description 总览倒数日时间计算工具测试。
  * @author 鸡哥
  */
 

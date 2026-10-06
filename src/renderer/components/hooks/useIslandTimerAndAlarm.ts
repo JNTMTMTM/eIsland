@@ -133,7 +133,7 @@ export function useIslandTimerAndAlarm(options: UseIslandTimerAndAlarmOptions): 
         const m = now.getMinutes();
         const s = now.getSeconds();
         const weekday = now.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-        const timeKey = `${h}:${m}:${s}`;
+        const timeKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${h}:${m}:${s}`;
         const disableOnceAlarmIds: number[] = [];
         const triggeredSounds: Array<{ ringtone: unknown; loop: boolean }> = [];
 

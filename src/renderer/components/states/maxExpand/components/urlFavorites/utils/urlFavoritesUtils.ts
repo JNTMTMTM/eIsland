@@ -57,6 +57,7 @@ export function sanitizeFavorites(data: unknown): UrlFavoriteItem[] {
   if (!Array.isArray(data)) return [];
   return data
     .map((item) => {
+      if (!item || typeof item !== 'object') return null;
       const row = item as Partial<UrlFavoriteItem>;
       const url = typeof row.url === 'string' ? normalizeUrl(row.url) : '';
       if (!url) return null;

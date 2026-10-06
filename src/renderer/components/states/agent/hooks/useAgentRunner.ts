@@ -102,39 +102,39 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
       thinkAccRef.current = '';
       traceIdRef.current = '';
 
-      const {
-        isOllama,
-        useCustomApi,
-        selectedModel,
-        selectedProvider,
-        agentMode,
-      } = resolveAgentRouting(aiConfig, token);
-
-      const {
-        activeSessionId,
-        context,
-        resolvedSkills,
-      } = await resolveAgentContextAndSkills(aiConfig);
-
-      const message = `${INLINE_PROMPT_HINT}\n\n${agentPrompt.trim()}`;
-
-      const handleEvent = createAgentStreamEventHandler({
-        isActive: () => active,
-        isOllama,
-        token,
-        workspaces: aiConfig.workspaces,
-        setPhase,
-        setThinkText,
-        setAnswerText,
-        setErrorMsg,
-        setAuthPending,
-        setToolCallInfo,
-        answerAccRef,
-        thinkAccRef,
-        traceIdRef,
-      });
-
       try {
+        const {
+          isOllama,
+          useCustomApi,
+          selectedModel,
+          selectedProvider,
+          agentMode,
+        } = resolveAgentRouting(aiConfig, token);
+
+        const {
+          activeSessionId,
+          context,
+          resolvedSkills,
+        } = await resolveAgentContextAndSkills(aiConfig);
+
+        const message = `${INLINE_PROMPT_HINT}\n\n${agentPrompt.trim()}`;
+
+        const handleEvent = createAgentStreamEventHandler({
+          isActive: () => active,
+          isOllama,
+          token,
+          workspaces: aiConfig.workspaces,
+          setPhase,
+          setThinkText,
+          setAnswerText,
+          setErrorMsg,
+          setAuthPending,
+          setToolCallInfo,
+          answerAccRef,
+          thinkAccRef,
+          traceIdRef,
+        });
+
         if (isOllama) {
           const ollamaModelName = aiConfig.ollamaModel || 'qwen3:8b';
           const ollamaTemperature = aiConfig.deepseekReasoningEffort === 'low' ? 0.3 : aiConfig.deepseekReasoningEffort === 'high' ? 1.0 : 0.6;

@@ -90,9 +90,9 @@ async function searchLocalFiles(rootDir: string, keyword: string, options?: Loca
   if (!trimmedKeyword || !rootDir.trim()) return [];
 
   const limit = typeof options?.limit === 'number' ? options.limit : 120;
-  const maxDepthOption = typeof options?.maxDepth === 'number' ? options.maxDepth : 8;
+  const maxDepthOption = typeof options?.maxDepth === 'number' && !Number.isNaN(options.maxDepth) ? options.maxDepth : 8;
   const maxCount = Math.max(1, Math.min(500, Math.floor(limit || 120)));
-  const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthOption || 8)));
+  const maxDepth = Math.max(0, Math.min(12, Math.floor(maxDepthOption)));
   const includeDirectories = options?.includeDirectories !== false;
   const includeFiles = options?.includeFiles !== false;
   const includeHidden = options?.includeHidden === true;
@@ -1034,7 +1034,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
         snip:        { exe: 'snippingtool.exe', label: '截图工具' },
       };
 
-      const entry = builtinTargets[target];
+      const entry = Object.hasOwn(builtinTargets, target) ? builtinTargets[target] : undefined;
       if (entry) {
         if (entry.uri) {
           await shell.openExternal(entry.uri);
@@ -2480,7 +2480,7 @@ export function registerAppIpcHandlers(): void {
       const { createReadStream } = await import('fs');
       const hash = createHash(algo);
       const fileInfo = await stat(filePath);
-      return new Promise<{ hash: string; algorithm: string; fileName: string; fileSize: number }>((resolvePromise, rejectPromise) => {
+      const result = await new Promise<{ hash: string; algorithm: string; fileName: string; fileSize: number }>((resolvePromise, rejectPromise) => {
         const stream = createReadStream(filePath);
         stream.on('data', (chunk: string | Buffer) => hash.update(chunk));
         stream.on('end', () => {
@@ -2493,6 +2493,7 @@ export function registerAppIpcHandlers(): void {
         });
         stream.on('error', (err) => rejectPromise(err));
       });
+      return result;
     } catch (err) {
       console.error('[App] compute-file-hash error:', err);
       return null;

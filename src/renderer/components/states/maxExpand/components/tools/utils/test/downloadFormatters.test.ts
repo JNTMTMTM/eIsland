@@ -20,7 +20,7 @@
 
 /**
  * @file downloadFormatters.test.ts
- * @description unit test for downloadFormatters utilities
+ * @description 下载文件大小、建议文件名与任务耗时格式化测试。
  * @author 鸡哥
  */
 

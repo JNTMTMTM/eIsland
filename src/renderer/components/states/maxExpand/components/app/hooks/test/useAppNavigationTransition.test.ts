@@ -14,7 +14,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
 
@@ -493,6 +493,44 @@ describe('useAppNavigationTransition', () => {
     expect(render().transition).toBeNull();
     expect(onBackToLauncher).toHaveBeenCalledOnce();
     expect(animations).toHaveLength(0);
+  });
+
+  it('当前应用被从导航隐藏后仍能直接返回导航，不等待不存在的图标', () => {
+    options = { ...options, activeTab: 'calendar', launcherVisible: false };
+    stage.querySelector.mockReturnValue(null);
+    render().backToLauncher();
+    expect(render().transition).toBeNull();
+    expect(onBackToLauncher).toHaveBeenCalledOnce();
+    expect(animations).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('缺少原生 matchMedia 时仍可完成导航和释放动画', async () => {
+    vi.stubGlobal('window', { ...window, matchMedia: undefined });
+    render().selectApp('calendar');
+    render();
+    await completeAnimations();
+    expect(onSelectApp).toHaveBeenCalledExactlyOnceWith('calendar');
+    expect(render().transition).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('导航视口零高度或图标已经可见时不调整滚动位置', async () => {
+    const viewport = { scrollTop: 42, getBoundingClientRect: () => ({ top: 70, height: 0 }) };
+    launcher.querySelector.mockReturnValue(viewport);
+    options = { ...options, activeTab: 'calendar', launcherVisible: false };
+    render().backToLauncher();
+    render();
+    await completeAnimations();
+    expect(viewport.scrollTop).toBe(42);
+    expect(onBackToLauncher).toHaveBeenCalledOnce();
+    viewport.getBoundingClientRect = () => ({ top: 70, height: 120 });
+    options = { ...options, launcherVisible: false };
+    render().backToLauncher();
+    render();
+    await completeAnimations();
+    expect(viewport.scrollTop).toBe(42);
+    expect(onBackToLauncher).toHaveBeenCalledTimes(2);
   });
 
   it('动画接口中途抛错仍完成请求并释放已创建的动画', async () => {

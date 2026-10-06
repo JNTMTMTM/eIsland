@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install syntax parser
+        run: npm install --prefix "$RUNNER_TEMP/pr-quality-tools" --ignore-scripts --no-audit --no-fund --package-lock=false typescript@6.0.3
+
       - name: Analyze changed frontend files
         id: quality_check
         uses: actions/github-script@v7
@@ -22,6 +25,7 @@ jobs:
           github-token: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('node:fs');
+            const ts = require(`${process.env.RUNNER_TEMP}/pr-quality-tools/node_modules/typescript`);
             const { owner, repo } = context.repo;
             const pr = context.payload.pull_request;
 
@@ -42,47 +46,66 @@ jobs:
               })
               .map((item) => `${item.id} | ${item.label}`);
 
-            const detectViolationLines = (text, testFn, ruleId) => {
+            const detectViolationLines = (text, positions, ruleId) => {
               const lines = text.split('\n');
-              const matched = [];
+              const disabledRules = (value) => value.split('--')[0].split(',')
+                .map((rule) => rule.trim().replace(/^@[\w-]+\//, ''));
 
               // Check for file-level eslint-disable (covers the whole file)
               const fileDisablePattern = /\/\*[\s*]*eslint-disable\s+([^*]*)\*\//;
               const fileDisableMatch = text.match(fileDisablePattern);
               if (fileDisableMatch) {
-                const disabledRules = fileDisableMatch[1].split(',').map((r) => r.trim().replace(/^@[\w-]+\//, ''));
-                if (disabledRules.includes(ruleId) || disabledRules.length === 0) {
+                const disabled = disabledRules(fileDisableMatch[1]);
+                if (disabled.includes(ruleId)) {
                   return [];
                 }
               }
 
-              for (let i = 0; i < lines.length; i += 1) {
-                try {
-                  if (!testFn(lines[i])) continue;
-
-                  // Check eslint-disable-next-line on the line above
-                  if (i > 0) {
-                    const prevLine = lines[i - 1];
-                    const nextLineMatch = prevLine.match(/\/\/\s*eslint-disable-next-line\s+(.+)/);
-                    if (nextLineMatch) {
-                      const disabledRules = nextLineMatch[1].split(',').map((r) => r.trim().replace(/^@[\w-]+\//, ''));
-                      if (disabledRules.includes(ruleId)) continue;
-                    }
+              return [...new Set(positions)].filter((line) => {
+                const i = line - 1;
+                // Check eslint-disable-next-line on the line above
+                if (i > 0) {
+                  const prevLine = lines[i - 1];
+                  const nextLineMatch = prevLine.match(/\/\/\s*eslint-disable-next-line\s+(.+)/);
+                  if (nextLineMatch) {
+                    if (disabledRules(nextLineMatch[1]).includes(ruleId)) return false;
                   }
-
-                  // Check inline eslint-disable-line on the same line
-                  const inlineMatch = lines[i].match(/\/\/\s*eslint-disable-line\s+(.+)/);
-                  if (inlineMatch) {
-                    const disabledRules = inlineMatch[1].split(',').map((r) => r.trim().replace(/^@[\w-]+\//, ''));
-                    if (disabledRules.includes(ruleId)) continue;
-                  }
-
-                  matched.push(i + 1);
-                } catch {
-                  // Skip to next line if single-line detection fails
                 }
-              }
-              return matched;
+
+                // Check inline eslint-disable-line on the same line
+                const inlineMatch = lines[i].match(/\/\/\s*eslint-disable-line\s+(.+)/);
+                if (inlineMatch) {
+                  if (disabledRules(inlineMatch[1]).includes(ruleId)) return false;
+                }
+
+                return true;
+              });
+            };
+
+            // Syntax nodes distinguish executable code from strings, comments and object fixtures.
+            const scriptRules = {
+              'no-var': (node) => ts.isVariableDeclarationList(node) && !(node.flags & ts.NodeFlags.BlockScoped),
+              'no-any': (node) => node.kind === ts.SyntaxKind.AnyKeyword,
+              eqeqeq: (node) => ts.isBinaryExpression(node)
+                && [ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken].includes(node.operatorToken.kind),
+              'no-for-in-of': (node) => ts.isForInStatement(node) || ts.isForOfStatement(node),
+              'no-eval-function-constructor': (node) => (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'eval')
+                || (ts.isNewExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'Function'),
+              'no-react-import-in-jsx-runtime': (node, sourceFile) => {
+                if (!ts.isImportDeclaration(node) || node.moduleSpecifier.text !== 'react' || node.importClause?.name?.text !== 'React') return false;
+                const referenced = (child) => {
+                  if (ts.isImportDeclaration(child)) return false;
+                  return (ts.isIdentifier(child) && child.text === 'React') || !!ts.forEachChild(child, referenced);
+                };
+                return !ts.forEachChild(sourceFile, referenced);
+              },
+              'no-props-spread': (node) => ts.isJsxSpreadAttribute(node),
+              'no-index-key': (node) => ts.isJsxAttribute(node) && node.name.text === 'key'
+                && node.initializer && ts.isJsxExpression(node.initializer)
+                && node.initializer.expression && ts.isIdentifier(node.initializer.expression)
+                && node.initializer.expression.text === 'index',
+              'jsx-brace-spacing': (node, sourceFile) => ts.isJsxExpression(node) && ts.isJsxAttribute(node.parent)
+                && /^\{[ \t]+[^\n}]+[ \t]+\}$/.test(node.getText(sourceFile))
             };
 
             const rules = [
@@ -90,59 +113,55 @@ jobs:
                 id: 'no-var',
                 desc: 'JS/TS: var is forbidden',
                 applies: /\.(js|jsx|ts|tsx)$/,
-                test: (text) => /(^|\s)var\s+/.test(text)
+                test: scriptRules['no-var']
               },
               {
                 id: 'no-any',
                 desc: 'TypeScript: avoid any',
                 applies: /\.(ts|tsx)$/,
-                test: (text) => /(:\s*any\b|<\s*any\s*>|\bas\s+any\b)/.test(text)
+                test: scriptRules['no-any']
               },
               {
                 id: 'eqeqeq',
                 desc: 'Must use === / !==',
                 applies: /\.(js|jsx|ts|tsx)$/,
-                test: (text) => /(^|[^=!])==([^=]|$)|(^|[^!])!=([^=]|$)/m.test(text)
+                test: scriptRules.eqeqeq
               },
               {
                 id: 'no-for-in-of',
                 desc: 'Avoid for...in / for...of, prefer higher-order functions',
                 applies: /\.(js|jsx|ts|tsx)$/,
-                test: (text) => /for\s*\([^)]*\b(?:in|of)\b[^)]*\)/.test(text)
+                test: scriptRules['no-for-in-of']
               },
               {
                 id: 'no-eval-function-constructor',
                 desc: 'Security: eval / new Function is forbidden',
                 applies: /\.(js|jsx|ts|tsx)$/,
-                test: (text) => /\beval\s*\(|new\s+Function\s*\(/.test(text)
+                test: scriptRules['no-eval-function-constructor']
               },
               {
                 id: 'no-react-import-in-jsx-runtime',
                 desc: 'React 17+: avoid unused default React import in JSX files',
                 applies: /\.(jsx|tsx)$/,
-                test: (text) => /import\s+React\s+from\s+['"]react['"]\s*;/.test(text)
+                test: scriptRules['no-react-import-in-jsx-runtime']
               },
               {
                 id: 'no-props-spread',
                 desc: 'React: props spreading is forbidden',
                 applies: /\.(jsx|tsx)$/,
-                test: (text) => /<\w[^>]*\{\s*\.\.\.[^}]+\}[^>]*>/.test(text)
+                test: scriptRules['no-props-spread']
               },
               {
                 id: 'no-index-key',
                 desc: 'React: using index as list key is forbidden',
                 applies: /\.(jsx|tsx)$/,
-                test: (text) => /key\s*=\s*\{\s*index\s*\}/.test(text)
+                test: scriptRules['no-index-key']
               },
               {
                 id: 'jsx-brace-spacing',
                 desc: 'JSX: no extra spaces inside curly braces',
                 applies: /\.(jsx|tsx)$/,
-                test: (text) => text.split('\n').some(line => {
-                  const t = line.trim();
-                  if (/^(const|let|var|return)\s/.test(t)) return false;
-                  return /\b[\w:-]+\s*=\s*\{\s+[^\n}]+\s+\}/.test(t);
-                })
+                test: scriptRules['jsx-brace-spacing']
               },
               {
                 id: 'no-important',
@@ -192,17 +211,25 @@ jobs:
                 continue;
               }
 
+              const sourceFile = /\.(js|jsx|ts|tsx)$/.test(filename)
+                ? ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true)
+                : null;
               for (const rule of rules) {
                 if (!rule.applies.test(filename)) continue;
-                if (rule.test(text)) {
-                  const lines = detectViolationLines(text, rule.test, rule.id);
-                  if (lines.length > 0) {
-                    for (const line of lines) {
-                      violations.push(`${filename}:${line} | ${rule.id} | ${rule.desc}`);
-                    }
-                  } else {
-                    violations.push(`${filename}:1 | ${rule.id} | ${rule.desc}`);
-                  }
+                const positions = [];
+                if (sourceFile) {
+                  const visit = (node) => {
+                    if (rule.test(node, sourceFile)) positions.push(sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1);
+                    ts.forEachChild(node, visit);
+                  };
+                  visit(sourceFile);
+                } else {
+                  text.split('\n').forEach((line, index) => {
+                    if (rule.test(line)) positions.push(index + 1);
+                  });
+                }
+                for (const line of detectViolationLines(text, positions, rule.id)) {
+                  violations.push(`${filename}:${line} | ${rule.id} | ${rule.desc}`);
                 }
               }
             }
@@ -214,7 +241,7 @@ jobs:
             }, {});
 
             const summary = [];
-            summary.push('- **Scope:** limited pattern checks on selected changed files; ESLint, Stylelint, and HTML Validate are not executed.');
+            summary.push('- **Scope:** limited syntax and pattern checks on selected changed files; ESLint, Stylelint, and HTML Validate are not executed.');
             summary.push(`- **Scanned files:** ${targets.length}`);
             summary.push(`- **Violations:** ${violations.length}`);
             summary.push(`- **By rule:** ${Object.entries(byRule).map(([rule, count]) => `\`${rule}\`: ${count}`).join(', ') || 'none'}`);
@@ -278,6 +305,11 @@ jobs:
 
       - name: Compose review comment
         shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           if [ -s quality-check.log ]; then
             sed -n '1,180p' quality-check.log > quality-check-preview.log
@@ -289,11 +321,11 @@ jobs:
             echo "<!-- pr-auto-code-quality-review -->"
             echo "## PR Code Quality Review"
             echo ""
-            echo "- PR: #${{ github.event.pull_request.number }}"
-            echo "- Branch: \`${{ github.event.pull_request.head.ref }}\` -> \`${{ github.event.pull_request.base.ref }}\`"
-            echo "- Trigger commit: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "- PR: #$PR_NUMBER"
+            echo "- Branch: \`$PR_HEAD_REF\` -> \`$PR_BASE_REF\`"
+            echo "- Trigger commit: \`$PR_HEAD_SHA\`"
             echo "- Review result: ${{ steps.quality_check.outputs.passed == 'true' && 'PASS' || 'FAIL' }}"
-            echo '- Scope: limited pattern checks only. Run `npm run lint:all` locally for ESLint, CSS/SCSS, HTML, and i18n checks.'
+            echo '- Scope: limited syntax and pattern checks only. Run `npm run lint:all` locally for ESLint, CSS/SCSS, HTML, and i18n checks.'
             echo "- Violations: \`${{ steps.quality_check.outputs.violations }}\`"
             echo "- Checklist unchecked (self-check only, non-blocking): \`${{ steps.quality_check.outputs.checklist_missing }}\`"
             echo ""

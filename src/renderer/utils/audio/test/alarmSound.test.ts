@@ -20,7 +20,7 @@
 
 /**
  * @file alarmSound.test.ts
- * @description unit test
+ * @description 系统闹钟铃声枚举、默认项与非法值标准化测试。
  * @author 鸡哥
  */
 

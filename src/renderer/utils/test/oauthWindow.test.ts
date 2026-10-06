@@ -20,7 +20,7 @@
 
 /**
  * @file oauthWindow.test.ts
- * @description unit test
+ * @description OAuth 登录窗口消息与会话结果测试。
  * @author 鸡哥
  */
 

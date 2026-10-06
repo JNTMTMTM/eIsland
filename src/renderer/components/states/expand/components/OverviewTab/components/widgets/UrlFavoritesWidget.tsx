@@ -47,7 +47,10 @@ export function UrlFavoritesWidget({ openUrlFavoritesPage }: UrlFavoritesWidgetP
     }).catch(() => {
       try {
         const raw = localStorage.getItem('eIsland_url_favorites');
-        if (raw && !cancelled) setFavorites(JSON.parse(raw) as UrlFavoriteItem[]);
+        if (raw && !cancelled) {
+          const parsed: unknown = JSON.parse(raw);
+          if (Array.isArray(parsed)) setFavorites(parsed as UrlFavoriteItem[]);
+        }
       } catch {
         // noop
       }
