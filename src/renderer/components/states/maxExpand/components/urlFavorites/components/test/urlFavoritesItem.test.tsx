@@ -62,4 +62,30 @@ describe('UrlFavoritesItem', () => {
     trigger(tree, '.url-favorites-url-input', 'onChange', { target: { value: 'new' } });
     expect(props.setEditUrlInput).toHaveBeenCalledWith('new');
   });
+  it('公开编辑、拖拽和图片失败事件保持真实父回调参数', () => {
+    const callbacks = { ...props, onDragStart: vi.fn(), onDragEnd: vi.fn() };
+    const tree = render(Component, callbacks);
+    const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() };
+    trigger(tree, '.url-favorites-item', 'onDragOver', event);
+    trigger(tree, '.url-favorites-summary', 'onDragStart', event);
+    trigger(tree, '.url-favorites-summary', 'onDragEnd', event);
+    expect(callbacks.onDragOver).toHaveBeenCalledWith(event, 1);
+    expect(callbacks.onDragStart).toHaveBeenCalledWith(event, 1);
+    expect(callbacks.onDragEnd).toHaveBeenCalledWith(event);
+    trigger(tree, '.url-favorites-note-input', 'onChange', { target: { value: 'Note' } });
+    trigger(tree, '.url-favorites-folder-edit-input', 'onChange', { target: { value: 'Folder' } });
+    expect(callbacks.setEditNoteInput).toHaveBeenCalledWith('Note');
+    expect(callbacks.setEditFolderInput).toHaveBeenCalledWith('Folder');
+    callbacks.onSaveEdit.mockClear();
+    trigger(tree, '.url-favorites-note-input', 'onKeyDown', { ...event, key: 'Escape' });
+    trigger(tree, '.url-favorites-folder-edit-input', 'onKeyDown', { ...event, key: 'Escape' });
+    expect(callbacks.onSaveEdit).not.toHaveBeenCalled();
+    trigger(tree, '.url-favorites-folder-edit-input', 'onKeyDown', { ...event, key: 'Enter' });
+    expect(callbacks.onSaveEdit).toHaveBeenCalledWith(1);
+    const image = { src: 'failed' };
+    trigger(tree, 'img', 'onError', { target: image });
+    expect(image.src).not.toBe('failed');
+    expect(text(render(Component, { ...props, item: { ...item, title: '' } }))).toContain('urlFavoritesTab.resolvingTitle');
+  });
+
 });

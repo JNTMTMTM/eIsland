@@ -51,5 +51,6 @@ describe('UrlFavoritesImportExportPanel', () => {
     trigger(tree, '.url-favorites-secondary-action', 'onClick');
     expect(props.onImportClick).toHaveBeenCalledOnce();
     expect(value(render(Component, { ...props, hasFavorites: true }), '.url-favorites-secondary-action', 'disabled', 1)).toBe(false);
+    expect(value(render(Component, { ...props, importExportOpen: false }), '.url-favorites-import-export-panel', 'className')).toBe('url-favorites-import-export-panel');
   });
 });

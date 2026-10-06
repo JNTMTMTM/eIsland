@@ -44,6 +44,8 @@ describe('UrlFavoritesFolderPanel', () => {
   it('updates a new folder draft and creates with Enter', () => {
     const tree = render(Component, props);
     trigger(tree, 'input', 'onChange', { target: { value: 'New' } });
+    trigger(tree, 'input', 'onKeyDown', { key: 'Escape', preventDefault: vi.fn() });
+    expect(props.onCreateFolder).not.toHaveBeenCalled();
     trigger(tree, 'input', 'onKeyDown', { key: 'Enter', preventDefault: vi.fn() });
     expect(props.setNewFolderInput).toHaveBeenCalledWith('New');
     expect(props.onCreateFolder).toHaveBeenCalledOnce();

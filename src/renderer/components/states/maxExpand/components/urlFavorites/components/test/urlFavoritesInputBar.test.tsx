@@ -45,5 +45,8 @@ describe('UrlFavoritesInputBar', () => {
     expect(props.onToggleFolderTools).toHaveBeenCalledOnce();
     expect(props.onToggleImportExport).toHaveBeenCalledOnce();
     expect(value(tree, '.url-favorites-manage', 'aria-expanded')).toBe(true);
+    const alternate = render(Component, { ...props, folderToolsOpen: true, importExportOpen: false });
+    expect(value(alternate, '.url-favorites-tool-toggle', 'aria-expanded')).toBe(true);
+    expect(value(alternate, '.url-favorites-manage', 'aria-expanded')).toBe(false);
   });
 });
