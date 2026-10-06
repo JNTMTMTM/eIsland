@@ -20,7 +20,7 @@
 
 /**
  * @file agentVoiceInputPcm.test.ts
- * @description Unit tests for pushFloat32Frames PCM conversion utility.
+ * @description 语音输入浮点帧到 PCM 的转换测试。
  * @author 鸡哥
  */
 

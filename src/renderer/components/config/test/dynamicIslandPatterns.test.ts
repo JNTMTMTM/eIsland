@@ -20,7 +20,7 @@
 
 /**
  * @file dynamicIslandPatterns.test.ts
- * @description Unit tests for shared input validation patterns.
+ * @description 共享输入校验模式单元测试。
  * @author 鸡哥
  */
 

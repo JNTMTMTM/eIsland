@@ -20,7 +20,7 @@
 
 /**
  * @file calculator-icon.test.ts
- * @description unit test
+ * @description 计算器图标资源导出测试。
  * @author 鸡哥
  */
 

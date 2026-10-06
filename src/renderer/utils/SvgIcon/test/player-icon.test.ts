@@ -20,7 +20,7 @@
 
 /**
  * @file player-icon.test.ts
- * @description unit test
+ * @description 媒体播放器图标资源导出测试。
  * @author 鸡哥
  */
 

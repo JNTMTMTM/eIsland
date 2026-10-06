@@ -20,7 +20,7 @@
 
 /**
  * @file service-icon.test.ts
- * @description unit test
+ * @description 外部服务图标资源导出测试。
  * @author 鸡哥
  */
 

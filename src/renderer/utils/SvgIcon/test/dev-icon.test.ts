@@ -20,7 +20,7 @@
 
 /**
  * @file dev-icon.test.ts
- * @description unit test
+ * @description 开发语言图标资源与文件扩展名解析测试。
  * @author 鸡哥
  */
 

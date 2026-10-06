@@ -20,7 +20,7 @@
 
 /**
  * @file country-icon.test.ts
- * @description unit test
+ * @description 国家与地区图标资源导出测试。
  * @author 鸡哥
  */
 

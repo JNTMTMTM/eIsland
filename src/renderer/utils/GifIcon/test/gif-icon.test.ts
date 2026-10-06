@@ -20,7 +20,7 @@
 
 /**
  * @file gif-icon.test.ts
- * @description unit test
+ * @description 动态图标资源导出测试。
  * @author 鸡哥
  */
 

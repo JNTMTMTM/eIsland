@@ -20,7 +20,7 @@
 
 /**
  * @file index.test.ts
- * @description unit test
+ * @description 渲染进程日志级别与输出测试。
  * @author 鸡哥
  */
 

@@ -20,7 +20,7 @@
 
 /**
  * @file eisland-icon.test.ts
- * @description unit test
+ * @description 灵动岛应用图标资源导出测试。
  * @author 鸡哥
  */
 

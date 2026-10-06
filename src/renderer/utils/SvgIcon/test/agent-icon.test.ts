@@ -20,7 +20,7 @@
 
 /**
  * @file agent-icon.test.ts
- * @description unit test
+ * @description Agent 图标资源导出测试。
  * @author 鸡哥
  */
 

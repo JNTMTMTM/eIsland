@@ -20,7 +20,7 @@
 
 /**
  * @file index.test.ts
- * @description unit test
+ * @description 登录会话失效、清理与跨窗口同步测试。
  * @author 鸡哥
  */
 

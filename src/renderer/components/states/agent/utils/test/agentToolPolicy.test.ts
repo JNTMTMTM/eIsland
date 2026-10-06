@@ -20,7 +20,7 @@
 
 /**
  * @file agentToolPolicy.test.ts
- * @description Unit tests for agent tool classification utilities.
+ * @description Agent 工具分类与授权策略单元测试。
  * @author 鸡哥
  */
 
