@@ -68,7 +68,7 @@ describe('siteMetaApi', () => {
         netFetch: vi.fn(),
       },
     });
-    const { parseHtmlTitle, getWebsiteFaviconUrls } = await import('../site/siteMetaApi');
+    const { parseHtmlTitle, getWebsiteFaviconUrls } = await import('../siteMetaApi');
 
     expect(parseHtmlTitle('<html><title> A &amp; B </title></html>')).toBe('A & B');
     const urls = getWebsiteFaviconUrls('https://example.com/path');
@@ -82,7 +82,7 @@ describe('siteMetaApi', () => {
         netFetch: vi.fn(),
       },
     });
-    const { setWebsiteAuthorizationPolicy, getWebsiteAuthorizationPolicy } = await import('../site/siteMetaApi');
+    const { setWebsiteAuthorizationPolicy, getWebsiteAuthorizationPolicy } = await import('../siteMetaApi');
 
     setWebsiteAuthorizationPolicy('https://EXAMPLE.com/a', 'allow');
     expect(getWebsiteAuthorizationPolicy('https://example.com/b')).toBe('allow');
@@ -99,7 +99,7 @@ describe('siteMetaApi', () => {
 
     setTestWindow({ api: { netFetch } });
 
-    const { getWebsitePreferredFaviconUrl } = await import('../site/siteMetaApi');
+    const { getWebsitePreferredFaviconUrl } = await import('../siteMetaApi');
     const url = await getWebsitePreferredFaviconUrl('https://example.com/page', 1000);
 
     expect(url).toBe('https://example.com/favicon.ico');

@@ -97,4 +97,25 @@ describe('video probe resources', () => {
     expect(canvas.height).toBe(0);
     expect(video.onloadeddata).toBeNull();
   });
+
+  it('keeps usable metadata for live streams when the canvas context is unavailable', async () => {
+    video.duration = Infinity;
+    canvas.getContext.mockReturnValueOnce(null);
+    const pending = probeVideo('url', new AbortController().signal, true);
+    video.onloadeddata?.();
+    expect(await pending).toEqual({ width: 3840, height: 2160, durationSec: 0 });
+    expect(canvas.width).toBe(0);
+    expect(canvas.height).toBe(0);
+    expect(video.load).toHaveBeenCalledOnce();
+  });
+
+  it('contains canvas security errors while releasing video and canvas resources', async () => {
+    canvas.getContext.mockImplementationOnce(() => { throw new Error('canvas blocked'); });
+    const pending = probeVideo('url', new AbortController().signal, true);
+    video.onloadeddata?.();
+    expect(await pending).toEqual({ width: 3840, height: 2160, durationSec: 12 });
+    expect(canvas.width).toBe(0);
+    expect(canvas.height).toBe(0);
+    expect(video.load).toHaveBeenCalledOnce();
+  });
 });

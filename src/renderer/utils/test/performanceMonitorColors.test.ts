@@ -58,4 +58,10 @@ describe('performanceMonitorColors', () => {
       disk: 'disk-1',
     });
   });
+
+  it('preserves every explicit device and defaults missing or empty selections', () => {
+    expect(normalizePerformanceMonitorHardwareSelection({ cpu: 'cpu-1', gpu: 'gpu-1', disk: 'disk-1' })).toEqual({ cpu: 'cpu-1', gpu: 'gpu-1', disk: 'disk-1' });
+    expect(normalizePerformanceMonitorHardwareSelection({})).toEqual(DEFAULT_PERFORMANCE_MONITOR_HARDWARE_SELECTION);
+    expect(normalizePerformanceMonitorHardwareSelection({ cpu: '', gpu: '', disk: '' })).toEqual(DEFAULT_PERFORMANCE_MONITOR_HARDWARE_SELECTION);
+  });
 });

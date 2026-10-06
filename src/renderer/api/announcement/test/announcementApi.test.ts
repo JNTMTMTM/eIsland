@@ -26,7 +26,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../i18n', () => ({
+vi.mock('../../../i18n', () => ({
   getLanguage: () => 'zh-CN',
 }));
 
@@ -60,7 +60,7 @@ describe('announcementApi', () => {
       api: { storeRead, storeWrite, netFetch: vi.fn() },
     });
 
-    const { readAnnouncementShowMode, writeAnnouncementShowMode } = await import('../announcement/announcementApi');
+    const { readAnnouncementShowMode, writeAnnouncementShowMode } = await import('../announcementApi');
 
     await expect(readAnnouncementShowMode()).resolves.toBe('always');
     await writeAnnouncementShowMode('version-update-only');
@@ -83,7 +83,7 @@ describe('announcementApi', () => {
       },
     });
 
-    const { fetchCurrentAnnouncement } = await import('../announcement/announcementApi');
+    const { fetchCurrentAnnouncement } = await import('../announcementApi');
     const data = await fetchCurrentAnnouncement();
 
     expect(netFetch).toHaveBeenCalledWith(
@@ -113,7 +113,7 @@ describe('announcementApi', () => {
       api: { storeRead: vi.fn(), storeWrite: vi.fn(), netFetch },
     });
 
-    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    const { fetchAnnouncements } = await import('../announcementApi');
     const data = await fetchAnnouncements();
 
     expect(netFetch).toHaveBeenCalledWith(
@@ -143,7 +143,7 @@ describe('announcementApi', () => {
       api: { storeRead: vi.fn(), storeWrite: vi.fn(), netFetch },
     });
 
-    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+    const { fetchAnnouncementSocialConfig } = await import('../announcementApi');
 
     await expect(fetchAnnouncementSocialConfig()).resolves.toEqual(socialConfig);
     expect(netFetch).toHaveBeenCalledWith(
@@ -162,7 +162,7 @@ describe('announcementApi', () => {
       },
     });
 
-    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    const { fetchAnnouncements } = await import('../announcementApi');
     await expect(fetchAnnouncements()).resolves.toEqual([]);
   });
 
@@ -180,7 +180,7 @@ describe('announcementApi', () => {
       },
     });
 
-    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    const { fetchAnnouncements } = await import('../announcementApi');
     await expect(fetchAnnouncements()).resolves.toEqual([]);
   });
 
@@ -198,7 +198,7 @@ describe('announcementApi', () => {
       },
     });
 
-    const { fetchAnnouncements } = await import('../announcement/announcementApi');
+    const { fetchAnnouncements } = await import('../announcementApi');
     await expect(fetchAnnouncements()).resolves.toEqual([]);
   });
 
@@ -216,7 +216,7 @@ describe('announcementApi', () => {
       },
     });
 
-    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+    const { fetchAnnouncementSocialConfig } = await import('../announcementApi');
     await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
       githubUrl: '',
       bilibiliUrl: '',
@@ -239,7 +239,7 @@ describe('announcementApi', () => {
       },
     });
 
-    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+    const { fetchAnnouncementSocialConfig } = await import('../announcementApi');
     await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
       githubUrl: '',
       bilibiliUrl: '',
@@ -270,7 +270,7 @@ describe('announcementApi', () => {
       },
     });
 
-    const { fetchAnnouncementSocialConfig } = await import('../announcement/announcementApi');
+    const { fetchAnnouncementSocialConfig } = await import('../announcementApi');
     await expect(fetchAnnouncementSocialConfig()).resolves.toEqual({
       githubUrl: '',
       bilibiliUrl: '',

@@ -19,7 +19,7 @@
  */
 
 /**
- * @file versionApi.test.ts
+ * @file toolboxApi.test.ts
  * @description 单元测试文件
  * @author 鸡哥
  */
@@ -41,24 +41,67 @@ const setTestWindow = (value: TestWindow): void => {
   });
 };
 
-describe('versionApi', () => {
+describe('toolbox apis', () => {
   beforeEach(() => {
     vi.resetModules();
   });
 
-  it('returns version info when remote payload is valid', async () => {
+  it('fetchToolboxSoftwareList returns list when payload is valid', async () => {
+    const netFetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      body: JSON.stringify({
+        code: 200,
+        data: [{ id: 1, name: 'Steam', description: 'desc', url: 'u', iconUrl: 'i' }],
+      }),
+    }));
+
+    setTestWindow({
+      location: { hostname: 'localhost' },
+      api: { netFetch },
+    });
+
+    const { fetchToolboxSoftwareList } = await import('../toolboxSoftwareApi');
+    const list = await fetchToolboxSoftwareList();
+
+    expect(list).toHaveLength(1);
+    expect(list[0].name).toBe('Steam');
+  });
+
+  it('fetchTranslate returns normalized error on non-200 payload', async () => {
+    const netFetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      body: JSON.stringify({ code: 500, message: 'failed' }),
+    }));
+
+    setTestWindow({
+      location: { hostname: '127.0.0.1' },
+      api: { netFetch },
+    });
+
+    const { fetchTranslate } = await import('../toolboxTranslateApi');
+    const result = await fetchTranslate('token', 'hello', 'en', 'zh');
+
+    expect(result.success).toBe(false);
+    expect(result.message).toBe('failed');
+    expect(netFetch).toHaveBeenCalledWith(
+      'https://test.server.pyisland.com/api/v1/toolbox/translate',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('fetchTranslate returns success data on code 200', async () => {
     const netFetch = vi.fn(async () => ({
       ok: true,
       status: 200,
       body: JSON.stringify({
         code: 200,
         data: {
-          appName: 'eisland',
-          version: '1.2.3',
-          description: 'desc',
-          downloadUrl: 'https://example.com',
-          id: 1,
-          updatedAt: '2026-01-01',
+          targetText: '你好',
+          source: 'en',
+          target: 'zh',
+          requestId: 'r1',
         },
       }),
     }));
@@ -68,52 +111,10 @@ describe('versionApi', () => {
       api: { netFetch },
     });
 
-    const { fetchVersion } = await import('../update/versionApi');
-    const result = await fetchVersion();
+    const { fetchTranslate } = await import('../toolboxTranslateApi');
+    const result = await fetchTranslate('token', 'hello', 'en', 'zh');
 
-    expect(result?.version).toBe('1.2.3');
-    expect(netFetch).toHaveBeenCalledWith(
-      'https://test.server.pyisland.com/api/v1/version?appName=eisland',
-      expect.objectContaining({ method: 'GET' }),
-    );
-  });
-
-  it('reports update download count with trimmed version', async () => {
-    const netFetch = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      body: JSON.stringify({ code: 200 }),
-    }));
-
-    setTestWindow({
-      location: { hostname: 'localhost' },
-      api: { netFetch },
-    });
-
-    const { reportUpdateDownloadCount } = await import('../update/versionApi');
-    const success = await reportUpdateDownloadCount(' 1.2.3 ');
-
-    expect(success).toBe(true);
-    expect(netFetch).toHaveBeenCalledWith(
-      'https://test.server.pyisland.com/api/v1/version/update-count',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ appName: 'eisland', version: '1.2.3' }),
-      }),
-    );
-  });
-
-  it('returns false when reporting with empty version', async () => {
-    const netFetch = vi.fn();
-    setTestWindow({
-      location: { hostname: 'localhost' },
-      api: { netFetch },
-    });
-
-    const { reportUpdateDownloadCount } = await import('../update/versionApi');
-    const success = await reportUpdateDownloadCount('   ');
-
-    expect(success).toBe(false);
-    expect(netFetch).not.toHaveBeenCalled();
+    expect(result.success).toBe(true);
+    expect(result.data?.targetText).toBe('你好');
   });
 });
