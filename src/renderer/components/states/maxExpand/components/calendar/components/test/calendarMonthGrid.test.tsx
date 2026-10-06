@@ -60,4 +60,18 @@ describe('CalendarMonthGrid', () => {
     expect(props.onSelectDate.mock.calls[0][0]).toEqual(date);
     expect(nodes(render(Component, { ...props, locale: 'zh-CN' }), '.calendar-day-lunar')).toHaveLength(31);
   });
+
+  it('formats lunar days for another locale and forwards the date keyboard event', () => {
+    const onDateKeyDown = vi.fn();
+    const input = { ...props, locale: 'ja-JP' };
+    input.onDateKeyDown = onDateKeyDown;
+    const tree = render(Component, input);
+    const event = { key: 'ArrowRight', preventDefault: vi.fn() };
+    const selected = nodes(tree, '.calendar-day-button').find((node) => node.props['aria-pressed']);
+    (selected!.props.onKeyDown as (input: unknown) => void)(event);
+    expect(onDateKeyDown).toHaveBeenCalledExactlyOnceWith(event, date);
+    const lunarDays = nodes(tree, '.calendar-day-lunar');
+    expect(lunarDays).toHaveLength(31);
+    expect(lunarDays.every((node) => typeof node.props.children === 'string')).toBe(true);
+  });
 });

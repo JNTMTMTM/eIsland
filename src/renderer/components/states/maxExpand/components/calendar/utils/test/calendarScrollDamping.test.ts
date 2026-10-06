@@ -231,4 +231,51 @@ describe('calendar scroll damping', () => {
     expect(position - before).toBeLessThanOrEqual(1);
     expect(frames.size).toBe(0);
   });
+
+  it('ignores zero movement and a hidden viewport without consuming the wheel', () => {
+    expect(wheel(0).defaultPrevented).toBe(false);
+    Object.assign(element, { clientHeight: 0 });
+    expect(wheel(120).defaultPrevented).toBe(false);
+    expect(element.scrollTop).toBe(1000);
+    expect(frames.size).toBe(0);
+  });
+
+  it('finishes subpixel input in one frame without losing the requested distance', () => {
+    wheel(.01);
+    advance();
+    expect(element.scrollTop).toBeCloseTo(1000.0055, 6);
+    expect(frames.size).toBe(0);
+  });
+
+  it('stops at native scroll boundaries instead of scheduling frames indefinitely', () => {
+    let position = 1000;
+    Object.defineProperty(element, 'scrollTop', {
+      get: () => position,
+      set: (value: number) => { position = Math.max(0, Math.min(1000, value)); },
+    });
+    wheel(120);
+    advance();
+    expect(position).toBe(1000);
+    expect(frames.size).toBe(0);
+    wheel(-120);
+    settle();
+    expect(position).toBeCloseTo(934);
+  });
+
+  it('chooses the nearest forward anchor from the current callback result', () => {
+    monthStarts = [1120, 1100, 1400];
+    wheel(120);
+    settle();
+    expect(element.scrollTop).toBeCloseTo(1100);
+  });
+
+  it('finishes existing motion when its snap anchor disappears during virtualization', () => {
+    monthStarts = [1100];
+    wheel(120);
+    advance();
+    monthStarts = [];
+    settle();
+    expect(element.scrollTop).toBeCloseTo(1100);
+    expect(frames.size).toBe(0);
+  });
 });

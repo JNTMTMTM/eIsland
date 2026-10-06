@@ -26,9 +26,24 @@
 
 import { describe, expect, it } from 'vitest';
 import { CALENDAR_MONTH_GAP, CALENDAR_WEEK_HEIGHT } from '../../config/calendarConfig';
-import { getCalendarDayDifference, getCalendarMonthLayouts, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from '../calendarUtils';
+import { getCalendarDayDifference, getCalendarMonthLayouts, getCalendarReflowTop, getCalendarWeek, getCalendarWeeks, shiftCalendarMonth } from '../calendarUtils';
 
 describe('calendar month navigation', () => {
+  it('keeps the offset when replacement layouts no longer contain the old month', () => {
+    const anchor = new Date(2026, 9, 1, 12);
+    const previous = getCalendarMonthLayouts(anchor, 0, 2);
+    const next = getCalendarMonthLayouts(anchor, 12, 14);
+    expect(getCalendarReflowTop(previous, next, 100)).toBe(100);
+  });
+
+  it('bounds a position beyond the final week to the replacement month end', () => {
+    const previous = getCalendarMonthLayouts(new Date(2026, 9, 1, 12), 0, 2);
+    const next = getCalendarMonthLayouts(new Date(2026, 9, 1, 12), 0, 2);
+    const last = previous[previous.length - 1];
+    const target = next[next.length - 1];
+    expect(getCalendarReflowTop(previous, next, last.top + last.height + 100)).toBe(target.top + target.height);
+  });
+
   it('sizes short and long months with gaps but excludes the fixed heading', () => {
     const months = getCalendarMonthLayouts(new Date(2026, 1, 1, 12), 0, 4);
     expect(months.map((month) => month.weeks.length)).toEqual([4, 5, 5, 6]);

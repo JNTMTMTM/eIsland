@@ -30,6 +30,15 @@ import { getCalendarTimelineEvents } from '../calendarTimelineUtils';
 import type { CalendarTimelineEvent } from '../../types/calendarTimelineTypes';
 
 describe('calendar year overview', () => {
+  it('retains the full year while discarding a malformed event date', () => {
+    const invalid: CalendarTimelineEvent = {
+      id: 'invalid', kind: 'todo', label: 'Invalid', start: '2026-02-31', end: '2026-02-31',
+    };
+    const months = getCalendarYearMonths(2026, [invalid]);
+    expect(months).toHaveLength(12);
+    expect(months.flatMap((month) => month.days).every((day) => day.names.length === 0)).toBe(true);
+  });
+
   it('renders twelve months with each date exactly once and correct weekday alignment', () => {
     const months = getCalendarYearMonths(2026, []);
     expect(months).toHaveLength(12);

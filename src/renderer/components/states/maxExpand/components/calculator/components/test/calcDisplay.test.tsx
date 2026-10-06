@@ -25,7 +25,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, nodes, value, trigger, text } from '../../../../test/componentHarness';
+import { render, nodes, value, trigger, text, flushEffects } from '../../../../test/componentHarness';
 import { CalcDisplay as Component } from '../CalcDisplay';
 import { FormulaExpression } from '../FormulaExpression';
 describe('CalcDisplay', () => {
@@ -45,5 +45,16 @@ describe('CalcDisplay', () => {
     trigger(tree, '.calc-display', 'onKeyDown', { key: 'Enter' });
     expect(props.onMoveEnd).toHaveBeenCalledOnce();
     expect(props.onKeyDown).toHaveBeenCalledWith({ key: 'Enter' });
+  });
+
+  it('focuses the mounted native display once on mount and again on a captured click', () => {
+    const focus = vi.fn();
+    const tree = render(Component, props);
+    const ref = value(tree, '.calc-display', 'ref') as { current: HTMLDivElement | null };
+    ref.current = { focus } as unknown as HTMLDivElement;
+    flushEffects();
+    expect(focus).toHaveBeenCalledOnce();
+    trigger(tree, '.calc-display', 'onClickCapture');
+    expect(focus).toHaveBeenCalledTimes(2);
   });
 });

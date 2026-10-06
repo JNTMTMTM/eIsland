@@ -80,6 +80,18 @@ describe('getAppLauncherExpansionOffsets', () => {
     expect(getAppLauncherExpansionOffsets([], 0, 2.4)).toEqual([]);
   });
 
+  it('共享圆心的图标仍能分离，保留固定选中位置与有限位移', () => {
+    const overlapping = [
+      { x: 100, y: 100, width: 64 },
+      { x: 100, y: 100, width: 64 },
+      { x: 100, y: 100, width: 64 },
+    ];
+    const offsets = getAppLauncherExpansionOffsets(overlapping, 0, 2.4);
+    expect(offsets[0]).toEqual({ x: 0, y: 0 });
+    expect(offsets.every(({ x, y }) => Number.isFinite(x) && Number.isFinite(y))).toBe(true);
+    expectSeparated(overlapping, offsets, 0, 2.4);
+  });
+
   it('选中图标固定，近邻推动后排，未受影响的远处图标保持原位', () => {
     const offsets = getAppLauncherExpansionOffsets(positions, 0, 2.4);
 

@@ -24,11 +24,13 @@
  * @author 鸡哥
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, nodes, value, trigger, text } from '../../../../test/componentHarness';
+import { stopPreviewAlarmSound, subscribePreviewAlarmSoundState, SystemAlarmRingtone } from '../../../../../../../utils/audio/alarmSound';
 import { AlarmEditor as Component } from '../AlarmEditor';
 import { WheelPicker } from '../WheelPicker';
 describe('AlarmEditor', () => {
+  afterEach(() => { stopPreviewAlarmSound(); vi.unstubAllGlobals(); });
   const props = { adding: true, visible: true, hour: 8, minute: 5, second: 3, repeat: [0], ringtone: 'default', loop: true, repeatSummary: () => 'Sunday', weekdayLabel: (day: number) => String(day), setHour: vi.fn(), setLabel: vi.fn(), setRepeat: vi.fn(), setLoop: vi.fn(), onCancel: vi.fn(), onSave: vi.fn() };
   it('renders bounded time wheels and adding or editing preview labels', () => {
     const tree = render(Component, props);
@@ -54,5 +56,44 @@ describe('AlarmEditor', () => {
     trigger(tree, '.alarm-editor-cancel-btn', 'onClick');
     expect(props.onSave).toHaveBeenCalledOnce();
     expect(props.onCancel).toHaveBeenCalledOnce();
+  });
+
+  it('selects a system ringtone and toggles its real audio preview through the button', async () => {
+    const audio = {
+      src: '', preload: '', volume: 1, currentTime: 0, duration: 10, paused: true, loop: false,
+      play: vi.fn(() => { audio.paused = false; return Promise.resolve(); }),
+      pause: vi.fn(() => { audio.paused = true; }),
+    };
+    vi.stubGlobal('Audio', class AudioConstructor {
+      /**
+       * 记录真实预览模块交给浏览器的资源路径。
+       * @param src - 系统铃声地址。
+       */
+      constructor(src: string) {
+        audio.src = src;
+        return audio;
+      }
+    });
+    vi.stubGlobal('window', {
+      api: { storeRead: vi.fn().mockResolvedValue(.8) },
+      requestAnimationFrame: vi.fn().mockReturnValue(1), cancelAnimationFrame: vi.fn(),
+    });
+    const states: boolean[] = [];
+    const unsubscribe = subscribePreviewAlarmSoundState((state) => states.push(state.playing));
+    const setRingtone = vi.fn();
+    const tree = render(Component, { setRingtone, ...props, ringtone: SystemAlarmRingtone.ALARM_1 });
+    const options = nodes(tree, '.alarm-editor-ringtone-btn');
+    (options[1].props.onClick as () => void)();
+    expect(setRingtone).toHaveBeenCalledExactlyOnceWith(SystemAlarmRingtone.ALARM_2);
+    const selected = render(Component, { setRingtone, ...props, ringtone: SystemAlarmRingtone.ALARM_2 });
+    trigger(selected, '.alarm-editor-preview-btn', 'onClick');
+    await Array.from({ length: 10 }).reduce<Promise<void>>((pending) => pending.then(() => undefined), Promise.resolve());
+    expect(audio.play).toHaveBeenCalledOnce();
+    expect(audio.src).toContain('ALARM_2.wav');
+    expect(states.at(-1)).toBe(true);
+    trigger(selected, '.alarm-editor-preview-btn', 'onClick');
+    expect(audio.pause).toHaveBeenCalledOnce();
+    expect(states.at(-1)).toBe(false);
+    unsubscribe();
   });
 });

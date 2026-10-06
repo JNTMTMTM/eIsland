@@ -29,6 +29,36 @@ import { render, nodes, value, trigger } from '../../../../test/componentHarness
 import { CalendarEventBars as Component } from '../CalendarEventBars';
 
 describe('CalendarEventBars', () => {
+  it('未完成倒数日显示日期提示并保留完整标签和点击日期', () => {
+    const onSelectDate = vi.fn();
+    const start = new Date(2026, 9, 6);
+    const tree = render(Component, {
+      onSelectDate,
+      lanes: 1,
+      segments: [{
+        start,
+        event: {
+          id: 'countdown-1',
+          kind: 'countdown',
+          label: 'Trip',
+          start: '2026-10-06',
+          end: '2026-10-06',
+          color: '#abcdef',
+        },
+        column: 3,
+        span: 1,
+        lane: 0,
+        continuesBefore: false,
+        continuesAfter: false,
+      }],
+    });
+    expect(value(tree, 'button', 'title')).toBe('maxExpand.calendar.countdownEvent:{"name":"Trip","date":"2026-10-06"}');
+    expect(value(tree, 'button', 'data-done')).toBeUndefined();
+    expect(nodes(tree, 'span')).toHaveLength(1);
+    trigger(tree, 'button', 'onClick');
+    expect(onSelectDate).toHaveBeenCalledWith(start);
+  });
+
   it('omits zero lanes and preserves event placement, continuation and selected date', () => {
     expect(render(Component, { segments: [], lanes: 0, onSelectDate: vi.fn() })).toBeNull();
     const onSelectDate = vi.fn();

@@ -57,4 +57,22 @@ describe('CalendarOverviewMonths', () => {
     trigger(october, '.calendar-overview-day', 'onClick');
     expect(onSelectDate).toHaveBeenCalledWith(new Date(2026, 9, 1, 12));
   });
+
+  it('forwards keyboard selection and double-click month navigation from a day', () => {
+    const onSelectDate = vi.fn();
+    const onOpenMonth = vi.fn();
+    const onDateKeyDown = vi.fn();
+    const tree = render(Component, {
+      formats, onSelectDate, onOpenMonth, onDateKeyDown, year: 2026, events: [],
+      selectedKey: null, todayKey: null,
+      shortMonthFormat: new Intl.DateTimeFormat('en-US', { month: 'short' }),
+    }) as ReactElement<{ children: ReactElement<Record<string, unknown>>[] }>;
+    const january = render(tree.props.children[0].type, tree.props.children[0].props);
+    const event = { key: 'ArrowDown', preventDefault: vi.fn() };
+    trigger(january, '.calendar-overview-day', 'onKeyDown', event);
+    trigger(january, '.calendar-overview-day', 'onDoubleClick');
+    expect(onDateKeyDown).toHaveBeenCalledExactlyOnceWith(event, new Date(2026, 0, 1, 12));
+    expect(onOpenMonth).toHaveBeenCalledExactlyOnceWith(new Date(2026, 0, 1, 12));
+    expect(onSelectDate).not.toHaveBeenCalled();
+  });
 });

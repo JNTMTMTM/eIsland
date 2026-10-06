@@ -37,6 +37,14 @@ const period = (id: string, start: string, end: string): CalendarTimelineEvent =
 const september = new Date(2026, 8, 1, 12);
 
 describe('calendar timeline', () => {
+  it('ignores malformed holiday keys and impossible yearly source dates', () => {
+    expect(getCalendarTimelineEvents(new Map([['2026-02-31', ['Invalid']], ['not-a-date', ['Invalid']]]), [])).toEqual([]);
+    const invalid: CalendarTimelineEvent = {
+      id: 'invalid', kind: 'countdown', label: 'Invalid', start: '2026-02-31', end: '2026-02-31', repeat: 'yearly',
+    };
+    expect(getCalendarEventsInYears([invalid], 2026, 2027)).toEqual([]);
+  });
+
   it('merges consecutive dates of the same holiday without bridging gaps or different names', () => {
     const holidays = new Map([
       ['2026-10-02', ['Festival']], ['2026-09-30', ['Festival']], ['2026-10-01', ['Festival', 'Other']], ['2026-10-04', ['Festival']],

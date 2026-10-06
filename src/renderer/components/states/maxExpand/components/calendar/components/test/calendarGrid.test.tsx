@@ -71,4 +71,21 @@ describe('CalendarGrid', () => {
     flushEffects();
     expect(props.onVisibleYearChange).toHaveBeenCalledWith(2026);
   });
+
+  it('keeps a pending keyboard focus until the selected date button is mounted', async () => {
+    const focus = vi.fn();
+    const focusDateRef = { current: true };
+    const selectedButtonRef = { current: null as HTMLButtonElement | null };
+    const refs = { focusDateRef, selectedButtonRef };
+    const input = { ...props, ...refs };
+    await render(Component, input);
+    flushEffects();
+    expect(focusDateRef.current).toBe(true);
+    expect(focus).not.toHaveBeenCalled();
+    selectedButtonRef.current = { focus } as unknown as HTMLButtonElement;
+    await render(Component, input);
+    flushEffects();
+    expect(focus).toHaveBeenCalledExactlyOnceWith({ preventScroll: true });
+    expect(focusDateRef.current).toBe(false);
+  });
 });

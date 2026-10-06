@@ -49,6 +49,14 @@ describe('findClosingParenthesis', () => {
   });
 });
 
+describe('incomplete expressions from keyboard input', () => {
+  it('preserves unfinished binary and cubic-root input for further editing', () => {
+    expect(normalizeRootExpression('2+root(3,4')).toBe('2+root(3,4');
+    expect(normalizeCbrtExpression('1+cbrt(8')).toBe('1+cbrt(8');
+    expect(normalizeCbrtExpression('cbrt((8)')).toBe('cbrt((8)');
+  });
+});
+
 describe('normalizeBinaryFunctionExpression', () => {
   it('处理简单的二元函数', () => {
     expect(normalizeBinaryFunctionExpression('root(4,x)', 'root', (a, b) => `${b}^${a}`))

@@ -31,6 +31,25 @@ const plot = vi.hoisted(() => vi.fn());
 vi.mock('function-plot', () => ({ default: plot }));
 describe('CoordinateGraph', () => {
   afterEach(() => vi.unstubAllGlobals());
+  it('renders a zero expression and ignores resize after its native target detaches', () => {
+    const listeners = new Map<string, () => void>();
+    vi.stubGlobal('window', {
+      addEventListener: (name: string, callback: () => void) => listeners.set(name, callback),
+      removeEventListener: (name: string) => listeners.delete(name),
+    });
+    const tree = render(Component, { expression: '' });
+    const ref = value(tree, '.coordinate-graph-canvas', 'ref') as { current: HTMLDivElement | null };
+    ref.current = { innerHTML: '', clientWidth: 300, clientHeight: 200 } as HTMLDivElement;
+    const before = plot.mock.calls.length;
+    const cleanups = flushEffects();
+    expect(plot).toHaveBeenLastCalledWith(expect.objectContaining({ data: [expect.objectContaining({ fn: '0' })] }));
+    ref.current = null;
+    listeners.get('resize')!();
+    expect(plot).toHaveBeenCalledTimes(before + 1);
+    cleanups.forEach((cleanup) => cleanup());
+    expect(listeners.size).toBe(0);
+  });
+
   it('plots normalized expressions, shows errors and cleans up resize subscription', () => {
     const addEventListener = vi.fn(); const removeEventListener = vi.fn();
     vi.stubGlobal('window', { addEventListener, removeEventListener });

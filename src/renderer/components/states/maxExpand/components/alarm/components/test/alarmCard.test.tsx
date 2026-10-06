@@ -42,6 +42,19 @@ describe('AlarmCard', () => {
     expect(value(disabled, '.alarm-overview-btn', 'disabled')).toBe(false);
     expect(value(disabled, '.alarm-overview-btn', 'aria-pressed')).toBe(true);
   });
+  it('仅显示下次响铃时不插入分隔符，并允许加入未满的概览', () => {
+    const tree = render(Component, {
+      ...props,
+      repeatSummary: () => '',
+      overviewSelectionFull: false,
+    });
+    expect(text(tree)).toContain('Tomorrow');
+    expect(nodes(tree, '.alarm-card-meta-sep')).toHaveLength(0);
+    expect(value(tree, '.alarm-overview-btn', 'disabled')).toBe(false);
+    trigger(tree, '.alarm-overview-btn', 'onClick');
+    expect(props.onToggleOverview).toHaveBeenCalledWith(alarm.id);
+  });
+
   it('routes edit and ID based actions', () => {
     const tree = render(Component, props);
     trigger(tree, '.alarm-card-left', 'onClick');

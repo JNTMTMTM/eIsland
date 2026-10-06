@@ -31,6 +31,10 @@ import type { CalendarHoliday } from '../../types/calendarHolidayTypes';
 const national: CalendarHoliday = { date: '2026-09-25', name: 'Holiday', countryCode: 'US', nationalHoliday: true, subdivisionCodes: null, holidayTypes: ['Public'] };
 
 describe('calendar holidays', () => {
+  it.each([null, false, 3, 'holiday'])('rejects non-object entries in an API array: %s', (entry) => {
+    expect(() => parseCalendarHolidays([entry], 'US', 2026)).toThrow('Invalid holiday');
+  });
+
   it('includes national and matching regional public holidays and deduplicates names', () => {
     const regional = { ...national, name: 'Regional', nationalHoliday: false, subdivisionCodes: ['US-CA'] };
     const records = [national, national, regional, { ...regional, name: 'Other state', subdivisionCodes: ['US-NY'] }, { ...national, name: 'Observance', holidayTypes: ['Observance'] }, { ...national, countryCode: 'CA', name: 'Other country' }];
