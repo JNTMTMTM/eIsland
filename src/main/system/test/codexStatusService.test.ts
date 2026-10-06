@@ -100,9 +100,10 @@ describe('createCodexStatusService', () => {
   it('deletes only selected sessions until a new event arrives and retains aggregate heatmap', async () => {
     rollout('one'); rollout('two'); const service = createCodexStatusService({ getMainWindow: () => window, pollIntervalMs: 100 }); await service.start();
     const deleted = service.deleteSessions(['', 'one', 'one']); expect(deleted.sessions.map((session) => session.id)).toEqual(['two']);
-    expect(Object.values(deleted.heatmap)[0].prompt).toBe(2);
+    // 热力图按本地日期分桶，跨 UTC 午夜的数据也必须计入总量。
+    expect(Object.values(deleted.heatmap).reduce((total, bucket) => total + bucket.prompt, 0)).toBe(2);
     rollout('one', 'user_message', now + 1); await vi.advanceTimersByTimeAsync(100); expect(service.getSnapshot().sessions).toHaveLength(2);
-    const cleared = service.clearEvents(); expect(cleared.sessions).toHaveLength(0); expect(Object.values(cleared.heatmap)[0].prompt).toBe(2); service.stop();
+    const cleared = service.clearEvents(); expect(cleared.sessions).toHaveLength(0); expect(Object.values(cleared.heatmap).reduce((total, bucket) => total + bucket.prompt, 0)).toBe(2); service.stop();
   });
   it('marks stale activity completed and suppresses broadcasts to destroyed windows', async () => {
     rollout('old', 'user_message', now - 11 * 60_000);
@@ -137,7 +138,7 @@ describe('Codex scanning and history boundaries', () => {
     });
     const service = createCodexStatusService({ getMainWindow: () => window }); await service.start();
     const snapshot = service.getSnapshot(); expect(snapshot.sessions.every((session) => session.events.length === 40)).toBe(true);
-    expect(snapshot.events).toHaveLength(120); expect(Object.values(snapshot.heatmap)[0].prompt).toBe(284); service.stop();
+    expect(snapshot.events).toHaveLength(120); expect(Object.values(snapshot.heatmap).reduce((total, bucket) => total + bucket.prompt, 0)).toBe(284); service.stop();
   });
   it('exposes a permission request as pending and persists deletion and clear cutoffs', async () => {
     rollout('permission', 'exec_approval_request');
