@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.eslint.json",
+  "include": ["../electron.vite.config.ts", "./**/*.ts", "../src/preload/index.d.ts"],
+  "compilerOptions": { "composite": false }
+}

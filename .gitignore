@@ -30,5 +30,5 @@ Thumbs.db
 *.sw?
 *.tsbuildinfo
 
-/playwright-report/
-/test-results/
+/e2e/playwright-report/
+/e2e/test-results/

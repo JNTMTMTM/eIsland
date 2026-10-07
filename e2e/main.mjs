@@ -43,7 +43,7 @@ app.on('ready', () => {
 });
 
 // 必须在加载业务模块前设置路径，避免其初始化读取真实用户数据。
-import('../../src/main/index').catch((error) => {
+import('../src/main/index').catch((error) => {
   console.error(error);
   app.exit(1);
 });

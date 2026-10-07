@@ -26,7 +26,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import en from '../../i18n/en-US.json';
+import en from '../i18n/en-US.json';
 import { test, expect } from './fixtures';
 
 /** 从实际磁盘读取待办，避免 localStorage 兜底掩盖 IPC 写入失败。

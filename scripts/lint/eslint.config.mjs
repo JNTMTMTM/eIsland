@@ -53,6 +53,7 @@ export default defineConfig([
     ignores: [
       '**/node_modules/**', '**/dist/**', '**/out/**', '**/build/**', '**/coverage/**',
       '**/.git/**', '**/.codegraph/**', '**/.temp/**', '**/.cache/**', '**/.next/**',
+      'e2e/playwright-report/**', 'e2e/test-results/**',
       '.agents/**', '.claude/**', '.cursor/**', '.gemini/**', '.kiro/**',
       'resources/qishui-auth-v6/bdms.js', 'resources/qishui-auth-v6/react.js',
       'resources/qishui-auth-v6/react-dom.js',
@@ -174,7 +175,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['*.{js,mjs,cjs,ts}', 'scripts/**', 'test/**', 'src/main/**', 'src/preload/**', 'plugins/**', 'sdk/**', 'web/**'],
+    files: ['*.{js,mjs,cjs,ts}', 'scripts/**', 'test/**', 'e2e/**', 'src/main/**', 'src/preload/**', 'plugins/**', 'sdk/**', 'web/**'],
     languageOptions: { globals: globals.node },
   },
   {

@@ -1,5 +1,7 @@
 # Electron E2E（Windows / macOS）
 
+源码、Playwright 配置、类型检查配置以及构建和报告产物均位于根目录 `e2e/`。
+
 使用 Playwright 启动实际 Electron 主进程入口，运行构建后的 React 界面、preload、IPC 与文件存储。当前覆盖启动、独立窗口切换、待办新增/修改/完成/删除、重启恢复及跨窗口同步。
 
 ```sh
@@ -22,7 +24,7 @@ Electron 自带 Chromium，无需运行 `playwright install`。本地运行需�
 
 ## 隔离边界
 
-- `--mode e2e` 输出到 `out/e2e/`，不会覆盖常规构建；正式构建将测试开关固定为关闭，安装包也排除 `out/e2e/`。
+- `--mode e2e` 输出到 `e2e/out/`，不会覆盖常规构建；正式构建将测试开关固定为关闭；安装包只收集常规 `out/` 产物。
 - E2E 构建仅将直接导入的 SMTC、音量、亮度和应用图标插件替换为 `native.ts`。查询返回不可用，控制操作明确抛错；不验证真实 Windows DLL 或硬件行为。
 - 实际主进程跳过托盘、引导、启动动画、剪贴板监听、Agent 状态服务、系统热键和更新初始化。其余窗口与 IPC 处理器仍使用业务代码。
 - 每个测试在临时目录创建独立 `userData` 和 Chromium 会话；同一测试的重启保留数据，结束后删除目录。
@@ -33,10 +35,10 @@ Electron 自带 Chromium，无需运行 `playwright install`。本地运行需�
 
 `.github/workflows/e2e.yml` 在 Windows 和 macOS 上串行运行同一套用例，以普通 `pull_request` 触发且仅授予仓库只读权限。
 
-HTML 报告保存在 `playwright-report/`；每次启动的 trace、Electron 日志和失败截图保存在 `test-results/e2e/`。查看 trace：
+HTML 报告保存在 `e2e/playwright-report/`；每次启动的 trace、Electron 日志和失败截图保存在 `e2e/test-results/`。查看 trace：
 
 ```sh
-npx playwright show-trace test-results/e2e/<test-directory>/trace-1.zip
+npx playwright show-trace e2e/test-results/<test-directory>/trace-1.zip
 ```
 
 这一层验证跨平台 Electron UI 和应用内部链路。原生窗口命中区域、真实屏幕光标、系统热键、媒体播放器及安装/更新仍需独立 Windows 测试。

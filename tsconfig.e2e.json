@@ -1,5 +1,0 @@
-{
-  "extends": "./tsconfig.eslint.json",
-  "include": ["electron.vite.config.ts", "playwright.config.ts", "test/e2e/**/*.ts", "src/preload/index.d.ts"],
-  "compilerOptions": { "composite": false }
-}

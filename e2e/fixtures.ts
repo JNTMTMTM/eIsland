@@ -80,7 +80,7 @@ export const test = baseTest.extend<{ desktop: DesktopSession }>({
       env.EISLAND_E2E_USER_DATA = userData;
       app = await playwright._electron.launch({
         env,
-        args: [resolve('out/e2e/main/index.js')],
+        args: [resolve('e2e/out/main/index.js')],
         cwd: process.cwd(),
         locale: 'en-US',
         timeout: 30_000,

@@ -24,10 +24,11 @@
  * @author 鸡哥
  */
 
+import { resolve } from 'node:path';
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './test/e2e',
+  testDir: '.',
   testMatch: '**/*.spec.ts',
   fullyParallel: false,
   workers: 1,
@@ -35,6 +36,6 @@ export default defineConfig({
   retries: 0,
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  outputDir: 'test-results/e2e',
-  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
+  outputDir: resolve(__dirname, 'test-results'),
+  reporter: [['list'], ['html', { outputFolder: resolve(__dirname, 'playwright-report'), open: 'never' }]],
 });

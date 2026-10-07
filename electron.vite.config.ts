@@ -42,16 +42,16 @@ export default defineConfig(({ mode }): UserConfig => ({
     define: { 'process.env.EISLAND_E2E': JSON.stringify(mode === 'e2e' ? '1' : '') },
     resolve: {
       alias: mode === 'e2e'
-        ? e2eNativeModules.map((find) => ({ find, replacement: resolve(__dirname, 'test/e2e/native.ts') }))
+        ? e2eNativeModules.map((find) => ({ find, replacement: resolve(__dirname, 'e2e/native.ts') }))
         : [],
     },
     build: {
       sourcemap: mode === 'development' ? 'inline' : false,
-      outDir: mode === 'e2e' ? 'out/e2e/main' : 'out/main',
+      outDir: mode === 'e2e' ? 'e2e/out/main' : 'out/main',
       rollupOptions: {
         ...(mode === 'e2e' ? { output: { inlineDynamicImports: true } } : {}),
         input: mode === 'e2e'
-          ? { index: resolve(__dirname, 'test/e2e/main.mjs') }
+          ? { index: resolve(__dirname, 'e2e/main.mjs') }
           : {
             index: resolve(__dirname, 'src/main/index.ts'),
             smtcWorker: resolve(__dirname, 'src/main/smtcWorker.ts'),
@@ -63,7 +63,7 @@ export default defineConfig(({ mode }): UserConfig => ({
     plugins: [externalizeDepsPlugin()],
     build: {
       sourcemap: mode === 'development' ? 'inline' : false,
-      outDir: mode === 'e2e' ? 'out/e2e/preload' : 'out/preload',
+      outDir: mode === 'e2e' ? 'e2e/out/preload' : 'out/preload',
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/preload/index.ts')
@@ -76,7 +76,7 @@ export default defineConfig(({ mode }): UserConfig => ({
     publicDir: resolve(__dirname, 'src/renderer/public'),
     build: {
       sourcemap: mode === 'development' ? 'inline' : false,
-      outDir: mode === 'e2e' ? 'out/e2e/renderer' : 'out/renderer',
+      outDir: mode === 'e2e' ? 'e2e/out/renderer' : 'out/renderer',
       rollupOptions: {
         input: {
           DynamicIslandIndex: resolve(__dirname, 'src/renderer/html/DynamicIslandIndex.html'),
