@@ -25,17 +25,17 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushEffects, nodes, render as renderComponent, text, trigger, value } from '../../test/componentHarness';
-import { expandMiniGameTree } from '../miniGame/test/expandMiniGameTree';
-import { MiniGameTab } from '../miniGame';
-import { Game2048 } from '../games/Game2048';
-import { GameGomoku, GOMOKU_SIZE } from '../games/GameGomoku';
+import { flushEffects, nodes, render as renderComponent, text, trigger, value } from '../../../../test/componentHarness';
+import { expandMiniGameTree } from '../../test/expandMiniGameTree';
+import { MiniGameTab } from '../..';
+import { Game2048 } from '../../../games/Game2048';
+import { GameGomoku, GOMOKU_SIZE } from '../../../games/GameGomoku';
 import type { ReactNode } from 'react';
-import type * as MiniGameApi from '../../../../../api/miniGame/miniGameScoreApi';
-import type { UserAccountResult } from '../../../../../api/user/userAccountApi.types';
-import type { runSliderCaptcha } from '../../../../../utils/sliderCaptcha';
-import type { Game2048Handle, Game2048State } from '../games/Game2048';
-import type { GameGomokuHandle, GameGomokuState } from '../games/GameGomoku';
+import type * as MiniGameApi from '../../../../../../../api/miniGame/miniGameScoreApi';
+import type { UserAccountResult } from '../../../../../../../api/user/userAccountApi.types';
+import type { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
+import type { Game2048Handle, Game2048State } from '../../../games/Game2048';
+import type { GameGomokuHandle, GameGomokuState } from '../../../games/GameGomoku';
 
 const mocks = vi.hoisted(() => ({
   token: vi.fn<() => string | null>(), profile: vi.fn(() => ({ username: 'player', email: 'player@example.test', avatar: 'avatar.png' })),
@@ -45,10 +45,10 @@ const mocks = vi.hoisted(() => ({
   refreshCheck: vi.fn<typeof MiniGameApi.checkLeaderboardRefreshCaptcha>(), flush: vi.fn<typeof MiniGameApi.flushPendingSubmissions>(),
   report: vi.fn<typeof MiniGameApi.reportNewBest>(), session: vi.fn<typeof MiniGameApi.startGameSession>(), captcha: vi.fn<typeof runSliderCaptcha>(),
 }));
-vi.mock('../../../../../store/index', () => ({ useIslandStore: () => ({ setLogin: mocks.login, setRegister: mocks.register }) }));
-vi.mock('../../../../../utils/userAccount', () => ({ readLocalToken: mocks.token, readLocalProfile: mocks.profile, subscribeUserAccountSessionChanged: mocks.subscribe }));
-vi.mock('../../../../../utils/sliderCaptcha', () => ({ runSliderCaptcha: mocks.captcha }));
-vi.mock('../../../../../api/miniGame/miniGameScoreApi', () => ({
+vi.mock('../../../../../../../store/index', () => ({ useIslandStore: () => ({ setLogin: mocks.login, setRegister: mocks.register }) }));
+vi.mock('../../../../../../../utils/userAccount', () => ({ readLocalToken: mocks.token, readLocalProfile: mocks.profile, subscribeUserAccountSessionChanged: mocks.subscribe }));
+vi.mock('../../../../../../../utils/sliderCaptcha', () => ({ runSliderCaptcha: mocks.captcha }));
+vi.mock('../../../../../../../api/miniGame/miniGameScoreApi', () => ({
   getMyScore: mocks.score, getLeaderboard: mocks.leaderboard, checkLeaderboardRefreshCaptcha: mocks.refreshCheck,
   flushPendingSubmissions: mocks.flush, reportNewBest: mocks.report, startGameSession: mocks.session,
 }));

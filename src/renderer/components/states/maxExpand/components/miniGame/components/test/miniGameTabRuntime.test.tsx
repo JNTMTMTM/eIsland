@@ -25,14 +25,14 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../calendar/hooks/test/calendarHookHarness';
-import { byClass, elements, find, invoke, text, type TreeElement } from '../../../test/tree';
+import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../calendar/hooks/test/calendarHookHarness';
+import { byClass, elements, find, invoke, text, type TreeElement } from '../../../../../test/tree';
 import type { ReactElement, RefObject } from 'react';
-import type * as GameApi from '../../../../../api/miniGame/miniGameScoreApi';
-import type { UserAccountResult } from '../../../../../api/user/userAccountApi.types';
-import type { runSliderCaptcha } from '../../../../../utils/sliderCaptcha';
-import type { Game2048EndPayload, Game2048Handle } from '../games/Game2048';
-import type { GameGomokuHandle } from '../games/GameGomoku';
+import type * as GameApi from '../../../../../../../api/miniGame/miniGameScoreApi';
+import type { UserAccountResult } from '../../../../../../../api/user/userAccountApi.types';
+import type { runSliderCaptcha } from '../../../../../../../utils/sliderCaptcha';
+import type { Game2048EndPayload, Game2048Handle } from '../../../games/Game2048';
+import type { GameGomokuHandle } from '../../../games/GameGomoku';
 const leaves = vi.hoisted(() => ({
   token: vi.fn<() => string | null>(),
   profile: vi.fn<() => {
@@ -54,21 +54,21 @@ const leaves = vi.hoisted(() => ({
   session: vi.fn<typeof GameApi.startGameSession>(),
   captcha: vi.fn<typeof runSliderCaptcha>()
 }));
-vi.mock('../../../../../store/index', () => ({
+vi.mock('../../../../../../../store/index', () => ({
   useIslandStore: () => ({
     setLogin: leaves.login,
     setRegister: leaves.register
   })
 }));
-vi.mock('../../../../../utils/userAccount', () => ({
+vi.mock('../../../../../../../utils/userAccount', () => ({
   readLocalToken: leaves.token,
   readLocalProfile: leaves.profile,
   subscribeUserAccountSessionChanged: leaves.subscribe
 }));
-vi.mock('../../../../../utils/sliderCaptcha', () => ({
+vi.mock('../../../../../../../utils/sliderCaptcha', () => ({
   runSliderCaptcha: leaves.captcha
 }));
-vi.mock('../../../../../api/miniGame/miniGameScoreApi', () => ({
+vi.mock('../../../../../../../api/miniGame/miniGameScoreApi', () => ({
   getMyScore: leaves.score,
   getLeaderboard: leaves.leaderboard,
   checkLeaderboardRefreshCaptcha: leaves.check,
@@ -76,10 +76,10 @@ vi.mock('../../../../../api/miniGame/miniGameScoreApi', () => ({
   reportNewBest: leaves.report,
   startGameSession: leaves.session
 }));
-let Component: typeof import('../miniGame').MiniGameTab;
-let expandMiniGameTree: typeof import('../miniGame/test/expandMiniGameTree').expandMiniGameTree;
-let game2048: typeof import('../games/Game2048').Game2048;
-let gomoku: typeof import('../games/GameGomoku').GameGomoku;
+let Component: typeof import('../..').MiniGameTab;
+let expandMiniGameTree: typeof import('../../test/expandMiniGameTree').expandMiniGameTree;
+let game2048: typeof import('../../../games/Game2048').Game2048;
+let gomoku: typeof import('../../../games/GameGomoku').GameGomoku;
 let changed: (() => void) | undefined;
 /** 创建原生接口结果。
  * @param data - 数据
@@ -183,10 +183,10 @@ beforeEach(async () => {
       storeWrite: leaves.write
     }
   });
-  expandMiniGameTree = (await import('../miniGame/test/expandMiniGameTree')).expandMiniGameTree;
-  Component = (await import('../miniGame')).MiniGameTab;
-  game2048 = (await import('../games/Game2048')).Game2048;
-  gomoku = (await import('../games/GameGomoku')).GameGomoku;
+  expandMiniGameTree = (await import('../../test/expandMiniGameTree')).expandMiniGameTree;
+  Component = (await import('../..')).MiniGameTab;
+  game2048 = (await import('../../../games/Game2048')).Game2048;
+  gomoku = (await import('../../../games/GameGomoku')).GameGomoku;
 });
 afterEach(() => {
   unmountHook();
