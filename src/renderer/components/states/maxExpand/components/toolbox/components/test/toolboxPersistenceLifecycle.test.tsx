@@ -25,16 +25,17 @@
  */
 import { createStore, type StateCreator } from 'zustand/vanilla';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { elements, text } from '../../../test/tree';
-import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, translationProbe, unmountHook } from '../../../../hooks/test/startupHookHarness';
+import { elements, text } from '../../../../../test/tree';
+import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, translationProbe, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 let Component: typeof import('../ToolboxTab').ToolboxTab;
+let expandToolboxTree: typeof import('./toolboxTestTree').expandToolboxTree;
 const read = vi.fn<(key: string) => Promise<unknown>>();
 const write = vi.fn<(key: string, value: unknown) => Promise<boolean>>();
 /** 读取真实可见导航卡片。
  * @returns 卡片文字
  */
 function cards() {
-  return elements(renderHook(Component)).filter((n) => n.props.className === 'settings-index-card').map(text);
+  return elements(expandToolboxTree(renderHook(Component))).filter((n) => n.props.className === 'settings-index-card').map(text);
 }
 beforeEach(async () => {
   unmountHook();
@@ -85,6 +86,7 @@ beforeEach(async () => {
   ({
     ToolboxTab: Component
   } = await import('../ToolboxTab'));
+  ({ expandToolboxTree } = await import('./toolboxTestTree'));
 });
 afterEach(() => {
   unmountHook();
