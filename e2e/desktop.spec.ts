@@ -28,6 +28,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import en from '../i18n/en-US.json';
 import { test, expect } from './fixtures';
+import type { BrowserWindow } from 'electron';
 
 /** 从实际磁盘读取待办，避免 localStorage 兜底掩盖 IPC 写入失败。
  * @param userData - 当前测试的数据目录。
@@ -84,5 +85,56 @@ test('broadcasts a main-window store write to the standalone todo UI', async ({ 
   expect(saved).toBe(true);
   await expect(page.getByRole('textbox', { name: en.todo.editTitle, exact: true })).toHaveValue(todo.text);
   await expect.poll(() => readTodos(desktop.userData)).toEqual([todo]);
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('preserves todos when closing and reopening the standalone window', async ({ desktop }) => {
+  let page = await desktop.openStandalone();
+  await page.getByRole('textbox', { name: en.todo.addPlaceholder }).fill('E2E reopened task');
+  await page.getByRole('button', { name: en.todo.add, exact: true }).click();
+  await expect.poll(() => readTodos(desktop.userData)).toEqual([
+    expect.objectContaining({ text: 'E2E reopened task' }),
+  ]);
+  const closed = page.waitForEvent('close');
+  const standalone = await desktop.app.browserWindow(page);
+  await standalone.evaluate((win: BrowserWindow) => win.close());
+  await closed;
+  page = await desktop.openStandalone();
+  await expect(page.getByRole('textbox', { name: en.todo.editTitle, exact: true })).toHaveValue('E2E reopened task');
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('adds and edits a countdown, restores it after restart, and deletes it', async ({ desktop }) => {
+  const readEvents = async (): Promise<unknown> => JSON.parse(await readFile(join(desktop.userData, 'eIsland_store', 'countdown-dates.json'), 'utf8')) as unknown;
+  let page = await desktop.openStandalone();
+  await page.getByRole('button', { name: en.standalone.tabs.countdown, exact: true }).click();
+  await page.getByRole('button', { name: en.countdown.manage.new, exact: true }).click();
+  let editor = page.getByRole('dialog');
+  await editor.getByRole('textbox', { name: en.countdown.namePlaceholder, exact: true }).fill('E2E countdown event');
+  await editor.getByLabel(en.countdown.manage.date, { exact: true }).fill('2099-12-31');
+  await editor.getByRole('textbox', { name: en.countdown.descPlaceholder, exact: true }).fill('Persisted through IPC');
+  await editor.getByRole('button', { name: en.countdown.actions.add, exact: true }).click();
+  await expect(editor).not.toBeVisible();
+  await expect.poll(readEvents).toEqual([
+    expect.objectContaining({ name: 'E2E countdown event', date: '2099-12-31', description: 'Persisted through IPC' }),
+  ]);
+  await page.getByRole('button').filter({ hasText: 'E2E countdown event' }).click();
+  editor = page.getByRole('dialog');
+  await editor.getByRole('textbox', { name: en.countdown.namePlaceholder, exact: true }).fill('E2E edited countdown');
+  await editor.getByRole('button', { name: en.countdown.actions.save, exact: true }).click();
+  await expect(editor).not.toBeVisible();
+  await expect.poll(readEvents).toEqual([expect.objectContaining({ name: 'E2E edited countdown', date: '2099-12-31' })]);
+
+  await desktop.restart();
+  page = await desktop.openStandalone();
+  // 最近使用的独立窗口 tab 也应随重启恢复。
+  await expect(page.locator('.cw-tab--active')).toHaveText(en.standalone.tabs.countdown);
+  await page.getByRole('button').filter({ hasText: 'E2E edited countdown' }).click();
+  editor = page.getByRole('dialog');
+  await expect(editor.getByLabel(en.countdown.manage.date, { exact: true })).toHaveValue('2099-12-31');
+  await expect(editor.getByRole('textbox', { name: en.countdown.descPlaceholder, exact: true })).toHaveValue('Persisted through IPC');
+  await editor.getByRole('button', { name: en.countdown.manage.delete, exact: true }).click();
+  await expect.poll(readEvents).toEqual([]);
+  await expect(page.locator('button.cd-card')).toHaveCount(0);
   expect(desktop.rendererErrors).toEqual([]);
 });

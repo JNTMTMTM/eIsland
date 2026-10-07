@@ -33,6 +33,8 @@ if (!userData || !isAbsolute(userData)) {
 }
 app.setPath('userData', userData);
 app.setPath('sessionData', userData);
+// 向测试进程公开构建类型，防止原生用例误跑在插件替身构建上。
+app.commandLine.appendSwitch('eisland-e2e-native', process.env.EISLAND_E2E_NATIVE || '0');
 
 // 所有窗口共用的主进程网络边界也被隔离，不能只拦截 renderer.fetch。
 app.on('ready', () => {

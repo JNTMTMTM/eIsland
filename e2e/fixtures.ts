@@ -49,6 +49,7 @@ export const test = baseTest.extend<{ desktop: DesktopSession }>({
       'i18n-language': 'en-US',
       'standalone-window-active-tab': 'todo',
       todos: [],
+      'countdown-dates': [],
     };
     await Promise.all(Object.entries(settings).map(([key, value]) =>
       writeFile(join(storeDir, `${key}.json`), JSON.stringify(value))));

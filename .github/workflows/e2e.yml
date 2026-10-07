@@ -6,6 +6,7 @@ on:
       - 'src/**'
       - 'i18n/**'
       - 'resources/**'
+      - 'plugins/**'
       - 'e2e/**'
       - 'package.json'
       - 'package-lock.json'
@@ -37,10 +38,18 @@ jobs:
         run: npm ci --ignore-scripts --force
       - name: Install Electron binary
         run: node node_modules/electron/install.js
+      - uses: actions/setup-dotnet@v4
+        if: runner.os == 'Windows'
+        with:
+          dotnet-version: '10.0.x'
       - name: Typecheck E2E
         run: npm run typecheck:e2e
       - name: Run E2E
+        if: runner.os != 'Windows'
         run: npm run test:e2e
+      - name: Run Windows E2E with native helpers
+        if: runner.os == 'Windows'
+        run: npm run test:e2e:windows
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v5
