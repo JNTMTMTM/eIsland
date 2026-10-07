@@ -24,22 +24,38 @@
  * @author 鸡哥
  */
 
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
+import { resolve } from 'path';
+import { defineConfig, externalizeDepsPlugin, type UserConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'path';
 
-export default defineConfig(({ mode }) => ({
+const e2eNativeModules = [
+  '@eisland/windows-smtc-helper',
+  '@eisland/windows-volume-helper',
+  '@eisland/windows-brightness-helper',
+  '@eisland/windows-application-icon-helper',
+];
+
+export default defineConfig(({ mode }): UserConfig => ({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin({ exclude: mode === 'e2e' ? e2eNativeModules : [] })],
+    define: { 'process.env.EISLAND_E2E': JSON.stringify(mode === 'e2e' ? '1' : '') },
+    resolve: {
+      alias: mode === 'e2e'
+        ? e2eNativeModules.map((find) => ({ find, replacement: resolve(__dirname, 'test/e2e/native.ts') }))
+        : [],
+    },
     build: {
       sourcemap: mode === 'development' ? 'inline' : false,
-      outDir: 'out/main',
+      outDir: mode === 'e2e' ? 'out/e2e/main' : 'out/main',
       rollupOptions: {
-        input: {
-          index: resolve(__dirname, 'src/main/index.ts'),
-          smtcWorker: resolve(__dirname, 'src/main/smtcWorker.ts'),
-        }
+        ...(mode === 'e2e' ? { output: { inlineDynamicImports: true } } : {}),
+        input: mode === 'e2e'
+          ? { index: resolve(__dirname, 'test/e2e/main.mjs') }
+          : {
+            index: resolve(__dirname, 'src/main/index.ts'),
+            smtcWorker: resolve(__dirname, 'src/main/smtcWorker.ts'),
+          }
       }
     }
   },
@@ -47,7 +63,7 @@ export default defineConfig(({ mode }) => ({
     plugins: [externalizeDepsPlugin()],
     build: {
       sourcemap: mode === 'development' ? 'inline' : false,
-      outDir: 'out/preload',
+      outDir: mode === 'e2e' ? 'out/e2e/preload' : 'out/preload',
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/preload/index.ts')
@@ -60,7 +76,7 @@ export default defineConfig(({ mode }) => ({
     publicDir: resolve(__dirname, 'src/renderer/public'),
     build: {
       sourcemap: mode === 'development' ? 'inline' : false,
-      outDir: 'out/renderer',
+      outDir: mode === 'e2e' ? 'out/e2e/renderer' : 'out/renderer',
       rollupOptions: {
         input: {
           DynamicIslandIndex: resolve(__dirname, 'src/renderer/html/DynamicIslandIndex.html'),

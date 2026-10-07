@@ -29,3 +29,6 @@ Thumbs.db
 *.sln
 *.sw?
 *.tsbuildinfo
+
+/playwright-report/
+/test-results/

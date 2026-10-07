@@ -135,6 +135,9 @@ import {
 } from './config/storeConfig';
 import type { IslandPositionOffset } from './config/storeConfig';
 
+// 由构建配置固定；正式构建不能通过环境变量启用测试分支。
+const isE2E = process.env.EISLAND_E2E === '1';
+
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -370,6 +373,7 @@ const mainWindowService = createMainWindowService({
     backingWidth: Math.max(ISLAND_WIDTH, EXPANDED_WIDTH, NOTIFICATION_WIDTH, LYRICS_WIDTH, EXPANDED_FULL_WIDTH, SETTINGS_WIDTH),
   },
   onReadyToShow: async () => {
+    if (isE2E) return;
     await closeSplashWindow();
     const shouldShowGuide = shouldShowGuideOnStartup || !app.isPackaged;
     if (!shouldShowGuide) return;
@@ -931,22 +935,25 @@ app.whenReady().then(() => {
   /** 是否需要在本次启动显示首次引导 */
   shouldShowGuideOnStartup = readFirstLaunchConfig();
 
-  if (readStartupAnimationEnabledConfig()) {
+  if (!isE2E && readStartupAnimationEnabledConfig()) {
     showSplashWindow();
   }
   mainWindowService.createWindow();
-  createTray(mainWindow);
-
-  smtcService.initWorker();
+  if (!isE2E) {
+    createTray(mainWindow);
+    smtcService.initWorker();
+    startClipboardUrlWatcher({
+      getWindow: () => mainWindow,
+      getEnabled: clipboardUrlState.getMonitorEnabled,
+      getDetectMode: clipboardUrlState.getDetectMode,
+      getBlacklist: clipboardUrlState.getBlacklist,
+    });
+  }
   setSmtcAccessor(smtcService.getSmtcSessionRuntime, smtcService.getCurrentDeviceId);
-  startClipboardUrlWatcher({
-    getWindow: () => mainWindow,
-    getEnabled: clipboardUrlState.getMonitorEnabled,
-    getDetectMode: clipboardUrlState.getDetectMode,
-    getBlacklist: clipboardUrlState.getBlacklist,
-  });
 
   registerIpcHandlers();
+  // E2E 保留真实窗口和 IPC，避免读取个人 Agent 配置、注册系统热键及启动后台监听。
+  if (isE2E) return;
   void claudeCodeStatusService.start();
   void codexStatusService.start();
 

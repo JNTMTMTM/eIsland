@@ -1,0 +1,53 @@
+name: Electron E2E
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'i18n/**'
+      - 'resources/**'
+      - 'test/e2e/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'electron.vite.config.ts'
+      - 'playwright.config.ts'
+      - 'tsconfig*.json'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    name: E2E (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: npm
+      # 本地 Windows 插件声明 os/cpu 限制，macOS 测试构建使用替身；不执行原生安装脚本。
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --force
+      - name: Install Electron binary
+        run: node node_modules/electron/install.js
+      - name: Typecheck E2E
+        run: npm run typecheck:e2e
+      - name: Run E2E
+        run: npm run test:e2e
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-${{ matrix.os }}
+          path: |
+            playwright-report/
+            test-results/e2e/
+          if-no-files-found: ignore
