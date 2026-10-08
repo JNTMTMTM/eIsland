@@ -1038,7 +1038,7 @@ In NativeAOT, `string[]` and `List<string>` cannot be converted to WinRT `IItera
 ### Build
 
 ```bash
-cd plugins/eisland-windows-bluetooth-helper
+cd plugins/windows/eisland-windows-bluetooth-helper
 npm run build          # dotnet build src/eIslandBluetoothHelper.csproj
 npm run build:ctypes   # dotnet publish bt-ctypes/... (NativeAOT DLL)
 npm run build:all      # Both
@@ -1217,7 +1217,7 @@ The JavaScript layer implements low battery detection by comparing current and p
 ### Build
 
 ```bash
-cd plugins/eisland-windows-power-helper
+cd plugins/windows/eisland-windows-power-helper
 npm run build          # dotnet build src/eIslandPowerHelper.csproj
 npm run build:ctypes   # dotnet publish pw-ctypes/... (NativeAOT DLL)
 npm run build:all      # Both
@@ -1384,7 +1384,7 @@ The SSID is extracted via `ConnectionProfile.WlanConnectionProfileDetails.GetCon
 ### Build
 
 ```bash
-cd plugins/eisland-windows-wifi-helper
+cd plugins/windows/eisland-windows-wifi-helper
 npm run build          # dotnet build src/eIslandWifiHelper.csproj
 npm run build:ctypes   # dotnet publish wf-ctypes/... (NativeAOT DLL)
 npm run build:all      # Both
@@ -1582,7 +1582,7 @@ The .NET console EXE approach avoids this entirely — `System.Management` works
 ### Build
 
 ```bash
-cd plugins/eisland-windows-brightness-helper
+cd plugins/windows/eisland-windows-brightness-helper
 npm run build    # dotnet build src/eIslandBrightnessReader.csproj -c Release
 ```
 
@@ -2294,7 +2294,7 @@ The `SmtcMonitor` uses WinRT event callbacks (`MediaPropertiesChanged`, `Playbac
 ### Build
 
 ```bash
-cd plugins/eisland-windows-smtc-helper
+cd plugins/windows/eisland-windows-smtc-helper
 npm run build    # Runs: dotnet build src/eIslandSmtcHelper.csproj -c Release
 ```
 
@@ -2372,7 +2372,7 @@ The plugin also ships a **NativeAOT-compiled DLL** (`eIslandSmtcCtypes.dll`) tha
 #### Build
 
 ```bash
-cd plugins/eisland-windows-smtc-helper
+cd plugins/windows/eisland-windows-smtc-helper
 npm run build:ctypes    # dotnet publish smtc-ctypes/eIslandSmtcCtypes.csproj -c Release -r win-x64
 ```
 

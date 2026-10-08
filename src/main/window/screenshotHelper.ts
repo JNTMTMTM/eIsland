@@ -58,7 +58,7 @@ function loadWindowsScreenshotHelper(): WindowsScreenshotHelper | null {
 
   const candidates = [
     '@eisland/windows-screenshot-helper',
-    join(process.cwd(), 'plugins', 'eisland-windows-screenshot-helper'),
+    join(process.cwd(), 'plugins', 'windows', 'eisland-windows-screenshot-helper'),
   ];
 
   const errors: string[] = [];

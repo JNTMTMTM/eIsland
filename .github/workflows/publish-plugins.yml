@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'plugins/*/package.json'
+      - 'plugins/windows/*/package.json'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -51,8 +51,8 @@ jobs:
         id: version
         shell: bash
         run: |
-          curr=$(node -p "require('./plugins/${{ matrix.plugin }}/package.json').version")
-          prev=$(git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
+          curr=$(node -p "require('./plugins/windows/${{ matrix.plugin }}/package.json').version")
+          prev=$( (git show HEAD~1:plugins/windows/${{ matrix.plugin }}/package.json 2>/dev/null || git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null) | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
           echo "current=$curr" >> "$GITHUB_OUTPUT"
           echo "previous=$prev" >> "$GITHUB_OUTPUT"
           if [ "$curr" = "$prev" ]; then
@@ -87,7 +87,7 @@ jobs:
 
       - name: Publish to npm
         if: steps.version.outputs.skip != 'true'
-        working-directory: plugins/${{ matrix.plugin }}
+        working-directory: plugins/windows/${{ matrix.plugin }}
         run: npm publish --access public ${{ inputs.dry_run && '--dry-run' || '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -127,8 +127,8 @@ jobs:
         id: version
         shell: bash
         run: |
-          curr=$(node -p "require('./plugins/${{ matrix.plugin }}/package.json').version")
-          prev=$(git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
+          curr=$(node -p "require('./plugins/windows/${{ matrix.plugin }}/package.json').version")
+          prev=$( (git show HEAD~1:plugins/windows/${{ matrix.plugin }}/package.json 2>/dev/null || git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null) | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
           echo "current=$curr" >> "$GITHUB_OUTPUT"
           echo "previous=$prev" >> "$GITHUB_OUTPUT"
           if [ "$curr" = "$prev" ]; then
@@ -165,7 +165,7 @@ jobs:
       - name: Rewrite scope for GitHub Packages
         if: steps.version.outputs.skip != 'true'
         shell: pwsh
-        working-directory: plugins/${{ matrix.plugin }}
+        working-directory: plugins/windows/${{ matrix.plugin }}
         run: |
           $pkg = Get-Content package.json -Raw | ConvertFrom-Json
           $pkg.name = $pkg.name -replace '@eisland/', '@jntmtmtm/'
@@ -173,7 +173,7 @@ jobs:
 
       - name: Publish to GitHub Packages
         if: steps.version.outputs.skip != 'true'
-        working-directory: plugins/${{ matrix.plugin }}
+        working-directory: plugins/windows/${{ matrix.plugin }}
         run: npm publish --access public ${{ inputs.dry_run && '--dry-run' || '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

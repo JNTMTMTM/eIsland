@@ -437,14 +437,14 @@ The `postinstall` script runs `electron-builder install-app-deps`, which trigger
 To build a single plugin independently:
 
 ```bash
-cd plugins/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-fullscreen-detector
 npm run build    # Runs: node-gyp rebuild
 ```
 
 ### Rebuild After Code Changes
 
 ```bash
-cd plugins/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-fullscreen-detector
 npm run rebuild  # Runs: node-gyp clean && node-gyp rebuild
 ```
 
@@ -483,7 +483,7 @@ sdk/
 Each plugin has its own test suite using Vitest:
 
 ```bash
-cd plugins/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-fullscreen-detector
 
 # Run all tests
 npm run test
@@ -511,7 +511,7 @@ npm run smoke:polling
 The `eisland-windows-smtc-helper` plugin has per-command test files:
 
 ```bash
-cd plugins/eisland-windows-smtc-helper
+cd plugins/windows/eisland-windows-smtc-helper
 
 npm run test                    # All tests
 npm run test:play               # Play command tests
@@ -533,7 +533,7 @@ npm run smoke:timestamp         # Timestamp smoke test
 The `eisland-windows-toast-listener` plugin has additional test modes:
 
 ```bash
-cd plugins/eisland-windows-toast-listener
+cd plugins/windows/eisland-windows-toast-listener
 
 npm run test                    # All tests
 npm run test:polling            # Polling-mode tests
@@ -549,7 +549,7 @@ npm run cli:suppression         # CLI tool for testing toast suppression
 The `eisland-windows-bluetooth-helper` plugin has query and monitor test files:
 
 ```bash
-cd plugins/eisland-windows-bluetooth-helper
+cd plugins/windows/eisland-windows-bluetooth-helper
 
 npm run test                    # All tests
 npm run test:query              # Query function tests (getPairedDevices, etc.)
@@ -567,7 +567,7 @@ The Bluetooth Helper smoke tests require a real Bluetooth adapter and at least o
 The `eisland-windows-brightness-helper` plugin has query and monitor test files:
 
 ```bash
-cd plugins/eisland-windows-brightness-helper
+cd plugins/windows/eisland-windows-brightness-helper
 
 npm run test                    # All tests
 npm run test:query              # Query function tests (getBrightness, setBrightness)
@@ -585,7 +585,7 @@ The Brightness Helper smoke tests require a display that supports WMI brightness
 The `eisland-windows-screenshot-helper` plugin has screenshot capture test files:
 
 ```bash
-cd plugins/eisland-windows-screenshot-helper
+cd plugins/windows/eisland-windows-screenshot-helper
 
 npm run test                    # All tests
 npm run test:screenshot         # Screenshot capture and PNG validation tests
@@ -633,7 +633,7 @@ If you prefer the full Visual Studio IDE instead of VS Code:
 4. Use the **Developer Command Prompt** for node-gyp commands:
 
 ```bash
-cd plugins\eisland-windows-fullscreen-detector
+cd plugins\windows\eisland-windows-fullscreen-detector
 npm run build
 ```
 
@@ -664,7 +664,7 @@ cd sdk
 npm run build
 
 # 6. Build a plugin
-cd ../plugins/eisland-windows-fullscreen-detector
+cd ../plugins/windows/eisland-windows-fullscreen-detector
 npm run build
 
 # 7. Run tests
@@ -722,11 +722,11 @@ winget install Microsoft.DotNet.SDK.10
 dotnet --list-sdks  # Should show 10.x.x
 
 # Rebuild the temperature helper
-cd plugins/eisland-windows-performance-monitor/temperature-helper
+cd plugins/windows/eisland-windows-performance-monitor/temperature-helper
 dotnet build
 
 # Or rebuild the SMTC helper
-cd plugins/eisland-windows-smtc-helper
+cd plugins/windows/eisland-windows-smtc-helper
 npm run build
 ```
 

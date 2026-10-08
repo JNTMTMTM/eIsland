@@ -6,7 +6,7 @@ icon: plug
 # Plugin Commands
 
 :::info
-This document covers all build, test, and smoke commands for eIsland native plugins. Each plugin lives under `plugins/` and has its own `package.json` with independent scripts.
+This document covers all build, test, and smoke commands for eIsland native plugins. Each Windows plugin lives under `plugins/windows/` and has its own `package.json` with independent scripts.
 :::
 
 ## Overview
@@ -14,7 +14,7 @@ This document covers all build, test, and smoke commands for eIsland native plug
 All commands are run from the individual plugin directory:
 
 ```bash
-cd plugins/<plugin-name>
+cd plugins/windows/<plugin-name>
 npm run <script>
 ```
 
@@ -86,7 +86,7 @@ export PATH="/c/Program Files (x86)/Microsoft Visual Studio/Installer:$PATH"
 
 ## Windows Fullscreen Detector
 
-**Directory:** `plugins/eisland-windows-fullscreen-detector` &nbsp;|&nbsp; **Language:** C &nbsp;|&nbsp; **Build:** `node-gyp rebuild`
+**Directory:** `plugins/windows/eisland-windows-fullscreen-detector` &nbsp;|&nbsp; **Language:** C &nbsp;|&nbsp; **Build:** `node-gyp rebuild`
 
 ### Build
 
@@ -114,7 +114,7 @@ export PATH="/c/Program Files (x86)/Microsoft Visual Studio/Installer:$PATH"
 
 ## Windows Performance Monitor
 
-**Directory:** `plugins/eisland-windows-performance-monitor` &nbsp;|&nbsp; **Language:** C + C# &nbsp;|&nbsp; **Build:** `node-gyp rebuild && dotnet build`
+**Directory:** `plugins/windows/eisland-windows-performance-monitor` &nbsp;|&nbsp; **Language:** C + C# &nbsp;|&nbsp; **Build:** `node-gyp rebuild && dotnet build`
 
 :::note
 This plugin has a dual build: the C addon is compiled by node-gyp, and the .NET temperature helper is compiled by `dotnet build`.
@@ -145,7 +145,7 @@ This plugin has a dual build: the C addon is compiled by node-gyp, and the .NET 
 
 ## Windows Processes Attacker
 
-**Directory:** `plugins/eisland-windows-processes-attacker` &nbsp;|&nbsp; **Language:** C &nbsp;|&nbsp; **Build:** `node-gyp rebuild`
+**Directory:** `plugins/windows/eisland-windows-processes-attacker` &nbsp;|&nbsp; **Language:** C &nbsp;|&nbsp; **Build:** `node-gyp rebuild`
 
 :::warning
 This plugin has no automated tests or smoke scripts. Test manually by running the built module.
@@ -163,7 +163,7 @@ This plugin has no automated tests or smoke scripts. Test manually by running th
 
 ## Windows Toast Listener
 
-**Directory:** `plugins/eisland-windows-toast-listener` &nbsp;|&nbsp; **Language:** C++ &nbsp;|&nbsp; **Build:** `node-gyp rebuild`
+**Directory:** `plugins/windows/eisland-windows-toast-listener` &nbsp;|&nbsp; **Language:** C++ &nbsp;|&nbsp; **Build:** `node-gyp rebuild`
 
 ### Build
 
@@ -199,7 +199,7 @@ This plugin has no automated tests or smoke scripts. Test manually by running th
 
 ## Windows SMTC Helper
 
-**Directory:** `plugins/eisland-windows-smtc-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
+**Directory:** `plugins/windows/eisland-windows-smtc-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
 
 :::info
 This is a pure .NET plugin with two build targets: a console exe (for Node.js) and a NativeAOT DLL (for Python ctypes / FFI).
@@ -245,7 +245,7 @@ This is a pure .NET plugin with two build targets: a console exe (for Node.js) a
 
 ## Windows Bluetooth Helper
 
-**Directory:** `plugins/eisland-windows-bluetooth-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
+**Directory:** `plugins/windows/eisland-windows-bluetooth-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
 
 :::info
 This is a pure .NET plugin with two build targets: a class library (for development) and a NativeAOT DLL (for Node.js via koffi FFI).
@@ -280,7 +280,7 @@ This is a pure .NET plugin with two build targets: a class library (for developm
 
 ## Windows Power Helper
 
-**Directory:** `plugins/eisland-windows-power-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
+**Directory:** `plugins/windows/eisland-windows-power-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
 
 :::info
 This plugin follows the same dual-build pattern as the Bluetooth Helper: a .NET class library for development and a NativeAOT DLL for Node.js via koffi FFI.
@@ -315,7 +315,7 @@ This plugin follows the same dual-build pattern as the Bluetooth Helper: a .NET 
 
 ## Windows WiFi Helper
 
-**Directory:** `plugins/eisland-windows-wifi-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
+**Directory:** `plugins/windows/eisland-windows-wifi-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
 
 :::info
 This plugin follows the same dual-build pattern as the Bluetooth and Power Helpers: a .NET class library for development and a NativeAOT DLL for Node.js via koffi FFI.
@@ -350,7 +350,7 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 
 ## Windows Brightness Helper
 
-**Directory:** `plugins/eisland-windows-brightness-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build`
+**Directory:** `plugins/windows/eisland-windows-brightness-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build`
 
 :::info
 This is a pure .NET plugin that spawns a console EXE for WMI brightness operations. Unlike the Bluetooth/Power/WiFi Helpers, it does not use NativeAOT or koffi FFI — `System.Management` (WMI) is incompatible with NativeAOT.
@@ -383,7 +383,7 @@ This is a pure .NET plugin that spawns a console EXE for WMI brightness operatio
 
 ## Windows Application Icon Helper
 
-**Directory:** `plugins/eisland-windows-application-icon-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet publish`
+**Directory:** `plugins/windows/eisland-windows-application-icon-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet publish`
 
 :::info
 This is a pure .NET NativeAOT plugin that extracts Windows application icons using Shell32 APIs. It uses koffi FFI to call the native DLL from Node.js.
@@ -418,7 +418,7 @@ This is a pure .NET NativeAOT plugin that extracts Windows application icons usi
 
 ## Windows Screenshot Helper
 
-**Directory:** `plugins/eisland-windows-screenshot-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet publish`
+**Directory:** `plugins/windows/eisland-windows-screenshot-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet publish`
 
 :::info
 This is a pure .NET NativeAOT plugin that captures the primary display as PNG using Win32 GDI APIs. It uses koffi FFI to call the native DLL from Node.js.
@@ -453,25 +453,25 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 
 | Plugin | Command |
 |--------|---------|
-| Fullscreen Detector | `cd plugins/eisland-windows-fullscreen-detector && npm run build` |
-| Performance Monitor | `cd plugins/eisland-windows-performance-monitor && npm run build` |
-| Processes Attacker | `cd plugins/eisland-windows-processes-attacker && npm run build` |
-| Toast Listener | `cd plugins/eisland-windows-toast-listener && npm run build` |
-| SMTC Helper (exe) | `cd plugins/eisland-windows-smtc-helper && npm run build` |
-| SMTC Helper (DLL) | `cd plugins/eisland-windows-smtc-helper && npm run build:ctypes` |
-| SMTC Helper (all) | `cd plugins/eisland-windows-smtc-helper && npm run build:all` |
-| Bluetooth Helper (exe) | `cd plugins/eisland-windows-bluetooth-helper && npm run build` |
-| Bluetooth Helper (DLL) | `cd plugins/eisland-windows-bluetooth-helper && npm run build:ctypes` |
-| Bluetooth Helper (all) | `cd plugins/eisland-windows-bluetooth-helper && npm run build:all` |
-| Power Helper (exe) | `cd plugins/eisland-windows-power-helper && npm run build` |
-| Power Helper (DLL) | `cd plugins/eisland-windows-power-helper && npm run build:ctypes` |
-| Power Helper (all) | `cd plugins/eisland-windows-power-helper && npm run build:all` |
-| WiFi Helper (exe) | `cd plugins/eisland-windows-wifi-helper && npm run build` |
-| WiFi Helper (DLL) | `cd plugins/eisland-windows-wifi-helper && npm run build:ctypes` |
-| WiFi Helper (all) | `cd plugins/eisland-windows-wifi-helper && npm run build:all` |
-| Brightness Helper | `cd plugins/eisland-windows-brightness-helper && npm run build` |
-| Application Icon Helper | `cd plugins/eisland-windows-application-icon-helper && npm run build` |
-| Screenshot Helper | `cd plugins/eisland-windows-screenshot-helper && npm run build` |
+| Fullscreen Detector | `cd plugins/windows/eisland-windows-fullscreen-detector && npm run build` |
+| Performance Monitor | `cd plugins/windows/eisland-windows-performance-monitor && npm run build` |
+| Processes Attacker | `cd plugins/windows/eisland-windows-processes-attacker && npm run build` |
+| Toast Listener | `cd plugins/windows/eisland-windows-toast-listener && npm run build` |
+| SMTC Helper (exe) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build` |
+| SMTC Helper (DLL) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build:ctypes` |
+| SMTC Helper (all) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build:all` |
+| Bluetooth Helper (exe) | `cd plugins/windows/eisland-windows-bluetooth-helper && npm run build` |
+| Bluetooth Helper (DLL) | `cd plugins/windows/eisland-windows-bluetooth-helper && npm run build:ctypes` |
+| Bluetooth Helper (all) | `cd plugins/windows/eisland-windows-bluetooth-helper && npm run build:all` |
+| Power Helper (exe) | `cd plugins/windows/eisland-windows-power-helper && npm run build` |
+| Power Helper (DLL) | `cd plugins/windows/eisland-windows-power-helper && npm run build:ctypes` |
+| Power Helper (all) | `cd plugins/windows/eisland-windows-power-helper && npm run build:all` |
+| WiFi Helper (exe) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build` |
+| WiFi Helper (DLL) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build:ctypes` |
+| WiFi Helper (all) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build:all` |
+| Brightness Helper | `cd plugins/windows/eisland-windows-brightness-helper && npm run build` |
+| Application Icon Helper | `cd plugins/windows/eisland-windows-application-icon-helper && npm run build` |
+| Screenshot Helper | `cd plugins/windows/eisland-windows-screenshot-helper && npm run build` |
 | **All plugins** | `npm run plugins:build` (from root — builds all 10 plugins) |
 
 ### All Test Commands
