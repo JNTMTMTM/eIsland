@@ -188,6 +188,10 @@ If you see `MSB8036: The Windows SDK version was not found` or `node-gyp` build 
 | `npm run test:renderer` | Run tests under `src/renderer/` | When modifying renderer stores, utilities, hooks, or components |
 | `npm run test:preload` | Run only `src/preload/index.test.ts` | When modifying preload bridge code — faster than running the full suite |
 | `npm run test:coverage` | Run both projects with V8 coverage reports | Before opening a PR, or periodically to audit test gaps |
+| `npm run build:e2e` | Build Electron E2E artifacts into `e2e/out/` | Before running or debugging an existing E2E build |
+| `npm run test:e2e` | Build and run Playwright Electron tests | Verify desktop UI, IPC, persistence, and cross-window behavior |
+| `npm run test:e2e:run` | Run the existing E2E build | Filter or debug scenarios without rebuilding |
+| `npm run typecheck:e2e` | Check E2E TypeScript and Electron-Vite configuration | After modifying the E2E suite or build configuration |
 
 :::tip
 For iterative development, run `npx vitest` (without `run`) to start Vitest in **watch mode** — it re-runs affected tests on file save.
@@ -198,6 +202,8 @@ For iterative development, run `npx vitest` (without `run`) to start Vitest in *
 :::note
 The `renderer` label is a project name, not a DOM environment. See [Testing Commands](/developer/commands/test-commands.md) for project filters, the latest verified test counts, and a renderer TSX coverage audit command.
 :::
+
+For Windows/macOS desktop interaction tests, see [Electron E2E Testing](/developer/commands/e2e-testing.md). It documents the separate installation steps, graphical session requirement, and root `e2e/` directory. Normal development and release builds keep their regular output under `out/`.
 
 ### Packaging & Release
 

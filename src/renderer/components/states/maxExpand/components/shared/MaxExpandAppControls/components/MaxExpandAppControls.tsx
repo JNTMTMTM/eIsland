@@ -26,16 +26,10 @@
 
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
-import { MAX_EXPAND_APPS } from './app/config/appLauncherConfig';
+import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { MAX_EXPAND_APPS } from '../../../app/config/appLauncherConfig';
 import type { MouseEvent, ReactElement } from 'react';
-import type { MaxExpandTab } from '../../../../store/types';
-
-interface MaxExpandAppControlsProps {
-  activeTab: MaxExpandTab;
-  onBackToExpanded: () => void;
-  onBackToLauncher: () => void;
-}
+import type { MaxExpandAppControlsProps } from '../types';
 
 /**
  * 渲染应用化模式的统一竖向控制条。

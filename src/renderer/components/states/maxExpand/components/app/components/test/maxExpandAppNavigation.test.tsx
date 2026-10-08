@@ -28,7 +28,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, nodes, value } from '../../../../test/componentHarness';
 import Component from '../MaxExpandAppNavigation';
 import MaxExpandAppLauncher from '../MaxExpandAppLauncher';
-import MaxExpandAppControls from '../../../MaxExpandAppControls';
+import MaxExpandAppControls from '../../../shared/MaxExpandAppControls';
 const state = vi.hoisted(() => ({ transition: null as { direction: string; tab: string } | null, selectApp: vi.fn(), backToLauncher: vi.fn() }));
 vi.mock('../../hooks/useAppNavigationTransition', () => ({ useAppNavigationTransition: () => state }));
 describe('MaxExpandAppNavigation', () => {

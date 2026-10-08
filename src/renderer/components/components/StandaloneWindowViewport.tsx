@@ -35,7 +35,7 @@ import { ClipboardHistoryTab } from '../states/maxExpand/components/clipBoardHis
 import { SettingsTab } from '../states/maxExpand/components/setting';
 import { MemoTab } from '../states/maxExpand/components/memo/components/MemoTab';
 import { AlarmTab } from '../states/maxExpand/components/alarm/components/AlarmTab';
-import { ToolboxTab } from '../states/maxExpand/components/ToolboxTab';
+import { ToolboxTab } from '../states/maxExpand/components/toolbox';
 import { LoginContent } from '../states/login';
 import { RegisterContent } from '../states/register/RegisterContent';
 import { ResetPasswordContent } from '../states/resetPassword';

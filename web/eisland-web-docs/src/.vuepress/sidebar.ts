@@ -1031,6 +1031,7 @@ export default sidebar({
       children: [
         "commands/dev-commands.md",
         "commands/test-commands.md",
+        "commands/e2e-testing.md",
         "commands/package-commands.md",
         "commands/quality-commands.md",
         "commands/release-commands.md",

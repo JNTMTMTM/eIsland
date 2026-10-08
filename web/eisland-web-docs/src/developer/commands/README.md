@@ -22,7 +22,8 @@ For a quick reference of all commands, see [Frontend Setup — Development Comma
 | Document | Description |
 |----------|-------------|
 | [Development Commands](dev-commands.md) | `dev`, `build`, `preview` — building, running, and previewing the application |
-| [Testing Commands](test-commands.md) | `test`, `test:node`, `test:renderer`, `test:preload`, `test:coverage` — grouped tests and coverage audits |
+| [Testing Commands](test-commands.md) | Vitest projects, coverage audits, and Electron E2E commands |
+| [Electron E2E Testing](e2e-testing.md) | Windows/macOS setup, root `e2e/` sources, isolation, scenarios, and CI diagnostics |
 | [Package Commands](package-commands.md) | `package`, `postinstall` — building installers and managing native modules |
 | [Code Quality Commands](quality-commands.md) | `comment:check`, `i18n:check` — validating comment standards and i18n completeness |
 | [Release Commands](release-commands.md) | `release:notes`, `changelog:generate`, `release:upload*` — changelogs and artifact uploads |

@@ -31,6 +31,7 @@ The eIsland frontend is built with **Electron** as the desktop shell, **React 19
 | **Charts** | `highcharts`, `highcharts-react-official` | Data visualization |
 | **Markdown** | `react-markdown`, `remark-gfm`, `dompurify` | Markdown rendering |
 | **Testing** | `vitest`, `@testing-library/jest-dom` | Unit testing |
+| **Desktop E2E** | `@playwright/test` | Electron UI, preload, IPC, and persistence tests on Windows/macOS |
 
 ## Build System
 
@@ -1169,6 +1170,16 @@ export default defineConfig({
   },
 });
 ```
+
+### Playwright Electron E2E
+
+The separate suite under the repository-root `e2e/` directory launches Electron with the real main process entry and built renderer/preload. It covers startup, standalone tab navigation, Todo persistence through restart, and cross-window store synchronization.
+
+`npm run test:e2e` builds with `--mode e2e` into `e2e/out/` before running Playwright. The test build substitutes directly imported Windows native modules and uses temporary application profiles. Normal development and release builds retain their regular entries, native dependencies, and `out/` output.
+
+:::important
+The Windows/macOS CI matrix validates the shared Electron UI and internal application behavior. Hardware controls, system integration, installers, and updates need separate Windows validation. See [Electron E2E Testing](/developer/commands/e2e-testing.md) for source files, installation, isolation, and diagnostics.
+:::
 
 ### Testing Patterns
 

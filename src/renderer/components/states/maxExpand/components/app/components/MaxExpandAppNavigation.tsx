@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import MaxExpandAppControls from '../../MaxExpandAppControls';
+import MaxExpandAppControls from '../../shared/MaxExpandAppControls';
 import { useAppNavigationTransition } from '../hooks/useAppNavigationTransition';
 import MaxExpandAppLauncher from './MaxExpandAppLauncher';
 import type { ReactElement, ReactNode } from 'react';

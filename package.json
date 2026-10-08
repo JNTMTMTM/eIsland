@@ -74,7 +74,14 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "run-p --continue-on-error typecheck:node typecheck:web",
-    "check": "run-p --continue-on-error lint:all typecheck test"
+    "check": "run-p --continue-on-error lint:all typecheck test",
+    "build:e2e": "electron-vite build --mode e2e",
+    "build:e2e:windows:native": "node e2e/build-windows-native.mjs",
+    "build:e2e:windows": "npm run build:e2e:windows:native && electron-vite build --mode e2e-windows",
+    "test:e2e": "npm run build:e2e && npm run test:e2e:run",
+    "test:e2e:windows": "npm run build:e2e:windows && npm run test:e2e:run",
+    "test:e2e:run": "playwright test --config e2e/playwright.config.ts",
+    "typecheck:e2e": "tsc --noEmit -p e2e/tsconfig.json"
   },
   "dependencies": {
     "@eisland/windows-application-icon-helper": "file:plugins/eisland-windows-application-icon-helper",
@@ -132,6 +139,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@electron-toolkit/utils": "^4.0.0",
+    "@playwright/test": "^1.63.0",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.8",

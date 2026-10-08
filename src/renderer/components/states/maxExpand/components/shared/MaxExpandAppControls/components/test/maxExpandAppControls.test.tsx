@@ -25,9 +25,9 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, value, trigger } from '../../test/componentHarness';
-import Component from '../MaxExpandAppControls';
-import { MAX_EXPAND_APPS } from '../app/config/appLauncherConfig';
+import { render, value, trigger } from '../../../../../test/componentHarness';
+import Component from '../..';
+import { MAX_EXPAND_APPS } from '../../../../app/config/appLauncherConfig';
 describe('MaxExpandAppControls', () => {
   it('uses the active app icon and stops bubbling for both return controls', () => {
     const props = { activeTab: 'todo', onBackToExpanded: vi.fn(), onBackToLauncher: vi.fn() };

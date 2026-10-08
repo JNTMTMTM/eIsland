@@ -29,6 +29,7 @@ import { SvgIcon } from '../../../../../../utils/SvgIcon';
 export const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 export const TOOLBOX_NAV_ORDER_STORE_KEY = 'toolbox-nav-order';
 export const TOOLBOX_HIDDEN_NAV_ORDER_STORE_KEY = 'toolbox-hidden-nav-order';
+export const TOOLBOX_NAV_CONFIG_STORE_KEY = 'toolbox-nav-config';
 
 export const TOOLBOX_SIDEBAR_KEYS = ['index', 'download', 'software', 'translate', 'fileService', 'encodingService', 'networkService', 'fileCompression', 'formatFactory'] as const;
 export type ToolboxSidebarKey = (typeof TOOLBOX_SIDEBAR_KEYS)[number];

@@ -6,7 +6,7 @@ icon: vial
 # Testing Commands
 
 :::info
-This document covers the testing commands for running, filtering, and measuring test coverage in the eIsland frontend.
+This document covers Vitest commands for running, filtering, and measuring test coverage, plus Playwright commands for Electron E2E testing.
 :::
 
 All commands are run from the eIsland project root, where `package.json` and `vitest.config.ts` are located:
@@ -50,7 +50,7 @@ The full suite passed on **2026-10-05**:
 | `renderer` | 138 | 1913 |
 | **Total** | **197** | **2691** |
 
-These counts describe the root application suite; native plugins have separate test configurations.
+These counts describe the Vitest application suite; Electron E2E and native plugins have separate test configurations.
 
 :::tip
 For iterative development, use `npx vitest` (without `run`) to start Vitest in **watch mode** — it re-runs affected tests on file save.
@@ -143,6 +143,26 @@ The audit on **2026-10-05** measured:
 
 :::note
 These percentages cover only `src/renderer/**/*.tsx`, not the entire application. Existing `.test.ts` files already exercise some TSX components through `React.createElement` and static rendering with `react-dom/server`. The absence of `.test.tsx` files does not mean there are no component tests; UI interaction and unexecuted component paths still need additional coverage.
+:::
+
+## Electron E2E Commands
+
+The Playwright suite launches real Electron windows on Windows and macOS. Source, configuration, build output, and diagnostics live in the repository-root `e2e/` directory.
+
+| Command | Description |
+|---------|-------------|
+| `npm run build:e2e` | Build with `--mode e2e` into `e2e/out/` |
+| `npm run test:e2e` | Build and run the Electron E2E suite |
+| `npm run test:e2e:run` | Run an existing E2E build with `e2e/playwright.config.ts` |
+| `npm run typecheck:e2e` | Check E2E TypeScript and `electron.vite.config.ts` |
+
+```bash
+npm run typecheck:e2e
+npm run test:e2e
+```
+
+:::important
+E2E requires an installed Electron binary and a graphical desktop session. The existing `test`, `typecheck`, and `check` scripts do not automatically run E2E. See [Electron E2E Testing](e2e-testing.md) for dependency installation, filtering, isolation boundaries, CI, and diagnostics.
 :::
 
 ## Troubleshooting
