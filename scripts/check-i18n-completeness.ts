@@ -24,8 +24,8 @@
  * @author 鸡哥
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative, extname } from 'node:path';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, extname } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..');
 const LOCALE_DIR = join(ROOT, 'i18n');
@@ -94,6 +94,7 @@ const localeKeySets = localeData.map((l) => ({ label: l.label, keys: new Set(Obj
 const allKeys = new Set(localeKeySets.flatMap((s) => [...s.keys]));
 
 const alignmentIssues: string[] = [];
+const alignmentDetails: string[][] = [];
 for (let i = 0; i < localeKeySets.length; i++) {
   for (let j = 0; j < localeKeySets.length; j++) {
     if (i === j) continue;
@@ -101,6 +102,7 @@ for (let i = 0; i < localeKeySets.length; i++) {
     if (missing.length > 0) {
       alignmentIssues.push(`${localeKeySets[j].label} 缺少 ${missing.length} 个翻译键（${localeKeySets[i].label} 中存在）:`);
       for (const key of missing) alignmentIssues.push(`  - ${key}`);
+      for (const key of missing) alignmentDetails.push([localeKeySets[j].label, localeKeySets[i].label, key]);
     }
   }
 }
@@ -279,5 +281,89 @@ console.log(`  翻译值或插值变量问题: ${translationIssues.length}`);
 console.log(`  t() 引用无效键: ${missingKeyIssues.length}`);
 console.log(`  硬编码中文: ${hardcodedIssues.length}`);
 console.log(`  总计问题: ${totalIssues}`);
+
+/**
+ * 将检查数据渲染为 GitHub 可展示的 Markdown，按完整行截断以保留表格和折叠区域。
+ * @returns 包含检查概览、语言统计和问题详情的报告
+ */
+function renderMarkdownReport(): string {
+  const escapeCell = (value: string): string => value
+    .replace(/&/g, '&amp;')
+    .replace(/[<>|`*_~\[\]@\\]/g, (character) => `&#${character.charCodeAt(0)};`)
+    .replace(/\r?\n/g, ' ');
+  const sourceLocation = (issue: Issue): string => {
+    const label = `<code>${escapeCell(`${issue.file}:${issue.line}`)}</code>`;
+    const repository = process.env.GITHUB_REPOSITORY;
+    const sha = process.env.I18N_CHECK_SHA || process.env.GITHUB_SHA;
+    if (!repository || !sha) return label;
+    const server = process.env.GITHUB_SERVER_URL || 'https://github.com';
+    const path = issue.file.split('/').map(encodeURIComponent).join('/');
+    return `[${label}](${server}/${repository}/blob/${encodeURIComponent(sha)}/${path}#L${issue.line})`;
+  };
+  const checks = [
+    {
+      label: '翻译文件键对齐', count: alignmentIssueCount,
+      headers: ['缺少键的语言', '参照语言', '翻译键'],
+      rows: alignmentDetails.map((cells) => cells.map(escapeCell)),
+    },
+    {
+      label: '翻译值与插值变量', count: translationIssues.length,
+      headers: ['问题'], rows: translationIssues.map((issue) => [escapeCell(issue)]),
+    },
+    {
+      label: 't() 引用有效性', count: missingKeyIssues.length,
+      headers: ['源码位置', '问题'],
+      rows: missingKeyIssues.map((issue) => [sourceLocation(issue), escapeCell(issue.message)]),
+    },
+    {
+      label: '硬编码中文', count: hardcodedIssues.length,
+      headers: ['源码位置', '问题'],
+      rows: hardcodedIssues.map((issue) => [sourceLocation(issue), escapeCell(issue.message)]),
+    },
+  ];
+  const status = totalIssues > 0 ? '❌ FAIL' : '✅ PASS';
+  const report = [
+    '## i18n 翻译完整性报告', '',
+    `**${status}** · 共 ${totalIssues} 个问题 · 扫描 ${sourceFiles.length} 个源文件`, '',
+    '| 检查项 | 状态 | 问题数 |', '| --- | --- | ---: |',
+    ...checks.map((check) => `| ${check.label} | ${check.count > 0 ? '❌ FAIL' : '✅ PASS'} | ${check.count} |`),
+    '', '### 语言统计', '', '| 语言 | 翻译键数量 |', '| --- | ---: |',
+    ...localeKeySets.map((locale) => `| ${escapeCell(locale.label)} | ${locale.keys.size} |`), '',
+  ];
+  for (const check of checks) {
+    if (check.count === 0) continue;
+    const rows: string[] = [];
+    let length = 0;
+    // 每类详情限定字符预算，确保包含元数据的 PR 评论仍低于 GitHub 长度限制。
+    for (const cells of check.rows) {
+      const row = `| ${cells.join(' | ')} |`;
+      if (length + row.length > 10_000) break;
+      rows.push(row);
+      length += row.length + 1;
+    }
+    report.push(
+      '<details>', `<summary>${check.label}（${check.count} 个问题）</summary>`, '',
+      `| ${check.headers.join(' | ')} |`, `| ${check.headers.map(() => '---').join(' | ')} |`,
+      ...rows, '',
+    );
+    if (rows.length < check.rows.length) {
+      report.push(`> 已展示 ${rows.length} / ${check.count} 个问题，完整详情请查看工作流日志或下载日志附件。`, '');
+    }
+    report.push('</details>', '');
+  }
+  if (totalIssues === 0) report.push('所有 i18n 完整性检查均已通过。', '');
+  return report.join('\n');
+}
+
+const reportIndex = process.argv.indexOf('--report');
+if (reportIndex !== -1) {
+  const reportPath = process.argv[reportIndex + 1];
+  if (!reportPath) {
+    console.error('[ERROR] --report 必须指定 Markdown 报告路径');
+    process.exit(1);
+  }
+  mkdirSync(dirname(reportPath), { recursive: true });
+  writeFileSync(reportPath, renderMarkdownReport(), 'utf8');
+}
 
 process.exit(totalIssues > 0 ? 1 : 0);

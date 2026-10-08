@@ -30,19 +30,27 @@ jobs:
 
       - name: Run i18n completeness check
         id: check
+        env:
+          I18N_CHECK_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set +e
-          npm run i18n:check 2>&1 | tee i18n-check.log
+          npm run i18n:check -- --report i18n-check-report.md 2>&1 | tee i18n-check.log
           EXIT_CODE=${PIPESTATUS[0]}
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          if [ ! -s i18n-check-report.md ]; then
+            printf '## i18n 翻译完整性报告\n\n**❌ ERROR** · 检查未能生成报告，请查看工作流日志。\n' > i18n-check-report.md
+          fi
+          cat i18n-check-report.md >> "$GITHUB_STEP_SUMMARY"
           exit 0
 
-      - name: Upload check log
+      - name: Upload check report and log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: i18n-check-log
-          path: i18n-check.log
+          name: i18n-check-report
+          path: |
+            i18n-check-report.md
+            i18n-check.log
           if-no-files-found: warn
 
       - name: Fail workflow on missing translations
@@ -60,10 +68,10 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Download check log
+      - name: Download check report
         uses: actions/download-artifact@v5
         with:
-          name: i18n-check-log
+          name: i18n-check-report
           path: .
 
       - name: Comment i18n report on PR
@@ -77,36 +85,30 @@ jobs:
             const fs = require('node:fs');
             const marker = '<!-- i18n-check-report -->';
 
-            const readLog = (path) => {
+            const readReport = (path) => {
               try {
                 const content = fs.readFileSync(path, 'utf8').trim();
-                if (!content) return '(empty output)';
-                return content.length > 3000 ? `${content.slice(0, 3000)}\n... (truncated)` : content;
+                if (content) return content;
               } catch {
-                return '(log file not found)';
+                // 报告不可用时仍发布可读的错误状态，并保留工作流入口。
               }
+              return '## i18n 翻译完整性报告\n\n**❌ ERROR** · 未找到检查报告，请查看工作流日志。';
             };
 
             const exitCode = process.env.EXIT_CODE || '1';
             const status = exitCode === '0' ? 'PASS' : 'FAIL';
-            const shortSha = (context.sha || '').slice(0, 7) || 'unknown';
+            const sha = context.payload.pull_request.head.sha;
+            const shortSha = sha.slice(0, 7);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const body = `${marker}
-            ## i18n Translation Completeness Report
-
-            | Item | Value |
-            |------|-------|
-            | Status | ${status} |
-            | Commit | \`${shortSha}\` |
-
-            ### Check Output
-
-            \`\`\`
-            ${readLog('i18n-check.log')}
-            \`\`\`
-
-            [View workflow run](${runUrl})`;
+            const body = [
+              marker,
+              readReport('i18n-check-report.md'),
+              '',
+              `**检查状态：${status}** · **提交：** [\`${shortSha}\`](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${sha})`,
+              '',
+              `[查看工作流和完整日志](${runUrl})`,
+            ].join('\n');
 
             const { owner, repo } = context.repo;
             const issue_number = context.payload.pull_request.number;
