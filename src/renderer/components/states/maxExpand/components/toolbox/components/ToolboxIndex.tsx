@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useCallback } from 'react';
 import type { ReactElement } from 'react';
 import type { ToolboxNavigationProps } from '../types';
 
@@ -36,22 +37,28 @@ import type { ToolboxNavigationProps } from '../types';
  */
 export function ToolboxIndex({ t, navigation }: ToolboxNavigationProps): ReactElement {
   const {
-    navEditMode, searchQuery, setSearchQuery, searchResults, resetToolboxNavConfig,
+    navEditMode, navSaving, navSaveError, searchQuery, setSearchQuery, searchResults, resetToolboxNavConfig,
     toggleNavEditMode, navigateByCard, visibleCards, hiddenCards, dragOverIdx,
     handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd, removeCard, addCard,
   } = navigation;
+  const handleToggleNavEditMode = useCallback(() => {
+    // React 点击回调须同步返回，异步保存失败已由导航 Hook 提示。
+    // eslint-disable-next-line promise/prefer-await-to-then -- React 点击事件需要同步回调。
+    toggleNavEditMode().catch(() => undefined);
+  }, [toggleNavEditMode]);
   return (
     <div className="max-expand-settings-section settings-index-section">
       <div className="settings-index-header">
         <div className="max-expand-settings-title">
           {t('maxExpand.toolbox.index.title')}
-          <button className="settings-nav-edit-btn" type="button" onClick={resetToolboxNavConfig}>
+          <button className="settings-nav-edit-btn" type="button" disabled={navSaving} onClick={resetToolboxNavConfig}>
             {t('maxExpand.toolbox.index.reset')}
           </button>
           <button
             className={`settings-nav-edit-btn ${navEditMode ? 'active' : ''}`}
             type="button"
-            onClick={toggleNavEditMode}
+            disabled={navSaving}
+            onClick={handleToggleNavEditMode}
           >
             {navEditMode ? t('maxExpand.toolbox.index.done') : t('maxExpand.toolbox.index.edit')}
           </button>
@@ -111,13 +118,14 @@ export function ToolboxIndex({ t, navigation }: ToolboxNavigationProps): ReactEl
             : t('maxExpand.toolbox.index.hintView')}
         </div>
       </div>
+      {navSaveError && <div role="alert">{t('maxExpand.toolbox.index.saveError')}</div>}
       <div className="settings-index-cards" aria-label={t('maxExpand.toolbox.index.ariaNav')}>
         {visibleCards.map((card, idx) => (
           navEditMode ? (
             <div
               key={card.id}
               className={`settings-index-card editing${dragOverIdx === idx ? ' drag-over' : ''}`}
-              draggable
+              draggable={!navSaving}
               onDragStart={(e) => handleDragStart(e, idx)}
               onDragOver={(e) => handleDragOver(e, idx)}
               onDragLeave={handleDragLeave}
@@ -128,6 +136,7 @@ export function ToolboxIndex({ t, navigation }: ToolboxNavigationProps): ReactEl
               <button
                 className="settings-index-card-remove"
                 type="button"
+                disabled={navSaving}
                 onClick={() => removeCard(card.id)}
                 aria-label={t('maxExpand.toolbox.index.removeCard', { label: t(card.labelKey) })}
               >
@@ -163,6 +172,7 @@ export function ToolboxIndex({ t, navigation }: ToolboxNavigationProps): ReactEl
                   key={card.id}
                   className="settings-nav-add-item"
                   type="button"
+                  disabled={navSaving}
                   onClick={() => addCard(card.id)}
                 >
                   <span>{t(card.labelKey)}</span>

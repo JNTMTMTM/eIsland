@@ -56,6 +56,8 @@ export interface ToolboxNavigationState {
   formatFactoryPage: FormatFactoryPageKey;
   setFormatFactoryPage: Dispatch<SetStateAction<FormatFactoryPageKey>>;
   navEditMode: boolean;
+  navSaving: boolean;
+  navSaveError: boolean;
   dragOverIdx: number | null;
   searchQuery: string;
   setSearchQuery: Dispatch<SetStateAction<string>>;
@@ -64,7 +66,7 @@ export interface ToolboxNavigationState {
   searchResults: ToolboxSearchResult[] | null;
   resetToolboxNavConfig: () => void;
   navigateByCard: (cardId: ToolboxIndexCardId) => void;
-  toggleNavEditMode: () => void;
+  toggleNavEditMode: () => Promise<void>;
   removeCard: (cardId: ToolboxIndexCardId) => void;
   addCard: (cardId: ToolboxIndexCardId) => void;
   handleDragStart: (event: DragEvent<HTMLDivElement>, index: number) => void;

@@ -32,3 +32,5 @@ Thumbs.db
 
 /e2e/playwright-report/
 /e2e/test-results/
+/e2e/fixtures/icon-probe/bin/
+/e2e/fixtures/icon-probe/obj/

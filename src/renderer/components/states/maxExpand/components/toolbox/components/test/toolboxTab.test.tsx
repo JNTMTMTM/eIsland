@@ -42,7 +42,7 @@ import type { ReactNode } from 'react';
 
 const mocks = vi.hoisted(() => ({
   read: vi.fn<(key: string) => Promise<unknown>>(),
-  write: vi.fn<(key: string, data: unknown) => Promise<boolean>>(), settings: vi.fn(),
+  save: vi.fn<Window['api']['storeCompareAndSwap']>(), settings: vi.fn(),
 }));
 vi.mock('../../../../../../../store/slices', () => ({ default: () => ({ setMaxExpandTab: mocks.settings }) }));
 vi.mock('../../../../../../../api/tools/toolboxSoftwareApi', () => ({ fetchToolboxSoftwareList: vi.fn() }));
@@ -62,8 +62,8 @@ function renderToolbox(): ReactNode {
 describe('ToolboxTab', () => {
   beforeEach(() => {
     mocks.read.mockResolvedValue(null);
-    mocks.write.mockResolvedValue(true);
-    vi.stubGlobal('window', Object.assign(new EventTarget(), { api: { storeRead: mocks.read, storeWrite: mocks.write } }));
+    mocks.save.mockResolvedValue('updated');
+    vi.stubGlobal('window', Object.assign(new EventTarget(), { api: { storeRead: mocks.read, storeCompareAndSwap: mocks.save } }));
   });
   afterEach(() => { vi.unstubAllGlobals(); });
 
@@ -125,16 +125,19 @@ describe('ToolboxTab', () => {
     expect(nodes(tree, '.settings-nav-add-item')).toHaveLength(1);
     fire(tree, '.settings-nav-add-item', 'onClick');
     expect(nodes(renderToolbox(), '.settings-index-card')).toHaveLength(12);
-    mocks.write.mockRejectedValue(new Error('storage offline'));
+    mocks.save.mockRejectedValue(new Error('storage offline'));
     fire(renderToolbox(), '.settings-nav-edit-btn', 'onClick', 1);
-    await Promise.resolve();
-    expect(mocks.write).toHaveBeenCalledWith('toolbox-nav-order', [...DEFAULT_TOOLBOX_NAV_ORDER.slice(1), DEFAULT_TOOLBOX_NAV_ORDER[0]]);
-    expect(mocks.write).toHaveBeenCalledWith('toolbox-hidden-nav-order', []);
+    await vi.waitFor(() => { expect(mocks.save).toHaveBeenCalled(); });
+    expect(mocks.save).toHaveBeenCalledWith('toolbox-nav-config', null, {
+      visibleOrder: [...DEFAULT_TOOLBOX_NAV_ORDER.slice(1), DEFAULT_TOOLBOX_NAV_ORDER[0]], hiddenOrder: [],
+    });
+    expect(text(renderToolbox())).toContain('saveError');
+    expect(nodes(renderToolbox(), '.settings-index-card-remove')).toHaveLength(12);
     fire(renderToolbox(), '.settings-nav-edit-btn', 'onClick', 0);
     expect(nodes(renderToolbox(), '.settings-index-card').map((node) => node.key)).toEqual(DEFAULT_TOOLBOX_NAV_ORDER.map((id) => `.$${  id}`));
   });
 
-  it('拖拽改序、悬停及离开清理，未开始或同位置放下保持顺序', () => {
+  it('拖拽改序、悬停及离开清理，未开始或同位置放下保持顺序', async () => {
     fire(renderToolbox(), '.settings-nav-edit-btn', 'onClick', 1);
     const event = { preventDefault: vi.fn(), dataTransfer: { effectAllowed: '' } };
     fire(renderToolbox(), '.settings-index-card', 'onDrop', 2, event);
@@ -148,15 +151,16 @@ describe('ToolboxTab', () => {
     expect(text(nodes(renderToolbox(), '.settings-index-card')[2])).toContain('download-create');
     fire(renderToolbox(), '.settings-index-card', 'onDragEnd', 2);
     fire(renderToolbox(), '.settings-nav-edit-btn', 'onClick', 1);
-    expect(mocks.write).toHaveBeenCalledWith('toolbox-nav-order', [
+    await vi.waitFor(() => { expect(mocks.save).toHaveBeenCalled(); });
+    expect(mocks.save).toHaveBeenCalledWith('toolbox-nav-config', null, { visibleOrder: [
       ...DEFAULT_TOOLBOX_NAV_ORDER.slice(1, 3), DEFAULT_TOOLBOX_NAV_ORDER[0], ...DEFAULT_TOOLBOX_NAV_ORDER.slice(3),
-    ]);
+    ], hiddenOrder: [] });
   });
 
   it('存储配置过滤无效值、重复项并补齐缺失入口', async () => {
-    mocks.read.mockResolvedValueOnce(['software', 'software', 'invalid', 7]).mockResolvedValueOnce(['software', 'invalid']);
+    mocks.read.mockResolvedValueOnce(null).mockResolvedValueOnce(['software', 'software', 'invalid', 7]).mockResolvedValueOnce(['software', 'invalid']);
     await renderToolbox(); flushEffects();
-    await vi.waitFor(() => { expect(mocks.read).toHaveBeenCalledTimes(2); });
+    await vi.waitFor(() => { expect(mocks.read).toHaveBeenCalledTimes(3); });
     const tree = renderToolbox();
     expect(nodes(tree, '.settings-index-card')).toHaveLength(12);
     expect(text(nodes(tree, '.settings-index-card')[0])).toContain('nav.software.label');
@@ -170,7 +174,7 @@ describe('ToolboxTab', () => {
     await renderToolbox();
     const cleanups = flushEffects();
     if (reject) pending.reject(new Error('read offline'));
-    else { cleanups.forEach((cleanup) => cleanup()); pending.resolve(['software']); }
+    else { cleanups.forEach((cleanup) => cleanup()); pending.resolve({ visibleOrder: ['software'], hiddenOrder: [] }); }
     await Promise.resolve();
     expect(mocks.read).toHaveBeenCalledTimes(1);
     expect(text(nodes(renderToolbox(), '.settings-index-card')[0])).toContain('download-create');

@@ -25,8 +25,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DEFAULT_TOOLBOX_NAV_ORDER, TOOLBOX_HIDDEN_NAV_ORDER_STORE_KEY, TOOLBOX_NAV_CARD_MAP, TOOLBOX_NAV_ORDER_STORE_KEY } from '../../tools/config/commonToolboxConfig';
-import { getHiddenToolboxCards, getVisibleToolboxCards, searchToolboxCards } from '../utils/toolboxNavigation';
+import { DEFAULT_TOOLBOX_NAV_ORDER, TOOLBOX_NAV_CARD_MAP, TOOLBOX_NAV_CONFIG_STORE_KEY } from '../../tools/config/commonToolboxConfig';
+import { applyToolboxNavEdits, getHiddenToolboxCards, getVisibleToolboxCards, readToolboxNavConfig, searchToolboxCards } from '../utils/toolboxNavigation';
+import type { ToolboxNavEdit } from '../utils/toolboxNavigation';
 import type { TFunction } from 'i18next';
 import type { DragEvent } from 'react';
 import type { DownloadPageKey } from '../../tools/config/downloadToolConfig';
@@ -48,6 +49,11 @@ export function useToolboxNavigation(t: TFunction, language: string): ToolboxNav
   const [navOrder, setNavOrder] = useState<ToolboxIndexCardId[]>(DEFAULT_TOOLBOX_NAV_ORDER);
   const [hiddenNavOrder, setHiddenNavOrder] = useState<ToolboxIndexCardId[]>([]);
   const [navEditMode, setNavEditMode] = useState(false);
+  const [navSaving, setNavSaving] = useState(false);
+  const [navSaveError, setNavSaveError] = useState(false);
+  const editsRef = useRef<ToolboxNavEdit[]>([]);
+  const editedRef = useRef(false);
+  const savingRef = useRef(false);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const dragIdxRef = useRef<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,17 +64,47 @@ export function useToolboxNavigation(t: TFunction, language: string): ToolboxNav
 
   const searchResults = useMemo(() => searchToolboxCards(searchQuery, t), [searchQuery, language, t]);
 
-  const persistToolboxNavConfig = (visibleOrder: ToolboxIndexCardId[], hiddenOrder: ToolboxIndexCardId[]): void => {
-    window.api.storeWrite(TOOLBOX_NAV_ORDER_STORE_KEY, visibleOrder).catch(() => {});
-    window.api.storeWrite(TOOLBOX_HIDDEN_NAV_ORDER_STORE_KEY, hiddenOrder).catch(() => {});
+  const persistToolboxNavConfig = async (): Promise<boolean> => {
+    if (savingRef.current) return false;
+    savingRef.current = true;
+    setNavSaving(true);
+    setNavSaveError(false);
+    try {
+      // 两个窗口同时保存时，仅一个比较快照能成功；失败方重新合并其操作。
+      const commit = async (attempt: number): Promise<void> => {
+        const { raw, config } = await readToolboxNavConfig();
+        const next = applyToolboxNavEdits(config, editsRef.current);
+        const result = await window.api.storeCompareAndSwap(TOOLBOX_NAV_CONFIG_STORE_KEY, raw, next);
+        if (result === 'conflict') {
+          if (attempt >= 4) throw new Error('Toolbox navigation save conflicts exceeded retry limit');
+          return commit(attempt + 1);
+        }
+        if (result !== 'updated') throw new Error('Toolbox navigation save failed');
+        setNavOrder(next.visibleOrder);
+        setHiddenNavOrder(next.hiddenOrder);
+        editsRef.current = [];
+      };
+      await commit(0);
+      return true;
+    } catch {
+      setNavSaveError(true);
+      setNavEditMode(true);
+      return false;
+    } finally {
+      savingRef.current = false;
+      setNavSaving(false);
+    }
   };
 
   const resetToolboxNavConfig = (): void => {
+    if (savingRef.current) return;
+    editedRef.current = true;
+    editsRef.current = [{ type: 'reset' }];
     const nextVisible = [...DEFAULT_TOOLBOX_NAV_ORDER];
     const nextHidden: ToolboxIndexCardId[] = [];
     setNavOrder(nextVisible);
     setHiddenNavOrder(nextHidden);
-    persistToolboxNavConfig(nextVisible, nextHidden);
+    persistToolboxNavConfig().catch(() => undefined);
   };
 
   const navigateByCard = (cardId: ToolboxIndexCardId): void => {
@@ -82,36 +118,25 @@ export function useToolboxNavigation(t: TFunction, language: string): ToolboxNav
 
   useEffect(() => {
     let cancelled = false;
-    window.api.storeRead(TOOLBOX_NAV_ORDER_STORE_KEY).then((savedVisible) => {
-      if (cancelled) return;
-      const visibleRaw = Array.isArray(savedVisible) ? savedVisible : [];
-      window.api.storeRead(TOOLBOX_HIDDEN_NAV_ORDER_STORE_KEY).then((savedHidden) => {
-        if (cancelled) return;
-        const hiddenRaw = Array.isArray(savedHidden) ? savedHidden : [];
-        const validVisible = visibleRaw
-          .filter((id): id is ToolboxIndexCardId => typeof id === 'string' && TOOLBOX_NAV_CARD_MAP.has(id as ToolboxIndexCardId))
-          .filter((id, idx, arr) => arr.indexOf(id) === idx);
-        const mergedVisible = validVisible.length > 0
-          ? [...validVisible, ...DEFAULT_TOOLBOX_NAV_ORDER.filter((id) => !validVisible.includes(id))]
-          : [...DEFAULT_TOOLBOX_NAV_ORDER];
-        const validHidden = hiddenRaw
-          .filter((id): id is ToolboxIndexCardId => typeof id === 'string' && TOOLBOX_NAV_CARD_MAP.has(id as ToolboxIndexCardId))
-          .filter((id, idx, arr) => arr.indexOf(id) === idx)
-          .filter((id) => !mergedVisible.includes(id));
-        setNavOrder(mergedVisible);
-        setHiddenNavOrder(validHidden);
-      }).catch(() => {});
-    }).catch(() => {});
+    readToolboxNavConfig().then(({ config }) => {
+      if (cancelled || editedRef.current) return;
+      setNavOrder(config.visibleOrder);
+      setHiddenNavOrder(config.hiddenOrder);
+    }).catch(() => { /* 读取失败时保留默认配置，保存时使用严格读取防止覆盖。 */ });
     return () => { cancelled = true; };
   }, []);
 
-  const toggleNavEditMode = (): void => {
+  const toggleNavEditMode = async (): Promise<void> => {
+    if (savingRef.current) return;
+    editedRef.current = true;
     if (navEditMode) {
-      persistToolboxNavConfig(navOrder, hiddenNavOrder);
-    }
-    setNavEditMode(!navEditMode);
+      if (await persistToolboxNavConfig()) setNavEditMode(false);
+    } else setNavEditMode(true);
   };
   const removeCard = (cardId: ToolboxIndexCardId): void => {
+    if (savingRef.current) return;
+    editedRef.current = true;
+    editsRef.current.push({ type: 'remove', id: cardId });
     const nextVisible = navOrder.filter((id) => id !== cardId);
     const nextHidden = hiddenNavOrder.includes(cardId)
       ? hiddenNavOrder
@@ -120,6 +145,9 @@ export function useToolboxNavigation(t: TFunction, language: string): ToolboxNav
     setHiddenNavOrder(nextHidden);
   };
   const addCard = (cardId: ToolboxIndexCardId): void => {
+    if (savingRef.current) return;
+    editedRef.current = true;
+    editsRef.current.push({ type: 'add', id: cardId });
     const nextVisible = navOrder.includes(cardId)
       ? navOrder
       : [...navOrder, cardId];
@@ -140,10 +168,13 @@ export function useToolboxNavigation(t: TFunction, language: string): ToolboxNav
     event.preventDefault();
     setDragOverIdx(null);
     const from = dragIdxRef.current;
-    if (from === null || from === index) return;
+    if (savingRef.current || from === null || from === index) return;
     const nextOrder = visibleCards.map((item) => item.id);
     const [moved] = nextOrder.splice(from, 1);
+    if (!moved) return;
     nextOrder.splice(index, 0, moved);
+    editedRef.current = true;
+    editsRef.current.push({ type: 'move', id: moved, before: nextOrder[index + 1] ?? null });
     setNavOrder(nextOrder);
   };
   const handleDragEnd = (): void => {
@@ -154,7 +185,7 @@ export function useToolboxNavigation(t: TFunction, language: string): ToolboxNav
   return {
     activeSidebar, setActiveSidebar, downloadPage, setDownloadPage,
     fileCompressionPage, setFileCompressionPage, formatFactoryPage, setFormatFactoryPage,
-    navEditMode, dragOverIdx, searchQuery, setSearchQuery, visibleCards, hiddenCards, searchResults,
+    navEditMode, navSaving, navSaveError, dragOverIdx, searchQuery, setSearchQuery, visibleCards, hiddenCards, searchResults,
     resetToolboxNavConfig, navigateByCard, toggleNavEditMode, removeCard, addCard,
     handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd,
   };

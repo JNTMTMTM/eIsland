@@ -20,13 +20,89 @@
 
 /**
  * @file toolboxNavigation.ts
- * @description 工具箱卡片排序、隐藏列表和本地化搜索的纯计算。
+ * @description 工具箱导航配置读取与合并、卡片排序及本地化搜索。
  * @author 鸡哥
  */
 
-import { TOOLBOX_NAV_CARD_MAP, TOOLBOX_NAV_CARDS } from '../../tools/config/commonToolboxConfig';
+import { DEFAULT_TOOLBOX_NAV_ORDER, TOOLBOX_NAV_CARD_MAP, TOOLBOX_NAV_CARDS, TOOLBOX_NAV_CONFIG_STORE_KEY, TOOLBOX_NAV_ORDER_STORE_KEY, TOOLBOX_HIDDEN_NAV_ORDER_STORE_KEY } from '../../tools/config/commonToolboxConfig';
 import type { TFunction } from 'i18next';
 import type { ToolboxIndexCardId, ToolboxNavCardDef, ToolboxSearchResult } from '../types';
+
+/** 两种顺序一起提交，避免隐藏列表与可见列表部分保存。 */
+export interface ToolboxNavConfig {
+  visibleOrder: ToolboxIndexCardId[];
+  hiddenOrder: ToolboxIndexCardId[];
+}
+
+/** 记录用户意图，保存时可在其他窗口的最新配置上重放。 */
+export type ToolboxNavEdit =
+  | { type: 'reset' }
+  | { type: 'add' | 'remove'; id: ToolboxIndexCardId }
+  | { type: 'move'; id: ToolboxIndexCardId; before: ToolboxIndexCardId | null };
+
+function validOrder(raw: unknown): ToolboxIndexCardId[] {
+  return Array.isArray(raw) ? [...new Set(raw.filter((id): id is ToolboxIndexCardId =>
+    typeof id === 'string' && TOOLBOX_NAV_CARD_MAP.has(id as ToolboxIndexCardId)))] : [];
+}
+
+/**
+ * 校验旧版及新版顺序，保留明确保存的空列表和隐藏位置。
+ * @param visible - 未校验的可见顺序。
+ * @param hidden - 未校验的隐藏顺序。
+ * @returns 无重复、无交集的配置。
+ */
+export function parseToolboxNavConfig(visible: unknown, hidden: unknown): ToolboxNavConfig {
+  const visibleOrder = validOrder(visible);
+  const hiddenOrder = validOrder(hidden).filter((id) => !visibleOrder.includes(id));
+  const remaining = DEFAULT_TOOLBOX_NAV_ORDER.filter((id) => !visibleOrder.includes(id) && !hiddenOrder.includes(id));
+  // 空数组是用户移除全部卡片后的有效配置；损坏或缺失数据仍恢复默认入口。
+  if (Array.isArray(visible) && visible.length === 0) hiddenOrder.push(...remaining);
+  else visibleOrder.push(...remaining);
+  return { visibleOrder, hiddenOrder };
+}
+
+/**
+ * 优先读取原子配置，首次保存前兼容旧版两个存储键。
+ * @returns 原始比较快照与可用配置。
+ */
+export async function readToolboxNavConfig(): Promise<{ raw: unknown; config: ToolboxNavConfig }> {
+  const raw = await window.api.storeRead(TOOLBOX_NAV_CONFIG_STORE_KEY, true);
+  if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+    const value = raw as Record<string, unknown>;
+    return { raw, config: parseToolboxNavConfig(value.visibleOrder, value.hiddenOrder) };
+  }
+  const visible = await window.api.storeRead(TOOLBOX_NAV_ORDER_STORE_KEY, true);
+  const hidden = await window.api.storeRead(TOOLBOX_HIDDEN_NAV_ORDER_STORE_KEY, true);
+  return { raw, config: parseToolboxNavConfig(visible, hidden) };
+}
+
+/**
+ * 在共享配置上应用本窗口的编辑，保留其他窗口未被本次操作涉及的修改。
+ * @param config - 最新共享配置。
+ * @param edits - 按用户操作顺序记录的编辑。
+ * @returns 合并后的配置。
+ */
+export function applyToolboxNavEdits(config: ToolboxNavConfig, edits: readonly ToolboxNavEdit[]): ToolboxNavConfig {
+  let visibleOrder = [...config.visibleOrder];
+  let hiddenOrder = [...config.hiddenOrder];
+  edits.forEach((edit) => {
+    if (edit.type === 'reset') {
+      visibleOrder = [...DEFAULT_TOOLBOX_NAV_ORDER];
+      hiddenOrder = [];
+    } else if (edit.type === 'remove') {
+      visibleOrder = visibleOrder.filter((id) => id !== edit.id);
+      if (!hiddenOrder.includes(edit.id)) hiddenOrder.push(edit.id);
+    } else if (edit.type === 'add') {
+      hiddenOrder = hiddenOrder.filter((id) => id !== edit.id);
+      if (!visibleOrder.includes(edit.id)) visibleOrder.push(edit.id);
+    } else if (edit.type === 'move' && visibleOrder.includes(edit.id)) {
+      visibleOrder = visibleOrder.filter((id) => id !== edit.id);
+      const index = edit.before === null ? -1 : visibleOrder.indexOf(edit.before);
+      visibleOrder.splice(index < 0 ? visibleOrder.length : index, 0, edit.id);
+    }
+  });
+  return { visibleOrder, hiddenOrder };
+}
 
 /**
  * 按可见顺序解析卡片，并排除重复及失效入口。

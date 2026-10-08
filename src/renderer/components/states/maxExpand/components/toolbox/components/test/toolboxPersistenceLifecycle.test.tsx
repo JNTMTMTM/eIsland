@@ -95,34 +95,35 @@ afterEach(() => {
 describe('toolbox native persistence lifecycle', () => {
   it.each([null, {
     corrupt: true
-  }, []])('invalid or empty stored visible order uses all default cards: %j', async (visible) => {
-    read.mockResolvedValueOnce(visible).mockResolvedValueOnce({
+  }])('invalid stored visible order uses all default cards: %j', async (visible) => {
+    read.mockResolvedValueOnce(null).mockResolvedValueOnce(visible).mockResolvedValueOnce({
       corrupt: true
     });
     renderHook(Component);
     flushHookEffects();
     await settleHook();
-    expect(read).toHaveBeenNthCalledWith(1, 'toolbox-nav-order');
-    expect(read).toHaveBeenNthCalledWith(2, 'toolbox-hidden-nav-order');
+    expect(read).toHaveBeenNthCalledWith(1, 'toolbox-nav-config', true);
+    expect(read).toHaveBeenNthCalledWith(2, 'toolbox-nav-order', true);
+    expect(read).toHaveBeenNthCalledWith(3, 'toolbox-hidden-nav-order', true);
     expect(cards()).toHaveLength(12);
     expect(cards()[0]).toContain('download-create');
   });
   it('hidden-order rejection consumes failure without applying a partially loaded visible order', async () => {
-    read.mockResolvedValueOnce(['software']).mockRejectedValueOnce(new Error('store denied'));
+    read.mockResolvedValueOnce(null).mockResolvedValueOnce(['software']).mockRejectedValueOnce(new Error('store denied'));
     renderHook(Component);
     flushHookEffects();
     await settleHook();
-    expect(read).toHaveBeenCalledTimes(2);
+    expect(read).toHaveBeenCalledTimes(3);
     expect(cards()[0]).toContain('download-create');
     expect(cards()).toHaveLength(12);
   });
   it('unmount during the second read prevents late values from replacing default cards', async () => {
     const hidden = deferred<unknown>();
-    read.mockResolvedValueOnce(['software']).mockReturnValueOnce(hidden.promise);
+    read.mockResolvedValueOnce(null).mockResolvedValueOnce(['software']).mockReturnValueOnce(hidden.promise);
     renderHook(Component);
     flushHookEffects();
     await settleHook();
-    expect(read).toHaveBeenCalledTimes(2);
+    expect(read).toHaveBeenCalledTimes(3);
     unmountHook();
     hidden.resolve([]);
     await settleHook();
