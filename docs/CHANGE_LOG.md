@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-06T22:54:43.920Z
+> 生成时间：2026-10-08T21:12:33.687Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,19 @@
 
 ## Unreleased
 
+- 2026-10-08 | ac27be29 | 鸡哥 | Merge pull request #226 from JNTMTMTM/dev
+- 2026-10-09 | 9ffada96 | 鸡哥 | feat(toolbox): enhance navigation persistence with save error handling and configuration management
+- 2026-10-09 | 80f5d5ac | 鸡哥 | feat(i18n): add save error messages for navigation in multiple languages
+- 2026-10-09 | dca5afd5 | 鸡哥 | feat(e2e): add icon probe for executable icon extraction testing
+- 2026-10-09 | fba8332e | 鸡哥 | ci(i18n): enhance completeness check with detailed Markdown report generation
+- 2026-10-08 | 69b989d6 | 鸡哥 | feat(e2e): enhance Windows E2E testing with native plugin support
+- 2026-10-07 | 7bd5752b | 鸡哥 | feat(docs): enhance developer documentation with Electron E2E testing details and commands
+- 2026-10-07 | 2a86d99f | 鸡哥 | feat(e2e): implement end-to-end testing framework with Playwright and update configurations
+- 2026-10-07 | d412cae4 | 鸡哥 | feat(e2e): add end-to-end testing setup with Playwright and configure workflows
+- 2026-10-07 | b2d642e2 | 鸡哥 | test: add unit tests for MiniGameTab component and its runtime behavior
+- 2026-10-07 | 4dbbf794 | 鸡哥 | feat(toolbox): add toolbox navigation and persistence features
+- 2026-10-07 | 85319764 | 鸡哥 | feat(MaxExpandAppControls): refactor and relocate component to shared directory; update tests accordingly
+- 2026-10-06 | 411adb9e | eislandBot | docs: auto update CHANGE_LOG.md for #225 by @JNTMTMTM [skip ci]
 - 2026-10-06 | 8662c5e8 | 鸡哥 | Merge pull request #225 from JNTMTMTM/dev
 - 2026-10-07 | f3fa638e | 鸡哥 | feat(miniGame): add Gomoku and 2048 game hooks, navigation, and leaderboard management
 - 2026-10-06 | 07bc0d51 | 鸡哥 | ci(pr-code-quality-review): enhance syntax checks and add test coverage
