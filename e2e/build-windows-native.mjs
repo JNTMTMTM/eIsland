@@ -39,6 +39,15 @@ const helpers = [
   { plugin: 'application-icon', project: 'eIslandAppIconHelper', native: true, framework: 'net10.0-windows10.0.19041.0' },
 ];
 
+// 测试程序嵌入固定 32×32 四色图标，避免 Electron 升级改变预期像素。
+const iconProbe = spawnSync('dotnet', ['build', resolve('e2e/fixtures/icon-probe/IconProbe.csproj'), '-c', 'Release'], {
+  stdio: 'inherit', windowsHide: true,
+});
+if (iconProbe.error || iconProbe.status !== 0) {
+  throw iconProbe.error ?? new Error(`Failed to build icon probe: exit ${iconProbe.status}`);
+}
+accessSync(resolve('e2e/fixtures/icon-probe/bin/Release/net10.0/IconProbe.exe'));
+
 helpers.forEach(({ plugin, project, native, framework }) => {
   const directory = resolve(`plugins/eisland-windows-${plugin}-helper/src`);
   const args = [native ? 'publish' : 'build', resolve(directory, `${project}.csproj`), '-c', 'Release'];

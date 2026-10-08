@@ -59,13 +59,32 @@ test.beforeEach(async ({ desktop }) => {
 });
 
 test('extracts an executable icon through the real native DLL and IPC', async ({ desktop }) => {
-  const executable = await desktop.app.evaluate(() => process.execPath);
+  const executable = resolve('e2e/fixtures/icon-probe/bin/Release/net10.0/IconProbe.exe');
+  await access(executable);
   const icon = await desktop.main.evaluate((path) => window.api.getFileIcon(path), executable);
   expect(icon).toBeTruthy();
   const bytes = Buffer.from(icon!, 'base64');
   expect(bytes.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
   expect(bytes.readUInt32BE(16)).toBeGreaterThan(0);
   expect(bytes.readUInt32BE(20)).toBeGreaterThan(0);
+  // 比较解码后的全部 RGBA 像素，通用 PNG 和错误程序图标都不能通过。
+  const extracted = await desktop.main.evaluate(async (base64) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${base64}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext('2d')!;
+    context.drawImage(image, 0, 0);
+    return { width: canvas.width, height: canvas.height, pixels: Array.from(context.getImageData(0, 0, canvas.width, canvas.height).data) };
+  }, icon!);
+  expect(extracted.width).toBe(32);
+  expect(extracted.height).toBe(32);
+  const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255], [255, 255, 0, 255]];
+  const expected = Array.from({ length: 32 * 32 }, (...[, index]) =>
+    colors[(Math.floor(index / 32) >= 16 ? 2 : 0) + (index % 32 >= 16 ? 1 : 0)]).flat();
+  expect(extracted.pixels).toEqual(expected);
   const missing = await desktop.main.evaluate((path) => window.api.getFileIcon(`${path}.missing`), executable);
   expect(missing).toBeNull();
   expect(desktop.rendererErrors).toEqual([]);
