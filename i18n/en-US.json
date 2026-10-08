@@ -1700,6 +1700,7 @@
       },
       "index": {
         "title": "Quick Navigation",
+        "saveError": "Could not save navigation. Your edits are retained; please try again.",
         "reset": "Reset",
         "edit": "Edit",
         "done": "Done",
