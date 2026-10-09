@@ -92,10 +92,30 @@ describe('network proxy resource bounds', () => {
     const result = fetch();
     request.emit('response', response);
     response.emit('data', Buffer.from('partial'));
-    if (event === 'close') request.emit('close');
-    else response.emit(event, new Error('closed'));
+    response.emit(event, new Error('closed'));
     response.emit('end');
     await expect(result).resolves.toEqual({ ok: false, status: 0, body: '' });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('waits for the OAuth response when Electron emits request close immediately after end', async () => {
+    request.end.mockImplementation(() => request.emit('close'));
+    const result = fetch();
+    await vi.advanceTimersByTimeAsync(100);
+    request.emit('response', response);
+    const body = JSON.stringify({ code: 200, data: [{ provider: 'github' }] });
+    response.emit('data', Buffer.from(body));
+    response.emit('end');
+    await expect(result).resolves.toEqual({ body, ok: true, status: 200 });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('still times out if request close is followed by no response', async () => {
+    const result = fetch();
+    request.emit('close');
+    await vi.advanceTimersByTimeAsync(1000);
+    await expect(result).resolves.toEqual({ ok: false, status: 408, body: 'timeout' });
+    expect(request.abort).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);
   });
 
