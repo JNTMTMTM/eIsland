@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-09T02:19:03.090Z
+> 生成时间：2026-10-09T05:48:34.254Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,10 @@
 
 ## Unreleased
 
+- 2026-10-08 | 9e08b49c | 鸡哥 | Merge pull request #228 from JNTMTMTM/dev
+- 2026-10-09 | 10a5cfe4 | 鸡哥 | fix: remove 'close' event handling from network response to prevent unnecessary cleanup
+- 2026-10-09 | 212082e9 | 鸡哥 | feat: enhance network request handling with close event and additional tests
+- 2026-10-09 | 37663dac | eislandBot | docs: auto update CHANGE_LOG.md for #227 by @JNTMTMTM [skip ci]
 - 2026-10-08 | 5296afb1 | 鸡哥 | Merge pull request #227 from JNTMTMTM/dev
 - 2026-10-08 | fc3574a9 | 鸡哥 | feat: update .gitignore to include coverage and vitest directories
 - 2026-10-08 | 7436706b | 鸡哥 | feat: add macOS Media Helper plugin and update documentation
