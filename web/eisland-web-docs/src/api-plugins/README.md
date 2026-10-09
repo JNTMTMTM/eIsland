@@ -7,7 +7,7 @@ icon: plug
 # Plugin API Reference
 
 :::info
-Complete API reference for all eIsland native plugins. Each plugin provides Windows-specific system capabilities through a unified Node.js interface.
+Complete API reference for all eIsland native plugins. Windows plugins provide system capabilities through Node.js; the independent macOS Media Helper provides current-source media metadata and controls on macOS. Platform support is documented per plugin.
 :::
 
 ## Plugin Categories
@@ -43,5 +43,6 @@ Complete API reference for all eIsland native plugins. Each plugin provides Wind
 | Plugin | Description |
 |--------|-------------|
 | [Windows SMTC Helper](media-notifications/smtc-helper.md) | System Media Transport Controls |
+| [macOS Media Helper](media-notifications/macos-media-helper.md) | Current Now Playing source, artwork, timeline, and asynchronous controls |
 | [Windows Toast Listener](media-notifications/toast-listener.md) | Toast notification listening and suppression |
 | [Windows Volume Analyzer](media-notifications/volume-analyzer.md) | Process-specific audio analysis (frequency, amplitude, beat) |

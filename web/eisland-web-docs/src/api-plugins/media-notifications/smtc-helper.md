@@ -6,12 +6,16 @@ icon: music
 
 # Windows SMTC Helper
 
-`@eisland/windows-smtc-helper` · v26.0.0
+`@eisland/windows-smtc-helper` · v26.0.1
 
 System Media Transport Controls via .NET NativeAOT DLL (koffi FFI).
 
 :::note
 SMTC commands (`play`, `pause`, `next`, `previous`, `seek`, `stop`) only work when a media session is active. Call `getStatus` first to verify a session exists before issuing commands.
+:::
+
+:::info macOS counterpart
+See [macOS Media Helper](macos-media-helper.md) for the Swift + Node-API plugin and its compatibility table. macOS commands return Promises, queries read a cache, and session enumeration contains at most the system current source. Neither plugin exposes a public playback command accepting a source ID.
 :::
 
 ## Interfaces

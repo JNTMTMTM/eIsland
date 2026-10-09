@@ -6,12 +6,12 @@ icon: toolbox
 # Plugins Tech Stack
 
 :::warning
-This document provides an overview of the native Node.js addon plugins used in the eIsland application. Plugins are **Windows-only**. Two plugins (Processes Attacker, Fullscreen Detector) use **C + N-API** via **node-gyp**, one (Toast Listener) uses **C++ + N-API**, and the remaining seven use **C# .NET** with **koffi FFI** (NativeAOT DLL) or **child process** integration.
+This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration.
 :::
 
 ## Overview
 
-The eIsland plugin system consists of ten native addons that provide low-level Windows system capabilities unavailable through standard Node.js APIs:
+The plugin system includes Windows native helpers and an independent macOS media helper:
 
 | Plugin | Package | Purpose |
 |--------|---------|---------|
@@ -19,6 +19,7 @@ The eIsland plugin system consists of ten native addons that provide low-level W
 | **Fullscreen Detector** | `@eisland/windows-fullscreen-detector` | Detect foreground fullscreen windows |
 | **Performance Monitor** | `@eisland/windows-performance-monitor` | CPU, memory, and temperature snapshots |
 | **SMTC Helper** | `@eisland/windows-smtc-helper` | System Media Transport Controls (play, pause, next, previous, status) |
+| **macOS Media Helper** | `eisland-macos-media-helper` | Current-source metadata, artwork, timeline, events, and asynchronous playback commands |
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
@@ -36,10 +37,11 @@ The eIsland plugin system consists of ten native addons that provide low-level W
 | **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Application Icon Helper, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C# .NET EXE (spawnSync/spawn)** | Brightness Helper | `dotnet build` | Spawned .NET console EXE |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
+| **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
 **Common Characteristics:**
 
-- **Platform**: Windows only (`"os": ["win32"]`)
+- **Platform**: Windows helpers use `"os": ["win32"]`; macOS Media Helper uses `"os": ["darwin"]` with separate arm64 and x64 prebuilds.
 - **License**: GPL-3.0
 - **TypeScript**: `.d.ts` type declarations provided
 

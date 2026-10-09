@@ -6,7 +6,7 @@ icon: plug
 # Plugin Commands
 
 :::info
-This document covers all build, test, and smoke commands for eIsland native plugins. Each Windows plugin lives under `plugins/windows/` and has its own `package.json` with independent scripts.
+This document covers all build, test, and smoke commands for eIsland native plugins. Windows plugins live under `plugins/windows/`; the macOS Media Helper lives under `plugins/macos/`. Each plugin has its own `package.json` with independent scripts.
 :::
 
 ## Overview
@@ -14,7 +14,7 @@ This document covers all build, test, and smoke commands for eIsland native plug
 All commands are run from the individual plugin directory:
 
 ```bash
-cd plugins/windows/<plugin-name>
+cd plugins/<platform>/<plugin-name>
 npm run <script>
 ```
 
@@ -25,6 +25,7 @@ npm run <script>
 | **Processes Attacker** | `eisland-windows-processes-attacker` | C | node-gyp | ❌ | ❌ |
 | **Toast Listener** | `eisland-windows-toast-listener` | C++ | node-gyp | ✅ | ✅ |
 | **SMTC Helper** | `eisland-windows-smtc-helper` | C# | dotnet | ✅ | ✅ |
+| **macOS Media Helper** | `plugins/macos/eisland-macos-media-helper` | Swift + C / Node-API | Xcode tools via Node build script | ✅ | ✅ |
 | **Bluetooth Helper** | `eisland-windows-bluetooth-helper` | C# | dotnet | ✅ | ✅ |
 | **Brightness Helper** | `eisland-windows-brightness-helper` | C# | dotnet | ✅ | ✅ |
 | **Application Icon Helper** | `eisland-windows-application-icon-helper` | C# | dotnet | ✅ | ✅ |
@@ -32,7 +33,7 @@ npm run <script>
 
 ## Common Commands
 
-All plugins share these three build commands:
+The following common commands apply to Windows plugins. The [macOS Media Helper](#macos-media-helper) uses its own build scripts and does not provide `clean` or `rebuild`.
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
@@ -46,12 +47,12 @@ After modifying `binding.gyp` (e.g., adding a new source file or library), alway
 
 ## Bulk Operations
 
-Run from the **project root** to build or clean all plugins at once.
+Run from the **project root** to build or clean the Windows plugins at once. Build the macOS plugin from its own directory.
 
 | Command | Description |
 |---------|-------------|
-| `npm run plugins:build` | Build all 10 plugins sequentially (uses `build:all` where available) |
-| `npm run plugins:clean` | Clean all 10 plugins in parallel |
+| `npm run plugins:build` | Build the 13 configured Windows plugins sequentially (uses `build:all` where available) |
+| `npm run plugins:clean` | Clean the 13 configured Windows plugins in parallel |
 
 :::tip
 `plugins:build` automatically uses `build:all` for Bluetooth, Power, SMTC, and WiFi Helpers (which include NativeAOT DLL targets). All other plugins use `build`.
@@ -240,6 +241,46 @@ This is a pure .NET plugin with two build targets: a console exe (for Node.js) a
 | `npm run smoke:seek` | `node --experimental-strip-types test/smtc-helper.seek.smoke.ts` | Seek + extended controls — seek, stop, shuffle, repeat, rate |
 | `npm run smoke:monitor` | `node --experimental-strip-types test/smtc-helper.monitor.smoke.ts` | Monitor smoke — event-driven session tracking for 8s |
 | `npm run smoke:timestamp` | `node --experimental-strip-types test/smtc-helper.timestamp.smoke.ts` | Timestamp smoke — lightweight timestamp query, compares with `getStatus()` |
+
+---
+
+## macOS Media Helper
+
+**Directory:** `plugins/macos/eisland-macos-media-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-media-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
+
+:::info
+See the [API reference](../../api-plugins/media-notifications/macos-media-helper.md) for configuration, artwork, event handling, Electron packaging, and differences from Windows SMTC. Development requires Xcode Command Line Tools; use Node.js 22.12+ for Vitest 4.1 and its locked toolchain.
+:::
+
+### Build / Usage
+
+| Command | Script | Description |
+|---------|--------|-------------|
+| `npm ci` | npm dependency installation | Install the locked development dependencies |
+| `npm run build` | `node scripts/build.mjs` | Build the host architecture |
+| `npm run build:all` | `node scripts/build.mjs --all` | Build separate arm64 and x64 prebuilds |
+| `npm pack` | Runs `prepack` automatically | Build both architectures and create the npm archive |
+
+### Test
+
+| Command | Script | Description |
+|---------|--------|-------------|
+| `npm test` | `vitest run --config vitest.config.mjs` | Run 15 tests using the real Swift / Node-API layer and isolated Perl fixtures |
+| `npm run smoke` | `node test/smoke.cjs` | Read real metadata, artwork preview, playback state, duration, and position |
+| `npm run test:plugins -- mediaHelperRuntime.test.mjs` | Root Vitest plugins project | Run the same tests from the repository root after building the plugin |
+
+:::note
+The smoke script sends no playback commands. `thumbnailPreview` contains up to the first 120 characters of the artwork Data URL plus `...` when truncated; `thumbnailLength` is the full Data URL character count. Fixture tests do not establish whether a real player executes playback controls. Scripts under `test/` are repository development tools and are not included in the published package.
+:::
+
+### Source Files
+
+| File | Responsibility |
+|------|---------------|
+| `src/MediaCore.swift` | Cached media state, timeline interpolation, and MediaRemote bridge requests |
+| `src/addon.c` | Node-API exports, asynchronous request completion, and environment cleanup |
+| `test/mediaHelperRuntime.test.mjs` | Vitest metadata, command mapping, monitoring, timeout, and Worker lifecycle checks |
+| `test/smoke.cjs` | Read-only system metadata and artwork diagnostics |
 
 ---
 
