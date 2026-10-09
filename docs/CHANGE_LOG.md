@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-08T21:12:33.687Z
+> 生成时间：2026-10-09T02:19:03.090Z
 
 ## 26.7.4
 
@@ -3569,6 +3569,13 @@
 
 ## Unreleased
 
+- 2026-10-08 | 5296afb1 | 鸡哥 | Merge pull request #227 from JNTMTMTM/dev
+- 2026-10-08 | fc3574a9 | 鸡哥 | feat: update .gitignore to include coverage and vitest directories
+- 2026-10-08 | 7436706b | 鸡哥 | feat: add macOS Media Helper plugin and update documentation
+- 2026-10-08 | c696aa5e | 鸡哥 | feat: add MediaRemote functionality and testing framework
+- 2026-10-09 | 503992ba | 鸡哥 | refactor: add WiFi monitoring functionality with tests and configuration
+- 2026-10-09 | d4b2bc83 | 鸡哥 | feat: add .gitkeep to macos plugin directory
+- 2026-10-08 | 0ef77f62 | eislandBot | docs: auto update CHANGE_LOG.md for #226 by @JNTMTMTM [skip ci]
 - 2026-10-08 | ac27be29 | 鸡哥 | Merge pull request #226 from JNTMTMTM/dev
 - 2026-10-09 | 9ffada96 | 鸡哥 | feat(toolbox): enhance navigation persistence with save error handling and configuration management
 - 2026-10-09 | 80f5d5ac | 鸡哥 | feat(i18n): add save error messages for navigation in multiple languages
