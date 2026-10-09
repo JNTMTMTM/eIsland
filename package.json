@@ -1,6 +1,6 @@
 {
   "name": "eisland",
-  "version": "26.7.4",
+  "version": "27.0.0",
   "description": "A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.",
   "main": "./out/main/index.js",
   "author": "JNTMTMTM",
