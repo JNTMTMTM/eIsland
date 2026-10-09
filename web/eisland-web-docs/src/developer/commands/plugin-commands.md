@@ -6,7 +6,7 @@ icon: plug
 # Plugin Commands
 
 :::info
-This document covers all build, test, and smoke commands for eIsland native plugins. Windows plugins live under `plugins/windows/`; the macOS Media Helper lives under `plugins/macos/`. Each plugin has its own `package.json` with independent scripts.
+This document covers all build, test, and smoke commands for eIsland native plugins. Windows plugins live under `plugins/windows/`; macOS helpers live under `plugins/macos/`. Each plugin has its own `package.json` with independent scripts.
 :::
 
 ## Overview
@@ -25,6 +25,7 @@ npm run <script>
 | **Processes Attacker** | `eisland-windows-processes-attacker` | C | node-gyp | ❌ | ❌ |
 | **Toast Listener** | `eisland-windows-toast-listener` | C++ | node-gyp | ✅ | ✅ |
 | **SMTC Helper** | `eisland-windows-smtc-helper` | C# | dotnet | ✅ | ✅ |
+| **macOS Brightness Helper** | `plugins/macos/eisland-macos-brightness-helper` | Swift + C / Node-API | Xcode tools via Node build script | ✅ | ✅ |
 | **macOS Media Helper** | `plugins/macos/eisland-macos-media-helper` | Swift + C / Node-API | Xcode tools via Node build script | ✅ | ✅ |
 | **Bluetooth Helper** | `eisland-windows-bluetooth-helper` | C# | dotnet | ✅ | ✅ |
 | **Brightness Helper** | `eisland-windows-brightness-helper` | C# | dotnet | ✅ | ✅ |
@@ -33,7 +34,7 @@ npm run <script>
 
 ## Common Commands
 
-The following common commands apply to Windows plugins. The [macOS Media Helper](#macos-media-helper) uses its own build scripts and does not provide `clean` or `rebuild`.
+The following common commands apply to Windows plugins. The macOS helpers use their own build scripts and do not provide `clean` or `rebuild`.
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
@@ -241,6 +242,49 @@ This is a pure .NET plugin with two build targets: a console exe (for Node.js) a
 | `npm run smoke:seek` | `node --experimental-strip-types test/smtc-helper.seek.smoke.ts` | Seek + extended controls — seek, stop, shuffle, repeat, rate |
 | `npm run smoke:monitor` | `node --experimental-strip-types test/smtc-helper.monitor.smoke.ts` | Monitor smoke — event-driven session tracking for 8s |
 | `npm run smoke:timestamp` | `node --experimental-strip-types test/smtc-helper.timestamp.smoke.ts` | Timestamp smoke — lightweight timestamp query, compares with `getStatus()` |
+
+---
+
+## macOS Brightness Helper
+
+**Directory:** `plugins/macos/eisland-macos-brightness-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-brightness-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
+
+:::info
+See the [API reference](../../api-plugins/display-graphics/macos-brightness-helper.md) for target selection, polling, DDC limits, and Electron packaging. Development requires Xcode Command Line Tools and Node.js 22.12+ for the locked Vitest toolchain.
+:::
+
+### Build / Usage
+
+| Command | Script | Description |
+|---------|--------|-------------|
+| `npm ci` | npm dependency installation | Install locked development dependencies |
+| `npm run build` | `node scripts/build.mjs` | Build host architecture and native logic tests |
+| `npm run build:all` | `node scripts/build.mjs --all` | Build arm64 and x64 prebuilds |
+| `npm pack` | Runs `prepack` | Build both architectures and create the npm archive |
+
+### Test
+
+| Command | Script | Description |
+|---------|--------|-------------|
+| `npm test` | Vitest after native test compilation | Run 29 JS, Swift core, DDC protocol, and Node-API checks |
+| `npm run smoke` | `node test/smoke.cjs` | Print the real hardware brightness snapshot |
+| `npm run smoke:monitor` | `node test/smoke.cjs --monitor` | Observe manual changes for 8 seconds |
+| `npm run smoke:verify-set` | `node test/smoke.cjs --verify-set` | Verify a five-point system brightness change, events, and restoration |
+| `npm run test:plugins -- brightnessRuntime.test.mjs` | Root Vitest plugins project | Run after building the plugin |
+
+:::note
+The default smoke only reads. The setting smoke attempts restoration even after failure, and rejects DDC fallback because it may affect multiple displays. Native tests require macOS. Development tests and smoke scripts are excluded from the npm archive.
+:::
+
+### Source Files
+
+| File | Responsibility |
+|------|---------------|
+| `src/BrightnessCore.swift` | Hardware target selection and normalization |
+| `src/NativeDisplays.swift` / `src/DDCProtocol.swift` | Native backends, DDC transfer, and protocol validation |
+| `src/addon.c` | Node-API binding |
+| `test/brightnessRuntime.test.mjs` / `test/NativeCoreTests.swift` | Vitest and compiled Swift tests |
+| `test/smoke.cjs` | Hardware diagnostics and reversible setting verification |
 
 ---
 

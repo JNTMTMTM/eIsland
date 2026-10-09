@@ -90,6 +90,11 @@ export default sidebar({
       ],
     },
     {
+      text: "macOS Brightness Helper",
+      icon: "sun",
+      link: "display-graphics/macos-brightness-helper.md",
+    },
+    {
       text: "Windows Fullscreen Detector",
       icon: "maximize",
       collapsible: true,
