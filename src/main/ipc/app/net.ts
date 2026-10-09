@@ -221,7 +221,6 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
             finish({ ok: false, status: 0, body: '' });
           });
           response.on('aborted', () => finish({ ok: false, status: 0, body: '' }));
-          response.on('close', () => finish({ ok: false, status: 0, body: '' }));
           const declaredLength = Number(response.headers?.['content-length']);
           if (!settled && declaredLength > MAX_NET_RESPONSE_BYTES) rejectOversizedResponse();
         });

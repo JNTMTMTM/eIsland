@@ -88,7 +88,7 @@ describe('network proxy resource bounds', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it.each(['aborted', 'close', 'error'])('cleans up partial data on response %s', async (event) => {
+  it.each(['aborted', 'error'])('cleans up partial data on response %s', async (event) => {
     const result = fetch();
     request.emit('response', response);
     response.emit('data', Buffer.from('partial'));
