@@ -231,7 +231,7 @@ export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): 
           finish({ ok: false, status: 0, body: '' });
         });
         request.on('abort', () => finish({ ok: false, status: 0, body: '' }));
-        request.on('close', () => finish({ ok: false, status: 0, body: '' }));
+        // Electron 的 request.close 可能在 end() 后、响应到达前触发；仅以响应结束、错误或超时结算。
 
         try {
           if (allowsBody && typeof body === 'string') {
