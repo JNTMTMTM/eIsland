@@ -46,21 +46,21 @@ interface ExtensionBuildConfig {
 const EXTENSIONS: ExtensionBuildConfig[] = [
   {
     id: 'volume-analyzer',
-    pluginDir: 'plugins/eisland-windows-volume-analyzer',
+    pluginDir: 'plugins/windows/eisland-windows-volume-analyzer',
     csproj: 'src/eIslandVolumeAnalyzer.csproj',
     exeName: 'eIslandVolumeAnalyzer.exe',
     rid: 'win-x64',
   },
   {
     id: 'volume-helper',
-    pluginDir: 'plugins/eisland-windows-volume-helper',
+    pluginDir: 'plugins/windows/eisland-windows-volume-helper',
     csproj: 'src/eIslandVolumeHelper.csproj',
     exeName: 'eIslandVolumeHelper.exe',
     rid: 'win-x64',
   },
   {
     id: 'brightness-helper',
-    pluginDir: 'plugins/eisland-windows-brightness-helper',
+    pluginDir: 'plugins/windows/eisland-windows-brightness-helper',
     csproj: 'src/eIslandBrightnessReader.csproj',
     exeName: 'eIslandBrightnessReader.exe',
     rid: 'win-x64',

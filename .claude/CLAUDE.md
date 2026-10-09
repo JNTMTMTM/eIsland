@@ -105,7 +105,7 @@ Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` s
 
 **Any change to a plugin's source code requires a version bump in its `package.json`.**
 
-- After modifying files under `plugins/<name>/`, check if `plugins/<name>/package.json` version was incremented.
+- After modifying files under `plugins/<platform>/<name>/`, check if `plugins/<platform>/<name>/package.json` version was incremented.
 - Follow semver: patch for bug fixes, minor for new features, major for breaking changes.
 - The `publish-plugins.yml` workflow skips publish when the version is unchanged — forgetting the bump means the change never ships.
 

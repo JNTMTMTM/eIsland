@@ -64,7 +64,7 @@ function loadPlugin(name: string, prefix: string) {
       return copied;
     };
   };
-  const directory = path.resolve('plugins', `eisland-windows-${name}-helper`);
+  const directory = path.resolve('plugins', 'windows', `eisland-windows-${name}-helper`);
   const filename = path.join(directory, 'ffi-loader.js');
   const cjsModule = { exports: {} as Loader };
   runInNewContext(readFileSync(filename, 'utf8'), {

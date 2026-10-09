@@ -39,7 +39,7 @@ const execFileAsync = promisify(execFile);
  * @returns 设备查询的原始结果；设备不可用时为 null。
  */
 async function probeDevice(plugin: string, executable: string): Promise<Record<string, unknown> | null> {
-  const { stdout } = await execFileAsync(resolve(`plugins/eisland-windows-${plugin}-helper/src/bin/Release/net10.0/${executable}.exe`), ['get'], {
+  const { stdout } = await execFileAsync(resolve(`plugins/windows/eisland-windows-${plugin}-helper/src/bin/Release/net10.0/${executable}.exe`), ['get'], {
     windowsHide: true, timeout: 10_000,
   });
   const result = JSON.parse(stdout) as Record<string, unknown> | null;
@@ -53,8 +53,8 @@ test.beforeEach(async ({ desktop }) => {
   test.skip(native !== '1', 'Build with npm run build:e2e:windows to load real native helpers.');
   // 缺失 helper 属于构建失败，不能被误报为 runner 没有硬件而跳过。
   await Promise.all([
-    access(resolve('plugins/eisland-windows-volume-helper/src/bin/Release/net10.0/eIslandVolumeHelper.exe')),
-    access(resolve('plugins/eisland-windows-brightness-helper/src/bin/Release/net10.0/eIslandBrightnessReader.exe')),
+    access(resolve('plugins/windows/eisland-windows-volume-helper/src/bin/Release/net10.0/eIslandVolumeHelper.exe')),
+    access(resolve('plugins/windows/eisland-windows-brightness-helper/src/bin/Release/net10.0/eIslandBrightnessReader.exe')),
   ]);
 });
 

@@ -49,7 +49,7 @@ if (iconProbe.error || iconProbe.status !== 0) {
 accessSync(resolve('e2e/fixtures/icon-probe/bin/Release/net10.0/IconProbe.exe'));
 
 helpers.forEach(({ plugin, project, native, framework }) => {
-  const directory = resolve(`plugins/eisland-windows-${plugin}-helper/src`);
+  const directory = resolve(`plugins/windows/eisland-windows-${plugin}-helper/src`);
   const args = [native ? 'publish' : 'build', resolve(directory, `${project}.csproj`), '-c', 'Release'];
   // EXE 加载器查找无 RID 的 net10.0 目录；DLL 必须使用 Native AOT，不能加载托管程序集。
   args.push(...(native ? ['-r', 'win-x64'] : ['-p:RuntimeIdentifier=', '-p:SelfContained=false']));

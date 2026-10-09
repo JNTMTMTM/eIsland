@@ -6,12 +6,12 @@ icon: toolbox
 # Plugins Tech Stack
 
 :::warning
-This document provides an overview of the native Node.js addon plugins used in the eIsland application. Plugins are **Windows-only**. Two plugins (Processes Attacker, Fullscreen Detector) use **C + N-API** via **node-gyp**, one (Toast Listener) uses **C++ + N-API**, and the remaining seven use **C# .NET** with **koffi FFI** (NativeAOT DLL) or **child process** integration.
+This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration.
 :::
 
 ## Overview
 
-The eIsland plugin system consists of ten native addons that provide low-level Windows system capabilities unavailable through standard Node.js APIs:
+The plugin system includes Windows native helpers and an independent macOS media helper:
 
 | Plugin | Package | Purpose |
 |--------|---------|---------|
@@ -19,6 +19,7 @@ The eIsland plugin system consists of ten native addons that provide low-level W
 | **Fullscreen Detector** | `@eisland/windows-fullscreen-detector` | Detect foreground fullscreen windows |
 | **Performance Monitor** | `@eisland/windows-performance-monitor` | CPU, memory, and temperature snapshots |
 | **SMTC Helper** | `@eisland/windows-smtc-helper` | System Media Transport Controls (play, pause, next, previous, status) |
+| **macOS Media Helper** | `eisland-macos-media-helper` | Current-source metadata, artwork, timeline, events, and asynchronous playback commands |
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
@@ -36,10 +37,11 @@ The eIsland plugin system consists of ten native addons that provide low-level W
 | **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Application Icon Helper, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C# .NET EXE (spawnSync/spawn)** | Brightness Helper | `dotnet build` | Spawned .NET console EXE |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
+| **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
 **Common Characteristics:**
 
-- **Platform**: Windows only (`"os": ["win32"]`)
+- **Platform**: Windows helpers use `"os": ["win32"]`; macOS Media Helper uses `"os": ["darwin"]` with separate arm64 and x64 prebuilds.
 - **License**: GPL-3.0
 - **TypeScript**: `.d.ts` type declarations provided
 
@@ -1038,7 +1040,7 @@ In NativeAOT, `string[]` and `List<string>` cannot be converted to WinRT `IItera
 ### Build
 
 ```bash
-cd plugins/eisland-windows-bluetooth-helper
+cd plugins/windows/eisland-windows-bluetooth-helper
 npm run build          # dotnet build src/eIslandBluetoothHelper.csproj
 npm run build:ctypes   # dotnet publish bt-ctypes/... (NativeAOT DLL)
 npm run build:all      # Both
@@ -1217,7 +1219,7 @@ The JavaScript layer implements low battery detection by comparing current and p
 ### Build
 
 ```bash
-cd plugins/eisland-windows-power-helper
+cd plugins/windows/eisland-windows-power-helper
 npm run build          # dotnet build src/eIslandPowerHelper.csproj
 npm run build:ctypes   # dotnet publish pw-ctypes/... (NativeAOT DLL)
 npm run build:all      # Both
@@ -1384,7 +1386,7 @@ The SSID is extracted via `ConnectionProfile.WlanConnectionProfileDetails.GetCon
 ### Build
 
 ```bash
-cd plugins/eisland-windows-wifi-helper
+cd plugins/windows/eisland-windows-wifi-helper
 npm run build          # dotnet build src/eIslandWifiHelper.csproj
 npm run build:ctypes   # dotnet publish wf-ctypes/... (NativeAOT DLL)
 npm run build:all      # Both
@@ -1582,7 +1584,7 @@ The .NET console EXE approach avoids this entirely — `System.Management` works
 ### Build
 
 ```bash
-cd plugins/eisland-windows-brightness-helper
+cd plugins/windows/eisland-windows-brightness-helper
 npm run build    # dotnet build src/eIslandBrightnessReader.csproj -c Release
 ```
 
@@ -2294,7 +2296,7 @@ The `SmtcMonitor` uses WinRT event callbacks (`MediaPropertiesChanged`, `Playbac
 ### Build
 
 ```bash
-cd plugins/eisland-windows-smtc-helper
+cd plugins/windows/eisland-windows-smtc-helper
 npm run build    # Runs: dotnet build src/eIslandSmtcHelper.csproj -c Release
 ```
 
@@ -2372,7 +2374,7 @@ The plugin also ships a **NativeAOT-compiled DLL** (`eIslandSmtcCtypes.dll`) tha
 #### Build
 
 ```bash
-cd plugins/eisland-windows-smtc-helper
+cd plugins/windows/eisland-windows-smtc-helper
 npm run build:ctypes    # dotnet publish smtc-ctypes/eIslandSmtcCtypes.csproj -c Release -r win-x64
 ```
 

@@ -256,6 +256,11 @@ export default sidebar({
       ],
     },
     {
+      text: "macOS Media Helper",
+      icon: "music",
+      link: "media-notifications/macos-media-helper.md",
+    },
+    {
       text: "Windows Toast Listener",
       icon: "bell",
       collapsible: true,
