@@ -1,6 +1,6 @@
 # eisland-macos-brightness-helper
 
-Native macOS hardware brightness query, control, and monitoring through Swift + Node-API. Version **26.0.1**.
+Native macOS hardware brightness query, control, and monitoring through Swift + Node-API. Version **26.0.2**.
 
 ## Requirements and build
 
@@ -73,7 +73,9 @@ This is an independent plugin. The main eIsland application's brightness IPC sti
 
 | Command | Purpose |
 |---------|---------|
-| `npm test` | Compile native logic tests on macOS; run 33 cases on macOS or 15 on other hosts |
+| `npm test` | Compile native logic tests on macOS; run 44 cases on macOS or 25 on other hosts |
+| `npm run test:coverage` | Run Vitest with V8 coverage of the four runtime JS files |
+| `npm run test:coverage:native` | Build isolated instrumented Swift / C binaries and generate LLVM coverage on macOS |
 | `npm run smoke` | Read actual hardware and print all snapshot fields |
 | `npm run smoke:monitor` | Listen for 8 seconds while brightness is changed manually |
 | `npm run smoke:verify-set` | Adjust a system target by five percentage points, check readback and events, then restore the initial percentage |
@@ -83,7 +85,9 @@ The setting smoke always attempts restoration, including after a failed check. I
 
 The suite passed under Node, Electron in Node mode, and the repository Vitest plugins project. Type declarations, both ad-hoc signatures, npm archive contents, extracted-package loading, and Electron ASAR loading were also checked on arm64.
 
-The 33 cases cover the JS API, timer lifecycle, missing devices, error cleanup, restart, multiple monitors, real compiled Swift selection/write logic, DDC framing/checksums/ranges/scaling, and actual Node-API validation. Hardware targets are injected into internal Swift tests; no test-only backend is shipped. Only native test cases require macOS. The `pretest` hook skips native compilation on other hosts, allowing the 15 JS and build-guard cases to run. Four regression checks simulate Linux and Windows to verify the test-only path and the native-build platform restriction. These tests do not establish external DDC hardware compatibility.
+The 44 cases cover the JS API, timer lifecycle, missing devices, error cleanup, restart, multiple monitors, real compiled Swift selection/write logic, DDC framing/checksums/ranges/scaling, and actual Node-API validation. Hardware targets are injected into internal Swift tests; no test-only backend is shipped. Only native test cases require macOS. The `pretest` hook skips native compilation on other hosts, allowing the 25 JS, loader, and build-guard cases to run. Four regression checks simulate Linux and Windows to verify the test-only path and the native-build platform restriction. Loader tests also cover both architectures, missing prebuilds, unsupported platforms, failed loads, caching, and ASAR path resolution. These tests do not establish external DDC hardware compatibility.
+
+Coverage reports are separate: `coverage/js/index.html` covers runtime JavaScript; `coverage/native/html/index.html` covers the owned Swift and C sources. The native command requires an existing host build and Node headers (`npm run build`), writes instrumented binaries under `build/native-coverage/`, and leaves production prebuilds unchanged. On the development arm64 Mac, JS statement, branch, function, and line coverage reached 100%; native line coverage reached 68.78%, with the pure DDC protocol at 100%. Uncovered native code includes external-display and Intel backends, physical writes, and low-level failure paths. Reports and instrumented binaries are ignored by Git. Coverage does not include the build scripts or OS frameworks.
 
 On the development Apple Silicon Mac (macOS 27.0.1), the setting smoke read 54%, wrote and observed 59%, received monitor events, and restored 54%. Intel builds are cross-compiled; Intel runtime, external monitors, hotplug/sleep recovery, older OS releases, and final signed distribution still require hardware testing. Repository tests and smoke scripts are not included in the npm archive.
 
@@ -134,5 +138,7 @@ Implementation references: [MonitorControl](https://github.com/MonitorControl/Mo
 | `src/DDCProtocol.swift` | Brightness VCP packets and reply validation |
 | `src/addon.c` | Node-API binding |
 | `scripts/build.mjs` | Dual architecture build, symbol checks, signing, native test compilation |
+| `scripts/native-coverage.mjs` | Isolated LLVM instrumentation, profile merging, and HTML reports |
+| `test/nativeLoaderRuntime.test.mjs` | Platform, architecture, cache, and ASAR loader tests |
 | `test/brightnessRuntime.test.mjs` / `test/NativeCoreTests.swift` | Vitest and compiled Swift tests |
 | `test/smoke.cjs` | Actual hardware readback and monitoring |

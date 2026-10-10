@@ -126,6 +126,14 @@ describe('Windows-compatible brightness API', () => {
 });
 
 describe('BrightnessMonitor lifecycle', () => {
+  it('ignores a queued poll after stopping without reading hardware', () => {
+    const instance = monitor();
+    instance.start();
+    instance.stop();
+    readError = new Error('Hardware must not be accessed after stopping');
+    expect(() => instance.poll()).not.toThrow();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('starts once, keeps the initial reading as baseline, and emits timestamped changes', () => {
     const instance = monitor();
     const changed = vi.fn();
@@ -232,6 +240,7 @@ if (process.platform === 'darwin') {
       }
     });
     it('rejects invalid direct native input before hardware access', () => {
+      expect(() => native.setBrightness()).toThrow(RangeError);
       [NaN, Infinity, -Infinity, undefined, '50'].forEach((value) => {
         expect(() => native.setBrightness(value)).toThrow(RangeError);
       });
