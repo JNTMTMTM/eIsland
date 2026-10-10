@@ -80,6 +80,8 @@ final class MediaCore {
     let output = Pipe()
     let errors = Pipe()
     let errorBuffer = ProcessOutput(limit: 65536)
+    let errorReader = DispatchGroup()
+    errorReader.enter()
     process.standardOutput = output
     process.standardError = errors
     listener = process
@@ -122,6 +124,8 @@ final class MediaCore {
     }
     process.terminationHandler = { [weak self] ended in
       output.fileHandleForReading.readabilityHandler = nil
+      // 退出通知可能先于 stderr 的 EOF 读取，避免丢失最后的诊断信息。
+      _ = errorReader.wait(timeout: .now() + 1)
       self?.streamQueue.async { [weak self] in
         guard let self else { return }
         self.lock.lock()
@@ -138,9 +142,13 @@ final class MediaCore {
       try process.run()
       try? output.fileHandleForWriting.close()
       try? errors.fileHandleForWriting.close()
-      DispatchQueue.global(qos: .utility).async { errorBuffer.drain(errors.fileHandleForReading) }
+      DispatchQueue.global(qos: .utility).async {
+        errorBuffer.drain(errors.fileHandleForReading)
+        errorReader.leave()
+      }
       return success()
     } catch {
+      errorReader.leave()
       output.fileHandleForReading.readabilityHandler = nil
       listener = nil
       streamError = error.localizedDescription

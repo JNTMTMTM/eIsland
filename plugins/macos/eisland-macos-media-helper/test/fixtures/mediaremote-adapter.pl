@@ -35,6 +35,8 @@ if ($command eq 'stream') {
   while (1) {
     my $current = state();
     if ($current->{exitStream}) { print STDERR "fixture stream failure\n"; exit 2; }
+    if ($current->{silentExitStream}) { exit 2; }
+    if ($current->{oversizedStream}) { print 'x' x (13 * 1024 * 1024); sleep 10; exit 0; }
     my $line = $current->{invalidStream} ? '{broken' : $json->encode({
       type => 'data', diff => JSON::PP::false, payload => $current->{payload} // {},
     });
@@ -45,9 +47,16 @@ if ($command eq 'stream') {
 if ($command eq 'get') {
   sleep($initial->{delayGet} // 0);
   if ($initial->{queryError}) { print STDERR "fixture query failure\n"; exit 2; }
+  if ($initial->{silentQueryExit}) { exit 2; }
+  if ($initial->{oversizedError}) { print STDERR 'x' x 70000; exit 2; }
+  if ($initial->{timeoutWarning}) { print STDERR "fixture upstream timed out\n"; }
   if ($initial->{getRaw}) { print $initial->{getRaw}; exit 0; }
   if ($initial->{oversized}) { print 'x' x (13 * 1024 * 1024); exit 0; }
-  print $json->encode($initial->{payload}), "\n";
+  my $payload = $initial->{payload};
+  if (grep { $_ eq '--no-artwork' } @arguments) {
+    if (ref($payload) eq 'HASH') { delete $payload->{artworkData}; delete $payload->{artworkMimeType}; }
+  }
+  print $json->encode($payload), "\n";
   exit 0;
 }
 sleep($initial->{delayCommand} // 0);

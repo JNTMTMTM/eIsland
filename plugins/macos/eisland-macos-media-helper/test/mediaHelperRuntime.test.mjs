@@ -302,3 +302,130 @@ nativeTest('Worker termination cleans up a native listener and pending request',
   assert.ok(Date.now() - started < 2500, 'Worker should cancel requests without waiting for their timeout');
   await until(() => commands().every((entry) => !alive(entry.pid)));
 });
+
+nativeTest('native methods validate arguments and reject borrowed receivers', (t) => {
+  const { client } = fixture(t);
+  [-1, 4, '1', undefined].forEach((kind) => assert.throws(() => client.native.snapshot(kind), /snapshot kind/));
+  assert.throws(() => client.native.snapshot(), /snapshot kind/);
+  assert.throws(() => client.native.request(), /operation and numeric value/);
+  assert.throws(() => client.native.request('refresh', '0'), /operation and numeric value/);
+  [null, 1, 'x'.repeat(33)].forEach((operation) => assert.throws(() => client.native.request(operation, 0), /Invalid media operation/));
+  ['start', 'stop', 'close', 'snapshot', 'request'].forEach((method) => {
+    assert.throws(() => client.native[method].call({}, 0, 0), /Invalid media client receiver/);
+  });
+
+  const native = require(`../prebuilds/darwin-${process.arch}/media.node`);
+  assert.throws(() => native.create(), /timeout/);
+  [NaN, Infinity, 0, 31, '1'].forEach((timeout) => assert.throws(() => native.create('/script', '/framework', timeout), /timeout/));
+  [[null, '/framework'], ['/script', null], ['x'.repeat(4097), '/framework']].forEach(([script, framework]) => {
+    assert.throws(() => native.create(script, framework, 1), /resource paths/);
+  });
+});
+
+nativeTest('Swift command validation prevents IPC even when JS helpers are bypassed', async (t) => {
+  const { client, commands } = fixture(t);
+  const invalid = [['seek', -1], ['seek', Infinity], ['seek', 1e13], ['shuffle', 2], ['repeat', 3],
+    ['rate', 0], ['rate', 1.5], ['rate', Infinity], ['rate', 2147483648], ['unsupported', 0]];
+  const results = await Promise.all(invalid.map(async ([operation, value]) => JSON.parse(await client.native.request(operation, value))));
+  results.forEach((result) => { assert.equal(result.success, false); assert.ok(result.error); });
+  assert.deepEqual(commands(), []);
+});
+
+nativeTest('missing resources and closed native clients fail before starting helpers', async (t) => {
+  const { client, directory, commands } = fixture(t);
+
+  const native = require(`../prebuilds/darwin-${process.arch}/media.node`);
+  const relative = native.create('script', 'framework', 1);
+  const missing = new MediaClient({ resourceDirectory: join(directory, 'missing') });
+  t.onTestFinished(() => { relative.close(); missing.close(); });
+  assert.match(JSON.parse(relative.start()).error, /must be absolute/);
+  assert.match(JSON.parse(await relative.request('refresh', 0)).error, /must be absolute/);
+  assert.match(JSON.parse(missing.native.start()).error, /resources are missing/);
+  await assert.rejects(missing.refresh(), /resources are missing/);
+  client.close();
+  assert.match(JSON.parse(client.native.start()).error, /closed/);
+  assert.match(JSON.parse(await client.native.request('refresh', 0)).error, /closed/);
+  assert.deepEqual(commands(), []);
+});
+
+nativeTest('native listener start is idempotent', async (t) => {
+  const { client, commands } = fixture(t);
+  assert.equal(JSON.parse(client.native.start()).success, true);
+  assert.equal(JSON.parse(client.native.start()).success, true);
+  await until(() => client.getStatus().isAvailable);
+  assert.equal(commands().filter((entry) => entry.command === 'stream').length, 1);
+});
+
+nativeTest('metadata defaults clamp invalid timelines and preserve valid optional fields', async (t) => {
+  const { client, update } = fixture(t, { payload: track({ parentApplicationBundleIdentifier: '', genre: 'Jazz',
+    trackNumber: 3, totalTrackCount: 12, playbackRate: -1, elapsedTimeMicros: -100, durationMicros: -100 }) });
+  const status = await client.refresh();
+  assert.equal(status.sourceAppUserModelId, 'com.eisland.fixture');
+  assert.equal(status.playbackStatus, 'paused');
+  assert.equal(status.timeline.position, 0);
+  assert.equal(status.timeline.endTime, 0);
+  assert.deepEqual(status.genres, ['Jazz']);
+  assert.equal(status.trackNumber, 3);
+  assert.equal(client.getMediaSessions()[0].media.albumTrackCount, 12);
+  update({ payload: track({ playbackRate: undefined, durationMicros: 0, timestampEpochMicros: 0 }) });
+  await client.refresh();
+  const before = client.getTimestamp().timeline.position;
+  await delay(100);
+  assert.ok(client.getTimestamp().timeline.position > before);
+  update({ payload: track({ playing: undefined, timestampEpochMicros: (Date.now() + 60000) * 1000 }) });
+  await client.refresh();
+  assert.equal(client.getTimestamp().timeline.position, 5);
+  update({ payload: {} });
+  const empty = await client.refresh();
+  assert.equal(empty.playbackStatus, 'unknown');
+  assert.equal(empty.timeline, null);
+  assert.equal(client.getTimestamp().timeline, null);
+  assert.deepEqual(client.getMediaSessions(), []);
+});
+
+nativeTest('invalid artwork is discarded and command queries retain only the same track artwork', async (t) => {
+  const { client, update, commands } = fixture(t);
+  await client.refresh();
+  assert.equal((await client.pause()).success, true);
+  assert.ok(commands().some((entry) => entry.arguments.includes('--no-artwork')));
+  assert.equal(client.getStatus().thumbnail, 'data:image/png;base64,aW1hZ2U=');
+  update({ payload: track({ title: 'Changed', uniqueIdentifier: 'two' }) });
+  await client.pause();
+  assert.equal(client.getStatus().thumbnail, null);
+  const invalidArtwork = [{ artworkData: 'invalid!' }, { artworkData: '' }, { artworkMimeType: 'text/html' },
+    { artworkData: null }, { artworkData: Buffer.alloc(8 * 1024 * 1024 + 1).toString('base64') }];
+  await invalidArtwork.reduce(async (pending, artwork) => {
+    await pending;
+    update({ payload: track(artwork) });
+    assert.equal((await client.refresh()).thumbnail, null);
+  }, Promise.resolve());
+});
+
+nativeTest('non-object JSON, oversized stderr and timeout warnings are rejected', async (t) => {
+  const { client, update } = fixture(t, { getRaw: '[1,2]' });
+  await assert.rejects(client.refresh(), /Invalid media bridge response/);
+  update({ payload: track(), oversizedError: true });
+  await assert.rejects(client.refresh(), /size limit/);
+  update({ payload: track(), timeoutWarning: true });
+  await assert.rejects(client.refresh(), /timed out/);
+  update({ payload: track(), silentQueryExit: true });
+  await assert.rejects(client.refresh(), /Media bridge exited \(2\)/);
+});
+
+nativeTest.for([
+  ['oversizedStream', /12 MiB/], ['silentExitStream', /Media bridge exited \(2\)/],
+])('stream failure %s clears caches and stops polling', { timeout: 20000 }, async ([flag, message], t) => {
+  const { client, commands } = fixture(t, { payload: track(), [flag]: true });
+  const monitor = new MediaMonitor(client);
+  let failure;
+  monitor.on('error', (error) => { failure = error; });
+  t.onTestFinished(() => monitor.stop());
+  monitor.start();
+  // 大块流通过管道分批进入 Swift 队列，保留有界但足够的等待时间。
+  await until(() => failure !== undefined, 15000);
+  assert.match(failure.message, message);
+  await until(() => !monitor.running);
+  assert.equal(client.getStatus().isAvailable, false);
+  assert.equal(monitor.cache.size, 0);
+  await until(() => commands().every((entry) => !alive(entry.pid)));
+});
