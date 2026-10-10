@@ -266,7 +266,9 @@ See the [API reference](../../api-plugins/display-graphics/macos-brightness-help
 
 | Command | Script | Description |
 |---------|--------|-------------|
-| `npm test` | Vitest after native test compilation on macOS | Run 33 checks on macOS; 15 JS and build-guard checks on other hosts |
+| `npm test` | Vitest after native test compilation on macOS | Run 44 checks on macOS; 25 JS, loader, and build-guard checks on other hosts |
+| `npm run test:coverage` | Vitest with V8 coverage after native test compilation on macOS | Report runtime JS coverage under `coverage/js/` |
+| `npm run test:coverage:native` | `node scripts/native-coverage.mjs` | Build isolated Swift / C instrumentation and report LLVM coverage under `coverage/native/` (macOS only) |
 | `npm run smoke` | `node test/smoke.cjs` | Print the real hardware brightness snapshot |
 | `npm run smoke:monitor` | `node test/smoke.cjs --monitor` | Observe manual changes for 8 seconds |
 | `npm run smoke:verify-set` | `node test/smoke.cjs --verify-set` | Verify a five-point system brightness change, events, and restoration |
@@ -276,10 +278,14 @@ See the [API reference](../../api-plugins/display-graphics/macos-brightness-help
 The default smoke only reads. The setting smoke attempts restoration even after failure, and rejects DDC fallback because it may affect multiple displays. Native tests require macOS. Development tests and smoke scripts are excluded from the npm archive.
 :::
 
+Native coverage requires an existing host build and Node headers (`npm run build`); instrumented files stay in `build/native-coverage/`, and production prebuilds remain unchanged. Reports do not include build scripts or OS frameworks.
+
 ### Source Files
 
 | File | Responsibility |
 |------|---------------|
+| `scripts/native-coverage.mjs` | LLVM instrumentation and separate native reports |
+| `test/nativeLoaderRuntime.test.mjs` | Platform, architecture, cache, and ASAR tests |
 | `src/BrightnessCore.swift` | Hardware target selection and normalization |
 | `src/NativeDisplays.swift` / `src/DDCProtocol.swift` | Native backends, DDC transfer, and protocol validation |
 | `src/addon.c` | Node-API binding |
@@ -309,7 +315,9 @@ See the [API reference](../../api-plugins/media-notifications/macos-media-helper
 
 | Command | Script | Description |
 |---------|--------|-------------|
-| `npm test` | `vitest run --config vitest.config.mjs` | Run 15 tests using the real Swift / Node-API layer and isolated Perl fixtures |
+| `npm test` | `vitest run --config vitest.config.mjs` | Run 57 tests: 33 JS/API/loader checks and 24 macOS native fixture checks |
+| `npm run test:coverage` | `vitest run --config vitest.config.mjs --coverage` | Report runtime JS coverage under `coverage/js/` |
+| `npm run test:coverage:native` | `node scripts/native-coverage.mjs` | Build isolated Swift / C instrumentation and report LLVM coverage under `coverage/native/` (macOS only) |
 | `npm run smoke` | `node test/smoke.cjs` | Read real metadata, artwork preview, playback state, duration, and position |
 | `npm run test:plugins -- mediaHelperRuntime.test.mjs` | Root Vitest plugins project | Run the same tests from the repository root after building the plugin |
 
@@ -317,10 +325,14 @@ See the [API reference](../../api-plugins/media-notifications/macos-media-helper
 The smoke script sends no playback commands. `thumbnailPreview` contains up to the first 120 characters of the artwork Data URL plus `...` when truncated; `thumbnailLength` is the full Data URL character count. Fixture tests do not establish whether a real player executes playback controls. Scripts under `test/` are repository development tools and are not included in the published package.
 :::
 
+Native coverage requires an existing host build and Node headers (`npm run build`). Instrumented files stay in `build/native-coverage/`; production prebuilds remain unchanged. Reports exclude build scripts, vendor code, and OS frameworks.
+
 ### Source Files
 
 | File | Responsibility |
 |------|---------------|
+| `scripts/native-coverage.mjs` | LLVM instrumentation and separate native reports |
+| `test/mediaJsRuntime.test.mjs` / `test/nativeLoaderRuntime.test.mjs` | Cross-platform API, monitor, and loader tests |
 | `src/MediaCore.swift` | Cached media state, timeline interpolation, and MediaRemote bridge requests |
 | `src/addon.c` | Node-API exports, asynchronous request completion, and environment cleanup |
 | `test/mediaHelperRuntime.test.mjs` | Vitest metadata, command mapping, monitoring, timeout, and Worker lifecycle checks |
