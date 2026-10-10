@@ -45,6 +45,9 @@ jobs:
           - plugin: eisland-macos-media-helper
             platform: macos
             runner: macos-15
+          - plugin: eisland-macos-brightness-helper
+            platform: macos
+            runner: macos-15
 
     steps:
       - name: Checkout
@@ -131,6 +134,9 @@ jobs:
           - eisland-windows-wifi-helper
         include:
           - plugin: eisland-macos-media-helper
+            platform: macos
+            runner: macos-15
+          - plugin: eisland-macos-brightness-helper
             platform: macos
             runner: macos-15
 

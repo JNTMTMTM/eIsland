@@ -1,0 +1,41 @@
+{
+  "name": "eisland-macos-brightness-helper",
+  "version": "26.0.1",
+  "description": "Native macOS display brightness query, control and monitoring via Swift and Node-API.",
+  "author": "JNTMTMTM",
+  "license": "GPL-3.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64",
+    "x64"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:all": "node scripts/build.mjs --all",
+    "prepack": "npm run build:all",
+    "pretest": "node scripts/build.mjs --tests",
+    "test": "vitest run --config vitest.config.mjs",
+    "smoke": "node test/smoke.cjs",
+    "smoke:monitor": "node test/smoke.cjs --monitor",
+    "smoke:verify-set": "node test/smoke.cjs --verify-set"
+  },
+  "devDependencies": {
+    "node-gyp": "^11.2.0",
+    "vitest": "~4.1.10"
+  },
+  "files": [
+    "*.js",
+    "*.d.ts",
+    "prebuilds",
+    "src",
+    "scripts",
+    "README.md"
+  ]
+}

@@ -6,12 +6,12 @@ icon: toolbox
 # Plugins Tech Stack
 
 :::warning
-This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration.
+This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration. The independent [macOS Brightness Helper](../../api-plugins/display-graphics/macos-brightness-helper.md) uses the same build toolchain with DisplayServices, IOKit, and external DDC/CI backends.
 :::
 
 ## Overview
 
-The plugin system includes Windows native helpers and an independent macOS media helper:
+The plugin system includes Windows native helpers and independent macOS media and brightness helpers:
 
 | Plugin | Package | Purpose |
 |--------|---------|---------|
@@ -23,6 +23,7 @@ The plugin system includes Windows native helpers and an independent macOS media
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
+| **macOS Brightness Helper** | `eisland-macos-brightness-helper` | Native hardware brightness, DDC/CI fallback, and 500 ms polling |
 | **Brightness Helper** | `@eisland/windows-brightness-helper` | Screen brightness query, control, and real-time WMI event monitoring |
 | **Application Icon Helper** | `@eisland/windows-application-icon-helper` | Application icon extraction by process name, PID, path, or shortcut |
 | **Screenshot Helper** | `@eisland/windows-screenshot-helper` | Primary display screen capture as PNG via Win32 GDI APIs |
@@ -37,11 +38,12 @@ The plugin system includes Windows native helpers and an independent macOS media
 | **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Application Icon Helper, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C# .NET EXE (spawnSync/spawn)** | Brightness Helper | `dotnet build` | Spawned .NET console EXE |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
+| **Swift + C / Node-API** | macOS Brightness Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib`; DisplayServices / IOKit / DDC |
 | **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
 **Common Characteristics:**
 
-- **Platform**: Windows helpers use `"os": ["win32"]`; macOS Media Helper uses `"os": ["darwin"]` with separate arm64 and x64 prebuilds.
+- **Platform**: Windows helpers use `"os": ["win32"]`; macOS helpers use `"os": ["darwin"]` with separate arm64 and x64 prebuilds.
 - **License**: GPL-3.0
 - **TypeScript**: `.d.ts` type declarations provided
 

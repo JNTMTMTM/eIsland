@@ -7,7 +7,7 @@ icon: plug
 # Plugin API Reference
 
 :::info
-Complete API reference for all eIsland native plugins. Windows plugins provide system capabilities through Node.js; the independent macOS Media Helper provides current-source media metadata and controls on macOS. Platform support is documented per plugin.
+Complete API reference for all eIsland native plugins. Windows plugins provide system capabilities through Node.js; the independent macOS helpers provide current-source media metadata, media controls, and hardware brightness on macOS. Platform support is documented per plugin.
 :::
 
 ## Plugin Categories
@@ -17,6 +17,7 @@ Complete API reference for all eIsland native plugins. Windows plugins provide s
 | Plugin | Description |
 |--------|-------------|
 | [Windows Brightness Helper](display-graphics/brightness-helper.md) | Screen brightness monitoring and control |
+| [macOS Brightness Helper](display-graphics/macos-brightness-helper.md) | Hardware brightness query, control, and polling events |
 | [Windows Fullscreen Detector](display-graphics/fullscreen-detector.md) | Fullscreen window detection |
 | [Windows Screenshot Helper](display-graphics/screenshot-helper.md) | Primary display screen capture |
 | [Windows Volume Helper](display-graphics/volume-helper.md) | Playback device volume and mute control |
