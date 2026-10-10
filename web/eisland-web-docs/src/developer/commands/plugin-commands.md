@@ -266,7 +266,7 @@ See the [API reference](../../api-plugins/display-graphics/macos-brightness-help
 
 | Command | Script | Description |
 |---------|--------|-------------|
-| `npm test` | Vitest after native test compilation | Run 29 JS, Swift core, DDC protocol, and Node-API checks |
+| `npm test` | Vitest after native test compilation on macOS | Run 33 checks on macOS; 15 JS and build-guard checks on other hosts |
 | `npm run smoke` | `node test/smoke.cjs` | Print the real hardware brightness snapshot |
 | `npm run smoke:monitor` | `node test/smoke.cjs --monitor` | Observe manual changes for 8 seconds |
 | `npm run smoke:verify-set` | `node test/smoke.cjs --verify-set` | Verify a five-point system brightness change, events, and restoration |

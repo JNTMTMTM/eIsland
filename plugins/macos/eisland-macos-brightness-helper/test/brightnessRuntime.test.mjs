@@ -23,7 +23,7 @@
  * @description Vitest 验证同步接口、监控生命周期、Swift 核心与真实 Node-API 参数边界。
  * @author 鸡哥
  */
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -64,6 +64,39 @@ afterEach(() => {
   vi.useRealTimers();
 });
 afterAll(() => { loader.loadNative = originalLoader; });
+
+/**
+ * 在独立进程中模拟平台，并禁止测试预处理调用原生工具链。
+ * @param platform - 要验证的非 macOS 平台。
+ * @param testsOnly - true 验证预测试；false 验证原生构建限制。
+ * @returns 子进程状态与输出。
+ */
+function runBuildOnPlatform(platform, testsOnly) {
+  const script = `
+    import childProcess from 'node:child_process';
+    import { syncBuiltinESMExports } from 'node:module';
+    childProcess.execFileSync = () => { throw new Error('Unexpected native tool invocation'); };
+    syncBuiltinESMExports();
+    Object.defineProperty(process, 'platform', { value: ${JSON.stringify(platform)} });
+    if (${testsOnly}) process.argv.push('--tests');
+    await import(${JSON.stringify(new URL('../scripts/build.mjs', import.meta.url).href)});
+  `;
+  return spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8' });
+}
+
+describe('build platform guard', () => {
+  it.each(['linux', 'win32'])('allows tests on %s without native compilation', (platform) => {
+    const result = runBuildOnPlatform(platform, true);
+    expect(result.stderr).toBe('');
+    expect(result.status).toBe(0);
+  });
+  it.each(['linux', 'win32'])('still rejects native builds on %s', (platform) => {
+    const result = runBuildOnPlatform(platform, false);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('Build requires macOS and Xcode Command Line Tools.');
+    expect(result.stderr).not.toContain('Unexpected native tool invocation');
+  });
+});
 
 describe('Windows-compatible brightness API', () => {
   it('returns all snapshot fields and explicit null levels', () => {

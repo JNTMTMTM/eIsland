@@ -30,7 +30,8 @@ import { dirname, join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-if (process.platform !== 'darwin') throw new Error('Build requires macOS and Xcode Command Line Tools.');
+const testsOnly = process.argv.includes('--tests');
+if (process.platform !== 'darwin' && !testsOnly) throw new Error('Build requires macOS and Xcode Command Line Tools.');
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const minimumMacOS = '13.0';
@@ -64,7 +65,7 @@ function nodeHeaders() {
 }
 
 const sources = ['DDCProtocol.swift', 'NativeDisplays.swift', 'BrightnessCore.swift'].map((name) => join(root, 'src', name));
-if (!process.argv.includes('--tests')) {
+if (!testsOnly) {
   const headers = nodeHeaders();
   const architectures = process.argv.includes('--all') ? ['arm64', 'x64'] : [process.arch];
   architectures.forEach((arch) => {
@@ -88,7 +89,7 @@ if (!process.argv.includes('--tests')) {
   });
 }
 const tests = join(root, 'test', 'NativeCoreTests.swift');
-if (existsSync(tests)) {
+if (process.platform === 'darwin' && existsSync(tests)) {
   mkdirSync(join(root, 'build'), { recursive: true });
   run('xcrun', ['swiftc', '-swift-version', '5', '-O', ...sources, tests, '-o', join(root, 'build', 'native-tests')]);
 }

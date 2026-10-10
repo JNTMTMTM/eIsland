@@ -1,6 +1,6 @@
 # eisland-macos-brightness-helper
 
-Native macOS hardware brightness query, control, and monitoring through Swift + Node-API. Version **26.0.0**.
+Native macOS hardware brightness query, control, and monitoring through Swift + Node-API. Version **26.0.1**.
 
 ## Requirements and build
 
@@ -73,7 +73,7 @@ This is an independent plugin. The main eIsland application's brightness IPC sti
 
 | Command | Purpose |
 |---------|---------|
-| `npm test` | Compile native logic tests and run 29 Vitest cases |
+| `npm test` | Compile native logic tests on macOS; run 33 cases on macOS or 15 on other hosts |
 | `npm run smoke` | Read actual hardware and print all snapshot fields |
 | `npm run smoke:monitor` | Listen for 8 seconds while brightness is changed manually |
 | `npm run smoke:verify-set` | Adjust a system target by five percentage points, check readback and events, then restore the initial percentage |
@@ -83,7 +83,7 @@ The setting smoke always attempts restoration, including after a failed check. I
 
 The suite passed under Node, Electron in Node mode, and the repository Vitest plugins project. Type declarations, both ad-hoc signatures, npm archive contents, extracted-package loading, and Electron ASAR loading were also checked on arm64.
 
-The 29 cases cover the JS API, timer lifecycle, missing devices, error cleanup, restart, multiple monitors, real compiled Swift selection/write logic, DDC framing/checksums/ranges/scaling, and actual Node-API validation. Hardware targets are injected into internal Swift tests; no test-only backend is shipped. Only native test cases require macOS. These tests do not establish external DDC hardware compatibility.
+The 33 cases cover the JS API, timer lifecycle, missing devices, error cleanup, restart, multiple monitors, real compiled Swift selection/write logic, DDC framing/checksums/ranges/scaling, and actual Node-API validation. Hardware targets are injected into internal Swift tests; no test-only backend is shipped. Only native test cases require macOS. The `pretest` hook skips native compilation on other hosts, allowing the 15 JS and build-guard cases to run. Four regression checks simulate Linux and Windows to verify the test-only path and the native-build platform restriction. These tests do not establish external DDC hardware compatibility.
 
 On the development Apple Silicon Mac (macOS 27.0.1), the setting smoke read 54%, wrote and observed 59%, received monitor events, and restored 54%. Intel builds are cross-compiled; Intel runtime, external monitors, hotplug/sleep recovery, older OS releases, and final signed distribution still require hardware testing. Repository tests and smoke scripts are not included in the npm archive.
 

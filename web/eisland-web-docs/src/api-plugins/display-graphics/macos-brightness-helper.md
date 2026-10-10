@@ -6,7 +6,7 @@ icon: sun
 
 # macOS Brightness Helper
 
-`eisland-macos-brightness-helper` · v26.0.0
+`eisland-macos-brightness-helper` · v26.0.1
 
 Native hardware brightness query, control, and monitoring through Swift + C / Node-API.
 
@@ -88,7 +88,7 @@ The hardware APIs and DDC protocol were researched using [MonitorControl](https:
 
 ## Test
 
-The 29 Vitest cases cover JS argument handling and monitor cleanup, compiled Swift target selection and write isolation, DDC framing/checksums/ranges/scaling, and the actual Node-API boundary. Swift logic tests inject internal hardware targets without changing physical brightness. Native tests require macOS; JS lifecycle tests can run on other hosts.
+The 33 Vitest cases cover JS argument handling and monitor cleanup, compiled Swift target selection and write isolation, DDC framing/checksums/ranges/scaling, and the actual Node-API boundary. Swift logic tests inject internal hardware targets without changing physical brightness. Native tests require macOS; `pretest` skips native compilation on other hosts, allowing 15 JS and build-guard cases to run. Four build-guard regression checks simulate Linux and Windows.
 
 | Command | Purpose |
 |---------|---------|

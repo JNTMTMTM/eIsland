@@ -1,6 +1,6 @@
 {
   "name": "eisland-macos-brightness-helper",
-  "version": "26.0.0",
+  "version": "26.0.1",
   "description": "Native macOS display brightness query, control and monitoring via Swift and Node-API.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",

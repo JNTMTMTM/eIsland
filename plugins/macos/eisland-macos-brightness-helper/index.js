@@ -17,7 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-s
+
 /**
  * @file index.js
  * @description macOS 原生亮度插件的公共导出入口。
