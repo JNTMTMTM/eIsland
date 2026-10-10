@@ -1,7 +1,310 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-09T05:48:34.254Z
+> 生成时间：2026-10-10T18:13:27.070Z
+
+## 27.0.0
+
+- 2026-10-09 | 075561e2 | 鸡哥 | chore: update version to 27.0.0 in package.json and package-lock.json
+- 2026-10-09 | 64cc779b | 鸡哥 | docs(announcement): add V27.0.0 release notes
+- 2026-10-09 | c8b19231 | eislandBot | docs: auto update CHANGE_LOG.md for #228 by @JNTMTMTM [skip ci]
+- 2026-10-08 | 9e08b49c | 鸡哥 | Merge pull request #228 from JNTMTMTM/dev
+- 2026-10-09 | 10a5cfe4 | 鸡哥 | fix: remove 'close' event handling from network response to prevent unnecessary cleanup
+- 2026-10-09 | 212082e9 | 鸡哥 | feat: enhance network request handling with close event and additional tests
+- 2026-10-09 | 37663dac | eislandBot | docs: auto update CHANGE_LOG.md for #227 by @JNTMTMTM [skip ci]
+- 2026-10-08 | 5296afb1 | 鸡哥 | Merge pull request #227 from JNTMTMTM/dev
+- 2026-10-08 | fc3574a9 | 鸡哥 | feat: update .gitignore to include coverage and vitest directories
+- 2026-10-08 | 7436706b | 鸡哥 | feat: add macOS Media Helper plugin and update documentation
+- 2026-10-08 | c696aa5e | 鸡哥 | feat: add MediaRemote functionality and testing framework
+- 2026-10-09 | 503992ba | 鸡哥 | refactor: add WiFi monitoring functionality with tests and configuration
+- 2026-10-09 | d4b2bc83 | 鸡哥 | feat: add .gitkeep to macos plugin directory
+- 2026-10-08 | 0ef77f62 | eislandBot | docs: auto update CHANGE_LOG.md for #226 by @JNTMTMTM [skip ci]
+- 2026-10-08 | ac27be29 | 鸡哥 | Merge pull request #226 from JNTMTMTM/dev
+- 2026-10-09 | 9ffada96 | 鸡哥 | feat(toolbox): enhance navigation persistence with save error handling and configuration management
+- 2026-10-09 | 80f5d5ac | 鸡哥 | feat(i18n): add save error messages for navigation in multiple languages
+- 2026-10-09 | dca5afd5 | 鸡哥 | feat(e2e): add icon probe for executable icon extraction testing
+- 2026-10-09 | fba8332e | 鸡哥 | ci(i18n): enhance completeness check with detailed Markdown report generation
+- 2026-10-08 | 69b989d6 | 鸡哥 | feat(e2e): enhance Windows E2E testing with native plugin support
+- 2026-10-07 | 7bd5752b | 鸡哥 | feat(docs): enhance developer documentation with Electron E2E testing details and commands
+- 2026-10-07 | 2a86d99f | 鸡哥 | feat(e2e): implement end-to-end testing framework with Playwright and update configurations
+- 2026-10-07 | d412cae4 | 鸡哥 | feat(e2e): add end-to-end testing setup with Playwright and configure workflows
+- 2026-10-07 | b2d642e2 | 鸡哥 | test: add unit tests for MiniGameTab component and its runtime behavior
+- 2026-10-07 | 4dbbf794 | 鸡哥 | feat(toolbox): add toolbox navigation and persistence features
+- 2026-10-07 | 85319764 | 鸡哥 | feat(MaxExpandAppControls): refactor and relocate component to shared directory; update tests accordingly
+- 2026-10-06 | 411adb9e | eislandBot | docs: auto update CHANGE_LOG.md for #225 by @JNTMTMTM [skip ci]
+- 2026-10-06 | 8662c5e8 | 鸡哥 | Merge pull request #225 from JNTMTMTM/dev
+- 2026-10-07 | f3fa638e | 鸡哥 | feat(miniGame): add Gomoku and 2048 game hooks, navigation, and leaderboard management
+- 2026-10-06 | 07bc0d51 | 鸡哥 | ci(pr-code-quality-review): enhance syntax checks and add test coverage
+- 2026-10-06 | 3e52282f | 鸡哥 | test(renderer): make payment and CLI assertions locale independent
+- 2026-10-06 | 61a96d0d | 鸡哥 | test(main): make Codex heatmap totals independent of timezone
+- 2026-10-06 | e20242c9 | 鸡哥 | test(config): split main, preload, shared and plugins into projects
+- 2026-10-06 | a9e04d19 | 鸡哥 | test(clipboard): cover lifecycle feedback and navigation fallback paths
+- 2026-10-06 | 8925dd0d | 鸡哥 | test(toolbox): cover persistence and initialization lifecycles
+- 2026-10-06 | f98c220e | 鸡哥 | test(cli): cover live status, permissions and karaoke settings
+- 2026-10-06 | 491e96c3 | 鸡哥 | test(tools): cover native service failures and response boundaries
+- 2026-10-06 | f73b2fcf | 鸡哥 | test(games): cover persisted 2048 state and reachable Gomoku AI positions
+- 2026-10-06 | 542b74bf | 鸡哥 | test(agent): cover stream responses, session status and CLI interactions
+- 2026-10-06 | 411a1e2b | 鸡哥 | test(renderer): cover announcement navigation and idle and password boundaries
+- 2026-10-06 | 9bc77bc5 | 鸡哥 | test(data-tools): cover stocks, mail, countdown and world clock boundaries
+- 2026-10-06 | 32bb69b3 | 鸡哥 | fix(stt): handle clipboard rejection and keep copying retryable
+- 2026-10-06 | d2807103 | 鸡哥 | fix(favorites): retain valid cached entries and cover lifecycle boundaries
+- 2026-10-06 | 9b397bba | 鸡哥 | test(auth): cover form, guide, payment and background lifecycles
+- 2026-10-06 | a04cc8e5 | 鸡哥 | test(productivity): cover calendar, alarm, calculator and launcher boundaries
+- 2026-10-06 | eede24d3 | 鸡哥 | fix(ui): harden asynchronous lifecycle and cover renderer interactions
+- 2026-10-06 | d9d560ca | 鸡哥 | fix(settings): validate input and cover tools and game boundaries
+- 2026-10-06 | c59ebf58 | 鸡哥 | fix(productivity): cover timers, navigation, and data tools
+- 2026-10-06 | c09fcd22 | 鸡哥 | fix(agent): harden chat initialization and asynchronous lifecycle
+- 2026-10-06 | eb25e9e1 | 鸡哥 | test(renderer): cover APIs, stores, and utility boundary cases
+- 2026-10-06 | 7d8f1ea0 | 鸡哥 | fix(media): preserve lyric syllables, Unicode titles, and Spotify HMAC keys
+- 2026-10-06 | bc7db7f9 | 鸡哥 | test(node): cover IPC boundaries and native plugin runtimes
+- 2026-10-06 | bb204c4d | 鸡哥 | test(config): add shared harnesses and complete runtime coverage scope
+- 2026-10-06 | ca5ec00a | 鸡哥 | style(test): standardize copyright headers and file descriptions
+- 2026-10-06 | 29983214 | 鸡哥 | fix(tsconfig): ensure noEmit is set to true for proper build configuration
+- 2026-10-06 | 3311bff1 | 鸡哥 | test: add type contracts and tests for various modules in the preload and shared directories
+- 2026-10-06 | 1648399f | 鸡哥 | feat(window): implement dynamic backing width for main window and add tests for expansion behavior
+- 2026-10-06 | 9996404f | 鸡哥 | refactor: update code structure for improved readability and maintainability
+- 2026-10-06 | 58b7a7ee | 鸡哥 | feat(settings): add comprehensive settings management and synchronization hooks
+- 2026-10-06 | 8e3e4d14 | 鸡哥 | style: enhance useIslandDrag with drag session management and mouse position handling (#223)
+- 2026-10-06 | 58106631 | 鸡哥 | test: Add unit tests for various utility functions in the renderer
+- 2026-10-05 | 5df20ebe | 鸡哥 | style: add backToExpanded functionality and update related UI components in MaxExpand
+- 2026-10-05 | 59a9b680 | 鸡哥 | style: add data-hide-target attribute for drag source visibility in MaxExpandAppLauncher
+- 2026-10-05 | 89a433ff | 鸡哥 | style: enhance transition effects for max-expand app hide zone visibility
+- 2026-10-05 | fd4640f4 | 鸡哥 | style: update max-expand app hide zone color to use variable for text color
+- 2026-10-05 | 0de3119c | 鸡哥 | style: update background colors for max-expand app mode elements
+- 2026-10-05 | 2b9aa77a | 鸡哥 | refactor: reorganize renderer components and update HTML entry points
+- 2026-10-05 | 7e3828a6 | 鸡哥 | refactor: update asset paths to use relative URLs
+- 2026-10-05 | 73a4b875 | 鸡哥 | docs: update renderer HTML entry points in multiple documentation files for clarity
+- 2026-10-05 | c0332699 | 鸡哥 | feat: implement full-screen edge glow effect with animation and canvas rendering
+- 2026-10-05 | e4b63825 | 鸡哥 | refactor: Update HTML file structure and update paths for renderer components
+- 2026-10-05 | b5ca495d | 鸡哥 | docs: update README and command documentation for improved clarity on testing commands and configurations
+- 2026-10-05 | cf50818d | 鸡哥 | feat: add project-specific test configurations for Vitest
+- 2026-10-05 | 72613af0 | eislandBot | docs: auto update CHANGE_LOG.md for #224 by @JNTMTMTM [skip ci]
+- 2026-10-04 | 1b16b498 | 鸡哥 | Merge pull request #224 from JNTMTMTM/dev
+- 2026-10-05 | dcb23bbd | 鸡哥 | fix: adjust drag-and-drop visual transition for improved user experience
+- 2026-10-05 | 8c250596 | 鸡哥 | fix: update hide zone color and gradient for improved visibility
+- 2026-10-05 | 314a398d | 鸡哥 | fix: improve transition timing functions for better animation smoothness
+- 2026-10-05 | 19d6f0c6 | 鸡哥 | feat: enhance app hide zone visibility and animations for improved user experience
+- 2026-10-05 | 0695930c | 鸡哥 | feat: implement app hiding functionality with drag-and-drop support and update related translations
+- 2026-10-05 | dd3294c2 | 鸡哥 | refactor: improve descriptions and logic for app launcher layout and visibility handling
+- 2026-10-03 | 8559162b | 鸡哥 | feat: update MaxExpandAppControls to use APP icon in the navigation button
+- 2026-10-03 | e3246104 | 鸡哥 | feat: add APP icon to SvgIcon and corresponding test
+- 2026-10-02 | ff36f3c7 | 鸡哥 | feat: update MaxExpandAppControls to display current app icon and improve layout
+- 2026-10-02 | d69f8964 | 鸡哥 | fix: prevent default F11 fullscreen shortcut to maintain window layout
+- 2026-10-02 | 00b00a77 | 鸡哥 | fix: update worldClock icon assignment in app launcher configuration
+- 2026-10-02 | b7560e68 | 鸡哥 | feat: add WORLDCLOCK icon to SvgIcon and update tests
+- 2026-10-02 | 45d1e542 | 鸡哥 | fix: correct icon assignments for countdown and alarm in app launcher configuration
+- 2026-10-02 | d2183749 | 鸡哥 | feat: enhance app launcher drag-and-drop functionality with dynamic scaling and boundary constraints
+- 2026-10-02 | 2db9ba1e | 鸡哥 | feat: implement app launcher drag-and-drop enhancements with real-time preview and offsets calculation
+- 2026-10-02 | edac3961 | 鸡哥 | feat: enhance app launcher with long press functionality and visual feedback
+- 2026-10-02 | b308e0e2 | 鸡哥 | feat: implement app launcher drag-and-drop functionality with error handling
+- 2026-10-02 | 4e6c0a2e | 鸡哥 | fix: update animation duration in useAppNavigationTransition test for improved accuracy
+- 2026-10-02 | 6f07442d | 鸡哥 | refactor: refactor code structure for improved readability and maintainability
+- 2026-10-02 | 1abc483c | 鸡哥 | feat: add COUNTDOWN icon to SvgIcon and corresponding test
+- 2026-10-02 | 93b60e8b | 鸡哥 | refactor: simplify app launcher configuration by removing color properties and update styles for improved appearance
+- 2026-10-01 | 2a9dc93d | 鸡哥 | fix: change language flag icon styling to use object-fit contain
+- 2026-10-01 | 482ed0d3 | 鸡哥 | fix: update language icon styling for better image fitting
+- 2026-10-01 | f5932cfb | 鸡哥 | refactor: Refactor code structure for improved readability and maintainability
+- 2026-09-29 | 6e12e091 | 鸡哥 | Refactor code structure for improved readability and maintainability (#222)
+- 2026-09-28 | 958fea88 | 鸡哥 | feat: refactor app launcher transition logic and enhance type definitions
+- 2026-09-28 | 54a95c24 | 鸡哥 | feat: update app navigation transition timings and enhance hover offset calculations
+- 2026-09-28 | cfb0f1fa | 鸡哥 | feat: enhance app launcher functionality with expansion offsets and transition improvements
+- 2026-09-28 | 44fc9f52 | 鸡哥 | feat: implement MaxExpandAppNavigation component and transition handling
+- 2026-09-28 | ca44868d | 鸡哥 | feat: add type definitions for MaxExpand app launcher and update props interface
+- 2026-09-28 | 010ccc77 | 鸡哥 | feat: restructure MaxExpand app components and add app launcher functionality
+- 2026-09-28 | 8a923f08 | 鸡哥 | feat: implement hover offsets for app launcher icons and enhance interaction responsiveness
+- 2026-09-28 | 0bd51a8b | 鸡哥 | feat: enhance grid layout for MaxExpand app launcher in larger screens
+- 2026-09-28 | 29292aa6 | 鸡哥 | refactor: remove header section from MaxExpandAppLauncher component and associated styles
+- 2026-09-28 | ad85a1ef | 鸡哥 | feat: add MaxExpand app mode with launcher and controls
+- 2026-09-26 | 32eda2b7 | 鸡哥 | feat: add screenshot settings configuration to localization files
+- 2026-09-25 | 998d51da | 鸡哥 | feat: add app mode toggle for MaxExpand layout with localization support
+- 2026-09-25 | 33a06dff | 鸡哥 | refactor: rebuild IndexSettingsSection and introduce IndexSettingsSearch component
+- 2026-09-24 | 68d26bbc | eislandBot | docs: auto update CHANGE_LOG.md for #221 by @JNTMTMTM [skip ci]
+- 2026-09-24 | 41129cf3 | 鸡哥 | Merge pull request #221 from JNTMTMTM/dev
+- 2026-09-24 | 46c4a4f2 | 鸡哥 | refactor: streamline abort logic in disposeLocalOcrWorker and improve iterator handling in codexSessionParser
+- 2026-09-24 | ea9eef4f | 鸡哥 | feat: update licensing information and original author details in loading components
+- 2026-09-24 | 2b314d85 | 鸡哥 | feat: add 'questionnaire' option to user initial profile page state
+- 2026-09-24 | 0ec40108 | 鸡哥 | feat: enhance animation for expanded content with fade-in effect and conditional slide direction
+- 2026-09-23 | 470815ab | 鸡哥 | feat: add performance mode support for content transitions and state management
+- 2026-09-23 | c4224e67 | 鸡哥 | feat: implement performance mode loading animations and descriptions for expanded and maxExpand states
+- 2026-09-23 | dd70a416 | 鸡哥 | feat: add island content activity hook for managing active state during transitions
+- 2026-09-23 | 9383ad64 | 鸡哥 | feat: add comprehensive tests for image translation and text file line utilities
+- 2026-09-22 | 78f0e23f | 鸡哥 | fix: remove unnecessary libc entries and add hasInstallScript flag in package-lock.json
+- 2026-09-22 | a6c25472 | 鸡哥 | feat(tests): add comprehensive unit tests for various components and utilities
+- 2026-09-22 | 57555928 | eislandBot | docs: auto update CHANGE_LOG.md for #220 by @JNTMTMTM [skip ci]
+- 2026-09-21 | a6cc842c | 鸡哥 | Merge pull request #220 from JNTMTMTM/dev
+- 2026-09-22 | 650761f0 | 鸡哥 | fix: correct destructuring of getBoundingClientRect and update spacing in pendingScroll logic
+- 2026-09-22 | 6b50ca69 | 鸡哥 | fix: update CALENDER.svg to correct path data and ensure proper rendering
+- 2026-09-22 | d0281fd5 | 鸡哥 | feat: add year formatting to Calendar components and update styles for headings
+- 2026-09-22 | d17edf03 | 鸡哥 | feat: add onOpenMonth functionality to Calendar components and update styles
+- 2026-09-22 | 7dce4844 | 鸡哥 | feat: enhance Calendar components with zoom functionality and animations
+- 2026-09-22 | 32971651 | 鸡哥 | feat: implement CalendarOverviewMonths component and enhance CalendarYearOverview functionality
+- 2026-09-22 | 10668994 | 鸡哥 | feat: add year overview and month view functionality in Calendar components
+- 2026-09-22 | a2623266 | 鸡哥 | feat: add CALENDER icon to SvgIcon and update tests
+- 2026-09-22 | 9cc7601d | 鸡哥 | feat: add "Go to Today" button in CalendarGrid and update styles
+- 2026-09-22 | 0dd4cfed | 鸡哥 | feat: add expand/collapse functionality for date details in Calendar components
+- 2026-09-22 | e0d1b8b5 | 鸡哥 | feat: add background image support for countdown events in CalendarDetailPanel
+- 2026-09-22 | a8e9135e | 鸡哥 | feat: add countdown events support in calendar components and translations
+- 2026-09-22 | 46525314 | 鸡哥 | style: remove unused 'viewAll' button from CountdownWidget and clean up related CSS
+- 2026-09-22 | 9f7edf20 | 鸡哥 | style: update CountdownWidget button class for consistency and enhance alarm title styles
+- 2026-09-21 | 7ec92656 | eislandBot | docs: auto update CHANGE_LOG.md for #219 by @JNTMTMTM [skip ci]
+- 2026-09-20 | ee51c29b | 鸡哥 | Merge pull request #219 from JNTMTMTM/dev
+- 2026-09-21 | 0de7cc16 | 鸡哥 | style: refactor storeCompareAndSwap test to use async reduce for improved readability
+- 2026-09-21 | c27b5c43 | 鸡哥 | style: enhance quality review output formatting and improve violation details presentation
+- 2026-09-21 | 5d0450d9 | 鸡哥 | style: enhance store IPC handlers with strict read and compare-and-swap functionality
+- 2026-09-21 | 014fe080 | 鸡哥 | style: refactor CountdownPreview to improve readability by extracting previewItem variable
+- 2026-09-21 | 4a7ad283 | 鸡哥 | style: update CountdownTab to remove duplicate rendering logic and enhance feedback message styling
+- 2026-09-21 | cb2307d6 | 鸡哥 | style: add transition effect to border color for countdown card and enhance reduced motion support
+- 2026-09-21 | 1643acdc | 鸡哥 | style: add delete action to CountdownCardList and enhance button styles for improved visibility
+- 2026-09-21 | f732dce1 | 鸡哥 | style: replace icon components with SVG images in CountdownCardList for improved visual consistency
+- 2026-09-21 | cef3df00 | 鸡哥 | style: enhance expiry label layout in CountdownForm for better alignment
+- 2026-09-21 | 08a3984b | 鸡哥 | style: update box-shadow for countdown panel to enhance visual depth
+- 2026-09-21 | fe890f09 | 鸡哥 | style: update focus styles for countdown panel inputs and buttons for improved accessibility
+- 2026-09-21 | caf99a39 | 鸡哥 | style: enhance toolbar and drawer header styles for improved layout and consistency
+- 2026-09-21 | e7c54a93 | 鸡哥 | style: refine countdown calendar highlighted day styles for improved clarity
+- 2026-09-21 | df2e7169 | 鸡哥 | style: update countdown calendar hover and selected day styles for better accessibility
+- 2026-09-21 | 38101088 | 鸡哥 | style: update CountdownForm to separate border color and background style options with improved layout
+- 2026-09-21 | 9a471134 | 鸡哥 | style: enhance CountdownForm custom color selection with improved layout and styling
+- 2026-09-21 | 357d1bb2 | 鸡哥 | style: update button and tab styles for improved theming and consistency
+- 2026-09-21 | 479b838b | 鸡哥 | style: enhance CountdownForm range input styling and layout for better user experience
+- 2026-09-21 | 857afe4a | 鸡哥 | style: update countdown panel styles for improved theming and button interactions
+- 2026-09-21 | d1041b8b | 鸡哥 | style: update CountdownForm appearance section for improved layout and clarity
+- 2026-09-21 | 9d120a90 | 鸡哥 | style: enhance countdown form actions layout and styling
+- 2026-09-21 | 21b7f81b | 鸡哥 | fix: adjust width of countdown panel to improve layout
+- 2026-09-21 | a2eda068 | 鸡哥 | refactor: remove countdown reminders and related hooks; update countdown components for improved functionality
+- 2026-09-21 | a14d11fa | 鸡哥 | feat: implement countdown reminders and related utilities
+- 2026-09-20 | c2aab6e1 | eislandBot | docs: auto update CHANGE_LOG.md for #218 by @JNTMTMTM [skip ci]
+- 2026-09-20 | ed436d72 | 鸡哥 | Merge pull request #218 from JNTMTMTM/dev
+- 2026-09-21 | e7d25bbe | 鸡哥 | feat(ci): enhance PR comment report with escaped table cells and collapsible sections for changed files
+- 2026-09-21 | c3af653f | 鸡哥 | feat(ci): enhance markdown link check workflow with external and local link validation
+- 2026-09-21 | 30527e8d | 鸡哥 | feat(docs): update license and author information across configuration files
+- 2026-09-21 | fbafda02 | 鸡哥 | feat(lint): enhance lint reporting and documentation for local checks
+- 2026-09-21 | 0c32bb3f | 鸡哥 | feat(docs): add ESLint report generation commands to quality commands documentation
+- 2026-09-21 | f6e6a449 | 鸡哥 | feat(lint): add ESLint report generation scripts for HTML and JSON formats
+- 2026-09-20 | 3cbdde33 | 鸡哥 | chore: update vite-env.d.ts with comprehensive licensing and author information
+- 2026-09-20 | 8439f546 | 鸡哥 | docs: update code quality documentation to include ESLint, Stylelint, and HTML validation commands
+- 2026-09-20 | b5751e77 | 鸡哥 | feat(lint): integrate ESLint and Stylelint configurations with custom rules
+- 2026-09-20 | d0ef2f2d | eislandBot | docs: auto update CHANGE_LOG.md for #217 by @JNTMTMTM [skip ci]
+- 2026-09-19 | d57d73d9 | 鸡哥 | Merge pull request #217 from JNTMTMTM/dev
+- 2026-09-20 | 0b9d07cc | 鸡哥 | feat(weather): add coordinate-based district resolution and enhance location metadata handling
+- 2026-09-20 | 03ce53f4 | 鸡哥 | refactor(calendar): replace for loops with forEach for better readability in calendar utilities
+- 2026-09-20 | 54140f0f | 鸡哥 | refactor(calendar): update CalendarMonthGridProps type definition for clarity and consistency
+- 2026-09-20 | af43a5b9 | 鸡哥 | feat(calendar): implement month grid component and optimize calendar rendering
+- 2026-09-20 | 09c4af13 | 鸡哥 | refactor(calendar): simplify holiday parsing and improve error handling in tests
+- 2026-09-20 | 0f1225ed | 鸡哥 | feat(calendar): remove month progress and days in month from CalendarDetailPanel and CalendarTab
+- 2026-09-20 | 20ae0916 | 鸡哥 | feat(calendar): improve focus styles for region select and holiday status button
+- 2026-09-20 | afa2c3d2 | 鸡哥 | feat(calendar): enhance region selection styling for improved usability
+- 2026-09-20 | edffb8f5 | 鸡哥 | feat(calendar): enhance CalendarDetailPanel layout and styling for improved user experience
+- 2026-09-20 | d7e3cb6b | 鸡哥 | feat(calendar): enhance holiday region select styles for better user interaction
+- 2026-09-20 | 51394ec1 | 鸡哥 | feat(calendar): integrate holiday API and enhance calendar functionality
+- 2026-09-19 | cdf20194 | 鸡哥 | feat(calendar): conditionally display lunar date details based on locale settings
+- 2026-09-19 | c408fb3d | 鸡哥 | feat(calendar): add month label display and enhance calendar layout with new configuration
+- 2026-09-18 | 93d1c5cd | 鸡哥 | refactor(calendar): optimize scroll damping logic and enhance snapping behavior
+- 2026-09-18 | e7366fd1 | 鸡哥 | feat(calendar): enhance scroll damping functionality with month alignment and dynamic updates
+- 2026-09-18 | 53b8c251 | 鸡哥 | feat(calendar): implement scroll damping for smoother calendar navigation
+- 2026-09-18 | bd5071fe | 鸡哥 | feat(calendar): enhance calendar components with improved styling and layout structure
+- 2026-09-18 | 5a07dce6 | 鸡哥 | refactor(calendar): streamline month layout calculations and improve header accessibility
+- 2026-09-18 | d487ff84 | 鸡哥 | fix(calendar): adjust date calculations for week and month layouts to ensure accurate rendering
+- 2026-09-18 | 72d9596f | 鸡哥 | feat(calendar): update CalendarDetailPanel and CalendarGrid styles for improved aesthetics and usability
+- 2026-09-18 | 9ba71f36 | 鸡哥 | feat(calendar): enhance month layout with clear separation and improved scrolling functionality
+- 2026-09-18 | bd75bb40 | 鸡哥 | feat(calendar): implement continuous week calendar with native scrolling and date range expansion
+- 2026-09-18 | 68787197 | 鸡哥 | feat(calendar): implement month navigation via scroll and remove previous/next month buttons for improved usability
+- 2026-09-17 | dea714fc | 鸡哥 | feat(calendar): refactor CalendarTab and add CalendarGrid and CalendarDetailPanel components for improved structure and functionality
+- 2026-09-16 | 56013807 | 鸡哥 | feat(calendar): hide scrollbar in CalendarTab for a cleaner interface
+- 2026-09-16 | 8562c8fd | 鸡哥 | feat(calendar): update selected date styling in CalendarTab for improved visibility
+- 2026-09-16 | 8c0ef63f | 鸡哥 | feat(calendar): implement CalendarTab with month navigation and lunar date details; add calendar translations
+- 2026-09-15 | a384e6b5 | 鸡哥 | feat(i18n): update translation entries for new MaxExpand Tab in multiple locations
+- 2026-09-15 | 12736a7e | 鸡哥 | feat(i18n): add new navigation labels and translations for stock, calculator, world clock, and calendar
+- 2026-09-15 | aeeccf9e | 鸡哥 | feat(calendar): add CalendarTab component and integrate into MaxExpand
+- 2026-09-14 | 3b866695 | eislandBot | docs: auto update CHANGE_LOG.md for #216 by @JNTMTMTM [skip ci]
+- 2026-09-14 | d248ad1a | 鸡哥 | Merge pull request #216 from JNTMTMTM/dev
+- 2026-09-15 | 92af63f1 | 鸡哥 | feat(tests): refactor date validation tests to use forEach for improved readability
+- 2026-09-15 | 21518d45 | 鸡哥 | feat(todo): update clear deadline button to use icon and improve styling for better visibility
+- 2026-09-15 | 44f6c010 | 鸡哥 | feat(todo): improve calendar period styling with animations and responsive adjustments
+- 2026-09-15 | dc0c5680 | 鸡哥 | feat(todo): enhance border color transitions for expanded todo items and delete button hover states
+- 2026-09-15 | 89f28366 | 鸡哥 | feat(todo): replace expand button with clickable area for better accessibility and interaction
+- 2026-09-15 | 697c1957 | 鸡哥 | feat(todo): add hover and focus styles for delete button in expanded todo items
+- 2026-09-15 | 1cf9a0dc | 鸡哥 | feat(todo): update delete button to use icon and improve styling for better visibility and interaction
+- 2026-09-15 | 2f78e314 | 鸡哥 | feat(todo): enhance subtask display with a dedicated list container for improved organization
+- 2026-09-15 | 4650b3f1 | 鸡哥 | feat(todo): reorganize TodoItem component to separate description and subtasks areas for better clarity
+- 2026-09-15 | c05c2b7f | 鸡哥 | feat(todo): implement editable title input for tasks and subtasks with save functionality
+- 2026-09-15 | 143cd3dd | 鸡哥 | feat(todo): reposition description area in TodoItem component for improved layout
+- 2026-09-15 | 585f2e63 | 鸡哥 | feat(todo): add due date functionality with calendar integration and enhance UI for task management
+- 2026-09-15 | f6e6d213 | 鸡哥 | feat(todo): enhance expand/collapse animations and improve description visibility
+- 2026-09-15 | 1401ea9d | 鸡哥 | refactor: enhance Todo components with improved accessibility and UI updates
+- 2026-09-15 | f94fd299 | 鸡哥 | feat(theme): enhance theme mode application with transition effects and origin tracking
+- 2026-09-13 | c6943cf4 | eislandBot | docs: auto update CHANGE_LOG.md for #215 by @JNTMTMTM [skip ci]
+- 2026-09-13 | 9bd8e985 | 鸡哥 | Merge pull request #215 from JNTMTMTM/dev
+- 2026-09-14 | f7b0a206 | 鸡哥 | feat(alarm): enhance updateAlarmIds to handle async operations and error management
+- 2026-09-14 | e3d9b857 | 鸡哥 | refactor(test): simplify loop for alarm state updates in ipcHandlers tests
+- 2026-09-14 | 9b9da28d | 鸡哥 | chore: update license information and author attribution in multiple files
+- 2026-09-14 | d33dc2d0 | 鸡哥 | refactor(alarm): remove unused alarm background icon and related styles
+- 2026-09-14 | 448d5b74 | 鸡哥 | feat(alarm): add sync error message and enhance alarm state management
+- 2026-09-14 | 14f139a0 | 鸡哥 | feat(alarm): implement overview alarm widget and enhance alarm management features
+- 2026-09-14 | bccd7710 | 鸡哥 | refactor(alarm): remove unnecessary flex-direction property from compact sidebar card
+- 2026-09-14 | f7d06418 | 鸡哥 | feat(alarm): enhance WheelPicker functionality with improved scrolling and drag handling
+- 2026-09-14 | eb8e56f1 | 鸡哥 | refactor(alarm): use CSS variable for sidebar width to enhance responsiveness
+- 2026-09-14 | 225d245a | 鸡哥 | style(alarm): update active button styles for improved visibility and consistency
+- 2026-09-14 | 10918a40 | 鸡哥 | refactor(alarm): enhance AlarmCard and AlarmSidebar components for improved accessibility and styling
+- 2026-09-13 | 3bdc4dae | eislandBot | docs: auto update CHANGE_LOG.md for #214 by @JNTMTMTM [skip ci]
+- 2026-09-12 | eebd4685 | 鸡哥 | Merge pull request #214 from JNTMTMTM/dev
+- 2026-09-13 | a7ee98e9 | 鸡哥 | refactor(worldClock): simplify timezone normalization logic in normalizeOverviewWorldClockConfig
+- 2026-09-13 | 93eb3745 | 鸡哥 | feat(overviewTab): add openWorldClockPage callback for navigation in WorldClockWidget
+- 2026-09-13 | 2185bc96 | 鸡哥 | feat(worldClock): add onOpenWorldClockPage callback to WorldClockWidget for navigation
+- 2026-09-13 | b3cce401 | 鸡哥 | feat(worldClock): implement useOverviewWorldClockConfig hook for shared configuration management refactor(worldClock): streamline WorldClockWidget and WorldClockTab to utilize new hook refactor(worldClock): enhance WorldClockCard documentation and update button icon logic test(worldClock): add tests for canonicalization and deduplication of timezones in overview config
+- 2026-09-13 | 88903692 | 鸡哥 | fix(worldClock): update Taiwan timezone mapping to use China flag for consistency
+- 2026-09-13 | c66fba10 | 鸡哥 | feat(worldClock): integrate WorldClockFlag component into WorldClockWidget and OverviewPreview for enhanced city representation
+- 2026-09-13 | 761dfc63 | 鸡哥 | feat(worldClock): add closePicker text and update button functionality in WorldClockCityPicker
+- 2026-09-13 | f614845f | 鸡哥 | refactor(worldClock): update class names for world clock card to improve clarity and styling
+- 2026-09-13 | f6a9293c | 鸡哥 | refactor(worldClock): restructure action buttons in WorldClockCard for improved layout and styling
+- 2026-09-13 | f75a932c | 鸡哥 | feat(worldClock): add world clock widget with dual timezone configuration and styling
+- 2026-09-12 | 9b869ad6 | eislandBot | docs: auto update CHANGE_LOG.md for #213 by @JNTMTMTM [skip ci]
+- 2026-09-11 | 4fe4db33 | 鸡哥 | Merge pull request #213 from JNTMTMTM/dev
+- 2026-09-12 | ae6af257 | 鸡哥 | feat(worldClock): implement hooks for city persistence, operations, and clock ticks; refactor WorldClock components for improved structure and type safety
+- 2026-09-12 | b5027121 | 鸡哥 | refactor(worldClock): replace for loops with forEach for improved readability in tests
+- 2026-09-12 | 82a293bd | 鸡哥 | feat(worldClock): update styles for world clock card layout and remove button visibility
+- 2026-09-12 | d593716c | 鸡哥 | feat(worldClock): reposition delete button and update styles for WorldClockCard
+- 2026-09-12 | f37dc5ea | 鸡哥 | feat(worldClock): remove local badge from WorldClockCard and associated styles
+- 2026-09-12 | 97d07bbf | 鸡哥 | feat(worldClock): add analog clock hands and update styles for WorldClockCard
+- 2026-09-12 | bc6914c9 | 鸡哥 | feat(worldClock): enhance card hover effects with box-shadow for improved visibility
+- 2026-09-12 | 2a830cec | 鸡哥 | feat(worldClock): update hover styles for card remove button
+- 2026-09-12 | 1bd0b26b | 鸡哥 | feat(worldClock): implement WorldClockFlag component for optimized country flag rendering
+- 2026-09-12 | 9e99a010 | 鸡哥 | feat(worldClock): add country flag representation and update styles
+- 2026-09-11 | 6ad6cede | 鸡哥 | feat(dependencies): add flag-icons package for enhanced flag representation
+- 2026-09-12 | f9e632ca | 鸡哥 | feat(worldClock): enhance city labels and timezone management
+- 2026-09-12 | f25b4882 | 鸡哥 | feat(worldClock): update layout and styling for World Clock Tab header
+- 2026-09-11 | 7c639217 | 鸡哥 | feat(worldClock): replace button text with icons for add, remove, and close actions
+- 2026-09-10 | a3ae35b3 | 鸡哥 | feat(skill): add new skills for creating empty settings subpage, empty state machine, guide step, and maxexpand tab with detailed implementation steps
+- 2026-09-10 | 14c89510 | 鸡哥 | feat(docs): add feedback QQ group API and service documentation, update existing documentation for clarity and consistency
+- 2026-09-09 | e901cd3a | 鸡哥 | Add comprehensive API documentation for various features
+- 2026-09-09 | c6f19407 | 鸡哥 | feat(questionnaire): add detailed documentation for the questionnaire system and its features
+- 2026-09-09 | cb836abc | 鸡哥 | style(worldClock): adjust header and picker styles for improved layout
+- 2026-09-08 | aff93192 | 鸡哥 | style(worldClock): hide horizontal overflow in world clock picker list
+- 2026-09-07 | 7e00192e | 鸡哥 | style(worldClock): adjust grid layout and sidebar compact mode styles
+- 2026-09-07 | 622082de | 鸡哥 | feat: add internationalization support for timezone labels in World Clock
+- 2026-09-06 | 1a7044ff | 鸡哥 | feat(useWheelNavigation): add world clock container and picker sidebar to excluded selectors
+- 2026-09-05 | d609e7fa | 鸡哥 | feat(worldClock): enhance city picker and tab layout with sidebar support
+- 2026-09-05 | 84d5e84c | 鸡哥 | feat(worldClock): add world clock feature with city picker and card components
+- 2026-09-03 | 847b0ab3 | 鸡哥 | feat: add World Clock tab and update related configurations
+- 2026-09-02 | 493872c0 | eislandBot | docs: auto update CHANGE_LOG.md for #212 by @JNTMTMTM [skip ci]
+- 2026-09-02 | c98fe092 | 鸡哥 | Merge pull request #212 from JNTMTMTM/dev
+- 2026-09-02 | c8a04dd6 | 鸡哥 | feat: make settings cards fill available height in page main for better centering
+- 2026-09-02 | 1bed2ee2 | 鸡哥 | feat: update settings layout to increase minimum height and use flex for better responsiveness
+- 2026-09-02 | fbc42d9c | 鸡哥 | feat: add 'Coming Soon' message for apps market in settings and update styles
+- 2026-09-01 | 6566f46d | 鸡哥 | feat: add 'Lyrics Providers' configuration to music settings in localization files
+- 2026-09-01 | 2b6abc93 | 鸡哥 | feat: add MARKET icon and update references in settings configuration and tests
+- 2026-08-31 | c93a4820 | 鸡哥 | feat: reorder plugin market pages and update related tests
+- 2026-08-31 | d926711a | 鸡哥 | feat: add 'Apps' page to plugin market and update related configurations
+- 2026-08-30 | e4d5cf00 | 鸡哥 | refactor: update references from 'Wallpaper Market' to 'General Market' in localization files and settings
+- 2026-08-29 | 79cca7e8 | eislandBot | docs: auto update CHANGE_LOG.md for #211 by @JNTMTMTM [skip ci]
+- 2026-08-29 | a982892d | 鸡哥 | Merge pull request #211 from JNTMTMTM/dev
+- 2026-08-29 | f3d91147 | 鸡哥 | feat: enhance NSIS installer process detection with path-aware checks
+- 2026-08-29 | 5dc6a78f | 鸡哥 | test: add eslint disable comment for NSIS script content comparison
+- 2026-08-29 | 6a80f4de | 鸡哥 | feat: add NSIS installer script and tests for overwrite-install process detection
+- 2026-08-29 | d1c03a4c | 鸡哥 | feat: add position locking feature for Dynamic Island in pill mode
+- 2026-08-29 | 5638683d | 鸡哥 | feat: implement combined mouse and window state API with tests (#208)
+- 2026-08-28 | 266845f2 | 鸡哥 | style: change overflow property from hidden to visible in settings-memo.css (#210)
+- 2026-08-28 | 46ef1c81 | 鸡哥 | style: adjust padding and max-width in cli-state.css for better layout
+- 2026-08-27 | 33050cab | 鸡哥 | feat: add legal documents including Billing Refund Policy, Privacy Policy, and Terms of Service
 
 ## 26.7.4
 
@@ -3569,300 +3872,8 @@
 
 ## Unreleased
 
-- 2026-10-08 | 9e08b49c | 鸡哥 | Merge pull request #228 from JNTMTMTM/dev
-- 2026-10-09 | 10a5cfe4 | 鸡哥 | fix: remove 'close' event handling from network response to prevent unnecessary cleanup
-- 2026-10-09 | 212082e9 | 鸡哥 | feat: enhance network request handling with close event and additional tests
-- 2026-10-09 | 37663dac | eislandBot | docs: auto update CHANGE_LOG.md for #227 by @JNTMTMTM [skip ci]
-- 2026-10-08 | 5296afb1 | 鸡哥 | Merge pull request #227 from JNTMTMTM/dev
-- 2026-10-08 | fc3574a9 | 鸡哥 | feat: update .gitignore to include coverage and vitest directories
-- 2026-10-08 | 7436706b | 鸡哥 | feat: add macOS Media Helper plugin and update documentation
-- 2026-10-08 | c696aa5e | 鸡哥 | feat: add MediaRemote functionality and testing framework
-- 2026-10-09 | 503992ba | 鸡哥 | refactor: add WiFi monitoring functionality with tests and configuration
-- 2026-10-09 | d4b2bc83 | 鸡哥 | feat: add .gitkeep to macos plugin directory
-- 2026-10-08 | 0ef77f62 | eislandBot | docs: auto update CHANGE_LOG.md for #226 by @JNTMTMTM [skip ci]
-- 2026-10-08 | ac27be29 | 鸡哥 | Merge pull request #226 from JNTMTMTM/dev
-- 2026-10-09 | 9ffada96 | 鸡哥 | feat(toolbox): enhance navigation persistence with save error handling and configuration management
-- 2026-10-09 | 80f5d5ac | 鸡哥 | feat(i18n): add save error messages for navigation in multiple languages
-- 2026-10-09 | dca5afd5 | 鸡哥 | feat(e2e): add icon probe for executable icon extraction testing
-- 2026-10-09 | fba8332e | 鸡哥 | ci(i18n): enhance completeness check with detailed Markdown report generation
-- 2026-10-08 | 69b989d6 | 鸡哥 | feat(e2e): enhance Windows E2E testing with native plugin support
-- 2026-10-07 | 7bd5752b | 鸡哥 | feat(docs): enhance developer documentation with Electron E2E testing details and commands
-- 2026-10-07 | 2a86d99f | 鸡哥 | feat(e2e): implement end-to-end testing framework with Playwright and update configurations
-- 2026-10-07 | d412cae4 | 鸡哥 | feat(e2e): add end-to-end testing setup with Playwright and configure workflows
-- 2026-10-07 | b2d642e2 | 鸡哥 | test: add unit tests for MiniGameTab component and its runtime behavior
-- 2026-10-07 | 4dbbf794 | 鸡哥 | feat(toolbox): add toolbox navigation and persistence features
-- 2026-10-07 | 85319764 | 鸡哥 | feat(MaxExpandAppControls): refactor and relocate component to shared directory; update tests accordingly
-- 2026-10-06 | 411adb9e | eislandBot | docs: auto update CHANGE_LOG.md for #225 by @JNTMTMTM [skip ci]
-- 2026-10-06 | 8662c5e8 | 鸡哥 | Merge pull request #225 from JNTMTMTM/dev
-- 2026-10-07 | f3fa638e | 鸡哥 | feat(miniGame): add Gomoku and 2048 game hooks, navigation, and leaderboard management
-- 2026-10-06 | 07bc0d51 | 鸡哥 | ci(pr-code-quality-review): enhance syntax checks and add test coverage
-- 2026-10-06 | 3e52282f | 鸡哥 | test(renderer): make payment and CLI assertions locale independent
-- 2026-10-06 | 61a96d0d | 鸡哥 | test(main): make Codex heatmap totals independent of timezone
-- 2026-10-06 | e20242c9 | 鸡哥 | test(config): split main, preload, shared and plugins into projects
-- 2026-10-06 | a9e04d19 | 鸡哥 | test(clipboard): cover lifecycle feedback and navigation fallback paths
-- 2026-10-06 | 8925dd0d | 鸡哥 | test(toolbox): cover persistence and initialization lifecycles
-- 2026-10-06 | f98c220e | 鸡哥 | test(cli): cover live status, permissions and karaoke settings
-- 2026-10-06 | 491e96c3 | 鸡哥 | test(tools): cover native service failures and response boundaries
-- 2026-10-06 | f73b2fcf | 鸡哥 | test(games): cover persisted 2048 state and reachable Gomoku AI positions
-- 2026-10-06 | 542b74bf | 鸡哥 | test(agent): cover stream responses, session status and CLI interactions
-- 2026-10-06 | 411a1e2b | 鸡哥 | test(renderer): cover announcement navigation and idle and password boundaries
-- 2026-10-06 | 9bc77bc5 | 鸡哥 | test(data-tools): cover stocks, mail, countdown and world clock boundaries
-- 2026-10-06 | 32bb69b3 | 鸡哥 | fix(stt): handle clipboard rejection and keep copying retryable
-- 2026-10-06 | d2807103 | 鸡哥 | fix(favorites): retain valid cached entries and cover lifecycle boundaries
-- 2026-10-06 | 9b397bba | 鸡哥 | test(auth): cover form, guide, payment and background lifecycles
-- 2026-10-06 | a04cc8e5 | 鸡哥 | test(productivity): cover calendar, alarm, calculator and launcher boundaries
-- 2026-10-06 | eede24d3 | 鸡哥 | fix(ui): harden asynchronous lifecycle and cover renderer interactions
-- 2026-10-06 | d9d560ca | 鸡哥 | fix(settings): validate input and cover tools and game boundaries
-- 2026-10-06 | c59ebf58 | 鸡哥 | fix(productivity): cover timers, navigation, and data tools
-- 2026-10-06 | c09fcd22 | 鸡哥 | fix(agent): harden chat initialization and asynchronous lifecycle
-- 2026-10-06 | eb25e9e1 | 鸡哥 | test(renderer): cover APIs, stores, and utility boundary cases
-- 2026-10-06 | 7d8f1ea0 | 鸡哥 | fix(media): preserve lyric syllables, Unicode titles, and Spotify HMAC keys
-- 2026-10-06 | bc7db7f9 | 鸡哥 | test(node): cover IPC boundaries and native plugin runtimes
-- 2026-10-06 | bb204c4d | 鸡哥 | test(config): add shared harnesses and complete runtime coverage scope
-- 2026-10-06 | ca5ec00a | 鸡哥 | style(test): standardize copyright headers and file descriptions
-- 2026-10-06 | 29983214 | 鸡哥 | fix(tsconfig): ensure noEmit is set to true for proper build configuration
-- 2026-10-06 | 3311bff1 | 鸡哥 | test: add type contracts and tests for various modules in the preload and shared directories
-- 2026-10-06 | 1648399f | 鸡哥 | feat(window): implement dynamic backing width for main window and add tests for expansion behavior
-- 2026-10-06 | 9996404f | 鸡哥 | refactor: update code structure for improved readability and maintainability
-- 2026-10-06 | 58b7a7ee | 鸡哥 | feat(settings): add comprehensive settings management and synchronization hooks
-- 2026-10-06 | 8e3e4d14 | 鸡哥 | style: enhance useIslandDrag with drag session management and mouse position handling (#223)
-- 2026-10-06 | 58106631 | 鸡哥 | test: Add unit tests for various utility functions in the renderer
-- 2026-10-05 | 5df20ebe | 鸡哥 | style: add backToExpanded functionality and update related UI components in MaxExpand
-- 2026-10-05 | 59a9b680 | 鸡哥 | style: add data-hide-target attribute for drag source visibility in MaxExpandAppLauncher
-- 2026-10-05 | 89a433ff | 鸡哥 | style: enhance transition effects for max-expand app hide zone visibility
-- 2026-10-05 | fd4640f4 | 鸡哥 | style: update max-expand app hide zone color to use variable for text color
-- 2026-10-05 | 0de3119c | 鸡哥 | style: update background colors for max-expand app mode elements
-- 2026-10-05 | 2b9aa77a | 鸡哥 | refactor: reorganize renderer components and update HTML entry points
-- 2026-10-05 | 7e3828a6 | 鸡哥 | refactor: update asset paths to use relative URLs
-- 2026-10-05 | 73a4b875 | 鸡哥 | docs: update renderer HTML entry points in multiple documentation files for clarity
-- 2026-10-05 | c0332699 | 鸡哥 | feat: implement full-screen edge glow effect with animation and canvas rendering
-- 2026-10-05 | e4b63825 | 鸡哥 | refactor: Update HTML file structure and update paths for renderer components
-- 2026-10-05 | b5ca495d | 鸡哥 | docs: update README and command documentation for improved clarity on testing commands and configurations
-- 2026-10-05 | cf50818d | 鸡哥 | feat: add project-specific test configurations for Vitest
-- 2026-10-05 | 72613af0 | eislandBot | docs: auto update CHANGE_LOG.md for #224 by @JNTMTMTM [skip ci]
-- 2026-10-04 | 1b16b498 | 鸡哥 | Merge pull request #224 from JNTMTMTM/dev
-- 2026-10-05 | dcb23bbd | 鸡哥 | fix: adjust drag-and-drop visual transition for improved user experience
-- 2026-10-05 | 8c250596 | 鸡哥 | fix: update hide zone color and gradient for improved visibility
-- 2026-10-05 | 314a398d | 鸡哥 | fix: improve transition timing functions for better animation smoothness
-- 2026-10-05 | 19d6f0c6 | 鸡哥 | feat: enhance app hide zone visibility and animations for improved user experience
-- 2026-10-05 | 0695930c | 鸡哥 | feat: implement app hiding functionality with drag-and-drop support and update related translations
-- 2026-10-05 | dd3294c2 | 鸡哥 | refactor: improve descriptions and logic for app launcher layout and visibility handling
-- 2026-10-03 | 8559162b | 鸡哥 | feat: update MaxExpandAppControls to use APP icon in the navigation button
-- 2026-10-03 | e3246104 | 鸡哥 | feat: add APP icon to SvgIcon and corresponding test
-- 2026-10-02 | ff36f3c7 | 鸡哥 | feat: update MaxExpandAppControls to display current app icon and improve layout
-- 2026-10-02 | d69f8964 | 鸡哥 | fix: prevent default F11 fullscreen shortcut to maintain window layout
-- 2026-10-02 | 00b00a77 | 鸡哥 | fix: update worldClock icon assignment in app launcher configuration
-- 2026-10-02 | b7560e68 | 鸡哥 | feat: add WORLDCLOCK icon to SvgIcon and update tests
-- 2026-10-02 | 45d1e542 | 鸡哥 | fix: correct icon assignments for countdown and alarm in app launcher configuration
-- 2026-10-02 | d2183749 | 鸡哥 | feat: enhance app launcher drag-and-drop functionality with dynamic scaling and boundary constraints
-- 2026-10-02 | 2db9ba1e | 鸡哥 | feat: implement app launcher drag-and-drop enhancements with real-time preview and offsets calculation
-- 2026-10-02 | edac3961 | 鸡哥 | feat: enhance app launcher with long press functionality and visual feedback
-- 2026-10-02 | b308e0e2 | 鸡哥 | feat: implement app launcher drag-and-drop functionality with error handling
-- 2026-10-02 | 4e6c0a2e | 鸡哥 | fix: update animation duration in useAppNavigationTransition test for improved accuracy
-- 2026-10-02 | 6f07442d | 鸡哥 | refactor: refactor code structure for improved readability and maintainability
-- 2026-10-02 | 1abc483c | 鸡哥 | feat: add COUNTDOWN icon to SvgIcon and corresponding test
-- 2026-10-02 | 93b60e8b | 鸡哥 | refactor: simplify app launcher configuration by removing color properties and update styles for improved appearance
-- 2026-10-01 | 2a9dc93d | 鸡哥 | fix: change language flag icon styling to use object-fit contain
-- 2026-10-01 | 482ed0d3 | 鸡哥 | fix: update language icon styling for better image fitting
-- 2026-10-01 | f5932cfb | 鸡哥 | refactor: Refactor code structure for improved readability and maintainability
-- 2026-09-29 | 6e12e091 | 鸡哥 | Refactor code structure for improved readability and maintainability (#222)
-- 2026-09-28 | 958fea88 | 鸡哥 | feat: refactor app launcher transition logic and enhance type definitions
-- 2026-09-28 | 54a95c24 | 鸡哥 | feat: update app navigation transition timings and enhance hover offset calculations
-- 2026-09-28 | cfb0f1fa | 鸡哥 | feat: enhance app launcher functionality with expansion offsets and transition improvements
-- 2026-09-28 | 44fc9f52 | 鸡哥 | feat: implement MaxExpandAppNavigation component and transition handling
-- 2026-09-28 | ca44868d | 鸡哥 | feat: add type definitions for MaxExpand app launcher and update props interface
-- 2026-09-28 | 010ccc77 | 鸡哥 | feat: restructure MaxExpand app components and add app launcher functionality
-- 2026-09-28 | 8a923f08 | 鸡哥 | feat: implement hover offsets for app launcher icons and enhance interaction responsiveness
-- 2026-09-28 | 0bd51a8b | 鸡哥 | feat: enhance grid layout for MaxExpand app launcher in larger screens
-- 2026-09-28 | 29292aa6 | 鸡哥 | refactor: remove header section from MaxExpandAppLauncher component and associated styles
-- 2026-09-28 | ad85a1ef | 鸡哥 | feat: add MaxExpand app mode with launcher and controls
-- 2026-09-26 | 32eda2b7 | 鸡哥 | feat: add screenshot settings configuration to localization files
-- 2026-09-25 | 998d51da | 鸡哥 | feat: add app mode toggle for MaxExpand layout with localization support
-- 2026-09-25 | 33a06dff | 鸡哥 | refactor: rebuild IndexSettingsSection and introduce IndexSettingsSearch component
-- 2026-09-24 | 68d26bbc | eislandBot | docs: auto update CHANGE_LOG.md for #221 by @JNTMTMTM [skip ci]
-- 2026-09-24 | 41129cf3 | 鸡哥 | Merge pull request #221 from JNTMTMTM/dev
-- 2026-09-24 | 46c4a4f2 | 鸡哥 | refactor: streamline abort logic in disposeLocalOcrWorker and improve iterator handling in codexSessionParser
-- 2026-09-24 | ea9eef4f | 鸡哥 | feat: update licensing information and original author details in loading components
-- 2026-09-24 | 2b314d85 | 鸡哥 | feat: add 'questionnaire' option to user initial profile page state
-- 2026-09-24 | 0ec40108 | 鸡哥 | feat: enhance animation for expanded content with fade-in effect and conditional slide direction
-- 2026-09-23 | 470815ab | 鸡哥 | feat: add performance mode support for content transitions and state management
-- 2026-09-23 | c4224e67 | 鸡哥 | feat: implement performance mode loading animations and descriptions for expanded and maxExpand states
-- 2026-09-23 | dd70a416 | 鸡哥 | feat: add island content activity hook for managing active state during transitions
-- 2026-09-23 | 9383ad64 | 鸡哥 | feat: add comprehensive tests for image translation and text file line utilities
-- 2026-09-22 | 78f0e23f | 鸡哥 | fix: remove unnecessary libc entries and add hasInstallScript flag in package-lock.json
-- 2026-09-22 | a6c25472 | 鸡哥 | feat(tests): add comprehensive unit tests for various components and utilities
-- 2026-09-22 | 57555928 | eislandBot | docs: auto update CHANGE_LOG.md for #220 by @JNTMTMTM [skip ci]
-- 2026-09-21 | a6cc842c | 鸡哥 | Merge pull request #220 from JNTMTMTM/dev
-- 2026-09-22 | 650761f0 | 鸡哥 | fix: correct destructuring of getBoundingClientRect and update spacing in pendingScroll logic
-- 2026-09-22 | 6b50ca69 | 鸡哥 | fix: update CALENDER.svg to correct path data and ensure proper rendering
-- 2026-09-22 | d0281fd5 | 鸡哥 | feat: add year formatting to Calendar components and update styles for headings
-- 2026-09-22 | d17edf03 | 鸡哥 | feat: add onOpenMonth functionality to Calendar components and update styles
-- 2026-09-22 | 7dce4844 | 鸡哥 | feat: enhance Calendar components with zoom functionality and animations
-- 2026-09-22 | 32971651 | 鸡哥 | feat: implement CalendarOverviewMonths component and enhance CalendarYearOverview functionality
-- 2026-09-22 | 10668994 | 鸡哥 | feat: add year overview and month view functionality in Calendar components
-- 2026-09-22 | a2623266 | 鸡哥 | feat: add CALENDER icon to SvgIcon and update tests
-- 2026-09-22 | 9cc7601d | 鸡哥 | feat: add "Go to Today" button in CalendarGrid and update styles
-- 2026-09-22 | 0dd4cfed | 鸡哥 | feat: add expand/collapse functionality for date details in Calendar components
-- 2026-09-22 | e0d1b8b5 | 鸡哥 | feat: add background image support for countdown events in CalendarDetailPanel
-- 2026-09-22 | a8e9135e | 鸡哥 | feat: add countdown events support in calendar components and translations
-- 2026-09-22 | 46525314 | 鸡哥 | style: remove unused 'viewAll' button from CountdownWidget and clean up related CSS
-- 2026-09-22 | 9f7edf20 | 鸡哥 | style: update CountdownWidget button class for consistency and enhance alarm title styles
-- 2026-09-21 | 7ec92656 | eislandBot | docs: auto update CHANGE_LOG.md for #219 by @JNTMTMTM [skip ci]
-- 2026-09-20 | ee51c29b | 鸡哥 | Merge pull request #219 from JNTMTMTM/dev
-- 2026-09-21 | 0de7cc16 | 鸡哥 | style: refactor storeCompareAndSwap test to use async reduce for improved readability
-- 2026-09-21 | c27b5c43 | 鸡哥 | style: enhance quality review output formatting and improve violation details presentation
-- 2026-09-21 | 5d0450d9 | 鸡哥 | style: enhance store IPC handlers with strict read and compare-and-swap functionality
-- 2026-09-21 | 014fe080 | 鸡哥 | style: refactor CountdownPreview to improve readability by extracting previewItem variable
-- 2026-09-21 | 4a7ad283 | 鸡哥 | style: update CountdownTab to remove duplicate rendering logic and enhance feedback message styling
-- 2026-09-21 | cb2307d6 | 鸡哥 | style: add transition effect to border color for countdown card and enhance reduced motion support
-- 2026-09-21 | 1643acdc | 鸡哥 | style: add delete action to CountdownCardList and enhance button styles for improved visibility
-- 2026-09-21 | f732dce1 | 鸡哥 | style: replace icon components with SVG images in CountdownCardList for improved visual consistency
-- 2026-09-21 | cef3df00 | 鸡哥 | style: enhance expiry label layout in CountdownForm for better alignment
-- 2026-09-21 | 08a3984b | 鸡哥 | style: update box-shadow for countdown panel to enhance visual depth
-- 2026-09-21 | fe890f09 | 鸡哥 | style: update focus styles for countdown panel inputs and buttons for improved accessibility
-- 2026-09-21 | caf99a39 | 鸡哥 | style: enhance toolbar and drawer header styles for improved layout and consistency
-- 2026-09-21 | e7c54a93 | 鸡哥 | style: refine countdown calendar highlighted day styles for improved clarity
-- 2026-09-21 | df2e7169 | 鸡哥 | style: update countdown calendar hover and selected day styles for better accessibility
-- 2026-09-21 | 38101088 | 鸡哥 | style: update CountdownForm to separate border color and background style options with improved layout
-- 2026-09-21 | 9a471134 | 鸡哥 | style: enhance CountdownForm custom color selection with improved layout and styling
-- 2026-09-21 | 357d1bb2 | 鸡哥 | style: update button and tab styles for improved theming and consistency
-- 2026-09-21 | 479b838b | 鸡哥 | style: enhance CountdownForm range input styling and layout for better user experience
-- 2026-09-21 | 857afe4a | 鸡哥 | style: update countdown panel styles for improved theming and button interactions
-- 2026-09-21 | d1041b8b | 鸡哥 | style: update CountdownForm appearance section for improved layout and clarity
-- 2026-09-21 | 9d120a90 | 鸡哥 | style: enhance countdown form actions layout and styling
-- 2026-09-21 | 21b7f81b | 鸡哥 | fix: adjust width of countdown panel to improve layout
-- 2026-09-21 | a2eda068 | 鸡哥 | refactor: remove countdown reminders and related hooks; update countdown components for improved functionality
-- 2026-09-21 | a14d11fa | 鸡哥 | feat: implement countdown reminders and related utilities
-- 2026-09-20 | c2aab6e1 | eislandBot | docs: auto update CHANGE_LOG.md for #218 by @JNTMTMTM [skip ci]
-- 2026-09-20 | ed436d72 | 鸡哥 | Merge pull request #218 from JNTMTMTM/dev
-- 2026-09-21 | e7d25bbe | 鸡哥 | feat(ci): enhance PR comment report with escaped table cells and collapsible sections for changed files
-- 2026-09-21 | c3af653f | 鸡哥 | feat(ci): enhance markdown link check workflow with external and local link validation
-- 2026-09-21 | 30527e8d | 鸡哥 | feat(docs): update license and author information across configuration files
-- 2026-09-21 | fbafda02 | 鸡哥 | feat(lint): enhance lint reporting and documentation for local checks
-- 2026-09-21 | 0c32bb3f | 鸡哥 | feat(docs): add ESLint report generation commands to quality commands documentation
-- 2026-09-21 | f6e6a449 | 鸡哥 | feat(lint): add ESLint report generation scripts for HTML and JSON formats
-- 2026-09-20 | 3cbdde33 | 鸡哥 | chore: update vite-env.d.ts with comprehensive licensing and author information
-- 2026-09-20 | 8439f546 | 鸡哥 | docs: update code quality documentation to include ESLint, Stylelint, and HTML validation commands
-- 2026-09-20 | b5751e77 | 鸡哥 | feat(lint): integrate ESLint and Stylelint configurations with custom rules
-- 2026-09-20 | d0ef2f2d | eislandBot | docs: auto update CHANGE_LOG.md for #217 by @JNTMTMTM [skip ci]
-- 2026-09-19 | d57d73d9 | 鸡哥 | Merge pull request #217 from JNTMTMTM/dev
-- 2026-09-20 | 0b9d07cc | 鸡哥 | feat(weather): add coordinate-based district resolution and enhance location metadata handling
-- 2026-09-20 | 03ce53f4 | 鸡哥 | refactor(calendar): replace for loops with forEach for better readability in calendar utilities
-- 2026-09-20 | 54140f0f | 鸡哥 | refactor(calendar): update CalendarMonthGridProps type definition for clarity and consistency
-- 2026-09-20 | af43a5b9 | 鸡哥 | feat(calendar): implement month grid component and optimize calendar rendering
-- 2026-09-20 | 09c4af13 | 鸡哥 | refactor(calendar): simplify holiday parsing and improve error handling in tests
-- 2026-09-20 | 0f1225ed | 鸡哥 | feat(calendar): remove month progress and days in month from CalendarDetailPanel and CalendarTab
-- 2026-09-20 | 20ae0916 | 鸡哥 | feat(calendar): improve focus styles for region select and holiday status button
-- 2026-09-20 | afa2c3d2 | 鸡哥 | feat(calendar): enhance region selection styling for improved usability
-- 2026-09-20 | edffb8f5 | 鸡哥 | feat(calendar): enhance CalendarDetailPanel layout and styling for improved user experience
-- 2026-09-20 | d7e3cb6b | 鸡哥 | feat(calendar): enhance holiday region select styles for better user interaction
-- 2026-09-20 | 51394ec1 | 鸡哥 | feat(calendar): integrate holiday API and enhance calendar functionality
-- 2026-09-19 | cdf20194 | 鸡哥 | feat(calendar): conditionally display lunar date details based on locale settings
-- 2026-09-19 | c408fb3d | 鸡哥 | feat(calendar): add month label display and enhance calendar layout with new configuration
-- 2026-09-18 | 93d1c5cd | 鸡哥 | refactor(calendar): optimize scroll damping logic and enhance snapping behavior
-- 2026-09-18 | e7366fd1 | 鸡哥 | feat(calendar): enhance scroll damping functionality with month alignment and dynamic updates
-- 2026-09-18 | 53b8c251 | 鸡哥 | feat(calendar): implement scroll damping for smoother calendar navigation
-- 2026-09-18 | bd5071fe | 鸡哥 | feat(calendar): enhance calendar components with improved styling and layout structure
-- 2026-09-18 | 5a07dce6 | 鸡哥 | refactor(calendar): streamline month layout calculations and improve header accessibility
-- 2026-09-18 | d487ff84 | 鸡哥 | fix(calendar): adjust date calculations for week and month layouts to ensure accurate rendering
-- 2026-09-18 | 72d9596f | 鸡哥 | feat(calendar): update CalendarDetailPanel and CalendarGrid styles for improved aesthetics and usability
-- 2026-09-18 | 9ba71f36 | 鸡哥 | feat(calendar): enhance month layout with clear separation and improved scrolling functionality
-- 2026-09-18 | bd75bb40 | 鸡哥 | feat(calendar): implement continuous week calendar with native scrolling and date range expansion
-- 2026-09-18 | 68787197 | 鸡哥 | feat(calendar): implement month navigation via scroll and remove previous/next month buttons for improved usability
-- 2026-09-17 | dea714fc | 鸡哥 | feat(calendar): refactor CalendarTab and add CalendarGrid and CalendarDetailPanel components for improved structure and functionality
-- 2026-09-16 | 56013807 | 鸡哥 | feat(calendar): hide scrollbar in CalendarTab for a cleaner interface
-- 2026-09-16 | 8562c8fd | 鸡哥 | feat(calendar): update selected date styling in CalendarTab for improved visibility
-- 2026-09-16 | 8c0ef63f | 鸡哥 | feat(calendar): implement CalendarTab with month navigation and lunar date details; add calendar translations
-- 2026-09-15 | a384e6b5 | 鸡哥 | feat(i18n): update translation entries for new MaxExpand Tab in multiple locations
-- 2026-09-15 | 12736a7e | 鸡哥 | feat(i18n): add new navigation labels and translations for stock, calculator, world clock, and calendar
-- 2026-09-15 | aeeccf9e | 鸡哥 | feat(calendar): add CalendarTab component and integrate into MaxExpand
-- 2026-09-14 | 3b866695 | eislandBot | docs: auto update CHANGE_LOG.md for #216 by @JNTMTMTM [skip ci]
-- 2026-09-14 | d248ad1a | 鸡哥 | Merge pull request #216 from JNTMTMTM/dev
-- 2026-09-15 | 92af63f1 | 鸡哥 | feat(tests): refactor date validation tests to use forEach for improved readability
-- 2026-09-15 | 21518d45 | 鸡哥 | feat(todo): update clear deadline button to use icon and improve styling for better visibility
-- 2026-09-15 | 44f6c010 | 鸡哥 | feat(todo): improve calendar period styling with animations and responsive adjustments
-- 2026-09-15 | dc0c5680 | 鸡哥 | feat(todo): enhance border color transitions for expanded todo items and delete button hover states
-- 2026-09-15 | 89f28366 | 鸡哥 | feat(todo): replace expand button with clickable area for better accessibility and interaction
-- 2026-09-15 | 697c1957 | 鸡哥 | feat(todo): add hover and focus styles for delete button in expanded todo items
-- 2026-09-15 | 1cf9a0dc | 鸡哥 | feat(todo): update delete button to use icon and improve styling for better visibility and interaction
-- 2026-09-15 | 2f78e314 | 鸡哥 | feat(todo): enhance subtask display with a dedicated list container for improved organization
-- 2026-09-15 | 4650b3f1 | 鸡哥 | feat(todo): reorganize TodoItem component to separate description and subtasks areas for better clarity
-- 2026-09-15 | c05c2b7f | 鸡哥 | feat(todo): implement editable title input for tasks and subtasks with save functionality
-- 2026-09-15 | 143cd3dd | 鸡哥 | feat(todo): reposition description area in TodoItem component for improved layout
-- 2026-09-15 | 585f2e63 | 鸡哥 | feat(todo): add due date functionality with calendar integration and enhance UI for task management
-- 2026-09-15 | f6e6d213 | 鸡哥 | feat(todo): enhance expand/collapse animations and improve description visibility
-- 2026-09-15 | 1401ea9d | 鸡哥 | refactor: enhance Todo components with improved accessibility and UI updates
-- 2026-09-15 | f94fd299 | 鸡哥 | feat(theme): enhance theme mode application with transition effects and origin tracking
-- 2026-09-13 | c6943cf4 | eislandBot | docs: auto update CHANGE_LOG.md for #215 by @JNTMTMTM [skip ci]
-- 2026-09-13 | 9bd8e985 | 鸡哥 | Merge pull request #215 from JNTMTMTM/dev
-- 2026-09-14 | f7b0a206 | 鸡哥 | feat(alarm): enhance updateAlarmIds to handle async operations and error management
-- 2026-09-14 | e3d9b857 | 鸡哥 | refactor(test): simplify loop for alarm state updates in ipcHandlers tests
-- 2026-09-14 | 9b9da28d | 鸡哥 | chore: update license information and author attribution in multiple files
-- 2026-09-14 | d33dc2d0 | 鸡哥 | refactor(alarm): remove unused alarm background icon and related styles
-- 2026-09-14 | 448d5b74 | 鸡哥 | feat(alarm): add sync error message and enhance alarm state management
-- 2026-09-14 | 14f139a0 | 鸡哥 | feat(alarm): implement overview alarm widget and enhance alarm management features
-- 2026-09-14 | bccd7710 | 鸡哥 | refactor(alarm): remove unnecessary flex-direction property from compact sidebar card
-- 2026-09-14 | f7d06418 | 鸡哥 | feat(alarm): enhance WheelPicker functionality with improved scrolling and drag handling
-- 2026-09-14 | eb8e56f1 | 鸡哥 | refactor(alarm): use CSS variable for sidebar width to enhance responsiveness
-- 2026-09-14 | 225d245a | 鸡哥 | style(alarm): update active button styles for improved visibility and consistency
-- 2026-09-14 | 10918a40 | 鸡哥 | refactor(alarm): enhance AlarmCard and AlarmSidebar components for improved accessibility and styling
-- 2026-09-13 | 3bdc4dae | eislandBot | docs: auto update CHANGE_LOG.md for #214 by @JNTMTMTM [skip ci]
-- 2026-09-12 | eebd4685 | 鸡哥 | Merge pull request #214 from JNTMTMTM/dev
-- 2026-09-13 | a7ee98e9 | 鸡哥 | refactor(worldClock): simplify timezone normalization logic in normalizeOverviewWorldClockConfig
-- 2026-09-13 | 93eb3745 | 鸡哥 | feat(overviewTab): add openWorldClockPage callback for navigation in WorldClockWidget
-- 2026-09-13 | 2185bc96 | 鸡哥 | feat(worldClock): add onOpenWorldClockPage callback to WorldClockWidget for navigation
-- 2026-09-13 | b3cce401 | 鸡哥 | feat(worldClock): implement useOverviewWorldClockConfig hook for shared configuration management refactor(worldClock): streamline WorldClockWidget and WorldClockTab to utilize new hook refactor(worldClock): enhance WorldClockCard documentation and update button icon logic test(worldClock): add tests for canonicalization and deduplication of timezones in overview config
-- 2026-09-13 | 88903692 | 鸡哥 | fix(worldClock): update Taiwan timezone mapping to use China flag for consistency
-- 2026-09-13 | c66fba10 | 鸡哥 | feat(worldClock): integrate WorldClockFlag component into WorldClockWidget and OverviewPreview for enhanced city representation
-- 2026-09-13 | 761dfc63 | 鸡哥 | feat(worldClock): add closePicker text and update button functionality in WorldClockCityPicker
-- 2026-09-13 | f614845f | 鸡哥 | refactor(worldClock): update class names for world clock card to improve clarity and styling
-- 2026-09-13 | f6a9293c | 鸡哥 | refactor(worldClock): restructure action buttons in WorldClockCard for improved layout and styling
-- 2026-09-13 | f75a932c | 鸡哥 | feat(worldClock): add world clock widget with dual timezone configuration and styling
-- 2026-09-12 | 9b869ad6 | eislandBot | docs: auto update CHANGE_LOG.md for #213 by @JNTMTMTM [skip ci]
-- 2026-09-11 | 4fe4db33 | 鸡哥 | Merge pull request #213 from JNTMTMTM/dev
-- 2026-09-12 | ae6af257 | 鸡哥 | feat(worldClock): implement hooks for city persistence, operations, and clock ticks; refactor WorldClock components for improved structure and type safety
-- 2026-09-12 | b5027121 | 鸡哥 | refactor(worldClock): replace for loops with forEach for improved readability in tests
-- 2026-09-12 | 82a293bd | 鸡哥 | feat(worldClock): update styles for world clock card layout and remove button visibility
-- 2026-09-12 | d593716c | 鸡哥 | feat(worldClock): reposition delete button and update styles for WorldClockCard
-- 2026-09-12 | f37dc5ea | 鸡哥 | feat(worldClock): remove local badge from WorldClockCard and associated styles
-- 2026-09-12 | 97d07bbf | 鸡哥 | feat(worldClock): add analog clock hands and update styles for WorldClockCard
-- 2026-09-12 | bc6914c9 | 鸡哥 | feat(worldClock): enhance card hover effects with box-shadow for improved visibility
-- 2026-09-12 | 2a830cec | 鸡哥 | feat(worldClock): update hover styles for card remove button
-- 2026-09-12 | 1bd0b26b | 鸡哥 | feat(worldClock): implement WorldClockFlag component for optimized country flag rendering
-- 2026-09-12 | 9e99a010 | 鸡哥 | feat(worldClock): add country flag representation and update styles
-- 2026-09-11 | 6ad6cede | 鸡哥 | feat(dependencies): add flag-icons package for enhanced flag representation
-- 2026-09-12 | f9e632ca | 鸡哥 | feat(worldClock): enhance city labels and timezone management
-- 2026-09-12 | f25b4882 | 鸡哥 | feat(worldClock): update layout and styling for World Clock Tab header
-- 2026-09-11 | 7c639217 | 鸡哥 | feat(worldClock): replace button text with icons for add, remove, and close actions
-- 2026-09-10 | a3ae35b3 | 鸡哥 | feat(skill): add new skills for creating empty settings subpage, empty state machine, guide step, and maxexpand tab with detailed implementation steps
-- 2026-09-10 | 14c89510 | 鸡哥 | feat(docs): add feedback QQ group API and service documentation, update existing documentation for clarity and consistency
-- 2026-09-09 | e901cd3a | 鸡哥 | Add comprehensive API documentation for various features
-- 2026-09-09 | c6f19407 | 鸡哥 | feat(questionnaire): add detailed documentation for the questionnaire system and its features
-- 2026-09-09 | cb836abc | 鸡哥 | style(worldClock): adjust header and picker styles for improved layout
-- 2026-09-08 | aff93192 | 鸡哥 | style(worldClock): hide horizontal overflow in world clock picker list
-- 2026-09-07 | 7e00192e | 鸡哥 | style(worldClock): adjust grid layout and sidebar compact mode styles
-- 2026-09-07 | 622082de | 鸡哥 | feat: add internationalization support for timezone labels in World Clock
-- 2026-09-06 | 1a7044ff | 鸡哥 | feat(useWheelNavigation): add world clock container and picker sidebar to excluded selectors
-- 2026-09-05 | d609e7fa | 鸡哥 | feat(worldClock): enhance city picker and tab layout with sidebar support
-- 2026-09-05 | 84d5e84c | 鸡哥 | feat(worldClock): add world clock feature with city picker and card components
-- 2026-09-03 | 847b0ab3 | 鸡哥 | feat: add World Clock tab and update related configurations
-- 2026-09-02 | 493872c0 | eislandBot | docs: auto update CHANGE_LOG.md for #212 by @JNTMTMTM [skip ci]
-- 2026-09-02 | c98fe092 | 鸡哥 | Merge pull request #212 from JNTMTMTM/dev
-- 2026-09-02 | c8a04dd6 | 鸡哥 | feat: make settings cards fill available height in page main for better centering
-- 2026-09-02 | 1bed2ee2 | 鸡哥 | feat: update settings layout to increase minimum height and use flex for better responsiveness
-- 2026-09-02 | fbc42d9c | 鸡哥 | feat: add 'Coming Soon' message for apps market in settings and update styles
-- 2026-09-01 | 6566f46d | 鸡哥 | feat: add 'Lyrics Providers' configuration to music settings in localization files
-- 2026-09-01 | 2b6abc93 | 鸡哥 | feat: add MARKET icon and update references in settings configuration and tests
-- 2026-08-31 | c93a4820 | 鸡哥 | feat: reorder plugin market pages and update related tests
-- 2026-08-31 | d926711a | 鸡哥 | feat: add 'Apps' page to plugin market and update related configurations
-- 2026-08-30 | e4d5cf00 | 鸡哥 | refactor: update references from 'Wallpaper Market' to 'General Market' in localization files and settings
-- 2026-08-29 | 79cca7e8 | eislandBot | docs: auto update CHANGE_LOG.md for #211 by @JNTMTMTM [skip ci]
-- 2026-08-29 | a982892d | 鸡哥 | Merge pull request #211 from JNTMTMTM/dev
-- 2026-08-29 | f3d91147 | 鸡哥 | feat: enhance NSIS installer process detection with path-aware checks
-- 2026-08-29 | 5dc6a78f | 鸡哥 | test: add eslint disable comment for NSIS script content comparison
-- 2026-08-29 | 6a80f4de | 鸡哥 | feat: add NSIS installer script and tests for overwrite-install process detection
-- 2026-08-29 | d1c03a4c | 鸡哥 | feat: add position locking feature for Dynamic Island in pill mode
-- 2026-08-29 | 5638683d | 鸡哥 | feat: implement combined mouse and window state API with tests (#208)
-- 2026-08-28 | 266845f2 | 鸡哥 | style: change overflow property from hidden to visible in settings-memo.css (#210)
-- 2026-08-28 | 46ef1c81 | 鸡哥 | style: adjust padding and max-width in cli-state.css for better layout
-- 2026-08-27 | 33050cab | 鸡哥 | feat: add legal documents including Billing Refund Policy, Privacy Policy, and Terms of Service
+- 2026-10-10 | ddfb0c47 | 鸡哥 | Merge pull request #229 from JNTMTMTM/dev
+- 2026-10-10 | 42a712c3 | 鸡哥 | feat: update version to 26.0.1 and enhance documentation for macOS Brightness Helper
+- 2026-10-09 | df4131a9 | 鸡哥 | feat: add macOS Brightness Helper documentation and sidebar entry
+- 2026-10-09 | c6643867 | 鸡哥 | feat: add macOS brightness helper to publish workflow
+- 2026-10-09 | fdef904b | 鸡哥 | feat: Implement macOS brightness helper with Swift and Node-API integration
