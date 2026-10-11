@@ -1106,6 +1106,7 @@
     },
     "messages": {
       "loading": "Loading mail…",
+      "bodyFetchFailed": "Could not load this message. Close and reopen it to retry.",
       "inboxFetchFailed": "Failed to load inbox",
       "inboxFetchTimeout": "Inbox request timed out. Please check network or mail settings",
       "needRecipient": "Please input recipient email",

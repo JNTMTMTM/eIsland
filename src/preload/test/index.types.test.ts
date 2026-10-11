@@ -139,6 +139,7 @@ interface ExpectedApi {
   pickVideoForExtract: () => Promise<PickVideoForExtractResult | null>;
   extractVideoTrack: (options: ExtractVideoTrackOptions) => Promise<ExtractVideoTrackResult>;
   netFetch: (url: string, options?: NetFetchOptions) => Promise<NetFetchResult>;
+  mailMessageGet: (config: Record<string, unknown>, uid: string, validity?: string) => Promise<MailInboxResult>;
   mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number) => Promise<MailInboxResult>;
   scheduleWakeup: (id: string, deadline: number | null) => Promise<boolean>;
   storeRead: (key: string, strict?: boolean) => Promise<unknown>;

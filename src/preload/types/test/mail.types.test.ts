@@ -30,6 +30,7 @@ describe('mail contracts', () => {
   it('fixes MailInboxItem fields and accepts its explicit legal fixture', () => {
     expectTypeOf<MailInboxItem>().toEqualTypeOf<{
       uid: string;
+      uidValidity?: string;
       subject: string;
       from: string;
       to: string;

@@ -70,6 +70,7 @@ vi.mock('fs', () => ({
 
 vi.mock('imapflow', () => ({
   ImapFlow: class {
+    mailbox = { exists: 2, uidValidity: 1n };
     connect = connectMock;
 
     logout = logoutMock;
@@ -179,11 +180,12 @@ describe('app mail ipc handlers', () => {
 
     expect(result.ok).toBe(true);
     expect(result.items).toHaveLength(2);
-    expect(result.items[0]?.subject).toBe('hello');
-    expect(searchMock).toHaveBeenCalledWith({ all: true }, { uid: true });
-    expect(fetchOneMock).toHaveBeenCalledTimes(1);
-    expect(fetchOneMock).toHaveBeenNthCalledWith(1, 2, expect.any(Object), { uid: true });
+    expect(result.items[0]?.subject).toBe('fallback-subject');
+    expect(searchMock).not.toHaveBeenCalled();
+    expect(simpleParserMock).not.toHaveBeenCalled();
+    expect(fetchOneMock).toHaveBeenCalledTimes(2);
+    expect(fetchOneMock).toHaveBeenNthCalledWith(1, 2, expect.objectContaining({ envelope: true, size: true }));
     expect(logoutMock).toHaveBeenCalled();
-    expect(writeFileSyncMock).toHaveBeenCalled();
+    expect(writeFileSyncMock).not.toHaveBeenCalled();
   });
 });

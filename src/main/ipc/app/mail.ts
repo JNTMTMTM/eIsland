@@ -25,11 +25,11 @@
  */
 
 import { ipcMain } from 'electron';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import type { ImapFlow } from 'imapflow';
+import { existsSync, readFileSync } from 'fs';
+import type { ImapFlow, MessageStructureObject } from 'imapflow';
 import { join } from 'path';
-import type { RegisterMailIpcHandlersOptions, MailAccountConfig, MailInboxItem, MailInboxCacheStore } from './types';
-import { IMAP_TIMEOUT_MS, MAIL_INBOX_CACHE_STORE_KEY, MAIL_INBOX_CACHE_MAX_ITEMS } from './config/mail';
+import type { RegisterMailIpcHandlersOptions, MailAccountConfig, MailInboxItem } from './types';
+import { IMAP_TIMEOUT_MS } from './config/mail';
 
 function parsePort(raw: string, fallback: number): number {
   const value = Number(raw);
@@ -91,94 +91,35 @@ function toIsoDateString(value: unknown): string {
   return value.toISOString();
 }
 
-function normalizeMailText(value: string): string {
-  return value.replace(/\r\n?/g, '\n').trim();
-}
-
-function toMailPreview(value: string, maxLength = 180): string {
-  const normalized = value.replace(/\s+/g, ' ').trim();
-  if (normalized.length <= maxLength) return normalized;
-  return `${normalized.slice(0, maxLength).trimEnd()}...`;
-}
-
-function ensureMailInboxItemCompatibility(item: MailInboxItem): MailInboxItem {
-  return {
-    uid: item.uid,
-    subject: item.subject || '(无主题)',
-    from: item.from || '',
-    to: item.to || '',
-    date: item.date || '',
-    size: Number.isFinite(item.size) ? item.size : 0,
-    preview: typeof item.preview === 'string' ? item.preview : '',
-    body: typeof item.body === 'string' ? item.body : '',
-  };
-}
-
-function hasMailContent(item: MailInboxItem): boolean {
-  if (!item.preview?.trim() && !item.body?.trim()) return false;
-  if (item.body && !/<[a-z][\s\S]*>/i.test(item.body)) return false;
-  return true;
-}
-
-function getInboxCacheFilePath(storeDir: string): string {
-  return join(storeDir, `${MAIL_INBOX_CACHE_STORE_KEY}.json`);
-}
-
-function toAccountCacheKey(config: MailAccountConfig): string {
-  return [
-    config.imapHost.trim().toLowerCase(),
-    parsePort(config.imapPort, config.imapSecure ? 993 : 143),
-    config.imapSecure ? 'tls' : 'plain',
-    config.authUser.trim().toLowerCase(),
-  ].join('|');
-}
-
-function readInboxCache(storeDir: string): MailInboxCacheStore {
-  try {
-    const filePath = getInboxCacheFilePath(storeDir);
-    if (!existsSync(filePath)) return { accounts: {} };
-    const raw = readFileSync(filePath, 'utf-8');
-    const parsed = JSON.parse(raw) as Partial<MailInboxCacheStore>;
-    if (!parsed || typeof parsed !== 'object' || !parsed.accounts || typeof parsed.accounts !== 'object') {
-      return { accounts: {} };
-    }
-    return { accounts: parsed.accounts as Record<string, Record<string, MailInboxItem>> };
-  } catch {
-    return { accounts: {} };
-  }
-}
-
-function writeInboxCache(storeDir: string, value: MailInboxCacheStore): void {
-  try {
-    const filePath = getInboxCacheFilePath(storeDir);
-    writeFileSync(filePath, JSON.stringify(value), 'utf-8');
-  } catch {
-    // ignore cache write errors
-  }
-}
-
-async function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetchOne']>>): Promise<MailInboxItem | null> {
+/** 从 IMAP 包络创建轻量列表项；正文仅由详情请求填入。 */
+function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetchOne']>>, validity: string): MailInboxItem | null {
   if (!message) return null;
-  const { simpleParser } = await import('mailparser');
-  const parsed = message.source ? await simpleParser(message.source) : null;
-  const plainText = normalizeMailText(typeof parsed?.text === 'string' ? parsed.text : '');
-  const body = typeof parsed?.html === 'string' && parsed.html.trim()
-    ? parsed.html
-    : typeof parsed?.textAsHtml === 'string' && parsed.textAsHtml.trim()
-      ? parsed.textAsHtml
-      : plainText;
   return {
-    uid: String(message.uid ?? uid),
-    subject: parsed?.subject || message.envelope?.subject || '(无主题)',
-    from: parsed?.from?.text || formatEnvelopeAddressList(message.envelope?.from),
-    to: parsed?.to?.text || formatEnvelopeAddressList(message.envelope?.to),
-    date: toIsoDateString(parsed?.date) || toIsoDateString(message.envelope?.date),
-    size: typeof message.size === 'number'
-      ? message.size
-      : (Buffer.isBuffer(message.source) ? message.source.length : 0),
-    preview: toMailPreview(plainText),
-    body,
+    uid: String(message.uid ?? uid), uidValidity: validity,
+    subject: (message.envelope?.subject || '(无主题)').slice(0, 2048),
+    from: formatEnvelopeAddressList(message.envelope?.from).slice(0, 2048),
+    to: formatEnvelopeAddressList(message.envelope?.to).slice(0, 2048),
+    date: toIsoDateString(message.envelope?.date),
+    size: typeof message.size === 'number' ? message.size : 0,
+    preview: '', body: '',
   };
+}
+
+/** 找出正文 MIME 部分；不访问附件或作为附件的转发邮件。 */
+function bodyParts(node: MessageStructureObject | undefined): MessageStructureObject[] {
+  if (!node || node.disposition?.toLowerCase() === 'attachment' || node.type === 'message/rfc822') return [];
+  if (node.type === 'text/html' || node.type === 'text/plain') return [node];
+  const children = (node.childNodes ?? []).flatMap(bodyParts);
+  if (node.type === 'multipart/alternative') {
+    const html = children.filter((part) => part.type === 'text/html');
+    return html.length ? html : children.filter((part) => part.type === 'text/plain');
+  }
+  return children;
+}
+
+/** 对纯文本正文转义后包裹为 HTML，保持完整邮件可读。 */
+function plainHtml(text: string): string {
+  return `<pre>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
 }
 
 async function withImapClient<T>(config: MailAccountConfig, task: (client: ImapFlow) => Promise<T>): Promise<T> {
@@ -212,65 +153,46 @@ async function withImapClient<T>(config: MailAccountConfig, task: (client: ImapF
   }
 }
 
-async function listInbox(config: MailAccountConfig, limit: number, storeDir: string): Promise<MailInboxItem[]> {
-  const cacheStore = readInboxCache(storeDir);
-  const accountCacheKey = toAccountCacheKey(config);
-  const accountCache = cacheStore.accounts[accountCacheKey] || {};
-
+/** 按消息序号读取末页包络，避免 SEARCH ALL 与完整邮件下载。 */
+async function listInbox(config: MailAccountConfig, limit: number): Promise<MailInboxItem[]> {
   return withImapClient(config, async (client) => {
     const lock = await client.getMailboxLock('INBOX');
     try {
-      const searchResult = await client.search({ all: true }, { uid: true });
-      const uids = Array.isArray(searchResult) ? searchResult : [];
-      const selectedUids = uids.slice(-limit).reverse();
+      const count = client.mailbox ? client.mailbox.exists : 0;
+      const validity = client.mailbox ? String(client.mailbox.uidValidity) : '';
       const items: MailInboxItem[] = [];
-
-      for (let uidIdx = 0; uidIdx < selectedUids.length; uidIdx++) {
-        const uid = selectedUids[uidIdx];
-        const cacheKey = String(uid);
-        const cached = accountCache[cacheKey];
-        if (cached) {
-          const normalizedCached = ensureMailInboxItemCompatibility(cached);
-          if (hasMailContent(normalizedCached)) {
-            items.push(normalizedCached);
-            accountCache[cacheKey] = normalizedCached;
-            continue;
-          }
-        }
-
-        const message = await client.fetchOne(
-          uid,
-          {
-            uid: true,
-            source: true,
-            size: true,
-            envelope: true,
-          },
-          { uid: true },
-        );
-        const item = await toMailInboxItem(uid, message);
-        if (!item) continue;
-        const normalizedItem = ensureMailInboxItemCompatibility(item);
-        items.push(normalizedItem);
-        accountCache[cacheKey] = normalizedItem;
-        accountCache[normalizedItem.uid] = normalizedItem;
+      for (let sequence = count; sequence > Math.max(0, count - limit); sequence -= 1) {
+        const message = await client.fetchOne(sequence, { uid: true, size: true, envelope: true, flags: true });
+        const item = toMailInboxItem(sequence, message, validity);
+        if (item) items.push(item);
       }
-
-      const keepUidKeys = uids.slice(-MAIL_INBOX_CACHE_MAX_ITEMS).map((uid) => String(uid));
-      const nextAccountCache: Record<string, MailInboxItem> = {};
-      keepUidKeys.forEach((uid) => {
-        const cached = accountCache[uid];
-        if (cached) {
-          nextAccountCache[uid] = cached;
-        }
-      });
-      cacheStore.accounts[accountCacheKey] = nextAccountCache;
-      writeInboxCache(storeDir, cacheStore);
-
       return items;
-    } finally {
-      lock.release();
-    }
+    } finally { lock.release(); }
+  });
+}
+
+/** 只下载用户打开的正文 MIME 部分；IMAP 流负责传输编码及字符集解码。 */
+async function readMailBody(config: MailAccountConfig, uid: string, expectedValidity?: string): Promise<MailInboxItem> {
+  return withImapClient(config, async (client) => {
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      const validity = client.mailbox ? String(client.mailbox.uidValidity) : '';
+      if (expectedValidity && expectedValidity !== validity) throw new Error('Mailbox changed; refresh the inbox.');
+      const message = await client.fetchOne(uid, { uid: true, size: true, envelope: true, bodyStructure: true }, { uid: true });
+      const item = toMailInboxItem(Number(uid), message, validity);
+      if (!item || !message) throw new Error('Message no longer exists.');
+      const bodies: string[] = [];
+      for (const part of bodyParts(message.bodyStructure)) {
+        const { content } = await client.download(uid, part.part || '1', { uid: true, chunkSize: 64 * 1024 });
+        const chunks: Buffer[] = [];
+        try {
+          for await (const chunk of content) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+          const body = Buffer.concat(chunks).toString('utf8');
+          bodies.push(part.type === 'text/html' ? body : plainHtml(body));
+        } finally { content.destroy(); }
+      }
+      return { ...item, body: bodies.join('\n') };
+    } finally { lock.release(); }
   });
 }
 
@@ -284,6 +206,45 @@ function isMailAccountConfigLike(value: unknown): value is MailAccountConfig {
 
 /** 注册所有邮件相关的 IPC handler（收件箱列表、邮件详情、账户配置等）。 */
 export function registerMailIpcHandlers(options: RegisterMailIpcHandlersOptions): void {
+  // 详情独立的字节 LRU；超预算正文仍可完整阅读，但不会在列表/缓存重复驻留。
+  const bodyCache = new Map<string, MailInboxItem>();
+  const pending = new Map<string, Promise<MailInboxItem>>();
+  let cacheBytes = 0;
+  let detailQueue: Promise<unknown> = Promise.resolve();
+  ipcMain.handle('mail:message:get', async (_event, rawConfig: unknown, uid: string, validity?: string) => {
+    try {
+      if (!isMailAccountConfigLike(rawConfig) || !/^\d+$/.test(uid)) throw new Error('Invalid mail request.');
+      const config = ensureMailConfig(rawConfig);
+      const key = JSON.stringify([config.imapHost, config.imapPort, config.imapSecure, config.authUser, validity, uid]);
+      const cached = bodyCache.get(key);
+      if (cached) {
+        bodyCache.delete(key); bodyCache.set(key, cached);
+        return { ok: true, items: [cached], message: '' };
+      }
+      let request = pending.get(key);
+      if (!request) {
+        if (pending.size >= 8) throw new Error('Mail reader is busy; retry shortly.');
+        request = detailQueue.then(() => readMailBody(config, uid, validity)).then((item) => {
+          const bytes = item.body.length * 2;
+          const budget = 8 * 1024 * 1024;
+          if (bytes <= budget) {
+            while (cacheBytes + bytes > budget && bodyCache.size) {
+              const oldest = bodyCache.keys().next().value!;
+              cacheBytes -= bodyCache.get(oldest)!.body.length * 2;
+              bodyCache.delete(oldest);
+            }
+            bodyCache.set(key, item); cacheBytes += bytes;
+          }
+          return item;
+        }).finally(() => { pending.delete(key); });
+        pending.set(key, request);
+        detailQueue = request.catch(() => {});
+      }
+      return { ok: true, items: [await request], message: '' };
+    } catch (error) {
+      return { ok: false, items: [], message: error instanceof Error ? error.message : 'Mail body could not be loaded.' };
+    }
+  });
   ipcMain.handle('mail:inbox:list', async (_event, configOrLimit?: unknown, limitRaw?: number) => {
     try {
       let config: MailAccountConfig;
@@ -298,13 +259,13 @@ export function registerMailIpcHandlers(options: RegisterMailIpcHandlersOptions)
           authUser: configOrLimit.authUser.trim(),
           authSecret: configOrLimit.authSecret,
         });
-        limit = Math.max(1, Math.min(30, Math.floor(typeof limitRaw === 'number' ? limitRaw : 10)));
+        limit = Math.max(1, Math.min(30, Math.floor(typeof limitRaw === 'number' && Number.isFinite(limitRaw) ? limitRaw : 10)));
       } else {
         config = ensureMailConfig(readMailConfig(options.storeDir, options.mailConfigStoreKey));
-        limit = Math.max(1, Math.min(30, Math.floor(typeof configOrLimit === 'number' ? configOrLimit : 10)));
+        limit = Math.max(1, Math.min(30, Math.floor(typeof configOrLimit === 'number' && Number.isFinite(configOrLimit) ? configOrLimit : 10)));
       }
 
-      const items = await listInbox(config, limit, options.storeDir);
+      const items = await listInbox(config, limit);
       return { ok: true, items, message: '' };
     } catch (error) {
       return {

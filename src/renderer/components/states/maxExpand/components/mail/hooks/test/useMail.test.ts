@@ -64,6 +64,7 @@ const api = {
   storeRead: vi.fn<Window['api']['storeRead']>(),
   storeWrite: vi.fn<Window['api']['storeWrite']>(),
   mailInboxList: vi.fn<Window['api']['mailInboxList']>(),
+  mailMessageGet: vi.fn<Window['api']['mailMessageGet']>(),
   clipboardOpenUrl: vi.fn<Window['api']['clipboardOpenUrl']>()
 };
 const values = new Map<string, unknown>();
@@ -136,6 +137,7 @@ beforeEach(async () => {
   api.storeRead.mockReset().mockImplementation((key) => Promise.resolve(values.get(key)));
   api.storeWrite.mockReset().mockResolvedValue(true);
   api.mailInboxList.mockReset().mockResolvedValue({ ok: true, message: '', items: [message] });
+  api.mailMessageGet.mockReset().mockResolvedValue({ ok: true, message: '', items: [message] });
   api.clipboardOpenUrl.mockReset().mockResolvedValue(true);
   surface = new EventTarget();
   vi.stubGlobal('window', Object.assign(surface, { api }));
@@ -292,5 +294,30 @@ describe('Mail iframe message lifecycle', () => {
     unmountHooks();
     surface.dispatchEvent(new MessageEvent('message', { data: { type: 'mail-open-url', url: 'https://late' } }));
     expect(api.clipboardOpenUrl).toHaveBeenCalledOnce();
+  });
+});
+
+
+describe('邮件正文按需加载边界', () => {
+  it('列表不请求正文，展开才请求，正文不写回列表缓存', async () => {
+    api.mailInboxList.mockResolvedValue({ ok: true, message: '', items: [{ ...message, body: '', uidValidity: '7' }] });
+    const state = await commit();
+    expect(api.mailMessageGet).not.toHaveBeenCalled();
+    state.toggleInboxItem('1'); view(); runEffects(); await settle();
+    expect(api.mailMessageGet).toHaveBeenCalledWith(expect.objectContaining({ authUser: 'first' }), '1', '7');
+    expect(view().selectedItem?.body).toBe('Body');
+    expect(getInboxMemoryCache()[0]?.body).toBe('');
+    view().toggleInboxItem('1'); view(); runEffects();
+    expect(view().selectedItem).toBeNull();
+  });
+  it('切换账户时丢弃旧正文，即使不同账户 UID 相同', async () => {
+    const body = deferred<Awaited<ReturnType<typeof api.mailMessageGet>>>();
+    api.mailInboxList.mockResolvedValue({ ok: true, message: '', items: [{ ...message, body: '' }] });
+    api.mailMessageGet.mockReturnValueOnce(body.promise);
+    (await commit()).toggleInboxItem('1'); view(); runEffects();
+    view().switchAccount(second); view(); runEffects(); await settle();
+    body.resolve({ ok: true, message: '', items: [{ ...message, body: 'private old account' }] }); await settle();
+    expect(view().selectedItem).toBeNull();
+    expect(getInboxMemoryCache()[0]?.body).toBe('');
   });
 });

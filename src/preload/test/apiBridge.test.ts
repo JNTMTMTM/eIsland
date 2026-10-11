@@ -165,6 +165,7 @@ const TRANSPORT_ROUTES = [
   ['pickVideoForExtract', 'format-factory:pick-video', 0, 'invoke'],
   ['extractVideoTrack', 'format-factory:extract-track', 1, 'invoke'],
   ['netFetch', 'net:fetch', 2, 'invoke'],
+  ['mailMessageGet', 'mail:message:get', 3, 'invoke'],
   ['mailInboxList', 'mail:inbox:list', 2, 'invoke'],
   ['storeWrite', 'store:write', 2, 'invoke'],
   ['storeCompareAndSwap', 'store:compare-and-swap', 3, 'invoke'],

@@ -766,6 +766,8 @@ const api = {
   /**
    * 读取收件箱邮件列表
    */
+  /** 按需读取单封邮件正文，不下载附件。 */
+  mailMessageGet: (config: Record<string, unknown>, uid: string, validity?: string): Promise<MailInboxResult> => ipcRenderer.invoke('mail:message:get', config, uid, validity),
   mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number): Promise<MailInboxResult> => {
     return ipcRenderer.invoke('mail:inbox:list', configOrLimit, limit);
   },

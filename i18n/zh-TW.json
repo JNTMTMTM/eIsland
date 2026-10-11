@@ -1110,7 +1110,8 @@
       "inboxFetchTimeout": "收件箱讀取超時，請檢查網絡或郵箱配置",
       "needRecipient": "請填寫收件人郵箱",
       "sendFailed": "發送失敗，請稍後重試",
-      "sendSuccess": "發送成功"
+      "sendSuccess": "發送成功",
+      "bodyFetchFailed": "無法載入郵件內容，請重新開啟郵件。"
     },
     "emptyGuide": {
       "title": "配置郵箱 IMAP 賬戶後即可在此收取和查看郵件",

@@ -61,11 +61,28 @@ export function useMail(): UseMailReturn {
   const [activeAccountId, setActiveAccountId] = useState<string>('');
   const [fetchLimit, setFetchLimit] = useState<number>(DEFAULT_MAIL_FETCH_LIMIT);
   const inboxRequestIdRef = useRef(0);
+  const [detail, setDetail] = useState<{ key: string; body: string } | null>(null);
 
   const configuredAccounts = accounts.filter(isAccountConfigured);
   const activeAccount = accounts.find((account) => account.id === activeAccountId) || configuredAccounts[0] || null;
-  const selectedItem = expandedUid ? inbox.find((item) => item.uid === expandedUid) || null : null;
+  const selectedSummary = expandedUid ? inbox.find((item) => item.uid === expandedUid) || null : null;
+  const detailKey = JSON.stringify([activeAccount?.id, expandedUid, selectedSummary?.uidValidity]);
+  const selectedItem = selectedSummary ? { ...selectedSummary, body: detail?.key === detailKey ? detail.body : (selectedSummary.body || t('mailTab.messages.loading')) } : null;
   const hasSplit = Boolean(selectedItem);
+
+  /** 正文只属于当前打开的邮件，切换、折叠或卸载后丢弃旧请求结果。 */
+  useEffect(() => {
+    let cancelled = false;
+    setDetail(null);
+    if (!activeAccount || !selectedSummary || selectedSummary.body) return;
+    void window.api.mailMessageGet({ ...activeAccount }, selectedSummary.uid, selectedSummary.uidValidity)
+      .then((result) => {
+        if (!cancelled) setDetail({ key: detailKey, body: result.ok ? (result.items[0]?.body || '-') : t('mailTab.messages.bodyFetchFailed') });
+      }).catch(() => {
+        if (!cancelled) setDetail({ key: detailKey, body: t('mailTab.messages.bodyFetchFailed') });
+      });
+    return () => { cancelled = true; };
+  }, [activeAccount, detailKey, selectedSummary, t]);
 
   /** 跳转到邮箱设置页 */
   const goMailSettings = useCallback((): void => {
