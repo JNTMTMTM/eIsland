@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T17:16:36.397Z
+> 生成时间：2026-10-11T17:19:46.656Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-11 | e25a5308 | dependabot[bot] | ci(deps): bump softprops/action-gh-release from 2 to 3 (#232)
+- 2026-10-11 | 1c119cea | eislandBot | docs: auto update CHANGE_LOG.md for #231 by @dependabot[bot] [skip ci]
 - 2026-10-11 | 83f272bb | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments from 7.0.1 to 9.0.1 (#231)
 - 2026-10-11 | 0cf95c76 | eislandBot | docs: auto update CHANGE_LOG.md for #230 by @JNTMTMTM [skip ci]
 - 2026-10-11 | 010c7f60 | 鸡哥 | Merge pull request #230 from JNTMTMTM/dev
