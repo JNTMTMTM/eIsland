@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T17:30:20.407Z
+> 生成时间：2026-10-11T17:30:50.018Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-11 | e5f9e144 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc from 61.7.1 to 65.2.0 (#238)
+- 2026-10-11 | 8306b040 | eislandBot | docs: auto update CHANGE_LOG.md for #237 by @dependabot[bot] [skip ci]
 - 2026-10-11 | a0ac6b0f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 38 updates (#237)
 - 2026-10-11 | d0d340e2 | eislandBot | docs: auto update CHANGE_LOG.md for #236 by @dependabot[bot] [skip ci]
 - 2026-10-11 | 7a12c31b | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update (#236)
