@@ -143,6 +143,12 @@ test('scientific switches angle units, lays out nested formulas and scrolls long
   await display.pressSequentially('30');
   await display.press('Enter');
   await expect(page.locator('.calc-value')).toHaveText('0.5');
+  const keypadHistoryGap = await page.locator('.calc-history').evaluate((history) => {
+    const keypad = history.parentElement!.querySelector('.calc-buttons-dual')!;
+    const keypadBottom = Math.max(...Array.from(keypad.querySelectorAll('button')).map((button) => button.getBoundingClientRect().bottom));
+    return history.getBoundingClientRect().top - keypadBottom;
+  });
+  expect(keypadHistoryGap).toBeGreaterThanOrEqual(0);
   await radian.click();
   await expect(radian).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.calc-value')).toHaveText('-0.988031624093');

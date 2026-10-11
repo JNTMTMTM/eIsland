@@ -480,10 +480,10 @@
 
 .calc-buttons-dual {
   display: grid;
-  flex: 1;
+  flex: 1 0 auto;
   grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr);
   gap: 10px;
-  min-height: 0;
+  min-height: 192px;
 
 }
 
