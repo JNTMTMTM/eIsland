@@ -41,8 +41,18 @@ import tseslint from 'typescript-eslint';
 import htmlRules from './html-rules.cjs';
 import project from './project-rules.mjs';
 
-const ESLINT_BIN = fileURLToPath(new URL('./bin/eslint.js', import.meta.resolve('eslint/package.json')));
+const ESLINT_ENTRY = fileURLToPath(new URL('./eslint.mjs', import.meta.url));
 const { scripts } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+
+test('所有项目 ESLint 命令调用工具 workspace 的 ESLint 10', () => {
+  ['lint', 'lint:eslint', 'lint:report', 'lint:report:json', 'lint:fix', 'lint:comments'].forEach((name) => {
+    assert.ok(scripts[name].startsWith('node scripts/lint/eslint.mjs '), name);
+  });
+  const result = spawnSync(process.execPath, [ESLINT_ENTRY, '--version'], { encoding: 'utf8', timeout: 30_000 });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^v10\./u);
+});
 
 ['lint:report', 'lint:report:json'].forEach((name) => {
   [false, true].forEach((hasViolation) => {
@@ -54,10 +64,11 @@ const { scripts } = JSON.parse(readFileSync(new URL('../../package.json', import
       writeFileSync(join(directory.path, 'probe.js'), `${hasViolation ? 'var' : 'const'} value = 1;\n`);
 
       // 使用 package 指令中的实际 CLI 参数，不依赖 npm/cmd/bash 的平台差异。
-      const [command, ...args] = scripts[name].split(' ');
-      assert.equal(command, 'eslint');
+      const [command, entry, ...args] = scripts[name].split(' ');
+      assert.equal(command, 'node');
+      assert.equal(entry, 'scripts/lint/eslint.mjs');
       assert.equal(existsSync(join(directory.path, 'reports')), false);
-      const result = spawnSync(process.execPath, [ESLINT_BIN, ...args], {
+      const result = spawnSync(process.execPath, [ESLINT_ENTRY, ...args], {
         cwd: directory.path,
         encoding: 'utf8',
         timeout: 30_000,
@@ -118,11 +129,14 @@ test('基础规则检测 var、宽松相等、any 及危险构造器', async () 
 });
 
 test('类型感知检查能发现悬空 Promise，声明文件不会因同名源码产生解析错误', async () => {
-  const typed = new ESLint();
+  // lintText 会替换文件内容；CI 的单次程序快照不适合这类虚拟输入。
+  const typed = new ESLint({
+    overrideConfig: { languageOptions: { parserOptions: { disallowAutomaticSingleRunInference: true } } },
+  });
   // 使用已纳入 TS 项目的文件名提供类型上下文；lintText 不会改写该文件。
   const [result] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'vitest.config.ts')}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.ts' });
   assert.equal(result.fatalErrorCount, 0);
-  assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'));
+  assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'), JSON.stringify(result.messages));
   const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'index.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/preload/index.d.ts' });
   assert.equal(declaration.fatalErrorCount, 0);
 });
@@ -212,6 +226,23 @@ export default function Probe(props: { active: boolean }) {
 `, { filePath: 'web/eisland-web-issue-report/src/lint-probe.tsx' });
   ['react-hooks/rules-of-hooks', 'react/jsx-props-no-spreading', 'jsx-a11y/alt-text'].forEach((rule) => assert.ok(result.messages.some(({ ruleId }) => ruleId === rule), rule));
   assert.equal(result.fatalErrorCount, 0);
+});
+
+test('根目录和子项目目录加载相同的 React、无障碍与注释规则', async () => {
+  const filePath = 'web/eisland-web-issue-report/src/App.tsx';
+  const root = await eslint.calculateConfigForFile(filePath);
+  const nested = await new ESLint({ cwd: fileURLToPath(new URL('../../web/eisland-web-issue-report/', import.meta.url)) }).calculateConfigForFile('src/App.tsx');
+  ['react/jsx-props-no-spreading', 'jsx-a11y/alt-text', 'react-hooks/rules-of-hooks', 'project/file-header'].forEach((rule) => {
+    assert.equal(root.rules[rule][0], 2, rule);
+    assert.deepEqual(nested.rules[rule], root.rules[rule], rule);
+  });
+});
+
+test('子项目的普通 TypeScript 文件保留 Hook 插件及共享注释检查', async () => {
+  const config = await eslint.calculateConfigForFile('web/eisland-web-issue-report/src/lint-probe.ts');
+  assert.ok(config.plugins['react-hooks']);
+  assert.equal(config.rules['react-hooks/rules-of-hooks'][0], 2);
+  assert.equal(config.rules['project/file-header'][0], 2);
 });
 
 test('Node 和浏览器全局隔离，产物忽略而源码与声明文件纳入检查', async () => {

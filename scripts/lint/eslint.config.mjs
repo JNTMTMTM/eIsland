@@ -27,6 +27,7 @@
 import { fileURLToPath } from 'node:url';
 
 import comments from '@eslint-community/eslint-plugin-eslint-comments';
+import { fixupConfigRules } from '@eslint/compat';
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import { defineConfig } from 'eslint/config';
@@ -42,6 +43,9 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import project from './project-rules.mjs';
+
+// 子项目复用相同的插件实例，避免分别安装的依赖重复注册同名插件。
+export { hooks as reactHooksPlugin };
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const CODE = ['**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'];
@@ -220,7 +224,8 @@ export default defineConfig([
   },
   {
     files: ['**/*.{jsx,tsx}'],
-    extends: [react.configs.flat.recommended, react.configs.flat['jsx-runtime'], a11y.flatConfigs.recommended],
+    // 官方兼容层保留旧插件依赖的 RuleContext API，规则与严重级别保持不变。
+    extends: fixupConfigRules([react.configs.flat.recommended, react.configs.flat['jsx-runtime'], a11y.flatConfigs.recommended]),
     plugins: { 'react-hooks': hooks },
     settings: { react: { version: '19.2' } },
     rules: {
