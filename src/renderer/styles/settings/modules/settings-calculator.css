@@ -300,15 +300,33 @@
 .calc-history-list {
   flex: 1;
   min-height: 0;
+  padding-right: 6px;
+  margin-right: -6px;
   overflow: auto;
 
 }
 
 .calc-history-row {
   display: flex;
-  gap: 6px;
-  align-items: flex-start;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
   margin-bottom: 8px;
+  background: rgb(var(--color-text-rgb), .04);
+  border: 1px solid rgb(var(--color-text-rgb), .08);
+  border-radius: 10px;
+
+}
+
+.calc-history-delete {
+  display: flex;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 18px;
 
 }
 
@@ -319,12 +337,12 @@
   gap: 6px;
   align-items: stretch;
   min-width: 0;
-  padding: 10px;
+  padding: 0;
   font: inherit;
   color: inherit;
   text-align: left;
   cursor: pointer;
-  background: rgb(var(--color-text-rgb), .04);
+  background: transparent;
   border: 0;
   border-radius: 6px;
 
@@ -355,8 +373,8 @@
 
 }
 
-.calc-history-restore:hover {
-  background: rgb(var(--color-text-rgb), .08);
+.calc-history-row:hover {
+  background: rgb(var(--color-text-rgb), .06);
 
 }
 

@@ -56,7 +56,7 @@ export function CalculatorHistory({ entries, storageError, onRestore, onRemove, 
           <span className="calc-history-formula">{entry.formula}{entry.mode === 'coordinate' && entry.extra ? '\n' + entry.extra : ''}</span>
           <strong className="calc-history-result">{entry.result}</strong>
         </button>
-        <button className="calc-tool-btn" type="button" aria-label={t('calculator.history.remove')} onClick={() => onRemove(entry.id)}>×</button>
+        <button className="calc-tool-btn calc-history-delete" type="button" aria-label={t('calculator.history.remove')} onClick={() => onRemove(entry.id)}>×</button>
       </div>)}
     </div>
   </section>;
