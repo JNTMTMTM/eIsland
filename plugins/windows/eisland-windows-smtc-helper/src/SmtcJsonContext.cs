@@ -9,6 +9,7 @@ namespace eIslandSmtcHelper;
 [JsonSerializable(typeof(PlaybackControls))]
 [JsonSerializable(typeof(SessionInfo))]
 [JsonSerializable(typeof(SessionInfo[]))]
+[JsonSerializable(typeof(SessionDelta[]))]
 [JsonSerializable(typeof(MediaMetadata))]
 [JsonSerializable(typeof(PlaybackInfoSnapshot))]
 [JsonSerializable(typeof(TimelineInfo))]

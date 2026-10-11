@@ -71,6 +71,11 @@ class MockMonitor {
     return mocks.sessions();
   }
 
+  /** 返回已由监控器合并的缓存，不再次触发原生查询。 */
+  getCachedSession(sourceAppId: string): Session | null {
+    return mocks.sessions().find((session) => session.sourceAppId === sourceAppId) ?? null;
+  }
+
   /** 启动模拟监听。 */
   start(): void {
     mocks.start();

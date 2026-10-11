@@ -76,8 +76,7 @@ smtc.on('session-added', (sourceAppId: string, mediaProps: MediaProps) => {
    * @docs https://github.com/JNTMTMTM/eIsland/issues/41
    */
   try {
-    const sessions = smtc.getMediaSessions();
-    const fresh = sessions.find((s) => s.sourceAppId === sourceAppId);
+    const fresh = smtc.getCachedSession(sourceAppId);
     if (fresh) {
       entry.playback = fresh.playback;
       entry.timeline = fresh.timeline;
@@ -101,8 +100,7 @@ smtc.on('session-media-changed', (sourceAppId: string, mediaProps: MediaProps) =
    * @docs https://github.com/JNTMTMTM/eIsland/issues/41
    */
   try {
-    const sessions = smtc.getMediaSessions();
-    const fresh = sessions.find((s) => s.sourceAppId === sourceAppId);
+    const fresh = smtc.getCachedSession(sourceAppId);
     if (fresh) {
       updated.playback = fresh.playback;
       updated.timeline = fresh.timeline;

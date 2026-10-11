@@ -193,6 +193,18 @@ public static class SmtcExports
         catch { return -1; }
     }
 
+    /// <summary>读取并清空已合并的增量队列；字符串由 smtc_free_string 释放。</summary>
+    [UnmanagedCallersOnly(EntryPoint = "smtc_drain_session_changes")]
+    public static IntPtr DrainSessionChanges()
+    {
+        try
+        {
+            var json = SmtcSessionMonitor.DrainSessionChangesJson();
+            return json == null ? IntPtr.Zero : StringToCoTaskMem(json);
+        }
+        catch (Exception ex) { lastError = ex.ToString(); return IntPtr.Zero; }
+    }
+
     /// <summary>获取所有会话 JSON（SessionInfo[]）。返回 CoTaskMem 分配的 UTF-8 字符串，需 smtc_free_string 释放</summary>
     [UnmanagedCallersOnly(EntryPoint = "smtc_get_all_sessions")]
     public static IntPtr GetAllSessions()

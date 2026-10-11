@@ -69,6 +69,9 @@ public static class SmtcSessionMonitor
 
     /// <summary>变更计数器，Node 侧通过原子读取判断是否有新变更</summary>
     private static volatile int _changeCounter;
+    private static long _revision;
+    private static readonly Dictionary<string, SessionDelta> _pendingChanges = new();
+    private const int ArtworkCacheCharacterBudget = 4 * 1024 * 1024;
 
     /// <summary>有变更时置位，Node 等待此事件</summary>
     private static IntPtr _changeEvent = IntPtr.Zero;
@@ -168,6 +171,46 @@ public static class SmtcSessionMonitor
     /// 读取当前变更计数（原子操作）
     /// </summary>
     public static int GetChangeCounter() => _changeCounter;
+
+    /// <summary>原子摘取增量；序列化在锁外完成，避免阻塞 WinRT 事件。</summary>
+    public static string? DrainSessionChangesJson()
+    {
+        SessionDelta[] changes;
+        // WinRT 媒体属性/封面读取可能阻塞；不要让 Node Worker 跟随等待该锁。
+        if (!Monitor.TryEnter(_sessionLock)) return null;
+        try
+        {
+            changes = _pendingChanges.Values.ToArray();
+            _pendingChanges.Clear();
+        }
+        finally { Monitor.Exit(_sessionLock); }
+        return System.Text.Json.JsonSerializer.Serialize(changes, SmtcJsonContext.Default.SessionDeltaArray);
+    }
+
+    /// <summary>同一会话只保留最新状态，并保留尚未消费的媒体及封面变更。</summary>
+    private static void PublishSession(SessionInfo info, bool mediaChanged)
+    {
+        var id = info.SourceAppId;
+        _sessions.TryGetValue(id, out var previous);
+        _pendingChanges.TryGetValue(id, out var pending);
+        var includeMedia = mediaChanged || pending?.MediaChanged == true;
+        var includeArtwork = pending?.ArtworkChanged == true || previous?.Media?.Thumbnail != info.Media?.Thumbnail;
+        var media = info.Media;
+        _sessions[id] = info;
+        _pendingChanges[id] = new SessionDelta
+        {
+            SourceAppId = id, Version = ++_revision,
+            MediaChanged = includeMedia, ArtworkChanged = includeArtwork,
+            Media = includeMedia && media != null ? new MediaMetadata
+            {
+                Title = media.Title, Artist = media.Artist, AlbumTitle = media.AlbumTitle,
+                AlbumArtist = media.AlbumArtist, TrackNumber = media.TrackNumber,
+                AlbumTrackCount = media.AlbumTrackCount, Genres = media.Genres,
+            } : null,
+            Thumbnail = includeArtwork ? media?.Thumbnail : null,
+            Playback = info.Playback, Timeline = info.Timeline,
+        };
+    }
 
     /// <summary>
     /// 获取所有会话快照的 JSON 字符串
@@ -284,7 +327,7 @@ public static class SmtcSessionMonitor
                 if (!_sessions.ContainsKey(id))
                 {
                     var info = BuildSessionInfo(session);
-                    _sessions[id] = info;
+                    PublishSession(info, true);
                     RegisterSessionCallbacks(session, id);
                 }
             }
@@ -294,6 +337,7 @@ public static class SmtcSessionMonitor
             {
                 if (_unsubscribeSessions.Remove(id, out var unsubscribe)) unsubscribe();
                 _sessions.TryRemove(id, out _);
+                _pendingChanges[id] = new SessionDelta { SourceAppId = id, Version = ++_revision, Removed = true };
                 _lastTimelineSignal.TryRemove(id, out _);
             }
         }
@@ -313,7 +357,7 @@ public static class SmtcSessionMonitor
                 try
                 {
                     var info = BuildSessionInfo(session);
-                    _sessions[id] = info;
+                    PublishSession(info, true);
                     SignalChange();
                 }
                 catch { /* 忽略 */ }
@@ -329,7 +373,7 @@ public static class SmtcSessionMonitor
                 try
                 {
                     var info = BuildSessionInfo(session, refreshThumbnail: false);
-                    _sessions[id] = info;
+                    PublishSession(info, false);
                     SignalChange();
                 }
                 catch { /* 忽略 */ }
@@ -350,7 +394,7 @@ public static class SmtcSessionMonitor
                     _lastTimelineSignal[id] = now;
 
                     var info = BuildSessionInfo(session, refreshThumbnail: false);
-                    _sessions[id] = info;
+                    PublishSession(info, false);
                     SignalChange();
                 }
                 catch { /* 忽略 */ }
@@ -420,6 +464,9 @@ public static class SmtcSessionMonitor
                 try
                 {
                     thumbnail = SmtcController.ReadThumbnailAsBase64(props.Thumbnail);
+                    var otherArtworkSize = _sessions.Where(item => item.Key != session.SourceAppUserModelId)
+                        .Sum(item => (long)(item.Value.Media?.Thumbnail?.Length ?? 0));
+                    if (otherArtworkSize + (thumbnail?.Length ?? 0) > ArtworkCacheCharacterBudget) thumbnail = null;
                 }
                 catch { /* 忽略 */ }
             }
@@ -536,6 +583,8 @@ public static class SmtcSessionMonitor
             _unsubscribeSessions.Clear();
             _manager = null;
             _sessions.Clear();
+            _pendingChanges.Clear();
+            _revision = 0;
             _lastTimelineSignal.Clear();
             _changeCounter = 0;
         }

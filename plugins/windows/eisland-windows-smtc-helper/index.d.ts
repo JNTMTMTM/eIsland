@@ -168,6 +168,8 @@ export class SmtcMonitor extends EventEmitter {
   stop(): void;
   /** 获取当前所有会话快照 */
   getMediaSessions(): SessionSnapshot[];
+  /** 获取本地已合并快照，不进行原生全量查询 */
+  getCachedSession(sourceAppId: string): SessionSnapshot | null;
 
   on(event: 'session-added', listener: (sourceAppId: string, mediaProps: MediaProps) => void): this;
   on(event: 'session-removed', listener: (sourceAppId: string) => void): this;

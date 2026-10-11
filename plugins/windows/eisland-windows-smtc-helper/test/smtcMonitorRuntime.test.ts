@@ -96,3 +96,55 @@ describe('SMTC 会话快照与通知差异', () => {
     expect(stop).toHaveBeenCalledOnce(); expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+
+describe('SMTC 原生增量协议', () => {
+  it('十分钟时间线增量复用封面，媒体更新保留图片，删除清缓存', () => {
+    fixture.dispose();
+    vi.restoreAllMocks();
+    const drain = vi.fn();
+    fixture = createNativeRuntimeFixture(file, new Map<string, unknown>([['./ffi-loader', {
+      smtc: { smtc_start_monitoring: start, smtc_stop_monitoring: stop, smtc_get_sessions_changed: counter, smtc_drain_session_changes: drain }, callJson: json,
+    }]]));
+    Monitor = fixture.read<{ SmtcMonitor: typeof Monitor }>().SmtcMonitor;
+    const target = monitor();
+    const cover = 'data:image/png;base64,' + 'x'.repeat(300000);
+    json.mockReturnValue([{ sourceAppId: 'app', version: 1, mediaChanged: true, artworkChanged: true, thumbnail: cover, media: { title: 'Song' }, playback: { playbackStatus: 4 }, timeline: { position: 0, duration: 900 } }]);
+    target.start();
+    for (let second = 1; second <= 600; second += 1) {
+      counter.mockReturnValue(second);
+      json.mockReturnValue([{ sourceAppId: 'app', version: second + 1, playback: { playbackStatus: 4 }, timeline: { position: second, duration: 900 } }]);
+      vi.advanceTimersByTime(1000);
+      expect(target.getCachedSession('app')?.media?.thumbnail).toBe(cover);
+    }
+    expect(json.mock.calls.every(([name]) => name === 'smtc_drain_session_changes')).toBe(true);
+    counter.mockReturnValue(601);
+    json.mockReturnValue([{ sourceAppId: 'app', mediaChanged: true, media: { title: 'Renamed' }, playback: {}, timeline: {} }]);
+    vi.advanceTimersByTime(100);
+    expect(target.getCachedSession('app')?.media).toMatchObject({ title: 'Renamed', thumbnail: cover });
+    counter.mockReturnValue(602);
+    json.mockReturnValue([{ sourceAppId: 'app', removed: true }]);
+    vi.advanceTimersByTime(100);
+    expect(target.getCachedSession('app')).toBeNull();
+  });
+  it('原生锁忙返回 null 时保留计数并在下轮读取同一批增量', () => {
+    fixture.dispose();
+    vi.restoreAllMocks();
+    fixture = createNativeRuntimeFixture(file, new Map<string, unknown>([['./ffi-loader', {
+      smtc: { smtc_start_monitoring: start, smtc_stop_monitoring: stop, smtc_get_sessions_changed: counter, smtc_drain_session_changes: vi.fn() }, callJson: json,
+    }]]));
+    Monitor = fixture.read<{ SmtcMonitor: typeof Monitor }>().SmtcMonitor;
+    const target = monitor();
+    counter.mockReturnValue(1);
+    json.mockReturnValue(null);
+    target.start();
+    json.mockReturnValue([{ sourceAppId: 'app', mediaChanged: true, media: { title: 'After lock' } }]);
+    vi.advanceTimersByTime(100);
+    expect(json).toHaveBeenCalledTimes(2);
+    expect(target.getCachedSession('app')?.media?.title).toBe('After lock');
+    vi.advanceTimersByTime(100);
+    expect(json).toHaveBeenCalledTimes(2);
+    target.stop();
+  });
+
+});
