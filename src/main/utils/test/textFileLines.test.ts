@@ -106,3 +106,12 @@ describe('text file lines', () => {
     expect(close).toHaveBeenCalledTimes(2);
   });
 });
+
+
+it('limits tail reads by bytes even when one JSONL line is huge', async () => {
+  fs.writeFileSync(filePath, `old\n${'x'.repeat(4 * 1024 * 1024)}\nlast`);
+  const original = await vi.importActual<typeof import('fs')>('fs');
+  const read = vi.spyOn(fs, 'readSync').mockImplementation(original.readSync);
+  expect(readLastTextLinesSync(filePath, 100, 128 * 1024)).toEqual(['last']);
+  expect(read.mock.calls.reduce((sum, call) => sum + Number((call as unknown[])[3]), 0)).toBeLessThanOrEqual(128 * 1024);
+});

@@ -1598,6 +1598,11 @@
       "switchTo": "Switch to {{label}}"
     },
     "cli": {
+      "detailLoading": "Loading details…",
+      "detailUnavailable": "Details unavailable; the original log may have moved or been removed",
+      "detailRetry": "Retry",
+      "detailPrevious": "Previous page",
+      "detailNext": "Next page",
       "eyebrow": "CLI Activity",
       "title": "CLI Console",
       "subtitle": "Monitor Claude Code and Codex CLI sessions, prompts, tool calls, and model output in real time. Claude Code uses a local hook; Codex sessions are detected automatically.",

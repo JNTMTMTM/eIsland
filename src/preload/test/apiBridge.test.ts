@@ -297,6 +297,8 @@ const TRANSPORT_ROUTES = [
   ['updaterVersion', 'updater:version', 0, 'invoke'],
   ['guideReset', 'guide:reset', 0, 'invoke'],
   ['clipboardOpenUrl', 'clipboard:open-url', 1, 'invoke'],
+  ['claudeCodeEventDetail', 'claude-code:event:detail', 2, 'invoke'],
+  ['codexEventDetail', 'codex:event:detail', 2, 'invoke'],
   ['claudeCodeStatusGet', 'claude-code:status:get', 0, 'invoke'],
   ['claudeCodeHookInstall', 'claude-code:hook:install', 0, 'invoke'],
   ['claudeCodeHookUninstall', 'claude-code:hook:uninstall', 0, 'invoke'],

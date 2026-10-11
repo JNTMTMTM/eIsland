@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { subscribeCliStatus } from './cliStatusSubscription';
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 import type {
@@ -81,6 +82,7 @@ import type {
   RunningProcessInfo,
   RunningWindowInfo,
   ClaudeCodeStatusSnapshot,
+  CliDetailPage,
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
@@ -1720,6 +1722,8 @@ const api = {
       ipcRenderer.removeListener('external-agent:stopped', handler);
     };
   },
+  /** 按需读取一页 CLI 详情，正文不会常驻状态快照。 */
+  claudeCodeEventDetail: (id: string, offset?: number): Promise<CliDetailPage> => ipcRenderer.invoke('claude-code:event:detail', id, offset),
   claudeCodeStatusGet: (): Promise<ClaudeCodeStatusSnapshot> => {
     return ipcRenderer.invoke('claude-code:status:get');
   },
@@ -1738,15 +1742,9 @@ const api = {
   claudeCodePermissionResolve: (sessionId: string, decision: 'allow' | 'always' | 'deny'): Promise<ClaudeCodeStatusSnapshot> => {
     return ipcRenderer.invoke('claude-code:permission:resolve', sessionId, decision);
   },
-  onClaudeCodeStatusUpdated: (callback: (snapshot: ClaudeCodeStatusSnapshot) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, snapshot: ClaudeCodeStatusSnapshot): void => {
-      callback(snapshot);
-    };
-    ipcRenderer.on('claude-code:status-updated', handler);
-    return () => {
-      ipcRenderer.removeListener('claude-code:status-updated', handler);
-    };
-  },
+  onClaudeCodeStatusUpdated: (callback: (snapshot: ClaudeCodeStatusSnapshot) => void): (() => void) => subscribeCliStatus('claude-code:status-updated', 'claude-code:status:get', callback),
+  /** 按需读取一页 CLI 详情，正文不会常驻状态快照。 */
+  codexEventDetail: (id: string, offset?: number): Promise<CliDetailPage> => ipcRenderer.invoke('codex:event:detail', id, offset),
   codexStatusGet: (): Promise<CodexStatusSnapshot> => {
     return ipcRenderer.invoke('codex:status:get');
   },
@@ -1762,15 +1760,7 @@ const api = {
   codexSessionsDelete: (sessionIds: string[]): Promise<CodexStatusSnapshot> => {
     return ipcRenderer.invoke('codex:sessions:delete', sessionIds);
   },
-  onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, snapshot: CodexStatusSnapshot): void => {
-      callback(snapshot);
-    };
-    ipcRenderer.on('codex:status-updated', handler);
-    return () => {
-      ipcRenderer.removeListener('codex:status-updated', handler);
-    };
-  }
+  onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void): (() => void) => subscribeCliStatus('codex:status-updated', 'codex:status:get', callback)
 };
 
 /** 注入到 window 对象，供渲染进程访问 */

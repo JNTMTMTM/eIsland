@@ -42,6 +42,9 @@ interface ExpectedClaudeCodeHookEvent {
   summary: string;
   detail: string | null;
   detailItems: ClaudeCodeHookEventDetailItem[];
+  detailProvider?: 'claude' | 'codex';
+  detailRevision?: number;
+  detailSource?: { offset: number; bytes: number };
   toolName: string | null;
   toolInputPreview: string | null;
   createdAt: number;

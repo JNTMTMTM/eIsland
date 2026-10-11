@@ -19,6 +19,7 @@
  * @author 鸡哥
  */
 
+import { getCliEventDetail } from './cliEventDetail';
 import { ipcMain } from 'electron';
 import type { CodexStatusService } from '../../types/system/CodexStatusService';
 
@@ -27,6 +28,7 @@ import type { CodexStatusService } from '../../types/system/CodexStatusService';
  * @param service - Codex 状态服务实例
  */
 export function registerCodexStatusIpcHandlers(service: CodexStatusService): void {
+  ipcMain.handle('codex:event:detail', (_event, id: string, offset?: number) => getCliEventDetail(service.getSnapshot(), id, offset));
   ipcMain.handle('codex:status:get', () => service.getSnapshot());
   ipcMain.handle('codex:monitor:enable', () => service.enableMonitor());
   ipcMain.handle('codex:monitor:disable', () => service.disableMonitor());

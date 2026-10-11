@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { getCliEventDetail } from './cliEventDetail';
 import { ipcMain } from 'electron';
 import type { ClaudeCodeStatusService, PermissionDecision } from '../../system/claudeCodeStatusService';
 
@@ -37,6 +38,7 @@ interface RegisterClaudeCodeStatusIpcHandlersOptions {
  * @returns void
  */
 export function registerClaudeCodeStatusIpcHandlers(options: RegisterClaudeCodeStatusIpcHandlersOptions): void {
+  ipcMain.handle('claude-code:event:detail', (_event, id: string, offset?: number) => getCliEventDetail(options.service.getSnapshot(), id, offset));
   ipcMain.handle('claude-code:status:get', () => options.service.getSnapshot());
   ipcMain.handle('claude-code:hook:install', () => options.service.installHook());
   ipcMain.handle('claude-code:hook:uninstall', () => options.service.uninstallHook());

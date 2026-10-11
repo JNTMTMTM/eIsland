@@ -8,14 +8,20 @@
  * @description 将日志读取、JSON 解析和历史去重隔离出 Electron 主线程。
  * @author 鸡哥
  */
-import { parentPort } from 'worker_threads';
+import { parentPort, workerData } from 'worker_threads';
+import { migrateCliState } from './system/cliStateMigration';
 import { createCodexLogScanner } from './system/codexLogScanner';
-const scanner = createCodexLogScanner();
-parentPort?.on('message', ({ paths, now }: { paths: string[]; now: number }) => {
-  scanner.retain(paths);
-  const sessions = paths.flatMap((path) => {
-    try { const parsed = scanner.scan(path, now); return parsed ? [parsed] : []; }
-    catch { return []; }
+if (workerData?.task === 'migrateClaude') {
+  parentPort?.postMessage(migrateCliState(workerData.path, workerData.directory));
+  parentPort?.close();
+} else {
+  const scanner = createCodexLogScanner();
+  parentPort?.on('message', ({ paths, now }: { paths: string[]; now: number }) => {
+    scanner.retain(paths);
+    const sessions = paths.flatMap((path) => {
+      try { const parsed = scanner.scan(path, now); return parsed ? [parsed] : []; }
+      catch { return []; }
+    });
+    parentPort?.postMessage(sessions);
   });
-  parentPort?.postMessage(sessions);
-});
+}

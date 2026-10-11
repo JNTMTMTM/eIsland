@@ -31,6 +31,7 @@ import { useGSAP } from '@gsap/react';
 import { STOP_EVENTS, PERMISSION_EVENTS } from '../config/cliConstants';
 import { formatTime, detailLabel } from '../utils/cliFormatters';
 import useCollapsibleContent from '../hooks/useCollapsibleContent';
+import { CliDetailsPage } from './CliDetailsPage';
 import type { EventRowProps } from '../types/types';
 
 /**
@@ -48,7 +49,7 @@ export function EventRow({ event, t, showPermission }: EventRowProps): ReactElem
   // IPC 会为每次快照复制事件对象；摘要未变化时避免重复运行 Markdown 解析器。
   const summary = useMemo(() => <ReactMarkdown>{event.summary}</ReactMarkdown>, [event.summary]);
   const visibleDetails = (event.detailItems ?? []).filter((item) => item.value);
-  const hasExtra = visibleDetails.length > 0 || event.toolName || event.toolInputPreview;
+  const hasExtra = Boolean(event.detailProvider) || visibleDetails.length > 0 || event.toolName || event.toolInputPreview;
   const handleToggle = useCallback(() => {
     setExpanded((v) => !v);
   }, []);
@@ -106,7 +107,8 @@ export function EventRow({ event, t, showPermission }: EventRowProps): ReactElem
           </button>
           <div className={`cli-event-card-details-content${expanded ? ' is-open' : ''}`}>
             <div className="cli-event-card-details-inner">
-              {detailsMounted && visibleDetails.map((item) => (
+              {detailsMounted && event.detailProvider && <CliDetailsPage key={event.id} id={event.id} provider={event.detailProvider} revision={event.detailRevision} t={t} />}
+              {detailsMounted && !event.detailProvider && visibleDetails.map((item) => (
                 <div className="cli-event-card-detail-item" key={item.label}>
                   <span>{detailLabel(item.label, t)}</span>
                   <pre>{item.value}</pre>

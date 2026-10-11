@@ -49,6 +49,9 @@ describe('claudeCode contracts', () => {
       summary: string;
       detail: string | null;
       detailItems: ClaudeCodeHookEventDetailItem[];
+      detailProvider?: 'claude' | 'codex';
+      detailRevision?: number;
+      detailSource?: { offset: number; bytes: number };
       toolName: string | null;
       toolInputPreview: string | null;
       createdAt: number;
@@ -93,6 +96,7 @@ describe('claudeCode contracts', () => {
         prompt: number;
       }>;
       updatedAt: number;
+      revision?: number;
     }>();
     const fixture: ClaudeCodeStatusSnapshot = { enabled: false, receiverRunning: false, receiverUrl: null, settingsPath: 'sample', hookScriptPath: 'sample', sessions: [], events: [], heatmap: {}, updatedAt: 0 };
     expect(fixture).toBeDefined();

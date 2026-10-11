@@ -1598,6 +1598,11 @@
       "switchTo": "切換到{{label}}"
     },
     "cli": {
+      "detailLoading": "正在讀取詳情…",
+      "detailUnavailable": "詳情暫不可用；原始日誌可能已被移動或刪除",
+      "detailRetry": "重試",
+      "detailPrevious": "上一頁",
+      "detailNext": "下一頁",
       "eyebrow": "CLI 活動",
       "title": "CLI 控制台",
       "subtitle": "實時彙總 Claude Code 與 Codex CLI 的會話、提示詞、工具調用和模型輸出。Claude Code 使用本地 Hook，Codex 自動讀取本機會話記錄。",

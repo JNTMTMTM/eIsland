@@ -41,6 +41,12 @@ export interface ClaudeCodeHookEvent {
   summary: string;
   detail: string | null;
   detailItems: ClaudeCodeHookEventDetailItem[];
+  /** 按需详情提供者；快照只包含短预览。 */
+  detailProvider?: 'claude' | 'codex';
+  /** 同一事件的外部正文发生回填时递增，避免展开页保留旧正文。 */
+  detailRevision?: number;
+  /** Codex 原始日志中的字节范围。 */
+  detailSource?: { offset: number; bytes: number };
   toolName: string | null;
   toolInputPreview: string | null;
   createdAt: number;
@@ -62,6 +68,8 @@ export interface ClaudeCodeSessionSnapshot {
 
 /** Claude Code 状态快照 */
 export interface ClaudeCodeStatusSnapshot {
+  /** 增量订阅版本，缺口时重新获取摘要。 */
+  revision?: number;
   enabled: boolean;
   receiverRunning: boolean;
   receiverUrl: string | null;
@@ -78,4 +86,12 @@ export interface ClaudeCodeHookMutationResult {
   ok: boolean;
   message: string;
   snapshot: ClaudeCodeStatusSnapshot;
+}
+
+/** CLI 外部详情的固定大小页面；nextOffset 为 null 时已到末尾。 */
+export interface CliDetailPage {
+  text: string;
+  offset: number;
+  nextOffset: number | null;
+  totalBytes: number;
 }

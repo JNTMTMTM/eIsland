@@ -296,6 +296,8 @@ interface ExpectedApi {
   clipboardOpenUrl: (url: string) => Promise<boolean>;
   onExternalAgentStarted: (callback: (data: ExternalAgentData) => void) => () => void;
   onExternalAgentStopped: (callback: (data: ExternalAgentData) => void) => () => void;
+  claudeCodeEventDetail: Window['api']['claudeCodeEventDetail'];
+  codexEventDetail: Window['api']['codexEventDetail'];
   claudeCodeStatusGet: () => Promise<ClaudeCodeStatusSnapshot>;
   claudeCodeHookInstall: () => Promise<ClaudeCodeHookMutationResult>;
   claudeCodeHookUninstall: () => Promise<ClaudeCodeHookMutationResult>;

@@ -34,7 +34,7 @@ const READ_CHUNK_BYTES = 64 * 1024;
  * @param filePath - 日志文件路径
  * @returns 不含换行符的文本行
  */
-export function* readTextLinesSync(filePath: string): Generator<string> {
+export function* readTextLinesSync(filePath: string, maxLineBytes = Infinity, onLine?: (source: { offset: number; bytes: number }) => void, onOversize?: (prefix: string) => string): Generator<string> {
   const fd = openSync(filePath, 'r');
   try {
     const buffer = Buffer.allocUnsafe(READ_CHUNK_BYTES);
@@ -42,6 +42,9 @@ export function* readTextLinesSync(filePath: string): Generator<string> {
     const {size} = fstatSync(fd);
     let position = 0;
     let parts: string[] = [];
+    let lineBytes = 0;
+    let lineStart = 0;
+    let oversized = false;
     while (position < size) {
       const count = readSync(fd, buffer, 0, Math.min(buffer.length, size - position), position);
       if (count === 0) break;
@@ -50,20 +53,28 @@ export function* readTextLinesSync(filePath: string): Generator<string> {
       let start = 0;
       let end = text.indexOf('\n');
       while (end >= 0) {
-        parts.push(text.slice(start, end));
-        const line = parts.join('').replace(/\r$/, '');
+        const part = text.slice(start, end);
+        lineBytes += Buffer.byteLength(part);
+        if (lineBytes <= maxLineBytes) parts.push(part); else oversized = true;
+        const line = oversized ? (onOversize?.(parts.join('')) ?? '{}') : parts.join('').replace(/\r$/, '');
+        onLine?.({ offset: lineStart, bytes: lineBytes });
+        lineStart += lineBytes + 1; lineBytes = 0; oversized = false;
         parts = [];
         yield line;
         start = end + 1;
         end = text.indexOf('\n', start);
       }
       // 只扫描新块，含大幅图片的单行日志也不会反复拼接、扫描整行。
-      if (start < text.length) parts.push(text.slice(start));
+      if (start < text.length) {
+        const part = text.slice(start); lineBytes += Buffer.byteLength(part);
+        if (lineBytes <= maxLineBytes) parts.push(part); else oversized = true;
+      }
     }
     const tail = decoder.end();
     if (tail) parts.push(tail);
     if (parts.length) {
-      const line = parts.join('').replace(/\r$/, '');
+      const line = oversized ? (onOversize?.(parts.join('')) ?? '{}') : parts.join('').replace(/\r$/, '');
+      onLine?.({ offset: lineStart, bytes: lineBytes });
       parts = [];
       yield line;
     }
@@ -78,15 +89,16 @@ export function* readTextLinesSync(filePath: string): Generator<string> {
  * @param limit - 最多保留的行数
  * @returns 最近的文本行，忽略文件末尾空白
  */
-export function readLastTextLinesSync(filePath: string, limit: number): string[] {
+export function readLastTextLinesSync(filePath: string, limit: number, maxBytes = Infinity): string[] {
   if (limit <= 0) return [];
   const fd = openSync(filePath, 'r');
   try {
     let position = fstatSync(fd).size;
+    const minimumPosition = Math.max(0, position - maxBytes);
     let parts: Buffer[] = [];
     const lines: string[] = [];
-    while (position > 0 && lines.length < limit) {
-      const size = Math.min(position, READ_CHUNK_BYTES);
+    while (position > minimumPosition && lines.length < limit) {
+      const size = Math.min(position - minimumPosition, READ_CHUNK_BYTES);
       position -= size;
       const buffer = Buffer.allocUnsafe(size);
       const count = readSync(fd, buffer, 0, size, position);
@@ -102,6 +114,7 @@ export function readLastTextLinesSync(filePath: string, limit: number): string[]
       }
       parts.push(buffer.subarray(0, end));
     }
+    if (minimumPosition > 0) return lines.reverse();
     const first = Buffer.concat(parts.reverse()).toString('utf8').trimStart()
       .replace(/\r$/, '');
     if (first.trim() || lines.length > 0) lines.push(first);

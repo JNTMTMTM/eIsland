@@ -77,7 +77,7 @@ beforeEach(() => {
 describe('Codex监控IPC', () => {
   it('只注册五个公开通道，查询和清理同步返回快照', () => {
     expect([...mocks.handlers.keys()]).toEqual([
-      'codex:status:get',
+      'codex:event:detail', 'codex:status:get',
       'codex:monitor:enable',
       'codex:monitor:disable',
       'codex:events:clear',

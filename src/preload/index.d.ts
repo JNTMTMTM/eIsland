@@ -81,6 +81,7 @@ import type {
   PerformanceHardwareSelection,
   PerformanceSnapshot,
   ClaudeCodeStatusSnapshot,
+  CliDetailPage,
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
@@ -349,6 +350,8 @@ declare global {
       clipboardOpenUrl: (url: string) => Promise<boolean>;
       onExternalAgentStarted: (callback: (data: ExternalAgentData) => void) => () => void;
       onExternalAgentStopped: (callback: (data: ExternalAgentData) => void) => () => void;
+      /** 按需读取一页 CLI 详情。 */
+      claudeCodeEventDetail: (id: string, offset?: number) => Promise<CliDetailPage>;
       claudeCodeStatusGet: () => Promise<ClaudeCodeStatusSnapshot>;
       claudeCodeHookInstall: () => Promise<ClaudeCodeHookMutationResult>;
       claudeCodeHookUninstall: () => Promise<ClaudeCodeHookMutationResult>;
@@ -356,6 +359,8 @@ declare global {
       claudeCodeSessionsDelete: (sessionIds: string[]) => Promise<ClaudeCodeStatusSnapshot>;
       claudeCodePermissionResolve: (sessionId: string, decision: 'allow' | 'always' | 'deny') => Promise<ClaudeCodeStatusSnapshot>;
       onClaudeCodeStatusUpdated: (callback: (snapshot: ClaudeCodeStatusSnapshot) => void) => () => void;
+      /** 按需读取一页 CLI 详情。 */
+      codexEventDetail: (id: string, offset?: number) => Promise<CliDetailPage>;
       codexStatusGet: () => Promise<CodexStatusSnapshot>;
       codexMonitorEnable: () => Promise<CodexMonitorMutationResult>;
       codexMonitorDisable: () => Promise<CodexMonitorMutationResult>;

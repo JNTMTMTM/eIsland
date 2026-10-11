@@ -13,6 +13,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createCodexLogScanner } from '../codexLogScanner';
+import { summarizeCliEvent } from '../cliEventDetails';
 import { parseCodexSessionContent } from '../codexSessionParser';
 const io = vi.hoisted(() => ({ bytes: 0 }));
 vi.mock('fs', async (original) => {
@@ -69,11 +70,33 @@ describe('incremental Codex scanner', () => {
     appendFileSync(path, `${prompt('older', base + 1000)}\n${prompt('same', base + 2200)}\n`);
     const result = scanner.scan(path, base + 3000);
     const expected = parseCodexSessionContent(readFileSync(path, 'utf8'), path, statSync(path).mtimeMs, base + 3000);
-    expect(result).toEqual(expected);
+    const normalized = result!.events.map(({ detailProvider: _provider, detailSource: _source, ...event }) => { void _provider; void _source; return event; });
+    expect(normalized).toEqual(expected!.events.map(summarizeCliEvent));
+    expect(result!.heatmap).toEqual(expected!.heatmap);
+    result!.events.forEach((event) => {
+      const source = event.detailSource!;
+      expect(JSON.parse(readFileSync(path).subarray(source.offset, source.offset + source.bytes).toString('utf8'))).toHaveProperty('payload');
+    });
     writeFileSync(path, `${meta}\n${prompt('short')}\n`);
     expect(scanner.scan(path)?.events[0].summary).toBe('short');
     renameSync(path, `${path}.old`);
     writeFileSync(path, `${meta}\n${prompt('replacement')}\n`);
     expect(scanner.scan(path)?.events[0].summary).toBe('replacement');
   });
+});
+
+
+it('keeps a giant complete/incomplete JSONL row out of the snapshot and preserves its exact source range', () => {
+  const large = prompt('base64'.repeat(1024 * 1024));
+  const path = fixture(`${meta}\n${large.slice(0, 300000)}`);
+  const scanner = createCodexLogScanner();
+  expect(scanner.scan(path)?.events).toHaveLength(1);
+  appendFileSync(path, `${large.slice(300000)}\n`);
+  const result = scanner.scan(path)!;
+  expect(result.events[0].eventName).toBe('UserPromptSubmit');
+  expect(Buffer.byteLength(JSON.stringify(result))).toBeLessThan(8192);
+  const range = result.events[0].detailSource!;
+  expect(readFileSync(path).subarray(range.offset, range.offset + range.bytes).toString('utf8')).toBe(large);
+  appendFileSync(path, prompt('after', base + 2000));
+  expect(scanner.scan(path)?.events[0].summary).toBe('after');
 });

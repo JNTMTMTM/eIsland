@@ -19,6 +19,8 @@
  * @author 鸡哥
  */
 
+import { createHash } from 'crypto';
+import { summarizeCliEvent } from './cliEventDetails';
 import type { ClaudeCodeHeatmapDaily } from '../types/system/ClaudeCodeHeatmapDailyCount';
 import type { ClaudeCodeHookEvent, ClaudeCodeHookEventKind } from '../types/system/ClaudeCodeHookEvent';
 import type { ClaudeCodeSessionSnapshot, ClaudeCodeSessionPhase } from '../types/system/ClaudeCodeSessionSnapshot';
@@ -35,6 +37,7 @@ interface CodexParserContext {
   model: string | null;
   transcriptPath: string;
   includeDetails: boolean;
+  summaryOnly?: boolean;
 }
 
 interface MappedEvent {
@@ -96,6 +99,7 @@ function timestampOf(line: Record<string, unknown>, fallback: number): number {
 function detailItems(context: CodexParserContext, specs: Array<[string, unknown]>): Array<{ label: string; value: string }> {
   if (!context.includeDetails) return [];
   return specs.flatMap(([label, value]) => {
+    if (context.summaryOnly && label === 'rawEvent') return [];
     const text = stringify(value);
     return text ? [{ label, value: text }] : [];
   });
@@ -217,25 +221,25 @@ export function createCodexAppendParser(transcriptPath: string, fallbackTimestam
   let latestTimestamp = -Infinity;
   let recent: ClaudeCodeHookEvent[] = [];
   let heatmap: ClaudeCodeHeatmapDaily = {};
-  const nearby = new Map<string, ClaudeCodeHookEvent>();
+  const nearby = new Map<string, Pick<ClaudeCodeHookEvent, 'id' | 'createdAt' | 'eventName'>>();
   let unordered = false;
 
-  const consume = (line: Record<string, unknown>): void => {
+  const consume = (line: Record<string, unknown>, source?: { offset: number; bytes: number }): void => {
     index += 1;
     const payload = asRecord(line.payload ?? line.item);
     const type = asString(line.type);
     if (!context) {
       if (type !== 'session_meta') return;
       const sessionId = asString(payload.id) ?? asString(payload.session_id) ?? asString(payload.thread_id);
-      if (!sessionId) return;
-      context = { sessionId, transcriptPath, cwd: asString(payload.cwd), model: asString(payload.model), includeDetails: true };
+      if (!sessionId || sessionId.length > 512) return;
+      context = { sessionId, transcriptPath, cwd: asString(payload.cwd), model: asString(payload.model), includeDetails: true, summaryOnly: Boolean(source) };
       const event: ClaudeCodeHookEvent = {
         id: `${sessionId}-session`, sessionId, transcriptPath, cwd: context.cwd,
         createdAt: timestampOf(line, fallbackTimestamp), eventName: 'SessionStart', kind: 'session',
         summary: '发现新的 Codex 终端', detail: null, detailItems: detailItems(context, [['model', context.model], ['rawEvent', payload]]),
         toolName: null, toolInputPreview: null, raw: payload,
       };
-      recent = [event];
+      recent = [source ? summarizeCliEvent({ ...event, detailProvider: 'codex', detailSource: source }) : event];
       incrementHeatmap(heatmap, event);
       return;
     }
@@ -244,17 +248,20 @@ export function createCodexAppendParser(transcriptPath: string, fallbackTimestam
       context.model = asString(payload.model) ?? context.model;
       return;
     }
+    context.summaryOnly = Boolean(source);
     const mapped = mapLine(line, context);
     if (!mapped) return;
     const createdAt = timestampOf(line, fallbackTimestamp + index);
     if (createdAt < latestTimestamp) unordered = true;
     latestTimestamp = Math.max(latestTimestamp, createdAt);
-    const event: ClaudeCodeHookEvent = {
+    const fullEvent: ClaudeCodeHookEvent = {
       ...mapped, id: `${context.sessionId}-${index}-${createdAt}`, sessionId: context.sessionId,
       transcriptPath, cwd: context.cwd, createdAt, detail: null, raw: payload,
     };
+    const event = source ? summarizeCliEvent({ ...fullEvent, detailProvider: 'codex', detailSource: source }) : fullEvent;
     nearby.forEach((previous, key) => { if (latestTimestamp - previous.createdAt > 250) nearby.delete(key); });
-    const key = `${event.eventName}\u0000${event.summary}\u0000${event.toolName ?? ''}`;
+    // 去重保留完整内容的指纹，不能把数千条大提示词作为 Map 的常驻键。
+    const key = createHash('sha256').update(`${fullEvent.eventName}\u0000${fullEvent.summary}\u0000${fullEvent.toolName ?? ''}`).digest('hex');
     const previous = nearby.get(key);
     if (previous && createdAt >= previous.createdAt && createdAt - previous.createdAt <= 250) {
       if (createdAt === previous.createdAt) return;
@@ -270,7 +277,8 @@ export function createCodexAppendParser(transcriptPath: string, fallbackTimestam
         }
       }
     }
-    if (!previous || createdAt >= previous.createdAt) nearby.set(key, { ...event, raw: {}, detailItems: [] });
+    if (!previous || createdAt >= previous.createdAt) nearby.set(key, { id: event.id, createdAt: event.createdAt, eventName: event.eventName });
+    if (nearby.size > 8192) nearby.delete(nearby.keys().next().value!);
     incrementHeatmap(heatmap, event);
     recent = [...recent, event].sort((a, b) => b.createdAt - a.createdAt).slice(0, 40);
   };
@@ -347,14 +355,17 @@ export function parseCodexSessionLines(
   transcriptPath: string,
   fallbackTimestamp: number,
   now = Date.now(),
+  sourceRange?: () => { offset: number; bytes: number },
 ): ParsedCodexSession | null {
   let metaLine: Record<string, unknown> | undefined;
+  let metaSource: { offset: number; bytes: number } | undefined;
   const metaIterator = jsonLines(readLines);
   let metaNext = metaIterator.next();
   while (!metaNext.done) {
     const line = metaNext.value;
     if (asString(line.type) === 'session_meta') {
       metaLine = line;
+      metaSource = sourceRange?.();
       break;
     }
     metaNext = metaIterator.next();
@@ -452,6 +463,7 @@ export function parseCodexSessionLines(
   const startEvent = selected.get(`${sessionId}-session`);
   if (startEvent) {
     startEvent.raw = meta;
+    if (metaSource) { startEvent.detailProvider = 'codex'; startEvent.detailSource = metaSource; }
     startEvent.detailItems = detailItems(detailContext, [['model', detailContext.model], ['rawEvent', meta]]);
   }
   index = -1;
@@ -474,6 +486,7 @@ export function parseCodexSessionLines(
       if (mapped) {
         event.detailItems = mapped.detailItems;
         event.raw = payload;
+        if (sourceRange) { event.detailProvider = 'codex'; event.detailSource = sourceRange(); }
       }
     }
     detailNext = detailIterator.next();

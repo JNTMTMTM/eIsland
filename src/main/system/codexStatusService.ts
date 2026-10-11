@@ -29,7 +29,7 @@ import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusS
 import type { CodexMonitorMutationResult, CodexStatusService } from '../types/system/CodexStatusService';
 import type { ParsedCodexSession } from './codexSessionParser';
 import { createCodexScanner } from './codexScannerClient';
-import { createHash } from 'crypto';
+import { createCliSnapshotDelta } from './cliSnapshotDelta';
 import { MAX_CLI_SESSIONS } from './sessionLimits';
 
 interface CreateCodexStatusServiceOptions {
@@ -137,6 +137,10 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
   let deletedBeforeBySession: Record<string, number> = {};
   let snapshot = emptySnapshot(sessionsPath, enabled, false);
   let snapshotSignature = '';
+  let dataVersion = 0;
+  let metadata = new Map<string, string>();
+  let mutationVersion = 0;
+  const deltas = createCliSnapshotDelta();
 
   const loadState = (): void => {
     try {
@@ -164,7 +168,9 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
   const emitSnapshot = (): void => {
     const win = options.getMainWindow();
     if (!win || win.isDestroyed()) return;
-    win.webContents.send('codex:status-updated', snapshot);
+    const update = deltas.next(snapshot);
+    snapshot = { ...snapshot, revision: update.revision };
+    win.webContents.send('codex:status-updated', update);
   };
 
   const rebuildSnapshot = (): void => {
@@ -188,6 +194,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
     const events = sessions.flatMap((session) => session.events).sort((a, b) => b.createdAt - a.createdAt).slice(0, MAX_EVENTS);
     const next: ClaudeCodeStatusSnapshot = {
       enabled,
+      revision: deltas.revision(),
       receiverRunning: Boolean(timer),
       receiverUrl: null,
       settingsPath: sessionsPath,
@@ -198,7 +205,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
       updatedAt: Date.now(),
     };
     // 增量签名：排除 updatedAt 等易变字段，保留阶段与事件内容以确保变更可检测
-    const signature = createHash('sha256').update(JSON.stringify({ ...next, updatedAt: 0 })).digest('hex');
+    const signature = JSON.stringify([enabled, Boolean(timer), dataVersion, mutationVersion, clearBefore, sessions.map((session) => [session.id, session.phase])]);
     snapshot = next;
     if (signature !== snapshotSignature) {
       snapshotSignature = signature;
@@ -217,7 +224,14 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
           const next = files.length ? await scanner.scan(files.map((file) => file.path), Date.now()) : [];
           if (version !== generation) return;
           if (!files.length) scanner.stop();
-          parsedSessions = next;
+          const nextMetadata = new Map(files.map((file) => [file.path, `${file.mtimeMs}:${file.size}`]));
+          const previous = new Map(parsedSessions.map((parsed) => [parsed.session.transcriptPath, parsed]));
+          parsedSessions = next.map((parsed) => {
+            const path = parsed.session.transcriptPath!;
+            return metadata.get(path) === nextMetadata.get(path) && previous.has(path) ? previous.get(path)! : parsed;
+          });
+          metadata = nextMetadata;
+          dataVersion += 1;
           fileSignature = signature;
         } catch { return; }
       }
@@ -286,6 +300,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
 
   function deleteSessions(sessionIds: string[]): ClaudeCodeStatusSnapshot {
     const deletedAt = Date.now();
+    mutationVersion += 1;
     sessionIds.filter(Boolean).forEach((sessionId) => {
       deletedBeforeBySession[sessionId] = deletedAt;
     });
