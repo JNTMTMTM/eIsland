@@ -32,14 +32,14 @@ describe('CalculatorSidebar', () => {
   it('selects modes and toggles collapsed navigation with the right icon', () => {
     const props = { activeMode: 'arithmetic', collapsed: true, onSwitchMode: vi.fn(), onToggleCollapse: vi.fn() };
     const tree = render(Component, props);
-    expect(nodes(tree, '.calc-sidebar-nav-btn--active')).toHaveLength(1);
-    expect(nodes(tree, '.calc-sidebar-nav--expanded')).toHaveLength(0);
+    expect(nodes(tree, '.calc-sidebar-nav-btn-active')).toHaveLength(1);
+    expect(nodes(tree, '.calc-sidebar-nav-expanded')).toHaveLength(0);
     trigger(tree, '.calc-sidebar-nav-btn', 'onClick');
     trigger(tree, '.calc-sidebar-toggle-btn', 'onClick');
     expect(props.onSwitchMode).toHaveBeenCalledWith('arithmetic');
     expect(props.onToggleCollapse).toHaveBeenCalledOnce();
     const expanded = render(Component, { ...props, collapsed: false, activeMode: 'coordinate' });
-    expect(nodes(expanded, '.calc-sidebar-nav--expanded')).toHaveLength(1);
+    expect(nodes(expanded, '.calc-sidebar-nav-expanded')).toHaveLength(1);
     expect(value(expanded, '.calc-sidebar-toggle-btn', 'title')).toContain('calculator.sidebar.collapse');
   });
 });

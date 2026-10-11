@@ -101,11 +101,11 @@ it.each([{ length: 10, size: '34px' }, { length: 20, size: '26px' }, { length: 3
 it('switches modes and coordinate input panels while preserving the real formula and collapse state', () => {
   (props(CalculatorSidebar).onToggleCollapse as () => void)(); render(); expect(props(CalculatorSidebar).collapsed).toBe(false);
   mode('coordinate'); key('2'); expect(props(CalcDisplay).showValue).toBe(false); expect(props(CalcDisplay).hasResult).toBe(false);
-  let toggle = elements(tree).find((node) => node.props.className === 'calc-btn calc-btn--toggle');
+  let toggle = elements(tree).find((node) => node.props.className === 'calc-btn calc-btn-toggle');
   if (!toggle) throw new Error('Missing key toggle'); (toggle.props.onClick as () => void)(); render();
-  expect(elements(tree).some((node) => node.props.className === 'calc-buttons calc-buttons--arith-inner')).toBe(true);
-  toggle = elements(tree).find((node) => node.props.className === 'calc-btn calc-btn--toggle');
+  expect(elements(tree).some((node) => node.props.className === 'calc-buttons calc-buttons-arith-inner')).toBe(true);
+  toggle = elements(tree).find((node) => node.props.className === 'calc-btn calc-btn-toggle');
   if (!toggle) throw new Error('Missing key toggle'); (toggle.props.onClick as () => void)(); render();
-  expect(elements(tree).some((node) => node.props.className === 'calc-buttons calc-buttons--sci-inner')).toBe(true);
+  expect(elements(tree).some((node) => node.props.className === 'calc-buttons calc-buttons-sci-inner')).toBe(true);
   (props(CalcDisplay).onMoveEnd as () => void)(); render(); mode('arithmetic'); expect(props(CalcDisplay).document).toMatchObject({ segments: [{ value: '2' }] });
 });

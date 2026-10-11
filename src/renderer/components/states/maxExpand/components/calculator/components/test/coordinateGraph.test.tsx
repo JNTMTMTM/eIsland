@@ -26,9 +26,10 @@
 
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { render, value, text, flushEffects } from '../../../../test/componentHarness';
+import { Chart, type FunctionPlotOptions } from 'function-plot';
 import { CoordinateGraph as Component } from '../CoordinateGraph';
 const plot = vi.hoisted(() => vi.fn());
-vi.mock('function-plot', () => ({ default: plot }));
+vi.mock('function-plot', () => ({ default: plot, Chart: { cache: {} } }));
 describe('CoordinateGraph', () => {
   afterEach(() => vi.unstubAllGlobals());
   it('renders a zero expression and ignores resize after its native target detaches', () => {
@@ -39,7 +40,7 @@ describe('CoordinateGraph', () => {
     });
     const tree = render(Component, { expression: '' });
     const ref = value(tree, '.coordinate-graph-canvas', 'ref') as { current: HTMLDivElement | null };
-    ref.current = { innerHTML: '', clientWidth: 300, clientHeight: 200 } as HTMLDivElement;
+    ref.current = { replaceChildren: vi.fn(), clientWidth: 300, clientHeight: 200 } as unknown as HTMLDivElement;
     const before = plot.mock.calls.length;
     const cleanups = flushEffects();
     expect(plot).toHaveBeenLastCalledWith(expect.objectContaining({ data: [expect.objectContaining({ fn: '0' })] }));
@@ -55,7 +56,7 @@ describe('CoordinateGraph', () => {
     vi.stubGlobal('window', { addEventListener, removeEventListener });
     const tree = render(Component, { expression: '2×x' });
     const ref = value(tree, '.coordinate-graph-canvas', 'ref') as { current: unknown };
-    ref.current = { innerHTML: 'old', clientWidth: 300, clientHeight: 200 };
+    ref.current = { replaceChildren: vi.fn(), clientWidth: 300, clientHeight: 200 };
     const cleanups = flushEffects();
     expect(plot).toHaveBeenCalledWith(expect.objectContaining({ width: 300, height: 200, data: [expect.objectContaining({ fn: '2*x' })] }));
     expect(addEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
@@ -64,5 +65,49 @@ describe('CoordinateGraph', () => {
     plot.mockImplementationOnce(() => { throw new Error('invalid'); });
     expect(render(Component, { expression: 'bad' })).toBeDefined(); flushEffects();
     expect(text(render(Component, { expression: 'bad' }))).toContain('calculator.coordinate.error');
+  });
+
+  it('redraws on canvas resize with the same options and zoom domain, then releases the cached chart', () => {
+    let resize: (() => void) | undefined;
+    const disconnect = vi.fn();
+    const removeAllListeners = vi.fn();
+    const chart = { removeAllListeners } as unknown as Chart;
+    vi.stubGlobal('window', { addEventListener: vi.fn(), removeEventListener: vi.fn() });
+    vi.stubGlobal('ResizeObserver', vi.fn().mockImplementation(function (callback: () => void) {
+      resize = callback;
+      return { observe: vi.fn(), disconnect };
+    }));
+    plot.mockImplementation((options: FunctionPlotOptions) => {
+      options.id = 'calculator-test';
+      Chart.cache['calculator-test'] = chart;
+      return chart;
+    });
+    const tree = render(Component, { expression: 'x^2' });
+    const canvas = { replaceChildren: vi.fn(), clientWidth: 300, clientHeight: 200 };
+    const ref = value(tree, '.coordinate-graph-canvas', 'ref') as { current: unknown };
+    ref.current = canvas;
+    const cleanups = flushEffects();
+    const options = plot.mock.lastCall![0] as FunctionPlotOptions;
+    options.xAxis!.domain = [3, 7];
+    canvas.clientWidth = 240;
+    resize?.();
+    expect(plot.mock.lastCall![0]).toBe(options);
+    expect(options.width).toBe(240);
+    expect(options.xAxis!.domain).toEqual([3, 7]);
+    cleanups.forEach((cleanup) => cleanup());
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect(removeAllListeners).toHaveBeenCalledOnce();
+    expect(Chart.cache['calculator-test']).toBeUndefined();
+    plot.mockReset();
+  });
+
+  it('waits for a visible canvas rather than plotting a zero size region', () => {
+    vi.stubGlobal('window', { addEventListener: vi.fn(), removeEventListener: vi.fn() });
+    const tree = render(Component, { expression: 'x' });
+    const ref = value(tree, '.coordinate-graph-canvas', 'ref') as { current: unknown };
+    ref.current = { clientWidth: 0, clientHeight: 0 };
+    const before = plot.mock.calls.length;
+    flushEffects();
+    expect(plot).toHaveBeenCalledTimes(before);
   });
 });

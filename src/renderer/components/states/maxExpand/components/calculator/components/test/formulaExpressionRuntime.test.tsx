@@ -40,7 +40,10 @@ let rect: { left: number; top: number; width: number; height: number };
 let missingAnchor: boolean;
 let fontReady: Promise<unknown> | undefined;
 const nativeRoot = {
-  getBoundingClientRect: () => ({ left: 10, top: 20 }),
+  closest: () => null,
+  offsetWidth: 100,
+  offsetHeight: 50,
+  getBoundingClientRect: () => ({ left: 10, top: 20, width: 100, height: 50 }),
   querySelector: vi.fn(() => missingAnchor ? null : { getBoundingClientRect: () => rect }),
 };
 
@@ -101,6 +104,23 @@ it('renders real KaTeX anchor HTML, measures caret position and disconnects the 
   expect(children[1].props.style).toEqual({ left: 90, top: 2, height: 30 }); expect(observe).toHaveBeenCalledWith(nativeRoot);
   rect.left = 130; observerCallback?.(); expect((render().props.children as ReactElement<Record<string, unknown>>[])[1].props.style).toEqual({ left: 120, top: 2, height: 30 });
   unmountHook(); expect(disconnect).toHaveBeenCalledOnce();
+});
+
+it('converts transformed screen rectangles back to local caret coordinates', () => {
+  vi.spyOn(nativeRoot, 'getBoundingClientRect').mockReturnValue({ left: 10, top: 20, width: 50, height: 25 });
+  const tree = mount();
+  expect((tree.props.children as ReactElement<Record<string, unknown>>[])[1].props.style).toEqual({ left: 180, top: 4, height: 60 });
+});
+
+it('does not measure a disposed formula when its font promise resolves late', async () => {
+  const ready = deferred<unknown>();
+  fontReady = ready.promise;
+  mount();
+  unmountHook();
+  const measured = nativeRoot.querySelector.mock.calls.length;
+  ready.resolve(undefined);
+  await settleHook();
+  expect(nativeRoot.querySelector).toHaveBeenCalledTimes(measured);
 });
 
 it.each([105, 110, 125])('maps actual pointer position %s to the real compiler start/end cursor', (clientX) => {

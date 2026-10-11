@@ -25,7 +25,9 @@
  */
 
 import { useEffect, useRef, type KeyboardEvent, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FormulaCursor, FormulaDocument } from '../types/calculatorTypes';
+import { serializeFormulaDocument } from '../utils/formulaDocumentUtils';
 import { FormulaExpression } from './FormulaExpression';
 
 interface CalcDisplayProps {
@@ -56,6 +58,7 @@ export function CalcDisplay({
   onMoveEnd,
   onKeyDown,
 }: CalcDisplayProps): ReactElement {
+  const { t } = useTranslation();
   const displayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -67,22 +70,29 @@ export function CalcDisplay({
     onMoveEnd();
   };
 
+  const handleDisplayFocus = (): void => {
+    displayRef.current?.focus();
+  };
+
   return (
     <div
-      className={`calc-display${hasResult ? ' calc-display--has-result' : ''}`}
+      className={`calc-display${hasResult ? ' calc-display-has-result' : ''}`}
       ref={displayRef}
       role="textbox"
       tabIndex={0}
+      aria-label={t('calculator.display.expression')}
+      aria-description={serializeFormulaDocument(document)}
       aria-multiline="false"
-      onClickCapture={handleDisplayClick}
+      onClickCapture={handleDisplayFocus}
+      onClick={handleDisplayClick}
       onKeyDown={onKeyDown}
     >
-      <div className={`calc-expression${hasResult ? ' calc-expression--as-result' : ''}`} style={hasResult ? undefined : { fontSize }}>
+      <div className={`calc-expression${hasResult ? ' calc-expression-as-result' : ''}`} style={hasResult ? undefined : { fontSize }}>
         <FormulaExpression document={document} cursor={cursor} onCursorChange={onCursorChange} />
       </div>
-      {showValue && (
-        <div className={`calc-value${hasResult ? ' calc-value--as-expression' : ''}`}>
-          {result ?? ' '}
+      {showValue && result !== null && (
+        <div className={`calc-value${hasResult ? ' calc-value-as-expression' : ''}`} aria-live="polite">
+          {result === 'Error' ? t('calculator.display.error') : result ?? ' '}
         </div>
       )}
     </div>

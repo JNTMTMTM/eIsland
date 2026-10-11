@@ -2645,6 +2645,10 @@
     }
   },
   "calculator": {
+    "display": {
+      "expression": "Expression",
+      "error": "Invalid expression"
+    },
     "modes": {
       "arithmetic": "Arithmetic",
       "scientific": "Scientific",

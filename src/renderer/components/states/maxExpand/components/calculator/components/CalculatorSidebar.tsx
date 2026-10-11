@@ -53,14 +53,17 @@ export function CalculatorSidebar({
   const { t } = useTranslation();
 
   return (
-    <nav className={`calc-sidebar-nav${collapsed ? '' : ' calc-sidebar-nav--expanded'}`}>
+    <nav className={`calc-sidebar-nav${collapsed ? '' : ' calc-sidebar-nav-expanded'}`} aria-label={t('maxExpand.nav.calculator')}>
       {CALC_SIDEBAR_NAV_ITEMS.map((item) => (
         <button
           key={item.mode}
           type="button"
-          className={`calc-sidebar-nav-btn${activeMode === item.mode ? ' calc-sidebar-nav-btn--active' : ''}`}
+          className={`calc-sidebar-nav-btn${activeMode === item.mode ? ' calc-sidebar-nav-btn-active' : ''}`}
           onClick={() => onSwitchMode(item.mode)}
+          onMouseDown={(event) => event.preventDefault()}
           title={t(item.labelKey, { defaultValue: item.defaultLabel })}
+          aria-label={t(item.labelKey)}
+          aria-pressed={activeMode === item.mode}
         >
           <img src={item.icon} alt="" className="calc-sidebar-nav-icon" />
           <span className="calc-sidebar-nav-label">
@@ -73,7 +76,10 @@ export function CalculatorSidebar({
       <button
         type="button"
         className="calc-sidebar-nav-btn calc-sidebar-toggle-btn"
+        aria-expanded={!collapsed}
+        aria-label={t(collapsed ? 'calculator.sidebar.expand' : 'calculator.sidebar.collapse')}
         onClick={onToggleCollapse}
+        onMouseDown={(event) => event.preventDefault()}
         title={collapsed
           ? t('calculator.sidebar.expand', { defaultValue: '展开' })
           : t('calculator.sidebar.collapse', { defaultValue: '收起' })

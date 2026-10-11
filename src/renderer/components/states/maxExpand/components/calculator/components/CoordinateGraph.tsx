@@ -26,7 +26,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import functionPlot from 'function-plot';
+import functionPlot, { Chart, type FunctionPlotOptions } from 'function-plot';
 import { normalizeExpressionForPlot } from '../utils/expressionUtils';
 
 interface CoordinateGraphProps {
@@ -41,37 +41,57 @@ interface CoordinateGraphProps {
 export function CoordinateGraph({ expression }: CoordinateGraphProps): ReactElement {
   const { t } = useTranslation();
   const plotRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<FunctionPlotOptions | null>(null);
+  const chartRef = useRef<Chart | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const renderPlot = useCallback((): void => {
     if (!plotRef.current) return;
+    const width = plotRef.current.clientWidth;
+    const height = plotRef.current.clientHeight;
+    if (width < 80 || height < 80) return;
 
     try {
       setError(null);
-      plotRef.current.innerHTML = '';
       const plotExpression = normalizeExpressionForPlot(expression);
-      functionPlot({
+      // 复用绘图实例与 domain，输入和尺寸变化后保留用户的平移、缩放位置。
+      const options = optionsRef.current ?? {
         target: plotRef.current,
-        width: plotRef.current.clientWidth,
-        height: plotRef.current.clientHeight,
         grid: true,
-        xAxis: { position: 'sticky', domain: [0, 10] },
-        yAxis: { position: 'sticky', domain: [0, 10] },
-        data: [{ fn: plotExpression || '0', color: '#6390ff', graphType: 'polyline' }],
+        xAxis: { position: 'sticky' as const, domain: [0, 10] },
+        yAxis: { position: 'sticky' as const, domain: [0, 10] },
         tip: { xLine: true, yLine: true },
-      });
+      };
+      optionsRef.current = options;
+      options.width = width;
+      options.height = height;
+      options.data = [{ fn: plotExpression || '0', color: '#6390ff', graphType: 'polyline' }];
+      chartRef.current = functionPlot(options);
     } catch {
+      plotRef.current.replaceChildren();
       setError(t('calculator.coordinate.error', { defaultValue: '无效的表达式' }));
     }
   }, [expression, t]);
+
+  useEffect(() => () => {
+    chartRef.current?.removeAllListeners();
+    const id = optionsRef.current?.id;
+    if (id) Reflect.deleteProperty(Chart.cache, id);
+  }, []);
 
   useEffect(() => {
     renderPlot();
   }, [renderPlot]);
 
   useEffect(() => {
+    // 侧栏和输入面板切换会改变画布尺寸，但不会触发 window.resize。
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(renderPlot);
+    if (plotRef.current) observer?.observe(plotRef.current);
     window.addEventListener('resize', renderPlot);
-    return () => window.removeEventListener('resize', renderPlot);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', renderPlot);
+    };
   }, [renderPlot]);
 
   return (

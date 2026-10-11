@@ -2645,6 +2645,10 @@
     }
   },
   "calculator": {
+    "display": {
+      "expression": "計算公式",
+      "error": "運算式無效"
+    },
     "modes": {
       "arithmetic": "四則運算",
       "scientific": "科學計算",

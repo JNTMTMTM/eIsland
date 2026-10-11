@@ -2645,6 +2645,10 @@
     }
   },
   "calculator": {
+    "display": {
+      "expression": "計算式",
+      "error": "無効な式"
+    },
     "modes": {
       "arithmetic": "四則演算",
       "scientific": "関数電卓",

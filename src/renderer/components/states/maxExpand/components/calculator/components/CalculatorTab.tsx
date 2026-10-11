@@ -26,12 +26,20 @@
 
 import { useCallback, useState, type KeyboardEvent, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import katex from 'katex';
 import type { CalcButtonDef, CalcMode, CalcOperator, ScientificFn } from '../types/calculatorTypes';
 import { BUTTON_LAYOUT, SCIENTIFIC_FN_LAYOUT } from '../config/calculatorConfig';
 import { useCalculator } from '../hooks/useCalculator';
 import { CalcDisplay } from './CalcDisplay';
 import { CalculatorSidebar } from './CalculatorSidebar';
 import { CoordinateGraph } from './CoordinateGraph';
+
+// 静态按键只排版一次，避免每次输入都重复编译全部科学函数。
+const BUTTON_MATH = new Map(
+  [...BUTTON_LAYOUT.flat(), ...SCIENTIFIC_FN_LAYOUT.flat()]
+    .filter((button) => button.tex)
+    .map((button) => [button.alt, katex.renderToString(button.tex!, { output: 'html', throwOnError: false })]),
+);
 
 function ButtonGrid({
   layout,
@@ -46,8 +54,8 @@ function ButtonGrid({
 
   return (
     <div className={`calc-buttons${className ? ` ${className}` : ''}`}>
-      {layout.map((row, rowIndex) => (
-        <div className="calc-row" key={rowIndex}>
+      {layout.map((row) => (
+        <div className="calc-row" key={row.map((button) => button.alt).join(':')}>
           {row.map((button) => (
             <button
               className={`calc-btn ${button.className ?? ''}`}
@@ -57,9 +65,15 @@ function ButtonGrid({
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => onButton(button)}
             >
-              {button.icon
+              {button.tex ? (
+                <span
+                  className="calc-key-math"
+                  aria-hidden="true"
+                  dangerouslySetInnerHTML={{ __html: BUTTON_MATH.get(button.alt)! }}
+                />
+              ) : button.icon
                 ? <img className="calc-btn-icon" src={button.icon} alt={button.alt} />
-                : button.label
+                : <span className="calc-key-label">{button.label}</span>
               }
             </button>
           ))}
@@ -103,6 +117,7 @@ export function CalculatorTab(): ReactElement {
   }, [calculator]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     const key = event.key;
     if (/^[0-9]$/.test(key)) calculator.inputDigit(key);
     else if (key === '.') calculator.inputDot();
@@ -126,9 +141,26 @@ export function CalculatorTab(): ReactElement {
   const isCoordinate = activeMode === 'coordinate';
   const formulaLength = calculator.formula.length;
   const displayFontSize = formulaLength > 24 ? '20px' : formulaLength > 14 ? '26px' : '34px';
+  const display = (
+    <CalcDisplay
+      key={activeMode}
+      cursor={calculator.cursor}
+      document={calculator.document}
+      fontSize={displayFontSize}
+      result={isCoordinate ? null : calculator.result}
+      hasResult={!isCoordinate && calculator.result !== null}
+      showValue={!isCoordinate}
+      onCursorChange={calculator.moveCursor}
+      onMoveEnd={() => calculator.moveCursorBoundary('end')}
+      onKeyDown={handleKeyDown}
+    />
+  );
 
   return (
-    <div className="max-expand-tab-panel calculator-panel">
+    <div
+      className={`max-expand-tab-panel calculator-panel calculator-panel-${activeMode}`}
+      onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}
+    >
       <CalculatorSidebar
         activeMode={activeMode}
         collapsed={collapsed}
@@ -137,55 +169,41 @@ export function CalculatorTab(): ReactElement {
       />
 
       <div className="calc-main">
+        <div className="calc-toolbar">
+          <span className="calc-mode-title">{t(`calculator.modes.${activeMode}`)}</span>
+          {isCoordinate && <span className="calc-function-label">{'y = f(x)'}</span>}
+        </div>
         {isCoordinate ? (
           <div className="calc-coordinate-layout">
             <div className="calc-coordinate-controls">
               <button
                 type="button"
-                className="calc-btn calc-btn--toggle"
+                className="calc-btn calc-btn-toggle"
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => setShowScientificKeys((previous) => !previous)}
                 aria-label={t('calculator.coordinate.toggleKeys', { defaultValue: '切换输入面板' })}
               >
                 {showScientificKeys ? '123' : 'f(x)'}
               </button>
               {showScientificKeys ? (
-                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci-inner" />
+                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons-sci-inner" />
               ) : (
-                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith-inner" />
+                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons-arith-inner" />
               )}
             </div>
             <div className="calc-coordinate-workspace">
-              <CalcDisplay
-                cursor={calculator.cursor}
-                document={calculator.document}
-                fontSize={displayFontSize}
-                result={null}
-                hasResult={false}
-                showValue={false}
-                onCursorChange={calculator.moveCursor}
-                onMoveEnd={() => calculator.moveCursorBoundary('end')}
-                onKeyDown={handleKeyDown}
-              />
+              {display}
               <CoordinateGraph expression={calculator.formula} />
             </div>
           </div>
         ) : (
           <>
-            <CalcDisplay
-              cursor={calculator.cursor}
-              document={calculator.document}
-              fontSize={displayFontSize}
-              result={calculator.result}
-              hasResult={calculator.result !== null}
-              onCursorChange={calculator.moveCursor}
-              onMoveEnd={() => calculator.moveCursorBoundary('end')}
-              onKeyDown={handleKeyDown}
-            />
+            {display}
 
             {isScientific ? (
               <div className="calc-buttons-dual">
-                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci" />
-                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith" />
+                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons-sci" />
+                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons-arith" />
               </div>
             ) : (
               <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} />

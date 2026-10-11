@@ -43,7 +43,7 @@ describe('CalculatorTab', () => {
     const coordinate = render(Component);
     expect(value(coordinate, CalcDisplay, 'showValue')).toBe(false);
     expect(value(coordinate, CoordinateGraph, 'expression')).toBe('x');
-    trigger(coordinate, '.calc-btn--toggle', 'onClick');
+    trigger(coordinate, '.calc-btn-toggle', 'onClick');
     expect(text(render(Component))).toContain('f(x)');
     trigger(tree, CalculatorSidebar, 'onToggleCollapse');
     expect(value(render(Component), CalculatorSidebar, 'collapsed')).toBe(false);

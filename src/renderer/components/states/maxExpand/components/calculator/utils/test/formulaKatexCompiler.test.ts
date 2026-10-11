@@ -121,7 +121,18 @@ describe('formulaKatexCompiler', () => {
     ] });
 
     expect(compilation.anchors.filter((anchor) => anchor.start.offset === anchor.end.offset)).toHaveLength(2);
-    expect(compilation.tex).toContain('\\phantom{\\square}');
+    expect(compilation.tex).toContain('\\phantom{\\rule{0.04em}{0.7em}}');
+  });
+
+  it('keeps nested functions inside the exponent rather than splitting at the inner closing parenthesis', () => {
+    const compilation = compileFormulaToKatex(text('2^(sin(1)+cos(2))'));
+    const exponentAnchor = compilation.anchors.find((anchor) => anchor.end.offset === 15);
+    expect(exponentAnchor).toBeDefined();
+    expect(() => katex.renderToString(compilation.tex, {
+      throwOnError: true,
+      trust: ({ command }) => command === '\\htmlData',
+    })).not.toThrow();
+    expect(compilation.tex).toMatch(/\^\{.*\\cos.*\}$/);
   });
 
   it('为所有空槽生成可定位占位锚点', () => {

@@ -105,6 +105,8 @@ export interface UseCalculatorReturn {
 
 export interface CalcButtonDef {
   label?: string;
+  /** 按键上的数学排版，仅接受内置 TeX。 */
+  tex?: string;
   icon?: string;
   alt: string;
   /** i18n 可访问名称键 */
