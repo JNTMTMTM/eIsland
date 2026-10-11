@@ -52,8 +52,8 @@ workflows.forEach((file) => {
 
   if (['test.yml', 'i18n-check.yml', 'build-size-report.yml'].includes(file)) {
     test(`${file}: fork PR runs unprivileged checks and skips direct comments`, () => {
-      assert.match(workflow, /^  pull_request:/mu);
-      assert.doesNotMatch(workflow, /^  pull_request_target:/mu);
+      assert.match(workflow, /^ {2}pull_request:/mu);
+      assert.doesNotMatch(workflow, /^ {2}pull_request_target:/mu);
       assert.doesNotMatch(workflow, /allow-unsafe-pr-checkout/u);
       const [, guard] = workflow.match(/if: (.*github.event_name.*full_name.*)/u);
       const canComment = (repository, eventName = 'pull_request') => runInNewContext(guard, {
