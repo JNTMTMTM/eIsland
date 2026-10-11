@@ -56,7 +56,6 @@ export function ComplexCalculator({ initial, onRecord }: {
         if (result) void window.api.clipboardWriteText(formatComplex(result)).then((saved) => { if (!saved) setError(t('calculator.clipboard.failed')); }).catch(() => setError(t('calculator.clipboard.failed')));
       }}>{t('calculator.clipboard.copyResult')}</button>
     </div>
-    <p>{t('calculator.complex.hint')}</p>
     <output className="calc-feature-result" aria-live="polite">{error || (result ? formatComplex(result) : '—')}</output>
     {result && <div className="calc-feature-grid">
       <div>{t('calculator.complex.modulus')}: {formatDisplay(Math.hypot(result.re, result.im))}</div>

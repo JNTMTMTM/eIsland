@@ -72,7 +72,6 @@ export function MatrixCalculator({ initial, onRecord }: {
       {binary && <button className="calc-tool-btn" type="button" onClick={() => { setA(b); setB(a); reset(); }}>{t('calculator.matrix.swap')}</button>}
       <button className="calc-tool-btn" type="button" disabled={result === null} onClick={() => void window.api.clipboardWriteText(resultText).then((saved) => { if (!saved) setError(t('calculator.clipboard.failed')); }).catch(() => setError(t('calculator.clipboard.failed')))}>{t('calculator.clipboard.copyResult')}</button>
     </div>
-    <p>{t('calculator.matrix.hint')}</p>
     <div className="calc-feature-result" role="status">
       {error || (result === null ? '—' : typeof result === 'number' ? formatDisplay(result) : <table className="calc-matrix-result" aria-label={t('calculator.matrix.result')}><tbody>{result.map((row, i) => <tr key={'row-' + i}>{row.map((value, j) => <td key={'cell-' + j}>{formatDisplay(value)}</td>)}</tr>)}</tbody></table>)}
     </div>

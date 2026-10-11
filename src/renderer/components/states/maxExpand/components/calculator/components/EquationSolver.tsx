@@ -65,7 +65,6 @@ export function EquationSolver({ initial, onRecord }: {
       }
       catch (failure) { setResult(null); setError(t(`calculator.errors.${getCalculatorErrorCode(failure)}`)); }
     }}>{t('calculator.equation.solve')}</button>
-    <p>{t('calculator.equation.hint')}</p>
     <output className="calc-feature-result" aria-live="polite">
       {error || (result ? resultText(result) : '—')}
     </output>
