@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "equation": {
+      "title": "方程求解",
+      "expression": "關於 x 的方程",
+      "lower": "搜尋下限",
+      "upper": "搜尋上限",
+      "solve": "求解方程",
+      "hint": "一次、二次方程返回全部實數解；其他方程在指定區間數值搜尋，可能遺漏密集根。",
+      "infinite": "任意實數 x 均滿足方程",
+      "none": "無實數解",
+      "noneInRange": "指定區間內未找到根",
+      "sampledIdentity": "所有取樣點均滿足方程"
+    },
     "graph": {
       "controls": "函數與分析",
       "extra": "其他函數，每行一個（最多 4 條）",

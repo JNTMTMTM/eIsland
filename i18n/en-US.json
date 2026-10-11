@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "equation": {
+      "title": "Equations",
+      "expression": "Equation in x",
+      "lower": "Search lower bound",
+      "upper": "Search upper bound",
+      "solve": "Solve equation",
+      "hint": "Linear and quadratic equations return all real roots. Other equations use numerical search in the chosen range; closely spaced roots may be missed.",
+      "infinite": "Every real x satisfies this equation",
+      "none": "No real solution",
+      "noneInRange": "No roots found in the search range",
+      "sampledIdentity": "All sampled points satisfy the equation"
+    },
     "graph": {
       "controls": "Functions and analysis",
       "extra": "Additional functions, one per line (up to 4)",

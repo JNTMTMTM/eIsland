@@ -33,6 +33,7 @@ import { useCalculator } from '../hooks/useCalculator';
 import { CalcDisplay } from './CalcDisplay';
 import { CalculatorSidebar } from './CalculatorSidebar';
 import { CoordinateGraph } from './CoordinateGraph';
+import { EquationSolver } from './EquationSolver';
 import { UnitConversion } from './UnitConversion';
 import { CalculatorHistory } from './CalculatorHistory';
 import { useCalculatorHistory } from '../hooks/useCalculatorHistory';
@@ -164,7 +165,7 @@ export function CalculatorTab(): ReactElement {
   const isCoordinate = activeMode === 'coordinate';
   const formulaLength = calculator.formula.length;
   const displayFontSize = formulaLength > 24 ? '20px' : formulaLength > 14 ? '26px' : '34px';
-  const standalonePanels: Partial<Record<CalcMode, ReactElement>> = { unitConversion: <UnitConversion /> };
+  const standalonePanels: Partial<Record<CalcMode, ReactElement>> = { unitConversion: <UnitConversion />, equation: <EquationSolver /> };
   const standalone = standalonePanels[activeMode];
   const display = (
     <CalcDisplay

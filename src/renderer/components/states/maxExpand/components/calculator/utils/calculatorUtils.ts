@@ -87,29 +87,29 @@ class FormulaParser {
   }
 
   private parseTerm(): ExpressionNode {
-    let value = this.parsePower();
+    let value = this.parseUnary();
     while (true) {
       if (this.consume('×') || this.consume('*')) {
-        value = { type: 'binary', operator: '×', left: value, right: this.parsePower() };
+        value = { type: 'binary', operator: '×', left: value, right: this.parseUnary() };
       } else if (this.consume('÷') || this.consume('/')) {
-        value = { type: 'binary', operator: '÷', left: value, right: this.parsePower() };
+        value = { type: 'binary', operator: '÷', left: value, right: this.parseUnary() };
       } else if (this.startsImplicitFactor()) {
-        value = { type: 'binary', operator: '×', left: value, right: this.parsePower() };
+        value = { type: 'binary', operator: '×', left: value, right: this.parseUnary() };
       } else return value;
     }
   }
 
   private parsePower(): ExpressionNode {
-    const base = this.parseUnary();
+    const base = this.parsePostfix();
     return this.consume('^')
-      ? { type: 'binary', operator: '^', left: base, right: this.parsePower() }
+      ? { type: 'binary', operator: '^', left: base, right: this.parseUnary() }
       : base;
   }
 
   private parseUnary(): ExpressionNode {
     if (this.consume('+')) return { type: 'unary', operator: '+', value: this.parseUnary() };
     if (this.consume('-')) return { type: 'unary', operator: '-', value: this.parseUnary() };
-    return this.parsePostfix();
+    return this.parsePower();
   }
 
   private parsePostfix(): ExpressionNode {
@@ -340,6 +340,36 @@ export function evaluateFormula(formula: string, angleUnit: CalcAngleUnit = 'rad
 export function compileNumericFormula(formula: string, angleUnit: CalcAngleUnit = 'radian'): (x: number) => number {
   const node = new FormulaParser(formula).parse();
   return (x) => finite(evaluateNode(node, { angleUnit, x }));
+}
+
+/** 提取实数二次及以下多项式系数，拒绝依赖采样猜测多项式。
+ * @param formula - 单变量公式
+ * @param angleUnit - 常量函数的角度单位
+ * @returns 常数、一次、二次项系数，非多项式返回 null
+ */
+export function getPolynomialCoefficients(formula: string, angleUnit: CalcAngleUnit): number[] | null {
+  const trim = (values: number[]): number[] => { while (values.length > 1 && values.at(-1) === 0) values.pop(); return values; };
+  const multiply = (a: number[], b: number[]): number[] | null => {
+    if (a.length + b.length > 4) return null;
+    const values = Array<number>(a.length + b.length - 1).fill(0);
+    a.forEach((value, i) => b.forEach((other, j) => { values[i + j] += value * other; }));
+    return trim(values);
+  };
+  const read = (node: ExpressionNode): number[] | null => {
+    if (node.type === 'number') return [node.value];
+    if (node.type === 'variable') return [0, 1];
+    if (node.type === 'unary') { const value = read(node.value); return value?.map((item) => node.operator === '-' ? -item : item) ?? null; }
+    if (node.type === 'binary') {
+      const a = read(node.left); const b = read(node.right); if (!a || !b) return null;
+      if (node.operator === '+' || node.operator === '-') return trim(Array.from({ length: Math.max(a.length, b.length) }, (_, i) => (a[i] ?? 0) + (node.operator === '+' ? 1 : -1) * (b[i] ?? 0)));
+      if (node.operator === '×') return multiply(a, b);
+      if (node.operator === '÷' && b.length === 1 && b[0] !== 0) return a.map((item) => item / b[0]);
+      if (node.operator === '^' && b.length === 1 && [0, 1, 2].includes(b[0])) return b[0] === 0 ? [1] : b[0] === 1 ? a : multiply(a, a);
+      return null;
+    }
+    try { return [finite(evaluateNode(node, { angleUnit }))]; } catch { return null; }
+  };
+  return read(new FormulaParser(formula).parse());
 }
 
 /**
