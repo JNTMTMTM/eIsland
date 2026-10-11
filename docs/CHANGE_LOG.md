@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T17:31:23.276Z
+> 生成时间：2026-10-11T17:31:42.481Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-11 | cbc46352 | dependabot[bot] | ci(deps): Bump actions/setup-node from 4 to 7 (#235)
+- 2026-10-11 | 4e5e79c3 | eislandBot | docs: auto update CHANGE_LOG.md for #239 by @dependabot[bot] [skip ci]
 - 2026-10-11 | 51abed77 | dependabot[bot] | chore(deps): bump @electron-toolkit/tsconfig from 1.0.1 to 2.0.0 (#239)
 - 2026-10-11 | 013f51a2 | eislandBot | docs: auto update CHANGE_LOG.md for #238 by @dependabot[bot] [skip ci]
 - 2026-10-11 | e5f9e144 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc from 61.7.1 to 65.2.0 (#238)
