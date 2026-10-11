@@ -187,3 +187,6 @@ export class SmtcMonitor extends EventEmitter {
   emit(event: 'error', err: Error): boolean;
   emit(event: string, ...args: any[]): boolean;
 }
+
+/** 为隔离命令进程指定目标会话，空字符串恢复系统当前会话 */
+export function setCommandSource(sourceAppId: string): void;

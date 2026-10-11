@@ -28,10 +28,15 @@ namespace eIslandSmtcHelper;
 
 public static class SmtcController
 {
+    internal static string CommandSourceAppId { get; set; } = "";
+    private static GlobalSystemMediaTransportControlsSessionManager? _commandManager;
+
     private static async Task<GlobalSystemMediaTransportControlsSession?> GetCurrentSessionAsync()
     {
-        var manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-        return manager.GetCurrentSession();
+        _commandManager ??= await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
+        return string.IsNullOrEmpty(CommandSourceAppId)
+            ? _commandManager.GetCurrentSession()
+            : _commandManager.GetSessions().FirstOrDefault(session => session.SourceAppUserModelId == CommandSourceAppId);
     }
 
     public static async Task<CommandResult> PlayAsync()

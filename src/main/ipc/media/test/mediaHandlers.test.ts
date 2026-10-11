@@ -126,6 +126,10 @@ describe('media ipc handlers', () => {
     previousMock.mockClear();
 
     registerMediaIpcHandlers({
+      requestCommand: (command, argument) => {
+        const actions = { play: playMock, pause: pauseMock, next: nextMock, previous: previousMock, seek: seekMock, getTimestamp: vi.fn() };
+        return argument === undefined ? actions[command]() : actions[command](argument);
+      },
       getMainWindow: () => null,
       isWhitelisted: () => false,
       getPendingSourceSwitchId: () => '',
@@ -158,6 +162,10 @@ describe('media ipc handlers', () => {
       .mockReturnValueOnce(false);
 
     registerMediaIpcHandlers({
+      requestCommand: (command, argument) => {
+        const actions = { play: playMock, pause: pauseMock, next: nextMock, previous: previousMock, seek: seekMock, getTimestamp: vi.fn() };
+        return argument === undefined ? actions[command]() : actions[command](argument);
+      },
       getMainWindow: () => null,
       isWhitelisted: () => true,
       getPendingSourceSwitchId: () => '',
@@ -200,6 +208,10 @@ describe('media ipc handlers', () => {
     getAllWindowsMock.mockReturnValue([aliveWindow, deadWindow]);
 
     registerMediaIpcHandlers({
+      requestCommand: (command, argument) => {
+        const actions = { play: playMock, pause: pauseMock, next: nextMock, previous: previousMock, seek: seekMock, getTimestamp: vi.fn() };
+        return argument === undefined ? actions[command]() : actions[command](argument);
+      },
       getMainWindow: () => null,
       isWhitelisted: () => true,
       getPendingSourceSwitchId: () => 'device-2',

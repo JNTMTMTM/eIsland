@@ -55,6 +55,10 @@ function fixture() {
   let pendingEntry: unknown = {};
   const runtime = new Map<string, { payload: unknown; hasTitle: boolean }>();
   const options: Parameters<typeof registerMediaIpcHandlers>[0] = {
+    requestCommand: (command, argument) => {
+      const action = command === 'getTimestamp' ? native.timestamp : native[command];
+      return argument === undefined ? action() : action(argument);
+    },
     getMainWindow: () => null, isWhitelisted: () => true,
     getPendingSourceSwitchId: () => pending, setPendingSourceSwitchId: (id) => { pending = id; },
     getPendingSourceSwitchEntry: () => pendingEntry, clearPendingSourceSwitchEntry: () => { pendingEntry = null; },

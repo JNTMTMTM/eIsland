@@ -19,6 +19,7 @@
  */
 
 using System.Runtime.InteropServices;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Windows.Media;
 
@@ -49,32 +50,41 @@ public static class SmtcExports
         return ptr;
     }
 
+    private static readonly BlockingCollection<Action> CommandQueue = new();
+    private static readonly object CommandThreadLock = new();
+    private static Thread? _commandThread;
+
+    /// <summary>命令子进程复用同一 STA；挂起的原生调用由外部 deadline 杀进程回收。</summary>
     private static T RunOnSTAThread<T>(Func<Task<T>> asyncFunc)
     {
-        T result = default!;
-        Exception? ex = null;
-        var thread = new Thread(() =>
+        lock (CommandThreadLock)
         {
-            var comInitialized = false;
-            try
+            if (_commandThread == null)
             {
-                comInitialized = CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED) >= 0;
-                result = asyncFunc().GetAwaiter().GetResult();
+                _commandThread = new Thread(() =>
+                {
+                    var initialized = CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED) >= 0;
+                    try { foreach (var action in CommandQueue.GetConsumingEnumerable()) action(); }
+                    finally { if (initialized) CoUninitialize(); }
+                }) { IsBackground = true, Name = "SMTC-Commands" };
+                _commandThread.SetApartmentState(ApartmentState.STA);
+                _commandThread.Start();
             }
-            catch (Exception e)
-            {
-                ex = e;
-            }
-            finally
-            {
-                if (comInitialized) CoUninitialize();
-            }
+        }
+        var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        CommandQueue.Add(() =>
+        {
+            try { completion.SetResult(asyncFunc().GetAwaiter().GetResult()); }
+            catch (Exception error) { completion.SetException(error); }
         });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        if (ex != null) throw ex;
-        return result;
+        return completion.Task.WaitAsync(TimeSpan.FromSeconds(3)).GetAwaiter().GetResult();
+    }
+
+    /// <summary>为下一条命令固定目标会话，空字符串保持原有默认会话行为。</summary>
+    [UnmanagedCallersOnly(EntryPoint = "smtc_set_command_source")]
+    public static void SetCommandSource(IntPtr sourceAppId)
+    {
+        SmtcController.CommandSourceAppId = Marshal.PtrToStringUTF8(sourceAppId) ?? "";
     }
 
     [UnmanagedCallersOnly(EntryPoint = "smtc_free_string")]

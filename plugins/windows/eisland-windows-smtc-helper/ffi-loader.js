@@ -66,6 +66,7 @@ const freeString = lib.func('void smtc_free_string(void *)');
 const ownedString = koffi.disposable('str', freeString);
 
 const smtc = {
+  smtc_set_command_source: lib.func('void smtc_set_command_source(str)'),
   // ── 原有命令 ──
   smtc_play:               lib.func('int smtc_play()'),
   smtc_pause:              lib.func('int smtc_pause()'),

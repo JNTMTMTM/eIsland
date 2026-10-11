@@ -80,7 +80,6 @@ import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { createExternalAgentWatcher } from './system/externalAgentWatcher';
 import { createClaudeCodeStatusService } from './system/claudeCodeStatusService';
 import { createCodexStatusService } from './system/codexStatusService';
-import { play, pause, next } from '@eisland/windows-smtc-helper';
 import {
   queryFocusedWindow,
   queryOpenWindowsWithIcons,
@@ -440,13 +439,13 @@ const hotkeyService = createHotkeyService({
   },
   onNextSongHotkey: () => {
     if (!smtcService.isWhitelisted()) return;
-    next();
+    void smtcService.requestCommand('next');
   },
   onPlayPauseSongHotkey: () => {
     // 根据当前播放状态决定 play 还是 pause
     const entry = smtcService.getSmtcSessionRuntime()?.get(smtcService.getCurrentDeviceId());
     const isPlaying = Boolean(entry && (entry.payload as Record<string, unknown>)?.isPlaying);
-    if (isPlaying) pause(); else play();
+    void smtcService.requestCommand(isPlaying ? 'pause' : 'play');
   },
   onResetPositionHotkey: () => {
     mainWindowService.applyIslandPositionOffset(DEFAULT_ISLAND_POSITION_OFFSET);
@@ -550,6 +549,7 @@ function registerIpcHandlers(): void {
   });
 
   registerMediaIpcHandlers({
+    requestCommand: smtcService.requestCommand,
     getMainWindow: () => mainWindow,
     isWhitelisted: smtcService.isWhitelisted,
     getPendingSourceSwitchId: smtcService.getPendingSourceSwitchId,

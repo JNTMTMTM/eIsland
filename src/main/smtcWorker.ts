@@ -25,6 +25,9 @@
  */
 
 import { parentPort } from 'worker_threads';
+import { join } from 'node:path';
+import { createSmtcCommandBroker } from './music/smtcCommandBroker';
+import type { SmtcCommandRequest } from './music/smtcCommandProtocol';
 import { SmtcMonitor, type MediaProps, type PlaybackInfo, type TimelineProps } from '@eisland/windows-smtc-helper';
 
 if (!parentPort) throw new Error('smtcWorker must be run as a Worker thread');
@@ -67,6 +70,8 @@ function postSessionUpdate(sourceAppId: string, includeThumbnail = true): void {
 }
 
 const smtc = new SmtcMonitor();
+const commands = createSmtcCommandBroker(join(__dirname, 'smtcCommandWorker.js'));
+
 
 smtc.on('session-added', (sourceAppId: string, mediaProps: MediaProps) => {
   const entry: CacheEntry = { media: mediaProps, playback: null, timeline: null };
@@ -123,7 +128,15 @@ smtc.on('session-timeline-changed', (sourceAppId: string, timelineProps: Timelin
 });
 
 /** 接收主进程请求：主动查询当前所有 SMTC 会话（用于播放源检测按钮） */
-parentPort.on('message', (msg: { type: string }) => {
+parentPort.on('message', (msg: SmtcCommandRequest | { type: 'cancel-command'; requestId: number } | { type: 'detect-sources' }) => {
+  if (msg.type === 'command') {
+    commands.execute(msg, (response) => parentPort!.postMessage(response));
+    return;
+  }
+  if (msg.type === 'cancel-command') {
+    commands.cancel(msg.requestId);
+    return;
+  }
   if (msg.type === 'detect-sources') {
     try {
       const sessions = smtc.getMediaSessions();
@@ -165,5 +178,6 @@ try {
 
 /** 进程退出时清理 */
 process.on('exit', () => {
+  commands.dispose();
   smtc.stop();
 });

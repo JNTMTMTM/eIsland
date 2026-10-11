@@ -128,7 +128,14 @@ function setPlaybackRate(rate) {
   return r === 0 ? { success: true, error: null } : { success: false, error: getLastError() || 'Set playback rate failed.' };
 }
 
+/**
+ * 为隔离命令进程固定当前控制目标。
+ * @param {string} sourceAppId - 会话标识，空字符串恢复系统当前会话
+ */
+function setCommandSource(sourceAppId) { smtc.smtc_set_command_source(sourceAppId); }
+
 module.exports = {
+  setCommandSource,
   // 原有命令
   play,
   pause,

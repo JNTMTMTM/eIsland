@@ -30,6 +30,16 @@ if (!parsed.RootElement[0].GetProperty("mediaChanged").GetBoolean()) throw new E
 if (SmtcSessionMonitor.DrainSessionChangesJson() != "[]") throw new Exception("Drain must consume changes");
 Console.WriteLine($"PASS: 3000 timeline updates contain no artwork; {bytes} JSON characters total.");
 
+var dispatch = typeof(SmtcExports).GetMethod("RunOnSTAThread", BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(typeof(int));
+var threads = new HashSet<int>();
+for (var i = 0; i < 100; i++)
+{
+    Func<Task<int>> action = () => Task.FromResult(Environment.CurrentManagedThreadId);
+    threads.Add((int)dispatch.Invoke(null, new object[] { action })!);
+}
+if (threads.Count != 1) throw new Exception("Commands must reuse one STA thread");
+Console.WriteLine("PASS: 100 offline commands reused one STA thread.");
+
 // 模拟 WinRT 回调持锁且迟迟不返回；FFI drain 必须立即返回可重试信号。
 var sessionLock = typeof(SmtcSessionMonitor).GetField("_sessionLock", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
 using var acquired = new ManualResetEventSlim();
