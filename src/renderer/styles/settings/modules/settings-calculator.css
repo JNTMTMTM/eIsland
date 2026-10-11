@@ -35,9 +35,9 @@
   display: flex;
   flex: 0 0 52px;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   width: 52px;
-  padding: 10px 6px;
+  padding: 8px 6px;
   overflow: hidden auto;
   border-right: 1px solid rgb(var(--color-text-rgb), .08);
   scrollbar-width: none;
@@ -54,7 +54,7 @@
 .calc-sidebar-nav-btn {
   display: flex;
   flex: 0 0 36px;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   width: 100%;
   padding: 0 10px;
