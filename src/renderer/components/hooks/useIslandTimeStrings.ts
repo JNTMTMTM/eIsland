@@ -30,6 +30,8 @@ import { formatTime, formatFullTime, getDayName, getLunarDate } from '../../util
 interface UseIslandTimeStringsOptions {
   t: (key: string, options?: { defaultValue?: string }) => string;
   language: string | undefined;
+  precision?: 'minute' | 'second';
+  enabled?: boolean;
 }
 
 interface IslandTimeStrings {
@@ -45,7 +47,7 @@ interface IslandTimeStrings {
  * @returns 灵动岛时间字符串集合。
  */
 export function useIslandTimeStrings(options: UseIslandTimeStringsOptions): IslandTimeStrings {
-  const { t, language } = options;
+  const { t, language, precision = 'second', enabled = true } = options;
 
   const formatWeekday = useMemo(() => {
     return (date: Date): string => t(`overview.time.weekdays.${date.getDay()}`, { defaultValue: getDayName(date) });
@@ -57,18 +59,27 @@ export function useIslandTimeStrings(options: UseIslandTimeStringsOptions): Isla
   const [lunarStr, setLunarStr] = useState(() => getLunarDate(new Date()));
 
   useEffect(() => {
+    if (!enabled) return;
+    let dateKey = '';
+    let timer: ReturnType<typeof setTimeout>;
+    const period = precision === 'minute' ? 60_000 : 1000;
     const update = (): void => {
       const now = new Date();
       setTimeStr(formatTime(now));
-      setDayStr(formatWeekday(now));
+
       setFullTimeStr(formatFullTime(now));
-      setLunarStr(getLunarDate(now));
+      const nextDateKey = now.toDateString();
+      if (nextDateKey !== dateKey) {
+        dateKey = nextDateKey;
+        setDayStr(formatWeekday(now));
+        setLunarStr(getLunarDate(now));
+      }
+      timer = setTimeout(update, period - (Date.now() % period));
     };
 
     update();
-    const timer = setInterval(update, 1000);
-    return () => clearInterval(timer);
-  }, [formatWeekday]);
+    return () => clearTimeout(timer);
+  }, [formatWeekday, precision, enabled]);
 
   return {
     timeStr,

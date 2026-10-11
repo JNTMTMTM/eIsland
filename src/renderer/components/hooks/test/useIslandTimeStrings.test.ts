@@ -33,6 +33,20 @@ vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), .
 beforeEach(() => { vi.useFakeTimers(); resetLifecycle(); vi.setSystemTime(new Date(2026, 9, 6, 23, 59, 59)); });
 afterEach(() => { unmountHooks(); vi.useRealTimers(); });
 describe('useIslandTimeStrings 实际时间展示', () => {
+  it('分钟精度只在分钟边界刷新，禁用时没有唤醒', () => {
+    const t = vi.fn((key: string) => key);
+    vi.setSystemTime(new Date(2026, 9, 6, 12, 0, 0));
+    renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', precision: 'minute' })); runEffects();
+    t.mockClear();
+    vi.advanceTimersByTime(59_000);
+    expect(t).not.toHaveBeenCalled();
+    expect(renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', precision: 'minute' })).timeStr).toBe('12:00');
+    vi.advanceTimersByTime(1000);
+    expect(renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', precision: 'minute' })).timeStr).toBe('12:01');
+    expect(t).not.toHaveBeenCalled();
+    renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', enabled: false })); runEffects();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('初始化真实格式化文本并在跨日时刷新时间、星期与农历', () => {
     const t = vi.fn((key: string, options?: { defaultValue?: string }) => { void key; return options?.defaultValue ?? ''; });
     let result = renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN' })); runEffects();

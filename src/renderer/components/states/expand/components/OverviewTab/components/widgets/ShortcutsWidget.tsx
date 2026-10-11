@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import type { DragEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
@@ -52,7 +53,9 @@ export function ShortcutsWidget({
   onDragEnd,
 }: ShortcutsWidgetProps): ReactElement {
   const { t } = useTranslation();
-  const { setExpandTab } = useIslandStore();
+  const { setExpandTab } = useIslandStore(useShallow((store) => ({
+    setExpandTab: store.setExpandTab,
+  })));
 
   return (
     <div className="ov-dash-apps-wrap">

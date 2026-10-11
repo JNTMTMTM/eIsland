@@ -46,6 +46,8 @@ const model = vi.hoisted(() => ({
   token: vi.fn<() => string | null>(),
   source: vi.fn<typeof import('../../../../api/user/userAccountApi.profile').fetchUpdateSourceUrl>()
 }));
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../store/slices', () => ({
   default: Object.assign(() => model.store, {
     getState: () => model.store

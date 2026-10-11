@@ -31,6 +31,8 @@ import type { ComponentProps } from 'react';
 const store = vi.hoisted(() => ({
   setMusicProvidersLogin: vi.fn()
 }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (original) => ({
   ...(await original<typeof import('react')>()),
   ...(await import('../../../../../../../test/elementHarness')).hookMocks,

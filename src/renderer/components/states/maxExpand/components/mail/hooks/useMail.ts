@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../store/slices';
@@ -49,7 +50,9 @@ import {
  */
 export function useMail(): UseMailReturn {
   const { t } = useTranslation();
-  const { setMaxExpandTab } = useIslandStore();
+  const { setMaxExpandTab } = useIslandStore(useShallow((store) => ({
+    setMaxExpandTab: store.setMaxExpandTab,
+  })));
   const [inbox, setInbox] = useState<MailInboxItem[]>(() => getInboxMemoryCache());
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [expandedUid, setExpandedUid] = useState<string | null>(null);

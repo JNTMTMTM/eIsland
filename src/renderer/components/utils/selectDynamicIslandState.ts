@@ -27,6 +27,8 @@ import type { IIslandStore } from '../../store/types';
 export default function selectDynamicIslandState(store: IIslandStore) {
   return {
     state: store.state,
+    hoverTab: store.hoverTab,
+    expandTab: store.expandTab,
     weather: store.weather,
     timerData: store.timerData,
     notification: store.notification,

@@ -19,6 +19,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import type { ReactElement } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +32,12 @@ import '../../../../styles/auth/auth.css';
 /** 渲染音乐提供商扫码登录界面 */
 export function MusicProvidersLoginContent(): ReactElement {
   const { t } = useTranslation();
-  const { musicProviderLogin, returnFromAuth, setMaxExpandTab, setMaxExpand } = useIslandStore();
+  const { musicProviderLogin, returnFromAuth, setMaxExpandTab, setMaxExpand } = useIslandStore(useShallow((store) => ({
+    musicProviderLogin: store.musicProviderLogin,
+    returnFromAuth: store.returnFromAuth,
+    setMaxExpandTab: store.setMaxExpandTab,
+    setMaxExpand: store.setMaxExpand,
+  })));
   const provider = MUSIC_PROVIDER_LOGIN_CONFIGS[musicProviderLogin] ?? MUSIC_PROVIDER_LOGIN_CONFIGS.qishui;
   const { authState, qrContent, loading, refresh } = useMusicProviderQrLogin(provider.id);
   const confirmed = authState === 'confirmed';

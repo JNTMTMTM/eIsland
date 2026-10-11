@@ -410,6 +410,21 @@ describe('useIslandNowPlayingSync runtime', () => {
     expect(updated.updateProgress).toHaveBeenLastCalledWith(20);
     expect(vi.getTimerCount()).toBe(0);
   });
+  it('inactive consumers stop interpolation and resume from elapsed wall time without resubscribing', async () => {
+    enabled.mockResolvedValue(false);
+    renderHook(useIslandNowPlayingSync, { ...options, progressEnabled: false }); flushHookEffects();
+    await emit(song());
+    expect(vi.getTimerCount()).toBe(0);
+    options.updateProgress.mockClear();
+    vi.advanceTimersByTime(10_000);
+    expect(options.updateProgress).not.toHaveBeenCalled();
+    renderHook(useIslandNowPlayingSync, { ...options, progressEnabled: true }); flushHookEffects();
+    expect(options.updateProgress).toHaveBeenLastCalledWith(11_000);
+    expect(vi.getTimerCount()).toBe(1);
+    renderHook(useIslandNowPlayingSync, { ...options, progressEnabled: false }); flushHookEffects();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(unsubscribe).not.toHaveBeenCalled();
+  });
   it('missing optional bridge registers nothing and cleans up safely', () => {
     vi.stubGlobal('window', {});
     mount();

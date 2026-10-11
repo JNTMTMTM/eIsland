@@ -29,6 +29,8 @@ import { createMediaSlice } from '../../../../../store/slices/mediaSlice';
 import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../hooks/test/startupHookHarness';
 import type { MediaSlice } from '../../../../../store/types';
 import type { IdleContentProps } from '../../config/idleConfig';
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (original) => {
   const actual = await original<typeof import('react')>();
   const {

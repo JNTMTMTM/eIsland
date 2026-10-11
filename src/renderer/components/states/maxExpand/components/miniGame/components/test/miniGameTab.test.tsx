@@ -45,6 +45,8 @@ const mocks = vi.hoisted(() => ({
   refreshCheck: vi.fn<typeof MiniGameApi.checkLeaderboardRefreshCaptcha>(), flush: vi.fn<typeof MiniGameApi.flushPendingSubmissions>(),
   report: vi.fn<typeof MiniGameApi.reportNewBest>(), session: vi.fn<typeof MiniGameApi.startGameSession>(), captcha: vi.fn<typeof runSliderCaptcha>(),
 }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../../../store/index', () => ({ useIslandStore: () => ({ setLogin: mocks.login, setRegister: mocks.register }) }));
 vi.mock('../../../../../../../utils/userAccount', () => ({ readLocalToken: mocks.token, readLocalProfile: mocks.profile, subscribeUserAccountSessionChanged: mocks.subscribe }));
 vi.mock('../../../../../../../utils/sliderCaptcha', () => ({ runSliderCaptcha: mocks.captcha }));

@@ -32,6 +32,8 @@ import type { UserAccountLoginData, UserAccountResult } from '../../../../../api
 const api = vi.hoisted(() => ({
   submit: vi.fn<typeof import('../../../../../api/user/userAccountApi.oauth').oauthSetPassword>()
 }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../api/user/userAccountApi.oauth', () => ({
   oauthSetPassword: api.submit
 }));

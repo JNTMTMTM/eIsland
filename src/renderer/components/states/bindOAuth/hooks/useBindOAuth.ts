@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -34,7 +35,12 @@ import type { Feedback } from '../../login/config/loginConfig';
 /** 绑定 OAuth 状态交互逻辑 Hook */
 export function useBindOAuth() {
   const { t } = useTranslation();
-  const { bindOAuthContext, setMaxExpand, setMaxExpandTab, setLogin } = useIslandStore();
+  const { bindOAuthContext, setMaxExpand, setMaxExpandTab, setLogin } = useIslandStore(useShallow((store) => ({
+    bindOAuthContext: store.bindOAuthContext,
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+    setLogin: store.setLogin,
+  })));
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);

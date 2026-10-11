@@ -44,6 +44,8 @@ const mocks = vi.hoisted(() => ({
   read: vi.fn<(key: string) => Promise<unknown>>(),
   save: vi.fn<Window['api']['storeCompareAndSwap']>(), settings: vi.fn(),
 }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../../../store/slices', () => ({ default: () => ({ setMaxExpandTab: mocks.settings }) }));
 vi.mock('../../../../../../../api/tools/toolboxSoftwareApi', () => ({ fetchToolboxSoftwareList: vi.fn() }));
 vi.mock('../../../tools/hooks/useTranslateTool', () => ({ useTranslateTool: vi.fn() }));

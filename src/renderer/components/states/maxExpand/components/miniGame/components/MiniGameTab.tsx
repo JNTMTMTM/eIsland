@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIslandStore } from '../../../../../../store/index';
@@ -41,7 +42,10 @@ import { MiniGameGamePanel } from './MiniGameGamePanel';
  */
 export function MiniGameTab(): ReactElement {
   const { t, i18n } = useTranslation();
-  const { setLogin, setRegister } = useIslandStore();
+  const { setLogin, setRegister } = useIslandStore(useShallow((store) => ({
+    setLogin: store.setLogin,
+    setRegister: store.setRegister,
+  })));
   const navigation = useMiniGameNavigation(t, i18n);
   const gomoku = useMiniGameGomoku();
   const ranking = useMiniGameLeaderboard(navigation.selectedGame, t);

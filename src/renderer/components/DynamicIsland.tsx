@@ -61,10 +61,6 @@ function DynamicIsland(): JSX.Element {
     handleIslandClick,
     shellClassName,
     shellStyle,
-    timeStr,
-    dayStr,
-    fullTimeStr,
-    lunarStr,
     bgMedia,
     bgVideoElementRef,
     bgVideoHwDecode,
@@ -107,15 +103,11 @@ function DynamicIsland(): JSX.Element {
       >
         <DynamicIslandStateContent
           state={state}
-          timeStr={timeStr}
-          dayStr={dayStr}
           weather={weather}
           timerState={timerData?.state ?? 'idle'}
           remainingSeconds={timerData?.remainingSeconds ?? 0}
           pomodoroRunning={pomodoroRunning}
           pomodoroRemaining={pomodoroRemaining}
-          fullTimeStr={fullTimeStr}
-          lunarStr={lunarStr}
           notification={notification}
         />
       </IslandContentTransition>

@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../../../../i18n';
@@ -108,7 +109,16 @@ export function PomodoroWidget(): React.ReactElement {
     setPomodoroRemaining: setRemaining,
     setPomodoroRunning: setRunning,
     setPomodoroCompletedCount: setCompletedCount,
-  } = useIslandStore();
+  } = useIslandStore(useShallow((store) => ({
+    pomodoroPhase: store.pomodoroPhase,
+    pomodoroRemaining: store.pomodoroRemaining,
+    pomodoroRunning: store.pomodoroRunning,
+    pomodoroCompletedCount: store.pomodoroCompletedCount,
+    setPomodoroPhase: store.setPomodoroPhase,
+    setPomodoroRemaining: store.setPomodoroRemaining,
+    setPomodoroRunning: store.setPomodoroRunning,
+    setPomodoroCompletedCount: store.setPomodoroCompletedCount,
+  })));
 
   useEffect(() => {
     if (pomodoroInitialized) return;

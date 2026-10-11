@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +42,12 @@ import '../../../styles/auth/auth.css';
 /** 独立注册状态内容 */
 export function RegisterContent(): ReactElement {
   const { t } = useTranslation();
-  const { setLogin, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore();
+  const { setLogin, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore(useShallow((store) => ({
+    setLogin: store.setLogin,
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+    returnFromAuth: store.returnFromAuth,
+  })));
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [emailCode, setEmailCode] = useState('');

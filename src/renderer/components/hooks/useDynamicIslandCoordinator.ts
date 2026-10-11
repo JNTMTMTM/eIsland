@@ -27,7 +27,6 @@
 import type selectDynamicIslandState from '../utils/selectDynamicIslandState';
 import { useDynamicIslandShell } from './useDynamicIslandShell';
 import { useIslandDominantColor } from './useIslandDominantColor';
-import { useIslandTimeStrings } from './useIslandTimeStrings';
 import { useIslandHoverInteraction } from './useIslandHoverInteraction';
 import { useIslandNowPlayingSync } from './useIslandNowPlayingSync';
 import { useIslandNotificationSubscriptions } from './useIslandNotificationSubscriptions';
@@ -55,10 +54,6 @@ interface DynamicIslandCoordinatorState {
   shellClassName: string;
   shellStyle: React.CSSProperties | undefined;
   handleIslandClick: () => void;
-  timeStr: string;
-  dayStr: string;
-  fullTimeStr: string;
-  lunarStr: string;
   bgMedia: { type: 'image' | 'video'; previewUrl: string } | null;
   bgVideoElementRef: React.MutableRefObject<HTMLVideoElement | null>;
   bgVideoHwDecode: boolean;
@@ -174,6 +169,9 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
   });
 
   useIslandNowPlayingSync({
+    progressEnabled: state === 'lyrics' || state === 'lyricsTranslation' || state === 'cli'
+      || (state === 'hover' && store.hoverTab === 'lyrics')
+      || (state === 'expanded' && (store.expandTab === 'song' || store.expandTab === 'overview')),
     handleNowPlayingUpdate,
     updateProgress,
     setSyncedLyrics,
@@ -186,15 +184,6 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setDominantColor,
   });
 
-  const {
-    timeStr,
-    dayStr,
-    fullTimeStr,
-    lunarStr,
-  } = useIslandTimeStrings({
-    t,
-    language,
-  });
 
 
   useIslandTimerAndAlarm({
@@ -319,10 +308,6 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     shellClassName,
     shellStyle,
     handleIslandClick: wrapClick(handleIslandClick),
-    timeStr,
-    dayStr,
-    fullTimeStr,
-    lunarStr,
     bgMedia,
     bgVideoElementRef,
     bgVideoHwDecode,

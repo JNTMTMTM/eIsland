@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
@@ -61,7 +62,15 @@ export function NotificationContent({
   agentName: _agentName,
 }: NotificationContentProps): ReactElement {
   const { t } = useTranslation();
-  const { setIdle, setLyrics, setNotification, setMaxExpand, setMaxExpandTab, setCli, setCliProvider } = useIslandStore();
+  const { setIdle, setLyrics, setNotification, setMaxExpand, setMaxExpandTab, setCli, setCliProvider } = useIslandStore(useShallow((store) => ({
+    setIdle: store.setIdle,
+    setLyrics: store.setLyrics,
+    setNotification: store.setNotification,
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+    setCli: store.setCli,
+    setCliProvider: store.setCliProvider,
+  })));
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [useClipboardVectorFallbackIcon, setUseClipboardVectorFallbackIcon] = useState(false);
   const [clipboardFaviconIndex, setClipboardFaviconIndex] = useState(0);

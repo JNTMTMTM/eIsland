@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -166,7 +167,10 @@ function MetricCard({ label, value, valueText, detail, temperature, accent }: Me
  */
 export function PerformanceMonitorTab(): React.ReactElement {
   const { t } = useTranslation();
-  const { setMaxExpand, setMaxExpandTab } = useIslandStore();
+  const { setMaxExpand, setMaxExpandTab } = useIslandStore(useShallow((store) => ({
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+  })));
   const [snapshot, setSnapshot] = useState<PerformanceSnapshot | null>(() => cachedPerformanceSnapshot);
   const [monitoringEnabled, setMonitoringEnabled] = useState<boolean>(() => hasStartedMonitoringThisSession);
   const [failed, setFailed] = useState(false);

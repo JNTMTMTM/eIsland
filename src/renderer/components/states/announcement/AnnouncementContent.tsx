@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useCallback, useRef, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
@@ -44,7 +45,10 @@ import '../../../styles/announcement/announcement.css';
  */
 export function AnnouncementContent(): ReactElement {
   const { t } = useTranslation();
-  const { setHover, setQuestionnaire } = useIslandStore();
+  const { setHover, setQuestionnaire } = useIslandStore(useShallow((store) => ({
+    setHover: store.setHover,
+    setQuestionnaire: store.setQuestionnaire,
+  })));
   const { loading, announcements, selectedAnnouncement, socialConfig, selectAnnouncement } = useAnnouncementData();
   const questionnaireReminder = useAnnouncementQuestionnaire();
   const adSlides = useAdSlides();

@@ -30,6 +30,8 @@ import { byClass, elements, find, invoke, text } from '../../../test/tree';
 
 import { MusicProvidersLoginContent } from '../MusicProvidersLoginContent';
 import type { TreeElement } from '../../../test/tree';
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'zh-CN' } }) }));
 
 const model = vi.hoisted(() => ({ store: { musicProviderLogin: 'qishui', returnFromAuth: vi.fn(), setMaxExpandTab: vi.fn(), setMaxExpand: vi.fn() }, login: { authState: 'waiting', qrContent: 'https://login.example.com/qr', loading: false, refresh: vi.fn() } }));

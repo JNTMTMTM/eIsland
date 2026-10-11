@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -38,7 +39,15 @@ import { readStandaloneWindowMode } from '../utils/readStandaloneWindowMode';
 /** 登录状态交互逻辑 Hook */
 export function useLogin() {
   const { t } = useTranslation();
-  const { setRegister, setSetPassword, setBindOAuth, setBindEmail, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore();
+  const { setRegister, setSetPassword, setBindOAuth, setBindEmail, setMaxExpand, setMaxExpandTab, returnFromAuth } = useIslandStore(useShallow((store) => ({
+    setRegister: store.setRegister,
+    setSetPassword: store.setSetPassword,
+    setBindOAuth: store.setBindOAuth,
+    setBindEmail: store.setBindEmail,
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+    returnFromAuth: store.returnFromAuth,
+  })));
   const setResetPassword = (): void => {
     useIslandStore.setState((prev) => {
       const prevState = prev.state as string;

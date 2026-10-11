@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -34,7 +35,13 @@ import { padZero } from '../utils/padZero';
 /** Idle 状态交互逻辑 Hook */
 export function useIdle(props: IdleContentProps) {
   const { t } = useTranslation();
-  const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate, dominantColor } = useIslandStore();
+  const { isMusicPlaying, coverImage, isPlaying, handleNowPlayingUpdate, dominantColor } = useIslandStore(useShallow((store) => ({
+    isMusicPlaying: store.isMusicPlaying,
+    coverImage: store.coverImage,
+    isPlaying: store.isPlaying,
+    handleNowPlayingUpdate: store.handleNowPlayingUpdate,
+    dominantColor: store.dominantColor,
+  })));
   const { remainingSeconds, pomodoroRemaining, timerState, pomodoroRunning } = props;
 
   const isTimerActive = timerState === 'running' || timerState === 'paused';

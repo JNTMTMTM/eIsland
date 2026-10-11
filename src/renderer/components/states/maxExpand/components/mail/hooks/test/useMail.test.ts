@@ -37,6 +37,8 @@ const translate = vi.hoisted(() => {
   vi.stubGlobal('window', Object.assign(new EventTarget(), { localStorage, api: {}, location: { hostname: 'app' } }));
   return vi.fn<(key: string) => string>((key) => key);
 });
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react-i18next', async (original) => ({
   ...(await original<typeof import('react-i18next')>()),
   useTranslation: () => ({ t: translate })

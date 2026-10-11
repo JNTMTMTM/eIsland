@@ -75,6 +75,8 @@ function makeProps(): ComponentProps<typeof MusicSettingsSection> {
     setMusicSettingsPage: vi.fn(),
   };
 }
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   ...(await import('../../../../../../../test/elementHarness')).hookMocks,

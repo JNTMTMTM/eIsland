@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../store/slices';
@@ -39,7 +40,10 @@ export function useClipboardHistoryItems(
   showCopyFeedback: (type: 'success' | 'error', text: string) => void,
 ): UseClipboardHistoryItemsReturn {
   const { t } = useTranslation();
-  const { setIdle, setLyrics } = useIslandStore();
+  const { setIdle, setLyrics } = useIslandStore(useShallow((store) => ({
+    setIdle: store.setIdle,
+    setLyrics: store.setLyrics,
+  })));
   const [items, setItems] = useState<ClipboardHistoryItem[]>([]);
   const [historyEnabled, setHistoryEnabled] = useState<boolean>(true);
   const [historyLimit, setHistoryLimit] = useState<number>(DEFAULT_HISTORY_LIMIT);

@@ -29,6 +29,8 @@ import { flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from
 import { byClass, elements, invoke, text } from '../../../test/tree';
 import type { MusicProviderAuthStatus, MusicProviderId, MusicProviderQrCodeResult } from '../../../../../../shared/musicProviderAuth';
 import type { IslandSlice } from '../../../../../store/types';
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (original) => {
   const actual = await original<typeof import('react')>();
   const {

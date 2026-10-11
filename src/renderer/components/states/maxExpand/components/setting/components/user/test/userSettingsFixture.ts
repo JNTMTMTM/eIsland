@@ -59,6 +59,7 @@ const mocks = vi.hoisted(() => ({
   recordDay: vi.fn(),
   language: 'en-US'
 }));
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (original) => ({
   ...(await original<typeof import('react')>()),
   ...(await import('../../../../../../../test/elementHarness')).hookMocks,

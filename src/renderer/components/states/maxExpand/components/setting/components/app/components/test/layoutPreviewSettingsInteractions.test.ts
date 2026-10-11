@@ -30,6 +30,8 @@ import { elementProps, elements, findElement, invoke, textContent } from '../../
 import { renderWithHooks, resetLifecycle, runEffects } from './themeHookHarness';
 import makeAppSettingsProps from './appSettingsFixture';
 const { store } = vi.hoisted(() => ({ store: { dominantColor: null as number[] | null } }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (original) => ({ ...(await original<typeof import('react')>()), ...(await import('../../../../../../../../test/elementHarness')).hookMocks, ...(await import('./themeHookHarness')).lifecycleHooks }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('../../../../../../../../../store/slices', () => ({ default: () => store }));

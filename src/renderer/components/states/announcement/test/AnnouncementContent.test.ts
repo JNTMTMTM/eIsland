@@ -38,6 +38,8 @@ const mocks = vi.hoisted(() => ({
  * 本测试以纯函数方式调用组件（不经 React reconciler），因此 useEffect / useCallback / useRef
  * 需要桩函数。若后续需要验证定时器或淡入淡出逻辑，应改用 @testing-library/react 的 render()。
  */
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>();
   return {

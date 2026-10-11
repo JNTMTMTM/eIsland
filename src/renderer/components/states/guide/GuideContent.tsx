@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
@@ -62,7 +63,11 @@ export function GuideContent(): React.ReactElement {
   const toolCards = getToolCards(t);
   const settingCards = getSettingCards(t);
   const guidePages = getGuidePages(t, !isLoggedIn);
-  const { setIdle, setLogin, setRegister } = useIslandStore();
+  const { setIdle, setLogin, setRegister } = useIslandStore(useShallow((store) => ({
+    setIdle: store.setIdle,
+    setLogin: store.setLogin,
+    setRegister: store.setRegister,
+  })));
   const {
     page,
     setPage,

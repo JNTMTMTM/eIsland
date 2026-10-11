@@ -26,8 +26,7 @@
 
 import type { JSX } from 'react';
 import type { NotificationData, WeatherData } from '../../store/types';
-import { IdleContent } from '../states/idle';
-import { HoverContent } from '../states/hover';
+import { IdleClockContent, HoverClockContent } from './IslandClockContent';
 import { NotificationContent } from '../states/notification/NotificationContent';
 import { ExpandedContent } from '../states/expand/ExpandedContent';
 import { MaxExpandContent } from '../states/maxExpand/MaxExpandContent';
@@ -52,15 +51,11 @@ import type { IslandState } from '../hooks/useDynamicIslandShell';
 
 interface DynamicIslandStateContentProps {
   state: IslandState;
-  timeStr: string;
-  dayStr: string;
   weather: WeatherData;
   timerState: 'idle' | 'running' | 'paused';
   remainingSeconds: number;
   pomodoroRunning: boolean;
   pomodoroRemaining: number;
-  fullTimeStr: string;
-  lunarStr: string;
   notification: NotificationData;
 }
 
@@ -71,22 +66,16 @@ interface DynamicIslandStateContentProps {
  */
 export function DynamicIslandStateContent({
   state,
-  timeStr,
-  dayStr,
   weather,
   timerState,
   remainingSeconds,
   pomodoroRunning,
   pomodoroRemaining,
-  fullTimeStr,
-  lunarStr,
   notification,
 }: DynamicIslandStateContentProps): JSX.Element | null {
   if (state === 'idle') {
     return (
-      <IdleContent
-        timeStr={timeStr}
-        dayStr={dayStr}
+      <IdleClockContent
         weather={weather}
         timerState={timerState}
         remainingSeconds={remainingSeconds}
@@ -98,9 +87,7 @@ export function DynamicIslandStateContent({
 
   if (state === 'hover') {
     return (
-      <HoverContent
-        fullTimeStr={fullTimeStr}
-        lunarStr={lunarStr}
+      <HoverClockContent
       />
     );
   }
