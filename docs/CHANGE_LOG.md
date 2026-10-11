@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T18:00:58.449Z
+> 生成时间：2026-10-11T18:30:01.824Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-11 | 64d5d6a4 | dependabot[bot] | build(deps): migrate ESLint 10 with plugin compatibility and CI regression checks (#240)
+- 2026-10-11 | 0c80ddb1 | eislandBot | docs: auto update CHANGE_LOG.md for #241 by @dependabot[bot] [skip ci]
 - 2026-10-11 | c4b26d4c | dependabot[bot] | build(deps): upgrade Vite 8 with electron-vite 6 beta (#241)
 - 2026-10-11 | a812fc25 | eislandBot | docs: auto update CHANGE_LOG.md for #235 by @dependabot[bot] [skip ci]
 - 2026-10-11 | cbc46352 | dependabot[bot] | ci(deps): Bump actions/setup-node from 4 to 7 (#235)
