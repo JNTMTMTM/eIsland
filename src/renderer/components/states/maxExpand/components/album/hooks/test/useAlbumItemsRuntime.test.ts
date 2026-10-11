@@ -111,9 +111,10 @@ async function commit() {
  * @param items - 初始条目
  * @returns 最新条目管理器
  */
-async function ready(items: AlbumItem[]) {
+async function ready(items: AlbumItem[], visible = items) {
   cache.set(STORE_KEY, items);
   await commit();
+  view().setVisibleItems(visible);
   await vi.advanceTimersByTimeAsync(MEDIA_LOAD_DELAY_MS);
   return commit();
 }
@@ -264,6 +265,76 @@ describe('album initialization and file import', () => {
   });
 });
 describe('album thumbnail and video requests', () => {
+  it('pauses media demand while the document is hidden and resumes only the current viewport', async () => {
+    const page = Object.assign(new EventTarget(), {visibilityState: 'hidden'});
+    vi.stubGlobal('document', page);
+    await ready([item(1), item(2)], [item(1)]);
+    expect(io.thumbnail).not.toHaveBeenCalled();
+    view().setVisibleItems([item(2)]);
+    page.visibilityState = 'visible';
+    page.dispatchEvent(new Event('visibilitychange'));
+    await commit();
+    expect(io.thumbnail.mock.calls).toEqual([[item(2).path]]);
+  });
+  it('does not endlessly reload a visible thumbnail larger than the entire cache budget', async () => {
+    io.thumbnail.mockResolvedValue(`data:image/jpeg;base64,${'a'.repeat(4 * 1024 * 1024)}`);
+    await ready([item(1)]);
+    await commit();
+    expect(io.thumbnail).toHaveBeenCalledOnce();
+    expect(view().metaCache[1]?.thumbnailUrl).toBeUndefined();
+  });
+  it('keeps a 10,000 item album idle until visible items are requested and discards obsolete pending thumbnails', async () => {
+    const all = Array.from({length: 10000}, (_, index) => item(index + 1));
+    await ready(all, []);
+    expect(io.thumbnail).not.toHaveBeenCalled();
+    const pending = deferred<string | null>();
+    io.thumbnail.mockReturnValue(pending.promise);
+    view().setVisibleItems(all.slice(0, 10));
+    await commit();
+    expect(io.thumbnail).toHaveBeenCalledTimes(4);
+    view().setVisibleItems(all.slice(9000, 9006));
+    await commit();
+    pending.resolve('data:image/png;base64,YQ==');
+    await settleHook();
+    expect(io.thumbnail.mock.calls.map(([path]) => path)).toEqual([
+      ...all.slice(0, 4), ...all.slice(9000, 9006),
+    ].map((item) => item.path));
+    expect(view().metaCache[1]?.thumbnailUrl).toBeUndefined();
+    expect(view().metaCache[9001]?.thumbnailUrl).toBeDefined();
+  });
+  it('keeps thumbnail memory bounded after repeatedly scrolling through new visible batches', async () => {
+    const all = Array.from({length: 300}, (_, index) => item(index + 1));
+    io.thumbnail.mockResolvedValue(`data:image/jpeg;base64,${'a'.repeat(70000)}`);
+    await ready(all, []);
+    for (let offset = 0; offset < all.length; offset += 10) {
+      view().setVisibleItems(all.slice(offset, offset + 10));
+      await commit();
+    }
+    const thumbnails = Object.values(view().metaCache).flatMap((meta) => meta.thumbnailUrl ? [meta.thumbnailUrl] : []);
+    expect(thumbnails.length).toBeLessThanOrEqual(128);
+    expect(thumbnails.reduce((total, value) => total + value.length * 2, 0)).toBeLessThanOrEqual(8 * 1024 * 1024);
+    expect(view().metaCache[1]?.thumbnailUrl).toBeUndefined();
+    expect(view().metaCache[300]?.thumbnailUrl).toBeDefined();
+    view().setVisibleItems([all[0]]);
+    await commit();
+    expect(view().metaCache[1]?.thumbnailUrl).toBeDefined();
+  });
+  it('cancels offscreen probes and scans offscreen video metadata only for explicit duration sorting', async () => {
+    const all = [item(1, 'video'), item(2, 'video'), item(3)];
+    const pending = deferred<{width: number; height: number; durationSec: number} | null>();
+    probe.mockImplementationOnce((_, signal) => { signal.addEventListener('abort', () => pending.resolve(null)); return pending.promise; });
+    await ready(all, [all[0]]);
+    const signal = probe.mock.calls[0][1];
+    view().setVisibleItems([]);
+    await commit();
+    expect(signal.aborted).toBe(true);
+    expect(probe).toHaveBeenCalledOnce();
+    view().setDurationScanEnabled(true);
+    await commit();
+    expect(view().metaCache[1]?.durationSec).toBe(20);
+    expect(view().metaCache[2]?.durationSec).toBe(20);
+    expect(io.thumbnail).not.toHaveBeenCalled();
+  });
   it.each(['success', 'empty', 'reject'])('resolves image thumbnail %s and does not retry a failed preview', async (mode) => {
     if (mode === 'empty') io.thumbnail.mockResolvedValue(null);
     if (mode === 'reject') io.thumbnail.mockRejectedValue(new Error('read'));
@@ -394,12 +465,13 @@ describe('album thumbnail and video requests', () => {
     io.thumbnail.mockReturnValue(request.promise);
     await commit();
     view().setItems([item(1), item(1), item(2), item(3), item(4), item(5)]);
+    view().setVisibleItems([item(1), item(1), item(2), item(3), item(4), item(5)]);
     await vi.advanceTimersByTimeAsync(MEDIA_LOAD_DELAY_MS);
     await commit();
     expect(io.thumbnail.mock.calls.filter(([path]) => path === item(1).path)).toHaveLength(1);
     view().setItems([...view().items]);
     await commit();
-    expect(io.thumbnail).toHaveBeenCalledTimes(3);
+    expect(io.thumbnail).toHaveBeenCalledTimes(4);
     request.resolve('data:image/png;base64,YQ==');
     await settleHook();
     expect(io.thumbnail.mock.calls.filter(([path]) => path === item(1).path)).toHaveLength(1);

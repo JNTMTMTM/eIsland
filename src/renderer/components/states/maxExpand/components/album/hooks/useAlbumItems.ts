@@ -24,7 +24,8 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
+import { AlbumThumbnailCache } from '../utils/albumThumbnailCache';
 import { useTranslation } from 'react-i18next';
 import probeVideo from '../../../../../../utils/media/videoProbe';
 import type { AlbumItem, AlbumMeta, UseAlbumItemsReturn } from '../types/albumTypes';
@@ -56,12 +57,21 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   const [items, setItems] = useState<AlbumItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [mediaLoadReady, setMediaLoadReady] = useState(false);
-  const [metaCache, setMetaCache] = useState<Record<number, AlbumMeta>>({});
+  const [metaCache, setMetaCacheState] = useState<Record<number, AlbumMeta>>({});
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [initColumns, setInitColumns] = useState<number>(5);
   const [initSortMode, setInitSortMode] = useState<AlbumSortMode>('addedDesc');
   const [initGroupMode, setInitGroupMode] = useState<AlbumGroupMode>('none');
-  const metaCacheRef = useRef<Record<number, AlbumMeta>>({});
+  const [requestedItems, setRequestedItems] = useState<AlbumItem[]>([]);
+  const [durationScanEnabled, setDurationScanEnabled] = useState(false);
+  const [pageVisible, setPageVisible] = useState(() => typeof document === 'undefined' || document.visibilityState !== 'hidden');
+  const metaCacheRef = useRef<Record<number, AlbumMeta>>(metaCache);
+  const requestedItemsRef = useRef<AlbumItem[]>([]);
+  const visibleIdsRef = useRef(new Set<number>());
+  const durationScanRef = useRef(false);
+  const mediaReadyRef = useRef(false);
+  const deferredThumbnailsRef = useRef(new Set<number>());
+  const thumbnailCacheRef = useRef(new AlbumThumbnailCache());
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const gridVideoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const metaLoadingRef = useRef<Set<number>>(new Set());
@@ -69,24 +79,41 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   const requestedFullImageIdRef = useRef<number | null>(null);
   const fullImageProbeRef = useRef<HTMLImageElement | null>(null);
   const exifLoadingRef = useRef<Set<number>>(new Set());
-  const mediaQueueRef = useRef<AlbumItem[]>([]);
-  const mediaQueuedIdsRef = useRef<Set<number>>(new Set());
   const mediaActiveCountRef = useRef(0);
   const drainMediaQueueRef = useRef<() => void>(() => {});
   const itemsRef = useRef(items);
+  const itemIdsRef = useRef(new Set(items.map((item) => item.id)));
   const lifetimeRef = useRef(0);
   const mountedRef = useRef(false);
   const videoRequestsRef = useRef(new Map<number, AbortController>());
   const persistenceRef = useRef<Promise<void>>(Promise.resolve());
 
-  useEffect(() => { itemsRef.current = items; }, [items]);
+  const setMetaCache = useCallback((update: SetStateAction<Record<number, AlbumMeta>>): void => {
+    const next = typeof update === 'function' ? update(metaCacheRef.current) : update;
+    metaCacheRef.current = next;
+    setMetaCacheState(next);
+  }, []);
+  const setVisibleItems = useCallback((next: AlbumItem[]): void => {
+    requestedItemsRef.current = next;
+    visibleIdsRef.current = new Set(next.map((item) => item.id));
+    deferredThumbnailsRef.current.forEach((id) => { if (!visibleIdsRef.current.has(id)) deferredThumbnailsRef.current.delete(id); });
+    thumbnailCacheRef.current.touch(visibleIdsRef.current);
+    setRequestedItems((previous) => previous.length === next.length && previous.every((item, index) => item.id === next[index].id) ? previous : next);
+  }, []);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const update = (): void => setPageVisible(document.visibilityState !== 'hidden');
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+  useEffect(() => { itemsRef.current = items; itemIdsRef.current = new Set(items.map((item) => item.id)); }, [items]);
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       lifetimeRef.current += 1;
-      mediaQueueRef.current = [];
-      mediaQueuedIdsRef.current.clear();
+      requestedItemsRef.current = [];
+      visibleIdsRef.current.clear();
       videoRequestsRef.current.forEach((controller) => controller.abort());
       videoRequestsRef.current.clear();
       requestedFullImageIdRef.current = null;
@@ -155,12 +182,8 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   }, [statusMessage]);
 
   useEffect(() => {
-    metaCacheRef.current = metaCache;
-  }, [metaCache]);
-
-  useEffect(() => {
     return () => {
-      Object.values(metaCacheRef.current).forEach((meta) => revokeBlobUrl(meta.videoUrl));
+      Object.values(metaCacheRef.current).forEach((meta) => { revokeBlobUrl(meta.videoUrl); revokeBlobUrl(meta.thumbnailUrl); });
     };
   }, []);
 
@@ -168,8 +191,9 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   const loadItemMeta = useCallback((item: AlbumItem): void => {
     if (metaLoadingRef.current.has(item.id)) return;
     const lifetime = lifetimeRef.current;
-    const isCurrent = (): boolean => mountedRef.current && lifetimeRef.current === lifetime
-      && itemsRef.current.some((entry) => entry.id === item.id);
+    const isCurrent = (): boolean => mountedRef.current && mediaReadyRef.current && lifetimeRef.current === lifetime
+      && itemIdsRef.current.has(item.id)
+      && (visibleIdsRef.current.has(item.id) || (durationScanRef.current && item.mediaType === 'video'));
     metaLoadingRef.current.add(item.id);
     setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: true } }));
     if (item.mediaType === 'video') {
@@ -197,12 +221,15 @@ export function useAlbumItems(): UseAlbumItemsReturn {
           },
         }));
       }).catch(() => {
-        if (!isCurrent()) return;
+        if (!isCurrent() || controller.signal.aborted) return;
         setMetaCache((prev) => ({
           ...prev,
           [item.id]: { ...prev[item.id], loading: false, loadFailed: true },
         }));
       }).finally(() => {
+        if (mountedRef.current && controller.signal.aborted && metaCacheRef.current[item.id]) {
+          setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false } }));
+        }
         videoRequestsRef.current.delete(item.id);
         metaLoadingRef.current.delete(item.id);
         mediaActiveCountRef.current = Math.max(0, mediaActiveCountRef.current - 1);
@@ -216,19 +243,23 @@ export function useAlbumItems(): UseAlbumItemsReturn {
         setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false, loadFailed: true } }));
         return;
       }
-      setMetaCache((prev) => ({
-        ...prev,
-        [item.id]: {
-          ...prev[item.id],
-          thumbnailUrl,
-          loading: false,
-          loadFailed: false,
-        },
-      }));
+      const evicted = thumbnailCacheRef.current.put(item.id, thumbnailUrl, visibleIdsRef.current);
+      setMetaCache((prev) => {
+        const next = { ...prev, [item.id]: { ...prev[item.id], thumbnailUrl, loading: false, loadFailed: false } };
+        for (const id of evicted) {
+          if (visibleIdsRef.current.has(id)) deferredThumbnailsRef.current.add(id);
+          revokeBlobUrl(next[id]?.thumbnailUrl);
+          next[id] = { ...next[id], thumbnailUrl: undefined };
+        }
+        return next;
+      });
     }).catch(() => {
       if (!isCurrent()) return;
       setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false, loadFailed: true } }));
     }).finally(() => {
+      if (mountedRef.current && !isCurrent() && metaCacheRef.current[item.id]) {
+        setMetaCache((prev) => ({ ...prev, [item.id]: { ...prev[item.id], loading: false } }));
+      }
       metaLoadingRef.current.delete(item.id);
       mediaActiveCountRef.current = Math.max(0, mediaActiveCountRef.current - 1);
       if (mountedRef.current) drainMediaQueueRef.current();
@@ -303,40 +334,33 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     });
   }, []);
 
-  /** 从队列中取出下一个待加载项并执行（受并发上限控制） */
+  /** 只查找当前需求，滚动后不保留离屏任务队列；时长排序才主动扫描视频元数据。 */
   const drainMediaQueue = useCallback((): void => {
-    while (mountedRef.current && mediaActiveCountRef.current < MEDIA_LOAD_CONCURRENCY && mediaQueueRef.current.length > 0) {
-      const next = mediaQueueRef.current.shift();
+    const needsMeta = (item: AlbumItem): boolean => {
+      if (deferredThumbnailsRef.current.has(item.id) || metaLoadingRef.current.has(item.id) || !itemIdsRef.current.has(item.id)) return false;
+      const meta = metaCacheRef.current[item.id];
+      return !meta?.loadFailed && !(item.mediaType === 'video' ? meta?.videoUrl : meta?.thumbnailUrl);
+    };
+    while (mountedRef.current && mediaReadyRef.current && mediaActiveCountRef.current < MEDIA_LOAD_CONCURRENCY) {
+      const next = requestedItemsRef.current.find(needsMeta)
+        ?? (durationScanRef.current ? itemsRef.current.find((item) => item.mediaType === 'video' && needsMeta(item)) : undefined);
       if (!next) break;
-      mediaQueuedIdsRef.current.delete(next.id);
-      if (!itemsRef.current.some((item) => item.id === next.id)) continue;
       mediaActiveCountRef.current += 1;
       loadItemMeta(next);
     }
   }, [loadItemMeta]);
 
-  /** 保持 ref 始终指向最新的 drainMediaQueue */
-  useEffect(() => {
-    drainMediaQueueRef.current = drainMediaQueue;
-  }, [drainMediaQueue]);
+  useEffect(() => { drainMediaQueueRef.current = drainMediaQueue; }, [drainMediaQueue]);
 
-  /** 缩略图按需入队加载（受并发上限控制，不依赖 metaCache 避免反复触发） */
+  /** 可视区、导入或显式时长排序变更后重新评估需求，取消离屏的视频探测。 */
   useEffect(() => {
-    if (!loaded || !mediaLoadReady || items.length === 0) return;
-    const pending: AlbumItem[] = [];
-    items.forEach((item) => {
-      if (metaLoadingRef.current.has(item.id) || mediaQueuedIdsRef.current.has(item.id)) return;
-      const meta = metaCache[item.id];
-      const hasPreview = item.mediaType === 'video' ? Boolean(meta?.videoUrl) : Boolean(meta?.thumbnailUrl);
-      if (!meta || (!hasPreview && !meta.loading && !meta.loadFailed)) {
-        pending.push(item);
-      }
+    durationScanRef.current = durationScanEnabled;
+    mediaReadyRef.current = loaded && mediaLoadReady && pageVisible;
+    videoRequestsRef.current.forEach((controller, id) => {
+      if (!pageVisible || (!visibleIdsRef.current.has(id) && !durationScanEnabled)) controller.abort();
     });
-    if (pending.length === 0) return;
-    pending.forEach((item) => mediaQueuedIdsRef.current.add(item.id));
-    mediaQueueRef.current.push(...pending);
     drainMediaQueue();
-  }, [items, loaded, mediaLoadReady, drainMediaQueue]);
+  }, [items, requestedItems, durationScanEnabled, loaded, mediaLoadReady, pageVisible, drainMediaQueue]);
 
   /** 异步加载 JPEG 的 EXIF 信息（仅在单图视图时触发） */
   const loadExifIfNeeded = useCallback((item: AlbumItem): void => {
@@ -394,12 +418,15 @@ export function useAlbumItems(): UseAlbumItemsReturn {
   /** 删除单个条目 */
   const handleRemove = useCallback((id: number): void => {
     itemsRef.current = itemsRef.current.filter((item) => item.id !== id);
+    itemIdsRef.current.delete(id);
     videoRequestsRef.current.get(id)?.abort();
+    thumbnailCacheRef.current.remove(id);
     if (requestedFullImageIdRef.current === id) requestedFullImageIdRef.current = null;
     setItems((prev) => prev.filter((it) => it.id !== id));
     setMetaCache((prev) => {
       const next = { ...prev };
       revokeBlobUrl(next[id]?.videoUrl);
+      revokeBlobUrl(next[id]?.thumbnailUrl);
       delete next[id];
       return next;
     });
@@ -410,7 +437,7 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     if (ids.size === 0) return;
     const idsToRemove = new Set(ids);
     itemsRef.current = itemsRef.current.filter((item) => !idsToRemove.has(item.id));
-    idsToRemove.forEach((id) => videoRequestsRef.current.get(id)?.abort());
+    idsToRemove.forEach((id) => { itemIdsRef.current.delete(id); videoRequestsRef.current.get(id)?.abort(); });
     if (requestedFullImageIdRef.current !== null && idsToRemove.has(requestedFullImageIdRef.current)) {
       requestedFullImageIdRef.current = null;
     }
@@ -419,6 +446,8 @@ export function useAlbumItems(): UseAlbumItemsReturn {
       const next = { ...prev };
       idsToRemove.forEach((id) => {
         revokeBlobUrl(next[id]?.videoUrl);
+        revokeBlobUrl(next[id]?.thumbnailUrl);
+        thumbnailCacheRef.current.remove(id);
         delete next[id];
       });
       return next;
@@ -459,6 +488,8 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     setItems,
     loaded,
     mediaLoadReady,
+    setVisibleItems,
+    setDurationScanEnabled,
     metaCache,
     statusMessage,
     setStatusMessage,

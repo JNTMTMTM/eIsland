@@ -24,7 +24,8 @@
  * @author 鸡哥
  */
 
-import type { ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
+import { useAlbumVirtualGrid } from '../hooks/useAlbumVirtualGrid';
 import { useTranslation } from 'react-i18next';
 import type { AlbumOverviewProps } from '../types/albumTypes';
 import { AlbumGridItem } from './AlbumGridItem';
@@ -36,9 +37,12 @@ export function AlbumOverview({
   totalCount, filteredCount, columns, groupMode, groupedItems,
   metaCache, selectedIds, selectMode,
   onToggleSelection, onOpen, onRemove, onMouseEnter, onMouseLeave,
-  gridVideoRefs, onPickFiles,
+  gridVideoRefs, onPickFiles, onVisibleItemsChange,
 }: AlbumOverviewProps): ReactElement {
   const { t } = useTranslation();
+  const grid = useAlbumVirtualGrid(groupedItems, columns, groupMode);
+  useEffect(() => { onVisibleItemsChange?.(grid.visibleItems); }, [grid.visibleItems, onVisibleItemsChange]);
+  useEffect(() => () => onVisibleItemsChange?.([]), [onVisibleItemsChange]);
 
   return (
     <div
@@ -59,11 +63,12 @@ export function AlbumOverview({
           <div className="album-empty-desc">{t('albumTab.empty.filteredDesc')}</div>
         </div>
       ) : (
-        <div className="album-group-list" onWheelCapture={(event) => event.stopPropagation()}>
-          {groupedItems.map((group) => (
-            <section key={group.key} className="album-group-section">
+        <div ref={grid.scrollRef} className="album-group-list" onScroll={grid.onScroll} onWheelCapture={(event) => event.stopPropagation()}>
+          <div style={{ position: 'relative', height: grid.totalHeight, flex: 'none' }}>
+          {grid.visibleGroups.map(({ group, top, height, headerHeight, items, paddingTop, paddingBottom }) => (
+            <section key={group.key} className="album-group-section" style={{ position: 'absolute', top, height, width: '100%' }}>
               {groupMode !== 'none' ? (
-                <div className="album-group-header">
+                <div className="album-group-header" style={{ height: headerHeight, flexShrink: 0 }}>
                   <div className="album-group-title-wrap">
                     <span className="album-group-title" title={group.subtitle || group.title}>{group.title}</span>
                     {group.subtitle ? <span className="album-group-subtitle" title={group.subtitle}>{group.subtitle}</span> : null}
@@ -73,8 +78,8 @@ export function AlbumOverview({
                   </span>
                 </div>
               ) : null}
-              <div className="album-grid">
-                {group.items.map((item) => (
+              <div className="album-grid" style={{ paddingTop, paddingBottom, gridAutoRows: grid.rowHeight, flexShrink: 0 }}>
+                {items.map((item) => (
                   <AlbumGridItem
                     key={item.id}
                     item={item}
@@ -92,6 +97,7 @@ export function AlbumOverview({
               </div>
             </section>
           ))}
+          </div>
         </div>
       )}
     </div>

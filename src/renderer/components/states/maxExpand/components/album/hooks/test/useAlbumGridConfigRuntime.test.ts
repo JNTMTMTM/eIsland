@@ -101,6 +101,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('album grid config', () => {
+  it('does not resort on thumbnail or loading changes, including while sorting known video durations', () => {
+    const original = view().sortedItems;
+    meta = {1: {thumbnailUrl: 'thumbnail'}};
+    expect(view().sortedItems).toBe(original);
+    view().setSortMode('durationAsc');
+    meta = {2: {durationSec: 20}};
+    const durations = view().sortedItems;
+    meta = {2: {durationSec: 20}, 1: {thumbnailUrl: 'other', loading: true}};
+    expect(view().sortedItems).toBe(durations);
+    meta = {2: {durationSec: 21}};
+    expect(view().sortedItems).not.toBe(durations);
+  });
   it('waits for loaded config, applies it once, persists updates and catches rejected writes', async () => {
     await commit();
     expect(write).not.toHaveBeenCalled();
