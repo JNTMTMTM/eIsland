@@ -2645,6 +2645,10 @@
     }
   },
   "calculator": {
+    "answer": {
+      "label": "Ans",
+      "hint": "前の結果を丸めずに挿入"
+    },
     "history": {
       "title": "計算履歴",
       "empty": "計算履歴はありません",

@@ -78,6 +78,7 @@ export interface FormulaCursor {
 }
 
 export interface CalcState {
+  answer: number | null;
   document: FormulaDocument;
   result: string | null;
   cursor: FormulaCursor;
@@ -91,6 +92,8 @@ export interface UseCalculatorReturn {
   angleUnit: CalcAngleUnit;
   setAngleUnit: (unit: CalcAngleUnit) => void;
   restoreFormula: (document: FormulaDocument, unit: CalcAngleUnit) => void;
+  answer: number | null;
+  inputAnswer: () => void;
   inputDigit: (digit: string) => void;
   inputDot: () => void;
   inputOperator: (operator: CalcOperator) => void;

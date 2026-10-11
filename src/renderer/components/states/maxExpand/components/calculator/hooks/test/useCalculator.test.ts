@@ -60,6 +60,16 @@ it('reports real evaluator failures without losing the editable document', () =>
   expect(render().result).toBe('1');
 });
 
+it('chains operators and reuses an unrounded answer after clearing', () => {
+  let hook = render(); hook.inputText('1/3'); hook = render(); hook.calculate(); hook = render();
+  expect(hook.answer).toBe(1 / 3);
+  hook.inputOperator('×'); hook = render(); hook.inputDigit('3'); hook = render(); hook.calculate();
+  expect(render().currentValue).toBe(1);
+  hook = render(); hook.clear(); hook = render(); hook.inputAnswer(); hook = render(); hook.calculate();
+  expect(render().currentValue).toBe(1);
+  hook = render(); hook.inputDigit('7'); expect(render().formula).toBe('7');
+});
+
 it('defaults to degrees and refreshes the existing result when changing units without moving the cursor', () => {
   let hook = render();
   expect(hook.angleUnit).toBe('degree');

@@ -2645,6 +2645,10 @@
     }
   },
   "calculator": {
+    "answer": {
+      "label": "Ans",
+      "hint": "插入上次結果，保留完整精度"
+    },
     "history": {
       "title": "計算歷史",
       "empty": "暫無計算記錄",

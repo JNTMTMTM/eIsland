@@ -150,6 +150,20 @@
 
 }
 
+.calc-tools {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 4px;
+
+}
+
+.calc-tool-btn:disabled {
+  cursor: default;
+  opacity: .4;
+
+}
+
 .calc-history {
   flex: 0 0 auto;
   font-size: 12px;

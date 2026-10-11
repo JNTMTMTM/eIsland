@@ -2645,6 +2645,10 @@
     }
   },
   "calculator": {
+    "answer": {
+      "label": "Ans",
+      "hint": "Insert the previous result at full precision"
+    },
     "history": {
       "title": "History",
       "empty": "No calculations yet",

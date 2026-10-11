@@ -32,6 +32,7 @@ const INITIAL_FORMULA = createInitialFormula();
 
 /** 计算器初始状态 */
 export const INITIAL_STATE: CalcState = {
+  answer: null,
   document: INITIAL_FORMULA.document,
   result: null,
   cursor: INITIAL_FORMULA.cursor,

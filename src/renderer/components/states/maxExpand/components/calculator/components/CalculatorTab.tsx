@@ -197,6 +197,12 @@ export function CalculatorTab(): ReactElement {
             </div>
           )}
         </div>
+        <div className="calc-tools">
+          <button className="calc-tool-btn" type="button" disabled={calculator.answer === null}
+            title={t('calculator.answer.hint')} onMouseDown={(event) => event.preventDefault()} onClick={calculator.inputAnswer}>
+            {t('calculator.answer.label')}
+          </button>
+        </div>
         {isCoordinate ? (
           <div className="calc-coordinate-layout">
             <div className="calc-coordinate-controls">
