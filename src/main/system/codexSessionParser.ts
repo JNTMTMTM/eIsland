@@ -206,6 +206,94 @@ function incrementHeatmap(heatmap: ClaudeCodeHeatmapDaily, event: ClaudeCodeHook
 }
 
 /**
+ * 建立仅消费新增 JSON 行的解析器；乱序追加交给调用方重建，避免改变历史去重语义。
+ * @param transcriptPath - 原始会话路径。
+ * @param fallbackTimestamp - 缺少时间字段时使用的稳定起点。
+ * @returns 增量行消费、快照及完整解析结果恢复方法。
+ */
+export function createCodexAppendParser(transcriptPath: string, fallbackTimestamp: number) {
+  let context: CodexParserContext | null = null;
+  let index = -1;
+  let latestTimestamp = -Infinity;
+  let recent: ClaudeCodeHookEvent[] = [];
+  let heatmap: ClaudeCodeHeatmapDaily = {};
+  const nearby = new Map<string, ClaudeCodeHookEvent>();
+  let unordered = false;
+
+  const consume = (line: Record<string, unknown>): void => {
+    index += 1;
+    const payload = asRecord(line.payload ?? line.item);
+    const type = asString(line.type);
+    if (!context) {
+      if (type !== 'session_meta') return;
+      const sessionId = asString(payload.id) ?? asString(payload.session_id) ?? asString(payload.thread_id);
+      if (!sessionId) return;
+      context = { sessionId, transcriptPath, cwd: asString(payload.cwd), model: asString(payload.model), includeDetails: true };
+      const event: ClaudeCodeHookEvent = {
+        id: `${sessionId}-session`, sessionId, transcriptPath, cwd: context.cwd,
+        createdAt: timestampOf(line, fallbackTimestamp), eventName: 'SessionStart', kind: 'session',
+        summary: '发现新的 Codex 终端', detail: null, detailItems: detailItems(context, [['model', context.model], ['rawEvent', payload]]),
+        toolName: null, toolInputPreview: null, raw: payload,
+      };
+      recent = [event];
+      incrementHeatmap(heatmap, event);
+      return;
+    }
+    if (type === 'turn_context') {
+      context.cwd = asString(payload.cwd) ?? context.cwd;
+      context.model = asString(payload.model) ?? context.model;
+      return;
+    }
+    const mapped = mapLine(line, context);
+    if (!mapped) return;
+    const createdAt = timestampOf(line, fallbackTimestamp + index);
+    if (createdAt < latestTimestamp) unordered = true;
+    latestTimestamp = Math.max(latestTimestamp, createdAt);
+    const event: ClaudeCodeHookEvent = {
+      ...mapped, id: `${context.sessionId}-${index}-${createdAt}`, sessionId: context.sessionId,
+      transcriptPath, cwd: context.cwd, createdAt, detail: null, raw: payload,
+    };
+    nearby.forEach((previous, key) => { if (latestTimestamp - previous.createdAt > 250) nearby.delete(key); });
+    const key = `${event.eventName}\u0000${event.summary}\u0000${event.toolName ?? ''}`;
+    const previous = nearby.get(key);
+    if (previous && createdAt >= previous.createdAt && createdAt - previous.createdAt <= 250) {
+      if (createdAt === previous.createdAt) return;
+      recent = recent.filter((item) => item.id !== previous.id);
+      const metric = previous.eventName === 'PreToolUse' ? 'tool' : previous.eventName === 'UserPromptSubmit' ? 'prompt' : null;
+      if (metric) {
+        const date = new Date(previous.createdAt);
+        const dateKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        const bucket = heatmap[dateKey];
+        if (bucket) {
+          bucket[metric] -= 1;
+          if (!bucket.session && !bucket.tool && !bucket.prompt) delete heatmap[dateKey];
+        }
+      }
+    }
+    if (!previous || createdAt >= previous.createdAt) nearby.set(key, { ...event, raw: {}, detailItems: [] });
+    incrementHeatmap(heatmap, event);
+    recent = [...recent, event].sort((a, b) => b.createdAt - a.createdAt).slice(0, 40);
+  };
+  const snapshot = (now: number): ParsedCodexSession | null => {
+    if (!context) return null;
+    const phase = phaseFrom(recent, now);
+    return { heatmap, events: recent, session: {
+      id: context.sessionId, title: sessionTitle(context.cwd, context.sessionId), cwd: context.cwd,
+      transcriptPath, phase, lastSummary: recent[0]?.summary ?? '', lastEventAt: recent[0]?.createdAt ?? fallbackTimestamp,
+      pendingPermission: phase === 'waiting_permission' ? recent[0] : null, events: recent,
+    } };
+  };
+  return {
+    consume, snapshot,
+    needsRebuild: () => unordered,
+    restore: (parsed: ParsedCodexSession | null): void => {
+      if (parsed) { recent = parsed.events; heatmap = parsed.heatmap; }
+      unordered = false;
+    },
+  };
+}
+
+/**
  * 迭代文本行，避免 split 额外保留整份日志的行数组。
  * @param content - 完整日志文本
  * @returns 按原顺序迭代的文本行

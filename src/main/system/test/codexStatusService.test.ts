@@ -32,7 +32,18 @@ interface Entry { name: string; isDirectory: () => boolean; isFile: () => boolea
 const io = vi.hoisted(() => ({ files: new Map<string, string>(), entries: new Map<string, Entry[]>(), meta: new Map<string, { mtimeMs: number; size: number }>(), readLines: vi.fn<(file: string) => Iterable<string>>(), write: vi.fn<(file: string, text: string) => void>(), scan: vi.fn<(directory: string) => Entry[]>(), stat: vi.fn<(file: string) => { mtimeMs: number; size: number }>() }));
 vi.mock('electron', () => ({ app: { getPath: (name: string) => name === 'home' ? 'C:/test-home' : 'C:/test-data' } }));
 vi.mock('fs', () => ({ existsSync: (file: string) => io.files.has(file) || io.entries.has(file), mkdirSync: vi.fn(), readFileSync: (file: string) => io.files.get(file) ?? '', readdirSync: io.scan, statSync: io.stat, writeFileSync: io.write }));
-vi.mock('../../utils/textFileLines', () => ({ readTextLinesSync: io.readLines }));
+vi.mock('../codexScannerClient', () => ({ createCodexScanner: () => ({
+  stop: vi.fn(),
+  scan: async (paths: string[], now: number) => {
+    const { parseCodexSessionLines } = await import('../codexSessionParser');
+    return paths.flatMap((path) => {
+      try {
+        const parsed = parseCodexSessionLines(() => io.readLines(path), path, io.meta.get(path)?.mtimeMs ?? now, now);
+        return parsed ? [parsed] : [];
+      } catch { return []; }
+    });
+  },
+}) }));
 const root = join('C:/test-home', '.codex', 'sessions');
 const persisted = join('C:/test-data', 'eIsland_store', 'codex-status-state.json');
 const send = vi.fn();

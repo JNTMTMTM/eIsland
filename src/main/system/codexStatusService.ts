@@ -27,8 +27,8 @@ import type { ClaudeCodeHookEvent } from '../types/system/ClaudeCodeHookEvent';
 import type { ClaudeCodeSessionSnapshot } from '../types/system/ClaudeCodeSessionSnapshot';
 import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusSnapshot';
 import type { CodexMonitorMutationResult, CodexStatusService } from '../types/system/CodexStatusService';
-import { parseCodexSessionLines, type ParsedCodexSession } from './codexSessionParser';
-import { readTextLinesSync } from '../utils/textFileLines';
+import type { ParsedCodexSession } from './codexSessionParser';
+import { createCodexScanner } from './codexScannerClient';
 import { createHash } from 'crypto';
 import { MAX_CLI_SESSIONS } from './sessionLimits';
 
@@ -41,12 +41,6 @@ interface FileEntry {
   path: string;
   mtimeMs: number;
   size: number;
-}
-
-interface CachedSession {
-  mtimeMs: number;
-  size: number;
-  parsed: ParsedCodexSession | null;
 }
 
 interface PersistedCodexState {
@@ -132,7 +126,11 @@ function phaseForVisibleEvents(events: ClaudeCodeHookEvent[], now: number): Clau
 export function createCodexStatusService(options: CreateCodexStatusServiceOptions): CodexStatusService {
   const sessionsPath = join(app.getPath('home'), '.codex', 'sessions');
   const persistPath = join(app.getPath('userData'), 'eIsland_store', 'codex-status-state.json');
-  const cache = new Map<string, CachedSession>();
+  const scanner = createCodexScanner();
+  let parsedSessions: ParsedCodexSession[] = [];
+  let fileSignature = '';
+  let scanning: Promise<void> | null = null;
+  let generation = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
   let enabled = true;
   let clearBefore = 0;
@@ -171,25 +169,6 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
 
   const rebuildSnapshot = (): void => {
     const now = Date.now();
-    const files = collectJsonlFiles(sessionsPath);
-    const activePaths = new Set(files.map((file) => file.path));
-    cache.forEach((_value, path) => {
-      if (!activePaths.has(path)) cache.delete(path);
-    });
-
-    const parsedSessions = files.flatMap((file) => {
-      const cached = cache.get(file.path);
-      if (cached && cached.mtimeMs === file.mtimeMs && cached.size === file.size) return cached.parsed ? [cached.parsed] : [];
-      let parsed: ParsedCodexSession | null = null;
-      try {
-        parsed = parseCodexSessionLines(() => readTextLinesSync(file.path), file.path, file.mtimeMs, now);
-      } catch {
-        parsed = null;
-      }
-      cache.set(file.path, { mtimeMs: file.mtimeMs, size: file.size, parsed });
-      return parsed ? [parsed] : [];
-    });
-
     const heatmap: ClaudeCodeHeatmapDaily = {};
     parsedSessions.forEach((parsed) => mergeHeatmap(heatmap, parsed.heatmap));
     const sessions = parsedSessions.flatMap((parsed) => {
@@ -227,23 +206,48 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
     }
   };
 
-  const startPolling = (): void => {
+  const refresh = (): Promise<void> => {
+    if (scanning) return scanning;
+    const version = generation;
+    const request = (async () => {
+      const files = collectJsonlFiles(sessionsPath);
+      const signature = JSON.stringify(files);
+      if (signature !== fileSignature) {
+        try {
+          const next = files.length ? await scanner.scan(files.map((file) => file.path), Date.now()) : [];
+          if (version !== generation) return;
+          if (!files.length) scanner.stop();
+          parsedSessions = next;
+          fileSignature = signature;
+        } catch { return; }
+      }
+      if (version === generation) rebuildSnapshot();
+    })().finally(() => { if (scanning === request) scanning = null; });
+    scanning = request;
+    return request;
+  };
+
+  const startPolling = async (): Promise<void> => {
     if (timer || !enabled) return;
-    timer = setInterval(rebuildSnapshot, options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
-    rebuildSnapshot();
+    timer = setInterval(() => { void refresh(); }, options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
+    await refresh();
   };
 
   async function start(): Promise<void> {
     loadState();
     snapshot = emptySnapshot(sessionsPath, enabled, false);
-    startPolling();
+    await startPolling();
     if (!enabled) emitSnapshot();
   }
 
   function stop(): void {
     if (timer) clearInterval(timer);
     timer = null;
-    cache.clear();
+    generation += 1;
+    scanning = null;
+    scanner.stop();
+    parsedSessions = [];
+    fileSignature = '';
     snapshotSignature = '';
     snapshot = { ...snapshot, receiverRunning: false, updatedAt: Date.now() };
     emitSnapshot();
@@ -252,7 +256,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
   async function enableMonitor(): Promise<CodexMonitorMutationResult> {
     enabled = true;
     persistState();
-    startPolling();
+    await startPolling();
     return { ok: true, message: 'Codex 会话监视已启用。', snapshot };
   }
 
@@ -260,7 +264,11 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
     enabled = false;
     if (timer) clearInterval(timer);
     timer = null;
-    cache.clear();
+    generation += 1;
+    scanning = null;
+    scanner.stop();
+    parsedSessions = [];
+    fileSignature = '';
     persistState();
     snapshot = { ...snapshot, enabled: false, receiverRunning: false, updatedAt: Date.now() };
     snapshotSignature = '';
