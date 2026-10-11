@@ -1,0 +1,67 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    # The root lockfile also covers the scripts/lint workspace.
+    directories:
+      - /
+      - /sdk
+      - /web/*
+      - /plugins/windows/*
+      - /plugins/macos/*
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      npm-minor-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: nuget
+    directories:
+      - /plugins/windows/eisland-windows-application-icon-helper/src
+      - /plugins/windows/eisland-windows-brightness-helper/src
+      - /plugins/windows/eisland-windows-hardware-info-helper/src
+      - /plugins/windows/eisland-windows-performance-monitor/temperature-helper
+      - /plugins/windows/eisland-windows-screenshot-helper/src
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      nuget-minor-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci(deps)
+    groups:
+      actions-minor-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
