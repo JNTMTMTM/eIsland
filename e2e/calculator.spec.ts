@@ -64,8 +64,8 @@ test('history survives restart, restores editable formulas and clipboard actions
   await display.pressSequentially('1/3'); await display.press('Enter');
   await display.press('*'); await display.press('3'); await display.press('Enter');
   await expect(page.locator('.calc-value')).toHaveText('1');
-  await page.getByRole('button', { name: 'C', exact: true }).click();
   await page.getByRole('button', { name: en.calculator.answer.label, exact: true }).click();
+  await expect(display).toHaveAttribute('aria-description', '(1)');
   await display.press('Enter'); await expect(page.locator('.calc-value')).toHaveText('1');
   await expect.poll(() => page.evaluate(async () => (await window.api.storeRead('calculator-history') as unknown[]).length)).toBe(3);
   await desktop.restart(); await showCalculator(desktop); page = desktop.main;

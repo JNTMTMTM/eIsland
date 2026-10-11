@@ -70,6 +70,17 @@ it('chains operators and reuses an unrounded answer after clearing', () => {
   hook = render(); hook.inputDigit('7'); expect(render().formula).toBe('7');
 });
 
+it('starts a fresh Ans expression after equals and preserves Ans through evaluation errors', () => {
+  let hook = render(); hook.inputText('2+3'); hook = render(); hook.calculate(); hook = render();
+  hook.inputAnswer(); hook = render(); expect(hook.formula).toBe('(5)');
+  hook.calculate(); hook = render(); expect(hook.currentValue).toBe(5);
+  hook.inputOperator('+'); hook = render(); hook.inputAnswer(); hook = render();
+  expect(hook.formula).toBe('5+(5)'); hook.calculate(); hook = render(); expect(hook.currentValue).toBe(10);
+  hook.clear(); hook = render(); hook.inputText('1/0'); hook = render(); hook.calculate(); hook = render();
+  expect(hook.result).toBe('Error'); hook.inputAnswer(); hook = render(); expect(hook.formula).toBe('(10)');
+  hook.calculate(); expect(render().currentValue).toBe(10);
+});
+
 it('defaults to degrees and refreshes the existing result when changing units without moving the cursor', () => {
   let hook = render();
   expect(hook.angleUnit).toBe('degree');

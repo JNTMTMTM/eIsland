@@ -107,10 +107,14 @@ export function useCalculator(): UseCalculatorReturn {
     });
   }, []);
   const inputAnswer = useCallback((): void => {
-    setState((previous) => previous.answer === null ? previous : {
-      ...previous,
-      ...insertFormulaText(previous.document, previous.cursor, '(' + String(previous.answer) + ')'),
-      result: null,
+    setState((previous) => {
+      if (previous.answer === null) return previous;
+      const target = previous.result !== null ? createInitialFormula() : previous;
+      return {
+        ...previous,
+        ...insertFormulaText(target.document, target.cursor, '(' + String(previous.answer) + ')'),
+        result: null,
+      };
     });
   }, []);
 
