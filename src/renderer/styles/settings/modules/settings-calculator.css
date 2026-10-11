@@ -31,6 +31,35 @@
 
 }
 
+/* 计算器内部滚动区统一采用设置内容页的细滚动条样式。 */
+.calculator-panel *::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+
+}
+
+.calculator-panel *::-webkit-scrollbar-track,
+.calculator-panel *::-webkit-scrollbar-corner {
+  background: transparent;
+
+}
+
+.calculator-panel *::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 2px;
+
+}
+
+.calculator-panel *::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-text-rgb), .2);
+
+}
+
+.calculator-panel *::-webkit-scrollbar-button {
+  display: none;
+
+}
+
 .calc-sidebar-nav {
   display: flex;
   flex: 0 0 52px;
