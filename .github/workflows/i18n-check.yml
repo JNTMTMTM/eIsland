@@ -1,7 +1,7 @@
 name: eisland CI i18n Completeness Check
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
 
 concurrency:
@@ -64,7 +64,7 @@ jobs:
           exit 1
 
   comment-i18n-report:
-    if: always() && github.event_name == 'pull_request_target'
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     needs: i18n-check
     runs-on: ubuntu-latest
     permissions:

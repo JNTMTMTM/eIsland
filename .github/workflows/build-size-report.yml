@@ -1,7 +1,7 @@
 name: eisland CI Build Size Report
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/**'
@@ -80,6 +80,7 @@ jobs:
       # ---- Post comment ----
 
       - name: Compare and comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}

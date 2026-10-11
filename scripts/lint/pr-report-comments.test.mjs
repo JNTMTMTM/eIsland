@@ -50,6 +50,23 @@ workflows.forEach((file) => {
   assert.match(workflow, /group: \$\{\{ github.workflow \}\}-\$\{\{ github.event.pull_request.number \|\| github.ref \}\}/u);
   assert.match(workflow, /cancel-in-progress: false/u);
 
+  if (['test.yml', 'i18n-check.yml', 'build-size-report.yml'].includes(file)) {
+    test(`${file}: fork PR runs unprivileged checks and skips direct comments`, () => {
+      assert.match(workflow, /^  pull_request:/mu);
+      assert.doesNotMatch(workflow, /^  pull_request_target:/mu);
+      assert.doesNotMatch(workflow, /allow-unsafe-pr-checkout/u);
+      const [, guard] = workflow.match(/if: (.*github.event_name.*full_name.*)/u);
+      const canComment = (repository, eventName = 'pull_request') => runInNewContext(guard, {
+        always: () => true,
+        github: { repository: 'fixture/repo', event_name: eventName,
+          event: { pull_request: { head: { repo: { full_name: repository } } } } },
+      });
+      assert.equal(canComment('fixture/repo'), true);
+      assert.equal(canComment('contributor/fork'), false);
+      assert.equal(canComment('fixture/repo', 'workflow_dispatch'), false);
+    });
+  }
+
   /**
    * 运行工作流发布代码，模拟 GitHub 评论存储及提交信息。
    * @param comments - 可变的评论列表。
