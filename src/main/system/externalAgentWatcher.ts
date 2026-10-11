@@ -25,18 +25,14 @@
  */
 
 import { BrowserWindow } from 'electron';
-import { hasAnyRunningProcess } from './runningProcesses';
+import { normalizeProcessName, queryRunningProcessNames } from './runningProcesses';
 
 /** 受监控的桌面 Agent 进程名与其显示名映射 */
 const AGENT_PROCESS_MAP: Record<string, string> = {
-  'Claude.exe': 'Claude Code',
   'claude.exe': 'Claude Code',
-  'Cursor.exe': 'Cursor',
   'cursor.exe': 'Cursor',
-  'Codex.exe': 'Codex',
   'codex.exe': 'Codex',
-  'Gemini CLI.exe': 'Gemini CLI',
-  'OpenCode.exe': 'OpenCode',
+  'gemini cli.exe': 'Gemini CLI',
   'opencode.exe': 'OpenCode',
 };
 
@@ -63,6 +59,7 @@ export function createExternalAgentWatcher(options: CreateExternalAgentWatcherOp
 
   let watcherTimer: NodeJS.Timeout | null = null;
   let checkInFlight = false;
+  let generation = 0;
   /** 已发送过启动通知的进程名集合，避免重复通知 */
   const notifiedProcesses = new Set<string>();
   /** 当前已知正在运行的进程名集合，用于检测关闭 */
@@ -74,13 +71,15 @@ export function createExternalAgentWatcher(options: CreateExternalAgentWatcherOp
     if (!mainWindow || mainWindow.isDestroyed()) return;
 
     checkInFlight = true;
+    const currentGeneration = generation;
     try {
+      const runningProcesses = new Set((await queryRunningProcessNames()).map(normalizeProcessName));
+      if (currentGeneration !== generation || !watcherTimer || mainWindow.isDestroyed()) return;
       const startedNames: string[] = [];
       const stoppedNames: string[] = [];
 
-      await AGENT_PROCESS_NAMES.reduce(async (prev, processName) => {
-        await prev;
-        const running = await hasAnyRunningProcess([processName]);
+      AGENT_PROCESS_NAMES.forEach((processName) => {
+        const running = runningProcesses.has(processName);
         const agentName = AGENT_PROCESS_MAP[processName] ?? processName;
 
         if (running) {
@@ -96,7 +95,7 @@ export function createExternalAgentWatcher(options: CreateExternalAgentWatcherOp
           notifiedProcesses.delete(processName);
           stoppedNames.push(agentName);
         }
-      }, Promise.resolve());
+      });
 
       if (startedNames.length > 0) {
         mainWindow.webContents.send('external-agent:started', { agentNames: [...new Set(startedNames)] });
@@ -110,6 +109,7 @@ export function createExternalAgentWatcher(options: CreateExternalAgentWatcherOp
   }
 
   function start(): void {
+    generation += 1;
     if (watcherTimer) {
       clearInterval(watcherTimer);
       watcherTimer = null;
@@ -121,6 +121,7 @@ export function createExternalAgentWatcher(options: CreateExternalAgentWatcherOp
   }
 
   function stop(): void {
+    generation += 1;
     if (watcherTimer) {
       clearInterval(watcherTimer);
       watcherTimer = null;

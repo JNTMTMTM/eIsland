@@ -27,13 +27,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createExternalAgentWatcher } from '../externalAgentWatcher';
 import type { BrowserWindow } from 'electron';
-const processes = vi.hoisted(() => vi.fn<(names: string[]) => Promise<boolean>>());
+const processes = vi.hoisted(() => vi.fn<() => Promise<string[]>>());
 vi.mock('electron', () => ({ BrowserWindow: class {} }));
-vi.mock('../runningProcesses', () => ({ hasAnyRunningProcess: processes }));
+vi.mock('../runningProcesses', () => ({ queryRunningProcessNames: processes, normalizeProcessName: (name: string) => name.trim().toLowerCase() }));
 let running: Set<string>;
 const send = vi.fn();
 const window = { isDestroyed: () => false, webContents: { send } } as unknown as BrowserWindow;
-beforeEach(() => { vi.useFakeTimers(); running = new Set(); processes.mockReset(); processes.mockImplementation((names) => Promise.resolve(running.has(names[0]))); });
+beforeEach(() => { vi.useFakeTimers(); running = new Set(); processes.mockReset(); processes.mockImplementation(() => Promise.resolve([...running])); });
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); });
 describe('createExternalAgentWatcher', () => {
   it('uses delayed polling, collapses aliases and emits start/stop only on transitions', async () => {
@@ -41,6 +41,7 @@ describe('createExternalAgentWatcher', () => {
     running.add('Claude.exe'); running.add('claude.exe'); running.add('Codex.exe');
     watcher.start(); expect(processes).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(4000);
+    expect(processes).toHaveBeenCalledOnce();
     expect(send).toHaveBeenCalledWith('external-agent:started', { agentNames: ['Claude Code', 'Codex'] });
     await vi.advanceTimersByTimeAsync(4000); expect(send).toHaveBeenCalledOnce();
     running.clear(); await vi.advanceTimersByTimeAsync(4000);
@@ -52,21 +53,35 @@ describe('createExternalAgentWatcher', () => {
   it('restarts a single interval and stops all future polling', async () => {
     const watcher = createExternalAgentWatcher({ getMainWindow: () => window, pollIntervalMs: 100 });
     watcher.start(); watcher.start(); expect(vi.getTimerCount()).toBe(1);
-    await vi.advanceTimersByTimeAsync(100); expect(processes).toHaveBeenCalledTimes(9);
+    await vi.advanceTimersByTimeAsync(100); expect(processes).toHaveBeenCalledOnce();
     watcher.stop(); watcher.stop(); expect(vi.getTimerCount()).toBe(0);
-    await vi.advanceTimersByTimeAsync(1000); expect(processes).toHaveBeenCalledTimes(9);
+    await vi.advanceTimersByTimeAsync(1000); expect(processes).toHaveBeenCalledOnce();
   });
   it.each([null, { isDestroyed: () => true }])('skips polling without a live window', async (target) => {
     const watcher = createExternalAgentWatcher({ getMainWindow: () => target as BrowserWindow | null, pollIntervalMs: 100 });
     watcher.start(); await vi.advanceTimersByTimeAsync(100); expect(processes).not.toHaveBeenCalled(); watcher.stop();
   });
   it('does not overlap pending checks and resumes after the pending check completes', async () => {
-    let resolve: (running: boolean) => void = () => {};
-    processes.mockImplementationOnce(() => new Promise<boolean>((done) => { resolve = done; }));
+    let resolve: (running: string[]) => void = () => {};
+    processes.mockImplementationOnce(() => new Promise<string[]>((done) => { resolve = done; }));
     const watcher = createExternalAgentWatcher({ getMainWindow: () => window, pollIntervalMs: 100 });
     watcher.start(); await vi.advanceTimersByTimeAsync(300);
-    expect(processes).toHaveBeenCalledOnce(); resolve(false);
-    await vi.advanceTimersByTimeAsync(100); expect(processes).toHaveBeenCalledTimes(18); watcher.stop();
+    expect(processes).toHaveBeenCalledOnce(); resolve([]);
+    await vi.advanceTimersByTimeAsync(100); expect(processes).toHaveBeenCalledTimes(2); watcher.stop();
+  });
+  it('does not emit a late snapshot after stopping', async () => {
+    let resolve: (running: string[]) => void = () => {};
+    processes.mockImplementationOnce(() => new Promise<string[]>((done) => { resolve = done; }));
+    const watcher = createExternalAgentWatcher({ getMainWindow: () => window, pollIntervalMs: 100 });
+    watcher.start(); await vi.advanceTimersByTimeAsync(100); watcher.stop();
+    resolve(['CLAUDE.EXE']); await vi.advanceTimersByTimeAsync(0);
+    expect(send).not.toHaveBeenCalled();
+  });
+  it('treats case variants as the same running process across snapshots', async () => {
+    const watcher = createExternalAgentWatcher({ getMainWindow: () => window, pollIntervalMs: 100 });
+    running.add('Claude.exe'); watcher.start(); await vi.advanceTimersByTimeAsync(100);
+    running.clear(); running.add('CLAUDE.EXE'); await vi.advanceTimersByTimeAsync(100);
+    expect(send).toHaveBeenCalledOnce(); watcher.stop();
   });
   it('recovers from rejected process queries on the following interval', async () => {
     processes.mockRejectedValueOnce(new Error('process query unavailable'));
