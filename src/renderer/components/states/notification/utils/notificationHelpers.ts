@@ -24,8 +24,9 @@
  * @author 鸡哥
  */
 
-import type { UpdateSourceKey, UrlFavoriteItem } from '../config/notificationTypes';
+import { normalizeSvgIconPath } from '../../../../utils/SvgIcon';
 import { URL_FAVORITES_STORE_KEY } from '../config/notificationConstants';
+import type { UpdateSourceKey, UrlFavoriteItem } from '../config/notificationTypes';
 
 /**
  * 将字节数格式化为可读字符串（B/KB/MB/GB）。
@@ -79,7 +80,7 @@ export function normalizeUrl(raw: string): string {
  */
 export function resolveNotificationIconUrl(iconValue: string | null | undefined): string {
   if (!iconValue) return '';
-  const normalized = iconValue.trim();
+  const normalized = normalizeSvgIconPath(iconValue.trim());
   if (!normalized) return '';
   const lowered = normalized.toLowerCase();
   if (

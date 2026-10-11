@@ -111,7 +111,7 @@ export function NotificationContent({
   })();
   const effectiveDisplayIcon = useClipboardVectorFallbackIcon && type === 'clipboard-url' ? SvgIcon.LINK : displayIcon;
   const resolvedDisplayIcon = resolveNotificationIconUrl(effectiveDisplayIcon);
-  const isVectorIcon = typeof effectiveDisplayIcon === 'string' && /^\.?\/svg\//i.test(effectiveDisplayIcon) && !/^\.?\/svg\/agent\//i.test(effectiveDisplayIcon);
+  const isVectorIcon = typeof effectiveDisplayIcon === 'string' && /^(?:\.{1,2}\/|\/)?svg\//i.test(effectiveDisplayIcon) && !/^(?:\.{1,2}\/|\/)?svg\/agent\//i.test(effectiveDisplayIcon);
 
   const { favoriteUrlSet, setFavoriteUrlSet } = useNotificationFavorites(type, urls);
   const updateDownloadProgress = useUpdateDownloadProgress(type);

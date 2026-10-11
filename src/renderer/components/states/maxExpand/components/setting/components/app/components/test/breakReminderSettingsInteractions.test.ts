@@ -124,6 +124,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('真实加载与图标迁移', () => {
+  it('迁移旧版喝水和久坐图标路径并保留提醒配置', async () => {
+    const legacy = saved.map((item, index) => ({ ...item, icon: index === 0 ? './svg/app/DRINKING_WATER.svg' : './svg/app/PROLONGED_SITTING.svg' }));
+    await boot(legacy);
+    expect(lastSaved()).toEqual([
+      { ...legacy[0], icon: '../svg/app/DRINKING_WATER.svg' },
+      { ...legacy[1], icon: '../svg/app/PROLONGED_SITTING.svg' },
+    ]);
+    expect(elements(render()).filter((node) => elementProps(node).className === 'break-reminder-icon-img').map((node) => elementProps(node).src))
+      .toContain('../svg/app/DRINKING_WATER.svg');
+  });
   it.each([null, undefined])('缺省存储%o生成两条默认并持久化', async (value) => {
     expect(textContent(render())).toBe('');
     await boot(value);

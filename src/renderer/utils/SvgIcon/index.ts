@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-export { SvgIcon } from './eisland-icon';
+export { SvgIcon, normalizeSvgIconPath } from './eisland-icon';
 export type { SvgIconKey } from './eisland-icon';
 
 export {

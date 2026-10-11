@@ -26,7 +26,7 @@
 
 import { useEffect, useRef } from 'react';
 import scheduleDeadline from '../../utils/scheduleDeadline';
-import { SvgIcon } from '../../utils/SvgIcon';
+import { SvgIcon, normalizeSvgIconPath } from '../../utils/SvgIcon';
 import type { NotificationData } from '../../store/types';
 
 const BREAK_REMINDER_STORE_KEY = 'break-reminder-items';
@@ -72,8 +72,8 @@ export function useIslandBreakReminder(options: UseIslandBreakReminderOptions): 
         if (!Array.isArray(data) || data.length === 0) return;
 
         let items = data as BreakReminderItem[];
-        if (items.some((i) => i && !i.icon)) {
-          items = items.map((i) => i.icon ? i : { ...i, icon: SvgIcon.BREAK });
+        if (items.some((i) => i && (!i.icon || normalizeSvgIconPath(i.icon) !== i.icon))) {
+          items = items.map((i) => ({ ...i, icon: normalizeSvgIconPath(i.icon || SvgIcon.BREAK) }));
           window.api?.storeWrite(BREAK_REMINDER_STORE_KEY, items).catch(() => {});
         }
         itemsCacheRef.current = items;

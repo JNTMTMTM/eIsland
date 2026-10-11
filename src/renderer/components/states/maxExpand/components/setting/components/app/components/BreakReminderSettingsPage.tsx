@@ -27,7 +27,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
+import { SvgIcon, normalizeSvgIconPath } from '../../../../../../../../utils/SvgIcon';
 
 const BREAK_REMINDER_STORE_KEY = 'break-reminder-items';
 
@@ -71,9 +71,9 @@ export function BreakReminderSettingsPage(): ReactElement {
       if (cancelled) return;
       if (Array.isArray(value)) {
         const loaded = value as BreakReminderItem[];
-        const needsMigration = loaded.some((item) => !item.icon);
+        const needsMigration = loaded.some((item) => !item.icon || normalizeSvgIconPath(item.icon) !== item.icon);
         if (needsMigration) {
-          const migrated = loaded.map((item) => item.icon ? item : { ...item, icon: SvgIcon.PROLONGED_SITTING });
+          const migrated = loaded.map((item) => ({ ...item, icon: normalizeSvgIconPath(item.icon || SvgIcon.PROLONGED_SITTING) }));
           setItems(migrated);
           window.api.storeWrite(BREAK_REMINDER_STORE_KEY, migrated).catch(() => {});
         } else {

@@ -178,6 +178,11 @@ describe('Overview real storage widgets', () => {
     expect(text(renderWithHooks(component))).toContain('overview.breakReminder.empty');
     expect(vi.getTimerCount()).toBe(0);
   });
+  it('shows saved legacy hydration icons before the scheduler migrates storage', async () => {
+    values.set('break-reminder-items', [{ id: 'water', name: 'Water', enabled: true, intervalMinutes: 60, icon: './svg/app/DRINKING_WATER.svg' }]);
+    const root = await commit(() => BreakReminderWidget({ openBreakReminderPage: open }));
+    expect(byClass(root, 'ov-dash-break-reminder-icon').props.src).toBe('../svg/app/DRINKING_WATER.svg');
+  });
   it.each(['late', 'reject'])('contains reminder initial %s updates and clears the interval', async (mode) => {
     const pending = deferred<unknown>();
     api.storeRead.mockReturnValue(pending.promise);

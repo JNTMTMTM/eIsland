@@ -132,6 +132,13 @@ describe('reminder deadlines', () => {
     await tick(60000);
     expect(notification.mock.calls.map(([data]) => data.icon)).toEqual([SvgIcon.BREAK, 'stretch.svg']);
   });
+  it('migrates saved hydration icon paths before firing the reminder', async () => {
+    items = [item({ icon: './svg/app/DRINKING_WATER.svg' })];
+    await mount();
+    expect(write).toHaveBeenCalledWith('break-reminder-items', [item({ icon: SvgIcon.DRINKING_WATER })]);
+    await tick(60000);
+    expect(notification).toHaveBeenCalledWith(expect.objectContaining({ icon: SvgIcon.DRINKING_WATER }));
+  });
 
   it('prunes deleted entries and initializes their replacement from the current time', async () => {
     items = [item()];
