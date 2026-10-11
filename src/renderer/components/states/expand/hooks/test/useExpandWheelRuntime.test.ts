@@ -31,15 +31,15 @@ import type { NavDotId } from '../../config/types';
 const context = vi.hoisted(() => ({
   active: true
 }));
+vi.mock('../../../../hooks/islandContentActivity', () => ({
+  useIslandContentActive: () => context.active
+}));
 vi.mock('react', async (original) => {
   const actual = await original<typeof import('react')>();
   const {
     createHookReactMock
   } = await import('../../../../hooks/test/startupHookHarness');
-  return {
-    ...createHookReactMock(actual),
-    useContext: () => context.active
-  };
+  return createHookReactMock(actual);
 });
 let hook: typeof import('../useExpandWheelNav');
 let element: EventTarget;
@@ -78,10 +78,7 @@ beforeEach(async () => {
   vi.resetAllMocks();
   context.active = true;
   vi.resetModules();
-  vi.doMock('react', async (original) => ({
-    ...createHookReactMock(await original<typeof import('react')>()),
-    useContext: () => context.active
-  }));
+  vi.doMock('react', async (original) => createHookReactMock(await original<typeof import('react')>()));
   hook = await import('../useExpandWheelNav');
   element = new EventTarget();
   options = {

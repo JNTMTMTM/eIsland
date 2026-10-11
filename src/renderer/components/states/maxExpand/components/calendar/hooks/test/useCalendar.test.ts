@@ -29,7 +29,11 @@ import { flushHookEffects, renderHook, resetHook, unmountHook } from './calendar
 import type { KeyboardEvent } from 'react';
 
 const localization = vi.hoisted(() => ({ language: 'zh-CN', resolvedLanguage: undefined as string | undefined }));
-vi.doMock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: localization }) }));
+vi.resetModules();
+vi.doMock('react-i18next', async (original) => ({
+  ...(await original<typeof import('react-i18next')>()),
+  useTranslation: () => ({ t: (key: string) => key, i18n: localization })
+}));
 const { useCalendar } = await import('../useCalendar');
 let nativeWindow: EventTarget;
 
