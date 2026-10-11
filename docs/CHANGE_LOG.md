@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T16:56:59.692Z
+> 生成时间：2026-10-11T17:31:42.481Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,24 @@
 
 ## Unreleased
 
+- 2026-10-11 | cbc46352 | dependabot[bot] | ci(deps): Bump actions/setup-node from 4 to 7 (#235)
+- 2026-10-11 | 4e5e79c3 | eislandBot | docs: auto update CHANGE_LOG.md for #239 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 51abed77 | dependabot[bot] | chore(deps): bump @electron-toolkit/tsconfig from 1.0.1 to 2.0.0 (#239)
+- 2026-10-11 | 013f51a2 | eislandBot | docs: auto update CHANGE_LOG.md for #238 by @dependabot[bot] [skip ci]
+- 2026-10-11 | e5f9e144 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc from 61.7.1 to 65.2.0 (#238)
+- 2026-10-11 | 8306b040 | eislandBot | docs: auto update CHANGE_LOG.md for #237 by @dependabot[bot] [skip ci]
+- 2026-10-11 | a0ac6b0f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 38 updates (#237)
+- 2026-10-11 | d0d340e2 | eislandBot | docs: auto update CHANGE_LOG.md for #236 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 7a12c31b | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update (#236)
+- 2026-10-11 | bf574c5c | eislandBot | docs: auto update CHANGE_LOG.md for #233 by @dependabot[bot] [skip ci]
+- 2026-10-11 | a3d20334 | dependabot[bot] | ci(deps): bump actions/checkout from 4 to 7 (#233)
+- 2026-10-11 | 6b5e0b61 | eislandBot | docs: auto update CHANGE_LOG.md for #234 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 6529028f | dependabot[bot] | ci(deps): bump actions/setup-dotnet from 4 to 6 (#234)
+- 2026-10-11 | db99a0c9 | eislandBot | docs: auto update CHANGE_LOG.md for #232 by @dependabot[bot] [skip ci]
+- 2026-10-11 | e25a5308 | dependabot[bot] | ci(deps): bump softprops/action-gh-release from 2 to 3 (#232)
+- 2026-10-11 | 1c119cea | eislandBot | docs: auto update CHANGE_LOG.md for #231 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 83f272bb | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments from 7.0.1 to 9.0.1 (#231)
+- 2026-10-11 | 0cf95c76 | eislandBot | docs: auto update CHANGE_LOG.md for #230 by @JNTMTMTM [skip ci]
 - 2026-10-11 | 010c7f60 | 鸡哥 | Merge pull request #230 from JNTMTMTM/dev
 - 2026-10-12 | 3bcf4b43 | 鸡哥 | fix(ci): reuse PR report comments and remove duplicates
 - 2026-10-12 | 77154f4f | 鸡哥 | ci: configure weekly Dependabot dependency updates

@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout base branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.event.release.target_commitish }}
           fetch-depth: 0
@@ -32,7 +32,7 @@ jobs:
           git fetch origin "refs/tags/${{ github.event.release.tag_name }}:refs/tags/${{ github.event.release.tag_name }}" --force
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 25
 

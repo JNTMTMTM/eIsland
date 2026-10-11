@@ -1,7 +1,7 @@
 name: eisland CI Build Size Report
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/**'
@@ -31,13 +31,13 @@ jobs:
       # ---- Build base branch ----
 
       - name: Checkout base branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           clean: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 25
           cache: npm
@@ -60,7 +60,7 @@ jobs:
       # ---- Build PR branch ----
 
       - name: Checkout PR branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           clean: false
@@ -80,6 +80,7 @@ jobs:
       # ---- Post comment ----
 
       - name: Compare and comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
