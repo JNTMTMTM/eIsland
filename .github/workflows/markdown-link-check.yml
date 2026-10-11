@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # VuePress 的 /xxx 链接以 src 为根，不能按仓库根目录检查或生成修复建议。
       - name: Check repository Markdown links
