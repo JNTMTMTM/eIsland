@@ -37,6 +37,11 @@ const ready = vi.fn();
 const error = vi.fn<(value: Error) => void>();
 let frames: Map<number, FrameRequestCallback>;
 let nextFrame: number;
+let now: number;
+let resize: () => void;
+let visibility: EventTarget & { hidden: boolean };
+let motion: EventTarget & { matches: boolean };
+const disconnectResize = vi.fn();
 const cancel = vi.fn<(id: number) => void>();
 let gpu: ReturnType<typeof nativeGpu>;
 let lost: ReturnType<typeof deferred<{
@@ -66,6 +71,7 @@ function nativeGpu() {
     addEventListener: vi.fn<(name: string, listener: (event: NativeErrorEvent) => void) => void>((...[, listener]) => {
       uncaptured = listener;
     }),
+    removeEventListener: vi.fn(),
     createShaderModule: vi.fn<(options: {
       code: string;
     }) => {
@@ -82,7 +88,7 @@ function nativeGpu() {
     }>().mockReturnValue({
       getBindGroupLayout: () => ({})
     }),
-    createBuffer: vi.fn<(options: unknown) => object>().mockReturnValue({}),
+    createBuffer: vi.fn<(options: unknown) => { destroy: ReturnType<typeof vi.fn> }>().mockReturnValue({ destroy: vi.fn() }),
     createBindGroup: vi.fn<(options: unknown) => object>().mockReturnValue({}),
     createCommandEncoder: vi.fn<() => typeof encoder>().mockReturnValue(encoder),
     queue: {
@@ -100,7 +106,9 @@ function nativeGpu() {
     })
   };
   const canvas = {
-    clientWidth: 12,
+    _width: 12,
+    get clientWidth() { return this._width; },
+    set clientWidth(value: number) { this._width = value; },
     clientHeight: 8,
     width: 0,
     height: 0,
@@ -138,13 +146,14 @@ async function mount(): Promise<void> {
 }
 /** 执行浏览器下一帧。
  */
-function tick(): void {
+function tick(elapsed = 34): void {
   const first = frames.entries().next().value;
   expect(first).toBeDefined();
   if (!first) return;
   const [id, callback] = first;
   frames.delete(id);
-  callback(performance.now());
+  now += elapsed;
+  callback(now);
 }
 beforeEach(() => {
   unmountHook();
@@ -153,6 +162,15 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   frames = new Map();
   nextFrame = 0;
+  now = 0;
+  visibility = Object.assign(new EventTarget(), { hidden: false });
+  motion = Object.assign(new EventTarget(), { matches: false });
+  vi.stubGlobal('document', visibility);
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback: () => void) { resize = callback; }
+    observe(): void {}
+    disconnect = disconnectResize;
+  });
   uncaptured = undefined;
   lost = deferred();
   gpu = nativeGpu();
@@ -169,9 +187,7 @@ beforeEach(() => {
       getPreferredCanvasFormat: () => 'bgra8unorm'
     }
   });
-  vi.stubGlobal('window', {
-    devicePixelRatio: 2
-  });
+  vi.stubGlobal('window', Object.assign(new EventTarget(), { devicePixelRatio: 2, matchMedia: () => motion }));
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
     const id = ++nextFrame;
     frames.set(id, callback);
@@ -226,6 +242,7 @@ describe('useWebGPURenderer runtime', () => {
     const latest = vi.fn();
     run(false, latest);
     run(true, latest);
+    tick();
     expect(gpu.requestAdapter).toHaveBeenCalledTimes(1);
     expect(gpu.device.queue.writeBuffer.mock.lastCall?.[2][3]).toBe(40);
     expect(latest).toHaveBeenCalledTimes(1);
@@ -283,7 +300,7 @@ describe('useWebGPURenderer runtime', () => {
   });
   it.each([new Error('draw'), 'draw rejection'] as const)('real renderFrame native rejection %s destroys context', async (reason) => {
     await mount();
-    gpu.context.unconfigure.mockImplementation(() => {
+    gpu.context.getCurrentTexture.mockImplementation(() => {
       // eslint-disable-next-line @typescript-eslint/only-throw-error -- 原生异常边界可能抛出任意 JS 值，验证 Hook 将其规范化为 Error。
       throw reason;
     });
@@ -316,8 +333,8 @@ describe('useWebGPURenderer runtime', () => {
     unmountHook();
     pending.resolve(gpu.device);
     await settleHook();
-    expect(frames.size).toBe(1);
-    tick();
+    expect(frames.size).toBe(0);
+    expect(gpu.device.destroy).toHaveBeenCalledTimes(1);
     expect(gpu.device.queue.submit).not.toHaveBeenCalled();
     expect(ready).not.toHaveBeenCalled();
     lost.resolve({
@@ -353,22 +370,119 @@ describe('useWebGPURenderer runtime', () => {
     expect(error.mock.calls[0]?.[0].message).toBe(messages[stage]);
     expect(frames.size).toBe(0);
   });
-  it('first unconfigure failure is ignored; real draw DPR fallback and zero-size clamp remain valid', async () => {
-    gpu.context.unconfigure.mockImplementationOnce(() => {
-      throw new Error('initial configure');
-    });
-    vi.stubGlobal('window', {
-      devicePixelRatio: 0
-    });
+  it('zero-sized canvas waits for resize before allocating GPU', async () => {
     gpu.canvas.clientWidth = 0;
     gpu.canvas.clientHeight = -1;
     await mount();
+    expect(gpu.requestAdapter).not.toHaveBeenCalled();
+    expect(frames.size).toBe(0);
+    gpu.canvas.clientWidth = 12;
+    gpu.canvas.clientHeight = 8;
+    resize();
+    await settleHook();
     tick();
-    expect(gpu.canvas).toMatchObject({
-      width: 1,
-      height: 1
-    });
-    expect(gpu.device.queue.writeBuffer.mock.lastCall?.[2].slice(0, 2)).toEqual(new Float32Array([1, 1]));
-    expect(error).not.toHaveBeenCalled();
+    expect(gpu.canvas).toMatchObject({ width: 24, height: 16 });
+  });
+
+  it('600 frames configure once; only resize reads layout and adjusts dimensions', async () => {
+    await mount();
+    const readWidth = vi.spyOn(gpu.canvas, 'clientWidth', 'get');
+    for (let index = 0; index < 600; index += 1) tick();
+    expect(gpu.context.configure).toHaveBeenCalledTimes(1);
+    expect(gpu.context.unconfigure).not.toHaveBeenCalled();
+    expect(readWidth).not.toHaveBeenCalled();
+    readWidth.mockRestore();
+    gpu.canvas.clientWidth = 20;
+    resize();
+    tick();
+    expect(gpu.canvas.width).toBe(40);
+    expect(gpu.context.configure).toHaveBeenCalledTimes(1);
+    unmountHook();
+    expect(gpu.context.unconfigure).toHaveBeenCalledTimes(1);
+    expect(gpu.device.createBuffer.mock.results[0].value.destroy).toHaveBeenCalledTimes(1);
+    expect(gpu.device.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('caps GPU submissions at 30 FPS even on a 240 Hz display', async () => {
+    await mount();
+    for (let index = 0; index < 240; index += 1) tick(1000 / 240);
+    expect(gpu.device.queue.submit.mock.calls.length).toBeGreaterThanOrEqual(29);
+    expect(gpu.device.queue.submit.mock.calls.length).toBeLessThanOrEqual(31);
+  });
+
+  it('document hiding cancels frames and visibility resumes one loop', async () => {
+    await mount();
+    tick();
+    visibility.hidden = true;
+    visibility.dispatchEvent(new Event('visibilitychange'));
+    expect(frames.size).toBe(0);
+    expect(gpu.device.destroy).not.toHaveBeenCalled();
+    visibility.hidden = false;
+    visibility.dispatchEvent(new Event('visibilitychange'));
+    visibility.dispatchEvent(new Event('visibilitychange'));
+    expect(frames.size).toBe(1);
+    tick();
+    expect(gpu.requestAdapter).toHaveBeenCalledTimes(1);
+  });
+
+  it('reduced motion draws a static frame and redraws only on resize or uniform updates', async () => {
+    motion.matches = true;
+    await mount();
+    tick();
+    expect(frames.size).toBe(0);
+    resize();
+    tick();
+    expect(frames.size).toBe(0);
+    uniform = new Float32Array([0, 0, 0, 1, 2, 3, 4, 5]);
+    run();
+    tick();
+    expect(gpu.device.queue.submit).toHaveBeenCalledTimes(3);
+    motion.matches = false;
+    motion.dispatchEvent(new Event('change'));
+    tick();
+    expect(frames.size).toBe(1);
+  });
+
+  it('pause/resume during initialization never lets the old generation configure the canvas', async () => {
+    const oldDevice = { ...gpu.device, destroy: vi.fn() };
+    const pending = deferred<typeof oldDevice>();
+    gpu.adapter.requestDevice.mockReturnValueOnce(pending.promise);
+    run();
+    await settleHook();
+    run(false);
+    run(true);
+    await settleHook();
+    expect(gpu.context.configure).toHaveBeenCalledTimes(1);
+    pending.resolve(oldDevice);
+    await settleHook();
+    expect(oldDevice.destroy).toHaveBeenCalledTimes(1);
+    expect(gpu.context.configure).toHaveBeenCalledTimes(1);
+    expect(gpu.context.unconfigure).not.toHaveBeenCalled();
+    expect(frames.size).toBe(1);
+    tick();
+    expect(ready).toHaveBeenCalledTimes(1);
+  });
+
+  it('failed bind-group creation frees a partially initialized buffer and device', async () => {
+    gpu.device.createBindGroup.mockImplementation(() => { throw new Error('bind group'); });
+    await mount();
+    expect(gpu.device.createBuffer.mock.results[0].value.destroy).toHaveBeenCalledTimes(1);
+    expect(gpu.device.destroy).toHaveBeenCalledTimes(1);
+    expect(gpu.context.configure).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledTimes(1);
+  });
+
+  it('100 mount/unmount cycles release every device, buffer, observer and frame', async () => {
+    for (let index = 0; index < 100; index += 1) {
+      resetHook();
+      await mount();
+      tick();
+      unmountHook();
+      expect(frames.size).toBe(0);
+    }
+    expect(gpu.device.destroy).toHaveBeenCalledTimes(100);
+    expect(gpu.device.createBuffer.mock.results[0].value.destroy).toHaveBeenCalledTimes(100);
+    expect(gpu.device.removeEventListener).toHaveBeenCalledTimes(100);
+    expect(disconnectResize).toHaveBeenCalledTimes(100);
   });
 });
