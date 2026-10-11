@@ -27,7 +27,7 @@
 
 import { BrowserWindow, ipcMain } from 'electron';
 import { play, pause, next, previous, seek, getTimestamp } from '@eisland/windows-smtc-helper';
-import { getMute, setMute } from '@eisland/windows-volume-helper';
+import { getMuteAsync as getMute, setMuteAsync as setMute } from '@eisland/windows-volume-helper';
 
 interface MediaSessionRuntimeEntry {
   payload: unknown;
@@ -108,12 +108,16 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
 
   ipcMain.handle('media:get-muted', () => getMute());
 
+  let muteToggle: Promise<boolean | null> = Promise.resolve(null);
   ipcMain.handle('media:toggle-muted', () => {
-    const muted = getMute();
-    if (muted === null) return null;
+    muteToggle = muteToggle.catch(() => null).then(async () => {
+      const muted = await getMute();
+      if (muted === null) return null;
 
-    const nextMuted = !muted;
-    return setMute(nextMuted) ? nextMuted : null;
+      const nextMuted = !muted;
+      return await setMute(nextMuted) ? nextMuted : null;
+    });
+    return muteToggle;
   });
 
   ipcMain.handle('smtc:get-timestamp', () => {

@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-brightness-helper",
-  "version": "26.0.3",
+  "version": "26.0.4",
   "description": "Windows screen brightness query and control via WMI and DDC/CI, with WMI event monitoring.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -32,6 +32,7 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "src"
+    "src",
+    "async-control.js"
   ]
 }

@@ -76,3 +76,8 @@ export class BrightnessMonitor extends EventEmitter {
   emit(event: 'error', err: Error): boolean;
   emit(event: string, ...args: any[]): boolean;
 }
+
+/** 异步读取亮度，共享短期并发读取 */
+export function getBrightnessAsync(): Promise<BrightnessInfo | null>;
+/** 异步设置亮度，合并尚未发送的目标值 */
+export function setBrightnessAsync(brightness: number): Promise<boolean>;

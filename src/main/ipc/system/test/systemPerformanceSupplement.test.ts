@@ -42,8 +42,8 @@ vi.mock('electron', () => ({ ipcMain: { on: vi.fn(), handle: (channel: string, h
 vi.mock('child_process', () => ({ exec: vi.fn() }));
 vi.mock('systeminformation', () => ({ cpu: io.cpu, currentLoad: io.load, cpuTemperature: io.temperature, mem: io.memory, graphics: io.graphics, fsSize: io.filesystems, diskLayout: io.disks }));
 vi.mock('os', () => ({ default: { cpus: io.cpus, totalmem: io.totalmem, freemem: io.freemem, hostname: () => 'fixture-host', platform: () => 'fixture-platform', release: () => 'fixture-release', arch: () => 'fixture-arch', uptime: () => 120 } }));
-vi.mock('@eisland/windows-brightness-helper', () => ({ getBrightness: io.brightness, setBrightness: io.setBrightness }));
-vi.mock('@eisland/windows-volume-helper', () => ({ getVolume: io.volume, setVolume: io.setVolume }));
+vi.mock('@eisland/windows-brightness-helper', () => ({ getBrightnessAsync: io.brightness, setBrightnessAsync: io.setBrightness }));
+vi.mock('@eisland/windows-volume-helper', () => ({ getVolumeAsync: io.volume, setVolumeAsync: io.setVolume }));
 const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
 /**
  * 调用真实系统 IPC 并保留未知参数输入边界。
@@ -78,30 +78,30 @@ beforeEach(() => {
   registerSystemIpcHandlers({ queryRunningNonSystemProcessNames: () => Promise.resolve([]), queryRunningNonSystemProcessesWithIcons: () => Promise.resolve([]), queryOpenWindowsWithIcons: () => Promise.resolve([]), queryFocusedWindow: () => Promise.resolve(null) });
 });
 afterEach(() => { if (originalPlatform) Object.defineProperty(process, 'platform', originalPlatform); vi.restoreAllMocks(); });
-describe('系统原生控制边界', () => {
-  it('Windows 读取亮度音量并将有限数值传给原生边界', () => {
-    expect(invoke('brightness:get')).toBe(25); expect(invoke('volume:get')).toBe(75);
-    expect(invoke('brightness:set', 0)).toBe(true); expect(invoke('volume:set', 100)).toBe(true);
+describe('系统原生控制边界', async () => {
+  it('Windows 读取亮度音量并将有限数值传给原生边界', async () => {
+    expect(await invoke('brightness:get')).toBe(25); expect(await invoke('volume:get')).toBe(75);
+    expect(await invoke('brightness:set', 0)).toBe(true); expect(await invoke('volume:set', 100)).toBe(true);
     expect(io.setBrightness).toHaveBeenCalledExactlyOnceWith(0); expect(io.setVolume).toHaveBeenCalledExactlyOnceWith(100);
   });
-  it.each(['linux', 'darwin'])('%s 不调用 Windows 原生控制', (platform) => {
+  it.each(['linux', 'darwin'])('%s 不调用 Windows 原生控制', async (platform) => {
     Object.defineProperty(process, 'platform', { configurable: true, value: platform });
-    expect(invoke('brightness:get')).toBeNull(); expect(invoke('volume:get')).toBeNull();
-    expect(invoke('brightness:set', 50)).toBe(false); expect(invoke('volume:set', 50)).toBe(false);
+    expect(await invoke('brightness:get')).toBeNull(); expect(await invoke('volume:get')).toBeNull();
+    expect(await invoke('brightness:set', 50)).toBe(false); expect(await invoke('volume:set', 50)).toBe(false);
     expect(io.brightness).not.toHaveBeenCalled(); expect(io.volume).not.toHaveBeenCalled();
     expect(io.setBrightness).not.toHaveBeenCalled(); expect(io.setVolume).not.toHaveBeenCalled();
   });
-  it.each([null, undefined, '50', NaN, Infinity])('非法控制值 %s 无原生副作用', (value) => {
-    expect(invoke('brightness:set', value)).toBe(false); expect(invoke('volume:set', value)).toBe(false);
+  it.each([null, undefined, '50', NaN, Infinity])('非法控制值 %s 无原生副作用', async (value) => {
+    expect(await invoke('brightness:set', value)).toBe(false); expect(await invoke('volume:set', value)).toBe(false);
     expect(io.setBrightness).not.toHaveBeenCalled(); expect(io.setVolume).not.toHaveBeenCalled();
   });
-  it('原生无亮度结果时返回 null', () => { io.brightness.mockReturnValue(null); expect(invoke('brightness:get')).toBeNull(); });
-  it('原生读取和设置异常转为 null 或 false', () => {
+  it('原生无亮度结果时返回 null', async () => { io.brightness.mockReturnValue(null); expect(await invoke('brightness:get')).toBeNull(); });
+  it('原生读取和设置异常转为 null 或 false', async () => {
     const failure = new Error('native unavailable');
     io.brightness.mockImplementation(() => { throw failure; }); io.volume.mockImplementation(() => { throw failure; });
     io.setBrightness.mockImplementation(() => { throw failure; }); io.setVolume.mockImplementation(() => { throw failure; });
-    expect(invoke('brightness:get')).toBeNull(); expect(invoke('volume:get')).toBeNull();
-    expect(invoke('brightness:set', 50)).toBe(false); expect(invoke('volume:set', 50)).toBe(false);
+    expect(await invoke('brightness:get')).toBeNull(); expect(await invoke('volume:get')).toBeNull();
+    expect(await invoke('brightness:set', 50)).toBe(false); expect(await invoke('volume:set', 50)).toBe(false);
     expect(console.error).toHaveBeenCalledTimes(4);
   });
 });

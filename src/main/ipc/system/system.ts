@@ -29,8 +29,8 @@ import { ipcMain } from 'electron';
 import { exec } from 'child_process';
 import os from 'os';
 import * as si from 'systeminformation';
-import { getBrightness, setBrightness } from '@eisland/windows-brightness-helper';
-import { getVolume, setVolume } from '@eisland/windows-volume-helper';
+import { getBrightnessAsync as getBrightness, setBrightnessAsync as setBrightness } from '@eisland/windows-brightness-helper';
+import { getVolumeAsync as getVolume, setVolumeAsync as setVolume } from '@eisland/windows-volume-helper';
 
 interface PerformanceSnapshot {
   timestamp: number;
@@ -373,44 +373,44 @@ export function registerSystemIpcHandlers(options: RegisterSystemIpcHandlersOpti
     return options.queryFocusedWindow();
   });
 
-  ipcMain.handle('system:brightness:get', () => {
+  ipcMain.handle('system:brightness:get', async () => {
     if (process.platform !== 'win32') return null;
     try {
-      return getBrightness()?.currentBrightness ?? null;
+      return (await getBrightness())?.currentBrightness ?? null;
     } catch (err) {
       console.error('[System] brightness:get error:', err);
       return null;
     }
   });
 
-  ipcMain.handle('system:brightness:set', (_event, brightness: unknown) => {
+  ipcMain.handle('system:brightness:set', async (_event, brightness: unknown) => {
     if (process.platform !== 'win32' || typeof brightness !== 'number' || !Number.isFinite(brightness)) {
       return false;
     }
     try {
-      return setBrightness(brightness);
+      return await setBrightness(brightness);
     } catch (err) {
       console.error('[System] brightness:set error:', err);
       return false;
     }
   });
 
-  ipcMain.handle('system:volume:get', () => {
+  ipcMain.handle('system:volume:get', async () => {
     if (process.platform !== 'win32') return null;
     try {
-      return getVolume();
+      return await getVolume();
     } catch (err) {
       console.error('[System] volume:get error:', err);
       return null;
     }
   });
 
-  ipcMain.handle('system:volume:set', (_event, volume: unknown) => {
+  ipcMain.handle('system:volume:set', async (_event, volume: unknown) => {
     if (process.platform !== 'win32' || typeof volume !== 'number' || !Number.isFinite(volume)) {
       return false;
     }
     try {
-      return setVolume(volume);
+      return await setVolume(volume);
     } catch (err) {
       console.error('[System] volume:set error:', err);
       return false;
