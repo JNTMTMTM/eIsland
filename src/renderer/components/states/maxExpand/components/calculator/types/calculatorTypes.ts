@@ -128,7 +128,7 @@ export interface CalcButtonDef {
   className?: string;
 }
 
-export type CalcMode = 'arithmetic' | 'scientific' | 'coordinate' | 'unitConversion' | 'equation' | 'complex';
+export type CalcMode = 'arithmetic' | 'scientific' | 'coordinate' | 'unitConversion' | 'equation' | 'complex' | 'matrix';
 
 export interface CalcSidebarNavItem {
   mode: CalcMode;

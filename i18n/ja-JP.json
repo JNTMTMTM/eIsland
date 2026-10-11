@@ -2646,6 +2646,29 @@
     }
   },
   "calculator": {
+    "matrix": {
+      "title": "行列",
+      "operation": "演算",
+      "a": "行列 A",
+      "b": "行列 B",
+      "scalar": "スカラー",
+      "calculate": "行列を計算",
+      "swap": "A と B を交換",
+      "result": "行列の結果",
+      "hint": "最大 6 × 6 の実数行列。要素は空白またはカンマ、行は改行またはセミコロンで区切ります。JSON 配列や空白のない 1/2 などの式にも対応。浮動小数点精度を使用します。",
+      "add": "A + B",
+      "subtract": "A − B",
+      "multiply": "A × B",
+      "scale": "スカラー × A",
+      "transpose": "A の転置",
+      "determinant": "A の行列式",
+      "inverse": "A の逆行列",
+      "rank": "A の階数",
+      "solve": "A X = B を解く",
+      "singular": "特異または悪条件の行列のため、信頼できる逆行列・解を求められません",
+      "dimensions": "この演算に行列のサイズが適合しません",
+      "invalid": "有限の実数を含む長方形の行列を最大 6 × 6 で入力してください"
+    },
     "complex": {
       "title": "複素数",
       "expression": "複素数の式",

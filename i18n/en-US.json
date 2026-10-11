@@ -2646,6 +2646,29 @@
     }
   },
   "calculator": {
+    "matrix": {
+      "title": "Matrices",
+      "operation": "Operation",
+      "a": "Matrix A",
+      "b": "Matrix B",
+      "scalar": "Scalar",
+      "calculate": "Calculate matrix",
+      "swap": "Swap A and B",
+      "result": "Matrix result",
+      "hint": "Up to 6 × 6 real matrices. Separate cells with spaces or commas, rows with newlines or semicolons; JSON arrays and expressions such as 1/2 are accepted. Numerical operations use floating-point precision.",
+      "add": "A + B",
+      "subtract": "A − B",
+      "multiply": "A × B",
+      "scale": "Scalar × A",
+      "transpose": "Transpose A",
+      "determinant": "Determinant of A",
+      "inverse": "Inverse of A",
+      "rank": "Rank of A",
+      "solve": "Solve A X = B",
+      "singular": "The matrix is singular or too ill-conditioned to invert or solve reliably",
+      "dimensions": "The matrix dimensions do not match this operation",
+      "invalid": "Enter a rectangular matrix of finite real numbers, up to 6 × 6"
+    },
     "complex": {
       "title": "Complex numbers",
       "expression": "Complex expression",

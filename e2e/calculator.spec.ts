@@ -15,14 +15,18 @@
 
 /**
  * @file calculator.spec.ts
- * @description 在真实 Electron 中验证三个计算器界面的排版、公式编辑、滚动与绘图尺寸。
+ * @description 在真实 Electron 中验证计算器排版、历史与剪贴板、绘图及新增数学功能。
  * @author 鸡哥
  */
 
 import en from '../i18n/en-US.json';
+import type { ElectronApplication, Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 
-test.beforeEach(async ({ desktop }) => {
+/** 打开计算器并固定独立测试窗口的布局环境。
+ * @param desktop - Electron 测试会话
+ */
+async function showCalculator(desktop: { main: Page; app: ElectronApplication }): Promise<void> {
   const page = desktop.main;
   await expect(page.locator('.island-shell')).toBeVisible();
   await page.evaluate(() => window.api.maxexpandMouseleaveIdleSet(false));
@@ -38,7 +42,9 @@ test.beforeEach(async ({ desktop }) => {
   const mainWindow = await desktop.app.browserWindow(page);
   await mainWindow.evaluate((win) => win.setSize(860, 400));
   await page.evaluate(() => document.fonts.ready);
-});
+}
+
+test.beforeEach(async ({ desktop }) => showCalculator(desktop));
 
 test('arithmetic preserves calculation and keeps all four keypad columns aligned', async ({ desktop }, testInfo) => {
   const page = desktop.main;
@@ -49,6 +55,80 @@ test('arithmetic preserves calculation and keeps all four keypad columns aligned
   const columns = await page.locator('.calc-btn').evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().width));
   expect(Math.max(...columns) - Math.min(...columns)).toBeLessThan(1);
   await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('arithmetic.png') });
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('history survives restart, restores editable formulas and clipboard actions retain error feedback', async ({ desktop }) => {
+  let page = desktop.main;
+  let display = page.getByRole('textbox', { name: en.calculator.display.expression });
+  await display.pressSequentially('1/3'); await display.press('Enter');
+  await display.press('*'); await display.press('3'); await display.press('Enter');
+  await expect(page.locator('.calc-value')).toHaveText('1');
+  await page.getByRole('button', { name: 'C', exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.answer.label, exact: true }).click();
+  await display.press('Enter'); await expect(page.locator('.calc-value')).toHaveText('1');
+  await expect.poll(() => page.evaluate(async () => (await window.api.storeRead('calculator-history') as unknown[]).length)).toBe(3);
+  await desktop.restart(); await showCalculator(desktop); page = desktop.main;
+  display = page.getByRole('textbox', { name: en.calculator.display.expression });
+  await page.locator('.calc-history summary').click();
+  await expect(page.locator('.calc-history-restore')).toHaveCount(3);
+  await page.locator('.calc-history-restore').filter({ hasText: '1÷3' }).click();
+  await expect(display).toHaveAttribute('aria-description', '1÷3');
+  await display.press('Enter'); await expect(page.locator('.calc-value')).toHaveText('0.333333333333');
+  await page.getByRole('button', { name: en.calculator.history.remove }).first().click();
+  await expect(page.locator('.calc-history-restore')).toHaveCount(2);
+  await page.locator('.calc-history summary').click();
+  // 隔离剪贴板 IPC 的数据，避免覆盖用户桌面上的剪贴板内容。
+  await desktop.app.evaluate(({ ipcMain }) => {
+    let clipboard = '2 * 3 / 2';
+    ipcMain.removeHandler('clipboard:read-text'); ipcMain.removeHandler('clipboard:write-text');
+    ipcMain.handle('clipboard:read-text', () => clipboard);
+    ipcMain.handle('clipboard:write-text', (_, value: string) => { clipboard = value; return true; });
+  });
+  await page.getByRole('button', { name: 'C', exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.clipboard.paste, exact: true }).click();
+  await expect(display).toHaveAttribute('aria-description', '2*3/2');
+  await display.press('Enter'); await expect(page.locator('.calc-value')).toHaveText('3');
+  await page.getByRole('button', { name: en.calculator.clipboard.copyResult, exact: true }).click();
+  expect(await page.evaluate(() => window.api.clipboardReadText())).toBe('3');
+  await page.getByRole('button', { name: 'C', exact: true }).click();
+  await display.evaluate((element) => {
+    const data = new DataTransfer(); data.setData('text/plain', '1/0');
+    element.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+  });
+  await display.press('Enter'); await expect(page.locator('.calc-value')).toHaveText(en.calculator.errors.divisionByZero);
+  await expect(display).toHaveAttribute('aria-invalid', 'true');
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('unit conversion, equations, complex arithmetic and matrices work through the real interface', async ({ desktop }, testInfo) => {
+  const page = desktop.main;
+  await page.getByRole('button', { name: en.calculator.modes.unitConversion, exact: true }).click();
+  await expect(page.locator('.calc-feature-result')).toHaveText('100 cm');
+  await page.getByRole('combobox', { name: en.calculator.units.category, exact: true }).selectOption('temperature');
+  await page.getByRole('textbox', { name: en.calculator.units.value, exact: true }).fill('0');
+  await expect(page.locator('.calc-feature-result')).toHaveText('32 °F');
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('units.png') });
+  await page.getByRole('button', { name: en.calculator.equation.title, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.equation.solve, exact: true }).click();
+  await expect(page.locator('.calc-feature-result')).toHaveText('x = -2, 2');
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('equations.png') });
+  await page.getByRole('button', { name: en.calculator.complex.title, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.complex.calculate, exact: true }).click();
+  await expect(page.locator('.calc-feature-result')).toHaveText('11 + 2i');
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('complex.png') });
+  await page.getByRole('button', { name: en.calculator.matrix.title, exact: true }).click();
+  await page.getByRole('combobox', { name: en.calculator.matrix.operation, exact: true }).selectOption('inverse');
+  await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
+  await expect(page.locator('.calc-matrix-result td')).toHaveText(['-2', '1', '1.5', '-0.5']);
+  await page.getByRole('combobox', { name: en.calculator.matrix.operation, exact: true }).selectOption('solve');
+  await page.getByRole('textbox', { name: en.calculator.matrix.a, exact: true }).fill('2 1\n1 3');
+  await page.getByRole('textbox', { name: en.calculator.matrix.b, exact: true }).fill('1\n2');
+  await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
+  await expect(page.locator('.calc-matrix-result td')).toHaveText(['0.2', '0.6']);
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('matrices.png') });
+  const overflow = await page.locator('.calc-main').evaluate((element) => element.scrollWidth - element.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
   expect(desktop.rendererErrors).toEqual([]);
 });
 

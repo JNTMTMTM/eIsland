@@ -38,8 +38,9 @@
   gap: 6px;
   width: 52px;
   padding: 10px 6px;
-  overflow: hidden;
+  overflow: hidden auto;
   border-right: 1px solid rgb(var(--color-text-rgb), .08);
+  scrollbar-width: none;
   transition: flex-basis .24s cubic-bezier(.22, 1, .36, 1), width .24s cubic-bezier(.22, 1, .36, 1);
 
 }
@@ -223,6 +224,21 @@
   overflow-wrap: anywhere;
   background: rgb(var(--color-text-rgb), .04);
   border-radius: 8px;
+
+}
+
+.calc-matrix-result {
+  width: 100%;
+  font-size: 15px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  table-layout: fixed;
+
+}
+
+.calc-matrix-result td {
+  padding: 6px 4px;
+  overflow-wrap: anywhere;
 
 }
 

@@ -2646,6 +2646,29 @@
     }
   },
   "calculator": {
+    "matrix": {
+      "title": "矩陣",
+      "operation": "運算",
+      "a": "矩陣 A",
+      "b": "矩陣 B",
+      "scalar": "純量",
+      "calculate": "計算矩陣",
+      "swap": "交換 A 與 B",
+      "result": "矩陣結果",
+      "hint": "支援最多 6 × 6 實數矩陣。空格或逗號分欄，換行或分號分列，也可貼上 JSON 陣列；元素支援 1/2 等無空格公式，使用浮點數值精度。",
+      "add": "A + B",
+      "subtract": "A − B",
+      "multiply": "A × B",
+      "scale": "純量 × A",
+      "transpose": "A 轉置",
+      "determinant": "A 行列式",
+      "inverse": "A 反矩陣",
+      "rank": "A 的秩",
+      "solve": "求解 A X = B",
+      "singular": "矩陣奇異或病態，無法可靠求逆或求解",
+      "dimensions": "矩陣維度不符合此運算要求",
+      "invalid": "請輸入最多 6 × 6、各列欄數相同的有限實數矩陣"
+    },
     "complex": {
       "title": "複數",
       "expression": "複數運算式",
