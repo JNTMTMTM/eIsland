@@ -164,6 +164,10 @@ export function useCalculator(): UseCalculatorReturn {
     cursor: state.cursor,
     angleUnit,
     setAngleUnit,
+    restoreFormula: (document, unit) => {
+      setAngleUnitState(unit);
+      setState({ document, cursor: moveFormulaCursorBoundary(document, 'end'), result: null });
+    },
     inputDigit,
     inputDot,
     inputOperator,

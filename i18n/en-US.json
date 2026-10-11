@@ -2645,6 +2645,14 @@
     }
   },
   "calculator": {
+    "history": {
+      "title": "History",
+      "empty": "No calculations yet",
+      "restore": "Edit this calculation",
+      "remove": "Delete calculation",
+      "clear": "Clear history",
+      "storageError": "History could not be saved; current records are still available"
+    },
     "angleUnit": {
       "label": "Angle unit",
       "degree": "Degrees (DEG)",

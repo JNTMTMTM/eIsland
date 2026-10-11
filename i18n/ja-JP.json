@@ -2645,6 +2645,14 @@
     }
   },
   "calculator": {
+    "history": {
+      "title": "計算履歴",
+      "empty": "計算履歴はありません",
+      "restore": "この計算を編集",
+      "remove": "履歴を削除",
+      "clear": "履歴をクリア",
+      "storageError": "履歴を保存できませんでした。現在の履歴は引き続き使えます"
+    },
     "angleUnit": {
       "label": "角度単位",
       "degree": "度数法（DEG）",

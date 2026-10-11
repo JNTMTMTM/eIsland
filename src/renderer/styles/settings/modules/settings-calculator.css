@@ -139,6 +139,66 @@
 
 }
 
+.calc-tool-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .8);
+  cursor: pointer;
+  background: rgb(var(--color-text-rgb), .08);
+  border: 0;
+  border-radius: 6px;
+
+}
+
+.calc-history {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .7);
+
+}
+
+.calc-history summary {
+  padding: 4px 0;
+  cursor: pointer;
+
+}
+
+.calc-history-list {
+  max-height: 180px;
+  overflow: auto;
+
+}
+
+.calc-history-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+
+}
+
+.calc-history-restore {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 6px;
+  color: inherit;
+  cursor: pointer;
+  background: rgb(var(--color-text-rgb), .04);
+  border: 0;
+  border-radius: 6px;
+
+}
+
+.calc-history-restore span {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+
+}
+
 .calc-mode-title {
   font-weight: 600;
 

@@ -33,6 +33,8 @@ import { useCalculator } from '../hooks/useCalculator';
 import { CalcDisplay } from './CalcDisplay';
 import { CalculatorSidebar } from './CalculatorSidebar';
 import { CoordinateGraph } from './CoordinateGraph';
+import { CalculatorHistory } from './CalculatorHistory';
+import { useCalculatorHistory } from '../hooks/useCalculatorHistory';
 
 // 静态按键只排版一次，避免每次输入都重复编译全部科学函数。
 const BUTTON_MATH = new Map(
@@ -90,6 +92,7 @@ function ButtonGrid({
 export function CalculatorTab(): ReactElement {
   const { t } = useTranslation();
   const calculator = useCalculator();
+  const history = useCalculatorHistory(calculator.document, calculator.result, calculator.angleUnit);
   const [activeMode, setActiveMode] = useState<CalcMode>('arithmetic');
   const [collapsed, setCollapsed] = useState(true);
   const [showScientificKeys, setShowScientificKeys] = useState(true);
@@ -231,6 +234,9 @@ export function CalculatorTab(): ReactElement {
             )}
           </>
         )}
+        <CalculatorHistory entries={history.entries} storageError={history.storageError}
+          onRestore={(entry) => calculator.restoreFormula(entry.document, entry.angleUnit)}
+          onRemove={history.remove} onClear={history.clear} />
       </div>
     </div>
   );

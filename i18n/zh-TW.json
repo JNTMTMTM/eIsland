@@ -2645,6 +2645,14 @@
     }
   },
   "calculator": {
+    "history": {
+      "title": "計算歷史",
+      "empty": "暫無計算記錄",
+      "restore": "編輯這筆計算",
+      "remove": "刪除記錄",
+      "clear": "清空歷史",
+      "storageError": "歷史記錄儲存失敗，目前記錄仍可使用"
+    },
     "angleUnit": {
       "label": "角度單位",
       "degree": "角度（DEG）",

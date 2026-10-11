@@ -90,6 +90,7 @@ export interface UseCalculatorReturn {
   cursor: FormulaCursor;
   angleUnit: CalcAngleUnit;
   setAngleUnit: (unit: CalcAngleUnit) => void;
+  restoreFormula: (document: FormulaDocument, unit: CalcAngleUnit) => void;
   inputDigit: (digit: string) => void;
   inputDot: () => void;
   inputOperator: (operator: CalcOperator) => void;
