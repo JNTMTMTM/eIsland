@@ -30,6 +30,7 @@ import { renderHook, resetHook, unmountHook } from '../../../calendar/hooks/test
 import { CalculatorTab } from '../CalculatorTab';
 import { CalculatorSidebar } from '../CalculatorSidebar';
 import { CalcDisplay } from '../CalcDisplay';
+import { CoordinateGraph } from '../CoordinateGraph';
 import { BUTTON_LAYOUT, SCIENTIFIC_FN_LAYOUT } from '../../config/calculatorConfig';
 import type { CalcMode } from '../../types/calculatorTypes';
 
@@ -41,6 +42,10 @@ let tree: ReactElement;
  */
 function elements(node: ReactNode): ReactElement<Record<string, unknown>>[] {
   if (!isValidElement<Record<string, unknown>>(node)) return [];
+  if (node.type === CoordinateGraph) {
+    const renderLayout = node.props.renderLayout as (graph: ReactElement, analysis: ReactElement) => ReactElement;
+    return [node, ...elements(renderLayout(<div className="graph-test" />, <section className="analysis-test" />))];
+  }
   if (typeof node.type === 'function' && node.type.name === 'ButtonGrid') {
     return elements((node.type as (props: Record<string, unknown>) => ReactElement)(node.props));
   }
@@ -101,11 +106,16 @@ it.each([{ length: 10, size: '34px' }, { length: 20, size: '26px' }, { length: 3
 it('switches modes and coordinate input panels while preserving the real formula and collapse state', () => {
   (props(CalculatorSidebar).onToggleCollapse as () => void)(); render(); expect(props(CalculatorSidebar).collapsed).toBe(false);
   mode('coordinate'); key('2'); expect(props(CalcDisplay).showValue).toBe(false); expect(props(CalcDisplay).hasResult).toBe(false);
-  let toggle = elements(tree).find((node) => node.props.className === 'calc-btn calc-btn-toggle');
-  if (!toggle) throw new Error('Missing key toggle'); (toggle.props.onClick as () => void)(); render();
+  let toggle = elements(tree).find((node) => node.props.className === 'calc-coordinate-tab calc-coordinate-tab-numeric');
+  if (!toggle) throw new Error('Missing numeric tab'); (toggle.props.onClick as (event: unknown) => void)({ currentTarget: { closest: () => null } }); render();
   expect(elements(tree).some((node) => node.props.className === 'calc-buttons calc-buttons-arith-inner')).toBe(true);
-  toggle = elements(tree).find((node) => node.props.className === 'calc-btn calc-btn-toggle');
-  if (!toggle) throw new Error('Missing key toggle'); (toggle.props.onClick as () => void)(); render();
+  toggle = elements(tree).find((node) => node.props.className === 'calc-coordinate-tab calc-coordinate-tab-scientific');
+  if (!toggle) throw new Error('Missing scientific tab'); (toggle.props.onClick as (event: unknown) => void)({ currentTarget: { closest: () => null } }); render();
   expect(elements(tree).some((node) => node.props.className === 'calc-buttons calc-buttons-sci-inner')).toBe(true);
+  toggle = elements(tree).find((node) => node.props.className === 'calc-coordinate-tab calc-coordinate-tab-analysis');
+  if (!toggle) throw new Error('Missing analysis tab'); (toggle.props.onClick as (event: unknown) => void)({ currentTarget: { closest: () => null } }); render();
+  expect(elements(tree).some((node) => node.props.className === 'analysis-test')).toBe(true);
+  expect(elements(tree).filter((node) => String(node.props.className).startsWith('calc-coordinate-tab calc-coordinate-tab-'))).toHaveLength(3);
+  expect(elements(tree).some((node) => String(node.props.className).startsWith('calc-buttons '))).toBe(false);
   (props(CalcDisplay).onMoveEnd as () => void)(); render(); mode('arithmetic'); expect(props(CalcDisplay).document).toMatchObject({ segments: [{ value: '2' }] });
 });

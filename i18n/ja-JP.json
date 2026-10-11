@@ -2781,6 +2781,9 @@
       "variable": "変数x"
     },
     "coordinate": {
+      "numericKeys": "数字入力",
+      "scientificKeys": "関数入力",
+      "analysisKeys": "解析",
       "radianHint": "グラフの三角関数はラジアンを使用します",
       "placeholder": "関数を入力（例: x^2, sin(x)）",
       "error": "無効な式",

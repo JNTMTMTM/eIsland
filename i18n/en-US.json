@@ -2781,6 +2781,9 @@
       "variable": "Variable x"
     },
     "coordinate": {
+      "numericKeys": "Numeric input",
+      "scientificKeys": "Scientific input",
+      "analysisKeys": "Analysis",
       "radianHint": "Graph trigonometric functions use radians",
       "placeholder": "Enter function, e.g. x^2, sin(x)",
       "error": "Invalid expression",

@@ -102,7 +102,7 @@ export function CalculatorTab(): ReactElement {
   const history = useCalculatorHistory(calculator.document, calculator.result, calculator.angleUnit, activeMode, calculator.calculationSequence);
   const [restoredEntry, setRestoredEntry] = useState<CalculatorHistoryEntry | null>(null);
   const [collapsed, setCollapsed] = useState(true);
-  const [showScientificKeys, setShowScientificKeys] = useState(true);
+  const [coordinatePanel, setCoordinatePanel] = useState<'numeric' | 'scientific' | 'analysis'>('scientific');
   const [clipboardFeedback, setClipboardFeedback] = useState('');
   const pasteFormula = (text: string): void => {
     try {
@@ -174,6 +174,7 @@ export function CalculatorTab(): ReactElement {
     setRestoredEntry(entry);
     setActiveMode(entry.mode);
     if ('document' in entry) calculator.restoreFormula(entry.document, entry.angleUnit);
+    if (entry.mode === 'coordinate') setCoordinatePanel('analysis');
   };
   const standalonePanels: Partial<Record<CalcMode, ReactElement>> = {
     unitConversion: <UnitConversion key={restoredEntry?.id} initial={restoredEntry?.mode === 'unitConversion' ? restoredEntry.input : undefined} onRecord={history.add} />,
@@ -251,30 +252,34 @@ export function CalculatorTab(): ReactElement {
           )}
         </div>
         {isCoordinate ? (
-          <div className="calc-coordinate-layout">
-            <div className="calc-coordinate-controls">
-              <button
-                type="button"
-                className="calc-btn calc-btn-toggle"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => setShowScientificKeys((previous) => !previous)}
-                aria-label={t('calculator.coordinate.toggleKeys', { defaultValue: '切换输入面板' })}
-              >
-                {showScientificKeys ? '123' : 'f(x)'}
-              </button>
-              {showScientificKeys ? (
-                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons-sci-inner" />
-              ) : (
-                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons-arith-inner" />
-              )}
-            </div>
-            <div className="calc-coordinate-workspace">
-              {display}
-              <CoordinateGraph key={restoredEntry?.id} expression={calculator.formula}
-                initialExtra={restoredEntry?.mode === 'coordinate' ? restoredEntry.extra : undefined}
-                onAnalyze={(extra, result) => history.add({ mode: 'coordinate', formula: calculator.formula, result, document: calculator.document, angleUnit: 'radian', extra })} />
-            </div>
-          </div>
+          <CoordinateGraph key={restoredEntry?.id} expression={calculator.formula}
+            initialExtra={restoredEntry?.mode === 'coordinate' ? restoredEntry.extra : undefined}
+            onAnalyze={(extra, result) => history.add({ mode: 'coordinate', formula: calculator.formula, result, document: calculator.document, angleUnit: 'radian', extra })}
+            renderLayout={(graph, analysis) => (
+              <div className="calc-coordinate-layout">
+                <div className="calc-coordinate-controls">
+                  <div className="calc-coordinate-tabs" role="group" aria-label={t('calculator.coordinate.toggleKeys')}>
+                    {(['numeric', 'scientific', 'analysis'] as const).map((panel) => (
+                      <button key={panel} type="button" className={`calc-coordinate-tab calc-coordinate-tab-${panel}`}
+                        aria-label={t(`calculator.coordinate.${panel}Keys`)} aria-pressed={coordinatePanel === panel}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={(event) => {
+                          setCoordinatePanel(panel);
+                          if (panel !== 'analysis') event.currentTarget.closest('.calc-coordinate-layout')?.querySelector<HTMLDivElement>('.calc-display')?.focus();
+                        }}>
+                        {panel === 'numeric' ? '123' : panel === 'scientific' ? 'f(x)' : t('calculator.coordinate.analysisKeys')}
+                      </button>
+                    ))}
+                  </div>
+                  {coordinatePanel === 'analysis' ? analysis : coordinatePanel === 'scientific' ? (
+                    <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons-sci-inner" />
+                  ) : (
+                    <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons-arith-inner" />
+                  )}
+                </div>
+                <div className="calc-coordinate-workspace">{display}{graph}</div>
+              </div>
+            )} />
         ) : (
           <>
             {display}

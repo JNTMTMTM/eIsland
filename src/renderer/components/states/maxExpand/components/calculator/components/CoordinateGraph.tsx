@@ -39,10 +39,12 @@ interface GraphPoint { x: number; y: number; label: string; kind: 'zero' | 'inte
  * @param expression - 当前公式编辑器中的表达式
  * @param initialExtra - 历史恢复时的附加函数
  * @param onAnalyze - 成功分析后的记录回调
+ * @param renderLayout - 组合图像与独立分析区的页面布局
  * @returns 图像、附加函数和分析控制区
  */
-export function CoordinateGraph({ expression, initialExtra = '', onAnalyze }: {
+export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, renderLayout }: {
   expression: string; initialExtra?: string; onAnalyze?: (extra: string, result: string) => void;
+  renderLayout?: (graph: ReactElement, analysis: ReactElement) => ReactElement;
 }): ReactElement {
   const { t } = useTranslation();
   const plotRef = useRef<HTMLDivElement>(null);
@@ -107,14 +109,14 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze }: {
       onAnalyze?.(extra, summary || t(overlaps ? 'calculator.graph.identical' : 'calculator.graph.none'));
     } catch { setError(t('calculator.coordinate.error')); }
   };
-  return <div className="calc-graph-workspace">
+  const graph = <div className="calc-graph-workspace">
     <div className="coordinate-graph-container" aria-label={t('calculator.coordinate.plot')}>
       <div className="coordinate-graph-canvas" ref={plotRef} />
       {error && <div className="coordinate-graph-error" role="status">{error}</div>}
     </div>
     <output className="calc-graph-trace">{trace ? 'f' + (trace.index + 1) + ': x = ' + formatDisplay(trace.x) + ', y = ' + formatDisplay(trace.y) : t('calculator.graph.tracking')}</output>
-    <details className="calc-graph-analysis">
-      <summary>{t('calculator.graph.controls')}</summary>
+  </div>;
+  const analysis = <section className="calc-graph-analysis" aria-label={t('calculator.graph.controls')}>
       <label>{t('calculator.graph.extra')}<textarea rows={3} value={extra} onChange={(event) => setExtra(event.target.value)} /></label>
       <div className="calc-tools">
         <button className="calc-tool-btn" type="button" onClick={analyze}>{t('calculator.graph.analyze')}</button>
@@ -126,6 +128,6 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze }: {
         {identical && <p>{t('calculator.graph.identical')}</p>}
         {points.map((point) => <p key={point.kind + point.label + point.x}>{t(point.kind === 'zero' ? 'calculator.graph.zero' : 'calculator.graph.intersection')} {point.label}: ({formatDisplay(point.x)}, {formatDisplay(point.y)})</p>)}
       </div>}
-    </details>
-  </div>;
+    </section>;
+  return renderLayout ? renderLayout(graph, analysis) : graph;
 }

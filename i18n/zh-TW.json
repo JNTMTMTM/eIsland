@@ -2781,6 +2781,9 @@
       "variable": "變量 x"
     },
     "coordinate": {
+      "numericKeys": "數字輸入",
+      "scientificKeys": "科學輸入",
+      "analysisKeys": "分析",
       "radianHint": "繪圖中的三角函數使用弧度",
       "placeholder": "輸入函數，如 x^2, sin(x)",
       "error": "無效的表達式",

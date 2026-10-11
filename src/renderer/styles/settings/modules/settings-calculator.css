@@ -637,10 +637,11 @@
 
 .calc-coordinate-layout {
   display: grid;
-  flex: 1 0 auto;
+  flex: 1;
   grid-template-columns: minmax(180px, .38fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 10px;
-  min-height: 0;
+  min-height: 290px;
 
 }
 
@@ -653,9 +654,35 @@
 
 }
 
-.calc-btn-toggle {
+.calc-coordinate-tabs {
+  display: grid;
   flex: 0 0 28px;
-  font-size: 13px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+
+}
+
+.calc-coordinate-tab {
+  min-width: 0;
+  padding: 4px;
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .65);
+  cursor: pointer;
+  background: rgb(var(--color-text-rgb), .05);
+  border: 0;
+  border-radius: 6px;
+
+}
+
+.calc-coordinate-tab[aria-pressed="true"] {
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .14);
+
+}
+
+.calc-coordinate-tab:focus-visible {
+  outline: 2px solid var(--color-accent, #6390ff);
+  outline-offset: -2px;
 
 }
 
@@ -676,7 +703,7 @@
 .coordinate-graph-container {
   position: relative;
   display: flex;
-  flex: 1 0 180px;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
   min-height: 156px;
@@ -689,7 +716,7 @@
 
 .calc-graph-workspace {
   display: flex;
-  flex: 1 0 auto;
+  flex: 1;
   flex-direction: column;
   gap: 4px;
   min-height: 180px;
@@ -703,8 +730,19 @@
 
 }
 
-.calc-graph-analysis summary {
-  cursor: pointer;
+.calc-graph-analysis {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
+
+}
+
+.calc-graph-analysis label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
 
 }
 
@@ -712,7 +750,9 @@
   box-sizing: border-box;
   width: 100%;
   padding: 6px;
+  font: inherit;
   color: inherit;
+  resize: vertical;
   background: var(--color-island-bg);
   border: 1px solid rgb(var(--color-text-rgb), .15);
   border-radius: 6px;
@@ -782,6 +822,7 @@
 
   .calc-coordinate-controls {
     order: 1;
+    height: 260px;
 
   }
 
