@@ -1052,6 +1052,7 @@ describe('MultiThreadDownloadEngine', () => {
       const snap = await engine.startDownload({ url: FULL_URL, defaultDir: SAVE_DIR, threads: 2 });
 
       // Cancel the download (sets status to 'canceled' and aborts controllers)
+      await flushN();
       engine.cancelDownload(snap.id);
 
       // Simulate fetch rejecting due to abort signal

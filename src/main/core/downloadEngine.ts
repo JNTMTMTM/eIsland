@@ -64,6 +64,8 @@ interface InternalTask extends DownloadTaskSnapshot {
   lastSampleTime: number;
   lastSampleBytes: number;
   lastEmitTime: number;
+  run?: Promise<void>;
+  controller: AbortController;
 }
 
 function toTaskSnapshot(task: InternalTask): DownloadTaskSnapshot {
@@ -87,6 +89,9 @@ function toTaskSnapshot(task: InternalTask): DownloadTaskSnapshot {
 
 export class MultiThreadDownloadEngine {
   private readonly tasks = new Map<string, InternalTask>();
+  private readonly history = new Map<string, DownloadTaskSnapshot>();
+  private activeConnections = 0;
+  private readonly connectionWaiters: Array<() => void> = [];
 
   private readonly onTaskUpdated?: (task: DownloadTaskSnapshot) => void;
 
@@ -95,12 +100,12 @@ export class MultiThreadDownloadEngine {
   }
 
   listTasks(): DownloadTaskSnapshot[] {
-    return Array.from(this.tasks.values()).map((task) => toTaskSnapshot(task));
+    return [...this.history.values(), ...Array.from(this.tasks.values(), toTaskSnapshot)];
   }
 
   getTask(taskId: string): DownloadTaskSnapshot | null {
     const task = this.tasks.get(taskId);
-    return task ? toTaskSnapshot(task) : null;
+    return task ? toTaskSnapshot(task) : this.history.get(taskId) ?? null;
   }
 
   async startDownload(options: StartDownloadOptions): Promise<DownloadTaskSnapshot> {
@@ -149,14 +154,13 @@ export class MultiThreadDownloadEngine {
       lastSampleTime: now,
       lastSampleBytes: 0,
       lastEmitTime: 0,
+      controller: new AbortController(),
     };
 
     this.tasks.set(task.id, task);
     this.emitTask(task, true);
 
-    void this.executeDownload(task, probe).catch((error) => {
-      this.handleTaskFailure(task, error);
-    });
+    this.runTask(task, probe);
 
     return toTaskSnapshot(task);
   }
@@ -167,6 +171,7 @@ export class MultiThreadDownloadEngine {
     if (task.status !== 'downloading') return false;
 
     task.status = 'canceled';
+    task.controller.abort();
     task.updatedAt = Date.now();
     task.abortControllers.forEach((controller) => controller.abort());
     task.abortControllers.clear();
@@ -180,6 +185,7 @@ export class MultiThreadDownloadEngine {
     if (task.status !== 'downloading') return false;
 
     task.status = 'paused';
+    task.controller.abort();
     task.speedBytesPerSecond = 0;
     task.estimatedFinishAt = null;
     task.updatedAt = Date.now();
@@ -192,11 +198,15 @@ export class MultiThreadDownloadEngine {
   async resumeDownload(taskId: string): Promise<DownloadTaskSnapshot> {
     const task = this.tasks.get(taskId);
     if (!task) {
+      if (this.history.has(taskId)) throw new Error('仅可继续已暂停的任务');
       throw new Error('下载任务不存在');
     }
     if (task.status !== 'paused') {
       throw new Error('仅可继续已暂停的任务');
     }
+    // 上一轮的流和文件句柄退出后再复用临时文件。
+    await task.run;
+    if (!this.tasks.has(taskId) || task.status !== 'paused') throw new Error('仅可继续已暂停的任务');
 
     const now = Date.now();
     const probe = await this.probeRemoteFile(new URL(task.url));
@@ -215,6 +225,7 @@ export class MultiThreadDownloadEngine {
     }
 
     task.status = 'downloading';
+    task.controller = new AbortController();
     task.errorMessage = undefined;
     task.totalBytes = probe.totalBytes;
     task.supportsRange = probe.supportsRange;
@@ -227,20 +238,61 @@ export class MultiThreadDownloadEngine {
     task.updatedAt = now;
 
     this.emitTask(task, true);
-    void this.executeDownload(task, probe).catch((error) => {
-      this.handleTaskFailure(task, error);
-    });
+    this.runTask(task, probe);
 
     return toTaskSnapshot(task);
   }
 
   removeTask(taskId: string): boolean {
     const task = this.tasks.get(taskId);
-    if (!task) return false;
+    if (!task) return this.history.delete(taskId);
     if (task.status === 'downloading') return false;
     this.tasks.delete(taskId);
-    void this.cleanupTaskFiles(task);
+    task.controller.abort();
+    void task.run?.finally(() => this.cleanupTaskFiles(task));
     return true;
+  }
+
+  /**
+   * 同一引擎的连接共享预算，排队请求也可随任务取消。
+   * @param signal - 所属任务的取消信号。
+   * @returns 释放连接槽位的函数。
+   */
+  private async acquireConnection(signal: AbortSignal): Promise<() => void> {
+    signal.throwIfAborted();
+    if (this.activeConnections >= 8) {
+      await new Promise<void>((resolve, reject) => {
+        const ready = (): void => { signal.removeEventListener('abort', abort); resolve(); };
+        const abort = (): void => {
+          const index = this.connectionWaiters.indexOf(ready);
+          if (index >= 0) this.connectionWaiters.splice(index, 1);
+          reject(signal.reason);
+        };
+        this.connectionWaiters.push(ready);
+        signal.addEventListener('abort', abort, { once: true });
+      });
+    } else this.activeConnections += 1;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      const next = this.connectionWaiters.shift();
+      if (next) next(); else this.activeConnections -= 1;
+    };
+  }
+
+  /**
+   * 统一结束与资源释放；历史只保存有界轻量快照。
+   * @param task - 运行中的任务。
+   * @param probe - 服务端下载能力。
+   */
+  private runTask(task: InternalTask, probe: DownloadProbeResult): void {
+    task.run = this.executeDownload(task, probe).catch((error) => this.handleTaskFailure(task, error)).finally(() => {
+      if (task.status === 'paused' || this.tasks.get(task.id) !== task) return;
+      this.tasks.delete(task.id);
+      this.history.set(task.id, toTaskSnapshot(task));
+      while (this.history.size > 200) this.history.delete(this.history.keys().next().value!);
+    });
   }
 
   private async probeRemoteFile(url: URL): Promise<DownloadProbeResult> {
@@ -248,8 +300,11 @@ export class MultiThreadDownloadEngine {
     let totalBytes = 0;
     let supportsRange = false;
 
+    const signal = AbortSignal.timeout(15_000);
+    const release = await this.acquireConnection(signal);
     try {
-      const headResponse = await fetch(url.toString(), { method: 'HEAD' });
+      signal.throwIfAborted();
+      const headResponse = await fetch(url.toString(), { method: 'HEAD', signal });
       if (headResponse.ok) {
         const contentLength = headResponse.headers.get('content-length');
         totalBytes = Number(contentLength || 0) || 0;
@@ -263,6 +318,8 @@ export class MultiThreadDownloadEngine {
       }
     } catch {
       // ignore head errors
+    } finally {
+      release();
     }
 
     return {
@@ -296,7 +353,16 @@ export class MultiThreadDownloadEngine {
         this.updateTaskProgress(task);
       }
 
-      await Promise.all(chunks.map((chunk) => this.downloadChunk(task, chunk)));
+      const pending = chunks.map((chunk) => this.downloadChunk(task, chunk));
+      try {
+        await Promise.all(pending);
+      } catch (error) {
+        // 第一处失败立即停掉其他分片，所有句柄关闭后才允许清理文件。
+        task.controller.abort();
+        task.abortControllers.forEach((controller) => controller.abort());
+        await Promise.allSettled(pending);
+        throw error;
+      }
       if (task.status === 'canceled') {
         await this.cleanupTaskFiles(task);
         return;
@@ -327,6 +393,8 @@ export class MultiThreadDownloadEngine {
       }
     }
 
+    task.controller.signal.throwIfAborted();
+
     if (existsSync(task.savePath)) {
       await unlink(task.savePath).catch(() => {});
     }
@@ -348,8 +416,11 @@ export class MultiThreadDownloadEngine {
 
   private async downloadSingle(task: InternalTask): Promise<void> {
     const controller = new AbortController();
+    const signal = AbortSignal.any([controller.signal, task.controller.signal]);
+    const release = await this.acquireConnection(signal);
     task.abortControllers.add(controller);
     try {
+      signal.throwIfAborted();
       let existingSize = 0;
       if (task.supportsRange && task.totalBytes > 0) {
         try {
@@ -367,7 +438,8 @@ export class MultiThreadDownloadEngine {
         headers['Range'] = `bytes=${existingSize}-`;
       }
 
-      const response = await fetch(task.url, { signal: controller.signal, headers });
+      signal.throwIfAborted();
+      const response = await fetch(task.url, { signal, headers });
       if (existingSize > 0 && response.status !== 206) {
         // Server doesn't support range for this request, restart
         existingSize = 0;
@@ -385,9 +457,10 @@ export class MultiThreadDownloadEngine {
       }
 
       const fileHandle = await open(task.tempOutputPath, existingSize > 0 ? 'a' : 'w');
+      const reader = response.body.getReader();
       try {
-        const reader = response.body.getReader();
         while (true) {
+          signal.throwIfAborted();
           const result = await reader.read();
           if (result.done) break;
           const chunk = result.value;
@@ -398,10 +471,13 @@ export class MultiThreadDownloadEngine {
           }
         }
       } finally {
+        await Promise.resolve(reader.cancel()).catch(() => {});
+        reader.releaseLock();
         await fileHandle.close();
       }
     } finally {
       task.abortControllers.delete(controller);
+      release();
     }
   }
 
@@ -423,11 +499,14 @@ export class MultiThreadDownloadEngine {
     }
 
     const controller = new AbortController();
+    const signal = AbortSignal.any([controller.signal, task.controller.signal]);
+    const release = await this.acquireConnection(signal);
     task.abortControllers.add(controller);
     try {
+      signal.throwIfAborted();
       const rangeStart = chunk.start + existingSize;
       const response = await fetch(task.url, {
-        signal: controller.signal,
+        signal,
         headers: {
           Range: `bytes=${rangeStart}-${chunk.end}`,
         },
@@ -437,9 +516,10 @@ export class MultiThreadDownloadEngine {
       }
 
       const fileHandle = await open(chunk.partPath, existingSize > 0 ? 'a' : 'w');
+      const reader = response.body.getReader();
       try {
-        const reader = response.body.getReader();
         while (true) {
+          signal.throwIfAborted();
           const result = await reader.read();
           if (result.done) break;
           const bytes = result.value;
@@ -450,10 +530,13 @@ export class MultiThreadDownloadEngine {
           }
         }
       } finally {
+        await Promise.resolve(reader.cancel()).catch(() => {});
+        reader.releaseLock();
         await fileHandle.close();
       }
     } finally {
       task.abortControllers.delete(controller);
+      release();
     }
   }
 
@@ -499,7 +582,7 @@ export class MultiThreadDownloadEngine {
     await rm(task.tempDir, { recursive: true, force: true }).catch(() => {});
   }
 
-  private handleTaskFailure(task: InternalTask, error: unknown): void {
+  private async handleTaskFailure(task: InternalTask, error: unknown): Promise<void> {
     if (task.status === 'paused') {
       task.speedBytesPerSecond = 0;
       task.estimatedFinishAt = null;
@@ -514,7 +597,7 @@ export class MultiThreadDownloadEngine {
       task.estimatedFinishAt = null;
       task.updatedAt = Date.now();
       this.emitTask(task, true);
-      void this.cleanupTaskFiles(task);
+      await this.cleanupTaskFiles(task);
       return;
     }
 
@@ -524,6 +607,6 @@ export class MultiThreadDownloadEngine {
     task.estimatedFinishAt = null;
     task.updatedAt = Date.now();
     this.emitTask(task, true);
-    void this.cleanupTaskFiles(task);
+    await this.cleanupTaskFiles(task);
   }
 }
