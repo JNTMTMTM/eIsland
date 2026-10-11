@@ -129,11 +129,14 @@ test('基础规则检测 var、宽松相等、any 及危险构造器', async () 
 });
 
 test('类型感知检查能发现悬空 Promise，声明文件不会因同名源码产生解析错误', async () => {
-  const typed = new ESLint();
+  // lintText 会替换文件内容；CI 的单次程序快照不适合这类虚拟输入。
+  const typed = new ESLint({
+    overrideConfig: { languageOptions: { parserOptions: { disallowAutomaticSingleRunInference: true } } },
+  });
   // 使用已纳入 TS 项目的文件名提供类型上下文；lintText 不会改写该文件。
   const [result] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'vitest.config.ts')}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.ts' });
   assert.equal(result.fatalErrorCount, 0);
-  assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'));
+  assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'), JSON.stringify(result.messages));
   const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'index.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/preload/index.d.ts' });
   assert.equal(declaration.fatalErrorCount, 0);
 });
