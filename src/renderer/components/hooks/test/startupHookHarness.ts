@@ -44,7 +44,8 @@ const translation = vi.hoisted(() => ({
   t: vi.fn<(key: string, options?: Record<string, unknown>) => string>((key) => key)
 }));
 export const translationProbe = translation.t;
-vi.mock('react-i18next', () => ({
+vi.mock('react-i18next', async (original) => ({
+  ...(await original<typeof import('react-i18next')>()),
   useTranslation: () => ({
     t: translation.t,
     i18n: {
