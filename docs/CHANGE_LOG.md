@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T17:21:53.234Z
+> 生成时间：2026-10-11T17:23:38.175Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-11 | a3d20334 | dependabot[bot] | ci(deps): bump actions/checkout from 4 to 7 (#233)
+- 2026-10-11 | 6b5e0b61 | eislandBot | docs: auto update CHANGE_LOG.md for #234 by @dependabot[bot] [skip ci]
 - 2026-10-11 | 6529028f | dependabot[bot] | ci(deps): bump actions/setup-dotnet from 4 to 6 (#234)
 - 2026-10-11 | db99a0c9 | eislandBot | docs: auto update CHANGE_LOG.md for #232 by @dependabot[bot] [skip ci]
 - 2026-10-11 | e25a5308 | dependabot[bot] | ci(deps): bump softprops/action-gh-release from 2 to 3 (#232)
