@@ -103,10 +103,10 @@ export const aiChatStorage = {
         if (marker.result) return;
         try {
           tx.objectStore(META_STORE).put(backup(), 'legacyBackup');
-          for (const session of legacy()) {
+          legacy().forEach((session) => {
             tx.objectStore(INDEX_STORE).put(toAiChatIndex(session));
             tx.objectStore(BODY_STORE).put(session.messages, session.id);
-          }
+          });
           tx.objectStore(META_STORE).put(true, 'migrated');
           migrated = true;
         } catch { tx.abort(); }

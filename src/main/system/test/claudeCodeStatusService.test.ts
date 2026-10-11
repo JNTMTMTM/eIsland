@@ -374,9 +374,9 @@ describe('Claude receiver request lifetime budgets', () => {
     }
     expect(requests[0].response.end).not.toHaveBeenCalled();
     requests[0].incoming.emit('data', ' '); await vi.advanceTimersByTimeAsync(1000);
-    for (const item of requests) {
+    requests.forEach((item) => {
       expect(item.response.writeHead).toHaveBeenCalledWith(408); expect(item.incoming.destroy).toHaveBeenCalledOnce();
-    }
+    });
     expect(request(payload('SessionStart')).writeHead).toHaveBeenCalledWith(200, expect.any(Object));
     const stopped = pendingRequest(); service.stop();
     expect(stopped.incoming.destroy).toHaveBeenCalledOnce();

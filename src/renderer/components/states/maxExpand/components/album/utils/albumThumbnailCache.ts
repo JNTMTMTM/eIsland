@@ -32,12 +32,12 @@ export class AlbumThumbnailCache {
    * @returns 无返回值。
    */
   touch(ids: Iterable<number>): void {
-    for (const id of ids) {
+    Array.from(ids).forEach((id) => {
       const size = this.entries.get(id);
-      if (size === undefined) continue;
+      if (size === undefined) return;
       this.entries.delete(id);
       this.entries.set(id, size);
-    }
+    });
   }
   /** 登记缩略图并返回应释放的项目，优先回收离屏项。
    * @param id - 项目标识。
@@ -52,11 +52,12 @@ export class AlbumThumbnailCache {
     const candidates = [...this.entries.keys()];
     const order = [...candidates.filter((key) => !visible.has(key)), ...candidates.filter((key) => visible.has(key))];
     const evicted: number[] = [];
-    for (const key of order) {
-      if (this.entries.size <= 128 && this.bytes <= 8 * 1024 * 1024) break;
+    order.some((key) => {
+      if (this.entries.size <= 128 && this.bytes <= 8 * 1024 * 1024) return true;
       this.remove(key);
       evicted.push(key);
-    }
+      return false;
+    });
     return evicted;
   }
   /** 移除已删除或已回收的缩略图。

@@ -41,7 +41,8 @@ it('streams binary image/font data through a short URL and validates grant metho
   expect(head.headers.get('content-length')).toBe(String(bytes.length)); expect(head.body).toBeNull();
   const response = await handleLocalAssetRequest(new Request(url));
   expect(response.headers.get('content-type')).toBe('font/ttf');
-  expect(Buffer.from(await response.arrayBuffer())).toEqual(bytes);
+  // Buffer 原生比较完整载荷，避免断言库逐字节深比较 3 MiB 数据。
+  expect(Buffer.from(await response.arrayBuffer()).equals(bytes)).toBe(true);
   expect((await handleLocalAssetRequest(new Request('eisland-media://asset/guessed'))).status).toBe(403);
   expect((await handleLocalAssetRequest(new Request(url, { method: 'POST' }))).status).toBe(405);
   await expect(createLocalAssetUrl(file, 1024)).rejects.toThrow('size limit');

@@ -474,10 +474,10 @@ export const createAiSlice: StateCreator<
   if (typeof window !== 'undefined') {
     // 退出时 IndexedDB 提交可能被中断，仅为待写会话保留同步恢复日志。
     const flushOnExit = (): void => {
-      for (const id of new Set([...dirty, ...saving.keys()])) {
+      [...new Set([...dirty, ...saving.keys()])].forEach((id) => {
         const session = get().aiChatSessions.find((item) => item.id === id);
         if (session && session.messagesLoaded !== false && !deleting.has(id)) recovery.set(id, { session, revision: revisions.get(id) ?? 0 });
-      }
+      });
       if (recovery.size) writeRecovery();
       void get().flushAiChatStorage().catch(() => {});
     };
@@ -527,11 +527,13 @@ export const createAiSlice: StateCreator<
         if (pending) {
           const parsed: unknown = JSON.parse(pending);
           if (!Array.isArray(parsed)) throw new Error('Invalid chat recovery journal');
-          for (const item of parsed) {
+          await parsed.reduce(async (previous, item: unknown) => {
+            // 恢复记录依次提交，保持重复会话的覆盖顺序。
+            await previous;
             const session = normalizeAiChatSession(item);
             if (!session) throw new Error('Invalid chat recovery session');
             await aiChatStorage.save(session);
-          }
+          }, Promise.resolve());
           localStorage.removeItem(AI_CHAT_RECOVERY_KEY);
         }
         const index = await aiChatStorage.list();

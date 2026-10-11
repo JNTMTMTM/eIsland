@@ -40,7 +40,7 @@ describe('album virtual grid', () => {
   });
   it('positions headers and row padding correctly across groups and column changes', () => {
     const groups = [{key: 'a', title: 'a', subtitle: 'folder', items: items.slice(0, 5000)}, {key: 'b', title: 'b', items: items.slice(5000)}];
-    for (const columns of [3, 5, 8]) {
+    [3, 5, 8].forEach((columns) => {
       const layout = buildAlbumVirtualLayout(groups, columns, 1024, 'folder');
       const boundary = layout.groups[1].top;
       const visible = getAlbumVisibleGroups(layout, boundary, 600);
@@ -50,6 +50,6 @@ describe('album virtual grid', () => {
       expect(b.paddingTop).toBe(0);
       expect(b.paddingBottom).toBeGreaterThan(0);
       expect(visible.flatMap((group) => group.items).length).toBeLessThan(100);
-    }
+    });
   });
 });

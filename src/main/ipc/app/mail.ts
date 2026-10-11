@@ -24,12 +24,13 @@
  * @author 鸡哥
  */
 
-import { ipcMain } from 'electron';
 import { existsSync, readFileSync } from 'fs';
-import type { ImapFlow, MessageStructureObject } from 'imapflow';
+import { buffer } from 'node:stream/consumers';
 import { join } from 'path';
-import type { RegisterMailIpcHandlersOptions, MailAccountConfig, MailInboxItem } from './types';
+import { ipcMain } from 'electron';
 import { IMAP_TIMEOUT_MS } from './config/mail';
+import type { ImapFlow, MessageStructureObject } from 'imapflow';
+import type { RegisterMailIpcHandlersOptions, MailAccountConfig, MailInboxItem } from './types';
 
 function parsePort(raw: string, fallback: number): number {
   const value = Number(raw);
@@ -182,15 +183,15 @@ async function readMailBody(config: MailAccountConfig, uid: string, expectedVali
       const item = toMailInboxItem(Number(uid), message, validity);
       if (!item || !message) throw new Error('Message no longer exists.');
       const bodies: string[] = [];
-      for (const part of bodyParts(message.bodyStructure)) {
+      await bodyParts(message.bodyStructure).reduce(async (previous, part) => {
+        // 同一 IMAP 连接按顺序下载，避免交错读取响应。
+        await previous;
         const { content } = await client.download(uid, part.part || '1', { uid: true, chunkSize: 64 * 1024 });
-        const chunks: Buffer[] = [];
         try {
-          for await (const chunk of content) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-          const body = Buffer.concat(chunks).toString('utf8');
+          const body = (await buffer(content)).toString('utf8');
           bodies.push(part.type === 'text/html' ? body : plainHtml(body));
         } finally { content.destroy(); }
-      }
+      }, Promise.resolve());
       return { ...item, body: bodies.join('\n') };
     } finally { lock.release(); }
   });

@@ -1,5 +1,21 @@
-/* eIsland - https://github.com/JNTMTMTM/eIsland
- * Copyright (C) 2026 JNTMTMTM, pyisland.com. GPL-3.0-or-later.
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 /** @file cliEventDetails.ts
  * @description 将 CLI 正文移出常驻快照，并以固定大小分页读取。
@@ -104,9 +120,10 @@ export function createCliSnapshotWriter(path: string) {
 
 /** 索引原子写入成功后回收不再引用的详情；只删除由事件 ID 派生的单个文件。 */
 export async function removeCliEventDetails(directory: string, ids: string[]): Promise<void> {
-  for (const id of ids) {
+  await ids.reduce(async (previous, id) => {
+    await previous;
     const path = cliDetailPath(directory, id);
     await pending.get(path)?.catch(() => {});
     await unlink(path).catch(() => {});
-  }
+  }, Promise.resolve());
 }

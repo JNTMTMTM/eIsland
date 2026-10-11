@@ -39,11 +39,10 @@ async function run(): Promise<void> {
         || length > 128 * 1024 * 1024) throw new Error('Invalid bitmap size');
       const bitmap = Buffer.allocUnsafe(length);
       let offset = 0;
-      for await (const part of process.stdin) {
-        const bytes = part as Buffer;
+      await process.stdin.forEach((bytes: Buffer) => {
         if (offset + bytes.length > length) throw new Error('Bitmap input exceeds expected size');
         bytes.copy(bitmap, offset); offset += bytes.length;
-      }
+      });
       if (offset !== length) throw new Error('Incomplete bitmap input');
       data = encodeScreenshotBitmap(bitmap, width, height);
     } else {

@@ -36,7 +36,7 @@ export function installAiChatStorage() {
   let initialized = false;
   const initialize = vi.spyOn(aiChatStorage, 'initialize').mockImplementation(async (legacy) => {
     if (initialized) return false;
-    for (const session of legacy()) records.set(session.id, structuredClone(session));
+    legacy().forEach((session) => records.set(session.id, structuredClone(session)));
     initialized = true;
     return true;
   });

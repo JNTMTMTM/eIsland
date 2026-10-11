@@ -246,11 +246,11 @@ export function useAlbumItems(): UseAlbumItemsReturn {
       const evicted = thumbnailCacheRef.current.put(item.id, thumbnailUrl, visibleIdsRef.current);
       setMetaCache((prev) => {
         const next = { ...prev, [item.id]: { ...prev[item.id], thumbnailUrl, loading: false, loadFailed: false } };
-        for (const id of evicted) {
+        evicted.forEach((id) => {
           if (visibleIdsRef.current.has(id)) deferredThumbnailsRef.current.add(id);
           revokeBlobUrl(next[id]?.thumbnailUrl);
           next[id] = { ...next[id], thumbnailUrl: undefined };
-        }
+        });
         return next;
       });
     }).catch(() => {

@@ -24,8 +24,8 @@
  * @author 鸡哥
  */
 /* 隐藏窗口保留业务状态，停止纯展示动画。 */
-html.eisland-page-hidden *,
-html.eisland-page-hidden *::before,
-html.eisland-page-hidden *::after {
-  animation-play-state: paused !important;
+html:root.eisland-page-hidden *,
+html:root.eisland-page-hidden *::before,
+html:root.eisland-page-hidden *::after {
+  animation-play-state: paused;
 }
