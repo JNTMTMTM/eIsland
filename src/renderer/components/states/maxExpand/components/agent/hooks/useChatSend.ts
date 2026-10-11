@@ -197,6 +197,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
       prevController?.abort();
       SESSION_ABORT_CONTROLLERS.delete(targetSessionId);
       SESSION_STREAMING_IDS.delete(targetSessionId);
+      useIslandStore.getState().retainAiChatSession(targetSessionId, false);
       if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
         window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
         pendingMessageFlushRafRef.current = null;

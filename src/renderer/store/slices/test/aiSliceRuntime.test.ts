@@ -81,7 +81,7 @@ describe('AI slice configuration and hydration', () => {
     storage.get.mockImplementation(() => {
       throw new Error('storage denied');
     });
-    expect((await store()).getState().aiConfig.apiKey).toBe('');
+    expect(createStore<AiSlice>()(createAiSlice).getState().aiConfig.apiKey).toBe('');
     expect(createStore<AiSlice>()(createAiSlice).getState().activeAiChatSessionId).toBe('');
   });
   it.each([{

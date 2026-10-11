@@ -569,8 +569,9 @@ export function useChatState(): ChatState {
     const controller = SESSION_ABORT_CONTROLLERS.get(activeAiChatSessionId);
     controller?.abort();
     SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
-    SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
-    useIslandStore.getState().retainAiChatSession(activeAiChatSessionId, false);
+    if (SESSION_STREAMING_IDS.delete(activeAiChatSessionId)) {
+      useIslandStore.getState().retainAiChatSession(activeAiChatSessionId, false);
+    }
     refreshActiveSessionStreaming();
     if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
@@ -584,8 +585,9 @@ export function useChatState(): ChatState {
     const controller = SESSION_ABORT_CONTROLLERS.get(activeAiChatSessionId);
     controller?.abort();
     SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
-    SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
-    useIslandStore.getState().retainAiChatSession(activeAiChatSessionId, false);
+    if (SESSION_STREAMING_IDS.delete(activeAiChatSessionId)) {
+      useIslandStore.getState().retainAiChatSession(activeAiChatSessionId, false);
+    }
     refreshActiveSessionStreaming();
     if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);

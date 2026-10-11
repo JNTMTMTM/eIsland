@@ -31,6 +31,8 @@ import type { AiSlice, AiConfig, AiChatMessage, AiChatSession, AiWebAccessPrompt
 const AI_CONFIG_KEY = 'eIsland_aiConfig';
 const AI_CHAT_MESSAGES_KEY = 'eIsland_aiChatMessages';
 const AI_CHAT_SESSIONS_KEY = 'eIsland_aiChatSessions';
+const AI_CHAT_RECOVERY_KEY = 'eIsland_aiChatRecovery';
+const CHAT_CHECKPOINT_MS = 1000;
 const AI_ACTIVE_CHAT_SESSION_ID_KEY = 'eIsland_aiActiveChatSessionId';
 
 function loadAiConfig(): AiConfig {
@@ -382,9 +384,25 @@ export const createAiSlice: StateCreator<
   let readyTask: Promise<void> | null = null;
   let selectionVersion = 0;
   let releaseActiveOnSettle = false;
-  const retained = new Set<string>();
+  const retained = new Map<string, number>();
   const dirty = new Set<string>();
   const deleting = new Set<string>();
+  const checkpoints = new Map<string, ReturnType<typeof setTimeout>>();
+  const revisions = new Map<string, number>();
+  const urgent = new Set<string>();
+  const recovery = new Map<string, { session: AiChatSession; revision: number }>();
+
+  const writeRecovery = (): void => {
+    try {
+      if (recovery.size) localStorage.setItem(AI_CHAT_RECOVERY_KEY, JSON.stringify([...recovery.values()].map((item) => item.session)));
+      else localStorage.removeItem(AI_CHAT_RECOVERY_KEY);
+    } catch (error) { console.warn('[aiSlice] exit recovery failed', error); }
+  };
+  const cancelCheckpoint = (id: string): void => {
+    const timer = checkpoints.get(id);
+    if (timer !== undefined) clearTimeout(timer);
+    checkpoints.delete(id);
+  };
   const saving = new Map<string, Promise<void>>();
 
   const releaseBodies = (releaseActive = releaseActiveOnSettle): void => {
@@ -401,8 +419,10 @@ export const createAiSlice: StateCreator<
     }
   };
 
-  const persist = (id: string): Promise<void> => {
+  const persist = (id: string, immediate = true): Promise<void> => {
+    cancelCheckpoint(id);
     if (deleting.has(id)) return Promise.resolve();
+    if (immediate) urgent.add(id);
     dirty.add(id);
     const current = saving.get(id);
     if (current) return current;
@@ -412,14 +432,23 @@ export const createAiSlice: StateCreator<
         const session = get().aiChatSessions.find((item) => item.id === id);
         if (!session || session.messagesLoaded === false) { dirty.delete(id); break; }
         dirty.delete(id);
-        try { await aiChatStorage.save(session); }
+        const revision = revisions.get(id) ?? 0;
+        try {
+          await aiChatStorage.save(session);
+          if (recovery.has(id) && revision >= recovery.get(id)!.revision) { recovery.delete(id); writeRecovery(); }
+        }
         catch (error) { dirty.add(id); set({ aiChatStorageError: true }); throw error; }
+        if (retained.has(id) && dirty.has(id) && !urgent.has(id)) { checkpoint(id); break; }
       }
-    })().finally(() => { saving.delete(id); releaseBodies(); });
+    })().finally(() => { saving.delete(id); urgent.delete(id); releaseBodies(); });
     saving.set(id, task);
     return task;
   };
-  const save = (id: string): void => { void persist(id).catch((error) => console.warn('[aiSlice] save session failed', error)); };
+  const save = (id: string, immediate = true): void => { void persist(id, immediate).catch((error) => console.warn('[aiSlice] save session failed', error)); };
+  const checkpoint = (id: string): void => {
+    if (checkpoints.has(id)) return;
+    checkpoints.set(id, setTimeout(() => { checkpoints.delete(id); save(id, false); }, CHAT_CHECKPOINT_MS));
+  };
   const select = async (id: string): Promise<void> => {
     const target = get().aiChatSessions.find((session) => session.id === id);
     if (!target) return;
@@ -443,6 +472,17 @@ export const createAiSlice: StateCreator<
   };
 
   if (typeof window !== 'undefined') {
+    // 退出时 IndexedDB 提交可能被中断，仅为待写会话保留同步恢复日志。
+    const flushOnExit = (): void => {
+      for (const id of new Set([...dirty, ...saving.keys()])) {
+        const session = get().aiChatSessions.find((item) => item.id === id);
+        if (session && session.messagesLoaded !== false && !deleting.has(id)) recovery.set(id, { session, revision: revisions.get(id) ?? 0 });
+      }
+      if (recovery.size) writeRecovery();
+      void get().flushAiChatStorage().catch(() => {});
+    };
+    window.addEventListener('pagehide', flushOnExit);
+    window.addEventListener('beforeunload', flushOnExit);
     window.addEventListener('storage', (event) => {
       if (event.key === AI_CONFIG_KEY) {
         set({ aiConfig: loadAiConfig() });
@@ -483,6 +523,17 @@ export const createAiSlice: StateCreator<
           localStorage.removeItem(AI_CHAT_SESSIONS_KEY);
           localStorage.removeItem(AI_CHAT_MESSAGES_KEY);
         } catch { /* 旧数据保留不影响已提交的新存储。 */ }
+        const pending = localStorage.getItem(AI_CHAT_RECOVERY_KEY);
+        if (pending) {
+          const parsed: unknown = JSON.parse(pending);
+          if (!Array.isArray(parsed)) throw new Error('Invalid chat recovery journal');
+          for (const item of parsed) {
+            const session = normalizeAiChatSession(item);
+            if (!session) throw new Error('Invalid chat recovery session');
+            await aiChatStorage.save(session);
+          }
+          localStorage.removeItem(AI_CHAT_RECOVERY_KEY);
+        }
         const index = await aiChatStorage.list();
         if (!index.length) {
           const first = createAiChatSession();
@@ -499,8 +550,18 @@ export const createAiSlice: StateCreator<
       return readyTask;
     },
     releaseAiChatBodies: () => { releaseActiveOnSettle = true; releaseBodies(true); },
-    retainAiChatSession: (id, keep) => { if (keep) retained.add(id); else { retained.delete(id); releaseBodies(); } },
-    flushAiChatStorage: async () => { await Promise.all([...saving.values(), ...[...dirty].map(persist)]); },
+    retainAiChatSession: (id, keep) => {
+      if (keep) retained.set(id, (retained.get(id) ?? 0) + 1);
+      else {
+        const owners = retained.get(id) ?? 0;
+        if (owners > 1) { retained.set(id, owners - 1); return; }
+        retained.delete(id);
+        cancelCheckpoint(id);
+        if (dirty.has(id)) save(id);
+        releaseBodies();
+      }
+    },
+    flushAiChatStorage: async () => { await Promise.all([...saving.values(), ...[...dirty].map((id) => persist(id))]); },
     setAiConfig: (partial) => {
       const next = { ...get().aiConfig, ...partial };
       saveAiConfig(next);
@@ -523,10 +584,13 @@ export const createAiSlice: StateCreator<
       if (!get().aiChatReady) await get().ensureAiChatReady();
       if (get().aiChatSessions.length <= 1 || deleting.has(id)) return;
       deleting.add(id);
+      cancelCheckpoint(id);
       dirty.delete(id);
       try {
         await saving.get(id)?.catch(() => {});
         await aiChatStorage.remove(id);
+        if (recovery.delete(id)) writeRecovery();
+        revisions.delete(id);
         retained.delete(id);
         const sessions = get().aiChatSessions.filter((session) => session.id !== id);
         set({ aiChatSessions: sessions });
@@ -537,7 +601,8 @@ export const createAiSlice: StateCreator<
     setAiChatStreaming: (streaming) => {
       const previous = get().aiChatStreaming;
       set({ aiChatStreaming: Boolean(streaming) });
-      if (previous && !streaming) save(get().activeAiChatSessionId);
+      const id = get().activeAiChatSessionId;
+      if (previous && !streaming && dirty.has(id) && !retained.has(id)) save(id);
     },
     setAiChatSessionMessages: (id, messages) => {
       const target = get().aiChatSessions.find((session) => session.id === id);
@@ -548,11 +613,14 @@ export const createAiSlice: StateCreator<
         aiChatMessages: state.activeAiChatSessionId === id ? messages : state.aiChatMessages,
       }));
       dirty.add(id);
-      if (!get().aiChatStreaming || id !== get().activeAiChatSessionId) save(id);
+      revisions.set(id, (revisions.get(id) ?? 0) + 1);
+      if (retained.has(id)) checkpoint(id);
+      else save(id);
     },
     markAiChatSessionReplyFinished: (id, finishedAt) => {
       const target = get().aiChatSessions.find((session) => session.id === id);
       if (!target || target.messagesLoaded === false || deleting.has(id)) return;
+      revisions.set(id, (revisions.get(id) ?? 0) + 1);
       const updatedAt = typeof finishedAt === 'number' && Number.isFinite(finishedAt) ? finishedAt : Date.now();
       set((state) => ({ aiChatSessions: state.aiChatSessions.map((session) => session.id === id ? { ...session, updatedAt } : session) }));
       save(id);

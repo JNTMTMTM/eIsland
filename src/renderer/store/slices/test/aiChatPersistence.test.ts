@@ -42,7 +42,7 @@ beforeEach(() => {
   storage.values.set(legacyKey, JSON.stringify(['a', 'b', 'c'].map((id) => ({ id, title: id, updatedAt: 1, messages: messages(id) }))));
   storage.values.set('eIsland_aiActiveChatSessionId', 'a');
 });
-afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('asynchronous chat persistence', () => {
   it('does not open the database or read legacy bodies at renderer startup', () => {
@@ -124,4 +124,108 @@ describe('asynchronous chat persistence', () => {
     expect(database.records.get('a')?.messages).toEqual(messages('second'));
     expect(database.save).toHaveBeenCalledTimes(2);
   });
+  it('keeps a shared session pinned until every independent generation owner releases it', async () => {
+    vi.useFakeTimers();
+    const api = makeStore();
+    await api.getState().ensureAiChatReady();
+    api.getState().retainAiChatSession('a', true);
+    api.getState().retainAiChatSession('a', true);
+    await api.getState().switchAiChatSession('b');
+    api.getState().retainAiChatSession('a', false);
+    api.getState().setAiChatSessionMessages('a', messages('still generating'));
+    expect(api.getState().aiChatSessions.find((item) => item.id === 'a')?.messagesLoaded).toBe(true);
+    expect(database.save).not.toHaveBeenCalled();
+    api.getState().retainAiChatSession('a', false);
+    await api.getState().flushAiChatStorage();
+    expect(database.records.get('a')?.messages).toEqual(messages('still generating'));
+    expect(api.getState().aiChatSessions.find((item) => item.id === 'a')?.messagesLoaded).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('checkpoints each generating session once per second independently of the selected session', async () => {
+    vi.useFakeTimers();
+    const api = makeStore();
+    await api.getState().ensureAiChatReady();
+    api.getState().retainAiChatSession('a', true);
+    await api.getState().switchAiChatSession('b');
+    api.getState().retainAiChatSession('b', true);
+    database.save.mockClear();
+    for (let chunk = 0; chunk < 100; chunk += 1) {
+      api.getState().setAiChatSessionMessages('a', messages(`a-${chunk}`));
+      api.getState().setAiChatSessionMessages('b', messages(`b-${chunk}`));
+      await vi.advanceTimersByTimeAsync(5);
+    }
+    expect(database.save).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(2);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(database.save).toHaveBeenCalledTimes(2);
+    expect(database.records.get('a')?.messages).toEqual(messages('a-99'));
+    expect(database.records.get('b')?.messages).toEqual(messages('b-99'));
+    api.getState().setAiChatSessionMessages('a', messages('a-final'));
+    api.getState().setAiChatSessionMessages('b', messages('b-pending'));
+    api.getState().markAiChatSessionReplyFinished('a');
+    api.getState().retainAiChatSession('a', false);
+    await Promise.resolve();
+    expect(database.records.get('a')?.messages).toEqual(messages('a-final'));
+    expect(vi.getTimerCount()).toBe(1);
+    api.getState().retainAiChatSession('b', false);
+    await api.getState().flushAiChatStorage();
+    expect(database.records.get('b')?.messages).toEqual(messages('b-pending'));
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('defers chunks arriving during a checkpoint and forces the final pending snapshot on cancel', async () => {
+    vi.useFakeTimers();
+    const api = makeStore();
+    await api.getState().ensureAiChatReady();
+    api.getState().retainAiChatSession('a', true);
+    api.getState().setAiChatMessages(messages('first'));
+    let finish!: () => void;
+    database.save.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
+    await vi.advanceTimersByTimeAsync(1000);
+    api.getState().setAiChatMessages(messages('second'));
+    finish();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(database.save).toHaveBeenCalledTimes(1);
+    api.getState().retainAiChatSession('a', false);
+    await api.getState().flushAiChatStorage();
+    expect(database.save).toHaveBeenCalledTimes(2);
+    expect(database.records.get('a')?.messages).toEqual(messages('second'));
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('recovers the final dirty body when the exit transaction was interrupted', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const api = makeStore();
+    await api.getState().ensureAiChatReady();
+    api.getState().retainAiChatSession('a', true);
+    api.getState().setAiChatMessages(messages('exit tail'));
+    database.save.mockRejectedValueOnce(new Error('exit interrupted'));
+    storage.listen.mock.calls.find(([name]) => name === 'beforeunload')?.[1]({key: null});
+    expect(JSON.parse(storage.values.get('eIsland_aiChatRecovery')!)).toMatchObject([{id: 'a', messages: messages('exit tail')}]);
+    await Promise.resolve();
+    await Promise.resolve();
+    const restarted = makeStore();
+    await restarted.getState().ensureAiChatReady();
+    expect(restarted.getState().aiChatMessages).toEqual(messages('exit tail'));
+    expect(storage.values.has('eIsland_aiChatRecovery')).toBe(false);
+  });
+  it('does not clear a newer recovery snapshot when an older in-flight write commits', async () => {
+    vi.useFakeTimers();
+    const api = makeStore();
+    await api.getState().ensureAiChatReady();
+    api.getState().retainAiChatSession('a', true);
+    let first!: () => void;
+    let second!: () => void;
+    database.save.mockImplementationOnce(() => new Promise<void>((resolve) => { first = resolve; }))
+      .mockImplementationOnce(() => new Promise<void>((resolve) => { second = resolve; }));
+    api.getState().setAiChatMessages(messages('old'));
+    await vi.advanceTimersByTimeAsync(1000);
+    api.getState().setAiChatMessages(messages('new'));
+    storage.listen.mock.calls.find(([name]) => name === 'pagehide')?.[1]({key: null});
+    first();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(storage.values.has('eIsland_aiChatRecovery')).toBe(true);
+    second();
+    await api.getState().flushAiChatStorage();
+    expect(storage.values.has('eIsland_aiChatRecovery')).toBe(false);
+  });
+
 });

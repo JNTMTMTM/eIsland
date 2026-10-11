@@ -245,7 +245,10 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
         setPhase('error');
         setErrorMsg(msg);
       } finally {
-        if (retainedSessionId) useIslandStore.getState().retainAiChatSession(retainedSessionId, false);
+        if (retainedSessionId) {
+          useIslandStore.getState().retainAiChatSession(retainedSessionId, false);
+          retainedSessionId = '';
+        }
       }
     };
 
@@ -254,6 +257,10 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
     return () => {
       active = false;
       controller.abort();
+      if (retainedSessionId) {
+        useIslandStore.getState().retainAiChatSession(retainedSessionId, false);
+        retainedSessionId = '';
+      }
     };
   }, [
     agentPrompt,
