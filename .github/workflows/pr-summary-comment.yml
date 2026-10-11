@@ -4,6 +4,10 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
   pull-requests: write
@@ -193,13 +197,29 @@ jobs:
             const commentBody = body.join('\n');
 
             // ========== 8. Create or update comment ==========
+            // Queued runs for older commits must not overwrite the current report.
+            const { data: currentPr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            if (currentPr.head.sha !== context.payload.pull_request.head.sha) {
+              core.notice('Skipping report for an outdated PR commit.');
+              return;
+            }
+
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner, repo,
               issue_number: pr.number,
               per_page: 100
             });
 
-            const existing = comments.find(c => c.user?.type === 'Bot' && c.body?.includes(marker));
+            // BOT_PAT posts as a regular User account; accept only known CI authors.
+            const reports = comments.filter((comment) =>
+              ['eislandBot', 'github-actions[bot]'].includes(comment.user?.login)
+                && comment.body?.startsWith(marker)
+            );
+            const existing = reports[0];
 
             if (existing) {
               await github.rest.issues.updateComment({
@@ -215,4 +235,13 @@ jobs:
                 body: commentBody
               });
               core.notice(`Created summary comment on PR #${pr.number}`);
+            }
+
+            // Collapse historical duplicates only after the latest report is published.
+            for (const duplicate of reports.slice(1)) {
+              await github.rest.issues.deleteComment({
+                owner,
+                repo,
+                comment_id: duplicate.id,
+              });
             }
