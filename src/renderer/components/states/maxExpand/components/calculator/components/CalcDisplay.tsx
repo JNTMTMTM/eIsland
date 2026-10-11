@@ -28,11 +28,13 @@ import { useEffect, useRef, type ClipboardEvent, type KeyboardEvent, type ReactE
 import { useTranslation } from 'react-i18next';
 import type { FormulaCursor, FormulaDocument } from '../types/calculatorTypes';
 import { serializeFormulaDocument } from '../utils/formulaDocumentUtils';
+import type { CalculatorErrorCode } from '../utils/calculatorErrorUtils';
 import { FormulaExpression } from './FormulaExpression';
 
 interface CalcDisplayProps {
   document: FormulaDocument;
   result: string | null;
+  errorCode?: CalculatorErrorCode | null;
   cursor: FormulaCursor;
   fontSize: string;
   hasResult: boolean;
@@ -52,6 +54,7 @@ interface CalcDisplayProps {
 export function CalcDisplay({
   document,
   result,
+  errorCode,
   cursor,
   fontSize,
   hasResult,
@@ -87,6 +90,7 @@ export function CalcDisplay({
       aria-label={t('calculator.display.expression')}
       aria-description={serializeFormulaDocument(document)}
       aria-multiline="false"
+      aria-invalid={result === 'Error'}
       onClickCapture={handleDisplayFocus}
       onClick={handleDisplayClick}
       onKeyDown={onKeyDown}
@@ -97,8 +101,8 @@ export function CalcDisplay({
         <FormulaExpression document={document} cursor={cursor} onCursorChange={onCursorChange} />
       </div>
       {showValue && result !== null && (
-        <div className={`calc-value${hasResult ? ' calc-value-as-expression' : ''}`} aria-live="polite">
-          {result === 'Error' ? t('calculator.display.error') : result ?? ' '}
+        <div className={`calc-value${hasResult ? ' calc-value-as-expression' : ''}${result === 'Error' ? ' calc-value-error' : ''}`} aria-live="polite">
+          {result === 'Error' ? t(`calculator.errors.${errorCode ?? 'invalid'}`) : result ?? ' '}
         </div>
       )}
     </div>

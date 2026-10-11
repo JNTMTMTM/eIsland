@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "errors": {
+      "divisionByZero": "不能除以零",
+      "domain": "輸入超出了函數的定義域",
+      "incomplete": "請補全公式、空槽和括號",
+      "syntax": "公式包含無效符號",
+      "unboundVariable": "變數 x 請用於繪圖或方程求解",
+      "unknownFunction": "暫不支援此函數",
+      "range": "請檢查函數參數或求和範圍",
+      "convergence": "數值計算未收斂",
+      "overflow": "結果超出數值範圍",
+      "invalid": "運算式無效"
+    },
     "clipboard": {
       "copyFormula": "複製公式",
       "copyResult": "複製結果",

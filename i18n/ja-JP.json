@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "errors": {
+      "divisionByZero": "ゼロでは除算できません",
+      "domain": "入力値が関数の定義域外です",
+      "incomplete": "式、空欄、括弧を完成させてください",
+      "syntax": "式に無効な記号があります",
+      "unboundVariable": "変数 x はグラフまたは方程式で使用してください",
+      "unknownFunction": "未対応の関数です",
+      "range": "引数または総和の範囲を確認してください",
+      "convergence": "数値計算が収束しませんでした",
+      "overflow": "結果が数値範囲を超えました",
+      "invalid": "無効な式です"
+    },
     "clipboard": {
       "copyFormula": "式をコピー",
       "copyResult": "結果をコピー",

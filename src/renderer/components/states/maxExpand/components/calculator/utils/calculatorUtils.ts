@@ -263,11 +263,18 @@ function evaluateCall(node: Extract<ExpressionNode, { type: 'call' }>, environme
   }
 
   const values = args.map((arg) => evaluateNode(arg, environment));
+  if (name === 'frac' && values[1] === 0) throw new Error('Division by zero');
+  if ((['sqrt', 'ln', 'log'].includes(name) && (name === 'sqrt' ? values[0] < 0 : values[0] <= 0))
+    || (['arcsin', 'arccos'].includes(name) && Math.abs(values[0]) > 1)
+    || (name === 'root' && values[0] === 0)) throw new Error('Invalid domain');
   const angleScale = environment.angleUnit === 'degree' ? Math.PI / 180 : 1;
   switch (name) {
     case 'sin': requireArgCount(name, args, 1); return finite(Math.sin(values[0] * angleScale));
     case 'cos': requireArgCount(name, args, 1); return finite(Math.cos(values[0] * angleScale));
-    case 'tan': requireArgCount(name, args, 1); return finite(Math.tan(values[0] * angleScale));
+    case 'tan':
+      requireArgCount(name, args, 1);
+      if (Math.abs(Math.cos(values[0] * angleScale)) < 1e-15) throw new Error('Invalid domain');
+      return finite(Math.tan(values[0] * angleScale));
     case 'arcsin': requireArgCount(name, args, 1); return finite(Math.asin(values[0]) / angleScale);
     case 'arccos': requireArgCount(name, args, 1); return finite(Math.acos(values[0]) / angleScale);
     case 'arctan': requireArgCount(name, args, 1); return finite(Math.atan(values[0]) / angleScale);
@@ -305,7 +312,9 @@ function evaluateNode(node: ExpressionNode, environment: EvaluationEnvironment):
         case '+': return finite(left + right);
         case '-': return finite(left - right);
         case '×': return finite(left * right);
-        case '÷': return finite(left / right);
+        case '÷':
+          if (right === 0) throw new Error('Division by zero');
+          return finite(left / right);
         case '^': return finite(left ** right);
       }
     }

@@ -384,6 +384,13 @@
 
 }
 
+.calc-value-error {
+  font-size: 14px;
+  color: #ff6b62;
+  white-space: normal;
+
+}
+
 .calc-buttons {
   display: grid;
   flex: 1;

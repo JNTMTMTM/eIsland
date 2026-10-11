@@ -35,6 +35,7 @@ import type {
   ScientificFn,
   UseCalculatorReturn,
 } from '../types/calculatorTypes';
+import { getCalculatorErrorCode } from '../utils/calculatorErrorUtils';
 import { INITIAL_STATE } from '../config/calculatorConfig';
 import { evaluateFormula, formatDisplay, getScientificInput } from '../utils/calculatorUtils';
 import {
@@ -60,9 +61,9 @@ const STRUCTURE_KIND: Partial<Record<ScientificFn, FormulaStructureKind>> = {
 function evaluateResult(document: FormulaDocument, angleUnit: CalcAngleUnit): Partial<CalcState> {
   try {
     const answer = evaluateFormula(serializeFormulaDocument(document), angleUnit);
-    return { result: formatDisplay(answer), answer };
-  } catch {
-    return { result: 'Error' };
+    return { result: formatDisplay(answer), answer, errorCode: null };
+  } catch (error) {
+    return { result: 'Error', errorCode: getCalculatorErrorCode(error) };
   }
 }
 
@@ -182,6 +183,7 @@ export function useCalculator(): UseCalculatorReturn {
     document: state.document,
     formula,
     result: state.result,
+    errorCode: state.errorCode,
     cursor: state.cursor,
     angleUnit,
     setAngleUnit,

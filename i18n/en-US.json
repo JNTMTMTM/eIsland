@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "errors": {
+      "divisionByZero": "Cannot divide by zero",
+      "domain": "The input is outside this function’s domain",
+      "incomplete": "Complete the formula and close all brackets",
+      "syntax": "The formula contains an invalid symbol",
+      "unboundVariable": "Use graphing or equation solving for variable x",
+      "unknownFunction": "This function is not supported",
+      "range": "Check the function arguments or summation range",
+      "convergence": "The numerical calculation did not converge",
+      "overflow": "The result exceeds the numerical range",
+      "invalid": "Invalid expression"
+    },
     "clipboard": {
       "copyFormula": "Copy formula",
       "copyResult": "Copy result",

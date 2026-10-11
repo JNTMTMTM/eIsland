@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import type { CalculatorErrorCode } from '../utils/calculatorErrorUtils';
+
 export type CalcOperator = '+' | '-' | '×' | '÷';
 /** 三角函数输入与反三角函数输出使用的角度单位。 */
 export type CalcAngleUnit = 'degree' | 'radian';
@@ -78,6 +80,7 @@ export interface FormulaCursor {
 }
 
 export interface CalcState {
+  errorCode?: CalculatorErrorCode | null;
   answer: number | null;
   document: FormulaDocument;
   result: string | null;
@@ -85,6 +88,7 @@ export interface CalcState {
 }
 
 export interface UseCalculatorReturn {
+  errorCode?: CalculatorErrorCode | null;
   document: FormulaDocument;
   formula: string;
   result: string | null;

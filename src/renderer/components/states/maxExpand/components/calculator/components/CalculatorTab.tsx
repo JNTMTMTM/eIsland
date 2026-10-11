@@ -170,6 +170,7 @@ export function CalculatorTab(): ReactElement {
       document={calculator.document}
       fontSize={displayFontSize}
       result={isCoordinate ? null : calculator.result}
+      errorCode={calculator.errorCode}
       hasResult={!isCoordinate && calculator.result !== null}
       showValue={!isCoordinate}
       onCursorChange={calculator.moveCursor}
