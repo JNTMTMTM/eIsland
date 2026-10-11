@@ -30,6 +30,7 @@ import useIslandStore from '../../../../../../store/slices';
 import type { AiChatMessage } from '../../../../../../store/types';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { readLocalToken, readLocalProfile, subscribeUserAccountSessionChanged, getRoleFromToken } from '../../../../../../utils/userAccount';
+import { useShallow } from 'zustand/react/shallow';
 import { resolveSessionCardState } from '../utils/sessionUtils';
 import { type AiLocalToolAccessPrompt } from '../types/chatTypes';
 import {
@@ -241,7 +242,18 @@ export function useChatState(): ChatState {
     aiWebAccessPrompt, setAiWebAccessPrompt,
     aiWebAccessResolveError, setAiWebAccessResolveError,
     setLogin, setRegister, dominantColor,
-  } = useIslandStore();
+  } = useIslandStore(useShallow((store) => ({
+    aiConfig: store.aiConfig, setAiConfig: store.setAiConfig,
+    aiChatMessages: store.aiChatMessages, aiChatSessions: store.aiChatSessions,
+    activeAiChatSessionId: store.activeAiChatSessionId, aiChatStreaming: store.aiChatStreaming,
+    createNewAiChatSession: store.createNewAiChatSession, switchAiChatSession: store.switchAiChatSession,
+    deleteAiChatSession: store.deleteAiChatSession, setAiChatStreaming: store.setAiChatStreaming,
+    setMaxExpandTab: store.setMaxExpandTab, setAiChatSessionMessages: store.setAiChatSessionMessages,
+    markAiChatSessionReplyFinished: store.markAiChatSessionReplyFinished, setAiChatMessages: store.setAiChatMessages,
+    aiWebAccessPrompt: store.aiWebAccessPrompt, setAiWebAccessPrompt: store.setAiWebAccessPrompt,
+    aiWebAccessResolveError: store.aiWebAccessResolveError, setAiWebAccessResolveError: store.setAiWebAccessResolveError,
+    setLogin: store.setLogin, setRegister: store.setRegister, dominantColor: store.dominantColor,
+  })));
 
   // ── 用户会话同步 ──
   useEffect(() => {
@@ -558,6 +570,7 @@ export function useChatState(): ChatState {
     controller?.abort();
     SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
     SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
+    useIslandStore.getState().retainAiChatSession(activeAiChatSessionId, false);
     refreshActiveSessionStreaming();
     if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
@@ -572,6 +585,7 @@ export function useChatState(): ChatState {
     controller?.abort();
     SESSION_ABORT_CONTROLLERS.delete(activeAiChatSessionId);
     SESSION_STREAMING_IDS.delete(activeAiChatSessionId);
+    useIslandStore.getState().retainAiChatSession(activeAiChatSessionId, false);
     refreshActiveSessionStreaming();
     if (pendingMessageFlushRafRef.current !== null && pendingMessageFlushRafRef.current !== undefined) {
       window.cancelAnimationFrame(pendingMessageFlushRafRef.current);
@@ -579,7 +593,7 @@ export function useChatState(): ChatState {
     }
     pendingAssistantChunkRef.current = '';
     pendingThinkChunksRef.current.clear();
-    createNewAiChatSession();
+    void createNewAiChatSession().catch(() => {});
     setVisibleWindowStart(0);
     setPendingQuote(null);
     setResolvingWebAccessDecision(false);

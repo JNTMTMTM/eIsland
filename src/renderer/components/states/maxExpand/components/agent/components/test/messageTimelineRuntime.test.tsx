@@ -25,6 +25,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from 'zustand/vanilla';
 import { createAiSlice } from '../../../../../../../store/slices/aiSlice';
+import { installAiChatStorage } from '../../../../../../../store/slices/test/aiChatStorageFixture';
 import installStorage from '../../../../../../../store/slices/test/sliceStorageFixture';
 import { elements, find, invoke, text } from '../../../../../test/tree';
 import { createHookReactMock, renderHook, resetHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
@@ -32,7 +33,7 @@ import type { StoreApi } from 'zustand/vanilla';
 import type { AiSlice, AiChatMessage, AiToolCall } from '../../../../../../../store/types';
 let Component: typeof import('../MessageTimeline').MessageTimeline;
 let store: StoreApi<AiSlice>;
-let storage: ReturnType<typeof installStorage>;
+let database: ReturnType<typeof installAiChatStorage>;
 const report = vi.fn<(traceId: string, answer: string) => void>();
 /** 构造真实消息工具协议。
  * @param tool - 名称
@@ -71,8 +72,10 @@ beforeEach(async () => {
   resetHook();
   vi.resetModules();
   vi.resetAllMocks();
-  storage = installStorage();
+  installStorage();
+  database = installAiChatStorage();
   store = createStore<AiSlice>()(createAiSlice);
+  await store.getState().ensureAiChatReady();
   vi.doMock('../../../../../../../store/slices', () => ({
     default: (selector: (state: AiSlice) => unknown) => selector(store.getState())
   }));
@@ -86,7 +89,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('MessageTimeline real helpers and state actions', () => {
-  it('groups stable tool turns, todo snapshots and reasoning, persisting every real duration callback', () => {
+  it('groups stable tool turns, todo snapshots and reasoning, persisting every real duration callback', async () => {
     const msg: AiChatMessage = {
       role: 'assistant',
       content: 'answer ```\ncode\n```',
@@ -130,7 +133,8 @@ describe('MessageTimeline real helpers and state actions', () => {
       invoke(node, 'onDurationComputed', index + 10);
     });
     expect(store.getState().aiChatMessages[1].thinkDurations).toEqual([10, 11, 12, 13]);
-    expect(JSON.parse(storage.values.get('eIsland_aiChatMessages') ?? '[]') as AiChatMessage[]).toMatchObject([{
+    await store.getState().flushAiChatStorage();
+    expect(database.records.get(store.getState().activeAiChatSessionId)?.messages).toMatchObject([{
       content: 'input'
     }, {
       thinkDurations: [10, 11, 12, 13]

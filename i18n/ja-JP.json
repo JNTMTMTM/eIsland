@@ -1022,7 +1022,9 @@
     },
     "feedback": {
       "issueTitle": "エージェントの出力が想定と異なる - {{traceId}}"
-    }
+    },
+    "storageLoading": "チャット履歴を読み込んでいます…",
+    "storageRetry": "再試行"
   },
   "urlFavoritesTab": {
     "title": "URLのお気に入り",

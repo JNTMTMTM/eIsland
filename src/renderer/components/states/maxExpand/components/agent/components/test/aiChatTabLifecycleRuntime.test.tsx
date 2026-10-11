@@ -28,9 +28,9 @@ import { createHookReactMock, flushHookEffects, renderHook, resetHook, settleHoo
 import { installChatRuntime, roleToken } from '../../hooks/test/chatRuntimeFixture';
 import type { RefObject } from 'react';
 import type { AiChatMessage } from '../../../../../../../store/types';
-let Component: typeof import('../AiChatTab').AiChatTab;
+let Component: typeof import('../AiChatTab').AiChatContent;
 let hooks: typeof import('../../hooks/useChatState');
-let runtime: ReturnType<typeof installChatRuntime>;
+let runtime: Awaited<ReturnType<typeof installChatRuntime>>;
 const writeText = vi.fn<(value: string) => Promise<void>>();
 const fetchLeaf = vi.fn<typeof fetch>();
 /** 读取真实组件当前树。
@@ -77,7 +77,7 @@ beforeEach(async () => {
   resetHook();
   vi.resetModules();
   vi.resetAllMocks();
-  runtime = installChatRuntime();
+  runtime = await installChatRuntime();
   Object.assign(runtime.navigation, {
     dominantColor: [34, 51, 68]
   });
@@ -97,7 +97,7 @@ beforeEach(async () => {
   vi.doMock('react', async (original) => createHookReactMock(await original<typeof import('react')>()));
   hooks = await import('../../hooks/useChatState');
   ({
-    AiChatTab: Component
+    AiChatContent: Component
   } = await import('../AiChatTab'));
 });
 afterEach(() => {
@@ -108,6 +108,25 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('AiChatTab real state and send integration', () => {
+  it('loads only when the chat shell mounts, exposes retry and releases bodies on unmount', async () => {
+    ({ AiChatTab: Component } = await import('../AiChatTab'));
+    messages([{ role: 'user', content: 'persisted' }]);
+    await runtime.store.getState().flushAiChatStorage();
+    mount();
+    await settleHook();
+    unmountHook();
+    expect(runtime.store.getState().aiChatMessages).toEqual([]);
+    resetHook();
+    mount();
+    await settleHook();
+    expect(runtime.store.getState().aiChatMessages[0].content).toBe('persisted');
+    runtime.store.setState({ aiChatStorageError: true });
+    const tree = run();
+    expect(text(tree)).toContain('aiChat.storageRetry');
+    invoke(find(tree, (node) => node.type === 'button'), 'onClick');
+    await settleHook();
+    expect(runtime.store.getState().aiChatStorageError).toBe(false);
+  });
   it('guest actions navigate to login and registration', () => {
     const tree = mount();
     expect(text(tree)).toContain('aiChat.auth.entryTitle');
@@ -132,7 +151,7 @@ describe('AiChatTab real state and send integration', () => {
     invoke(byClass(run(), 'max-expand-chat-clear'), 'onClick');
     expect(runtime.store.getState().activeAiChatSessionId).not.toBe(previous);
   });
-  it('session switch resets pending quote, syncs native stream marker and delete stops propagation', () => {
+  it('session switch resets pending quote, syncs native stream marker and delete stops propagation', async () => {
     login();
     runtime.store.getState().createNewAiChatSession();
     const first = runtime.store.getState().activeAiChatSessionId;
@@ -156,6 +175,7 @@ describe('AiChatTab real state and send integration', () => {
     invoke(byClass(run(), 'max-expand-chat-session-delete'), 'onClick', event);
     expect(event.preventDefault).toHaveBeenCalledOnce();
     expect(event.stopPropagation).toHaveBeenCalledOnce();
+    await settleHook();
     expect(runtime.store.getState().aiChatSessions).toHaveLength(count - 1);
   });
   it('history buttons navigate real bounded message windows', () => {

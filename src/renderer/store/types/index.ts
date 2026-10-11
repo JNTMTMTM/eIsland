@@ -296,6 +296,9 @@ export interface AiChatSession {
   title: string;
   updatedAt: number;
   messages: AiChatMessage[];
+  /** false 表示仅有索引；正文必须异步读取，不能当作空会话保存。 */
+  messagesLoaded?: boolean;
+  replyStatus?: 'idle' | 'success' | 'failed';
 }
 
 /** AI Web 访问提示 */
@@ -450,13 +453,20 @@ export interface AiSlice {
   aiConfig: AiConfig;
   setAiConfig: (config: Partial<AiConfig>) => void;
 
+  aiChatReady: boolean;
+  aiChatLoading: boolean;
+  aiChatStorageError: boolean;
+  ensureAiChatReady: () => Promise<void>;
+  releaseAiChatBodies: () => void;
+  retainAiChatSession: (sessionId: string, retained: boolean) => void;
+  flushAiChatStorage: () => Promise<void>;
   aiChatSessions: AiChatSession[];
   activeAiChatSessionId: string;
   aiChatMessages: AiChatMessage[];
   aiChatStreaming: boolean;
-  createNewAiChatSession: () => void;
-  switchAiChatSession: (sessionId: string) => void;
-  deleteAiChatSession: (sessionId: string) => void;
+  createNewAiChatSession: () => Promise<void>;
+  switchAiChatSession: (sessionId: string) => Promise<void>;
+  deleteAiChatSession: (sessionId: string) => Promise<void>;
   setAiChatStreaming: (streaming: boolean) => void;
   setAiChatSessionMessages: (sessionId: string, messages: AiChatMessage[]) => void;
   markAiChatSessionReplyFinished: (sessionId: string, finishedAt?: number) => void;

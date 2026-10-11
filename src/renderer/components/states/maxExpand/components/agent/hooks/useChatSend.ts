@@ -187,6 +187,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
 
   /** 发送消息并调用 API */
   const handleSend = useCallback(async (): Promise<void> => {
+    if (useIslandStore.getState().aiChatLoading || !useIslandStore.getState().aiChatReady) return;
     const text = input.trim();
     const targetSessionId = activeAiChatSessionId;
     if (!text) return;
@@ -284,6 +285,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
     const controller = new AbortController();
     SESSION_ABORT_CONTROLLERS.set(targetSessionId, controller);
     SESSION_STREAMING_IDS.add(targetSessionId);
+    useIslandStore.getState().retainAiChatSession(targetSessionId, true);
     refreshActiveSessionStreaming();
 
     try {
@@ -1032,6 +1034,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
         storeState.setAiChatSessionMessages(targetSessionId, finalMessages);
       }
       markAiChatSessionReplyFinished(targetSessionId, Date.now());
+      useIslandStore.getState().retainAiChatSession(targetSessionId, false);
       setResolvingWebAccessDecision(false);
       setResolvingLocalToolAccessDecision(false);
     }

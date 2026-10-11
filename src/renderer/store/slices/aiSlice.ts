@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { aiChatStorage, toAiChatIndex } from '../utils/aiChatStorage';
 import type { StateCreator } from 'zustand';
 import type { AiSlice, AiConfig, AiChatMessage, AiChatSession, AiWebAccessPrompt, AiSkill } from '../types';
 
@@ -345,48 +346,6 @@ function loadActiveAiChatSessionId(): string {
   }
 }
 
-function saveAiChatMessages(messages: AiChatMessage[]): void {
-  try {
-    localStorage.setItem(AI_CHAT_MESSAGES_KEY, JSON.stringify(messages));
-  } catch (err) {
-    console.warn('[aiSlice] saveAiChatMessages failed', err);
-  }
-}
-
-function saveAiChatSessions(sessions: AiChatSession[], activeSessionId: string): void {
-  try {
-    localStorage.setItem(AI_CHAT_SESSIONS_KEY, JSON.stringify(sessions));
-    localStorage.setItem(AI_ACTIVE_CHAT_SESSION_ID_KEY, activeSessionId);
-    const activeSession = sessions.find((session) => session.id === activeSessionId);
-    saveAiChatMessages(activeSession?.messages || []);
-  } catch (err) {
-    console.warn('[aiSlice] saveAiChatSessions failed', err);
-  }
-}
-
-function initializeAiChatState(): {
-  sessions: AiChatSession[];
-  activeSessionId: string;
-  activeMessages: AiChatMessage[];
-} {
-  const loadedSessions = loadAiChatSessions();
-  const legacyMessages = loadAiChatMessages();
-  let sessions = loadedSessions;
-  if (sessions.length === 0) {
-    sessions = [createAiChatSession(legacyMessages)];
-  }
-  let activeSessionId = loadActiveAiChatSessionId();
-  if (!activeSessionId || !sessions.some((session) => session.id === activeSessionId)) {
-    activeSessionId = sessions[0].id;
-  }
-  const activeMessages = sessions.find((session) => session.id === activeSessionId)?.messages || [];
-  return {
-    sessions,
-    activeSessionId,
-    activeMessages,
-  };
-}
-
 function normalizeAiWebAccessPrompt(value: AiWebAccessPrompt | null): AiWebAccessPrompt | null {
   if (!value) {
     return null;
@@ -420,7 +379,68 @@ export const createAiSlice: StateCreator<
   [],
   AiSlice
 > = (set, get) => {
-  const initialChatState = initializeAiChatState();
+  let readyTask: Promise<void> | null = null;
+  let selectionVersion = 0;
+  let releaseActiveOnSettle = false;
+  const retained = new Set<string>();
+  const dirty = new Set<string>();
+  const deleting = new Set<string>();
+  const saving = new Map<string, Promise<void>>();
+
+  const releaseBodies = (releaseActive = releaseActiveOnSettle): void => {
+    const state = get();
+    const sessions = state.aiChatSessions.map((session) => {
+      if ((!releaseActive && session.id === state.activeAiChatSessionId) || retained.has(session.id)
+        || dirty.has(session.id) || saving.has(session.id) || session.messagesLoaded === false) return session;
+      return { ...toAiChatIndex(session), messages: [], messagesLoaded: false };
+    });
+    const clearActive = releaseActive && !retained.has(state.activeAiChatSessionId)
+      && !dirty.has(state.activeAiChatSessionId) && !saving.has(state.activeAiChatSessionId) && state.aiChatMessages.length > 0;
+    if (clearActive || sessions.some((session, index) => session !== state.aiChatSessions[index])) {
+      set({ aiChatSessions: sessions, ...(clearActive ? { aiChatMessages: [] } : {}) });
+    }
+  };
+
+  const persist = (id: string): Promise<void> => {
+    if (deleting.has(id)) return Promise.resolve();
+    dirty.add(id);
+    const current = saving.get(id);
+    if (current) return current;
+    const task = (async () => {
+      // 只持有正在写的一个快照，写入期间的新变更合并为下一次快照。
+      while (dirty.has(id)) {
+        const session = get().aiChatSessions.find((item) => item.id === id);
+        if (!session || session.messagesLoaded === false) { dirty.delete(id); break; }
+        dirty.delete(id);
+        try { await aiChatStorage.save(session); }
+        catch (error) { dirty.add(id); set({ aiChatStorageError: true }); throw error; }
+      }
+    })().finally(() => { saving.delete(id); releaseBodies(); });
+    saving.set(id, task);
+    return task;
+  };
+  const save = (id: string): void => { void persist(id).catch((error) => console.warn('[aiSlice] save session failed', error)); };
+  const select = async (id: string): Promise<void> => {
+    const target = get().aiChatSessions.find((session) => session.id === id);
+    if (!target) return;
+    const version = ++selectionVersion;
+    set({ activeAiChatSessionId: id, aiChatMessages: target.messages, aiChatLoading: true });
+    try {
+      const messages = target.messagesLoaded === false ? await aiChatStorage.read(id) : target.messages;
+      if (!messages) throw new Error('Chat session body is missing');
+      if (version !== selectionVersion) return;
+      set((state) => ({
+        aiChatMessages: messages, aiChatLoading: false,
+        aiChatSessions: state.aiChatSessions.map((session) => session.id === id
+          ? { ...session, messages, messagesLoaded: true } : session),
+      }));
+      try { localStorage.setItem(AI_ACTIVE_CHAT_SESSION_ID_KEY, id); } catch { /* 选择失败不影响正文事务。 */ }
+      releaseBodies();
+    } catch (error) {
+      if (version === selectionVersion) set({ aiChatLoading: false, aiChatStorageError: true });
+      throw error;
+    }
+  };
 
   if (typeof window !== 'undefined') {
     window.addEventListener('storage', (event) => {
@@ -432,151 +452,127 @@ export const createAiSlice: StateCreator<
 
   return {
     aiConfig: loadAiConfig(),
-    aiChatSessions: initialChatState.sessions,
-    activeAiChatSessionId: initialChatState.activeSessionId,
-    aiChatMessages: initialChatState.activeMessages,
+    aiChatReady: false,
+    aiChatLoading: false,
+    aiChatStorageError: false,
+    aiChatSessions: [],
+    activeAiChatSessionId: '',
+    aiChatMessages: [],
     aiChatStreaming: false,
     aiWebAccessPrompt: null,
     aiWebAccessResolveError: '',
 
+    ensureAiChatReady: async () => {
+      releaseActiveOnSettle = false;
+      if (get().aiChatReady) {
+        const active = get().aiChatSessions.find((item) => item.id === get().activeAiChatSessionId);
+        await get().flushAiChatStorage();
+        if (active?.messagesLoaded === false) await select(active.id);
+        set({ aiChatStorageError: false });
+        return;
+      }
+      if (readyTask) return readyTask;
+      set({ aiChatLoading: true, aiChatStorageError: false });
+      readyTask = (async () => {
+        await aiChatStorage.initialize(() => {
+          const sessions = loadAiChatSessions();
+          return sessions.length ? sessions : [createAiChatSession(loadAiChatMessages())];
+        }, () => ({ sessions: localStorage.getItem(AI_CHAT_SESSIONS_KEY), messages: localStorage.getItem(AI_CHAT_MESSAGES_KEY) }));
+        // 只有所有正文与迁移标记提交完成，才删除可重试的旧数据。
+        try {
+          localStorage.removeItem(AI_CHAT_SESSIONS_KEY);
+          localStorage.removeItem(AI_CHAT_MESSAGES_KEY);
+        } catch { /* 旧数据保留不影响已提交的新存储。 */ }
+        const index = await aiChatStorage.list();
+        if (!index.length) {
+          const first = createAiChatSession();
+          await aiChatStorage.save(first);
+          index.push(toAiChatIndex(first));
+        }
+        const sessions = index.map((item) => ({ ...item, messages: [], messagesLoaded: false }));
+        const preferred = loadActiveAiChatSessionId();
+        set({ aiChatSessions: sessions });
+        await select(sessions.some((item) => item.id === preferred) ? preferred : sessions[0].id);
+        set({ aiChatReady: true });
+      })().catch((error) => { set({ aiChatLoading: false, aiChatStorageError: true }); throw error; })
+        .finally(() => { readyTask = null; });
+      return readyTask;
+    },
+    releaseAiChatBodies: () => { releaseActiveOnSettle = true; releaseBodies(true); },
+    retainAiChatSession: (id, keep) => { if (keep) retained.add(id); else { retained.delete(id); releaseBodies(); } },
+    flushAiChatStorage: async () => { await Promise.all([...saving.values(), ...[...dirty].map(persist)]); },
     setAiConfig: (partial) => {
       const next = { ...get().aiConfig, ...partial };
       saveAiConfig(next);
       set({ aiConfig: next });
     },
-
-    createNewAiChatSession: () => {
-      const nextSession = createAiChatSession([]);
-      const nextSessions = [nextSession, ...get().aiChatSessions];
-      saveAiChatSessions(nextSessions, nextSession.id);
-      set({
-        aiChatSessions: nextSessions,
-        activeAiChatSessionId: nextSession.id,
-        aiChatMessages: [],
-        aiChatStreaming: false,
-        aiWebAccessPrompt: null,
-        aiWebAccessResolveError: '',
-      });
+    createNewAiChatSession: async () => {
+      if (!get().aiChatReady) await get().ensureAiChatReady();
+      const session = { ...createAiChatSession(), messagesLoaded: true };
+      set({ aiChatSessions: [session, ...get().aiChatSessions], aiChatStreaming: false,
+        aiWebAccessPrompt: null, aiWebAccessResolveError: '' });
+      await select(session.id);
+      save(session.id);
     },
-
-    switchAiChatSession: (sessionId) => {
-      const target = get().aiChatSessions.find((session) => session.id === sessionId);
-      if (!target) {
-        return;
-      }
-      saveAiChatSessions(get().aiChatSessions, target.id);
-      set({
-        activeAiChatSessionId: target.id,
-        aiChatMessages: target.messages,
-        aiChatStreaming: false,
-      });
+    switchAiChatSession: async (id) => {
+      if (!get().aiChatReady) await get().ensureAiChatReady();
+      set({ aiChatStreaming: false });
+      await select(id);
     },
-
-    deleteAiChatSession: (sessionId) => {
-      const sessions = get().aiChatSessions;
-      if (sessions.length <= 1) {
-        return;
-      }
-      const nextSessions = sessions.filter((session) => session.id !== sessionId);
-      if (nextSessions.length === 0) {
-        return;
-      }
-      const activeId = get().activeAiChatSessionId === sessionId
-        ? nextSessions[0].id
-        : get().activeAiChatSessionId;
-      const activeMessages = nextSessions.find((session) => session.id === activeId)?.messages || [];
-      saveAiChatSessions(nextSessions, activeId);
-      set({
-        aiChatSessions: nextSessions,
-        activeAiChatSessionId: activeId,
-        aiChatMessages: activeMessages,
-        aiChatStreaming: false,
-      });
+    deleteAiChatSession: async (id) => {
+      if (!get().aiChatReady) await get().ensureAiChatReady();
+      if (get().aiChatSessions.length <= 1 || deleting.has(id)) return;
+      deleting.add(id);
+      dirty.delete(id);
+      try {
+        await saving.get(id)?.catch(() => {});
+        await aiChatStorage.remove(id);
+        retained.delete(id);
+        const sessions = get().aiChatSessions.filter((session) => session.id !== id);
+        set({ aiChatSessions: sessions });
+        if (get().activeAiChatSessionId === id) await select(sessions[0].id);
+      } catch (error) { set({ aiChatStorageError: true }); throw error; }
+      finally { deleting.delete(id); }
     },
-
     setAiChatStreaming: (streaming) => {
-      const nextStreaming = Boolean(streaming);
-      const prevStreaming = get().aiChatStreaming;
-      set({ aiChatStreaming: nextStreaming });
-      if (prevStreaming && !nextStreaming) {
-        saveAiChatSessions(get().aiChatSessions, get().activeAiChatSessionId);
-      }
+      const previous = get().aiChatStreaming;
+      set({ aiChatStreaming: Boolean(streaming) });
+      if (previous && !streaming) save(get().activeAiChatSessionId);
     },
-
-    setAiChatSessionMessages: (sessionId, messages) => {
-      const nextSessions = get().aiChatSessions.map((session) => {
-        if (session.id !== sessionId) {
-          return session;
-        }
-        return {
-          ...session,
-          messages,
-          title: deriveAiChatSessionTitle(messages),
-        };
-      });
-      if (!get().aiChatStreaming || sessionId !== get().activeAiChatSessionId) {
-        saveAiChatSessions(nextSessions, get().activeAiChatSessionId);
-      }
+    setAiChatSessionMessages: (id, messages) => {
+      const target = get().aiChatSessions.find((session) => session.id === id);
+      if (!target || target.messagesLoaded === false || deleting.has(id)) return;
+      const updated = { ...target, messages, title: deriveAiChatSessionTitle(messages), messagesLoaded: true };
       set((state) => ({
-        aiChatSessions: nextSessions,
-        aiChatMessages: state.activeAiChatSessionId === sessionId ? messages : state.aiChatMessages,
+        aiChatSessions: state.aiChatSessions.map((session) => session.id === id ? updated : session),
+        aiChatMessages: state.activeAiChatSessionId === id ? messages : state.aiChatMessages,
       }));
+      dirty.add(id);
+      if (!get().aiChatStreaming || id !== get().activeAiChatSessionId) save(id);
     },
-
-    markAiChatSessionReplyFinished: (sessionId, finishedAt) => {
-      const stamp = typeof finishedAt === 'number' && Number.isFinite(finishedAt) ? finishedAt : Date.now();
-      const nextSessions = get().aiChatSessions.map((session) => {
-        if (session.id !== sessionId) {
-          return session;
-        }
-        return {
-          ...session,
-          updatedAt: stamp,
-        };
-      });
-      saveAiChatSessions(nextSessions, get().activeAiChatSessionId);
-      set({ aiChatSessions: nextSessions });
+    markAiChatSessionReplyFinished: (id, finishedAt) => {
+      const target = get().aiChatSessions.find((session) => session.id === id);
+      if (!target || target.messagesLoaded === false || deleting.has(id)) return;
+      const updatedAt = typeof finishedAt === 'number' && Number.isFinite(finishedAt) ? finishedAt : Date.now();
+      set((state) => ({ aiChatSessions: state.aiChatSessions.map((session) => session.id === id ? { ...session, updatedAt } : session) }));
+      save(id);
     },
-
     setAiChatMessageThinkDuration: (messageIndex, thinkIndex, seconds) => {
       const messages = [...get().aiChatMessages];
-      const msg = messages[messageIndex];
-      if (!msg) return;
-      const durations = Array.isArray(msg.thinkDurations) ? [...msg.thinkDurations] : [];
+      const message = messages[messageIndex];
+      if (!message) return;
+      const durations = [...(message.thinkDurations ?? [])];
       if (durations[thinkIndex] === seconds) return;
       durations[thinkIndex] = seconds;
-      messages[messageIndex] = { ...msg, thinkDurations: durations };
-      set({ aiChatMessages: messages });
-      const activeId = get().activeAiChatSessionId;
-      const nextSessions = get().aiChatSessions.map((session) =>
-        session.id === activeId ? { ...session, messages } : session,
-      );
-      saveAiChatSessions(nextSessions, activeId);
-      set({ aiChatSessions: nextSessions });
+      messages[messageIndex] = { ...message, thinkDurations: durations };
+      get().setAiChatSessionMessages(get().activeAiChatSessionId, messages);
     },
-
     clearAiChatMessages: () => {
-      const now = Date.now();
-      const activeId = get().activeAiChatSessionId;
-      const nextSessions = get().aiChatSessions.map((session) => {
-        if (session.id !== activeId) {
-          return session;
-        }
-        return {
-          ...session,
-          title: '新对话',
-          updatedAt: now,
-          messages: [],
-        };
-      });
-      saveAiChatSessions(nextSessions, activeId);
-      set({
-        aiChatSessions: nextSessions,
-        aiChatMessages: [],
-        aiChatStreaming: false,
-        aiWebAccessPrompt: null,
-        aiWebAccessResolveError: '',
-      });
+      const id = get().activeAiChatSessionId;
+      if (retained.has(id)) return;
+      get().setAiChatSessionMessages(id, []);
+      get().markAiChatSessionReplyFinished(id);
+      set({ aiChatStreaming: false, aiWebAccessPrompt: null, aiWebAccessResolveError: '' });
     },
 
     setAiWebAccessPrompt: (prompt) => {

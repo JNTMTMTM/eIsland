@@ -26,15 +26,16 @@
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, nodes, value, trigger, text } from '../../../../test/componentHarness';
-import { AiChatTab as Component } from '../AiChatTab';
+import { AiChatContent as Component } from '../AiChatTab';
 import { ChatInputBar } from '../ChatInputBar';
 import { MessageTimeline } from '../MessageTimeline';
 import { AssistantMarkdown } from '../AssistantMarkdown';
 import { WebAccessPanel, LocalToolAccessPanel } from '../WebAccessPanel';
 interface MessageFixture { role: string; content: string; attachments?: { name: string }[]; }
 interface PromptFixture { sessionId: string; url?: string; message?: string; tool?: string; }
-const state = vi.hoisted(() => ({ hasLoginSession: true, agentMode: 'mihtnelis', currentAgentModeConfig: { label: 'Island' }, dominantColor: [0, 200, 0], orderedSessions: [] as { id: string; title: string; updatedAt: number }[], aiChatMessages: [] as MessageFixture[], visibleMessages: [] as MessageFixture[], aiChatStreaming: false, aiWebAccessPrompt: null as PromptFixture | null, aiLocalToolAccessPrompt: null as PromptFixture | null, emptyGreeting: 'Welcome', aiConfig: {}, activeAiChatSessionId: 'active', visibleStartIndex: 0, VISIBLE_CHAT_WINDOW_SIZE: 20, VISIBLE_CHAT_WINDOW_STEP: 10, inputRef: { current: { focus: vi.fn() } }, setLogin: vi.fn(), setRegister: vi.fn(), handleCreateNewChat: vi.fn(), getSessionCardState: () => 'idle', switchAiChatSession: vi.fn(), setAiChatStreaming: vi.fn(), setVisibleWindowStart: vi.fn(), setResolvingWebAccessDecision: vi.fn(), setResolvingLocalToolAccessDecision: vi.fn(), setPendingQuote: vi.fn(), deleteAiChatSession: vi.fn() }));
+const state = vi.hoisted(() => ({ hasLoginSession: true, agentMode: 'mihtnelis', currentAgentModeConfig: { label: 'Island' }, dominantColor: [0, 200, 0], orderedSessions: [] as { id: string; title: string; updatedAt: number }[], aiChatMessages: [] as MessageFixture[], visibleMessages: [] as MessageFixture[], aiChatStreaming: false, aiWebAccessPrompt: null as PromptFixture | null, aiLocalToolAccessPrompt: null as PromptFixture | null, emptyGreeting: 'Welcome', aiConfig: {}, activeAiChatSessionId: 'active', visibleStartIndex: 0, VISIBLE_CHAT_WINDOW_SIZE: 20, VISIBLE_CHAT_WINDOW_STEP: 10, inputRef: { current: { focus: vi.fn() } }, setLogin: vi.fn(), setRegister: vi.fn(), handleCreateNewChat: vi.fn(), getSessionCardState: () => 'idle', switchAiChatSession: vi.fn().mockResolvedValue(undefined), setAiChatStreaming: vi.fn(), setVisibleWindowStart: vi.fn(), setResolvingWebAccessDecision: vi.fn(), setResolvingLocalToolAccessDecision: vi.fn(), setPendingQuote: vi.fn(), deleteAiChatSession: vi.fn().mockResolvedValue(undefined) }));
 const send = vi.hoisted(() => ({ handleSend: vi.fn(), navigateToSettingsTab: vi.fn(), handleResolveWebAccess: vi.fn(), handleResolveLocalToolAccess: vi.fn() }));
+vi.mock('../../../../../../../store/slices', () => ({ default: vi.fn() }));
 vi.mock('../../hooks/useChatState', () => ({ useChatState: () => state, SESSION_STREAMING_IDS: new Set(['other']) }));
 vi.mock('../../hooks/useChatSend', () => ({ useChatSend: () => send }));
 vi.mock('../MessageTimeline', () => ({ MessageTimeline: () => null }));

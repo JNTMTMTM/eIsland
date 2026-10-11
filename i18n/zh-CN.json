@@ -882,6 +882,8 @@
     }
   },
   "aiChat": {
+    "storageLoading": "正在加载聊天记录…",
+    "storageRetry": "聊天记录未能保存或加载，点击重试",
     "title": "mihtnelis Agent",
     "notConfigured": "未配置",
     "localModelGenerated": "本地模型生成",

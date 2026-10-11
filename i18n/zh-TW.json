@@ -1022,7 +1022,9 @@
     },
     "feedback": {
       "issueTitle": "Agent輸出不符合預期 - {{traceId}}"
-    }
+    },
+    "storageLoading": "正在載入聊天記錄…",
+    "storageRetry": "重試"
   },
   "urlFavoritesTab": {
     "title": "URL 收藏",

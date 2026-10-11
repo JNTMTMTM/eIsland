@@ -25,12 +25,14 @@
  */
 import { vi } from 'vitest';
 import { createStore } from 'zustand/vanilla';
+import { installAiChatStorage } from '../../../../../../../store/slices/test/aiChatStorageFixture';
 import { createAiSlice } from '../../../../../../../store/slices/aiSlice';
 import type { AiSlice } from '../../../../../../../store/types';
 /** 安装真实状态切片，浏览器和 IPC 在外部边界被隔离。
  * @returns 本地数据、真实 store 和原生能力探针
  */
-export function installChatRuntime() {
+export async function installChatRuntime() {
+  installAiChatStorage();
   const storage = new Map<string, string>();
   const localStorage = {
     getItem: (key: string) => storage.get(key) ?? null,
@@ -68,6 +70,7 @@ export function installChatRuntime() {
   vi.stubGlobal('window', browser);
   vi.stubGlobal('document', documentTarget);
   const store = createStore<AiSlice>()(createAiSlice);
+  await store.getState().ensureAiChatReady();
   const navigation = {
     setMaxExpandTab: vi.fn<(tab: string) => void>(),
     setLogin: vi.fn(),
@@ -78,8 +81,9 @@ export function installChatRuntime() {
     ...store.getState(),
     ...navigation
   });
+  vi.doMock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
   vi.doMock('../../../../../../../store/slices', () => ({
-    default: Object.assign(getState, {
+    default: Object.assign((selector?: (state: ReturnType<typeof getState>) => unknown) => selector ? selector(getState()) : getState(), {
       getState,
       subscribe: store.subscribe
     })

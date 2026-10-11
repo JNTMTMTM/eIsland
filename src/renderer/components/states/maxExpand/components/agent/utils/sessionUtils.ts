@@ -53,6 +53,7 @@ export function resolveSessionCardState(params: {
   }
 
   const session = sessions.find((item) => item.id === sessionId);
+  if (session?.messagesLoaded === false) return session.replyStatus ?? 'idle';
   if (!session || !Array.isArray(session.messages) || session.messages.length === 0) {
     return 'idle';
   }

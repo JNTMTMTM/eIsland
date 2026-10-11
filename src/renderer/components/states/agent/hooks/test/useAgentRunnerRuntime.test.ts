@@ -27,6 +27,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRef, useState } from 'react';
 import { createStore } from 'zustand/vanilla';
 import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../hooks/test/startupHookHarness';
+import { installAiChatStorage } from '../../../../../store/slices/test/aiChatStorageFixture';
 import { createAiSlice } from '../../../../../store/slices/aiSlice';
 import type { AiConfig, AiSlice } from '../../../../../store/types';
 import type { AuthPending } from '../../types/AuthPending';
@@ -185,7 +186,9 @@ beforeEach(async () => {
     localStorage,
     api
   }));
+  installAiChatStorage();
   store = createStore<AiSlice>()(createAiSlice);
+  await store.getState().ensureAiChatReady();
   vi.doMock('../../../../../store/isLandStore', () => ({
     default: {
       getState: store.getState
@@ -351,6 +354,25 @@ describe('useAgentRunner real state and helpers', () => {
     if (mode === 'resolve') pending.resolve();else pending.reject(new Error('late'));
     await settleHook();
     expect(store.getState().aiChatMessages).toEqual([]);
+  });
+  it('pins the original body during asynchronous skill preparation and saves its reply after switching', async () => {
+    const original = store.getState().activeAiChatSessionId;
+    store.getState().setAiChatMessages([{ role: 'user', content: 'original' }]);
+    configure({ skills: [{ id: 'skill', name: 'skill', filePath: '/skill', enabled: true }] });
+    const skill = deferred<string>();
+    leaves.readText.mockReturnValue(skill.promise);
+    leaves.cloud.mockImplementation(async (request) => { emit(request, 'chunk', { text: 'answer' }); });
+    await mount();
+    await store.getState().createNewAiChatSession();
+    const selected = store.getState().activeAiChatSessionId;
+    expect(store.getState().aiChatSessions.find((item) => item.id === original)?.messages).toHaveLength(1);
+    skill.resolve('skill');
+    await settleHook();
+    await store.getState().flushAiChatStorage();
+    expect(store.getState().activeAiChatSessionId).toBe(selected);
+    expect(store.getState().aiChatMessages).toEqual([]);
+    await store.getState().switchAiChatSession(original);
+    expect(store.getState().aiChatMessages.map((item) => item.content)).toEqual(['original', 'hello', 'answer']);
   });
   it('session replaced during stream persists public active-session state and absent metadata fallback', async () => {
     leaves.cloud.mockImplementation(async (request) => {

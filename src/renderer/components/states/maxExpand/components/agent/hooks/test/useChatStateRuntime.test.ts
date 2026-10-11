@@ -34,7 +34,7 @@ vi.mock('react', async (original) => {
   } = await import('../../../../../../hooks/test/startupHookHarness');
   return createHookReactMock(actual);
 });
-let runtime: Awaited<ReturnType<typeof installChatRuntime>>;
+let runtime: Awaited<Awaited<ReturnType<typeof installChatRuntime>>>;
 let target: typeof import('../useChatState');
 /** 读取真实 Hook 当前状态。
  * @returns Hook 状态
@@ -83,7 +83,7 @@ beforeEach(async () => {
   vi.resetModules();
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-10-06T12:00:00Z'));
-  runtime = installChatRuntime();
+  runtime = await installChatRuntime();
   await import('../../utils/chatHelpers');
   target = await import('../useChatState');
 });
