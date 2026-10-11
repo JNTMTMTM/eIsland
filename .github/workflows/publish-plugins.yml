@@ -80,7 +80,7 @@ jobs:
 
       - name: Setup .NET SDK
         if: steps.version.outputs.skip != 'true' && matrix.platform != 'macos'
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -172,7 +172,7 @@ jobs:
 
       - name: Setup .NET SDK
         if: steps.version.outputs.skip != 'true' && matrix.platform != 'macos'
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
