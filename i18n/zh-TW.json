@@ -23,7 +23,8 @@
       "minimize": "最小化",
       "maximize": "最大化",
       "close": "關閉"
-    }
+    },
+    "loading": "載入中…"
   },
   "capture": {
     "source": {

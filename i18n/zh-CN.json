@@ -6,6 +6,7 @@
     }
   },
   "standalone": {
+    "loading": "加载中…",
     "tabs": {
       "todo": "待办事项",
       "countdown": "倒数日",

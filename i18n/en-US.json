@@ -6,6 +6,7 @@
     }
   },
   "standalone": {
+    "loading": "Loading…",
     "tabs": {
       "todo": "Todo",
       "countdown": "Countdown",

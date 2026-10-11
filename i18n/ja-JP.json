@@ -23,7 +23,8 @@
       "minimize": "最小化",
       "maximize": "最大化",
       "close": "閉じる"
-    }
+    },
+    "loading": "読み込み中…"
   },
   "capture": {
     "source": {
