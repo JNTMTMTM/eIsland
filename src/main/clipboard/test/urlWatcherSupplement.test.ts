@@ -46,6 +46,49 @@ const options = { getWindow: () => windowFixture, getEnabled: () => true, getDet
 beforeEach(() => { vi.resetAllMocks(); vi.useFakeTimers(); mocks.read.mockReturnValue(''); });
 afterEach(() => { stopClipboardUrlWatcher(); vi.restoreAllMocks(); vi.useRealTimers(); });
 describe('clipboard title request cleanup', () => {
+  it('times out a body that stalls after headers and releases its reader', async () => {
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    const releaseLock = vi.fn();
+    mocks.fetch.mockResolvedValue({ ok: true, status: 200, headers: { get: () => 'text/html' }, body: {
+      getReader: () => ({ read: () => new Promise(() => {}), cancel, releaseLock }),
+    } });
+    startClipboardUrlWatcher(options);
+    mocks.read.mockReturnValue('https://fixture.example/stalled');
+    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(releaseLock).toHaveBeenCalledOnce();
+    expect(mocks.send).toHaveBeenCalledWith('clipboard:urls-detected', { urls: ['https://fixture.example/stalled'], title: '' });
+  });
+  it('replaces pending requests and ignores late results after stopping', async () => {
+    const signals: AbortSignal[] = [];
+    mocks.fetch.mockImplementation((_url, init) => {
+      signals.push(init.signal);
+      return new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))));
+    });
+    startClipboardUrlWatcher(options);
+    mocks.read.mockReturnValue('https://fixture.example/one');
+    await vi.advanceTimersByTimeAsync(1000);
+    mocks.read.mockReturnValue('https://fixture.example/two');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(false);
+    stopClipboardUrlWatcher();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(signals.every((signal) => signal.aborted)).toBe(true);
+    expect(mocks.send).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('does not retain or parse a title beyond the byte budget in one oversized chunk', async () => {
+    const read = vi.fn().mockResolvedValue({ done: false, value: new TextEncoder().encode('x'.repeat(8192) + '<title>Too late</title>') });
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    mocks.fetch.mockResolvedValue({ ok: true, status: 200, headers: { get: () => 'text/html' }, body: { getReader: () => ({ read, cancel }) } });
+    startClipboardUrlWatcher(options);
+    mocks.read.mockReturnValue('https://fixture.example/large');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(read).toHaveBeenCalledOnce();
+    expect(mocks.send).toHaveBeenCalledWith('clipboard:urls-detected', { urls: ['https://fixture.example/large'], title: '' });
+  });
   it('handles empty clipboard values at startup and on a poll without fetching', async () => {
     startClipboardUrlWatcher(options);
     await vi.advanceTimersByTimeAsync(1000);
