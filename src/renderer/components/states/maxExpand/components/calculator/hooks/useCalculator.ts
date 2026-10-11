@@ -26,9 +26,11 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type {
+  CalcAngleUnit,
   CalcOperator,
   CalcState,
   FormulaCursor,
+  FormulaDocument,
   FormulaStructureKind,
   ScientificFn,
   UseCalculatorReturn,
@@ -55,12 +57,31 @@ const STRUCTURE_KIND: Partial<Record<ScientificFn, FormulaStructureKind>> = {
   nthroot: 'root',
 };
 
+function evaluateResult(document: FormulaDocument, angleUnit: CalcAngleUnit): string {
+  try {
+    return formatDisplay(evaluateFormula(serializeFormulaDocument(document), angleUnit));
+  } catch {
+    return 'Error';
+  }
+}
+
 /**
  * 管理结构化公式、槽位光标和最终求值。
  * @returns 计算器编辑状态与操作方法
  */
 export function useCalculator(): UseCalculatorReturn {
   const [state, setState] = useState<CalcState>(INITIAL_STATE);
+  const [angleUnit, setAngleUnitState] = useState<CalcAngleUnit>('degree');
+
+  const setAngleUnit = useCallback((unit: CalcAngleUnit): void => {
+    if (unit === angleUnit) return;
+    setAngleUnitState(unit);
+    // 切换单位时同步已有结果，避免新单位旁仍显示旧单位的计算值。
+    setState((previous) => previous.result === null ? previous : {
+      ...previous,
+      result: evaluateResult(previous.document, unit),
+    });
+  }, [angleUnit]);
 
   const insertText = useCallback((text: string, replaceInitial = true, cursorOffset = 0): void => {
     setState((previous) => ({
@@ -75,15 +96,8 @@ export function useCalculator(): UseCalculatorReturn {
   const inputOperator = useCallback((operator: CalcOperator): void => insertText(operator, false), [insertText]);
 
   const calculate = useCallback((): void => {
-    setState((previous) => {
-      try {
-        const formula = serializeFormulaDocument(previous.document);
-        return { ...previous, result: formatDisplay(evaluateFormula(formula)) };
-      } catch {
-        return { ...previous, result: 'Error' };
-      }
-    });
-  }, []);
+    setState((previous) => ({ ...previous, result: evaluateResult(previous.document, angleUnit) }));
+  }, [angleUnit]);
 
   const clear = useCallback((): void => {
     const initial = createInitialFormula();
@@ -148,6 +162,8 @@ export function useCalculator(): UseCalculatorReturn {
     formula,
     result: state.result,
     cursor: state.cursor,
+    angleUnit,
+    setAngleUnit,
     inputDigit,
     inputDot,
     inputOperator,

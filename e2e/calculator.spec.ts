@@ -52,10 +52,25 @@ test('arithmetic preserves calculation and keeps all four keypad columns aligned
   expect(desktop.rendererErrors).toEqual([]);
 });
 
-test('scientific lays out nested formulas, edits clicked slots and scrolls long expressions', async ({ desktop }, testInfo) => {
+test('scientific switches angle units, lays out nested formulas and scrolls long expressions', async ({ desktop }, testInfo) => {
   const page = desktop.main;
   const display = page.getByRole('textbox', { name: en.calculator.display.expression });
   await page.getByRole('button', { name: en.calculator.modes.scientific, exact: true }).click();
+  const degree = page.getByRole('button', { name: en.calculator.angleUnit.degree, exact: true });
+  const radian = page.getByRole('button', { name: en.calculator.angleUnit.radian, exact: true });
+  await expect(degree).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'sin', exact: true }).click();
+  await display.pressSequentially('30');
+  await display.press('Enter');
+  await expect(page.locator('.calc-value')).toHaveText('0.5');
+  await radian.click();
+  await expect(radian).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.calc-value')).toHaveText('-0.988031624093');
+  await expect(display).toHaveAttribute('aria-description', 'sin(30)');
+  await degree.click();
+  await expect(page.locator('.calc-value')).toHaveText('0.5');
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('angles.png') });
+  await page.getByRole('button', { name: 'C', exact: true }).click();
   await page.getByRole('button', { name: en.calculator.functions.fraction, exact: true }).click();
   await page.getByRole('button', { name: '√', exact: true }).click();
   await display.press('9');
@@ -96,6 +111,8 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   const display = page.getByRole('textbox', { name: en.calculator.display.expression });
   await display.pressSequentially('2');
   await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();
+  await expect(page.locator('.calc-function-label')).toContainText(en.calculator.angleUnit.radianShort);
+  await expect(page.locator('.calc-angle-unit')).toHaveCount(0);
   await expect(display).toHaveAttribute('aria-description', '2');
   await page.getByRole('button', { name: en.calculator.coordinate.toggleKeys }).click();
   await page.getByRole('button', { name: 'C', exact: true }).click();

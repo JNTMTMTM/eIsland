@@ -2645,6 +2645,13 @@
     }
   },
   "calculator": {
+    "angleUnit": {
+      "label": "角度単位",
+      "degree": "度数法（DEG）",
+      "radian": "ラジアン（RAD）",
+      "degreeShort": "DEG",
+      "radianShort": "RAD"
+    },
     "display": {
       "expression": "計算式",
       "error": "無効な式"
@@ -2668,6 +2675,7 @@
       "variable": "変数x"
     },
     "coordinate": {
+      "radianHint": "グラフの三角関数はラジアンを使用します",
       "placeholder": "関数を入力（例: x^2, sin(x)）",
       "error": "無効な式",
       "plot": "関数のグラフ",

@@ -2645,6 +2645,13 @@
     }
   },
   "calculator": {
+    "angleUnit": {
+      "label": "Angle unit",
+      "degree": "Degrees (DEG)",
+      "radian": "Radians (RAD)",
+      "degreeShort": "DEG",
+      "radianShort": "RAD"
+    },
     "display": {
       "expression": "Expression",
       "error": "Invalid expression"
@@ -2668,6 +2675,7 @@
       "variable": "Variable x"
     },
     "coordinate": {
+      "radianHint": "Graph trigonometric functions use radians",
       "placeholder": "Enter function, e.g. x^2, sin(x)",
       "error": "Invalid expression",
       "plot": "Function graph",

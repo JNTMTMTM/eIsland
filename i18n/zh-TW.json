@@ -2645,6 +2645,13 @@
     }
   },
   "calculator": {
+    "angleUnit": {
+      "label": "角度單位",
+      "degree": "角度（DEG）",
+      "radian": "弧度（RAD）",
+      "degreeShort": "DEG",
+      "radianShort": "RAD"
+    },
     "display": {
       "expression": "計算公式",
       "error": "運算式無效"
@@ -2668,6 +2675,7 @@
       "variable": "變量 x"
     },
     "coordinate": {
+      "radianHint": "繪圖中的三角函數使用弧度",
       "placeholder": "輸入函數，如 x^2, sin(x)",
       "error": "無效的表達式",
       "plot": "函數圖像",

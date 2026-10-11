@@ -171,7 +171,28 @@ export function CalculatorTab(): ReactElement {
       <div className="calc-main">
         <div className="calc-toolbar">
           <span className="calc-mode-title">{t(`calculator.modes.${activeMode}`)}</span>
-          {isCoordinate && <span className="calc-function-label">{'y = f(x)'}</span>}
+          {isCoordinate ? (
+            <span className="calc-function-label" title={t('calculator.coordinate.radianHint')}>
+              {'y = f(x) · '}{t('calculator.angleUnit.radianShort')}
+            </span>
+          ) : (
+            <div className="calc-angle-unit" role="group" aria-label={t('calculator.angleUnit.label')}>
+              {(['degree', 'radian'] as const).map((unit) => (
+                <button
+                  className="calc-angle-unit-btn"
+                  key={unit}
+                  type="button"
+                  title={t(`calculator.angleUnit.${unit}`)}
+                  aria-label={t(`calculator.angleUnit.${unit}`)}
+                  aria-pressed={calculator.angleUnit === unit}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => calculator.setAngleUnit(unit)}
+                >
+                  {t(`calculator.angleUnit.${unit}Short`)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {isCoordinate ? (
           <div className="calc-coordinate-layout">

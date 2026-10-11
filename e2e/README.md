@@ -35,7 +35,7 @@ npm run test:e2e:windows
 | 文件 | 覆盖 |
 |------|------|
 | `desktop.spec.ts` | 5 个跨平台业务 UI 用例：启动、待办生命周期、跨窗口同步、独立窗口重开、倒数日生命周期 |
-| `calculator.spec.ts` | 3 个计算器 UI 用例：四则运算按键对齐、嵌套公式点击编辑与长公式滚动、绘图尺寸与模式切换 |
+| `calculator.spec.ts` | 3 个计算器 UI 用例：四则运算按键对齐、角度/弧度切换、嵌套公式点击编辑与长公式滚动、绘图尺寸与模式切换 |
 | `windows.spec.ts` | 原生 HWND 裁剪区域随展开/收缩变化、真实桌面光标触发 hover/离开、全局快捷键隐藏/恢复与注销 |
 | `windows-native.spec.ts` | 真实 DLL 提取 PNG 图标与不存在路径、SMTC 状态查询、设备音量和屏幕亮度读写 |
 

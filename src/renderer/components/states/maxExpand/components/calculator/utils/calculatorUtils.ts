@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { ScientificFn } from '../types/calculatorTypes';
+import type { CalcAngleUnit, ScientificFn } from '../types/calculatorTypes';
 
 type ExpressionNode =
   | { type: 'number'; value: number }
@@ -36,6 +36,7 @@ type ExpressionNode =
 
 interface EvaluationEnvironment {
   x?: number;
+  angleUnit: CalcAngleUnit;
 }
 
 const MAX_SUM_TERMS = 100_000;
@@ -262,13 +263,14 @@ function evaluateCall(node: Extract<ExpressionNode, { type: 'call' }>, environme
   }
 
   const values = args.map((arg) => evaluateNode(arg, environment));
+  const angleScale = environment.angleUnit === 'degree' ? Math.PI / 180 : 1;
   switch (name) {
-    case 'sin': requireArgCount(name, args, 1); return finite(Math.sin(values[0]));
-    case 'cos': requireArgCount(name, args, 1); return finite(Math.cos(values[0]));
-    case 'tan': requireArgCount(name, args, 1); return finite(Math.tan(values[0]));
-    case 'arcsin': requireArgCount(name, args, 1); return finite(Math.asin(values[0]));
-    case 'arccos': requireArgCount(name, args, 1); return finite(Math.acos(values[0]));
-    case 'arctan': requireArgCount(name, args, 1); return finite(Math.atan(values[0]));
+    case 'sin': requireArgCount(name, args, 1); return finite(Math.sin(values[0] * angleScale));
+    case 'cos': requireArgCount(name, args, 1); return finite(Math.cos(values[0] * angleScale));
+    case 'tan': requireArgCount(name, args, 1); return finite(Math.tan(values[0] * angleScale));
+    case 'arcsin': requireArgCount(name, args, 1); return finite(Math.asin(values[0]) / angleScale);
+    case 'arccos': requireArgCount(name, args, 1); return finite(Math.acos(values[0]) / angleScale);
+    case 'arctan': requireArgCount(name, args, 1); return finite(Math.atan(values[0]) / angleScale);
     case 'log': requireArgCount(name, args, 1); return finite(Math.log10(values[0]));
     case 'ln': requireArgCount(name, args, 1); return finite(Math.log(values[0]));
     case 'sqrt': requireArgCount(name, args, 1); return finite(Math.sqrt(values[0]));
@@ -314,10 +316,11 @@ function evaluateNode(node: ExpressionNode, environment: EvaluationEnvironment):
 /**
  * 对完整公式执行 AST 解析与数值求值。
  * @param formula - 使用规范 DSL 与计算器显示运算符的公式
+ * @param angleUnit - 三角函数角度单位，默认使用数学公式中的弧度
  * @returns 公式计算结果
  */
-export function evaluateFormula(formula: string): number {
-  return finite(evaluateNode(new FormulaParser(formula).parse(), {}));
+export function evaluateFormula(formula: string, angleUnit: CalcAngleUnit = 'radian'): number {
+  return finite(evaluateNode(new FormulaParser(formula).parse(), { angleUnit }));
 }
 
 /**

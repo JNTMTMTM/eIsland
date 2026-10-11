@@ -25,6 +25,8 @@
  */
 
 export type CalcOperator = '+' | '-' | '×' | '÷';
+/** 三角函数输入与反三角函数输出使用的角度单位。 */
+export type CalcAngleUnit = 'degree' | 'radian';
 export type CalcButtonAction =
   | 'digit'
   | 'operator'
@@ -86,6 +88,8 @@ export interface UseCalculatorReturn {
   formula: string;
   result: string | null;
   cursor: FormulaCursor;
+  angleUnit: CalcAngleUnit;
+  setAngleUnit: (unit: CalcAngleUnit) => void;
   inputDigit: (digit: string) => void;
   inputDot: () => void;
   inputOperator: (operator: CalcOperator) => void;
