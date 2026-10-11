@@ -198,6 +198,7 @@ declare global {
       extractVideoTrack: (options: ExtractVideoTrackOptions) => Promise<ExtractVideoTrackResult>;
       netFetch: (url: string, options?: NetFetchOptions) => Promise<NetFetchResult>;
       mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number) => Promise<MailInboxResult>;
+      scheduleWakeup: (id: string, deadline: number | null) => Promise<boolean>;
       storeRead: (key: string, strict?: boolean) => Promise<unknown>;
       storeWrite: (key: string, data: unknown) => Promise<boolean>;
       storeCompareAndSwap: (key: string, expected: unknown, data: unknown) => Promise<'updated' | 'conflict' | 'error'>;

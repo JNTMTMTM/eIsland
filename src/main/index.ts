@@ -50,6 +50,7 @@ import { registerWallpaperVideoIpcHandlers } from './ipc/media/wallpaperVideo';
 import { registerFormatFactoryIpcHandlers } from './ipc/app/formatFactory';
 import { registerNetIpcHandlers } from './ipc/app/net';
 import { registerMailIpcHandlers } from './ipc/app/mail';
+import { registerReminderWakeups } from './services/reminderWakeups';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { handleAlbumMediaRequest } from './media/albumMedia';
 import { registerLogIpcHandlers } from './ipc/app/log';
@@ -601,6 +602,7 @@ function registerIpcHandlers(): void {
   });
 
   registerStoreIpcHandlers({ storeDir });
+  registerReminderWakeups();
   registerClaudeCodeStatusIpcHandlers({ service: claudeCodeStatusService });
   registerCodexStatusIpcHandlers(codexStatusService);
   registerSettingsPreviewHandler();

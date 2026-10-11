@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import scheduleDeadline from '../../utils/scheduleDeadline';
 import { SvgIcon } from '../../utils/SvgIcon';
 import type { NotificationData, TimerData } from '../../store/types';
 import {
@@ -71,7 +72,7 @@ export function useIslandTimerAndAlarm(options: UseIslandTimerAndAlarmOptions): 
     t,
   } = options;
 
-  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerWorkRef = useRef({ deadline: 0, published: 0, interval: null as ReturnType<typeof setInterval> | null, cancel: () => {} });
   const alarmFiredSetRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -87,113 +88,111 @@ export function useIslandTimerAndAlarm(options: UseIslandTimerAndAlarmOptions): 
   }, []);
 
   useEffect(() => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-
-    if (timerData?.state === 'running' && timerData.remainingSeconds > 0) {
-      timerIntervalRef.current = setInterval(() => {
-        const next = (timerData.remainingSeconds ?? 0) - 1;
-        if (next <= 0) {
-          setTimerData({
-            state: 'idle',
-            remainingSeconds: 0,
-            inputHours: '00',
-            inputMinutes: '00',
-            inputSeconds: '00',
-          });
-          setNotificationRef.current({
-            title: t('notification.timer.title', { defaultValue: '计时器' }),
-            body: t('notification.timer.finished', { defaultValue: '倒计时已结束' }),
-            icon: SvgIcon.TIMER,
-          });
-        } else {
-          setTimerData({ remainingSeconds: next });
-        }
-      }, 1000);
-    }
-
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
+    const work = timerWorkRef.current;
+    const clear = (): void => {
+      if (work.interval !== null) clearInterval(work.interval);
+      work.interval = null;
+      work.cancel();
+      work.cancel = () => {};
+      work.deadline = 0;
     };
+    if (timerData?.state !== 'running' || timerData.remainingSeconds <= 0) { clear(); return; }
+    if (work.deadline && timerData.remainingSeconds === work.published) return;
+    clear();
+    work.deadline = Date.now() + timerData.remainingSeconds * 1000;
+    work.published = timerData.remainingSeconds;
+    const tick = (): void => {
+      if (!work.deadline) return;
+      const next = Math.max(0, Math.ceil((work.deadline - Date.now()) / 1000));
+      work.published = next;
+      if (next === 0) {
+        clear();
+        setTimerData({ state: 'idle', remainingSeconds: 0, inputHours: '00', inputMinutes: '00', inputSeconds: '00' });
+        setNotificationRef.current({
+          title: t('notification.timer.title', { defaultValue: '计时器' }),
+          body: t('notification.timer.finished', { defaultValue: '倒计时已结束' }),
+          icon: SvgIcon.TIMER,
+        });
+      } else setTimerData({ remainingSeconds: next });
+    };
+    work.interval = setInterval(tick, 1000);
+    work.cancel = scheduleDeadline(work.deadline, tick);
   }, [timerData?.state, timerData?.remainingSeconds, setTimerData, language, setNotificationRef, t]);
 
+  useEffect(() => () => {
+    const work = timerWorkRef.current;
+    if (work.interval !== null) clearInterval(work.interval);
+    work.cancel();
+    work.deadline = 0;
+  }, []);
+
   useEffect(() => {
-    const alarmInterval = setInterval(async () => {
-      try {
-        const data = await window.api?.storeRead(ALARM_STORE_KEY);
-        if (!Array.isArray(data) || data.length === 0) return;
-        const soundEnabled = (await window.api?.storeRead(ALARM_SOUND_ENABLED_STORE_KEY).catch(() => true)) !== false;
-        const notificationEnabled = (await window.api?.storeRead(ALARM_NOTIFICATION_STORE_KEY).catch(() => true)) !== false;
-        const now = new Date();
-        const h = now.getHours();
-        const m = now.getMinutes();
-        const s = now.getSeconds();
-        const weekday = now.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-        const timeKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${h}:${m}:${s}`;
-        const disableOnceAlarmIds: number[] = [];
-        const triggeredSounds: Array<{ ringtone: unknown; loop: boolean }> = [];
-
-        data.forEach((alarmRaw) => {
-          const alarm = alarmRaw as AlarmItemSnapshot;
-          if (!alarm || !alarm.enabled) return;
-          if (alarm.hour !== h || alarm.minute !== m || alarm.second !== s) return;
-          const repeatDays = Array.isArray(alarm.repeat) ? alarm.repeat : [];
-          const hasRepeat = repeatDays.length > 0;
-          if (hasRepeat && !repeatDays.includes(weekday)) return;
-
-          const firedKey = `${alarm.id}-${timeKey}`;
+    let cancelled = false;
+    let alarms: AlarmItemSnapshot[] = [];
+    let soundEnabled = true;
+    let notificationEnabled = true;
+    let cancelDeadline = (): void => {};
+    const modified = new Set<string>();
+    const nextTime = (alarm: AlarmItemSnapshot, after: number): number => {
+      if (!alarm?.enabled || ![alarm.hour, alarm.minute, alarm.second].every(Number.isInteger)
+        || alarm.hour < 0 || alarm.hour > 23 || alarm.minute < 0 || alarm.minute > 59 || alarm.second < 0 || alarm.second > 59) return Infinity;
+      for (let offset = 0; offset <= 7; offset += 1) {
+        const date = new Date(after);
+        date.setDate(date.getDate() + offset);
+        date.setHours(alarm.hour, alarm.minute, alarm.second, 0);
+        if (date.getTime() > after && (!alarm.repeat?.length || alarm.repeat.includes(date.getDay()))) return date.getTime();
+      }
+      return Infinity;
+    };
+    const schedule = (): void => {
+      cancelDeadline();
+      if (cancelled) return;
+      const now = Date.now();
+      const occurrences = alarms.map((alarm) => ({ alarm, at: nextTime(alarm, now) }));
+      const due = Math.min(...occurrences.map((entry) => entry.at));
+      if (!Number.isFinite(due)) return;
+      cancelDeadline = scheduleDeadline(due, () => {
+        if (cancelled) return;
+        occurrences.filter((entry) => entry.at <= Date.now()).forEach(({ alarm, at }) => {
+          const firedKey = alarm.id + '-' + at;
           if (alarmFiredSetRef.current.has(firedKey)) return;
           alarmFiredSetRef.current.add(firedKey);
-
-          const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-          const label = alarm.label ? `${alarm.label}` : '';
-          if (notificationEnabled) {
-            const body = label
-              ? t('notification.alarm.bodyWithLabel', { defaultValue: '{{time}} — {{label}}', time: timeStr, label })
-              : t('notification.alarm.body', { defaultValue: '{{time}}', time: timeStr });
-            setNotificationRef.current({
-              title: t('notification.alarm.title', { defaultValue: '闹钟提醒' }),
-              body,
-              icon: SvgIcon.TIMER,
-            });
-          }
-
-          triggeredSounds.push({
-            ringtone: alarm.ringtone,
-            loop: alarm.loop !== false,
+          const timeStr = [alarm.hour, alarm.minute, alarm.second].map((part) => String(part).padStart(2, '0')).join(':');
+          if (notificationEnabled) setNotificationRef.current({
+            title: t('notification.alarm.title', { defaultValue: '闹钟提醒' }),
+            body: alarm.label
+              ? t('notification.alarm.bodyWithLabel', { defaultValue: '{{time}} — {{label}}', time: timeStr, label: alarm.label })
+              : t('notification.alarm.body', { defaultValue: '{{time}}', time: timeStr }),
+            icon: SvgIcon.TIMER,
           });
-
-          if (!hasRepeat) {
-            disableOnceAlarmIds.push(alarm.id);
+          if (soundEnabled) playAlarmSound({ ringtone: normalizeSystemAlarmRingtone(alarm.ringtone), loop: alarm.loop !== false });
+          if (!alarm.repeat?.length) {
+            alarms = alarms.map((item) => item.id === alarm.id ? { ...item, enabled: false } : item);
+            void window.api?.setAlarmEnabled(alarm.id, false).catch(() => {});
           }
         });
-
-        if (soundEnabled && triggeredSounds.length > 0) {
-          const latestSound = triggeredSounds[triggeredSounds.length - 1];
-          playAlarmSound({
-            ringtone: normalizeSystemAlarmRingtone(latestSound.ringtone),
-            loop: latestSound.loop,
-          });
-        }
-
-        if (disableOnceAlarmIds.length > 0) {
-          // 单次闹钟响铃后的自动关闭也同步回本窗口的小组件与管理页。
-          await Promise.all(disableOnceAlarmIds.map((id) =>
-            window.api?.setAlarmEnabled(id, false).catch(() => {}),
-          ));
-        }
-
-        if (alarmFiredSetRef.current.size > 200) {
-          alarmFiredSetRef.current.clear();
-        }
-      } catch {
-        // noop
-      }
-    }, 1000);
-    return () => clearInterval(alarmInterval);
+        if (alarmFiredSetRef.current.size > 200) alarmFiredSetRef.current.clear();
+        schedule();
+      });
+    };
+    const apply = (key: string, value: unknown): void => {
+      if (key === ALARM_STORE_KEY) alarms = Array.isArray(value) ? value as AlarmItemSnapshot[] : [];
+      if (key === ALARM_SOUND_ENABLED_STORE_KEY) soundEnabled = value !== false;
+      if (key === ALARM_NOTIFICATION_STORE_KEY) notificationEnabled = value !== false;
+    };
+    const keys = [ALARM_STORE_KEY, ALARM_SOUND_ENABLED_STORE_KEY, ALARM_NOTIFICATION_STORE_KEY];
+    const unsubscribe = window.api?.onSettingsChanged?.((channel, value) => {
+      if (channel === 'runtime:clock-changed') { schedule(); return; }
+      const key = channel.replace(/^store:/, '');
+      if (!keys.includes(key)) return;
+      modified.add(key);
+      apply(key, value);
+      schedule();
+    });
+    void Promise.all(keys.map(async (key) => {
+      const value = await window.api?.storeRead(key).catch(() => null);
+      if (!cancelled && !modified.has(key)) apply(key, value);
+    })).then(() => { if (!cancelled) schedule(); });
+    return () => { cancelled = true; cancelDeadline(); unsubscribe?.(); };
   }, [language, setNotificationRef, t]);
 }

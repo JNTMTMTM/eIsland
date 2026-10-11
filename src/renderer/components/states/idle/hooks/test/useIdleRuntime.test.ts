@@ -151,7 +151,7 @@ describe('useIdle true state and native lifecycle', () => {
     todoJSON = null;
     expect((await mount()).p0Count).toBe(0);
   });
-  it('polls real persisted priority counts every two seconds then cancels interval', async () => {
+  it('updates priority counts only on TODO and storage events', async () => {
     todoJSON = JSON.stringify([{
       done: false,
       priority: 'P0'
@@ -172,10 +172,10 @@ describe('useIdle true state and native lifecycle', () => {
     }]);
     await vi.advanceTimersByTimeAsync(1999);
     expect(run().p0Count).toBe(1);
-    await vi.advanceTimersByTimeAsync(1);
+    window.dispatchEvent(new CustomEvent('eisland:todos-updated', { detail: JSON.parse(todoJSON!) }));
     expect(run().p0Count).toBe(2);
     todoJSON = '{bad';
-    await vi.advanceTimersByTimeAsync(2000);
+    window.dispatchEvent(Object.assign(new Event('storage'), { key: 'eIsland_todos' }));
     expect(run().p0Count).toBe(0);
     unmountHook();
     expect(vi.getTimerCount()).toBe(0);

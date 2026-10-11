@@ -46,6 +46,7 @@ export function useIslandAutoDim(options: UseIslandAutoDimOptions): void {
 
   useEffect(() => {
     let cancelled = false;
+    let inFlight = false;
     let dimmed = false;
     let lastInWindowTime = Date.now();
     let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -72,11 +73,13 @@ export function useIslandAutoDim(options: UseIslandAutoDimOptions): void {
     };
 
     const tick = async (): Promise<void> => {
+      if (inFlight) return;
       if (!autoDimEnabledRef.current) {
         if (dimmed) restore();
         return;
       }
 
+      inFlight = true;
       try {
         const inWindow = await isMouseInWindow();
         if (cancelled) return;
@@ -91,13 +94,24 @@ export function useIslandAutoDim(options: UseIslandAutoDimOptions): void {
         }
       } catch {
         // noop
+      } finally {
+        inFlight = false;
       }
     };
 
-    intervalId = setInterval(() => { void tick(); }, 1000);
+    const reconcile = (): void => {
+      if (intervalId !== null) clearInterval(intervalId);
+      intervalId = null;
+      if (!autoDimEnabledRef.current) { restore(); return; }
+      lastInWindowTime = Date.now();
+      intervalId = setInterval(() => { void tick(); }, 1000);
+    };
+    window.addEventListener('island-auto-dim-config-updated', reconcile);
+    reconcile();
 
     return () => {
       cancelled = true;
+      window.removeEventListener('island-auto-dim-config-updated', reconcile);
       if (intervalId !== null) clearInterval(intervalId);
       if (dimmed) restore();
     };

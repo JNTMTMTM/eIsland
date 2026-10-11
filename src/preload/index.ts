@@ -776,6 +776,7 @@ const api = {
    * @param strict - true 时读取失败拒绝 Promise，false 时返回 null
    * @returns 解析后的数据，不存在时返回 null
    */
+  scheduleWakeup: (id: string, deadline: number | null): Promise<boolean> => ipcRenderer.invoke('runtime:schedule-wakeup', id, deadline),
   storeRead: (key: string, strict = false): Promise<unknown> => {
     return strict ? ipcRenderer.invoke('store:read', key, true) : ipcRenderer.invoke('store:read', key);
   },

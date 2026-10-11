@@ -168,6 +168,7 @@ const TRANSPORT_ROUTES = [
   ['mailInboxList', 'mail:inbox:list', 2, 'invoke'],
   ['storeWrite', 'store:write', 2, 'invoke'],
   ['storeCompareAndSwap', 'store:compare-and-swap', 3, 'invoke'],
+  ['scheduleWakeup', 'runtime:schedule-wakeup', 2, 'invoke'],
   ['setAlarmEnabled', 'alarm:set-enabled', 2, 'invoke'],
   ['hotkeyGet', 'hotkey:get', 0, 'invoke'],
   ['hotkeySet', 'hotkey:set', 1, 'invoke'],
@@ -358,7 +359,7 @@ beforeEach(() => {
 });
 
 describe('全部预加载API传输契约', () => {
-  it('250个公开API均在通道、监听或文件桥接清单中，防止漏测新入口', () => {
+  it('全部公开API均在通道、监听或文件桥接清单中，防止漏测新入口', () => {
     expect(Object.keys(mocks.api).sort()).toEqual([
       ...TRANSPORT_ROUTES.map((route) => route[0]),
       ...LISTENER_ROUTES.map((route) => route[0]),

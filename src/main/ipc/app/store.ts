@@ -99,7 +99,8 @@ export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOption
       if (!isValidStoreKey(key)) return false;
       const filePath = join(options.storeDir, `${key}.json`);
       writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
-      broadcastSettingChange(event.sender.id, `store:${key}`, data);
+      const notifySender = key === 'alarms' || key === 'alarm-sound-enabled' || key === 'alarm-notification-enabled' || key === 'break-reminder-items';
+      broadcastSettingChange(notifySender ? -1 : event.sender.id, `store:${key}`, data);
       return true;
     } catch (err) {
       console.error(`[Store] write '${key}' error:`, err);

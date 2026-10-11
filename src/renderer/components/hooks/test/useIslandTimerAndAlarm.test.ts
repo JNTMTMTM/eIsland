@@ -38,7 +38,7 @@ const disable = vi.fn();
 const notification = vi.fn();
 const timerUpdate = vi.fn();
 let options: Parameters<typeof useIslandTimerAndAlarm>[0];
-let nativeWindow: EventTarget & { api?: { storeRead: typeof read; setAlarmEnabled: typeof disable }; requestAnimationFrame: (callback: FrameRequestCallback) => number; cancelAnimationFrame: () => void };
+let nativeWindow: EventTarget & { api?: { storeRead: typeof read; setAlarmEnabled: typeof disable } & Partial<Pick<Window['api'], 'scheduleWakeup' | 'onSettingsChanged'>>; requestAnimationFrame: (callback: FrameRequestCallback) => number; cancelAnimationFrame: () => void };
 let frame: FrameRequestCallback | undefined;
 class AudioLeaf {
   static instances: AudioLeaf[] = [];
@@ -82,11 +82,11 @@ function alarm(extra: Record<string, unknown> = {}): Record<string, unknown> {
 /** 提交真实 Hook 的订阅与调度。 */
 function mount(): void { renderHook(useIslandTimerAndAlarm, options); flushHookEffects(); }
 /** 前进一个真实调度周期并完成叶请求。 */
-async function tick(): Promise<void> { await vi.advanceTimersByTimeAsync(1000); await settleHook(); }
+async function tick(): Promise<void> { await settleHook(); await vi.advanceTimersByTimeAsync(1000); await settleHook(); }
 
 beforeEach(() => {
   resetHook();
-  vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+  vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
   vi.setSystemTime(new Date(2026, 9, 5, 8, 0, 0));
   read.mockReset().mockImplementation((key: string) => Promise.resolve(key === 'alarms' ? [] : true));
   disable.mockReset().mockResolvedValue(true);
@@ -134,7 +134,7 @@ it('contains a timer snapshot whose remaining count disappears before the tick',
   expect(notification).toHaveBeenCalledOnce();
 });
 
-describe('alarm polling', () => {
+describe('alarm deadline scheduling', () => {
   it.each([null, {}, []])('ignores unusable alarm lists %j', async (list) => {
     read.mockResolvedValue(list); mount(); await tick();
     expect(notification).not.toHaveBeenCalled(); expect(disable).not.toHaveBeenCalled();
@@ -187,6 +187,64 @@ describe('alarm polling', () => {
 it('allows the same repeating alarm to ring again on the next day', async () => {
   read.mockImplementation((key: string) => Promise.resolve(key === 'alarms' ? [alarm({ repeat: [1, 2] })] : key !== 'alarm-sound-enabled'));
   mount(); await tick(); expect(notification).toHaveBeenCalledOnce();
-  vi.setSystemTime(new Date(2026, 9, 6, 8, 0, 0));
-  await tick(); expect(notification).toHaveBeenCalledTimes(2);
+  await vi.advanceTimersByTimeAsync(24 * 60 * 60 * 1000); expect(notification).toHaveBeenCalledTimes(2);
+});
+
+it('reads empty alarm configuration once and creates no idle wakeup', async () => {
+  mount(); await settleHook();
+  expect(read).toHaveBeenCalledTimes(3);
+  expect(vi.getTimerCount()).toBe(0);
+  await vi.advanceTimersByTimeAsync(600_000);
+  expect(read).toHaveBeenCalledTimes(3);
+});
+it('counts elapsed wall time when the renderer misses several seconds', async () => {
+  options.timerData = { ...options.timerData, state: 'running', remainingSeconds: 10 };
+  mount(); await settleHook();
+  vi.setSystemTime(Date.now() + 5000); await tick();
+  expect(timerUpdate).toHaveBeenLastCalledWith({ remainingSeconds: 4 });
+});
+
+it('recalculates local alarms after timezone changes while retaining the countdown deadline', async () => {
+  const previousTimezone = process.env.TZ;
+  const listeners = new Set<(channel: string, value: unknown) => void>();
+  const scheduleWakeup = vi.fn<Window['api']['scheduleWakeup']>().mockResolvedValue(true);
+  const send = (channel: string, value: unknown): void => { [...listeners].forEach((listener) => listener(channel, value)); };
+  try {
+    process.env.TZ = 'Asia/Shanghai';
+    const start = Date.parse('2026-10-05T00:00:00Z');
+    vi.setSystemTime(start);
+    expect(new Date().getHours()).toBe(8);
+    read.mockImplementation((key: string) => Promise.resolve(key === 'alarms' ? [alarm()] : key !== 'alarm-sound-enabled'));
+    Object.assign(nativeWindow.api!, {
+      scheduleWakeup,
+      onSettingsChanged: (listener: (channel: string, value: unknown) => void) => {
+        listeners.add(listener); return () => { listeners.delete(listener); };
+      },
+    });
+    options.timerData = { ...options.timerData, state: 'running', remainingSeconds: 10 };
+    mount(); await settleHook();
+    const originalAlarm = scheduleWakeup.mock.calls.find(([, deadline]) => deadline === start + 1000)!;
+    const countdown = scheduleWakeup.mock.calls.find(([, deadline]) => deadline === start + 10_000)!;
+    expect(originalAlarm).toBeDefined(); expect(countdown).toBeDefined();
+    process.env.TZ = 'Asia/Bangkok';
+    expect(new Date().getHours()).toBe(7);
+    send('runtime:clock-changed', -420);
+    expect(scheduleWakeup).toHaveBeenCalledWith(originalAlarm[0], null);
+    expect(scheduleWakeup).not.toHaveBeenCalledWith(countdown[0], null);
+    const nextAlarm = scheduleWakeup.mock.calls.find(([, deadline]) => deadline === start + 3_601_000)!;
+    expect(nextAlarm).toBeDefined();
+    vi.setSystemTime(start + 1000); send('runtime:wakeup', originalAlarm[0]);
+    expect(notification).not.toHaveBeenCalled();
+    vi.setSystemTime(start + 10_000); send('runtime:wakeup', countdown[0]);
+    expect(timerUpdate).toHaveBeenLastCalledWith({ state: 'idle', remainingSeconds: 0, inputHours: '00', inputMinutes: '00', inputSeconds: '00' });
+    expect(notification).toHaveBeenCalledTimes(1);
+    vi.setSystemTime(start + 3_601_000); send('runtime:wakeup', nextAlarm[0]);
+    expect(notification).toHaveBeenCalledTimes(2);
+    expect(notification.mock.calls.at(-1)?.[0].title).toBe('notification.alarm.title');
+    expect(disable).toHaveBeenCalledWith(1, false);
+    unmountHook(); expect(listeners.size).toBe(0);
+  } finally {
+    if (previousTimezone === undefined) delete process.env.TZ;
+    else process.env.TZ = previousTimezone;
+  }
 });

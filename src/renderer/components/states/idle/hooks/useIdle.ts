@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
 import { MUSIC_OUTER_GLOW_EFFECT_STORE_KEY, type IdleContentProps } from '../config/idleConfig';
 import { checkP0Count } from '../utils/checkP0Count';
+import { TODOS_UPDATED_EVENT, STORE_KEY, LOCAL_STORAGE_KEY } from '../../maxExpand/components/todo/config/todoConfig';
 import { padZero } from '../utils/padZero';
 
 /** Idle 状态交互逻辑 Hook */
@@ -52,8 +53,20 @@ export function useIdle(props: IdleContentProps) {
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
 
   useEffect(() => {
-    const id = setInterval(() => setP0Count(checkP0()), 2000);
-    return () => clearInterval(id);
+    const update = (): void => setP0Count(checkP0());
+    const countItems = (items: unknown): void => {
+      if (Array.isArray(items)) setP0Count(items.filter((item) => item && !item.done && item.priority === 'P0').length);
+    };
+    const localUpdate = (event: Event): void => countItems((event as CustomEvent).detail);
+    const storageUpdate = (event: StorageEvent): void => { if (event.key === LOCAL_STORAGE_KEY || event.key === null) update(); };
+    const unsubscribe = window.api?.onSettingsChanged?.((channel, value) => { if (channel === 'store:' + STORE_KEY) countItems(value); });
+    window.addEventListener(TODOS_UPDATED_EVENT, localUpdate);
+    window.addEventListener('storage', storageUpdate);
+    return () => {
+      unsubscribe?.();
+      window.removeEventListener(TODOS_UPDATED_EVENT, localUpdate);
+      window.removeEventListener('storage', storageUpdate);
+    };
   }, [checkP0]);
 
   useEffect(() => {
