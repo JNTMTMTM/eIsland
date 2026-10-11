@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-10T18:13:27.070Z
+> 生成时间：2026-10-11T16:56:59.692Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,36 @@
 
 ## Unreleased
 
+- 2026-10-11 | 010c7f60 | 鸡哥 | Merge pull request #230 from JNTMTMTM/dev
+- 2026-10-12 | 3bcf4b43 | 鸡哥 | fix(ci): reuse PR report comments and remove duplicates
+- 2026-10-12 | 77154f4f | 鸡哥 | ci: configure weekly Dependabot dependency updates
+- 2026-10-12 | eb5e5253 | 鸡哥 | fix(reminders): migrate legacy SVG icon paths
+- 2026-10-12 | 2f5fd603 | 鸡哥 | fix(ci): resolve PR quality violations and asset test timeout
+- 2026-10-11 | ac58f749 | 鸡哥 | fix(album): read original image size from local asset headers
+- 2026-10-11 | 2ba7481e | 鸡哥 | docs: remove performance audit report
+- 2026-10-11 | bd2221fd | 鸡哥 | fix: bound CLI snapshots and load event details on demand
+- 2026-10-11 | 2591c2da | 鸡哥 | fix: stream local assets and isolate screenshot encoding
+- 2026-10-11 | 4faf5284 | 鸡哥 | fix: virtualize album grids and bound visible media caching
+- 2026-10-11 | da803e6b | 鸡哥 | fix: bound WebGPU rendering and release device resources
+- 2026-10-11 | 960a245c | 鸡哥 | fix: isolate SMTC commands with deadlines and reusable STA
+- 2026-10-11 | 10f8c0f2 | 鸡哥 | fix: fetch mail summaries and load message bodies on demand
+- 2026-10-11 | ade58232 | 鸡哥 | fix: lazy load standalone window pages on demand
+- 2026-10-11 | 19420f9f | 鸡哥 | fix: checkpoint streaming chat sessions independently
+- 2026-10-11 | 04d3aa5b | 鸡哥 | fix: load chat history on demand from asynchronous session storage
+- 2026-10-11 | b591e640 | 鸡哥 | fix: suspend hidden window animations and background video
+- 2026-10-11 | a834b05e | 鸡哥 | fix: schedule reminders at deadlines instead of polling
+- 2026-10-11 | 27928aec | 鸡哥 | fix: run volume and brightness helpers asynchronously
+- 2026-10-11 | 1486d991 | 鸡哥 | fix: stream SMTC session deltas without repeated artwork
+- 2026-10-11 | 007fccb6 | 鸡哥 | fix: incrementally scan Codex logs in a dedicated worker
+- 2026-10-11 | 2621fc5d | 鸡哥 | fix: bound download history and shared connection ownership
+- 2026-10-11 | d7b3bd56 | 鸡哥 | fix: bound clipboard title requests and cancel stale work
+- 2026-10-11 | 2a5dbb08 | 鸡哥 | fix: isolate high-frequency renderer updates
+- 2026-10-11 | 9e29d123 | 鸡哥 | fix: share process snapshots when detecting external agents
+- 2026-10-11 | 017107a9 | 鸡哥 | feat: update version to 26.0.3 for macOS Brightness Helper and 26.1.4 for macOS Media Helper; enhance test coverage and skip non-macOS tests
+- 2026-10-10 | 69fe7cae | 鸡哥 | feat: update version to 26.0.2 for macOS Brightness Helper and enhance test coverage; update version to 26.1.3 for macOS Media Helper with improved test cases and commands
+- 2026-10-10 | a5794cbd | 鸡哥 | chore: update eisland-macos-media-helper to version 26.1.3
+- 2026-10-10 | 43391239 | 鸡哥 | feat: update version to 26.0.2, enhance test coverage, and add native coverage script
+- 2026-10-10 | e23db2d2 | eislandBot | docs: auto update CHANGE_LOG.md for #229 by @JNTMTMTM [skip ci]
 - 2026-10-10 | ddfb0c47 | 鸡哥 | Merge pull request #229 from JNTMTMTM/dev
 - 2026-10-10 | 42a712c3 | 鸡哥 | feat: update version to 26.0.1 and enhance documentation for macOS Brightness Helper
 - 2026-10-09 | df4131a9 | 鸡哥 | feat: add macOS Brightness Helper documentation and sidebar entry
