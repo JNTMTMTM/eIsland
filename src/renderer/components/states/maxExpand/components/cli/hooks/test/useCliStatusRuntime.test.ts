@@ -30,6 +30,9 @@ import type { CliProvider } from '../../../../../../../store/types';
 const context = vi.hoisted(() => ({
   active: true
 }));
+vi.mock('../../../../../../hooks/islandContentActivity', () => ({
+  useIslandContentActive: () => context.active
+}));
 let hook: typeof import('../useCliStatus');
 /** 完整原生状态协议。
  * @param updatedAt - 版本
@@ -127,10 +130,7 @@ beforeEach(async () => {
     api.clear.mockResolvedValue(snapshot(4));
     api.remove.mockResolvedValue(snapshot(5));
   });
-  vi.doMock('react', async (original) => ({
-    ...createHookReactMock(await original<typeof import('react')>()),
-    useContext: () => context.active
-  }));
+  vi.doMock('react', async (original) => createHookReactMock(await original<typeof import('react')>()));
   vi.stubGlobal('window', {
     api: {
       claudeCodeStatusGet: bridges.claude.get,

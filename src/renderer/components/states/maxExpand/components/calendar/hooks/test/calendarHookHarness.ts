@@ -43,7 +43,8 @@ export const language = languageData;
 const translation = vi.hoisted(() => ({
   t: (key: string) => key
 }));
-vi.mock('react-i18next', () => ({
+vi.mock('react-i18next', async (original) => ({
+  ...(await original<typeof import('react-i18next')>()),
   useTranslation: () => ({
     t: translation.t,
     i18n: {
