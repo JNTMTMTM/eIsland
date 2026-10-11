@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T17:24:26.420Z
+> 生成时间：2026-10-11T17:30:20.407Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-11 | a0ac6b0f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 38 updates (#237)
+- 2026-10-11 | d0d340e2 | eislandBot | docs: auto update CHANGE_LOG.md for #236 by @dependabot[bot] [skip ci]
 - 2026-10-11 | 7a12c31b | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update (#236)
 - 2026-10-11 | bf574c5c | eislandBot | docs: auto update CHANGE_LOG.md for #233 by @dependabot[bot] [skip ci]
 - 2026-10-11 | a3d20334 | dependabot[bot] | ci(deps): bump actions/checkout from 4 to 7 (#233)
