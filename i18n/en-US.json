@@ -2645,6 +2645,21 @@
     }
   },
   "calculator": {
+    "units": {
+      "category": "Category",
+      "value": "Value",
+      "from": "From unit",
+      "to": "To unit",
+      "swap": "Swap units",
+      "error": "Enter a finite number; temperatures must be above absolute zero",
+      "length": "Length",
+      "area": "Area",
+      "volume": "Volume",
+      "mass": "Mass",
+      "temperature": "Temperature",
+      "time": "Time",
+      "speed": "Speed"
+    },
     "errors": {
       "divisionByZero": "Cannot divide by zero",
       "domain": "The input is outside this function’s domain",

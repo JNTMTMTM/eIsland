@@ -2645,6 +2645,21 @@
     }
   },
   "calculator": {
+    "units": {
+      "category": "类别",
+      "value": "数值",
+      "from": "原单位",
+      "to": "目标单位",
+      "swap": "交换单位",
+      "error": "请输入有效数值，温度不能低于绝对零度",
+      "length": "长度",
+      "area": "面积",
+      "volume": "体积",
+      "mass": "质量",
+      "temperature": "温度",
+      "time": "时间",
+      "speed": "速度"
+    },
     "errors": {
       "divisionByZero": "不能除以零",
       "domain": "输入超出了函数的定义域",

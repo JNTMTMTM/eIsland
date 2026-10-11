@@ -2645,6 +2645,21 @@
     }
   },
   "calculator": {
+    "units": {
+      "category": "種類",
+      "value": "数値",
+      "from": "変換元",
+      "to": "変換先",
+      "swap": "単位を交換",
+      "error": "有限の数値を入力してください。絶対零度未満は指定できません",
+      "length": "長さ",
+      "area": "面積",
+      "volume": "体積",
+      "mass": "質量",
+      "temperature": "温度",
+      "time": "時間",
+      "speed": "速度"
+    },
     "errors": {
       "divisionByZero": "ゼロでは除算できません",
       "domain": "入力値が関数の定義域外です",

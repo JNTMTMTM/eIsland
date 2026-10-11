@@ -171,6 +171,61 @@
 
 }
 
+.calc-feature-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  font-size: 13px;
+  color: rgb(var(--color-text-rgb), .8);
+
+}
+
+.calc-feature-panel h3 {
+  margin: 0;
+  font-size: 14px;
+
+}
+
+.calc-feature-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+
+}
+
+.calc-feature-panel input,
+.calc-feature-panel select,
+.calc-feature-panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  font: inherit;
+  color: inherit;
+  background: var(--color-island-bg);
+  border: 1px solid rgb(var(--color-text-rgb), .16);
+  border-radius: 8px;
+
+}
+
+.calc-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+
+}
+
+.calc-feature-result {
+  padding: 12px;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+  background: rgb(var(--color-text-rgb), .04);
+  border-radius: 8px;
+
+}
+
 .calc-history summary {
   padding: 4px 0;
   cursor: pointer;

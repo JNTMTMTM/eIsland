@@ -2645,6 +2645,21 @@
     }
   },
   "calculator": {
+    "units": {
+      "category": "類別",
+      "value": "數值",
+      "from": "原單位",
+      "to": "目標單位",
+      "swap": "交換單位",
+      "error": "請輸入有效數值，溫度不能低於絕對零度",
+      "length": "長度",
+      "area": "面積",
+      "volume": "體積",
+      "mass": "質量",
+      "temperature": "溫度",
+      "time": "時間",
+      "speed": "速度"
+    },
     "errors": {
       "divisionByZero": "不能除以零",
       "domain": "輸入超出了函數的定義域",

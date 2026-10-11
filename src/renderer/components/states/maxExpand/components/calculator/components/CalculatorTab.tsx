@@ -33,6 +33,7 @@ import { useCalculator } from '../hooks/useCalculator';
 import { CalcDisplay } from './CalcDisplay';
 import { CalculatorSidebar } from './CalculatorSidebar';
 import { CoordinateGraph } from './CoordinateGraph';
+import { UnitConversion } from './UnitConversion';
 import { CalculatorHistory } from './CalculatorHistory';
 import { useCalculatorHistory } from '../hooks/useCalculatorHistory';
 import { normalizePastedFormula } from '../utils/clipboardUtils';
@@ -163,6 +164,8 @@ export function CalculatorTab(): ReactElement {
   const isCoordinate = activeMode === 'coordinate';
   const formulaLength = calculator.formula.length;
   const displayFontSize = formulaLength > 24 ? '20px' : formulaLength > 14 ? '26px' : '34px';
+  const standalonePanels: Partial<Record<CalcMode, ReactElement>> = { unitConversion: <UnitConversion /> };
+  const standalone = standalonePanels[activeMode];
   const display = (
     <CalcDisplay
       key={activeMode}
@@ -194,6 +197,7 @@ export function CalculatorTab(): ReactElement {
       />
 
       <div className="calc-main">
+        {standalone ? standalone : (<>
         <div className="calc-toolbar">
           <span className="calc-mode-title">{t(`calculator.modes.${activeMode}`)}</span>
           {isCoordinate ? (
@@ -269,6 +273,7 @@ export function CalculatorTab(): ReactElement {
         <CalculatorHistory entries={history.entries} storageError={history.storageError}
           onRestore={(entry) => calculator.restoreFormula(entry.document, entry.angleUnit)}
           onRemove={history.remove} onClear={history.clear} />
+        </>)}
       </div>
     </div>
   );
