@@ -40,6 +40,7 @@
   padding: 10px 6px;
   overflow: hidden;
   border-right: 1px solid rgb(var(--color-text-rgb), .08);
+  transition: flex-basis .24s cubic-bezier(.22, 1, .36, 1), width .24s cubic-bezier(.22, 1, .36, 1);
 
 }
 
@@ -89,16 +90,22 @@
 }
 
 .calc-sidebar-nav-label {
-  display: none;
+  display: block;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   font-size: 13px;
   font-weight: 500;
   text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity .18s ease, transform .24s cubic-bezier(.22, 1, .36, 1);
+  transform: translateX(-6px);
 
 }
 
 .calc-sidebar-nav-expanded .calc-sidebar-nav-label {
-  display: block;
+  opacity: 1;
+  transform: translateX(0);
 
 }
 
@@ -555,6 +562,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .calc-sidebar-nav,
+  .calc-sidebar-nav-label {
+    transition: none;
+
+  }
+
   .calc-katex-cursor {
     animation: none;
 
