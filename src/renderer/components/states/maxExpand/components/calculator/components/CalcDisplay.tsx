@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef, type KeyboardEvent, type ReactElement } from 'react';
+import { useEffect, useRef, type ClipboardEvent, type KeyboardEvent, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FormulaCursor, FormulaDocument } from '../types/calculatorTypes';
 import { serializeFormulaDocument } from '../utils/formulaDocumentUtils';
@@ -40,6 +40,8 @@ interface CalcDisplayProps {
   onCursorChange: (cursor: FormulaCursor) => void;
   onMoveEnd: () => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
+  onPaste?: (event: ClipboardEvent<HTMLDivElement>) => void;
+  onCopy?: (event: ClipboardEvent<HTMLDivElement>) => void;
 }
 
 /**
@@ -57,6 +59,8 @@ export function CalcDisplay({
   onCursorChange,
   onMoveEnd,
   onKeyDown,
+  onPaste,
+  onCopy,
 }: CalcDisplayProps): ReactElement {
   const { t } = useTranslation();
   const displayRef = useRef<HTMLDivElement>(null);
@@ -86,6 +90,8 @@ export function CalcDisplay({
       onClickCapture={handleDisplayFocus}
       onClick={handleDisplayClick}
       onKeyDown={onKeyDown}
+      onPaste={onPaste}
+      onCopy={onCopy}
     >
       <div className={`calc-expression${hasResult ? ' calc-expression-as-result' : ''}`} style={hasResult ? undefined : { fontSize }}>
         <FormulaExpression document={document} cursor={cursor} onCursorChange={onCursorChange} />

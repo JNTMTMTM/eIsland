@@ -2645,6 +2645,14 @@
     }
   },
   "calculator": {
+    "clipboard": {
+      "copyFormula": "Copy formula",
+      "copyResult": "Copy result",
+      "paste": "Paste",
+      "copied": "Copied",
+      "empty": "Clipboard is empty",
+      "failed": "Could not read or write the clipboard, or the formula is too long"
+    },
     "answer": {
       "label": "Ans",
       "hint": "Insert the previous result at full precision"

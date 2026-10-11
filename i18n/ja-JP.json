@@ -2645,6 +2645,14 @@
     }
   },
   "calculator": {
+    "clipboard": {
+      "copyFormula": "式をコピー",
+      "copyResult": "結果をコピー",
+      "paste": "貼り付け",
+      "copied": "コピーしました",
+      "empty": "クリップボードは空です",
+      "failed": "クリップボードを操作できないか、式が長すぎます"
+    },
     "answer": {
       "label": "Ans",
       "hint": "前の結果を丸めずに挿入"

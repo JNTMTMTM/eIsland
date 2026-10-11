@@ -2645,6 +2645,14 @@
     }
   },
   "calculator": {
+    "clipboard": {
+      "copyFormula": "复制公式",
+      "copyResult": "复制结果",
+      "paste": "粘贴",
+      "copied": "已复制",
+      "empty": "剪贴板为空",
+      "failed": "剪贴板读写失败，或公式超过长度限制"
+    },
     "answer": {
       "label": "Ans",
       "hint": "插入上次结果，保留完整精度"

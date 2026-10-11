@@ -35,6 +35,7 @@ import { CalculatorSidebar } from './CalculatorSidebar';
 import { CoordinateGraph } from './CoordinateGraph';
 import { CalculatorHistory } from './CalculatorHistory';
 import { useCalculatorHistory } from '../hooks/useCalculatorHistory';
+import { normalizePastedFormula } from '../utils/clipboardUtils';
 
 // 静态按键只排版一次，避免每次输入都重复编译全部科学函数。
 const BUTTON_MATH = new Map(
@@ -96,6 +97,24 @@ export function CalculatorTab(): ReactElement {
   const [activeMode, setActiveMode] = useState<CalcMode>('arithmetic');
   const [collapsed, setCollapsed] = useState(true);
   const [showScientificKeys, setShowScientificKeys] = useState(true);
+  const [clipboardFeedback, setClipboardFeedback] = useState('');
+  const pasteFormula = (text: string): void => {
+    try {
+      const formula = normalizePastedFormula(text);
+      if (!formula) { setClipboardFeedback(t('calculator.clipboard.empty')); return; }
+      calculator.inputText(formula); setClipboardFeedback('');
+    } catch { setClipboardFeedback(t('calculator.clipboard.failed')); }
+  };
+  const copyFormula = async (text: string): Promise<void> => {
+    try {
+      const copied = await window.api.clipboardWriteText(text);
+      setClipboardFeedback(t(copied ? 'calculator.clipboard.copied' : 'calculator.clipboard.failed'));
+    } catch { setClipboardFeedback(t('calculator.clipboard.failed')); }
+  };
+  const readClipboard = async (): Promise<void> => {
+    try { pasteFormula(await window.api.clipboardReadText()); }
+    catch { setClipboardFeedback(t('calculator.clipboard.failed')); }
+  };
 
   const handleSwitchMode = useCallback((mode: CalcMode): void => {
     setActiveMode(mode);
@@ -156,6 +175,8 @@ export function CalculatorTab(): ReactElement {
       onCursorChange={calculator.moveCursor}
       onMoveEnd={() => calculator.moveCursorBoundary('end')}
       onKeyDown={handleKeyDown}
+      onPaste={(event) => { event.preventDefault(); pasteFormula(event.clipboardData.getData('text/plain')); }}
+      onCopy={(event) => { event.preventDefault(); event.clipboardData.setData('text/plain', calculator.result && calculator.result !== 'Error' ? calculator.result : calculator.formula); }}
     />
   );
 
@@ -202,6 +223,10 @@ export function CalculatorTab(): ReactElement {
             title={t('calculator.answer.hint')} onMouseDown={(event) => event.preventDefault()} onClick={calculator.inputAnswer}>
             {t('calculator.answer.label')}
           </button>
+          <button className="calc-tool-btn" type="button" onClick={() => void copyFormula(calculator.formula)}>{t('calculator.clipboard.copyFormula')}</button>
+          <button className="calc-tool-btn" type="button" disabled={calculator.result === null || calculator.result === 'Error'} onClick={() => void copyFormula(calculator.result!)}>{t('calculator.clipboard.copyResult')}</button>
+          <button className="calc-tool-btn" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => void readClipboard()}>{t('calculator.clipboard.paste')}</button>
+          {clipboardFeedback && <span role="status">{clipboardFeedback}</span>}
         </div>
         {isCoordinate ? (
           <div className="calc-coordinate-layout">
