@@ -40,6 +40,7 @@ vi.mock('../../../../../../../utils/media/videoProbe', () => ({
 const {
   useAlbumItems
 } = await import('../useAlbumItems');
+const ORIGINAL_IMAGE_URL = 'eisland-media://asset/00000000-0000-4000-8000-000000000001';
 const io = {
   read: vi.fn<(key: string) => Promise<unknown>>(),
   write: vi.fn<(key: string, value: unknown) => Promise<boolean>>(),
@@ -49,6 +50,7 @@ const io = {
   } | null>>(),
   thumbnail: vi.fn<(path: string) => Promise<string | null>>(),
   full: vi.fn<(path: string) => Promise<string | null>>(),
+  head: vi.fn<typeof fetch>(),
   buffer: vi.fn<(path: string) => Promise<Uint8Array | null>>(),
   path: vi.fn<(file: File) => string>(),
   get: vi.fn<(key: string) => string | null>(),
@@ -144,11 +146,13 @@ beforeEach(() => {
     durationSec: 20
   });
   io.thumbnail.mockResolvedValue('data:image/jpeg;base64,YWJj');
-  io.full.mockResolvedValue('data:image/jpeg;base64,YWJj');
+  io.full.mockResolvedValue(ORIGINAL_IMAGE_URL);
+  io.head.mockResolvedValue(new Response(null, { headers: { 'Content-Length': '3145728' } }));
   io.buffer.mockResolvedValue(jpeg());
   io.path.mockImplementation((file) => file.name);
   io.get.mockReturnValue(null);
   vi.stubGlobal('Image', TestImage);
+  vi.stubGlobal('fetch', io.head);
   vi.spyOn(URL, 'revokeObjectURL').mockImplementation(io.revoke);
   vi.stubGlobal('localStorage', {
     getItem: io.get,
@@ -489,13 +493,14 @@ describe('album full image and EXIF lifetime', () => {
     images[0].onload?.();
     await commit();
     expect(view().metaCache[1]).toMatchObject({
-      dataUrl: 'data:image/jpeg;base64,YWJj',
+      dataUrl: ORIGINAL_IMAGE_URL,
       width: 4000,
       height: 3000,
-      sizeBytes: 3,
+      sizeBytes: 3145728,
       loading: false,
       loadFailed: false
     });
+    expect(io.head).toHaveBeenCalledExactlyOnceWith(ORIGINAL_IMAGE_URL, { method: 'HEAD' });
     view().loadFullImage(item(1));
     expect(io.full).toHaveBeenCalledOnce();
     view().loadFullImage(item(2));
@@ -504,7 +509,7 @@ describe('album full image and EXIF lifetime', () => {
     await commit();
     expect(view().metaCache[1].dataUrl).toBeUndefined();
     expect(view().metaCache[2]).toMatchObject({
-      dataUrl: 'data:image/jpeg;base64,YWJj',
+      dataUrl: ORIGINAL_IMAGE_URL,
       loading: false,
       loadFailed: false
     });
@@ -514,6 +519,35 @@ describe('album full image and EXIF lifetime', () => {
     expect(view().metaCache[2].dataUrl).toBeUndefined();
     view().releaseFullImage();
     expect(images.every((image) => image.src === '')).toBe(true);
+  });
+  it.each(['reject', 'not-found', 'missing', 'invalid'])('keeps the image readable when size metadata is %s', async (mode) => {
+    if (mode === 'reject') {
+      io.head.mockRejectedValue(new Error('metadata unavailable'));
+    } else {
+      io.head.mockResolvedValue(new Response(null, {
+        status: mode === 'not-found' ? 404 : 200,
+        headers: mode === 'missing' ? {} : { 'Content-Length': mode === 'not-found' ? '3145728' : 'invalid' },
+      }));
+    }
+    await commit();
+    view().loadFullImage(item(1));
+    await settleHook();
+    images[0].onload?.();
+    await commit();
+    expect(view().metaCache[1]).toMatchObject({ dataUrl: ORIGINAL_IMAGE_URL, loading: false, loadFailed: false });
+    expect(view().metaCache[1].sizeBytes).toBeUndefined();
+  });
+  it('ignores a late size response after the viewer is closed', async () => {
+    const request = deferred<Response>();
+    io.head.mockReturnValue(request.promise);
+    await commit();
+    view().loadFullImage(item(1));
+    await settleHook();
+    view().releaseFullImage();
+    request.resolve(new Response(null, { headers: { 'Content-Length': '3145728' } }));
+    await settleHook();
+    expect(images).toHaveLength(0);
+    expect(view().metaCache[1]?.dataUrl).toBeUndefined();
   });
   it('clears stale decode probes and ignores old commit when another image is requested', async () => {
     await commit();

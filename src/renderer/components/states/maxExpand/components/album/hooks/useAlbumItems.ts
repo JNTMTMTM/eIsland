@@ -276,9 +276,25 @@ export function useAlbumItems(): UseAlbumItemsReturn {
       ...prev,
       [item.id]: { ...prev[item.id], loading: true, loadFailed: false },
     }));
-    window.api.loadWallpaperFile(item.path).then((dataUrl) => {
+    window.api.loadWallpaperFile(item.path).then(async (dataUrl) => {
       if (!dataUrl || requestedFullImageIdRef.current !== item.id) return;
-      const sizeBytes = estimateBytesFromDataUrl(dataUrl);
+      let sizeBytes: number | undefined;
+      if (dataUrl.startsWith('data:')) {
+        sizeBytes = estimateBytesFromDataUrl(dataUrl);
+      } else {
+        try {
+          // 本地资源协议通过 HEAD 返回文件大小，无需读取原图内容。
+          const response = await fetch(dataUrl, { method: 'HEAD' });
+          const contentLength = response.headers.get('content-length');
+          const length = Number(contentLength);
+          if (response.ok && contentLength?.trim() && Number.isSafeInteger(length) && length >= 0) {
+            sizeBytes = length;
+          }
+        } catch {
+          // 文件大小不可用时仍允许查看原图。
+        }
+      }
+      if (requestedFullImageIdRef.current !== item.id) return;
       const probe = new Image();
       fullImageProbeRef.current = probe;
       const commit = (width?: number, height?: number): void => {
