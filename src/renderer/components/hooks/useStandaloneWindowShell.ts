@@ -25,6 +25,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import usePageActivity from './usePageActivity';
 import type { IslandBgMediaConfig, IslandBgMediaType } from '../config/dynamicIslandConfig';
 import {
   ACTIVE_TAB_STORE_KEY,
@@ -57,6 +58,7 @@ interface StandaloneWindowShellState {
  * @returns 独立窗口壳层状态与操作函数。
  */
 export function useStandaloneWindowShell(): StandaloneWindowShellState {
+  usePageActivity();
   const [activeTab, setActiveTab] = useState<WindowTab>('todo');
   const [bgMedia, setBgMedia] = useState<{ type: IslandBgMediaType; previewUrl: string } | null>(null);
   const [bgVideoFit, setBgVideoFit] = useState<'cover' | 'contain'>('cover');

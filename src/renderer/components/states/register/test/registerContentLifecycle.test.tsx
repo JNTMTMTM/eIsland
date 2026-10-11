@@ -37,6 +37,8 @@ vi.hoisted(() => {
   vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } }));
   vi.stubGlobal('localStorage', { getItem: () => null });
 });
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 vi.mock('react-dom/client', () => ({ createRoot: () => modalRoot }));
 vi.mock('react-i18next', async (load) => ({ ...(await load<typeof import('react-i18next')>()), useTranslation: () => ({ t: (key: string) => key }) }));

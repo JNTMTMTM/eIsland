@@ -46,6 +46,33 @@ vi.mock('electron', () => ({
   dialog: { showOpenDialog: io.dialog }, net: { fetch: io.fetch }, nativeImage: { createThumbnailFromPath: io.thumbnail },
 }));
 vi.mock('fs', () => ({ existsSync: io.exists, mkdirSync: io.mkdir, copyFileSync: io.copy, writeFileSync: io.write, readFileSync: io.read, readdirSync: io.list, unlinkSync: io.unlink }));
+
+vi.mock('node:fs/promises', () => ({
+  stat: async () => ({ isFile: () => true, size: 7 }),
+  mkdir: async (...args: unknown[]) => io.mkdir(...args),
+  copyFile: async (...args: unknown[]) => io.copy(...args),
+  rename: async () => {},
+  writeFile: async (path: string, data: Buffer) => io.write(path, data),
+  readdir: async () => io.list() ?? [],
+  unlink: async (...args: unknown[]) => io.unlink(...args),
+  open: async (path: string) => {
+    const data = io.read(path);
+    return { stat: async () => ({ isFile: () => true, size: data.length }),
+      read: async (bytes: Uint8Array) => { bytes.set(data); return { bytesRead: data.length }; }, close: async () => {} };
+  },
+}));
+vi.mock('../../../media/localAssets', () => ({ createLocalAssetUrl: async (path: string) => {
+  io.read(path);
+  return 'eisland-media://asset/fixture';
+} }));
+vi.mock('../../../media/downloadWallpaper', () => ({ default: async (url: string, destination: (response: Response) => string) => {
+  const response = await io.fetch(url);
+  if (!response.ok) throw new Error('HTTP failure');
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (!bytes.length) throw new Error('Empty response');
+  const path = destination(response); io.write(path, bytes); return path;
+} }));
+
 vi.mock('child_process', () => ({ execFile: io.exec }));
 vi.mock('../../../media/albumMedia', () => ({ getAlbumMediaInfo: io.album }));
 const cache = join('C:/fixture-user', 'wallpapers');
@@ -96,11 +123,11 @@ describe('壁纸选择、字体、缓存与图像读取', () => {
   });
   it('字体对话框读取字节、名称和扩展，文件失败返回 null', async () => {
     io.dialog.mockResolvedValue({ canceled: false, filePaths: ['D:/fonts/Nice Font.OTF'] });
-    await expect(invoke('dialog:open-font')).resolves.toEqual({ path: 'D:/fonts/Nice Font.OTF', ext: 'otf', name: 'Nice Font', data: Buffer.from('fixture').toString('base64') });
+    await expect(invoke('dialog:open-font')).resolves.toEqual({ path: 'D:/fonts/Nice Font.OTF', ext: 'otf', name: 'Nice Font', data: '', url: 'eisland-media://asset/fixture' });
     io.dialog.mockResolvedValue({ canceled: false, filePaths: ['D:/fonts/fixture.'] });
-    await expect(invoke('dialog:open-font')).resolves.toMatchObject({ ext: 'ttf' });
+    await expect(invoke('dialog:open-font')).resolves.toBeNull();
     io.dialog.mockResolvedValue({ canceled: false, filePaths: ['D:/fonts/.ttf'] });
-    await expect(invoke('dialog:open-font')).resolves.toMatchObject({ name: 'CustomFont' });
+    await expect(invoke('dialog:open-font')).resolves.toBeNull();
     io.read.mockImplementation(() => { throw new Error('read failed'); });
     await expect(invoke('dialog:open-font')).resolves.toBeNull();
   });
@@ -109,15 +136,14 @@ describe('壁纸选择、字体、缓存与图像读取', () => {
   });
   it('字体读取限制扩展并保留二进制，捕获读取失败', async () => {
     io.existing.add('D:/fonts/Legal.woff2'); io.existing.add('D:/invalid.exe');
-    await expect(invoke('font:read-file', 'D:/fonts/Legal.woff2')).resolves.toMatchObject({ ext: 'woff2', name: 'Legal', data: Buffer.from('fixture').toString('base64') });
+    await expect(invoke('font:read-file', 'D:/fonts/Legal.woff2')).resolves.toMatchObject({ ext: 'woff2', name: 'Legal', data: '', url: 'eisland-media://asset/fixture' });
     await expect(invoke('font:read-file', 'D:/invalid.exe')).resolves.toBeNull();
     io.read.mockImplementation(() => { throw new Error('font failed'); });
     await expect(invoke('font:read-file', 'D:/fonts/Legal.woff2')).resolves.toBeNull();
   });
-  it.each(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'unknown', ''])('图片扩展 %s 映射 MIME 或默认 png', async (extension) => {
+  it.each(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'unknown', ''])('图片扩展 %s 仅返回授权URL，拒绝不支持的扩展', async (extension) => {
     const file = `D:/image.${extension}`; io.existing.add(file);
-    const types: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', svg: 'image/svg+xml' };
-    await expect(invoke('wallpaper:load-file', file)).resolves.toBe(`data:${types[extension] ?? 'image/png'};base64,${Buffer.from('fixture').toString('base64')}`);
+    await expect(invoke('wallpaper:load-file', file)).resolves.toBe(['unknown', ''].includes(extension) ? null : 'eisland-media://asset/fixture');
   });
   it('图像读取和缩略图失败返回 null，媒体信息委托真实 IPC 参数', async () => {
     io.read.mockImplementation(() => { throw new Error('read failed'); });

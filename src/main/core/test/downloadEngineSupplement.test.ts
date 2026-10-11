@@ -31,6 +31,7 @@ import { MIN_CHUNK_BYTES } from '../downloadEngine/config';
 import type { DownloadTaskSnapshot } from '../../types/core/DownloadTaskSnapshot';
 
 const io = vi.hoisted(() => ({
+  uuid: 0,
   exists: vi.fn<() => boolean>(),
   mkdir: vi.fn<() => Promise<void>>(),
   open: vi.fn<() => Promise<{ write: (bytes: Uint8Array) => Promise<void>; close: () => Promise<void> }>>(),
@@ -42,7 +43,7 @@ const io = vi.hoisted(() => ({
   close: vi.fn<() => Promise<void>>(),
   fetch: vi.fn<typeof fetch>(),
 }));
-vi.mock('crypto', () => ({ randomUUID: () => 'download-fixture' }));
+vi.mock('crypto', () => ({ randomUUID: () => `download-fixture-${++io.uuid}` }));
 vi.mock('fs/promises', () => ({
   mkdir: io.mkdir, open: io.open, rename: io.rename, rm: io.rm, stat: io.stat, unlink: io.unlink,
 }));
@@ -94,6 +95,7 @@ function data(onPull?: () => void, bytes = new Uint8Array([1, 2, 3])): Response 
 
 beforeEach(() => {
   vi.resetAllMocks();
+  io.uuid = 0;
   io.exists.mockReturnValue(false);
   io.mkdir.mockResolvedValue();
   io.rename.mockResolvedValue();
@@ -108,6 +110,61 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('下载引擎真实工具链补充分支', () => {
+  it('完成一千次下载后只保留两百个轻量历史快照', async () => {
+    io.fetch.mockImplementation((_url, options) => Promise.resolve(options?.method === 'HEAD' ? head() : data()));
+    const engine = new MultiThreadDownloadEngine();
+    for (let index = 0; index < 1000; index += 1) {
+      await engine.startDownload({ url: 'https://fixture.test/file.bin', defaultDir: 'fixture-downloads', threads: 1 });
+      await settle();
+    }
+    expect(engine.listTasks()).toHaveLength(200);
+    expect(engine.getTask('download-fixture-1')).toBeNull();
+    expect(engine.getTask('download-fixture-1000')).toMatchObject({ status: 'completed' });
+    expect(engine.listTasks().some((task) => 'abortControllers' in task || 'run' in task)).toBe(false);
+  });
+  it('一处分片失败会取消同组读取并在句柄关闭后清理文件', async () => {
+    const signals: AbortSignal[] = [];
+    let fail: (() => void) | undefined;
+    io.fetch.mockImplementation((_url, options) => {
+      if (options?.method === 'HEAD') return Promise.resolve(head(MIN_CHUNK_BYTES * 2, true));
+      const signal = options!.signal!;
+      signals.push(signal);
+      if (signals.length === 1) return new Promise((_resolve, reject) => { fail = () => reject(new Error('broken chunk')); });
+      return Promise.resolve(new Response(new ReadableStream({
+        start(controller) { signal.addEventListener('abort', () => controller.error(signal.reason)); },
+      }), { status: 206 }));
+    });
+    const engine = new MultiThreadDownloadEngine();
+    const task = await engine.startDownload({ url: 'https://fixture.test/file.bin', defaultDir: 'fixture-downloads', threads: 2 });
+    await settle();
+    fail?.();
+    await settle();
+    expect(signals.every((signal) => signal.aborted)).toBe(true);
+    expect(engine.getTask(task.id)?.status).toBe('failed');
+    expect(io.close).toHaveBeenCalledOnce();
+    expect(io.close.mock.invocationCallOrder[0]).toBeLessThan(io.rm.mock.invocationCallOrder[0]);
+  });
+  it('多个下载共享八个连接槽位并释放取消的排队请求', async () => {
+    let active = 0;
+    let peak = 0;
+    io.fetch.mockImplementation((_url, options) => {
+      if (options?.method === 'HEAD') return Promise.resolve(head(MIN_CHUNK_BYTES * 16, true));
+      active += 1;
+      peak = Math.max(peak, active);
+      return new Promise((_resolve, reject) => options?.signal?.addEventListener('abort', () => {
+        active -= 1;
+        reject(options.signal?.reason);
+      }));
+    });
+    const engine = new MultiThreadDownloadEngine();
+    const tasks = await Promise.all(Array.from({ length: 3 }, () => engine.startDownload({ url: 'https://fixture.test/file.bin', defaultDir: 'fixture-downloads', threads: 16 })));
+    await settle();
+    expect(peak).toBe(8);
+    tasks.forEach((task) => engine.cancelDownload(task.id));
+    await settle();
+    expect(active).toBe(0);
+    expect(engine.listTasks().every((task) => task.status === 'canceled')).toBe(true);
+  });
   it('无扩展名文件使用临时扩展且忽略替换旧文件失败', async () => {
     io.exists.mockReturnValue(true);
     io.unlink.mockRejectedValue(new Error('locked'));
@@ -196,6 +253,7 @@ describe('下载引擎真实工具链补充分支', () => {
       options?.signal?.addEventListener('abort', () => reject(new DOMException('paused', 'AbortError')), { once: true });
     }));
     const task = await engine.startDownload({ url: 'https://fixture.test/file.bin', defaultDir: 'fixture-downloads', threads: 1 });
+    await settle();
     engine.pauseDownload(task.id);
     await settle();
     expect(engine.getTask(task.id)?.status).toBe('paused');

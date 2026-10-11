@@ -49,6 +49,12 @@ export interface ClaudeCodeHookEvent {
   detail: string | null;
   /** 事件详情项列表 */
   detailItems: ClaudeCodeHookEventDetailItem[];
+  /** 按需详情提供者；快照只包含短预览。 */
+  detailProvider?: 'claude' | 'codex';
+  /** 同一事件的外部正文发生回填时递增，避免展开页保留旧正文。 */
+  detailRevision?: number;
+  /** Codex 原始日志中的字节范围。 */
+  detailSource?: { offset: number; bytes: number };
   /** 工具名称（仅 tool 类型事件） */
   toolName: string | null;
   /** 工具输入预览（仅 tool 类型事件） */

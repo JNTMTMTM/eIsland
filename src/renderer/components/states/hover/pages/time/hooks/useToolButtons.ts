@@ -65,12 +65,14 @@ export function useToolButtons(): {
         await window.api.startRegionScreenshot();
         return;
       }
-      const base64 = await window.api.screenshot();
-      if (base64) {
+      const bytes = await window.api.screenshot();
+      if (bytes) {
         const link = document.createElement('a');
         link.download = `screenshot_${Date.now()}.png`;
-        link.href = `data:image/png;base64,${base64}`;
-        link.click();
+        const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: 'image/png' }));
+        link.href = url;
+        try { link.click(); }
+        finally { setTimeout(() => URL.revokeObjectURL(url), 0); }
       }
     } catch (err) {
       console.error('[ToolButtons] screenshot error:', err);

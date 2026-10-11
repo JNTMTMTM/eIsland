@@ -29,6 +29,8 @@ import { createMediaSlice } from '../../../../../store/slices/mediaSlice';
 import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../hooks/test/startupHookHarness';
 import type { MediaSlice } from '../../../../../store/types';
 import type { IdleContentProps } from '../../config/idleConfig';
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (original) => {
   const actual = await original<typeof import('react')>();
   const {
@@ -149,7 +151,7 @@ describe('useIdle true state and native lifecycle', () => {
     todoJSON = null;
     expect((await mount()).p0Count).toBe(0);
   });
-  it('polls real persisted priority counts every two seconds then cancels interval', async () => {
+  it('updates priority counts only on TODO and storage events', async () => {
     todoJSON = JSON.stringify([{
       done: false,
       priority: 'P0'
@@ -170,10 +172,10 @@ describe('useIdle true state and native lifecycle', () => {
     }]);
     await vi.advanceTimersByTimeAsync(1999);
     expect(run().p0Count).toBe(1);
-    await vi.advanceTimersByTimeAsync(1);
+    window.dispatchEvent(new CustomEvent('eisland:todos-updated', { detail: JSON.parse(todoJSON!) }));
     expect(run().p0Count).toBe(2);
     todoJSON = '{bad';
-    await vi.advanceTimersByTimeAsync(2000);
+    window.dispatchEvent(Object.assign(new Event('storage'), { key: 'eIsland_todos' }));
     expect(run().p0Count).toBe(0);
     unmountHook();
     expect(vi.getTimerCount()).toBe(0);

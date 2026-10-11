@@ -35,7 +35,11 @@ export default defineConfig({
       // 保留覆盖率目录中的源码哈希与不可达审计；每轮报告仍由报告器覆盖。
       clean: false,
       include: ['src/**/*.{ts,tsx,js}', 'plugins/*/*/*.js'],
-      exclude: [...coverageConfigDefaults.exclude, '**/test/**'],
+      exclude: [
+        ...coverageConfigDefaults.exclude,
+        '**/test/**',
+        ...(process.platform !== 'darwin' ? ['plugins/macos/**'] : []),
+      ],
     },
     projects: [
       {

@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -156,7 +157,10 @@ export function normalizeOverviewLayoutConfig(raw: unknown): OverviewLayoutConfi
  */
 export function OverviewTab(): React.ReactElement {
   const { t } = useTranslation();
-  const { setMaxExpand, setMaxExpandTab } = useIslandStore();
+  const { setMaxExpand, setMaxExpandTab } = useIslandStore(useShallow((store) => ({
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+  })));
   const [now, setNow] = useState(new Date());
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);

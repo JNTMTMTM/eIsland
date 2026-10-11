@@ -28,17 +28,17 @@ import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import type { WebGPUContext } from '../types';
 import { LIQUID_ORB_SHADER_SOURCE } from '../config/shaderSource';
-import { initWebGPU, renderFrame } from '../utils/webgpu';
+import { disposeWebGPU, initWebGPU, renderFrame, resizeCanvas } from '../utils/webgpu';
+
+const FRAME_INTERVAL_MS = 1000 / 30;
 
 /**
- * 将 WebGPU 液态玻璃球渲染绑定到画布生命周期。
- * WebGPU 上下文在首次 playing=true 时创建并复用，后续仅控制 RAF 循环。
- * @param canvasRef - 需要承载液态玻璃球的画布引用。
- * @param playing - 是否播放渲染循环。
- * @param uniformData - uniform 种子数据。
- * @param onReady - 首帧成功提交后的回调。
- * @param onError - 渲染出错时的回调。
- * @returns 无返回值。
+ * 将装饰球绑定到画布生命周期；暂停复用资源，卸载或错误完整释放。
+ * @param canvasRef - 目标画布引用
+ * @param playing - 是否需要动画
+ * @param uniformData - uniform 种子数据
+ * @param onReady - 首帧成功后的回调
+ * @param onError - GPU 初始化或渲染错误回调
  */
 export function useWebGPURenderer(
   canvasRef: RefObject<HTMLCanvasElement | null>,
@@ -48,105 +48,136 @@ export function useWebGPURenderer(
   onError?: (error: Error) => void,
 ): void {
   const ctxRef = useRef<WebGPUContext | null>(null);
-  const rafRef = useRef(0);
-  const stoppedRef = useRef(false);
-  const uniformDataRef = useRef<Float32Array>(uniformData);
+  const syncRef = useRef<(() => void) | null>(null);
+  const playingRef = useRef(playing);
+  const uniformDataRef = useRef(uniformData);
   const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
+  playingRef.current = playing;
   uniformDataRef.current = uniformData;
   onReadyRef.current = onReady;
   onErrorRef.current = onError;
 
   useEffect(() => {
-    if (ctxRef.current) {
-      ctxRef.current.values.set(uniformData);
-    }
-  }, [uniformData]);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let disposed = false;
+    let failed = false;
+    let raf = 0;
+    let firstFrameReady = false;
+    let lastFrameAt = -Infinity;
+    let hasSize = resizeCanvas(canvas);
+    let inViewport = true;
+    let generation = 0;
+    let pending: AbortController | null = null;
+    let removeDeviceError: (() => void) | null = null;
+    const motion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const canRender = (): boolean => !disposed && !failed && playingRef.current
+      && !document.hidden && hasSize && inViewport;
+    const pause = (): void => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      lastFrameAt = -Infinity;
+      firstFrameReady = false;
+      pending?.abort();
+      pending = null;
+      generation += 1;
+    };
+    const release = (): void => {
+      removeDeviceError?.();
+      removeDeviceError = null;
+      const ctx = ctxRef.current;
+      ctxRef.current = null;
+      if (ctx) disposeWebGPU(ctx);
+    };
+    const fail = (error: unknown): void => {
+      if (disposed || failed) return;
+      failed = true;
+      pause();
+      release();
+      const normalized = error instanceof Error ? error : new Error(String(error));
+      console.error('[LiquidOrb]', normalized);
+      onErrorRef.current?.(normalized);
+    };
+    const frame = (now: number): void => {
+      raf = 0;
+      if (!canRender() || !ctxRef.current) return;
+      try {
+        const elapsed = now - lastFrameAt;
+        if (elapsed >= FRAME_INTERVAL_MS - 0.1) {
+          renderFrame(ctxRef.current, canvas, now);
+          lastFrameAt = Number.isFinite(lastFrameAt)
+            ? lastFrameAt + Math.max(1, Math.floor((elapsed + 0.1) / FRAME_INTERVAL_MS)) * FRAME_INTERVAL_MS : now;
+          if (!firstFrameReady) { firstFrameReady = true; onReadyRef.current?.(); }
+        }
+        if (!motion?.matches && canRender()) raf = requestAnimationFrame(frame);
+      } catch (error) { fail(error); }
+    };
+    const start = async (): Promise<void> => {
+      if (pending || ctxRef.current || !canRender()) return;
+      const controller = new AbortController();
+      pending = controller;
+      const currentGeneration = ++generation;
+      try {
+        const ctx = await initWebGPU(canvas, LIQUID_ORB_SHADER_SOURCE, uniformDataRef.current, controller.signal);
+        if (disposed || controller.signal.aborted || currentGeneration !== generation) {
+          disposeWebGPU(ctx);
+          return;
+        }
+        ctxRef.current = ctx;
+        ctx.values.set(uniformDataRef.current);
+        ctx.device.lost.then((info: { message?: string; reason?: string }) => {
+          if (ctxRef.current === ctx) fail(new Error(`WebGPU 设备已断开：${info.message || info.reason}`));
+        });
+        const onDeviceError = (event: { error: { message: string }; preventDefault(): void }): void => {
+          event.preventDefault();
+          if (ctxRef.current === ctx) fail(new Error(`WebGPU 渲染错误：${event.error.message}`));
+        };
+        ctx.device.addEventListener('uncapturederror', onDeviceError);
+        removeDeviceError = () => ctx.device.removeEventListener('uncapturederror', onDeviceError);
+        if (canRender()) raf = requestAnimationFrame(frame);
+      } catch (error) {
+        if (!controller.signal.aborted && currentGeneration === generation) fail(error);
+      } finally {
+        if (pending === controller) pending = null;
+      }
+    };
+    const sync = (): void => {
+      if (!canRender()) { pause(); return; }
+      if (!ctxRef.current) { void start(); return; }
+      if (!raf) { lastFrameAt = -Infinity; raf = requestAnimationFrame(frame); }
+    };
+    const resize = (): void => {
+      hasSize = resizeCanvas(canvas);
+      sync();
+    };
+    syncRef.current = sync;
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas);
+    const intersectionObserver = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver((entries) => {
+      inViewport = entries[0]?.isIntersecting ?? true;
+      sync();
+    });
+    intersectionObserver?.observe(canvas);
+    document.addEventListener('visibilitychange', sync);
+    window.addEventListener('resize', resize);
+    motion?.addEventListener('change', sync);
+    sync();
+    return () => {
+      disposed = true;
+      syncRef.current = null;
+      pause();
+      resizeObserver.disconnect();
+      intersectionObserver?.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+      window.removeEventListener('resize', resize);
+      motion?.removeEventListener('change', sync);
+      release();
+    };
+  }, [canvasRef]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !playing) return;
-
-    stoppedRef.current = false;
-    let firstFrameReady = false;
-
-    /**
-     * 启动 WebGPU 渲染循环。
-     * 仅在上下文尚未创建时执行初始化。
-     */
-    async function start(): Promise<void> {
-      if (ctxRef.current) {
-        // 上下文已存在，仅恢复渲染循环
-        frame(performance.now());
-        return;
-      }
-
-      try {
-        ctxRef.current = await initWebGPU(
-          canvas!,
-          LIQUID_ORB_SHADER_SOURCE,
-          uniformDataRef.current,
-        );
-
-        ctxRef.current.device.lost.then((info: { message?: string; reason?: string }) => {
-          stop(new Error(`WebGPU 设备已断开：${info.message || info.reason}`));
-        });
-
-        ctxRef.current.device.addEventListener('uncapturederror', (event: { error: { message: string }; preventDefault(): void }) => {
-          event.preventDefault();
-          stop(new Error(`WebGPU 渲染错误：${event.error.message}`));
-        });
-
-        // 延迟一帧开始渲染，给 GPU 进程时间完成 swap chain 初始化
-        rafRef.current = requestAnimationFrame(() => {
-          if (!stoppedRef.current) frame(performance.now());
-        });
-      } catch (err) {
-        stop(err instanceof Error ? err : new Error(String(err)));
-      }
-    }
-
-    /**
-     * 单帧渲染回调。
-     * @param now - 当前时间戳。
-     */
-    function frame(now: number): void {
-      if (stoppedRef.current || !ctxRef.current) return;
-      try {
-        renderFrame(ctxRef.current, canvas!, now);
-        if (!firstFrameReady) {
-          firstFrameReady = true;
-          onReadyRef.current?.();
-        }
-        rafRef.current = requestAnimationFrame(frame);
-      } catch (err) {
-        stop(err instanceof Error ? err : new Error(String(err)));
-      }
-    }
-
-    /**
-     * 停止渲染并通知错误。
-     * @param error - 触发停止的错误。
-     */
-    function stop(error: Error): void {
-      if (stoppedRef.current) return;
-      stoppedRef.current = true;
-      cancelAnimationFrame(rafRef.current);
-      // GPUDevice.destroy() is in the WebGPU spec but typed as `any` here;
-      // guard defensively for environments where the method is absent.
-      if (typeof ctxRef.current?.device?.destroy === 'function') {
-        ctxRef.current.device.destroy();
-      }
-      ctxRef.current = null;
-      console.error('[LiquidOrb]', error);
-      onErrorRef.current?.(error);
-    }
-
-    start();
-
-    return () => {
-      stoppedRef.current = true;
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, [canvasRef, playing]);
+    if (ctxRef.current) ctxRef.current.values.set(uniformData);
+    syncRef.current?.();
+  }, [playing, uniformData]);
 }

@@ -168,6 +168,8 @@ export class SmtcMonitor extends EventEmitter {
   stop(): void;
   /** 获取当前所有会话快照 */
   getMediaSessions(): SessionSnapshot[];
+  /** 获取本地已合并快照，不进行原生全量查询 */
+  getCachedSession(sourceAppId: string): SessionSnapshot | null;
 
   on(event: 'session-added', listener: (sourceAppId: string, mediaProps: MediaProps) => void): this;
   on(event: 'session-removed', listener: (sourceAppId: string) => void): this;
@@ -185,3 +187,6 @@ export class SmtcMonitor extends EventEmitter {
   emit(event: 'error', err: Error): boolean;
   emit(event: string, ...args: any[]): boolean;
 }
+
+/** 为隔离命令进程指定目标会话，空字符串恢复系统当前会话 */
+export function setCommandSource(sourceAppId: string): void;

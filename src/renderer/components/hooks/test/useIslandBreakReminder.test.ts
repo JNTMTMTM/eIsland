@@ -41,6 +41,7 @@ const write = vi.fn();
 const notification = vi.fn<(data: NotificationData) => void>();
 let nativeWindow: EventTarget & { api?: { storeRead: typeof read; storeWrite: typeof write } };
 let items: unknown;
+let settingsChanged: (channel: string, value: unknown) => void;
 let options: Parameters<typeof useIslandBreakReminder>[0];
 
 /** 创建外部存储中的提醒条目。
@@ -75,13 +76,13 @@ function snooze(detail: unknown): void {
 
 beforeEach(() => {
   resetHook();
-  vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+  vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
   vi.setSystemTime(new Date(2026, 9, 5, 8, 0, 0));
   items = [];
   read.mockReset().mockImplementation(() => Promise.resolve(items));
   write.mockReset().mockResolvedValue(true);
   notification.mockReset();
-  nativeWindow = Object.assign(new EventTarget(), { api: { storeRead: read, storeWrite: write } });
+  nativeWindow = Object.assign(new EventTarget(), { api: { storeRead: read, storeWrite: write, onSettingsChanged: (listener: typeof settingsChanged) => { settingsChanged = listener; return () => {}; } } });
   vi.stubGlobal('window', nativeWindow);
   options = { language: 'zh-CN', setNotificationRef: { current: notification }, t: (key) => key };
 });
@@ -92,7 +93,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('reminder polling', () => {
+describe('reminder deadlines', () => {
   it.each([null, {}, []])('ignores unusable stored lists %j', async (data) => {
     items = data;
     await mount();
@@ -131,23 +132,31 @@ describe('reminder polling', () => {
     await tick(60000);
     expect(notification.mock.calls.map(([data]) => data.icon)).toEqual([SvgIcon.BREAK, 'stretch.svg']);
   });
+  it('migrates saved hydration icon paths before firing the reminder', async () => {
+    items = [item({ icon: './svg/app/DRINKING_WATER.svg' })];
+    await mount();
+    expect(write).toHaveBeenCalledWith('break-reminder-items', [item({ icon: SvgIcon.DRINKING_WATER })]);
+    await tick(60000);
+    expect(notification).toHaveBeenCalledWith(expect.objectContaining({ icon: SvgIcon.DRINKING_WATER }));
+  });
 
   it('prunes deleted entries and initializes their replacement from the current time', async () => {
     items = [item()];
     await mount();
     items = [item({ id: 'stretch' })];
     await tick();
+    settingsChanged('store:break-reminder-items', items);
     expect(write).toHaveBeenLastCalledWith('break-reminder-last-fired', { stretch: Date.now() });
     await tick(60000);
     expect(notification.mock.calls[0]?.[0].breakReminderItemId).toBe('stretch');
   });
 
-  it('contains native read and write failures and continues polling', async () => {
+  it('recovers from read failure on the next configuration event', async () => {
     read.mockRejectedValueOnce(new Error('read unavailable'));
     write.mockRejectedValue(new Error('write unavailable'));
     items = [item({ icon: undefined })];
     await mount();
-    await tick();
+    settingsChanged('store:break-reminder-items', items);
     await tick(60000);
     expect(notification).toHaveBeenCalledOnce();
     snooze({ itemId: 'water', snoozeMinutes: 2 });

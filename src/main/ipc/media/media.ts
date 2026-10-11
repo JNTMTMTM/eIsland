@@ -26,8 +26,8 @@
  */
 
 import { BrowserWindow, ipcMain } from 'electron';
-import { play, pause, next, previous, seek, getTimestamp } from '@eisland/windows-smtc-helper';
-import { getMute, setMute } from '@eisland/windows-volume-helper';
+import type { SmtcCommandName, SmtcCommandResult } from '../../music/smtcCommandProtocol';
+import { getMuteAsync as getMute, setMuteAsync as setMute } from '@eisland/windows-volume-helper';
 
 interface MediaSessionRuntimeEntry {
   payload: unknown;
@@ -35,6 +35,7 @@ interface MediaSessionRuntimeEntry {
 }
 
 interface RegisterMediaIpcHandlersOptions {
+  requestCommand: (command: SmtcCommandName, argument?: number) => Promise<SmtcCommandResult>;
   getMainWindow: () => BrowserWindow | null;
   isWhitelisted: () => boolean;
   getPendingSourceSwitchId: () => string;
@@ -60,17 +61,17 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
   ipcMain.handle('media:play-pause', () => {
     const entry = options.getSmtcSessionRuntime()?.get(options.getCurrentDeviceId());
     const isPlaying = Boolean(entry && (entry.payload as Record<string, unknown>)?.isPlaying);
-    if (isPlaying) pause(); else play();
+    return options.requestCommand(isPlaying ? 'pause' : 'play');
   });
 
   ipcMain.handle('media:next', () => {
     if (!options.isWhitelisted()) return;
-    next();
+    return options.requestCommand('next');
   });
 
   ipcMain.handle('media:prev', () => {
     if (!options.isWhitelisted()) return;
-    previous();
+    return options.requestCommand('previous');
   });
 
   ipcMain.handle('media:accept-source-switch', () => {
@@ -97,7 +98,8 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
 
   ipcMain.handle('media:seek', (_event, positionMs: number) => {
     if (!options.isWhitelisted()) return;
-    seek(positionMs / 1000);
+    if (!Number.isFinite(positionMs)) return;
+    return options.requestCommand('seek', positionMs / 1000);
   });
 
   ipcMain.handle('media:get-volume', () => 0.5);
@@ -108,15 +110,19 @@ export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOption
 
   ipcMain.handle('media:get-muted', () => getMute());
 
+  let muteToggle: Promise<boolean | null> = Promise.resolve(null);
   ipcMain.handle('media:toggle-muted', () => {
-    const muted = getMute();
-    if (muted === null) return null;
+    muteToggle = muteToggle.catch(() => null).then(async () => {
+      const muted = await getMute();
+      if (muted === null) return null;
 
-    const nextMuted = !muted;
-    return setMute(nextMuted) ? nextMuted : null;
+      const nextMuted = !muted;
+      return await setMute(nextMuted) ? nextMuted : null;
+    });
+    return muteToggle;
   });
 
   ipcMain.handle('smtc:get-timestamp', () => {
-    return getTimestamp();
+    return options.requestCommand('getTimestamp');
   });
 }

@@ -139,3 +139,14 @@ export const SvgIcon = {
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;
+
+/**
+ * 将已持久化的旧版内置图标路径迁移到当前 HTML 入口所需的相对路径。
+ * @param iconValue - 内置图标路径或自定义图标地址。
+ * @returns 当前内置图标路径；自定义地址保持不变。
+ */
+export function normalizeSvgIconPath(iconValue: string | null | undefined): string {
+  if (!iconValue) return '';
+  const candidate = iconValue.replace(/^(?:\.\/|\/)?svg\/app\//i, '../svg/app/');
+  return Object.values(SvgIcon).find((path) => path === candidate) ?? iconValue;
+}

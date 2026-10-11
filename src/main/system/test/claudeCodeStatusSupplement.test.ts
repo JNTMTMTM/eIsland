@@ -34,6 +34,14 @@ const io = vi.hoisted(() => ({ files: new Map<string, string>(), write: vi.fn<(f
 vi.mock('electron', () => ({ BrowserWindow: class {}, app: { getPath: (name: string) => name === 'home' ? 'C:/test-home' : 'C:/test-data' } }));
 vi.mock('fs', () => ({ existsSync: (file: string) => io.files.has(file), mkdirSync: vi.fn(), readFileSync: io.read, writeFileSync: io.write }));
 vi.mock('../../utils/textFileLines', () => ({ readLastTextLinesSync: io.lastLines }));
+vi.mock('../cliStateLoader', () => ({ loadCliState: async (path: string) => JSON.parse(io.files.get(path) ?? '{}') }));
+vi.mock('fs/promises', () => ({
+  mkdir: async () => {},
+  unlink: async (path: string) => { io.files.delete(path); },
+  writeFile: async (path: string, text: string) => { io.write(path, text); },
+  appendFile: async (path: string, text: string) => { io.write(path, (io.files.get(path) ?? '') + text); },
+  rename: async (from: string, to: string) => { io.files.set(to, io.files.get(from) ?? ''); io.files.delete(from); },
+}));
 vi.mock('http', async () => {
   const { EventEmitter: Emitter } = await import('events');
   const createServer = (handler: (request: IncomingMessage, response: ServerResponse) => void) => {
@@ -127,13 +135,14 @@ describe('Claude structured payload previews and summaries', () => {
     const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start();
     request({ event: 'PostToolUse', tool_name: 'Fixture', output: value });
     expect(latest(service).summary).toBe(`Fixture 已完成：${  expected}`);
-    expect(latest(service).detail).toBe(expected);
+    expect(latest(service).detail).toBeNull();
+    expect(latest(service).detailProvider).toBe('claude');
     service.stop();
   });
   it('clips long previews and collapses whitespace-only values to null', async () => {
     const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start();
     request({ event: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'x'.repeat(1100) }, message: ' ' });
-    expect(latest(service).toolInputPreview).toBe(`${'x'.repeat(999)  }…`);
+    expect(latest(service).toolInputPreview).toBe(`${'x'.repeat(256)  }…`);
     const path = transcript([{ role: 'user', content: '\n\t' }]);
     request({ event: 'UserPromptSubmit', transcript_path: path });
     expect(latest(service).detailItems.some((item) => item.label === 'userInput')).toBe(false);
@@ -173,7 +182,7 @@ describe('Claude transcript enrichment through real JSONL readers', () => {
       { label: 'userInput', value: 'Question' }, { label: 'assistantOutput', value: 'Answer' },
       { label: 'toolUseId', value: 'wanted' }, { label: 'toolResult', value: 'Result' }, { label: 'model', value: 'fixture-model' },
     ]));
-    expect(io.lastLines).toHaveBeenCalledWith(path, 260);
+    expect(io.lastLines).toHaveBeenCalledWith(path, 260, 1024 * 1024);
     service.stop();
   });
   it('skips unnamed and mismatched tool blocks and matches a requested name without an ID', async () => {

@@ -54,6 +54,8 @@ const leaves = vi.hoisted(() => ({
   session: vi.fn<typeof GameApi.startGameSession>(),
   captcha: vi.fn<typeof runSliderCaptcha>()
 }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../../../store/index', () => ({
   useIslandStore: () => ({
     setLogin: leaves.login,

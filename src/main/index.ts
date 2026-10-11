@@ -50,6 +50,8 @@ import { registerWallpaperVideoIpcHandlers } from './ipc/media/wallpaperVideo';
 import { registerFormatFactoryIpcHandlers } from './ipc/app/formatFactory';
 import { registerNetIpcHandlers } from './ipc/app/net';
 import { registerMailIpcHandlers } from './ipc/app/mail';
+import { handleLocalAssetRequest } from './media/localAssets';
+import { registerReminderWakeups } from './services/reminderWakeups';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { handleAlbumMediaRequest } from './media/albumMedia';
 import { registerLogIpcHandlers } from './ipc/app/log';
@@ -79,7 +81,6 @@ import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { createExternalAgentWatcher } from './system/externalAgentWatcher';
 import { createClaudeCodeStatusService } from './system/claudeCodeStatusService';
 import { createCodexStatusService } from './system/codexStatusService';
-import { play, pause, next } from '@eisland/windows-smtc-helper';
 import {
   queryFocusedWindow,
   queryOpenWindowsWithIcons,
@@ -439,13 +440,13 @@ const hotkeyService = createHotkeyService({
   },
   onNextSongHotkey: () => {
     if (!smtcService.isWhitelisted()) return;
-    next();
+    void smtcService.requestCommand('next');
   },
   onPlayPauseSongHotkey: () => {
     // 根据当前播放状态决定 play 还是 pause
     const entry = smtcService.getSmtcSessionRuntime()?.get(smtcService.getCurrentDeviceId());
     const isPlaying = Boolean(entry && (entry.payload as Record<string, unknown>)?.isPlaying);
-    if (isPlaying) pause(); else play();
+    void smtcService.requestCommand(isPlaying ? 'pause' : 'play');
   },
   onResetPositionHotkey: () => {
     mainWindowService.applyIslandPositionOffset(DEFAULT_ISLAND_POSITION_OFFSET);
@@ -549,6 +550,7 @@ function registerIpcHandlers(): void {
   });
 
   registerMediaIpcHandlers({
+    requestCommand: smtcService.requestCommand,
     getMainWindow: () => mainWindow,
     isWhitelisted: smtcService.isWhitelisted,
     getPendingSourceSwitchId: smtcService.getPendingSourceSwitchId,
@@ -601,6 +603,7 @@ function registerIpcHandlers(): void {
   });
 
   registerStoreIpcHandlers({ storeDir });
+  registerReminderWakeups();
   registerClaudeCodeStatusIpcHandlers({ service: claudeCodeStatusService });
   registerCodexStatusIpcHandlers(codexStatusService);
   registerSettingsPreviewHandler();
@@ -884,6 +887,7 @@ app.whenReady().then(() => {
    *   使用纯字符串切片解析以避免 Node URL 解析对非内置 scheme 的差异。
    */
   protocol.handle('eisland-media', (request) => {
+    if (request.url.startsWith('eisland-media://asset/')) return handleLocalAssetRequest(request);
     if (request.url.startsWith('eisland-media://album/')) return handleAlbumMediaRequest(request);
     try {
       const raw = request.url;

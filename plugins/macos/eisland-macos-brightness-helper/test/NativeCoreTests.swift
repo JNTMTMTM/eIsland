@@ -62,6 +62,7 @@ struct NativeCoreTests {
     let invalid = changeBrightness(.nan) { enumerations += 1; return [native] }
     let infinity = changeBrightness(.infinity) { enumerations += 1; return [native] }
     check("rejects nonfinite input before enumerating hardware", !invalid && !infinity && enumerations == 0)
+    check("rejects nonfinite C ABI input without changing hardware", brightnessSet(.nan) == 0 && brightnessSet(.infinity) == 0)
     values = []
     let failed = target("native", "display-services", 0.5, { _ in false })
     check("does not change unrelated screens after native write failure", !changeBrightness(60) { [failed, external] } && values.isEmpty)

@@ -62,6 +62,7 @@ beforeEach(async () => {
       storeWrite: write
     }
   }));
+  vi.doMock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
   vi.doMock('react', async (original) => ({
     ...createHookReactMock(await original<typeof import('react')>()),
     useSyncExternalStore: (...[, getSnapshot]: [unknown, () => unknown]) => getSnapshot(),

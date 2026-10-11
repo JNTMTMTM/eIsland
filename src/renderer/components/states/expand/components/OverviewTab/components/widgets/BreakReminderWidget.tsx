@@ -26,7 +26,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { SvgIcon, normalizeSvgIconPath } from '../../../../../../../utils/SvgIcon';
 
 const BREAK_REMINDER_STORE_KEY = 'break-reminder-items';
 const BREAK_REMINDER_LAST_FIRED_KEY = 'break-reminder-last-fired';
@@ -111,7 +111,7 @@ export function BreakReminderWidget({ openBreakReminderPage }: BreakReminderWidg
             return (
               <div key={item.id} className="ov-dash-break-reminder-item">
                 <img
-                  src={item.icon || SvgIcon.BREAK}
+                  src={normalizeSvgIconPath(item.icon || SvgIcon.BREAK)}
                   alt=""
                   width={16}
                   height={16}

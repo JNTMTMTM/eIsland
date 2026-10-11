@@ -23,7 +23,8 @@
       "minimize": "最小化",
       "maximize": "最大化",
       "close": "閉じる"
-    }
+    },
+    "loading": "読み込み中…"
   },
   "capture": {
     "source": {
@@ -1022,7 +1023,9 @@
     },
     "feedback": {
       "issueTitle": "エージェントの出力が想定と異なる - {{traceId}}"
-    }
+    },
+    "storageLoading": "チャット履歴を読み込んでいます…",
+    "storageRetry": "再試行"
   },
   "urlFavoritesTab": {
     "title": "URLのお気に入り",
@@ -1107,7 +1110,8 @@
       "inboxFetchTimeout": "受信トレイの取得がタイムアウトしました。ネットワークまたはメール設定を確認してください",
       "needRecipient": "宛先のメールアドレスを入力してください",
       "sendFailed": "送信に失敗しました。もう一度お試しください",
-      "sendSuccess": "メールを送信しました"
+      "sendSuccess": "メールを送信しました",
+      "bodyFetchFailed": "メール本文を読み込めませんでした。もう一度開いてください。"
     },
     "emptyGuide": {
       "title": "IMAPアカウントを設定すると、ここでメールの受信と閲覧ができます",
@@ -1594,6 +1598,11 @@
       "switchTo": "{{label}} に切り替え"
     },
     "cli": {
+      "detailLoading": "詳細を読み込み中…",
+      "detailUnavailable": "詳細を読み込めません。元のログが移動または削除された可能性があります",
+      "detailRetry": "再試行",
+      "detailPrevious": "前のページ",
+      "detailNext": "次のページ",
       "eyebrow": "CLI アクティビティ",
       "title": "CLI コンソール",
       "subtitle": "Claude Code と Codex CLI のセッション、プロンプト、ツール呼び出し、モデルの出力をリアルタイムで確認できます。Claude Code はローカルフックを使用し、Codex のセッションは自動で検出されます。",

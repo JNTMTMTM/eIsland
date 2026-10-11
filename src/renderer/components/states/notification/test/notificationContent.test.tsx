@@ -33,6 +33,8 @@ import type { TreeElement } from '../../test/tree';
 const api = { mediaAcceptSourceSwitch: vi.fn(), mediaRejectSourceSwitch: vi.fn(), updaterInstall: vi.fn().mockResolvedValue(true), updaterDownload: vi.fn().mockResolvedValue(true), updaterCheck: vi.fn().mockResolvedValue(true), restartApp: vi.fn().mockResolvedValue(true), storeRead: vi.fn().mockResolvedValue('github'), storeWrite: vi.fn().mockResolvedValue(true), clipboardOpenUrl: vi.fn().mockResolvedValue(true), clipboardUrlBlacklistAddDomain: vi.fn().mockResolvedValue(true), cliGlowHide: vi.fn() };
 
 const slots = vi.hoisted(() => ({ cursor: 0, values: [] as unknown[], effects: [] as Array<() => unknown> }));
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (importOriginal) => { const actual = await importOriginal<typeof import('react')>(); const { mockHooks } = await import('../../test/hooks'); return mockHooks(actual, slots); });
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'zh-CN' } }) }));
 beforeEach(() => { slots.cursor = 0; slots.values = []; slots.effects = []; });

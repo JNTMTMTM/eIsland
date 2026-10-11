@@ -66,6 +66,7 @@ function createMockReader(chunks: Uint8Array[]) {
       return Promise.resolve({ done: true, value: undefined });
     }),
     cancel: vi.fn().mockResolvedValue(undefined),
+    releaseLock: vi.fn(),
   };
 }
 
@@ -81,7 +82,7 @@ function createMockResponse(options: {
     ok,
     status,
     headers: { get: vi.fn().mockReturnValue(contentType) },
-    body: { getReader: () => reader },
+    body: { getReader: () => reader, cancel: vi.fn().mockResolvedValue(undefined) },
   };
 }
 

@@ -90,6 +90,7 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
 
     const controller = new AbortController();
     let active = true;
+    let retainedSessionId = '';
 
     const run = async (): Promise<void> => {
       setPhase('connecting');
@@ -111,12 +112,17 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
           agentMode,
         } = resolveAgentRouting(aiConfig, token);
 
+        await useIslandStore.getState().ensureAiChatReady();
+        if (!active) return;
+        retainedSessionId = useIslandStore.getState().activeAiChatSessionId;
+        useIslandStore.getState().retainAiChatSession(retainedSessionId, true);
         const {
           activeSessionId,
           context,
           resolvedSkills,
         } = await resolveAgentContextAndSkills(aiConfig);
 
+        if (!active) return;
         const message = `${INLINE_PROMPT_HINT}\n\n${agentPrompt.trim()}`;
 
         const handleEvent = createAgentStreamEventHandler({
@@ -217,7 +223,7 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
           const finalAnswer = answerAccRef.current.trim();
           if (finalAnswer) {
             const store = useIslandStore.getState();
-            const sid = store.activeAiChatSessionId;
+            const sid = activeSessionId;
             const session = store.aiChatSessions.find((s) => s.id === sid);
             const prev = session?.messages ?? [];
             const userMsg: AiChatMessage = { role: 'user', content: agentPrompt.trim() };
@@ -238,6 +244,11 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
         const msg = err instanceof Error ? err.message : '请求失败';
         setPhase('error');
         setErrorMsg(msg);
+      } finally {
+        if (retainedSessionId) {
+          useIslandStore.getState().retainAiChatSession(retainedSessionId, false);
+          retainedSessionId = '';
+        }
       }
     };
 
@@ -246,6 +257,10 @@ export function useAgentRunner(options: UseAgentRunnerOptions): void {
     return () => {
       active = false;
       controller.abort();
+      if (retainedSessionId) {
+        useIslandStore.getState().retainAiChatSession(retainedSessionId, false);
+        retainedSessionId = '';
+      }
     };
   }, [
     agentPrompt,

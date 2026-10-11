@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -160,7 +161,9 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
     setMusicSettingsPage,
   } = props;
 
-  const { setMusicProvidersLogin } = useIslandStore();
+  const { setMusicProvidersLogin } = useIslandStore(useShallow((store) => ({
+    setMusicProvidersLogin: store.setMusicProvidersLogin,
+  })));
   const [qishuiLoggedIn, setQishuiLoggedIn] = useState(false);
   const [qishuiAuthLoading, setQishuiAuthLoading] = useState(true);
   const [qishuiMode, setQishuiMode] = useState<'guest' | 'logged-in'>('guest');

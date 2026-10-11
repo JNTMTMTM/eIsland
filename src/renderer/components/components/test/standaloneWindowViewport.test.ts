@@ -30,12 +30,14 @@ import { elements, findElement, resetState } from '../../test/elementHarness';
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   ...(await import('../../test/elementHarness')).hookMocks,
+  lazy: (load: () => Promise<unknown>) => Object.assign(() => null, { load }),
 }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { resolvedLanguage: 'en-US', language: 'en-US', changeLanguage: vi.fn(() => Promise.resolve()) } }) }));
-vi.mock('../../states/maxExpand/components/todo/components/TodoTab', () => ({ TodoTab: Object.assign(vi.fn(), { displayName: 'TodoTab' }) }));
+const imports = vi.hoisted(() => ({ todo: vi.fn(), album: vi.fn() }));
+vi.mock('../../states/maxExpand/components/todo/components/TodoTab', () => (imports.todo(), { TodoTab: Object.assign(vi.fn(), { displayName: 'TodoTab' }) }));
 vi.mock('../../states/maxExpand/components/countdown', () => ({ CountdownTab: Object.assign(vi.fn(), { displayName: 'CountdownTab' }) }));
 vi.mock('../../states/maxExpand/components/urlFavorites', () => ({ UrlFavoritesTab: Object.assign(vi.fn(), { displayName: 'UrlFavoritesTab' }) }));
-vi.mock('../../states/maxExpand/components/album/components/AlbumTab', () => ({ AlbumTab: Object.assign(vi.fn(), { displayName: 'AlbumTab' }) }));
+vi.mock('../../states/maxExpand/components/album/components/AlbumTab', () => (imports.album(), { AlbumTab: Object.assign(vi.fn(), { displayName: 'AlbumTab' }) }));
 vi.mock('../../states/maxExpand/components/mail', () => ({ MailTab: Object.assign(vi.fn(), { displayName: 'MailTab' }) }));
 vi.mock('../../states/maxExpand/components/localFileSearch/components/LocalFileSearchTab', () => ({ LocalFileSearchTab: Object.assign(vi.fn(), { displayName: 'LocalFileSearchTab' }) }));
 vi.mock('../../states/maxExpand/components/clipBoardHistory', () => ({ ClipboardHistoryTab: Object.assign(vi.fn(), { displayName: 'ClipboardHistoryTab' }) }));
@@ -54,19 +56,27 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); });
 describe('StandaloneWindowViewport', () => {
-  it.each([['todo', 'TodoTab'], ['countdown', 'CountdownTab'], ['urlFavorites', 'UrlFavoritesTab'], ['album', 'AlbumTab'], ['mail', 'MailTab'], ['localFileSearch', 'LocalFileSearchTab'], ['clipboardHistory', 'ClipboardHistoryTab'], ['memo', 'MemoTab'], ['alarm', 'AlarmTab'], ['toolbox', 'ToolboxTab']] as const)('routes %s to %s only', (activeTab, expected) => {
+  it('keeps unrelated page modules unloaded until their route is rendered', async () => {
+    expect(imports.todo).not.toHaveBeenCalled();
+    expect(imports.album).not.toHaveBeenCalled();
+    const tree = StandaloneWindowViewport({ activeTab: 'todo', state: 'idle' });
+    const child = findElement(tree, (node) => typeof node.type === 'function');
+    expect(imports.todo).not.toHaveBeenCalled();
+    await (child.type as unknown as {load: () => Promise<unknown>}).load();
+    expect(imports.todo).toHaveBeenCalledOnce();
+    expect(imports.album).not.toHaveBeenCalled();
+  });
+  it.each([['todo', 'TodoTab'], ['countdown', 'CountdownTab'], ['urlFavorites', 'UrlFavoritesTab'], ['album', 'AlbumTab'], ['mail', 'MailTab'], ['localFileSearch', 'LocalFileSearchTab'], ['clipboardHistory', 'ClipboardHistoryTab'], ['memo', 'MemoTab'], ['alarm', 'AlarmTab'], ['toolbox', 'ToolboxTab']] as const)('routes %s to %s only', async (activeTab, expected) => {
     const tree = StandaloneWindowViewport({ activeTab, state: 'idle' });
     const children = elements(tree).filter((node) => typeof node.type === 'function');
     expect(children).toHaveLength(1);
-    expect((children[0].type as unknown as {
-      displayName: string;
-    }).displayName).toBe(expected);
+    const loaded = await (children[0].type as unknown as { load: () => Promise<{default: {displayName: string}}> }).load();
+    expect(loaded.default.displayName).toBe(expected);
   });
-  it.each([['login', 'LoginContent'], ['register', 'RegisterContent'], ['resetPassword', 'ResetPasswordContent'], ['payment', 'PaymentContent'], ['musicProvidersLogin', 'MusicProvidersLoginContent'], ['idle', 'SettingsTab']] as const)('routes settings authentication state %s to %s', (state, expected) => {
+  it.each([['login', 'LoginContent'], ['register', 'RegisterContent'], ['resetPassword', 'ResetPasswordContent'], ['payment', 'PaymentContent'], ['musicProvidersLogin', 'MusicProvidersLoginContent'], ['idle', 'SettingsTab']] as const)('routes settings authentication state %s to %s', async (state, expected) => {
     const tree = StandaloneWindowViewport({ state, activeTab: 'settings' });
     const child = findElement(tree, (node) => typeof node.type === 'function');
-    expect((child.type as unknown as {
-      displayName: string;
-    }).displayName).toBe(expected);
+    const loaded = await (child.type as unknown as { load: () => Promise<{default: {displayName: string}}> }).load();
+    expect(loaded.default.displayName).toBe(expected);
   });
 });

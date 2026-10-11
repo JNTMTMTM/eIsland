@@ -99,7 +99,7 @@ describe('独立窗口壳层真实子 Hook 集成', () => {
   });
   it('本地磁盘图片走真实预览工具，加载失败及空媒体广播保持清空', async () => {
     await mount(); broadcast('store:island-bg-media', { type: 'image', source: 'C:\\background.png' }); await settleBackground();
-    expect(ipc.loadWallpaperFile).toHaveBeenCalledWith('C:\\background.png');
+    expect(ipc.loadWallpaperFile).toHaveBeenCalledWith('C:\\background.png', true);
     expect(commit().bgMedia).toEqual({ type: 'image', previewUrl: 'data:image/png;base64,local' });
     ipc.loadWallpaperFile.mockResolvedValue(null);
     broadcast('store:island-bg-media', { type: 'image', source: 'C:\\missing.png' }); await settleBackground();

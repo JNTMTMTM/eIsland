@@ -94,6 +94,7 @@ afterEach(() => {
 
 function mount(): ReturnType<typeof useAlbumItems> {
   const hook = useAlbumItems();
+  hook.setVisibleItems(items);
   cleanups = effects.map((effect) => effect());
   return hook;
 }

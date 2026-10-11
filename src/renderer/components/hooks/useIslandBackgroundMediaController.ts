@@ -25,6 +25,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { canPlayBackgroundVideo } from '../../utils/backgroundVideoPlayback';
 import type { IslandBgMediaConfig, IslandBgMediaType } from '../config/dynamicIslandConfig';
 
 interface IslandBackgroundMediaControllerState {
@@ -104,7 +105,7 @@ export function useIslandBackgroundMediaController(): IslandBackgroundMediaContr
     event.currentTarget.loop = false;
     event.currentTarget.volume = Math.max(0, Math.min(1, bgVideoVolume));
     event.currentTarget.playbackRate = Math.max(0.25, Math.min(3, bgVideoRate));
-    event.currentTarget.play().catch(() => {});
+    if (bgOpacityRef.current > 0 && canPlayBackgroundVideo(event.currentTarget)) event.currentTarget.play().catch(() => {});
   }, [bgVideoVolume, bgVideoRate]);
 
   return {

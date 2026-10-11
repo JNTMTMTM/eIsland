@@ -85,8 +85,8 @@ vi.mock('../../../utils/broadcast', () => ({
 }));
 
 vi.mock('@eisland/windows-volume-helper', () => ({
-  getMute: getMuteMock,
-  setMute: setMuteMock,
+  getMuteAsync: getMuteMock,
+  setMuteAsync: setMuteMock,
 }));
 
 vi.mock('@eisland/windows-smtc-helper', () => ({
@@ -126,6 +126,10 @@ describe('media ipc handlers', () => {
     previousMock.mockClear();
 
     registerMediaIpcHandlers({
+      requestCommand: (command, argument) => {
+        const actions = { play: playMock, pause: pauseMock, next: nextMock, previous: previousMock, seek: seekMock, getTimestamp: vi.fn() };
+        return argument === undefined ? actions[command]() : actions[command](argument);
+      },
       getMainWindow: () => null,
       isWhitelisted: () => false,
       getPendingSourceSwitchId: () => '',
@@ -147,7 +151,7 @@ describe('media ipc handlers', () => {
     expect(previousMock).not.toHaveBeenCalled();
   });
 
-  it('reads and toggles the default playback device mute state', () => {
+  it('reads and toggles the default playback device mute state', async () => {
     getMuteMock
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false)
@@ -158,6 +162,10 @@ describe('media ipc handlers', () => {
       .mockReturnValueOnce(false);
 
     registerMediaIpcHandlers({
+      requestCommand: (command, argument) => {
+        const actions = { play: playMock, pause: pauseMock, next: nextMock, previous: previousMock, seek: seekMock, getTimestamp: vi.fn() };
+        return argument === undefined ? actions[command]() : actions[command](argument);
+      },
       getMainWindow: () => null,
       isWhitelisted: () => true,
       getPendingSourceSwitchId: () => '',
@@ -170,11 +178,11 @@ describe('media ipc handlers', () => {
     });
 
     expect(handlers.get('media:get-muted')?.({})).toBe(false);
-    expect(handlers.get('media:toggle-muted')?.({})).toBe(true);
+    expect(await handlers.get('media:toggle-muted')?.({})).toBe(true);
     expect(setMuteMock).toHaveBeenNthCalledWith(1, true);
-    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
+    expect(await handlers.get('media:toggle-muted')?.({})).toBeNull();
     expect(setMuteMock).toHaveBeenNthCalledWith(2, false);
-    expect(handlers.get('media:toggle-muted')?.({})).toBeNull();
+    expect(await handlers.get('media:toggle-muted')?.({})).toBeNull();
   });
 
   it('returns current info and applies source switch updates', () => {
@@ -200,6 +208,10 @@ describe('media ipc handlers', () => {
     getAllWindowsMock.mockReturnValue([aliveWindow, deadWindow]);
 
     registerMediaIpcHandlers({
+      requestCommand: (command, argument) => {
+        const actions = { play: playMock, pause: pauseMock, next: nextMock, previous: previousMock, seek: seekMock, getTimestamp: vi.fn() };
+        return argument === undefined ? actions[command]() : actions[command](argument);
+      },
       getMainWindow: () => null,
       isWhitelisted: () => true,
       getPendingSourceSwitchId: () => 'device-2',

@@ -40,7 +40,7 @@ vi.mock('react', async (original) => {
 const get = vi.fn<() => Promise<number | null>>();
 const set = vi.fn<(value: number) => Promise<void>>();
 const read = vi.fn<(key: string) => Promise<unknown>>();
-const screenshot = vi.fn<() => Promise<string | null>>();
+const screenshot = vi.fn<() => Promise<Uint8Array | null>>();
 const region = vi.fn<() => Promise<void>>();
 const manager = vi.fn<() => void>();
 const collapse = vi.fn<() => void>();
@@ -91,7 +91,8 @@ beforeEach(() => {
   get.mockResolvedValue(75);
   set.mockResolvedValue(undefined);
   read.mockResolvedValue('region');
-  screenshot.mockResolvedValue('native-pixels');
+  screenshot.mockResolvedValue(new Uint8Array([137, 80, 78, 71]));
+  vi.spyOn(URL, 'revokeObjectURL');
   region.mockResolvedValue(undefined);
   anchor.download = '';
   anchor.href = '';
@@ -182,7 +183,10 @@ describe('true screenshot and native action buttons', () => {
     await renderHook(useToolButtons).handleScreenshot();
     if (mode === 'display') {
       expect(screenshot).toHaveBeenCalledOnce();
-      expect(anchor.href).toBe('data:image/png;base64,native-pixels');
+      expect(anchor.href).toMatch(/^blob:/);
+      expect(new Uint8Array(await (await fetch(anchor.href)).arrayBuffer())).toEqual(new Uint8Array([137, 80, 78, 71]));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(anchor.href);
       expect(anchor.download).toMatch(/^screenshot_\d+\.png$/);
       expect(click).toHaveBeenCalledOnce();
     } else {

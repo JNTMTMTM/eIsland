@@ -22,7 +22,8 @@ if (process.platform !== 'win32') {
   throw new Error('@eisland/windows-src only supports Windows.');
 }
 
-const { spawnSync, spawn } = require('node:child_process');
+const { spawnSync, spawn, execFile } = require('node:child_process');
+const { createAsyncControl } = require('./async-control');
 const fs = require('node:fs');
 const path = require('node:path');
 const { EventEmitter } = require('node:events');
@@ -67,6 +68,22 @@ function callHelper(args, timeout = 5000) {
   } catch {
     return null;
   }
+}
+
+/**
+ * 异步启动一次性辅助进程；超时由 child_process 终止子进程，不占用主线程。
+ * @param {string[]} args - 原生命令参数
+ * @returns {Promise<object|null>} 解析后的结果，失败返回 null
+ */
+function callHelperAsync(args) {
+  const helperPath = findHelper();
+  if (!helperPath) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    execFile(helperPath, args, { encoding: 'utf8', windowsHide: true, timeout: 5000, maxBuffer: 64 * 1024 }, (error, stdout) => {
+      if (error || !stdout) { resolve(null); return; }
+      try { resolve(JSON.parse(stdout.trim())); } catch { resolve(null); }
+    });
+  });
 }
 
 /**
@@ -175,7 +192,24 @@ class BrightnessMonitor extends EventEmitter {
   }
 }
 
+const brightnessControl = createAsyncControl(callHelperAsync, 'get', 'set');
+
+/** @returns {Promise<object|null>} 异步读取当前亮度。 */
+function getBrightnessAsync() { return brightnessControl.get(); }
+
+/**
+ * 异步设置亮度，只发送队列中的最新目标。
+ * @param {number} brightness - 目标亮度
+ * @returns {Promise<boolean>} 最新写入是否成功
+ */
+function setBrightnessAsync(brightness) {
+  if (!Number.isFinite(brightness)) return Promise.resolve(false);
+  return brightnessControl.set(Math.max(0, Math.min(100, Math.round(brightness))));
+}
+
 module.exports = {
+  getBrightnessAsync,
+  setBrightnessAsync,
   getBrightness,
   setBrightness,
   BrightnessMonitor,

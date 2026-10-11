@@ -31,6 +31,8 @@ const store = vi.hoisted(() => ({
   timerData: undefined as Partial<TimerData> | undefined,
   setTimerData: vi.fn<(data: Partial<TimerData>) => void>()
 }));
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../../../store/slices', () => ({
   default: () => store
 }));

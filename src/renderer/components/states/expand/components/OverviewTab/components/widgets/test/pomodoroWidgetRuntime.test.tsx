@@ -62,6 +62,8 @@ async function storeMock() {
     })
   };
 }
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../../../../i18n', () => ({
   default: {
     t: (key: string) => key
@@ -176,10 +178,10 @@ describe('PomodoroWidget module runtime', () => {
   it('real timer decreases time, survives widget unmount, ignores unchanged running and clears on pause', async () => {
     await mount();
     click('start');
-    expect(vi.getTimerCount()).toBe(1);
+    expect(vi.getTimerCount()).toBe(2);
     state().setPomodoroRunning(true);
     state().setPomodoroCompletedCount(2);
-    expect(vi.getTimerCount()).toBe(1);
+    expect(vi.getTimerCount()).toBe(2);
     await vi.advanceTimersByTimeAsync(1000);
     expect(state().pomodoroRemaining).toBe(1499);
     unmountHook();

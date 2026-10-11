@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-volume-helper",
-  "version": "26.0.3",
+  "version": "26.0.4",
   "description": "Windows default playback device volume query, control, and monitoring via Core Audio COM.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -32,6 +32,7 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "src"
+    "src",
+    "async-control.js"
   ]
 }

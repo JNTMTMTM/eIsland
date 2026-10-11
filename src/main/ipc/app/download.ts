@@ -178,7 +178,13 @@ export function registerDownloadIpcHandlers(options: RegisterDownloadIpcHandlers
   const upsertTaskSnapshot = (task: DownloadTaskSnapshot): void => {
     taskSnapshotMap.set(task.id, task);
     if (taskSnapshotMap.size <= MAX_PERSISTED_TASKS) return;
-    const trimmed = sortTasks(Array.from(taskSnapshotMap.values())).slice(0, MAX_PERSISTED_TASKS);
+    // 活动或暂停任务不能因历史淘汰失去控制入口。
+    const all = sortTasks(Array.from(taskSnapshotMap.values()));
+    const active = all.filter((item) => item.status === 'downloading' || item.status === 'paused');
+    const history = all.filter((item) => item.status !== 'downloading' && item.status !== 'paused');
+    const trimmed = [...active, ...history.slice(0, Math.max(0, MAX_PERSISTED_TASKS - active.length))];
+    const retained = new Set(trimmed.map((item) => item.id));
+    taskSnapshotMap.forEach((_value, id) => { if (!retained.has(id)) engine.removeTask(id); });
     taskSnapshotMap.clear();
     trimmed.forEach((item) => taskSnapshotMap.set(item.id, item));
   };

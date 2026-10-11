@@ -62,10 +62,9 @@ export function DynamicIslandBackground({
           ref={bgVideoElementRef}
           className="island-bg-video"
           src={bgMedia.previewUrl}
-          autoPlay
           muted={bgVideoMuted || bgVideoVolume <= 0}
           playsInline
-          preload="auto"
+          preload="metadata"
           disableRemotePlayback
           style={{ objectFit: bgVideoFit, imageRendering: bgVideoHwDecode ? undefined : 'auto' }}
           onLoadedMetadata={onVideoLoadedMetadata}

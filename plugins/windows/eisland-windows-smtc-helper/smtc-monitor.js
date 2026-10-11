@@ -105,6 +105,7 @@ class SmtcMonitor extends EventEmitter {
    * @private
    */
   _drainChanges() {
+    if (typeof smtc.smtc_drain_session_changes === 'function') return this._drainDeltas();
     const sessions = callJson('smtc_get_all_sessions');
     if (!Array.isArray(sessions)) return false;
 
@@ -124,8 +125,8 @@ class SmtcMonitor extends EventEmitter {
         this.emit('session-added', id, normalized.media);
       } else {
         // 检查各维度变化
-        this._emitIfChanged(id, prev, normalized);
         this._cache.set(id, normalized);
+        this._emitIfChanged(id, prev, normalized);
       }
     }
 
@@ -135,6 +136,45 @@ class SmtcMonitor extends EventEmitter {
         this._cache.delete(id);
         this.emit('session-removed', id);
       }
+    }
+    return true;
+  }
+
+  /**
+   * 返回已合并的本地会话，不重新调用原生全量查询。
+   * @param {string} sourceAppId - 会话标识
+   * @returns {object|null} 本地快照
+   */
+  getCachedSession(sourceAppId) {
+    return this._cache.get(sourceAppId) || null;
+  }
+
+  /**
+   * 合并原生增量，只有封面改变时才替换缓存的图片。
+   * @returns {boolean} 是否成功消费
+   */
+  _drainDeltas() {
+    const changes = callJson('smtc_drain_session_changes');
+    if (!Array.isArray(changes)) return false;
+    for (const change of changes) {
+      const id = change.sourceAppId;
+      if (!id) continue;
+      const previous = this._cache.get(id);
+      if (change.removed) {
+        this._cache.delete(id);
+        this.emit('session-removed', id);
+        continue;
+      }
+      const media = change.mediaChanged ? change.media : previous?.media;
+      const normalized = this._normalizeSession({
+        sourceAppId: id,
+        media: media ? { ...media, thumbnail: change.artworkChanged ? change.thumbnail : previous?.media?.thumbnail } : null,
+        playback: change.playback,
+        timeline: change.timeline,
+      });
+      this._cache.set(id, normalized);
+      if (previous) this._emitIfChanged(id, previous, normalized);
+      else this.emit('session-added', id, normalized.media);
     }
     return true;
   }

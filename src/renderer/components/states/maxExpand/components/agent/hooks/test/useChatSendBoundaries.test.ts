@@ -52,7 +52,7 @@ vi.mock('../../../../../../../api/ai/ollamaLocalAgent', () => ({
 vi.mock('../../../../../../../api/ai/customDirectAgent', () => ({
   streamCustomDirectAgent: vi.fn()
 }));
-let runtime: ReturnType<typeof installChatRuntime>;
+let runtime: Awaited<ReturnType<typeof installChatRuntime>>;
 let stateModule: typeof import('../useChatState');
 let sendModule: typeof import('../useChatSend');
 const readers: NativeReader[] = [];
@@ -145,7 +145,7 @@ beforeEach(async () => {
   vi.resetModules();
   vi.resetAllMocks();
   vi.useFakeTimers();
-  runtime = installChatRuntime();
+  runtime = await installChatRuntime();
   runtime.storage.set('user-account-token', roleToken('pro'));
   leaves.web.mockResolvedValue(undefined);
   leaves.access.mockResolvedValue(undefined);

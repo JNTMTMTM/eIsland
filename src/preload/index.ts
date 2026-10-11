@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { subscribeCliStatus } from './cliStatusSubscription';
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 import type {
@@ -81,6 +82,7 @@ import type {
   RunningProcessInfo,
   RunningWindowInfo,
   ClaudeCodeStatusSnapshot,
+  CliDetailPage,
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
@@ -504,10 +506,10 @@ const api = {
   },
   /** ===== 系统工具 API ===== */
   /**
-   * 截图并返回 Base64 图片数据
-   * @returns Base64 编码的 PNG 图片数据，或 null（失败时）
+   * 截图并返回原始 PNG 字节
+   * @returns PNG 二进制图片数据，或 null（失败时）
    */
-  screenshot: (): Promise<string | null> => {
+  screenshot: (): Promise<Uint8Array | null> => {
     return ipcRenderer.invoke('system:screenshot');
   },
   /**
@@ -675,24 +677,24 @@ const api = {
    * 打开字体文件选择对话框
    * @returns 字体文件信息（path, data, ext, name），取消返回 null
    */
-  openFontDialog: (): Promise<{ path: string; data: string; ext: string; name: string } | null> => {
+  openFontDialog: (): Promise<{ path: string; data: string; url?: string; ext: string; name: string } | null> => {
     return ipcRenderer.invoke('dialog:open-font');
   },
   /**
-   * 读取字体文件并返回 base64 数据
+   * 读取字体元数据并返回受控本地 URL
    * @param filePath - 字体文件绝对路径
    * @returns 字体文件信息，失败返回 null
    */
-  readFontFile: (filePath: string): Promise<{ path: string; data: string; ext: string; name: string } | null> => {
+  readFontFile: (filePath: string): Promise<{ path: string; data: string; url?: string; ext: string; name: string } | null> => {
     return ipcRenderer.invoke('font:read-file', filePath);
   },
   /**
-   * 读取缓存的壁纸文件并返回 base64 data URL
+   * 读取壁纸元数据并返回受控本地 URL
    * @param filePath - 壁纸文件绝对路径
    * @returns data URL 字符串，失败返回 null
    */
-  loadWallpaperFile: (filePath: string): Promise<string | null> => {
-    return ipcRenderer.invoke('wallpaper:load-file', filePath);
+  loadWallpaperFile: (filePath: string, preview?: boolean): Promise<string | null> => {
+    return preview === true ? ipcRenderer.invoke('wallpaper:load-file', filePath, true) : ipcRenderer.invoke('wallpaper:load-file', filePath);
   },
   /**
    * 生成相册网格缩略图，避免批量传输和解码原图
@@ -766,6 +768,8 @@ const api = {
   /**
    * 读取收件箱邮件列表
    */
+  /** 按需读取单封邮件正文，不下载附件。 */
+  mailMessageGet: (config: Record<string, unknown>, uid: string, validity?: string): Promise<MailInboxResult> => ipcRenderer.invoke('mail:message:get', config, uid, validity),
   mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number): Promise<MailInboxResult> => {
     return ipcRenderer.invoke('mail:inbox:list', configOrLimit, limit);
   },
@@ -776,6 +780,7 @@ const api = {
    * @param strict - true 时读取失败拒绝 Promise，false 时返回 null
    * @returns 解析后的数据，不存在时返回 null
    */
+  scheduleWakeup: (id: string, deadline: number | null): Promise<boolean> => ipcRenderer.invoke('runtime:schedule-wakeup', id, deadline),
   storeRead: (key: string, strict = false): Promise<unknown> => {
     return strict ? ipcRenderer.invoke('store:read', key, true) : ipcRenderer.invoke('store:read', key);
   },
@@ -1717,6 +1722,8 @@ const api = {
       ipcRenderer.removeListener('external-agent:stopped', handler);
     };
   },
+  /** 按需读取一页 CLI 详情，正文不会常驻状态快照。 */
+  claudeCodeEventDetail: (id: string, offset?: number): Promise<CliDetailPage> => ipcRenderer.invoke('claude-code:event:detail', id, offset),
   claudeCodeStatusGet: (): Promise<ClaudeCodeStatusSnapshot> => {
     return ipcRenderer.invoke('claude-code:status:get');
   },
@@ -1735,15 +1742,9 @@ const api = {
   claudeCodePermissionResolve: (sessionId: string, decision: 'allow' | 'always' | 'deny'): Promise<ClaudeCodeStatusSnapshot> => {
     return ipcRenderer.invoke('claude-code:permission:resolve', sessionId, decision);
   },
-  onClaudeCodeStatusUpdated: (callback: (snapshot: ClaudeCodeStatusSnapshot) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, snapshot: ClaudeCodeStatusSnapshot): void => {
-      callback(snapshot);
-    };
-    ipcRenderer.on('claude-code:status-updated', handler);
-    return () => {
-      ipcRenderer.removeListener('claude-code:status-updated', handler);
-    };
-  },
+  onClaudeCodeStatusUpdated: (callback: (snapshot: ClaudeCodeStatusSnapshot) => void): (() => void) => subscribeCliStatus('claude-code:status-updated', 'claude-code:status:get', callback),
+  /** 按需读取一页 CLI 详情，正文不会常驻状态快照。 */
+  codexEventDetail: (id: string, offset?: number): Promise<CliDetailPage> => ipcRenderer.invoke('codex:event:detail', id, offset),
   codexStatusGet: (): Promise<CodexStatusSnapshot> => {
     return ipcRenderer.invoke('codex:status:get');
   },
@@ -1759,15 +1760,7 @@ const api = {
   codexSessionsDelete: (sessionIds: string[]): Promise<CodexStatusSnapshot> => {
     return ipcRenderer.invoke('codex:sessions:delete', sessionIds);
   },
-  onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, snapshot: CodexStatusSnapshot): void => {
-      callback(snapshot);
-    };
-    ipcRenderer.on('codex:status-updated', handler);
-    return () => {
-      ipcRenderer.removeListener('codex:status-updated', handler);
-    };
-  }
+  onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void): (() => void) => subscribeCliStatus('codex:status-updated', 'codex:status:get', callback)
 };
 
 /** 注入到 window 对象，供渲染进程访问 */

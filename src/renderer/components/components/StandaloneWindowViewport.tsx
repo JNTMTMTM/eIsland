@@ -24,24 +24,26 @@
  * @author 鸡哥
  */
 
-import type { JSX } from 'react';
-import { TodoTab } from '../states/maxExpand/components/todo/components/TodoTab';
-import { CountdownTab } from '../states/maxExpand/components/countdown';
-import { UrlFavoritesTab } from '../states/maxExpand/components/urlFavorites';
-import { AlbumTab } from '../states/maxExpand/components/album/components/AlbumTab';
-import { MailTab } from '../states/maxExpand/components/mail';
-import { LocalFileSearchTab } from '../states/maxExpand/components/localFileSearch/components/LocalFileSearchTab';
-import { ClipboardHistoryTab } from '../states/maxExpand/components/clipBoardHistory';
-import { SettingsTab } from '../states/maxExpand/components/setting';
-import { MemoTab } from '../states/maxExpand/components/memo/components/MemoTab';
-import { AlarmTab } from '../states/maxExpand/components/alarm/components/AlarmTab';
-import { ToolboxTab } from '../states/maxExpand/components/toolbox';
-import { LoginContent } from '../states/login';
-import { RegisterContent } from '../states/register/RegisterContent';
-import { ResetPasswordContent } from '../states/resetPassword';
-import { PaymentContent } from '../states/payment/PaymentContent';
-import { MusicProvidersLoginContent } from '../states/musicProvidersLogin';
+import { lazy, Suspense, type JSX } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { WindowTab } from '../config/standaloneWindowConfig';
+
+const TodoTab = lazy(() => import('../states/maxExpand/components/todo/components/TodoTab').then((module) => ({ default: module.TodoTab })));
+const CountdownTab = lazy(() => import('../states/maxExpand/components/countdown').then((module) => ({ default: module.CountdownTab })));
+const UrlFavoritesTab = lazy(() => import('../states/maxExpand/components/urlFavorites').then((module) => ({ default: module.UrlFavoritesTab })));
+const AlbumTab = lazy(() => import('../states/maxExpand/components/album/components/AlbumTab').then((module) => ({ default: module.AlbumTab })));
+const MailTab = lazy(() => import('../states/maxExpand/components/mail').then((module) => ({ default: module.MailTab })));
+const LocalFileSearchTab = lazy(() => import('../states/maxExpand/components/localFileSearch/components/LocalFileSearchTab').then((module) => ({ default: module.LocalFileSearchTab })));
+const ClipboardHistoryTab = lazy(() => import('../states/maxExpand/components/clipBoardHistory').then((module) => ({ default: module.ClipboardHistoryTab })));
+const SettingsTab = lazy(() => import('../states/maxExpand/components/setting').then((module) => ({ default: module.SettingsTab })));
+const MemoTab = lazy(() => import('../states/maxExpand/components/memo/components/MemoTab').then((module) => ({ default: module.MemoTab })));
+const AlarmTab = lazy(() => import('../states/maxExpand/components/alarm/components/AlarmTab').then((module) => ({ default: module.AlarmTab })));
+const ToolboxTab = lazy(() => import('../states/maxExpand/components/toolbox').then((module) => ({ default: module.ToolboxTab })));
+const LoginContent = lazy(() => import('../states/login').then((module) => ({ default: module.LoginContent })));
+const RegisterContent = lazy(() => import('../states/register/RegisterContent').then((module) => ({ default: module.RegisterContent })));
+const ResetPasswordContent = lazy(() => import('../states/resetPassword').then((module) => ({ default: module.ResetPasswordContent })));
+const PaymentContent = lazy(() => import('../states/payment/PaymentContent').then((module) => ({ default: module.PaymentContent })));
+const MusicProvidersLoginContent = lazy(() => import('../states/musicProvidersLogin').then((module) => ({ default: module.MusicProvidersLoginContent })));
 
 interface StandaloneWindowViewportProps {
   activeTab: WindowTab;
@@ -54,24 +56,27 @@ interface StandaloneWindowViewportProps {
  * @returns 独立窗口内容视口节点。
  */
 export function StandaloneWindowViewport({ activeTab, state }: StandaloneWindowViewportProps): JSX.Element {
+  const { t } = useTranslation();
   return (
     <div className="cw-viewport">
-      {activeTab === 'todo' && <TodoTab />}
-      {activeTab === 'countdown' && <CountdownTab />}
-      {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
-      {activeTab === 'album' && <AlbumTab />}
-      {activeTab === 'mail' && <MailTab />}
-      {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
-      {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
-      {activeTab === 'memo' && <MemoTab />}
-      {activeTab === 'alarm' && <AlarmTab />}
-      {activeTab === 'toolbox' && <ToolboxTab />}
-      {activeTab === 'settings' && state === 'login' && <LoginContent />}
-      {activeTab === 'settings' && state === 'register' && <RegisterContent />}
-      {activeTab === 'settings' && state === 'resetPassword' && <ResetPasswordContent />}
-      {activeTab === 'settings' && state === 'payment' && <PaymentContent />}
-      {activeTab === 'settings' && state === 'musicProvidersLogin' && <MusicProvidersLoginContent />}
-      {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'resetPassword' && state !== 'payment' && state !== 'musicProvidersLogin' && <SettingsTab />}
+      <Suspense fallback={<div role="status">{t('standalone.loading')}</div>}>
+        {activeTab === 'todo' && <TodoTab />}
+        {activeTab === 'countdown' && <CountdownTab />}
+        {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
+        {activeTab === 'album' && <AlbumTab />}
+        {activeTab === 'mail' && <MailTab />}
+        {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
+        {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
+        {activeTab === 'memo' && <MemoTab />}
+        {activeTab === 'alarm' && <AlarmTab />}
+        {activeTab === 'toolbox' && <ToolboxTab />}
+        {activeTab === 'settings' && state === 'login' && <LoginContent />}
+        {activeTab === 'settings' && state === 'register' && <RegisterContent />}
+        {activeTab === 'settings' && state === 'resetPassword' && <ResetPasswordContent />}
+        {activeTab === 'settings' && state === 'payment' && <PaymentContent />}
+        {activeTab === 'settings' && state === 'musicProvidersLogin' && <MusicProvidersLoginContent />}
+        {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'resetPassword' && state !== 'payment' && state !== 'musicProvidersLogin' && <SettingsTab />}
+      </Suspense>
     </div>
   );
 }

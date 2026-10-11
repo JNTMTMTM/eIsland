@@ -39,6 +39,8 @@ vi.hoisted(() => {
   vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' }, api: {}, matchMedia: () => ({ matches: false, addEventListener: () => {} }) }));
   vi.stubGlobal('localStorage', { getItem: () => null });
 });
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (load) => ({ ...await load<typeof import('react')>(), ...hookMocks, ...lifecycleHooks }));
 vi.mock('react-i18next', async (load) => ({ ...await load<typeof import('react-i18next')>(), useTranslation: () => ({ t: i18n.t }) }));
 vi.mock('../../../../store/slices', async (load) => {

@@ -117,7 +117,7 @@ describe('useIslandNowPlayingSync lifecycle', () => {
     onNowPlaying({ ...song, duration_ms: 1200 });
     await vi.advanceTimersByTimeAsync(1000);
 
-    expect(options.updateProgress.mock.calls.map(([position]) => position)).toEqual([1066, 1132, 1198, 1200]);
+    expect(options.updateProgress.mock.calls.map(([position]) => position)).toEqual([1000, 1066, 1132, 1198, 1200]);
     expect(vi.getTimerCount()).toBe(0);
   });
 

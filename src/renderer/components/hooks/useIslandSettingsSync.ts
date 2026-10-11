@@ -101,8 +101,8 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
       window.api?.maxexpandMouseleaveIdleGet?.().then((value) => { maxExpandLeaveIdleRef.current = value; }).catch(() => {});
       window.api?.idleClickExpandGet?.().then((value) => { idleClickExpandRef.current = value; }).catch(() => {});
       window.api?.storeRead?.(ISLAND_POSITION_LOCKED_STORE_KEY).then((value) => { positionLockedRef.current = value === true; }).catch(() => {});
-      window.api?.storeRead?.(ISLAND_AUTO_DIM_ENABLED_STORE_KEY).then((value) => { autoDimEnabledRef.current = value === true; }).catch(() => {});
-      window.api?.storeRead?.(ISLAND_AUTO_DIM_DELAY_STORE_KEY).then((value) => { autoDimDelayRef.current = typeof value === 'number' && Number.isFinite(value) ? Math.max(1, value) : DEFAULT_AUTO_DIM_DELAY_SEC; }).catch(() => {});
+      window.api?.storeRead?.(ISLAND_AUTO_DIM_ENABLED_STORE_KEY).then((value) => { autoDimEnabledRef.current = value === true; window.dispatchEvent(new Event('island-auto-dim-config-updated')); }).catch(() => {});
+      window.api?.storeRead?.(ISLAND_AUTO_DIM_DELAY_STORE_KEY).then((value) => { autoDimDelayRef.current = typeof value === 'number' && Number.isFinite(value) ? Math.max(1, value) : DEFAULT_AUTO_DIM_DELAY_SEC; window.dispatchEvent(new Event('island-auto-dim-config-updated')); }).catch(() => {});
       window.api?.springAnimationGet?.().then((value) => { useIslandStore.getState().setSpringAnimation(value); }).catch(() => {});
       window.api?.animationSpeedGet?.().then((value) => {
         const speed = value === 'slow' || value === 'medium' || value === 'fast' ? value : 'medium';
@@ -202,9 +202,11 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         }
         if (channel === `store:${ISLAND_AUTO_DIM_ENABLED_STORE_KEY}`) {
           autoDimEnabledRef.current = value === true;
+          window.dispatchEvent(new Event('island-auto-dim-config-updated'));
         }
         if (channel === `store:${ISLAND_AUTO_DIM_DELAY_STORE_KEY}`) {
           autoDimDelayRef.current = typeof value === 'number' && Number.isFinite(value) ? Math.max(1, value) : DEFAULT_AUTO_DIM_DELAY_SEC;
+          window.dispatchEvent(new Event('island-auto-dim-config-updated'));
         }
         if (channel === 'island:spring-animation') {
           useIslandStore.getState().setSpringAnimation(Boolean(value));
@@ -315,10 +317,10 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         const detail = (event as CustomEvent).detail;
         if (!detail || typeof detail !== 'object') return;
         if (typeof detail.autoDimEnabled === 'boolean') {
-          autoDimEnabledRef.current = detail.autoDimEnabled;
+          autoDimEnabledRef.current = detail.autoDimEnabled; window.dispatchEvent(new Event('island-auto-dim-config-updated'));
         }
         if (typeof detail.autoDimDelaySec === 'number' && Number.isFinite(detail.autoDimDelaySec)) {
-          autoDimDelayRef.current = Math.max(1, detail.autoDimDelaySec);
+          autoDimDelayRef.current = Math.max(1, detail.autoDimDelaySec); window.dispatchEvent(new Event('island-auto-dim-config-updated'));
         }
       };
       window.addEventListener('island-auto-dim-local-sync', autoDimLocalHandler as EventListener);

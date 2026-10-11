@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import type { ReactElement } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -59,7 +60,9 @@ export function LayoutPreviewSettingsPage({
 }: LayoutPreviewSettingsPageProps): ReactElement {
   const { t } = useTranslation();
   const OverviewPreview = OverviewPreviewComponent;
-  const { dominantColor } = useIslandStore();
+  const { dominantColor } = useIslandStore(useShallow((store) => ({
+    dominantColor: store.dominantColor,
+  })));
   const [bgStyle, setBgStyle] = useState<HoverMusicBgStyle>('silky');
 
   useEffect(() => {

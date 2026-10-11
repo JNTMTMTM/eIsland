@@ -31,6 +31,8 @@ import makeAppSettingsProps from './appSettingsFixture';
 const { store } = vi.hoisted(() => ({
   store: { setNotification: vi.fn(), springAnimation: true, animationSpeed: 'normal', dominantColor: [20, 40, 60] },
 }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   ...(await import('../../../../../../../../test/elementHarness')).hookMocks,

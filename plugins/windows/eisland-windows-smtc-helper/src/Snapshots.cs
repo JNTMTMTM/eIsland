@@ -138,3 +138,19 @@ public class SessionInfo
     public PlaybackInfoSnapshot? Playback { get; init; }
     public TimelineInfo? Timeline { get; init; }
 }
+
+/// <summary>合并后的会话增量；时间线变化不序列化元数据或封面。</summary>
+public class SessionDelta
+{
+    public required string SourceAppId { get; init; }
+    public long Version { get; init; }
+    public bool Removed { get; init; }
+    public bool MediaChanged { get; init; }
+    public bool ArtworkChanged { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public MediaMetadata? Media { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Thumbnail { get; init; }
+    public PlaybackInfoSnapshot? Playback { get; init; }
+    public TimelineInfo? Timeline { get; init; }
+}

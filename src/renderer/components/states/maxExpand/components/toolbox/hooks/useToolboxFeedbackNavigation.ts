@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../../../../../../store/slices';
 
 /**
@@ -31,7 +32,9 @@ import useIslandStore from '../../../../../../store/slices';
  * @returns 打开设置反馈页面的回调。
  */
 export function useToolboxFeedbackNavigation(): () => void {
-  const { setMaxExpandTab } = useIslandStore();
+  const { setMaxExpandTab } = useIslandStore(useShallow((store) => ({
+    setMaxExpandTab: store.setMaxExpandTab,
+  })));
   const handleSoftwareFeedbackNavigate = (): void => {
     setMaxExpandTab('settings');
     window.dispatchEvent(new CustomEvent('standalone-tab-switch', { detail: 'settings' }));

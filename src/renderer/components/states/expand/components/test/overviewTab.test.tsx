@@ -36,6 +36,8 @@ const mocks = vi.hoisted(() => ({
   openFile: vi.fn<(path: string) => Promise<boolean>>(), openWindow: vi.fn<() => Promise<boolean>>(),
   select: vi.fn(), max: vi.fn(), widgets: Array.from({ length: 11 }, () => () => null), localGet: vi.fn<() => string | null>(), localSet: vi.fn(),
 }));
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../store/slices', () => ({ default: () => ({ setMaxExpand: mocks.max, setMaxExpandTab: mocks.select }) }));
 vi.mock('../OverviewTab/components/OverviewWidgets', () => ({
   AlbumCarouselWidget: mocks.widgets[0],

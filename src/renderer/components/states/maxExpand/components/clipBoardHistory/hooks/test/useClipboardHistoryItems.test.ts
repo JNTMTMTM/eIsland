@@ -36,6 +36,8 @@ vi.hoisted(() => {
   vi.stubGlobal('localStorage', { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() });
 });
 
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (original) => {
   const actual = await original<typeof import('react')>();
   const { createHookReactMock } = await import('../../../../../../hooks/test/startupHookHarness');

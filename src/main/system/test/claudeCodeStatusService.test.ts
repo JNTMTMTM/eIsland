@@ -34,6 +34,14 @@ const io = vi.hoisted(() => ({ files: new Map<string, string>(), write: vi.fn<(f
 vi.mock('electron', () => ({ BrowserWindow: class {}, app: { getPath: (name: string) => name === 'home' ? 'C:/test-home' : 'C:/test-data' } }));
 vi.mock('fs', () => ({ existsSync: (file: string) => io.files.has(file), mkdirSync: vi.fn(), readFileSync: io.read, writeFileSync: io.write }));
 vi.mock('../../utils/textFileLines', () => ({ readLastTextLinesSync: io.lastLines }));
+vi.mock('../cliStateLoader', () => ({ loadCliState: vi.fn(async (path: string) => JSON.parse(io.files.get(path) ?? '{}')) }));
+vi.mock('fs/promises', () => ({
+  mkdir: async () => {},
+  unlink: async (path: string) => { io.files.delete(path); },
+  writeFile: async (path: string, text: string) => { io.write(path, text); },
+  appendFile: async (path: string, text: string) => { io.write(path, (io.files.get(path) ?? '') + text); },
+  rename: async (from: string, to: string) => { io.files.set(to, io.files.get(from) ?? ''); io.files.delete(from); },
+}));
 vi.mock('http', async () => {
   const { EventEmitter: Emitter } = await import('events');
   const createServer = (handler: (request: IncomingMessage, response: ServerResponse) => void) => {
@@ -152,7 +160,8 @@ describe('Claude hook requests and state', () => {
     expect(service.getSnapshot().events[0].detailItems.some((item) => item.label === 'assistantOutput')).toBe(false);
     io.files.set(transcript, JSON.stringify({ message: { role: 'assistant', content: [{ type: 'text', text: 'late answer' }] } }));
     await vi.advanceTimersByTimeAsync(350);
-    expect(service.getSnapshot().events[0].detailItems).toContainEqual({ label: 'assistantOutput', value: 'late answer' }); service.stop();
+    expect(service.getSnapshot().events[0].detailItems).toContainEqual({ label: 'assistantOutput', value: 'late answer' });
+    expect(service.getSnapshot().events[0].detailRevision).toBe(1); service.stop();
   });
   it('clears selected events while keeping cumulative heatmap and debounces persistence', async () => {
     const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start(); io.write.mockClear();
@@ -161,8 +170,8 @@ describe('Claude hook requests and state', () => {
     const noOp = service.deleteSessions(['']); expect(noOp.events).toHaveLength(1);
     const cleared = service.clearEvents(); expect(cleared.sessions).toHaveLength(0);
     expect(Object.values(cleared.heatmap)[0]).toEqual({ session: 1, tool: 0, prompt: 1 });
-    await vi.advanceTimersByTimeAsync(399); expect(io.write).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(1); expect(io.write).toHaveBeenCalledTimes(2); service.stop();
+    await vi.advanceTimersByTimeAsync(399); expect(io.files.has(persisted)).toBe(false);
+    await vi.advanceTimersByTimeAsync(1); expect(io.files.has(persisted)).toBe(true); service.stop();
   });
 });
 describe('Claude permission lifecycle', () => {
@@ -296,5 +305,89 @@ describe('Claude canonical permission waiter regression', () => {
     await vi.advanceTimersByTimeAsync(400); expect(vi.getTimerCount()).toBe(1);
     service.resolvePermission('canonical', 'allow'); expect(target.end).toHaveBeenCalledWith('{"ok":true,"decision":"allow"}');
     await vi.advanceTimersByTimeAsync(10 * 60_000); expect(target.end).toHaveBeenCalledOnce(); expect(source.end).toHaveBeenCalledOnce(); service.stop();
+  });
+});
+
+
+describe('Claude payload memory and permission boundaries', () => {
+  it('rejects oversized requests before adding events and keeps accepted large results out of snapshots', async () => {
+    const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start();
+    expect(request({ ...payload('PostToolUse'), output: 'x'.repeat(4 * 1024 * 1024) }).writeHead).toHaveBeenCalledWith(413);
+    expect(service.getSnapshot().events).toHaveLength(0);
+    request({ ...payload('PostToolUse'), output: 'x'.repeat(1024 * 1024) });
+    expect(Buffer.byteLength(JSON.stringify(service.getSnapshot()))).toBeLessThan(8192);
+    expect(service.getSnapshot().events[0].raw).toEqual({});
+    await vi.advanceTimersByTimeAsync(400);
+    expect([...io.files].some(([path, text]) => path.endsWith('.txt') && text.length > 1024 * 1024)).toBe(true);
+    service.stop();
+  });
+  it('preserves exact permission input only while pending, and rejects over-budget permission instead of clipping', async () => {
+    const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start();
+    const input = { command: 'echo exact', description: 'review this', nested: { value: 7 } };
+    request({ ...payload('PermissionRequest'), tool_input: input });
+    expect(service.getSnapshot().sessions[0].pendingPermission?.raw.tool_input).toEqual(input);
+    expect(service.getSnapshot().events[0].raw).toEqual({});
+    service.resolvePermission('session', 'deny');
+    expect(service.getSnapshot().sessions[0].pendingPermission).toBeNull();
+    expect(request({ ...payload('PermissionRequest'), tool_input: { command: 'x'.repeat(65537) } }).writeHead).toHaveBeenCalledWith(413);
+    expect(service.getSnapshot().sessions[0].pendingPermission).toBeNull();
+    service.stop();
+  });
+  it('stop cancels transcript backfills and clear releases permissions back to the CLI', async () => {
+    const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start();
+    const permission = request({ ...payload('PermissionRequest'), tool_input: { command: 'echo one' } });
+    service.clearEvents(); expect(permission.end).toHaveBeenCalledWith('{"ok":true,"decision":null}');
+    request({ ...payload('PostToolUse'), transcript_path: 'C:/pending.jsonl' });
+    service.stop(); io.lastLines.mockClear(); await vi.advanceTimersByTimeAsync(2000);
+    expect(io.lastLines).not.toHaveBeenCalled();
+  });
+});
+
+
+it('stop during legacy loading prevents late history and receiver creation', async () => {
+  const { loadCliState } = await import('../cliStateLoader');
+  let finish!: (value: Record<string, unknown>) => void;
+  vi.mocked(loadCliState).mockReturnValueOnce(new Promise((resolve) => { finish = resolve; }));
+  io.files.set(persisted, '{}');
+  const service = createClaudeCodeStatusService({ getMainWindow: () => window });
+  const pending = service.start(); service.stop();
+  finish({ events: [], sessions: [{ id: 'late', phase: 'idle', events: [] }] }); await pending;
+  expect(service.getSnapshot().sessions).toEqual([]); expect(io.createServer).not.toHaveBeenCalled();
+});
+
+
+describe('Claude receiver request lifetime budgets', () => {
+  /** 保留未结束的正文流，验证总期限和连接清理而非空闲超时。 */
+  function pendingRequest() {
+    const incoming = Object.assign(new EventEmitter(), { method: 'POST', url: '/claude-code/hook', setEncoding: vi.fn(), resume: vi.fn(), destroy: vi.fn() });
+    const response = { writeHead: vi.fn(), end: vi.fn((body?: string | (() => void)) => { if (typeof body === 'function') body(); }) };
+    io.handler!(incoming as unknown as IncomingMessage, response as unknown as ServerResponse);
+    return { incoming, response };
+  }
+  it('limits concurrent bodies and expires continuous partial uploads after ten seconds', async () => {
+    const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start();
+    const requests = Array.from({ length: 4 }, pendingRequest);
+    const excess = pendingRequest(); expect(excess.response.writeHead).toHaveBeenCalledWith(503);
+    expect(excess.incoming.destroy).toHaveBeenCalledOnce();
+    for (let step = 0; step < 3; step += 1) {
+      requests[0].incoming.emit('data', ' '); await vi.advanceTimersByTimeAsync(3000);
+    }
+    expect(requests[0].response.end).not.toHaveBeenCalled();
+    requests[0].incoming.emit('data', ' '); await vi.advanceTimersByTimeAsync(1000);
+    requests.forEach((item) => {
+      expect(item.response.writeHead).toHaveBeenCalledWith(408); expect(item.incoming.destroy).toHaveBeenCalledOnce();
+    });
+    expect(request(payload('SessionStart')).writeHead).toHaveBeenCalledWith(200, expect.any(Object));
+    const stopped = pendingRequest(); service.stop();
+    expect(stopped.incoming.destroy).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(10000); expect(stopped.response.writeHead).not.toHaveBeenCalled();
+  });
+  it('aborted bodies cannot add events later and oversized metadata is rejected without clipping identities', async () => {
+    const service = createClaudeCodeStatusService({ getMainWindow: () => window }); await service.start();
+    const aborted = pendingRequest(); aborted.incoming.emit('data', '{}'); aborted.incoming.emit('aborted'); aborted.incoming.emit('end');
+    expect(service.getSnapshot().events).toHaveLength(0); expect(aborted.response.writeHead).not.toHaveBeenCalled();
+    expect(request({ ...payload('SessionStart'), session_id: 'x'.repeat(513) }).writeHead).toHaveBeenCalledWith(400, expect.any(Object));
+    expect(request({ ...payload('SessionStart'), transcript_path: 'x'.repeat(32768) }).writeHead).toHaveBeenCalledWith(400, expect.any(Object));
+    expect(service.getSnapshot().events).toHaveLength(0); service.stop();
   });
 });

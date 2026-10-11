@@ -28,6 +28,7 @@
 import { BrowserWindow } from 'electron';
 import { Worker } from 'worker_threads';
 import { join } from 'path';
+import { failedSmtcCommand, type SmtcCommandName, type SmtcCommandResult } from './smtcCommandProtocol';
 import type { SourceSwitchRequestData } from '../../preload/types/media';
 
 interface DetectedSourceEntry {
@@ -72,6 +73,7 @@ interface PublicSessionRuntimeEntry {
 }
 
 interface SmtcService {
+  requestCommand: (command: SmtcCommandName, argument?: number) => Promise<SmtcCommandResult>;
   initWorker: () => void;
   cleanupWorker: () => void;
   isWhitelisted: () => boolean;
@@ -102,6 +104,31 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   let lastSmtcCleanupAt = 0;
   let pendingDetectResolve: ((sources: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>) => void) | null = null;
   let pendingDetectPromise: Promise<Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>> | null = null;
+
+  let commandId = 0;
+  const pendingCommands = new Map<number, { command: SmtcCommandName; sourceAppId: string; timer: ReturnType<typeof setTimeout>; resolve: (result: SmtcCommandResult) => void }>();
+
+  /** 路由到监控 Worker；原生控制位于可硬终止的按需命令进程。 */
+  function requestCommand(command: SmtcCommandName, argument?: number): Promise<SmtcCommandResult> {
+    if (!smtcWorker) initWorker();
+    const worker = smtcWorker;
+    if (!worker || pendingCommands.size >= 64) return Promise.resolve(failedSmtcCommand(command, 'SMTC unavailable'));
+    const requestId = ++commandId;
+    const sourceAppId = currentDeviceId;
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        if (!pendingCommands.delete(requestId)) return;
+        try { worker.postMessage({ type: 'cancel-command', requestId }); } catch { /* Worker 已退出。 */ }
+        resolve(failedSmtcCommand(command, 'SMTC command timed out'));
+      }, 4500);
+      pendingCommands.set(requestId, { command, sourceAppId, timer, resolve });
+      try { worker.postMessage({ type: 'command', requestId, command, argument, sourceAppId, deadline: Date.now() + 4000 }); }
+      catch {
+        clearTimeout(timer); pendingCommands.delete(requestId);
+        resolve(failedSmtcCommand(command, 'SMTC worker unavailable'));
+      }
+    });
+  }
 
   function isWhitelisted(): boolean {
     const id = currentDeviceId.toLowerCase();
@@ -198,6 +225,8 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
 
       worker.on('message', (msg: {
         type: string;
+        requestId?: number;
+        result?: SmtcCommandResult;
         sourceAppId?: string;
         session?: {
           media: { title: string; artist: string; albumTitle: string; thumbnail?: string | null } | null;
@@ -207,6 +236,14 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         sources?: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>;
       }) => {
         if (smtcWorker !== worker) return;
+        if (msg.type === 'command-result' && typeof msg.requestId === 'number') {
+          const pending = pendingCommands.get(msg.requestId);
+          if (!pending) return;
+          pendingCommands.delete(msg.requestId); clearTimeout(pending.timer);
+          pending.resolve(pending.sourceAppId === currentDeviceId && msg.result
+            ? msg.result : failedSmtcCommand(pending.command, 'Media source changed'));
+          return;
+        }
         if (msg.type === 'detect-sources-result') {
           if (pendingDetectResolve) {
             pendingDetectResolve(msg.sources ?? []);
@@ -409,6 +446,11 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   }
 
   function cleanupWorker(): void {
+    pendingCommands.forEach((pending) => {
+      clearTimeout(pending.timer);
+      pending.resolve(failedSmtcCommand(pending.command, 'SMTC stopped'));
+    });
+    pendingCommands.clear();
     if (pendingDetectResolve) {
       pendingDetectResolve([]);
       pendingDetectResolve = null;
@@ -429,6 +471,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   }
 
   return {
+    requestCommand,
     initWorker,
     cleanupWorker,
     isWhitelisted,

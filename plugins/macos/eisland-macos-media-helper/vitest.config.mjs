@@ -13,6 +13,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
+    coverage: { provider: 'v8', include: ['*.js'], reporter: [['text', { skipFull: false }], 'json', 'json-summary', 'html'], reportsDirectory: 'coverage/js' },
     pool: 'forks',
     include: ['test/*Runtime.test.mjs'],
     testTimeout: 10000,

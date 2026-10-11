@@ -30,6 +30,8 @@ import { hookMocks } from '../../../../test/elementHarness';
 import { api, browser, builtinCaptcha, modal, modalRoot, renderWithHooks, resetBrowser, responses, runEffects, settle, unmountHooks } from '../../../register/hooks/test/authHookHarness';
 import useIslandStore from '../../../../../store/slices';
 import { useResetPassword } from '../useResetPassword';
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 vi.mock('react-i18next', async (load) => ({ ...(await load<typeof import('react-i18next')>()), useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('react-dom/client', () => ({ createRoot: () => modalRoot }));

@@ -62,7 +62,7 @@ vi.mock('../../../../../../../api/site/siteMetaApi', async (original) => ({
   ...(await original<typeof import('../../../../../../../api/site/siteMetaApi')>()),
   fetchWebsiteTitle: leaves.title
 }));
-let runtime: ReturnType<typeof installChatRuntime>;
+let runtime: Awaited<ReturnType<typeof installChatRuntime>>;
 let stateModule: typeof import('../useChatState');
 let sendModule: typeof import('../useChatSend');
 type Provider = 'ollama' | 'direct' | 'cloud';
@@ -129,7 +129,7 @@ beforeEach(async () => {
   vi.resetModules();
   vi.resetAllMocks();
   vi.useFakeTimers();
-  runtime = installChatRuntime();
+  runtime = await installChatRuntime();
   runtime.storage.set('user-account-token', roleToken('pro'));
   leaves.cloud.mockResolvedValue(undefined);
   leaves.ollama.mockResolvedValue(undefined);
@@ -210,18 +210,20 @@ describe('useChatSend real stream lifecycle', () => {
   it('public store subscriber deleting the target after user addition keeps captured context without recreating it', async () => {
     select('cloud');
     const targetId = runtime.store.getState().activeAiChatSessionId;
-    runtime.store.getState().createNewAiChatSession();
-    runtime.store.getState().switchAiChatSession(targetId);
+    await runtime.store.getState().createNewAiChatSession();
+    await runtime.store.getState().switchAiChatSession(targetId);
     let removed = false;
+    let deletion: Promise<void> | undefined;
     const unsubscribe = runtime.store.subscribe((state) => {
       const session = state.aiChatSessions.find((item) => item.id === targetId);
       if (!removed && session?.messages.at(-1)?.role === 'user') {
         removed = true;
-        state.deleteAiChatSession(targetId);
+        deletion = state.deleteAiChatSession(targetId);
       }
     });
     await run().send.handleSend();
     unsubscribe();
+    await deletion;
     expect(removed).toBe(true);
     expect(runtime.store.getState().aiChatSessions.some((item) => item.id === targetId)).toBe(false);
     expect(leaves.cloud.mock.calls[0]?.[0].context).toBe('user: hello');
@@ -399,10 +401,10 @@ describe('useChatSend real stream lifecycle', () => {
   it('deleted target session is never recreated by asynchronous events or final persistence', async () => {
     select('cloud');
     const targetId = runtime.store.getState().activeAiChatSessionId;
-    runtime.store.getState().createNewAiChatSession();
-    runtime.store.getState().switchAiChatSession(targetId);
+    await runtime.store.getState().createNewAiChatSession();
+    await runtime.store.getState().switchAiChatSession(targetId);
     leaves.cloud.mockImplementation(async (request) => {
-      runtime.store.getState().deleteAiChatSession(targetId);
+      await runtime.store.getState().deleteAiChatSession(targetId);
       emit(request, 'chunk', {
         text: 'deleted'
       });

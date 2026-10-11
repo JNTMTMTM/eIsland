@@ -48,6 +48,9 @@ const mocks = vi.hoisted(() => ({
   }) => void) | null,
   exit: null as (() => void) | null,
   post: vi.fn(),
+  execute: vi.fn(),
+  cancelCommand: vi.fn(),
+  disposeCommands: vi.fn(),
   sessions: vi.fn<() => Session[]>(),
   start: vi.fn(),
   stop: vi.fn()
@@ -71,6 +74,11 @@ class MockMonitor {
     return mocks.sessions();
   }
 
+  /** 返回已由监控器合并的缓存，不再次触发原生查询。 */
+  getCachedSession(sourceAppId: string): Session | null {
+    return mocks.sessions().find((session) => session.sourceAppId === sourceAppId) ?? null;
+  }
+
   /** 启动模拟监听。 */
   start(): void {
     mocks.start();
@@ -81,6 +89,10 @@ class MockMonitor {
     mocks.stop();
   }
 }
+
+vi.mock('../music/smtcCommandBroker', () => ({
+  createSmtcCommandBroker: () => ({ execute: mocks.execute, cancel: mocks.cancelCommand, dispose: mocks.disposeCommands }),
+}));
 
 vi.mock('@eisland/windows-smtc-helper', () => ({
   SmtcMonitor: MockMonitor
@@ -360,4 +372,17 @@ describe('SMTC Worker', () => {
       sources: []
     });
   });
+});
+
+it('转发命令与取消消息至可终止 broker，退出清理命令进程', async () => {
+  await import('../smtcWorker');
+  const request = { type: 'command', requestId: 1, command: 'play', sourceAppId: 'app', deadline: Date.now() + 4000 };
+  mocks.message?.(request);
+  expect(mocks.execute).toHaveBeenCalledWith(request, expect.any(Function));
+  const response = { type: 'command-result', requestId: 1, result: { success: true, error: null } };
+  mocks.execute.mock.calls[0][1](response);
+  expect(mocks.post).toHaveBeenLastCalledWith(response);
+  mocks.message?.({ type: 'cancel-command', requestId: 1 } as { type: string });
+  expect(mocks.cancelCommand).toHaveBeenCalledWith(1);
+  mocks.exit?.(); expect(mocks.disposeCommands).toHaveBeenCalledOnce();
 });

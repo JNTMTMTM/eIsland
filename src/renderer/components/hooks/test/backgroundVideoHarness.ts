@@ -45,7 +45,7 @@ export interface VideoOptions {
 export function createVideo() {
   const play = vi.fn(() => Promise.resolve());
   const target = Object.assign(new EventTarget(), {
-    play, currentTime: 9, duration: 10, ended: false, loop: true,
+    play, pause: vi.fn(), currentTime: 9, duration: 10, ended: false, loop: true,
     volume: 1, playbackRate: 1,
   });
   return { play, target, element: target as unknown as HTMLVideoElement };
@@ -130,6 +130,31 @@ export function registerVideoLoopTests(name: string, hook: (options: VideoOption
       renderWithHooks(() => hook(options)); runEffects();
       expect(video.target.currentTime).toBe(0); expect(video.play).toHaveBeenCalledOnce();
       video.target.dispatchEvent(new Event('ended')); expect(video.play).toHaveBeenCalledTimes(2);
+    });
+    it.each([
+      { hidden: true, loop: true }, { hidden: true, loop: false },
+      { hidden: false, loop: true }, { hidden: false, loop: false },
+    ])('已结束视频在不可见期间更新循环后恢复：hidden=$hidden loop=$loop', ({ hidden, loop }) => {
+      const page = Object.assign(new EventTarget(), { hidden });
+      vi.stubGlobal('document', page);
+      let opacityChanged = (): void => {};
+      vi.stubGlobal('MutationObserver', class {
+        constructor(callback: () => void) { opacityChanged = callback; }
+        observe = vi.fn(); disconnect = vi.fn();
+      });
+      try {
+        const video = createVideo();
+        Object.assign(video.target, { paused: true, ended: true, currentTime: 10, parentElement: { style: { opacity: hidden ? '1' : '0' } } });
+        const options = videoOptions(video.element); options.bgVideoLoop = false;
+        renderWithHooks(() => hook(options)); runEffects();
+        options.bgVideoLoop = loop;
+        renderWithHooks(() => hook(options)); runEffects();
+        expect(video.play).not.toHaveBeenCalled();
+        if (hidden) { page.hidden = false; page.dispatchEvent(new Event('visibilitychange')); }
+        else { video.element.parentElement!.style.opacity = '1'; opacityChanged(); }
+        expect(video.play).toHaveBeenCalledTimes(loop ? 1 : 0);
+        expect(video.target.currentTime).toBe(loop ? 0 : 10);
+      } finally { unmountHooks(); vi.unstubAllGlobals(); }
     });
     it('浏览器拒绝设置时间及播放时，结束事件和启用循环均安全处理', async () => {
       const video = createVideo(); const options = videoOptions(video.element); options.bgVideoLoop = false;

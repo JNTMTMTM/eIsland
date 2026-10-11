@@ -19,6 +19,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../store/slices';
@@ -38,7 +39,11 @@ import '../../../styles/questionnaire/questionnaire.css';
  */
 export function QuestionnaireContent(): ReactElement {
   const { t } = useTranslation();
-  const { setHover, setMaxExpand, setMaxExpandTab } = useIslandStore();
+  const { setHover, setMaxExpand, setMaxExpandTab } = useIslandStore(useShallow((store) => ({
+    setHover: store.setHover,
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+  })));
   const [socialConfig, setSocialConfig] = useState<AnnouncementSocialConfig>({
     githubUrl: '',
     bilibiliUrl: '',

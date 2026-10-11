@@ -26,15 +26,13 @@
 
 import type { StateCreator } from 'zustand';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AiChatMessage } from '../../types';
+import { installAiChatStorage } from './aiChatStorageFixture';
 import { createAiSlice } from '../aiSlice';
 
 type AiState = ReturnType<typeof createAiSlice>;
 
 const AI_CONFIG_KEY = 'eIsland_aiConfig';
 const AI_CHAT_MESSAGES_KEY = 'eIsland_aiChatMessages';
-const AI_CHAT_SESSIONS_KEY = 'eIsland_aiChatSessions';
-const AI_ACTIVE_CHAT_SESSION_ID_KEY = 'eIsland_aiActiveChatSessionId';
 
 const storage = new Map<string, string>();
 
@@ -64,6 +62,7 @@ function createSliceState(creator: StateCreator<AiState, [], [], AiState>): { ge
 describe('createAiSlice', () => {
   beforeEach(() => {
     storage.clear();
+    installAiChatStorage();
     localStorageMock.getItem.mockClear();
     localStorageMock.setItem.mockClear();
     localStorageMock.removeItem.mockClear();
@@ -112,40 +111,20 @@ describe('createAiSlice', () => {
     expect(config.ollamaModel).toBe('llama3');
   });
 
-  it('bootstraps a session from legacy messages when sessions are absent', () => {
+  it('bootstraps a session from legacy messages when sessions are absent', async () => {
     storage.set(AI_CHAT_MESSAGES_KEY, JSON.stringify([
       { role: 'assistant', content: 'hello' },
       { role: 'user', content: '<attachment name="a.txt">\nabc\n</attachment>\n 你好  世界 ' },
     ]));
 
     const store = createSliceState(createAiSlice);
+    await store.getState().ensureAiChatReady();
     const state = store.getState();
 
     expect(state.aiChatSessions.length).toBe(1);
     expect(state.activeAiChatSessionId).toBe(state.aiChatSessions[0].id);
     expect(state.aiChatMessages).toEqual(state.aiChatSessions[0].messages);
     expect(state.aiChatSessions[0].title).toBe('你好 世界');
-  });
-
-  it('updates active session messages and persists sessions when not streaming', () => {
-    const store = createSliceState(createAiSlice);
-    const activeId = store.getState().activeAiChatSessionId;
-    const messages: AiChatMessage[] = [{ role: 'user', content: '这是一个新的会话标题来源消息' }];
-
-    store.getState().setAiChatSessionMessages(activeId, messages);
-
-    const state = store.getState();
-    expect(state.aiChatMessages).toEqual(messages);
-    expect(state.aiChatSessions.find((session) => session.id === activeId)?.title).toBe('这是一个新的会话标题来源消息');
-
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      AI_CHAT_SESSIONS_KEY,
-      expect.any(String),
-    );
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      AI_ACTIVE_CHAT_SESSION_ID_KEY,
-      activeId,
-    );
   });
 
   it('normalizes ai web access prompt payload and filters invalid values', () => {

@@ -111,6 +111,20 @@ afterEach(() => {
 });
 
 describe('running process runtime chains', () => {
+  it('shares pending tasklist queries but refreshes after completion', async () => {
+    let complete: ExecCallback = () => {};
+    mocks.exec.mockImplementation((command, options, callback) => { void command; void options; complete = callback; });
+    const first = source.queryRunningProcessNames();
+    const second = source.queryRunningProcessNames();
+    expect(mocks.exec).toHaveBeenCalledOnce();
+    complete(null, '"Code.exe","1"');
+    expect(await first).toEqual(['Code.exe']);
+    expect(await second).toEqual(['Code.exe']);
+    const third = source.queryRunningProcessNames();
+    expect(mocks.exec).toHaveBeenCalledTimes(2);
+    complete(null, '"Cursor.exe","2"');
+    expect(await third).toEqual(['Cursor.exe']);
+  });
   it('parses quoted and plain CSV rows, deduplicates names and filters system processes', async () => {
     inputs.taskList = ['"Zebra.exe","1"', '"Alpha.exe","2"', '"Alpha.exe","3"', 'Notepad.exe,4', '"System","0"', '"SYSTEM IDLE PROCESS","0"', '"Registry","0"', '"Memory Compression","0"', '"CSRSS.EXE","0"', '"svchost.exe","0"', '', ',0'].join('\r\n');
     expect(await source.queryRunningNonSystemProcessNames()).toEqual(['Alpha.exe', 'Notepad.exe', 'Zebra.exe']);

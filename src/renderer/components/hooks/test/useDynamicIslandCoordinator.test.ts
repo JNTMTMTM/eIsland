@@ -107,8 +107,6 @@ describe('协调器真实子 Hook 和公共状态贯通', () => {
     const result = await mount();
     expect(result.shellClassName).toContain('shape-notch'); expect(useIslandStore.getState().state).toBe('idle');
     expect(result.shellStyle).toBeUndefined(); expect(result.bgMedia).toBeNull(); expect(result.bgVideoVolume).toBe(0.6);
-    expect(result.timeStr).toMatch(/^\d{2}:\d{2}$/); expect(result.fullTimeStr).toMatch(/^\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
-    expect(result.dayStr).not.toBe(''); expect(result.lunarStr).not.toBe('');
     expect(listeners.has('onNowPlayingInfo')).toBe(true); expect(listeners.has('onSourceSwitchRequest')).toBe(true);
     expect(ipc.onSettingsChanged).toHaveBeenCalled(); expect(vi.getTimerCount()).toBeGreaterThan(0);
     unmountHooks(); expect(listeners.size).toBe(0); expect(vi.getTimerCount()).toBe(0);

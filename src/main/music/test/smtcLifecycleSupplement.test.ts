@@ -155,3 +155,24 @@ describe('SMTC 标题、缩略图和源请求边界', () => {
     service.cleanupWorker();
   });
 });
+
+describe('SMTC 主进程命令生命周期', () => {
+  it('命令通过 Worker，拒绝旧播放源响应，截止取消且忽略迟到结果', async () => {
+    vi.useFakeTimers();
+    const service = create(); service.initWorker();
+    const worker = io.workers[0];
+    const first = service.requestCommand('play');
+    const sent = worker.postMessage.mock.calls.at(-1)![0];
+    expect(sent).toMatchObject({ type: 'command', command: 'play', sourceAppId: 'spotify' });
+    service.setCurrentDeviceId('foobar');
+    worker.emit('message', { type: 'command-result', requestId: sent.requestId, result: { success: true, error: null } });
+    expect(await first).toMatchObject({ success: false });
+    const timed = service.requestCommand('getTimestamp');
+    const next = worker.postMessage.mock.calls.at(-1)![0];
+    await vi.advanceTimersByTimeAsync(4500);
+    expect(await timed).toMatchObject({ isAvailable: false });
+    expect(worker.postMessage).toHaveBeenLastCalledWith({ type: 'cancel-command', requestId: next.requestId });
+    worker.emit('message', { type: 'command-result', requestId: next.requestId, result: { isAvailable: true } });
+    service.cleanupWorker(); expect(vi.getTimerCount()).toBe(0);
+  });
+});

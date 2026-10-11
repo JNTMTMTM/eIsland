@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useCallback, useEffect, useRef } from 'react';
 import useIslandStore from '../../../../../../store/slices';
 import type { TimerState } from '../types/timeTabTypes';
@@ -50,7 +51,10 @@ export function useCountdownEdit(): {
   handleResume: () => void;
   handleReset: () => void;
 } {
-  const { timerData, setTimerData } = useIslandStore();
+  const { timerData, setTimerData } = useIslandStore(useShallow((store) => ({
+    timerData: store.timerData,
+    setTimerData: store.setTimerData,
+  })));
 
   const timerState: TimerState = timerData?.state ?? 'idle';
   const remainingSeconds: number = timerData?.remainingSeconds ?? 0;

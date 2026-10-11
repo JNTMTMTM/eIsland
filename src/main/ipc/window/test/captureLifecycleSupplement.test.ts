@@ -33,7 +33,7 @@ interface SenderFixture extends EventEmitter { id: number; }
 interface ImageFixture { toPNG: () => Buffer; }
 const io = vi.hoisted(() => ({
   handles: new Map<string, HandlerFixture>(), events: new Map<string, HandlerFixture>(),
-  write: vi.fn(), clipboard: vi.fn(), screenshot: vi.fn<() => Buffer | null>(),
+  write: vi.fn(), clipboard: vi.fn(), screenshot: vi.fn<(signal?: AbortSignal) => Buffer | null | Promise<Buffer | null>>(),
   sources: vi.fn<() => Promise<{ thumbnail: ImageFixture }[]>>(),
   image: vi.fn<(url: string) => ImageFixture>(),
   save: vi.fn<() => Promise<{ canceled: boolean; filePath?: string }>>(),
@@ -47,8 +47,8 @@ vi.mock('electron', () => ({
   nativeImage: { createFromDataURL: io.image },
   ipcMain: { handle: (channel: string, handler: HandlerFixture) => io.handles.set(channel, handler), on: (channel: string, handler: HandlerFixture) => io.events.set(channel, handler) },
 }));
-vi.mock('fs', () => ({ writeFileSync: io.write }));
-vi.mock('../../../window/screenshotHelper', () => ({ capturePrimaryDisplayPng: io.screenshot }));
+vi.mock('fs/promises', () => ({ writeFile: io.write }));
+vi.mock('../../../window/screenshotHelper', () => ({ capturePrimaryDisplayPng: io.screenshot, encodeScreenshotPng: async (image: ImageFixture) => image.toPNG() }));
 vi.mock('../../../services/captureLocalOcrService', () => ({ recognizeCaptureTextLocally: io.local }));
 vi.mock('../../../services/captureOcrService', () => ({ recognizeCaptureText: io.ocr }));
 vi.mock('../../../services/imageTranslationService', () => ({ translateCaptureImage: io.translate }));
@@ -81,7 +81,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('截图图像来源及保存清理', () => {
   it('原生屏幕截图优先于 desktopCapturer', async () => {
     io.screenshot.mockReturnValue(Buffer.from('native'));
-    await expect(invoke('system:screenshot')).resolves.toBe(Buffer.from('native').toString('base64'));
+    await expect(invoke('system:screenshot')).resolves.toEqual(Buffer.from('native'));
     expect(io.sources).not.toHaveBeenCalled();
   });
   it('无屏幕来源时返回 null', async () => { await expect(invoke('system:screenshot')).resolves.toBeNull(); });
@@ -141,4 +141,19 @@ describe('截图 OCR 和翻译来源校验、参数回退和取消清理', () =>
     await expect(invoke(channel, payload, sender)).rejects.toThrow('provider failed');
     expect(sender.listenerCount('destroyed')).toBe(0);
   });
+});
+
+it('主屏截图单飞，窗口销毁中止 native 请求并清理监听', async () => {
+  let resolveCapture!: (value: Buffer | null) => void;
+  io.screenshot.mockReturnValue(new Promise((resolve) => { resolveCapture = resolve; }));
+  const sender = Object.assign(new EventEmitter(), { id: 7 });
+  const pending = invoke('system:screenshot', undefined, sender);
+  await expect(invoke('system:screenshot')).resolves.toBeNull();
+  expect(io.screenshot).toHaveBeenCalledOnce();
+  sender.emit('destroyed');
+  expect(io.screenshot.mock.calls[0][0]?.aborted).toBe(true);
+  resolveCapture(null);
+  await expect(pending).resolves.toBeNull();
+  expect(sender.listenerCount('destroyed')).toBe(0);
+  expect(io.sources).not.toHaveBeenCalled();
 });

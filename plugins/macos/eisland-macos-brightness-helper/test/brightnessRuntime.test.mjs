@@ -84,7 +84,7 @@ function runBuildOnPlatform(platform, testsOnly) {
   return spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8' });
 }
 
-describe('build platform guard', () => {
+describe.skipIf(process.platform !== 'darwin')('build platform guard', () => {
   it.each(['linux', 'win32'])('allows tests on %s without native compilation', (platform) => {
     const result = runBuildOnPlatform(platform, true);
     expect(result.stderr).toBe('');
@@ -98,7 +98,7 @@ describe('build platform guard', () => {
   });
 });
 
-describe('Windows-compatible brightness API', () => {
+describe.skipIf(process.platform !== 'darwin')('Windows-compatible brightness API', () => {
   it('returns all snapshot fields and explicit null levels', () => {
     expect(getBrightness()).toEqual(snapshot);
     snapshot = null;
@@ -125,7 +125,15 @@ describe('Windows-compatible brightness API', () => {
   });
 });
 
-describe('BrightnessMonitor lifecycle', () => {
+describe.skipIf(process.platform !== 'darwin')('BrightnessMonitor lifecycle', () => {
+  it('ignores a queued poll after stopping without reading hardware', () => {
+    const instance = monitor();
+    instance.start();
+    instance.stop();
+    readError = new Error('Hardware must not be accessed after stopping');
+    expect(() => instance.poll()).not.toThrow();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('starts once, keeps the initial reading as baseline, and emits timestamped changes', () => {
     const instance = monitor();
     const changed = vi.fn();
@@ -232,6 +240,7 @@ if (process.platform === 'darwin') {
       }
     });
     it('rejects invalid direct native input before hardware access', () => {
+      expect(() => native.setBrightness()).toThrow(RangeError);
       [NaN, Infinity, -Infinity, undefined, '50'].forEach((value) => {
         expect(() => native.setBrightness(value)).toThrow(RangeError);
       });

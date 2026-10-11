@@ -49,6 +49,12 @@ export function getTimestamp() {
 }
 
 export {
+  unavailable as getVolumeAsync,
+  unavailable as getMuteAsync,
+  unavailable as getBrightnessAsync,
+  rejectControl as setVolumeAsync,
+  rejectControl as setMuteAsync,
+  rejectControl as setBrightnessAsync,
   unavailable as getVolume,
   unavailable as getMute,
   unavailable as getBrightness,

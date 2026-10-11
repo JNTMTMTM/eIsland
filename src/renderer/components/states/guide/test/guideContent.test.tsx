@@ -34,6 +34,8 @@ import { GuideStaticPage } from '../components/GuideStaticPage';
 import { GuideInteractivePage } from '../components/GuideInteractivePage';
 import { GuideFooter } from '../components/GuideFooter';
 import type { TreeElement } from '../../test/tree';
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../utils/theme', () => ({ getThemeMode: () => 'dark', setThemeMode: vi.fn() }));
 const slots = vi.hoisted(() => ({ cursor: 0, values: [] as unknown[], effects: [] as Array<() => unknown> }));
 vi.mock('react', async (importOriginal) => { const actual = await importOriginal<typeof import('react')>(); const { mockHooks } = await import('../../test/hooks'); return mockHooks(actual, slots); });

@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AlbumFilterMode, AlbumGroupMode, AlbumItem, AlbumMeta, AlbumSortMode, UseAlbumGridConfigReturn } from '../types/albumTypes';
 import { COLUMNS_STORE_KEY, GROUP_MODE_STORE_KEY, SORT_STORE_KEY } from '../config/albumConfig';
@@ -74,7 +74,17 @@ export function useAlbumGridConfig(
   }, [groupMode, loaded]);
 
   /** 已排序的条目列表 */
-  const sortedItems = useMemo(() => sortAlbumItems(items, sortMode, metaCache), [items, sortMode, metaCache]);
+  const durationRef = useRef<Record<number, AlbumMeta>>({});
+  const durationMeta = useMemo(() => {
+    if (sortMode !== 'durationAsc' && sortMode !== 'durationDesc') return undefined;
+    const durations = Object.entries(metaCache).filter(([, meta]) => meta.durationSec !== undefined);
+    if (durations.length !== Object.keys(durationRef.current).length
+      || durations.some(([id, meta]) => durationRef.current[Number(id)]?.durationSec !== meta.durationSec)) {
+      durationRef.current = Object.fromEntries(durations.map(([id, meta]) => [id, { durationSec: meta.durationSec }]));
+    }
+    return durationRef.current;
+  }, [sortMode, metaCache]);
+  const sortedItems = useMemo(() => sortAlbumItems(items, sortMode, durationMeta ?? {}), [items, sortMode, durationMeta]);
 
   /** 已筛选的条目列表 */
   const filteredItems = useMemo(() => {

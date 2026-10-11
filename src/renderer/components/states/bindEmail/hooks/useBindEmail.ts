@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -36,7 +37,12 @@ import type { Feedback } from '../../login/config/loginConfig';
 /** 绑定邮箱状态交互逻辑 Hook */
 export function useBindEmail() {
   const { t } = useTranslation();
-  const { bindEmailContext, setSetPassword, setBindOAuth, setLogin } = useIslandStore();
+  const { bindEmailContext, setSetPassword, setBindOAuth, setLogin } = useIslandStore(useShallow((store) => ({
+    bindEmailContext: store.bindEmailContext,
+    setSetPassword: store.setSetPassword,
+    setBindOAuth: store.setBindOAuth,
+    setLogin: store.setLogin,
+  })));
   const [email, setEmail] = useState('');
   const [emailCode, setEmailCode] = useState('');
   const [sendingCode, setSendingCode] = useState(false);

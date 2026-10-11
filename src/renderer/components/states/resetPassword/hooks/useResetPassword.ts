@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
@@ -34,7 +35,9 @@ import { EMAIL_PATTERN, type Feedback } from '../config/resetPasswordConfig';
 /** 重置密码状态交互逻辑 Hook */
 export function useResetPassword() {
   const { t } = useTranslation();
-  const { returnFromAuth } = useIslandStore();
+  const { returnFromAuth } = useIslandStore(useShallow((store) => ({
+    returnFromAuth: store.returnFromAuth,
+  })));
   const setLogin = (): void => {
     useIslandStore.setState((prev) => {
       const standalone = (() => {

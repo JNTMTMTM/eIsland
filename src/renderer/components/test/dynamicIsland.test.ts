@@ -58,7 +58,7 @@ describe('DynamicIsland', () => {
     invoke(findElement(tree, (node) => elementProps(node).className === 'island-test'), 'onClick');
     expect(shell.handleIslandClick).toHaveBeenCalledOnce();
     const content = findElement(tree, (node) => 'timerState' in elementProps(node));
-    expect(elementProps(content)).toMatchObject({ state: 'idle', timerState: 'idle', remainingSeconds: 0, fullTimeStr: '12:00:00' });
+    expect(elementProps(content)).toMatchObject({ state: 'idle', timerState: 'idle', remainingSeconds: 0 });
   });
   it.each(['expanded', 'maxExpand'])('selects loading fallback for %s and forwards active timer', (state) => {
     store.state = state;

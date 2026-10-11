@@ -52,6 +52,8 @@ function getFileBaseName(filePath: string): string {
 function loadImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    // 本地资源协议与页面不同源，启用 CORS 才能继续导出画布。
+    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('image load failed'));
     img.src = dataUrl;

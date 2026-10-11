@@ -74,10 +74,9 @@ export function StandaloneWindowBackground(props: StandaloneWindowBackgroundProp
           ref={bgVideoElementRef}
           className="cw-bg-video"
           src={bgMedia.previewUrl}
-          autoPlay
           muted={bgVideoMuted || bgVideoVolume <= 0}
           playsInline
-          preload="auto"
+          preload="metadata"
           disableRemotePlayback
           style={{ objectFit: bgVideoFit, imageRendering: bgVideoHwDecode ? undefined : 'auto' }}
           onLoadedMetadata={onVideoLoadedMetadata}

@@ -37,6 +37,8 @@ interface ClipboardUrlWatcherOptions {
 
 let lastClipboardText = '';
 let clipboardPollTimer: ReturnType<typeof setInterval> | null = null;
+let titleRequest: AbortController | null = null;
+let requestVersion = 0;
 
 function extractHtmlTitle(html: string): string {
   const m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
@@ -46,41 +48,64 @@ function extractHtmlTitle(html: string): string {
 /** 限制最大字节数防止大文件 OOM */
 const TITLE_FETCH_MAX_BYTES = 8192;
 
-async function fetchPageTitle(url: string, timeoutMs = 3000): Promise<string> {
+async function fetchPageTitle(url: string, signal: AbortSignal, timeoutMs = 3000): Promise<string> {
+  const controller = new AbortController();
+  const abort = (): void => controller.abort();
+  signal.addEventListener('abort', abort, { once: true });
+  if (signal.aborted) abort();
+  const timer = setTimeout(abort, timeoutMs);
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let response: Response | undefined;
+  let cancelWait: () => void = () => {};
+  // 读正文也必须受截止时间约束，不能仅依赖服务器断开连接。
+  const canceled = new Promise<never>((_resolve, reject) => {
+    cancelWait = () => reject(new Error('Clipboard title request canceled'));
+    controller.signal.addEventListener('abort', cancelWait, { once: true });
+  });
   try {
+    controller.signal.throwIfAborted();
     const parsed = new URL(url);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const resp = await net.fetch(parsed.href, {
+    const resp = await Promise.race([net.fetch(parsed.href, {
       signal: controller.signal as never,
       headers: { 'User-Agent': 'Mozilla/5.0', Range: 'bytes=0-8191' },
       redirect: 'follow',
-    });
-    clearTimeout(timer);
+    }), canceled]);
+    response = resp;
     if (!resp.ok && resp.status !== 206) return '';
 
     const contentType = resp.headers.get('content-type') ?? '';
     if (!contentType.includes('text/html') && !contentType.includes('text/plain')) return '';
 
-    const reader = resp.body?.getReader();
+    reader = resp.body?.getReader();
     if (!reader) return '';
     let received = 0;
     const chunks: Uint8Array[] = [];
     while (received < TITLE_FETCH_MAX_BYTES) {
-      const { done, value } = await reader.read();
+      const { done, value } = await Promise.race([reader.read(), canceled]);
       if (done || !value) break;
-      chunks.push(value);
-      received += value.byteLength;
+      const retained = value.slice(0, TITLE_FETCH_MAX_BYTES - received);
+      chunks.push(retained);
+      received += retained.byteLength;
     }
-    reader.cancel().catch(() => {});
 
     const decoder = new TextDecoder('utf-8', { fatal: false });
     const html = chunks.reduce((acc, chunk) => acc + decoder.decode(chunk, { stream: true }), '');
     return extractHtmlTitle(html);
   } catch {
     return '';
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener('abort', abort);
+    controller.signal.removeEventListener('abort', cancelWait);
+    if (reader) {
+      void reader.cancel().catch(() => {}).finally(() => {
+        try { reader?.releaseLock(); } catch { /* 已结束的读取不影响下一次请求。 */ }
+      });
+    } else {
+      void response?.body?.cancel().catch(() => {});
+    }
   }
 }
 
@@ -94,20 +119,29 @@ export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): v
   lastClipboardText = clipboard.readText() || '';
 
   clipboardPollTimer = setInterval(() => {
+    if (!options.getEnabled()) { stopClipboardUrlWatcher(); return; }
     const win = options.getWindow();
     if (!win || win.isDestroyed()) return;
     const current = clipboard.readText() || '';
     if (current === lastClipboardText) return;
     lastClipboardText = current;
+    titleRequest?.abort();
+    titleRequest = null;
+    const version = ++requestVersion;
 
     const urls = extractUrls(current, options.getDetectMode());
     const blacklist = options.getBlacklist();
     const filteredUrls = urls.filter((url) => !isUrlBlacklisted(url, blacklist));
     if (filteredUrls.length > 0) {
-      fetchPageTitle(filteredUrls[0]).then((title) => {
+      const request = new AbortController();
+      titleRequest = request;
+      fetchPageTitle(filteredUrls[0], request.signal).then((title) => {
+        if (version !== requestVersion || !clipboardPollTimer || !options.getEnabled()) return;
         const currentWindow = options.getWindow();
         if (!currentWindow || currentWindow.isDestroyed()) return;
         currentWindow.webContents.send('clipboard:urls-detected', { urls: filteredUrls, title });
+      }).finally(() => {
+        if (titleRequest === request) titleRequest = null;
       });
     }
   }, 1000);
@@ -118,7 +152,10 @@ export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): v
  * @description 停止剪贴板监控定时器，清理监听状态
  */
 export function stopClipboardUrlWatcher(): void {
-  if (!clipboardPollTimer) return;
-  clearInterval(clipboardPollTimer);
+  if (clipboardPollTimer) clearInterval(clipboardPollTimer);
   clipboardPollTimer = null;
+  requestVersion += 1;
+  titleRequest?.abort();
+  titleRequest = null;
+  lastClipboardText = '';
 }

@@ -43,7 +43,7 @@ vi.mock('electron', () => ({
 vi.mock('@eisland/windows-smtc-helper', () => ({
   play: native.play, pause: native.pause, next: native.next, previous: native.previous, seek: native.seek, getTimestamp: native.timestamp,
 }));
-vi.mock('@eisland/windows-volume-helper', () => ({ getMute: native.mute, setMute: native.setMute }));
+vi.mock('@eisland/windows-volume-helper', () => ({ getMuteAsync: native.mute, setMuteAsync: native.setMute }));
 
 /**
  * 注册真实媒体处理器并提供可控制的当前会话和切换状态。
@@ -55,6 +55,10 @@ function fixture() {
   let pendingEntry: unknown = {};
   const runtime = new Map<string, { payload: unknown; hasTitle: boolean }>();
   const options: Parameters<typeof registerMediaIpcHandlers>[0] = {
+    requestCommand: (command, argument) => {
+      const action = command === 'getTimestamp' ? native.timestamp : native[command];
+      return argument === undefined ? action() : action(argument);
+    },
     getMainWindow: () => null, isWhitelisted: () => true,
     getPendingSourceSwitchId: () => pending, setPendingSourceSwitchId: (id) => { pending = id; },
     getPendingSourceSwitchEntry: () => pendingEntry, clearPendingSourceSwitchEntry: () => { pendingEntry = null; },

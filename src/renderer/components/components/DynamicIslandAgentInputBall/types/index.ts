@@ -48,4 +48,5 @@ export interface WebGPUContext {
   values: Float32Array;
   startedAt: number;
   format: string;
+  disposed?: boolean;
 }

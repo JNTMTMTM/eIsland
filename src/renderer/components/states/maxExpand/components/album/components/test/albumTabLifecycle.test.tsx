@@ -32,7 +32,9 @@ const data = vi.hoisted(() => ({
     items: [],
     loaded: true,
     statusMessage: '',
-    releaseFullImage: vi.fn()
+    releaseFullImage: vi.fn(),
+    setVisibleItems: vi.fn(),
+    setDurationScanEnabled: vi.fn()
   },
   viewer: {
     activeId: null as number | null,

@@ -58,6 +58,12 @@ describe('notification URLs and update sources', () => {
     vi.stubGlobal('window', { location: { href: 'invalid' } });
     expect(resolveNotificationIconUrl('icon.png')).toBe('icon.png');
   });
+  it.each(['http://localhost:5173/html/DynamicIslandIndex.html', 'file:///C:/eIsland/renderer/html/DynamicIslandIndex.html'])('resolves legacy hydration icons from %s', (base) => {
+    vi.stubGlobal('window', { location: { href: base } });
+    ['./svg/app/DRINKING_WATER.svg', '/svg/app/DRINKING_WATER.svg', 'svg/app/DRINKING_WATER.svg', '../svg/app/DRINKING_WATER.svg'].forEach((icon) => {
+      expect(resolveNotificationIconUrl(icon)).toBe(new URL('../svg/app/DRINKING_WATER.svg', base).href);
+    });
+  });
   it.each<{ input: unknown; expected: UpdateSourceKey; pro: boolean }>([
     { input: 'github', expected: 'github', pro: false }, { input: 'tencent-cos', expected: 'tencent-cos', pro: true },
     { input: 'aliyun-oss', expected: 'aliyun-oss', pro: true }, { input: 'esa-cdn', expected: 'esa-cdn', pro: false },

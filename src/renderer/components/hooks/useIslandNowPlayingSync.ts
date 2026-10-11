@@ -84,6 +84,7 @@ async function calibrateLyrics(lyrics: SyncedLyricLine[]): Promise<SyncedLyricLi
 }
 
 interface UseIslandNowPlayingSyncOptions {
+  progressEnabled?: boolean;
   handleNowPlayingUpdate: (info: NowPlayingInfo | null) => void;
   updateProgress: (positionMs: number) => void;
   setSyncedLyrics: (lyrics: SyncedLyricLine[] | null) => void;
@@ -126,6 +127,12 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
   const setSyncedLyricsRef = useRef(setSyncedLyrics);
   const setTranslationLyricsRef = useRef(setTranslationLyrics);
   const setLyricsLoadingRef = useRef(setLyricsLoading);
+  const progressEnabledRef = useRef(options.progressEnabled !== false);
+  const reconcileProgressRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    progressEnabledRef.current = options.progressEnabled !== false;
+    reconcileProgressRef.current();
+  }, [options.progressEnabled]);
   const songKeyRef = useRef('');
   const progressBaseRef = useRef({ positionMs: 0, durationMs: 0, timestamp: 0 });
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -163,6 +170,25 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
         progressTimerRef.current = null;
       }
     };
+
+    const tick = (): void => {
+      const base = progressBaseRef.current;
+      const position = Math.max(0, base.positionMs + Date.now() - base.timestamp);
+      updateProgressRef.current(base.durationMs > 0 ? Math.min(base.durationMs, position) : position);
+      if (base.durationMs > 0 && position >= base.durationMs) stopProgress();
+    };
+    const reconcileProgress = (): void => {
+      if (!playing || !progressEnabledRef.current || (typeof document !== 'undefined' && document.hidden)) {
+        stopProgress();
+        return;
+      }
+      if (progressTimerRef.current === null) {
+        progressTimerRef.current = setInterval(tick, 66);
+        tick();
+      }
+    };
+    reconcileProgressRef.current = reconcileProgress;
+    if (typeof document !== 'undefined') document.addEventListener?.('visibilitychange', reconcileProgress);
 
     const clearCalibration = () => {
       if (calTimerRef.current.timerId !== null) {
@@ -313,20 +339,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
             timestamp: Date.now(),
           };
 
-          if (progressTimerRef.current === null) {
-            // 进度只需约 15Hz，无需在高刷新率屏幕上每帧唤醒再跳过写入。
-            const tick = () => {
-              const now = Date.now();
-              const base = progressBaseRef.current;
-              const elapsed = now - base.timestamp;
-              const position = Math.max(0, base.positionMs + elapsed);
-              updateProgressRef.current(base.durationMs > 0 ? Math.min(base.durationMs, position) : position);
-              if (base.durationMs > 0 && position >= base.durationMs) {
-                stopProgress();
-              }
-            };
-            progressTimerRef.current = setInterval(tick, 66);
-          }
+          reconcileProgress();
         } else {
           // 暂停时冻结校准计时器
           const cal = calTimerRef.current;
@@ -348,6 +361,8 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
 
     return () => {
       disposed = true;
+      reconcileProgressRef.current = () => {};
+      if (typeof document !== 'undefined') document.removeEventListener?.('visibilitychange', reconcileProgress);
       requestVersion += 1;
       songKeyRef.current = '';
       unsubscribe?.();

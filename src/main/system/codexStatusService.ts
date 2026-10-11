@@ -27,9 +27,9 @@ import type { ClaudeCodeHookEvent } from '../types/system/ClaudeCodeHookEvent';
 import type { ClaudeCodeSessionSnapshot } from '../types/system/ClaudeCodeSessionSnapshot';
 import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusSnapshot';
 import type { CodexMonitorMutationResult, CodexStatusService } from '../types/system/CodexStatusService';
-import { parseCodexSessionLines, type ParsedCodexSession } from './codexSessionParser';
-import { readTextLinesSync } from '../utils/textFileLines';
-import { createHash } from 'crypto';
+import type { ParsedCodexSession } from './codexSessionParser';
+import { createCodexScanner } from './codexScannerClient';
+import { createCliSnapshotDelta } from './cliSnapshotDelta';
 import { MAX_CLI_SESSIONS } from './sessionLimits';
 
 interface CreateCodexStatusServiceOptions {
@@ -41,12 +41,6 @@ interface FileEntry {
   path: string;
   mtimeMs: number;
   size: number;
-}
-
-interface CachedSession {
-  mtimeMs: number;
-  size: number;
-  parsed: ParsedCodexSession | null;
 }
 
 interface PersistedCodexState {
@@ -132,13 +126,21 @@ function phaseForVisibleEvents(events: ClaudeCodeHookEvent[], now: number): Clau
 export function createCodexStatusService(options: CreateCodexStatusServiceOptions): CodexStatusService {
   const sessionsPath = join(app.getPath('home'), '.codex', 'sessions');
   const persistPath = join(app.getPath('userData'), 'eIsland_store', 'codex-status-state.json');
-  const cache = new Map<string, CachedSession>();
+  const scanner = createCodexScanner();
+  let parsedSessions: ParsedCodexSession[] = [];
+  let fileSignature = '';
+  let scanning: Promise<void> | null = null;
+  let generation = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
   let enabled = true;
   let clearBefore = 0;
   let deletedBeforeBySession: Record<string, number> = {};
   let snapshot = emptySnapshot(sessionsPath, enabled, false);
   let snapshotSignature = '';
+  let dataVersion = 0;
+  let metadata = new Map<string, string>();
+  let mutationVersion = 0;
+  const deltas = createCliSnapshotDelta();
 
   const loadState = (): void => {
     try {
@@ -166,30 +168,13 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
   const emitSnapshot = (): void => {
     const win = options.getMainWindow();
     if (!win || win.isDestroyed()) return;
-    win.webContents.send('codex:status-updated', snapshot);
+    const update = deltas.next(snapshot);
+    snapshot = { ...snapshot, revision: update.revision };
+    win.webContents.send('codex:status-updated', update);
   };
 
   const rebuildSnapshot = (): void => {
     const now = Date.now();
-    const files = collectJsonlFiles(sessionsPath);
-    const activePaths = new Set(files.map((file) => file.path));
-    cache.forEach((_value, path) => {
-      if (!activePaths.has(path)) cache.delete(path);
-    });
-
-    const parsedSessions = files.flatMap((file) => {
-      const cached = cache.get(file.path);
-      if (cached && cached.mtimeMs === file.mtimeMs && cached.size === file.size) return cached.parsed ? [cached.parsed] : [];
-      let parsed: ParsedCodexSession | null = null;
-      try {
-        parsed = parseCodexSessionLines(() => readTextLinesSync(file.path), file.path, file.mtimeMs, now);
-      } catch {
-        parsed = null;
-      }
-      cache.set(file.path, { mtimeMs: file.mtimeMs, size: file.size, parsed });
-      return parsed ? [parsed] : [];
-    });
-
     const heatmap: ClaudeCodeHeatmapDaily = {};
     parsedSessions.forEach((parsed) => mergeHeatmap(heatmap, parsed.heatmap));
     const sessions = parsedSessions.flatMap((parsed) => {
@@ -209,6 +194,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
     const events = sessions.flatMap((session) => session.events).sort((a, b) => b.createdAt - a.createdAt).slice(0, MAX_EVENTS);
     const next: ClaudeCodeStatusSnapshot = {
       enabled,
+      revision: deltas.revision(),
       receiverRunning: Boolean(timer),
       receiverUrl: null,
       settingsPath: sessionsPath,
@@ -219,7 +205,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
       updatedAt: Date.now(),
     };
     // 增量签名：排除 updatedAt 等易变字段，保留阶段与事件内容以确保变更可检测
-    const signature = createHash('sha256').update(JSON.stringify({ ...next, updatedAt: 0 })).digest('hex');
+    const signature = JSON.stringify([enabled, Boolean(timer), dataVersion, mutationVersion, clearBefore, sessions.map((session) => [session.id, session.phase])]);
     snapshot = next;
     if (signature !== snapshotSignature) {
       snapshotSignature = signature;
@@ -227,23 +213,55 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
     }
   };
 
-  const startPolling = (): void => {
+  const refresh = (): Promise<void> => {
+    if (scanning) return scanning;
+    const version = generation;
+    const request = (async () => {
+      const files = collectJsonlFiles(sessionsPath);
+      const signature = JSON.stringify(files);
+      if (signature !== fileSignature) {
+        try {
+          const next = files.length ? await scanner.scan(files.map((file) => file.path), Date.now()) : [];
+          if (version !== generation) return;
+          if (!files.length) scanner.stop();
+          const nextMetadata = new Map(files.map((file) => [file.path, `${file.mtimeMs}:${file.size}`]));
+          const previous = new Map(parsedSessions.map((parsed) => [parsed.session.transcriptPath, parsed]));
+          parsedSessions = next.map((parsed) => {
+            const path = parsed.session.transcriptPath!;
+            return metadata.get(path) === nextMetadata.get(path) && previous.has(path) ? previous.get(path)! : parsed;
+          });
+          metadata = nextMetadata;
+          dataVersion += 1;
+          fileSignature = signature;
+        } catch { return; }
+      }
+      if (version === generation) rebuildSnapshot();
+    })().finally(() => { if (scanning === request) scanning = null; });
+    scanning = request;
+    return request;
+  };
+
+  const startPolling = async (): Promise<void> => {
     if (timer || !enabled) return;
-    timer = setInterval(rebuildSnapshot, options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
-    rebuildSnapshot();
+    timer = setInterval(() => { void refresh(); }, options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
+    await refresh();
   };
 
   async function start(): Promise<void> {
     loadState();
     snapshot = emptySnapshot(sessionsPath, enabled, false);
-    startPolling();
+    await startPolling();
     if (!enabled) emitSnapshot();
   }
 
   function stop(): void {
     if (timer) clearInterval(timer);
     timer = null;
-    cache.clear();
+    generation += 1;
+    scanning = null;
+    scanner.stop();
+    parsedSessions = [];
+    fileSignature = '';
     snapshotSignature = '';
     snapshot = { ...snapshot, receiverRunning: false, updatedAt: Date.now() };
     emitSnapshot();
@@ -252,7 +270,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
   async function enableMonitor(): Promise<CodexMonitorMutationResult> {
     enabled = true;
     persistState();
-    startPolling();
+    await startPolling();
     return { ok: true, message: 'Codex 会话监视已启用。', snapshot };
   }
 
@@ -260,7 +278,11 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
     enabled = false;
     if (timer) clearInterval(timer);
     timer = null;
-    cache.clear();
+    generation += 1;
+    scanning = null;
+    scanner.stop();
+    parsedSessions = [];
+    fileSignature = '';
     persistState();
     snapshot = { ...snapshot, enabled: false, receiverRunning: false, updatedAt: Date.now() };
     snapshotSignature = '';
@@ -278,6 +300,7 @@ export function createCodexStatusService(options: CreateCodexStatusServiceOption
 
   function deleteSessions(sessionIds: string[]): ClaudeCodeStatusSnapshot {
     const deletedAt = Date.now();
+    mutationVersion += 1;
     sessionIds.filter(Boolean).forEach((sessionId) => {
       deletedBeforeBySession[sessionId] = deletedAt;
     });

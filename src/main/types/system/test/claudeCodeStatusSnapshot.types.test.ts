@@ -41,6 +41,7 @@ interface ExpectedClaudeCodeStatusSnapshot {
   events: ClaudeCodeHookEvent[];
   heatmap: ClaudeCodeHeatmapDaily;
   updatedAt: number;
+  revision?: number;
 }
 
 describe("ClaudeCodeStatusSnapshot.ts 完整类型契约", () => {

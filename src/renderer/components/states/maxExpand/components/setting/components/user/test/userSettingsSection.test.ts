@@ -29,6 +29,8 @@ import { UserSettingsSection } from '../UserSettingsSection';
 import { elementProps, elements, findElement, invoke, resetState, rewindState, textContent } from '../../../../../../../test/elementHarness';
 const session = vi.hoisted(() => ({ token: null as string | null, profile: null as Record<string, unknown> | null }));
 const store = vi.hoisted(() => ({ setLogin: vi.fn(), setRegister: vi.fn(), setPayment: vi.fn(), setQuestionnaire: vi.fn() }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   ...(await import('../../../../../../../test/elementHarness')).hookMocks,

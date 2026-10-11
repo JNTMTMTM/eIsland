@@ -34,6 +34,8 @@ import { AnnouncementHeader } from '../components/AnnouncementHeader';
 import { AnnouncementBody } from '../components/AnnouncementBody';
 import type { TreeElement } from '../../test/tree';
 const slots = vi.hoisted(() => ({ cursor: 0, values: [] as unknown[], effects: [] as Array<() => unknown> }));
+// 直接调用组件的测试保留选择器，避免使用外部 React dispatcher。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (importOriginal) => { const actual = await importOriginal<typeof import('react')>(); const { mockHooks } = await import('../../test/hooks'); return mockHooks(actual, slots); });
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'zh-CN' } }) }));
 beforeEach(() => { slots.cursor = 0; slots.values = []; slots.effects = []; });

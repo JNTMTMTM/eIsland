@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import type { CSSProperties, ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -51,7 +52,17 @@ export function SongWidget(): ReactElement {
     lyricsLoading,
     currentPositionMs,
     setExpandTab,
-  } = useIslandStore();
+  } = useIslandStore(useShallow((store) => ({
+    mediaInfo: store.mediaInfo,
+    coverImage: store.coverImage,
+    isPlaying: store.isPlaying,
+    isMusicPlaying: store.isMusicPlaying,
+    dominantColor: store.dominantColor,
+    syncedLyrics: store.syncedLyrics,
+    lyricsLoading: store.lyricsLoading,
+    currentPositionMs: store.currentPositionMs,
+    setExpandTab: store.setExpandTab,
+  })));
   const { lyricsEnabled, karaokeEnabled } = useLyricsSettings();
   const { currentIdx, hasLyrics, isIntro, currentLine, currentText, hasSyllables } = useCurrentLyric(
     syncedLyrics,

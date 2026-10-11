@@ -30,6 +30,7 @@ import type { MailInboxItem } from "../MailInboxItem";
 /** 固定 MailInboxItem 的完整公开形状，独立于源类型展开。 */
 interface ExpectedMailInboxItem {
   uid: string;
+  uidValidity?: string;
   subject: string;
   from: string;
   to: string;

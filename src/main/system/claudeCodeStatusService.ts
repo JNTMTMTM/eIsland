@@ -36,6 +36,9 @@ import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusS
 import type { ClaudeCodeStatusService, ClaudeSettingsMutationResult, PermissionDecision } from '../types/system/ClaudeCodeStatusService';
 import { limitRecentSessions } from './sessionLimits';
 import { readLastTextLinesSync } from '../utils/textFileLines';
+import { summarizeCliEvent, saveCliEventDetails, createCliSnapshotWriter, removeCliEventDetails } from './cliEventDetails';
+import { loadCliState } from './cliStateLoader';
+import { createCliSnapshotDelta } from './cliSnapshotDelta';
 
 export type {
   ClaudeCodeHookEventDetailItem,
@@ -77,6 +80,19 @@ const HOOK_EVENTS: Array<{ name: string; matcher?: string; timeout?: number }> =
   { name: 'SubagentStop' },
   { name: 'PreCompact' },
 ];
+
+/** 对身份及路径做整字段校验，不能截断后把不同会话或权限请求误合并。 */
+function validateHookMetadata(payload: Record<string, unknown>): void {
+  const groups: Array<[string[], number]> = [
+    [['session_id', 'sessionID', 'sessionId'], 512],
+    [['hook_event_name', 'hookEventName', 'event_name', 'eventName', 'event', 'type'], 128],
+    [['tool_name', 'toolName', 'name', 'model'], 512],
+    [['transcript_path', 'transcriptPath', 'cwd', 'workspace', 'project_dir', 'projectDir'], 32767],
+  ];
+  groups.forEach(([keys, limit]) => keys.forEach((key) => {
+    if (typeof payload[key] === 'string' && payload[key].length > limit) throw new Error(`CLI metadata field too long: ${key}`);
+  }));
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -160,7 +176,7 @@ function textFromContent(value: unknown): string | null {
 function transcriptTextFromRole(transcriptPath: string | null, roleName: 'user' | 'assistant'): string | null {
   if (!transcriptPath || !existsSync(transcriptPath)) return null;
   try {
-    const lines = readLastTextLinesSync(transcriptPath, 120).reverse();
+    const lines = readLastTextLinesSync(transcriptPath, 120, 1024 * 1024).reverse();
     return lines.reduce<string | null>((found, line) => {
       if (found) return found;
       const entry = asRecord(JSON.parse(line));
@@ -262,7 +278,7 @@ function readClaudeTranscriptDetails(transcriptPath: string | null, payload: Rec
   const expectedToolName = asString(payload.tool_name) ?? asString(payload.toolName) ?? asString(payload.name);
   const details = emptyTranscriptDetails();
   try {
-    const lines = readLastTextLinesSync(transcriptPath, 260).reverse();
+    const lines = readLastTextLinesSync(transcriptPath, 260, 1024 * 1024).reverse();
     lines.some((line) => {
       const entry = asRecord(JSON.parse(line));
       details.sessionId = details.sessionId ?? asString(entry.sessionId) ?? asString(entry.session_id);
@@ -324,7 +340,6 @@ function inferDetailItems(
     ['eventSubtype', firstDetailValue(payload, ['notification_type', 'notificationType', 'subtype'])],
     ['error', firstDetailValue(payload, ['error', 'error_details', 'errorDetails'])],
     ['reason', firstDetailValue(payload, ['reason', 'permission_decision', 'permissionDecision'])],
-    ['rawEvent', detailValue(payload)],
   ];
   return detailSpecs
     .filter((item): item is [string, string] => Boolean(item[1]))
@@ -439,12 +454,23 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
   const settingsPath = join(app.getPath('home'), '.claude', 'settings.json');
   const hookScriptPath = join(app.getPath('userData'), 'claude-code-hook.cjs');
   const persistPath = join(app.getPath('userData'), 'eIsland_store', 'claude-code-status.json');
+  const detailDirectory = join(app.getPath('userData'), 'eIsland_store', 'cli-details');
+  const writeSnapshot = createCliSnapshotWriter(persistPath);
+  let persistenceReady = true;
+  let persistedDetailIds = new Set<string>();
+  const backfillTimers = new Set<ReturnType<typeof setTimeout>>();
   // 热力图独立持久化：与事件/会话存储互不影响，清空会话或事件不波及热力图
   const persistHeatmapPath = join(app.getPath('userData'), 'eIsland_store', 'claude-code-heatmap.json');
   const sessions = new Map<string, ClaudeCodeSessionSnapshot>();
+  const deltas = createCliSnapshotDelta();
+  let activeRequests = 0;
+  const bodyRequests = new Map<http.IncomingMessage, () => void>();
   let events: ClaudeCodeHookEvent[] = [];
   let heatmapDaily: ClaudeCodeHeatmapDaily = {};
   let server: http.Server | null = null;
+  let starting: Promise<void> | null = null;
+  let lifecycleVersion = 0;
+  let loadController: AbortController | null = null;
   let receiverUrl: string | null = null;
   let updatedAt = Date.now();
 
@@ -452,18 +478,16 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
   let persistTimer: ReturnType<typeof setTimeout> | null = null;
 
   const persistNow = (): void => {
-    try {
-      mkdirSync(dirname(persistPath), { recursive: true });
-      const payload = JSON.stringify({
-        version: 1,
-        events,
-        sessions: limitRecentSessions(sessions.values()),
-        updatedAt,
-      });
-      writeFileSync(persistPath, payload, 'utf-8');
-    } catch {
-      // 持久化失败不影响运行
-    }
+    if (!persistenceReady) return;
+    const keptSessions = limitRecentSessions(sessions.values());
+    const ids = new Set([...events, ...keptSessions.flatMap((session) => session.events)].map((event) => event.id));
+    const candidates = [...persistedDetailIds];
+    void writeSnapshot({ version: 2, events, sessions: keptSessions, updatedAt }).then((success) => {
+      if (!success) return;
+      const removed = candidates.filter((id) => !ids.has(id));
+      removed.forEach((id) => persistedDetailIds.delete(id));
+      void removeCliEventDetails(detailDirectory, removed);
+    });
   };
 
   const schedulePersist = (): void => {
@@ -474,14 +498,8 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
   // ── 热力图独立持久化：单独文件、单独防抖，不与事件/会话存储耦合 ──
   let heatmapPersistTimer: ReturnType<typeof setTimeout> | null = null;
 
-  const persistHeatmapNow = (): void => {
-    try {
-      mkdirSync(dirname(persistHeatmapPath), { recursive: true });
-      writeFileSync(persistHeatmapPath, JSON.stringify({ version: 1, daily: heatmapDaily }), 'utf-8');
-    } catch {
-      // 持久化失败不影响运行
-    }
-  };
+  const writeHeatmap = createCliSnapshotWriter(persistHeatmapPath);
+  const persistHeatmapNow = (): void => { void writeHeatmap({ version: 1, daily: heatmapDaily }); };
 
   const scheduleHeatmapPersist = (): void => {
     if (heatmapPersistTimer) clearTimeout(heatmapPersistTimer);
@@ -508,28 +526,31 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     scheduleHeatmapPersist();
   };
 
-  const loadPersisted = (): void => {
+  const loadPersisted = async (signal: AbortSignal): Promise<void> => {
     try {
       if (!existsSync(persistPath)) return;
-      const root = asRecord(JSON.parse(readFileSync(persistPath, 'utf-8')));
+      const root = await loadCliState(persistPath, detailDirectory, signal);
+      if (signal.aborted) return;
       const loadedEvents = Array.isArray(root.events) ? (root.events as ClaudeCodeHookEvent[]) : [];
       const loadedSessions = Array.isArray(root.sessions)
         ? limitRecentSessions(root.sessions as ClaudeCodeSessionSnapshot[])
         : [];
-      events = loadedEvents.slice(0, MAX_EVENTS);
+      events = loadedEvents.slice(0, MAX_EVENTS).map(summarizeCliEvent);
+      persistedDetailIds = new Set([...events, ...loadedSessions.flatMap((session) => session.events ?? [])].map((event) => event.id));
       sessions.clear();
       loadedSessions.forEach((session) => {
         if (session && typeof session.id === 'string') {
           // 重启后无法再响应历史待授权请求，挂起态归并为已结束/空闲展示
           const phase = session.phase === 'waiting_permission' ? 'idle' : session.phase;
-          sessions.set(session.id, { ...session, phase, pendingPermission: null });
+          sessions.set(session.id, { ...session, phase, pendingPermission: null, events: (session.events ?? []).slice(0, MAX_SESSION_EVENTS).map(summarizeCliEvent) });
           // 重建合并锚点，避免重启后同一 cwd / transcript 再次分裂
           if (session.cwd) cwdToSession.set(session.cwd, session.id);
           if (session.transcriptPath) transcriptToSession.set(session.transcriptPath, session.id);
         }
       });
     } catch {
-      // 读取失败时忽略，使用空状态
+      // 迁移失败保留旧文件，禁止以空快照覆盖历史。
+      if (!signal.aborted) persistenceReady = false;
     }
   };
 
@@ -553,12 +574,12 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     }
   };
 
-  const emitSnapshot = (): void => {
+  const emitSnapshot = (persist = true): void => {
     updatedAt = Date.now();
-    schedulePersist();
+    if (persist) schedulePersist();
     const win = options.getMainWindow();
     if (!win || win.isDestroyed()) return;
-    win.webContents.send('claude-code:status-updated', getSnapshot());
+    win.webContents.send('claude-code:status-updated', deltas.next(getSnapshot()));
   };
 
   const isHookInstalled = (): boolean => {
@@ -593,6 +614,7 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
   };
 
   const getSnapshot = (): ClaudeCodeStatusSnapshot => ({
+    revision: deltas.revision(),
     enabled: isHookInstalled(),
     receiverRunning: Boolean(server),
     receiverUrl,
@@ -604,54 +626,34 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     updatedAt,
   });
 
-  const withDetailItem = (event: ClaudeCodeHookEvent, label: string, value: string): ClaudeCodeHookEvent => ({
-    ...event,
-    detailItems: [
-      { label, value },
-      ...event.detailItems.filter((item) => item.label !== label),
-    ],
-  });
-
-  const backfillDetailItem = (
-    eventId: string,
-    sessionId: string,
-    label: string,
-    valueFromTranscript: () => string | null,
-  ): void => {
-    const value = valueFromTranscript();
-    if (!value) return;
-    events = events.map((event) => (event.id === eventId ? withDetailItem(event, label, value) : event));
-    const session = sessions.get(sessionId);
-    if (session) {
-      sessions.set(sessionId, {
-        ...session,
-        events: session.events.map((event) => (event.id === eventId ? withDetailItem(event, label, value) : event)),
-      });
-    }
-    emitSnapshot();
-  };
-
-  const scheduleDetailBackfill = (
-    event: ClaudeCodeHookEvent,
-    label: string,
-    valueFromTranscript: () => string | null,
-  ): void => {
-    if (event.detailItems.some((item) => item.label === label)) return;
-    setTimeout(() => backfillDetailItem(event.id, event.sessionId, label, valueFromTranscript), 350);
-    setTimeout(() => backfillDetailItem(event.id, event.sessionId, label, valueFromTranscript), 1200);
-  };
-
   const scheduleEventBackfill = (event: ClaudeCodeHookEvent): void => {
-    if (event.eventName === 'UserPromptSubmit') {
-      scheduleDetailBackfill(event, 'userInput', () => readClaudeTranscriptDetails(event.transcriptPath, event.raw).userInput);
-    }
-    if (event.kind === 'tool') {
-      scheduleDetailBackfill(event, 'toolUseId', () => readClaudeTranscriptDetails(event.transcriptPath, event.raw).toolUseId);
-      scheduleDetailBackfill(event, 'toolResult', () => readClaudeTranscriptDetails(event.transcriptPath, event.raw).toolResult);
-    }
-    if (event.eventName === 'Stop' || event.eventName === 'StopFailure' || event.eventName === 'SessionEnd' || event.eventName === 'SubagentStop') {
-      scheduleDetailBackfill(event, 'assistantOutput', () => readClaudeTranscriptDetails(event.transcriptPath, event.raw).assistantOutput);
-    }
+    const labels = event.eventName === 'UserPromptSubmit' ? ['userInput'] : event.kind === 'tool' ? ['toolUseId', 'toolResult']
+      : ['Stop', 'StopFailure', 'SessionEnd', 'SubagentStop'].includes(event.eventName) ? ['assistantOutput'] : [];
+    if (!labels.some((label) => !event.detailItems.some((item) => item.label === label))) return;
+    [350, 1200].forEach((delay) => {
+      const timer = setTimeout(() => {
+        backfillTimers.delete(timer);
+        const session = sessions.get(event.sessionId);
+        const current = session?.events.find((item) => item.id === event.id) ?? events.find((item) => item.id === event.id);
+        if (!current) return;
+        const missing = labels.filter((label) => !current.detailItems.some((item) => item.label === label));
+        if (!missing.length) return;
+        const details = readClaudeTranscriptDetails(event.transcriptPath, { tool_name: event.toolName,
+          tool_use_id: current.detailItems.find((item) => item.label === 'toolUseId')?.value });
+        const extra = missing.flatMap((label) => {
+          const value = details[label as keyof ClaudeTranscriptDetails];
+          return typeof value === 'string' && value ? [{ label, value }] : [];
+        });
+        if (!extra.length) return;
+        try { saveCliEventDetails(detailDirectory, { ...current, detailItems: extra }, true); } catch { return; }
+        const updated = summarizeCliEvent({ ...current, detailItems: [...extra, ...current.detailItems], detailRevision: (current.detailRevision ?? 0) + 1 });
+        events = events.map((item) => item.id === event.id ? updated : item);
+        const currentSession = sessions.get(current.sessionId) ?? session;
+        if (currentSession) sessions.set(currentSession.id, { ...currentSession, events: currentSession.events.map((item) => item.id === event.id ? updated : item) });
+        emitSnapshot();
+      }, delay);
+      backfillTimers.add(timer);
+    });
   };
 
   // transcriptPath / cwd → 规范 sessionId 映射，用于把同一会话的事件并入，避免会话分裂
@@ -781,13 +783,13 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     const sessionId = resolveSessionId(enrichedPayload, transcriptPath, cwd);
     const toolName = asString(enrichedPayload.tool_name) ?? asString(enrichedPayload.toolName) ?? asString(enrichedPayload.name);
     const toolInput = enrichedPayload.tool_input ?? enrichedPayload.toolInput ?? enrichedPayload.input;
-    const toolResponse = payloadToolResponse(enrichedPayload);
+    if (eventName === 'PermissionRequest' && Buffer.byteLength(JSON.stringify(toolInput ?? {})) > 64 * 1024) throw new Error('Permission input exceeds the UI budget; review in the CLI.');
     const userInput = inferUserInput(enrichedPayload, transcriptPath);
     const assistantOutput = eventName === 'Stop' || eventName === 'StopFailure' || eventName === 'SessionEnd' || eventName === 'SubagentStop'
       ? payloadAssistantOutput(enrichedPayload, transcriptPath)
       : firstDetailValue(enrichedPayload, ['last_assistant_message', 'lastAssistantMessage']);
     const detailItems = inferDetailItems(enrichedPayload, toolInput, userInput, assistantOutput);
-    const event: ClaudeCodeHookEvent = {
+    const fullEvent: ClaudeCodeHookEvent = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       eventName,
       kind: inferKind(eventName),
@@ -795,13 +797,7 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
       cwd,
       transcriptPath,
       summary: inferSummary(eventName, enrichedPayload, toolName),
-      detail: asString(enrichedPayload.reason)
-        ?? asString(enrichedPayload.error)
-        ?? asString(enrichedPayload.error_details)
-        ?? asString(enrichedPayload.errorDetails)
-        ?? clipped(asString(enrichedPayload.message))
-        ?? clipped(jsonValueString(toolResponse))
-        ?? assistantOutput,
+      detail: null,
       detailItems,
       toolName,
       toolInputPreview: transcriptDetails.toolInputPreview ?? toolInputPreviewFrom(toolInput),
@@ -809,6 +805,9 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
       raw: enrichedPayload,
     };
 
+    saveCliEventDetails(detailDirectory, fullEvent);
+    persistedDetailIds.add(fullEvent.id);
+    const event = summarizeCliEvent({ ...fullEvent, detailProvider: 'claude', detailRevision: 0 });
     events = [event, ...events].slice(0, MAX_EVENTS);
     // 热力图累计：独立于事件/会话存储，清空时不会被清除
     recordHeatmap(eventName, event.createdAt);
@@ -817,7 +816,7 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     const nextPhase = phaseAfterEvent(current?.phase ?? 'idle', event);
     let pendingPermission: ClaudeCodeHookEvent | null = null;
     if (nextPhase === 'waiting_permission') {
-      pendingPermission = event;
+      pendingPermission = event.eventName === 'PermissionRequest' ? { ...event, raw: { tool_input: toolInput } } : event;
       if (event.eventName !== 'PermissionRequest' && current?.pendingPermission?.eventName === 'PermissionRequest') {
         ({ pendingPermission } = current);
       }
@@ -836,7 +835,9 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     const retainedSessionIds = new Set(limitRecentSessions(sessions.values()).map((session) => session.id));
     Array.from(sessions.keys())
       .filter((sessionIdToRemove) => !retainedSessionIds.has(sessionIdToRemove))
-      .forEach((sessionIdToRemove) => sessions.delete(sessionIdToRemove));
+      .forEach((sessionIdToRemove) => { respondPermission(sessionIdToRemove, null); sessions.delete(sessionIdToRemove); });
+    transcriptToSession.forEach((id, key) => { if (!sessions.has(id)) transcriptToSession.delete(key); });
+    cwdToSession.forEach((id, key) => { if (!sessions.has(id)) cwdToSession.delete(key); });
     scheduleEventBackfill(event);
     emitSnapshot();
     return event;
@@ -858,12 +859,48 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
       response.end();
       return;
     }
+    const rejectRequest = (status: number): void => {
+      response.shouldKeepAlive = false;
+      response.writeHead(status);
+      response.end(() => request.destroy());
+      request.resume?.();
+    };
+    if (activeRequests >= 4) { rejectRequest(503); return; }
+    activeRequests += 1;
+    let receiving = true;
+    const release = (): void => {
+      if (receiving) { receiving = false; activeRequests -= 1; }
+      clearTimeout(deadline); bodyRequests.delete(request);
+    };
     let body = '';
+    let bodyBytes = 0;
+    let rejected = false;
     request.setEncoding('utf-8');
-    request.on('data', (chunk) => { body += chunk; });
+    request.on('aborted', () => { rejected = true; body = ''; release(); });
+    request.on('error', () => { rejected = true; body = ''; release(); });
+    // 硬期限不会因持续收到零碎数据而延长，停止时也能主动销毁当前所有请求。
+    const deadline = setTimeout(() => { body = ''; rejected = true; release(); rejectRequest(408); }, 10000);
+    bodyRequests.set(request, () => { rejected = true; body = ''; release(); request.destroy?.(); });
+    request.on('data', (chunk: string) => {
+      if (rejected) return;
+      bodyBytes += Buffer.byteLength(chunk);
+      if (bodyBytes > 4 * 1024 * 1024) {
+        rejected = true; body = ''; release(); rejectRequest(413); return;
+      }
+      body += chunk;
+    });
     request.on('end', () => {
+      release();
+      if (rejected) return;
       try {
-        const event = addEvent(asRecord(JSON.parse(body || '{}')));
+        const payload = asRecord(JSON.parse(body || '{}'));
+        body = '';
+        validateHookMetadata(payload);
+        // 完整权限输入超预算时交还 CLI 审批，绝不裁剪后提供批准按钮。
+        if (inferEventName(payload) === 'PermissionRequest' && Buffer.byteLength(JSON.stringify(payload.tool_input ?? payload.toolInput ?? payload.input ?? {})) > 64 * 1024) {
+          rejectRequest(413); return;
+        }
+        const event = addEvent(payload);
         // 授权请求：暂存响应，等待用户在 UI 上做出决策（批准/永久批准/拒绝）
         if (event.eventName === 'PermissionRequest') {
           respondPermission(event.sessionId, null); // 清理同会话的旧等待
@@ -884,33 +921,52 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
 
   async function start(): Promise<void> {
     if (server) return;
-    loadPersisted();
-    loadHeatmap();
-    mkdirSync(dirname(hookScriptPath), { recursive: true });
-    writeFileSync(hookScriptPath, createHookScript(port), 'utf-8');
-    syncInstalledHookCommands();
-    await new Promise<void>((resolve) => {
-      server = http.createServer(handleRequest);
-      server.listen(port, '127.0.0.1', () => {
-        receiverUrl = `http://127.0.0.1:${port}/claude-code/hook`;
-        resolve();
+    if (starting) return starting;
+    const version = ++lifecycleVersion;
+    const controller = new AbortController();
+    loadController = controller;
+    persistenceReady = true;
+    const request = (async () => {
+      await loadPersisted(controller.signal);
+      if (controller.signal.aborted || version !== lifecycleVersion) return;
+      loadHeatmap();
+      mkdirSync(dirname(hookScriptPath), { recursive: true });
+      writeFileSync(hookScriptPath, createHookScript(port), 'utf-8');
+      syncInstalledHookCommands();
+      await new Promise<void>((resolve) => {
+        const created = http.createServer(handleRequest);
+        server = created;
+        created.listen(port, '127.0.0.1', () => {
+          if (version === lifecycleVersion) receiverUrl = `http://127.0.0.1:${port}/claude-code/hook`;
+          resolve();
+        });
+        created.on('error', () => {
+          if (server === created) { server = null; receiverUrl = null; }
+          resolve();
+        });
       });
-      server.on('error', () => {
-        server = null;
-        receiverUrl = null;
-        resolve();
-      });
+      if (version === lifecycleVersion) emitSnapshot();
+    })().finally(() => {
+      if (starting === request) starting = null;
+      if (loadController === controller) loadController = null;
     });
-    emitSnapshot();
+    starting = request;
+    return request;
   }
 
   function stop(): void {
+    lifecycleVersion += 1; loadController?.abort(); loadController = null; starting = null;
+    [...bodyRequests.values()].forEach((cancel) => cancel());
+    backfillTimers.forEach(clearTimeout); backfillTimers.clear();
+    if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; persistNow(); }
+    if (heatmapPersistTimer) { clearTimeout(heatmapPersistTimer); heatmapPersistTimer = null; persistHeatmapNow(); }
     if (!server) return;
     Array.from(permissionWaiters.keys()).forEach((sessionId) => respondPermission(sessionId, null));
     server.close();
+    server.closeAllConnections?.();
     server = null;
     receiverUrl = null;
-    emitSnapshot();
+    emitSnapshot(false);
   }
 
   async function installHook(): Promise<ClaudeSettingsMutationResult> {
@@ -953,6 +1009,9 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
   }
 
   function clearEvents(): ClaudeCodeStatusSnapshot {
+    backfillTimers.forEach(clearTimeout); backfillTimers.clear();
+    transcriptToSession.clear(); cwdToSession.clear();
+    Array.from(permissionWaiters.keys()).forEach((id) => respondPermission(id, null));
     events = [];
     sessions.clear();
     emitSnapshot();
@@ -963,7 +1022,7 @@ export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusSer
     const sessionIdSet = new Set(sessionIds.filter(Boolean));
     if (sessionIdSet.size === 0) return getSnapshot();
     events = events.filter((event) => !sessionIdSet.has(event.sessionId));
-    sessionIdSet.forEach((sessionId) => sessions.delete(sessionId));
+    sessionIdSet.forEach((sessionId) => { respondPermission(sessionId, null); sessions.delete(sessionId); });
     emitSnapshot();
     return getSnapshot();
   }

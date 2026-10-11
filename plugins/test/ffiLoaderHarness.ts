@@ -35,6 +35,7 @@ const loader = Module as unknown as {
 
 /** FFI 边界的可控依赖及真实目标加载方法。 */
 export interface FfiFixture {
+  view: Mock<(ptr: unknown, size: number) => ArrayBuffer>;
   access: Mock<(candidate: string) => void>;
   load: Mock<(dllPath: string) => { func: Mock<(signature: string, ...args: unknown[]) => Mock<(...args: unknown[]) => unknown>> }>;
   disposable: Mock<(type: string, free: unknown) => { owned: true }>;
@@ -49,6 +50,7 @@ export interface FfiFixture {
  * @returns 文件访问、DLL 注册及原生函数的可断言夹具。
  */
 export function createFfiFixture(file: string): FfiFixture {
+  const view = vi.fn<(ptr: unknown, size: number) => ArrayBuffer>();
   const access = vi.fn<(candidate: string) => void>();
   const functions = new Map<string, Mock<(...args: unknown[]) => unknown>>();
   const func = vi.fn<(signature: string, ...args: unknown[]) => Mock<(...args: unknown[]) => unknown>>((signature) => {
@@ -62,10 +64,11 @@ export function createFfiFixture(file: string): FfiFixture {
   const original = loader._load;
   vi.spyOn(loader, '_load').mockImplementation((request, parent, isMain) => {
     if (request === 'node:fs') return { accessSync: access };
-    if (request === 'koffi') return { load, disposable };
+    if (request === 'koffi') return { load, disposable, view };
     return original(request, parent, isMain);
   });
   return {
+    view,
     access,
     load,
     disposable,

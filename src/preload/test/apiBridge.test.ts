@@ -165,9 +165,11 @@ const TRANSPORT_ROUTES = [
   ['pickVideoForExtract', 'format-factory:pick-video', 0, 'invoke'],
   ['extractVideoTrack', 'format-factory:extract-track', 1, 'invoke'],
   ['netFetch', 'net:fetch', 2, 'invoke'],
+  ['mailMessageGet', 'mail:message:get', 3, 'invoke'],
   ['mailInboxList', 'mail:inbox:list', 2, 'invoke'],
   ['storeWrite', 'store:write', 2, 'invoke'],
   ['storeCompareAndSwap', 'store:compare-and-swap', 3, 'invoke'],
+  ['scheduleWakeup', 'runtime:schedule-wakeup', 2, 'invoke'],
   ['setAlarmEnabled', 'alarm:set-enabled', 2, 'invoke'],
   ['hotkeyGet', 'hotkey:get', 0, 'invoke'],
   ['hotkeySet', 'hotkey:set', 1, 'invoke'],
@@ -295,6 +297,8 @@ const TRANSPORT_ROUTES = [
   ['updaterVersion', 'updater:version', 0, 'invoke'],
   ['guideReset', 'guide:reset', 0, 'invoke'],
   ['clipboardOpenUrl', 'clipboard:open-url', 1, 'invoke'],
+  ['claudeCodeEventDetail', 'claude-code:event:detail', 2, 'invoke'],
+  ['codexEventDetail', 'codex:event:detail', 2, 'invoke'],
   ['claudeCodeStatusGet', 'claude-code:status:get', 0, 'invoke'],
   ['claudeCodeHookInstall', 'claude-code:hook:install', 0, 'invoke'],
   ['claudeCodeHookUninstall', 'claude-code:hook:uninstall', 0, 'invoke'],
@@ -358,7 +362,7 @@ beforeEach(() => {
 });
 
 describe('全部预加载API传输契约', () => {
-  it('250个公开API均在通道、监听或文件桥接清单中，防止漏测新入口', () => {
+  it('全部公开API均在通道、监听或文件桥接清单中，防止漏测新入口', () => {
     expect(Object.keys(mocks.api).sort()).toEqual([
       ...TRANSPORT_ROUTES.map((route) => route[0]),
       ...LISTENER_ROUTES.map((route) => route[0]),

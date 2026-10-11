@@ -20,6 +20,7 @@
 
 using System.IO;
 using Windows.Media;
+using Windows.Graphics.Imaging;
 using Windows.Media.Control;
 using Windows.Storage.Streams;
 
@@ -27,10 +28,15 @@ namespace eIslandSmtcHelper;
 
 public static class SmtcController
 {
+    internal static string CommandSourceAppId { get; set; } = "";
+    private static GlobalSystemMediaTransportControlsSessionManager? _commandManager;
+
     private static async Task<GlobalSystemMediaTransportControlsSession?> GetCurrentSessionAsync()
     {
-        var manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-        return manager.GetCurrentSession();
+        _commandManager ??= await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
+        return string.IsNullOrEmpty(CommandSourceAppId)
+            ? _commandManager.GetCurrentSession()
+            : _commandManager.GetSessions().FirstOrDefault(session => session.SourceAppUserModelId == CommandSourceAppId);
     }
 
     public static async Task<CommandResult> PlayAsync()
@@ -198,12 +204,25 @@ public static class SmtcController
             if (stream == null || stream.Size == 0 || stream.Size > 8 * 1024 * 1024)
                 return null;
 
-            var bytes = new byte[checked((int)stream.Size)];
-            using var input = stream.AsStreamForRead();
+            // 只保留实际显示所需的封面像素，避免每个会话长期持有原始大图。
+            var decoder = BitmapDecoder.CreateAsync(stream).GetAwaiter().GetResult();
+            var scale = Math.Min(1d, 256d / Math.Max(decoder.PixelWidth, decoder.PixelHeight));
+            var width = Math.Max(1u, (uint)(decoder.PixelWidth * scale));
+            var height = Math.Max(1u, (uint)(decoder.PixelHeight * scale));
+            var pixels = decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                new BitmapTransform { ScaledWidth = width, ScaledHeight = height },
+                ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage).GetAwaiter().GetResult();
+            using var output = new InMemoryRandomAccessStream();
+            var encoder = BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, output).GetAwaiter().GetResult();
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, width, height, 96, 96, pixels.DetachPixelData());
+            encoder.FlushAsync().GetAwaiter().GetResult();
+            output.Seek(0);
+            var bytes = new byte[checked((int)output.Size)];
+            using var input = output.AsStreamForRead();
             input.ReadExactly(bytes);
 
             var base64 = Convert.ToBase64String(bytes);
-            return $"data:image/jpeg;base64,{base64}";
+            return $"data:image/png;base64,{base64}";
         }
         catch
         {

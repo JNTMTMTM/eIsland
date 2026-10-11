@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -206,7 +207,12 @@ const getRoleFromToken = (token: string | null | undefined): string | null => {
  */
 export function UserSettingsSection({ initialProfilePage = 'info' }: UserSettingsSectionProps): ReactElement {
   const { t, i18n } = useTranslation();
-  const { setLogin, setRegister, setPayment, setQuestionnaire } = useIslandStore();
+  const { setLogin, setRegister, setPayment, setQuestionnaire } = useIslandStore(useShallow((store) => ({
+    setLogin: store.setLogin,
+    setRegister: store.setRegister,
+    setPayment: store.setPayment,
+    setQuestionnaire: store.setQuestionnaire,
+  })));
   const questionnaireReminder = useAnnouncementQuestionnaire();
   const [token, setToken] = useState<string | null>(() => readLocalToken());
   const [profile, setProfile] = useState<UserAccountProfile | null>(() => readLocalProfile());

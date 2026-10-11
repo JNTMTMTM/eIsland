@@ -28,14 +28,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DynamicIslandStateContent } from '../DynamicIslandStateContent';
 import { elementProps, resetState } from '../../test/elementHarness';
 import type { ComponentProps } from 'react';
-const props: Omit<ComponentProps<typeof DynamicIslandStateContent>, 'state'> = { timeStr: '12:00', dayStr: 'Tuesday', weather: { temperature: 20, description: 'Clear', humidity: 50, windSpeed: 1, uvIndex: 1, iconCode: 0, forecast: [{ temperature: 20, description: 'Clear', temperatureMax: 25, temperatureMin: 15, windSpeed: 1, uvIndex: 1, precipitationProbability: 0, iconCode: 0 }, { temperature: 20, description: 'Clear', temperatureMax: 25, temperatureMin: 15, windSpeed: 1, uvIndex: 1, precipitationProbability: 0, iconCode: 0 }] }, timerState: 'paused', remainingSeconds: 20, pomodoroRunning: true, pomodoroRemaining: 60, fullTimeStr: '12:00:00', lunarStr: 'Lunar', notification: { title: 'Title', body: 'Body', type: 'default' } };
+const props: Omit<ComponentProps<typeof DynamicIslandStateContent>, 'state'> = { weather: { temperature: 20, description: 'Clear', humidity: 50, windSpeed: 1, uvIndex: 1, iconCode: 0, forecast: [{ temperature: 20, description: 'Clear', temperatureMax: 25, temperatureMin: 15, windSpeed: 1, uvIndex: 1, precipitationProbability: 0, iconCode: 0 }, { temperature: 20, description: 'Clear', temperatureMax: 25, temperatureMin: 15, windSpeed: 1, uvIndex: 1, precipitationProbability: 0, iconCode: 0 }] }, timerState: 'paused', remainingSeconds: 20, pomodoroRunning: true, pomodoroRemaining: 60, notification: { title: 'Title', body: 'Body', type: 'default' } };
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   ...(await import('../../test/elementHarness')).hookMocks,
 }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { resolvedLanguage: 'en-US', language: 'en-US', changeLanguage: vi.fn(() => Promise.resolve()) } }) }));
-vi.mock('../../states/idle', () => ({ IdleContent: Object.assign(vi.fn(), { displayName: 'IdleContent' }) }));
-vi.mock('../../states/hover', () => ({ HoverContent: Object.assign(vi.fn(), { displayName: 'HoverContent' }) }));
+vi.mock('../IslandClockContent', () => ({ IdleClockContent: Object.assign(vi.fn(), { displayName: 'IdleContent' }), HoverClockContent: Object.assign(vi.fn(), { displayName: 'HoverContent' }) }));
 vi.mock('../../states/notification/NotificationContent', () => ({ NotificationContent: Object.assign(vi.fn(), { displayName: 'NotificationContent' }) }));
 vi.mock('../../states/expand/ExpandedContent', () => ({ ExpandedContent: Object.assign(vi.fn(), { displayName: 'ExpandedContent' }) }));
 vi.mock('../../states/maxExpand/MaxExpandContent', () => ({ MaxExpandContent: Object.assign(vi.fn(), { displayName: 'MaxExpandContent' }) }));

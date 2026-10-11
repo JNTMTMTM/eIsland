@@ -59,7 +59,7 @@ describe('background media preview resolution', () => {
   });
   it('loads local images through the bridge and preserves absent file results', async () => {
     expect(await resolveBgMediaPreviewUrl({ type: 'image', source: 'C:\\图片 a.png' })).toBe('data:image/png;base64,local');
-    expect(loadWallpaperFile).toHaveBeenCalledWith('C:\\图片 a.png');
+    expect(loadWallpaperFile).toHaveBeenCalledWith('C:\\图片 a.png', true);
     loadWallpaperFile.mockResolvedValue(null);
     expect(await resolveBgMediaPreviewUrl({ type: 'image', source: 'missing.png' })).toBeNull();
   });

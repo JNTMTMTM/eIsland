@@ -24,10 +24,12 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../../../../i18n';
 import useIslandStore from '../../../../../../../store/slices';
+import scheduleDeadline from '../../../../../../../utils/scheduleDeadline';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import {
   POMODORO_DURATIONS,
@@ -43,6 +45,7 @@ import {
 let pomodoroInitialized = false;
 let pomodoroIntervalId: ReturnType<typeof setInterval> | null = null;
 let prevPomodoroRunning = false;
+let cancelPomodoroDeadline = (): void => {};
 
 function persistPomodoro(phase: PomodoroPhase, remaining: number, count: number): void {
   const payload: PomodoroData = { phase, remaining, running: false, completedCount: count };
@@ -51,10 +54,11 @@ function persistPomodoro(phase: PomodoroPhase, remaining: number, count: number)
 
 function startPomodoroInterval(): void {
   if (pomodoroIntervalId !== null) return;
-  pomodoroIntervalId = setInterval(() => {
+  const deadline = Date.now() + useIslandStore.getState().pomodoroRemaining * 1000;
+  const tick = (): void => {
     const store = useIslandStore.getState();
-    const current = store.pomodoroRemaining;
-    if (current <= 1) {
+    const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    if (remaining === 0) {
       clearInterval(pomodoroIntervalId!);
       pomodoroIntervalId = null;
       const finishedPhase = store.pomodoroPhase;
@@ -73,12 +77,16 @@ function startPomodoroInterval(): void {
       });
       persistPomodoro(nextPhase, nextRemaining, nextCount);
     } else {
-      store.setPomodoroRemaining(current - 1);
+      store.setPomodoroRemaining(remaining);
     }
-  }, 1000);
+  };
+  pomodoroIntervalId = setInterval(tick, 1000);
+  cancelPomodoroDeadline = scheduleDeadline(deadline, tick);
 }
 
 function stopPomodoroInterval(): void {
+  cancelPomodoroDeadline();
+  cancelPomodoroDeadline = () => {};
   if (pomodoroIntervalId !== null) {
     clearInterval(pomodoroIntervalId);
     pomodoroIntervalId = null;
@@ -108,7 +116,16 @@ export function PomodoroWidget(): React.ReactElement {
     setPomodoroRemaining: setRemaining,
     setPomodoroRunning: setRunning,
     setPomodoroCompletedCount: setCompletedCount,
-  } = useIslandStore();
+  } = useIslandStore(useShallow((store) => ({
+    pomodoroPhase: store.pomodoroPhase,
+    pomodoroRemaining: store.pomodoroRemaining,
+    pomodoroRunning: store.pomodoroRunning,
+    pomodoroCompletedCount: store.pomodoroCompletedCount,
+    setPomodoroPhase: store.setPomodoroPhase,
+    setPomodoroRemaining: store.setPomodoroRemaining,
+    setPomodoroRunning: store.setPomodoroRunning,
+    setPomodoroCompletedCount: store.setPomodoroCompletedCount,
+  })));
 
   useEffect(() => {
     if (pomodoroInitialized) return;

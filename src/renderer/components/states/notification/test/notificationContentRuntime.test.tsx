@@ -46,6 +46,8 @@ const model = vi.hoisted(() => ({
   token: vi.fn<() => string | null>(),
   source: vi.fn<typeof import('../../../../api/user/userAccountApi.profile').fetchUpdateSourceUrl>()
 }));
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../store/slices', () => ({
   default: Object.assign(() => model.store, {
     getState: () => model.store
@@ -270,6 +272,15 @@ describe('NotificationContent real hooks', () => {
     expect(model.store.setIdle).toHaveBeenCalledTimes(2);
     surface.api = undefined;
     await click('installRestart');
+  });
+  it.each(['./svg/app/DRINKING_WATER.svg', '../svg/app/DRINKING_WATER.svg'])('loads hydration icon %s and enables theme adaptation', async (icon) => {
+    surface.location.href = 'file:///C:/eIsland/renderer/html/DynamicIslandIndex.html';
+    props.icon = icon;
+    props.breakReminderItemId = 'water';
+    await mount();
+    const image = byClass(run(), 'notification-icon-img');
+    expect(image.props.src).toBe('file:///C:/eIsland/renderer/svg/app/DRINKING_WATER.svg');
+    expect(image.props.className).toContain('--vector');
   });
   it('restart now/later tolerate missing optional method and rejection', async () => {
     props.type = 'restart-required';

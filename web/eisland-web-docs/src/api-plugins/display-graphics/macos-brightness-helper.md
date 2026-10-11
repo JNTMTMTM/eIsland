@@ -6,7 +6,7 @@ icon: sun
 
 # macOS Brightness Helper
 
-`eisland-macos-brightness-helper` · v26.0.1
+`eisland-macos-brightness-helper` · v26.0.2
 
 Native hardware brightness query, control, and monitoring through Swift + C / Node-API.
 
@@ -88,11 +88,15 @@ The hardware APIs and DDC protocol were researched using [MonitorControl](https:
 
 ## Test
 
-The 33 Vitest cases cover JS argument handling and monitor cleanup, compiled Swift target selection and write isolation, DDC framing/checksums/ranges/scaling, and the actual Node-API boundary. Swift logic tests inject internal hardware targets without changing physical brightness. Native tests require macOS; `pretest` skips native compilation on other hosts, allowing 15 JS and build-guard cases to run. Four build-guard regression checks simulate Linux and Windows.
+The 44 Vitest cases cover JS argument handling and monitor cleanup, compiled Swift target selection and write isolation, DDC framing/checksums/ranges/scaling, and the actual Node-API boundary. Swift logic tests inject internal hardware targets without changing physical brightness. Native tests require macOS; `pretest` skips native compilation on other hosts, allowing 25 JS, loader, and build-guard cases to run. Four build-guard regression checks simulate Linux and Windows. Loader cases verify platform and architecture rejection, prebuild lookup, failed loads, caching, and ASAR paths.
+
+On the development arm64 Mac, runtime JS statement, branch, function, and line coverage reached 100%. Owned Swift / C line coverage reached 68.78%; the pure DDC protocol reached 100%. External-display and Intel backends, physical writes, and low-level failures remain partly uncovered. Reports are `coverage/js/index.html` and `coverage/native/html/index.html`. The native command requires `npm run build` and Node headers, creates instrumented binaries under `build/native-coverage/`, and does not replace production prebuilds. Git ignores these generated files. Build scripts and OS frameworks are outside coverage scope.
 
 | Command | Purpose |
 |---------|---------|
 | `npm test` | Compile native tests and run Vitest |
+| `npm run test:coverage` | V8 coverage for the four runtime JS files |
+| `npm run test:coverage:native` | Isolated LLVM coverage for owned Swift / C sources on macOS |
 | `npm run smoke` | Read actual hardware and print the complete snapshot |
 | `npm run smoke:monitor` | Observe changes for 8 seconds |
 | `npm run smoke:verify-set` | Change a system target by five percentage points, verify readback and events, and attempt restoration |
@@ -118,5 +122,7 @@ Real testing on an Apple Silicon Mac running macOS 27.0.1 read 54%, set and obse
 | `src/DDCProtocol.swift` | VCP framing and reply validation |
 | `src/addon.c` | Node-API 8 exports |
 | `scripts/build.mjs` | Native builds, export checks, and ad-hoc signatures |
+| `scripts/native-coverage.mjs` | Isolated LLVM instrumentation and coverage reports |
+| `test/nativeLoaderRuntime.test.mjs` | Loader platform, architecture, caching, and ASAR tests |
 | `test/brightnessRuntime.test.mjs` / `test/NativeCoreTests.swift` | Vitest and native logic tests |
 | `test/smoke.cjs` | Real hardware diagnostics |

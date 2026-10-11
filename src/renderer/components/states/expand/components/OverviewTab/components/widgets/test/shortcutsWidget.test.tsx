@@ -30,6 +30,8 @@ import { byClass, elements, invoke, text } from '../../../../../../test/tree';
 
 import { ShortcutsWidget } from '../ShortcutsWidget';
 import type { TreeElement } from '../../../../../../test/tree';
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'zh-CN' } }) }));
 
 const model = vi.hoisted(() => ({ setExpandTab: vi.fn() }));

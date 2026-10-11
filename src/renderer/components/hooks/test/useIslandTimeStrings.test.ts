@@ -31,8 +31,33 @@ import { renderWithHooks, runEffects, unmountHooks } from '../../states/register
 import { useIslandTimeStrings } from '../useIslandTimeStrings';
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 beforeEach(() => { vi.useFakeTimers(); resetLifecycle(); vi.setSystemTime(new Date(2026, 9, 6, 23, 59, 59)); });
-afterEach(() => { unmountHooks(); vi.useRealTimers(); });
+afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 describe('useIslandTimeStrings 实际时间展示', () => {
+  it('隐藏后没有时钟唤醒，恢复时立即校准墙钟', () => {
+    const page = Object.assign(new EventTarget(), { hidden: false }); vi.stubGlobal('document', page);
+    const t = (key: string) => key;
+    renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN' })); runEffects();
+    page.hidden = true; page.dispatchEvent(new Event('visibilitychange'));
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(60_000);
+    page.hidden = false; page.dispatchEvent(new Event('visibilitychange'));
+    expect(vi.getTimerCount()).toBe(1);
+    expect(renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN' })).timeStr).toBe('00:00');
+  });
+  it('分钟精度只在分钟边界刷新，禁用时没有唤醒', () => {
+    const t = vi.fn((key: string) => key);
+    vi.setSystemTime(new Date(2026, 9, 6, 12, 0, 0));
+    renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', precision: 'minute' })); runEffects();
+    t.mockClear();
+    vi.advanceTimersByTime(59_000);
+    expect(t).not.toHaveBeenCalled();
+    expect(renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', precision: 'minute' })).timeStr).toBe('12:00');
+    vi.advanceTimersByTime(1000);
+    expect(renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', precision: 'minute' })).timeStr).toBe('12:01');
+    expect(t).not.toHaveBeenCalled();
+    renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN', enabled: false })); runEffects();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('初始化真实格式化文本并在跨日时刷新时间、星期与农历', () => {
     const t = vi.fn((key: string, options?: { defaultValue?: string }) => { void key; return options?.defaultValue ?? ''; });
     let result = renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN' })); runEffects();

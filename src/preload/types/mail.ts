@@ -27,6 +27,8 @@
 /** 邮件列表结果项 */
 export interface MailInboxItem {
   uid: string;
+  /** 邮箱代次，防止服务端重建后 UID 指向另一封邮件。 */
+  uidValidity?: string;
   subject: string;
   from: string;
   to: string;

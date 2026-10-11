@@ -47,3 +47,11 @@ export class VolumeMonitor extends EventEmitter {
   emit(event: 'error', error: Error): boolean;
   emit(event: string, ...args: any[]): boolean;
 }
+/** 异步读取默认设备主音量 */
+export function getVolumeAsync(): Promise<number | null>;
+/** 异步设置音量，合并尚未发送的目标值 */
+export function setVolumeAsync(level: number): Promise<boolean>;
+/** 异步读取静音状态 */
+export function getMuteAsync(): Promise<boolean | null>;
+/** 异步设置静音状态 */
+export function setMuteAsync(muted: boolean): Promise<boolean>;

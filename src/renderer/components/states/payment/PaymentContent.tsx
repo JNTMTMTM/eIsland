@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -52,7 +53,12 @@ import '../../../styles/auth/auth.css';
  */
 export function PaymentContent(): ReactElement {
   const { t } = useTranslation();
-  const { returnFromAuth, setMaxExpand, setMaxExpandTab, paymentContext } = useIslandStore();
+  const { returnFromAuth, setMaxExpand, setMaxExpandTab, paymentContext } = useIslandStore(useShallow((store) => ({
+    returnFromAuth: store.returnFromAuth,
+    setMaxExpand: store.setMaxExpand,
+    setMaxExpandTab: store.setMaxExpandTab,
+    paymentContext: store.paymentContext,
+  })));
   const isRechargeMode = paymentContext.type === 'recharge';
   const rechargeAmountFen = isRechargeMode ? paymentContext.amountFen : 0;
   const [method, setMethod] = useState<PaymentMethod>(null);

@@ -50,7 +50,7 @@ export function AlbumTab(): ReactElement {
     fileInputRef, gridVideoRefs, initColumns, initSortMode, initGroupMode,
     loadExifIfNeeded, loadFullImage, releaseFullImage, handleAddFiles, handleRemove, handleRemoveSelected,
     handleThumbMouseEnter, handleThumbMouseLeave,
-    handleFileInputChange, handlePickFiles,
+    handleFileInputChange, handlePickFiles, setVisibleItems, setDurationScanEnabled,
   } = useAlbumItems();
 
   /* ── Hook: 网格配置 ── */
@@ -64,6 +64,8 @@ export function AlbumTab(): ReactElement {
   const { activeId, setActiveId } = viewer;
 
   useEffect(() => releaseFullImage, [activeId, releaseFullImage]);
+  useEffect(() => { if (viewer.activeItem) setVisibleItems([viewer.activeItem]); }, [viewer.activeItem, setVisibleItems]);
+  useEffect(() => { setDurationScanEnabled(sortMode === 'durationAsc' || sortMode === 'durationDesc'); }, [sortMode, setDurationScanEnabled]);
 
   /* ── Hook: 查看器动作 ── */
   const { handleOpenInExplorer, handleSaveAs, handleSetAsIslandBackground, handleOriginalZoom } =
@@ -115,6 +117,7 @@ export function AlbumTab(): ReactElement {
 
       {activeId === null ? (
         <AlbumOverview
+          onVisibleItemsChange={setVisibleItems}
           totalCount={items.length}
           filteredCount={filteredItems.length}
           columns={columns}

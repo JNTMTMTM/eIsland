@@ -94,7 +94,7 @@ interface ExpectedApi {
   mediaToggleMuted: () => Promise<boolean | null>;
   mediaCurrentInfoGet: () => Promise<NowPlayingInfo | null>;
   onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
-  screenshot: () => Promise<string | null>;
+  screenshot: () => Promise<Uint8Array | null>;
   startRegionScreenshot: () => Promise<boolean>;
   openTaskManager: () => void;
   getPerformanceSnapshot: (selection?: PerformanceHardwareSelection, includeHardwareOptions?: boolean) => Promise<PerformanceSnapshot>;
@@ -117,16 +117,18 @@ interface ExpectedApi {
   openFontDialog: () => Promise<{
     path: string;
     data: string;
+    url?: string;
     ext: string;
     name: string;
   } | null>;
   readFontFile: (filePath: string) => Promise<{
     path: string;
     data: string;
+    url?: string;
     ext: string;
     name: string;
   } | null>;
-  loadWallpaperFile: (filePath: string) => Promise<string | null>;
+  loadWallpaperFile: (filePath: string, preview?: boolean) => Promise<string | null>;
   loadAlbumThumbnail: (filePath: string) => Promise<string | null>;
   clearWallpaperCache: () => Promise<void>;
   setSystemDesktopWallpaper: (payload: SetWallpaperPayload) => Promise<boolean>;
@@ -139,7 +141,9 @@ interface ExpectedApi {
   pickVideoForExtract: () => Promise<PickVideoForExtractResult | null>;
   extractVideoTrack: (options: ExtractVideoTrackOptions) => Promise<ExtractVideoTrackResult>;
   netFetch: (url: string, options?: NetFetchOptions) => Promise<NetFetchResult>;
+  mailMessageGet: (config: Record<string, unknown>, uid: string, validity?: string) => Promise<MailInboxResult>;
   mailInboxList: (configOrLimit?: Record<string, unknown> | number, limit?: number) => Promise<MailInboxResult>;
+  scheduleWakeup: (id: string, deadline: number | null) => Promise<boolean>;
   storeRead: (key: string, strict?: boolean) => Promise<unknown>;
   storeWrite: (key: string, data: unknown) => Promise<boolean>;
   storeCompareAndSwap: (key: string, expected: unknown, data: unknown) => Promise<'updated' | 'conflict' | 'error'>;
@@ -292,6 +296,8 @@ interface ExpectedApi {
   clipboardOpenUrl: (url: string) => Promise<boolean>;
   onExternalAgentStarted: (callback: (data: ExternalAgentData) => void) => () => void;
   onExternalAgentStopped: (callback: (data: ExternalAgentData) => void) => () => void;
+  claudeCodeEventDetail: Window['api']['claudeCodeEventDetail'];
+  codexEventDetail: Window['api']['codexEventDetail'];
   claudeCodeStatusGet: () => Promise<ClaudeCodeStatusSnapshot>;
   claudeCodeHookInstall: () => Promise<ClaudeCodeHookMutationResult>;
   claudeCodeHookUninstall: () => Promise<ClaudeCodeHookMutationResult>;

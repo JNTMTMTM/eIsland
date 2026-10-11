@@ -76,8 +76,8 @@ describe('useIslandAutoDim 实际 CSS 和原生鼠标边界', () => {
   });
   it('运行时关闭设置立即在下一轮恢复，重新开启使用最新延迟', async () => {
     const input = mount(); await vi.advanceTimersByTimeAsync(2000);
-    input.autoDimEnabledRef.current = false; await vi.advanceTimersByTimeAsync(1000); expect(values.get('--island-opacity')).toBe('80');
-    input.autoDimDelayRef.current = 20; input.autoDimEnabledRef.current = true; await vi.advanceTimersByTimeAsync(1000);
+    input.autoDimEnabledRef.current = false; browser.dispatchEvent(new Event('island-auto-dim-config-updated')); await vi.advanceTimersByTimeAsync(1000); expect(values.get('--island-opacity')).toBe('80');
+    input.autoDimDelayRef.current = 20; input.autoDimEnabledRef.current = true; browser.dispatchEvent(new Event('island-auto-dim-config-updated')); await vi.advanceTimersByTimeAsync(1000);
     expect(values.get('--island-opacity')).toBe('80');
   });
   it.each(['', 'invalid', '9', 'Infinity', '10'])('原始透明度合法性边界：%s', async (original) => {
@@ -97,7 +97,7 @@ describe('useIslandAutoDim 实际 CSS 和原生鼠标边界', () => {
   });
   it('配置引用替换清理旧定时器，并保持只有一个新轮询', async () => {
     mount(); renderWithHooks(() => useIslandAutoDim({ autoDimEnabledRef: { current: false }, autoDimDelayRef: { current: 5 } })); runEffects();
-    await vi.advanceTimersByTimeAsync(3000); expect(mouse).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(1);
+    await vi.advanceTimersByTimeAsync(3000); expect(mouse).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
   });
   it('卸载后未完成的鼠标定位返回窗口外，仍保持原透明度', async () => {
     let resolve!: (value: Awaited<ReturnType<typeof mouse>>) => void;

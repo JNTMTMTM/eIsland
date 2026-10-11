@@ -66,6 +66,7 @@ const freeString = lib.func('void smtc_free_string(void *)');
 const ownedString = koffi.disposable('str', freeString);
 
 const smtc = {
+  smtc_set_command_source: lib.func('void smtc_set_command_source(str)'),
   // ── 原有命令 ──
   smtc_play:               lib.func('int smtc_play()'),
   smtc_pause:              lib.func('int smtc_pause()'),
@@ -79,6 +80,7 @@ const smtc = {
   smtc_stop_monitoring:    lib.func('int smtc_stop_monitoring()'),
   smtc_wait_for_changes:   lib.func('int smtc_wait_for_changes(int)'),
   smtc_get_sessions_changed: lib.func('int smtc_get_sessions_changed()'),
+  smtc_drain_session_changes: lib.func('smtc_drain_session_changes', ownedString, []),
   smtc_get_all_sessions:   lib.func('smtc_get_all_sessions', ownedString, []),
   smtc_get_session:        lib.func('smtc_get_session', ownedString, ['str']),
   smtc_get_timestamp:      lib.func('smtc_get_timestamp', ownedString, []),

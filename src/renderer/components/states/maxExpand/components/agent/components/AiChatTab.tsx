@@ -24,7 +24,8 @@
  * @author 鸡哥
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import useIslandStore from '../../../../../../store/slices';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon, resolveDevIconByFileName } from '../../../../../../utils/SvgIcon';
 import { SESSION_STREAMING_IDS } from '../hooks/useChatState';
@@ -40,7 +41,7 @@ import { normalizeMarkdownCodeFences } from '../utils/chatUtils';
  * AI 对话 Tab
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  */
-export function AiChatTab(): React.ReactElement {
+export function AiChatContent(): React.ReactElement {
   const { t } = useTranslation();
   const state = useChatState();
   const send = useChatSend({ state });
@@ -144,7 +145,7 @@ export function AiChatTab(): React.ReactElement {
                   className={`max-expand-chat-session-item ${session.id === activeAiChatSessionId ? 'active' : ''} status-${getSessionCardState(session.id)}`}
                   onClick={() => {
                     if (session.id === activeAiChatSessionId) return;
-                    switchAiChatSession(session.id);
+                    void switchAiChatSession(session.id).catch(() => {});
                     setAiChatStreaming(SESSION_STREAMING_IDS.has(session.id));
                     setVisibleWindowStart(0);
                     state.setResolvingWebAccessDecision(false);
@@ -165,7 +166,7 @@ export function AiChatTab(): React.ReactElement {
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        deleteAiChatSession(session.id);
+                        void deleteAiChatSession(session.id).catch(() => {});
                       }}
                     >
                       <img src={SvgIcon.DELETE} alt="" />
@@ -441,4 +442,23 @@ export function AiChatTab(): React.ReactElement {
       />
     </div>
   );
+}
+
+/**
+ * 按需加载当前会话，离开聊天后释放未运行的正文。
+ * @returns 聊天加载状态或内容。
+ */
+export function AiChatTab(): React.ReactElement {
+  const { t } = useTranslation();
+  const ready = useIslandStore((state) => state.aiChatReady);
+  const loading = useIslandStore((state) => state.aiChatLoading);
+  const failed = useIslandStore((state) => state.aiChatStorageError);
+  const ensure = useIslandStore((state) => state.ensureAiChatReady);
+  const release = useIslandStore((state) => state.releaseAiChatBodies);
+  useEffect(() => { void ensure().catch(() => {}); return release; }, [ensure, release]);
+  return <div className="flex h-full min-h-0 w-full flex-col">
+    {failed && <button type="button" onClick={() => { void ensure().catch(() => {}); }}>{t('aiChat.storageRetry')}</button>}
+    {loading && <div role="status">{t('aiChat.storageLoading')}</div>}
+    {ready && <div className="flex min-h-0 flex-1 flex-col" inert={loading || failed}><AiChatContent /></div>}
+  </div>;
 }

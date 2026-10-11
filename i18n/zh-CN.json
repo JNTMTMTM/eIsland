@@ -6,6 +6,7 @@
     }
   },
   "standalone": {
+    "loading": "加载中…",
     "tabs": {
       "todo": "待办事项",
       "countdown": "倒数日",
@@ -882,6 +883,8 @@
     }
   },
   "aiChat": {
+    "storageLoading": "正在加载聊天记录…",
+    "storageRetry": "聊天记录未能保存或加载，点击重试",
     "title": "mihtnelis Agent",
     "notConfigured": "未配置",
     "localModelGenerated": "本地模型生成",
@@ -1103,6 +1106,7 @@
     },
     "messages": {
       "loading": "正在获取邮件…",
+      "bodyFetchFailed": "邮件正文读取失败，请重新打开此邮件重试",
       "inboxFetchFailed": "收件箱读取失败",
       "inboxFetchTimeout": "收件箱读取超时，请检查网络或邮箱配置",
       "needRecipient": "请填写收件人邮箱",
@@ -1594,6 +1598,11 @@
       "switchTo": "切换到{{label}}"
     },
     "cli": {
+      "detailLoading": "正在读取详情…",
+      "detailUnavailable": "详情暂不可用；原始日志可能已被移动或删除",
+      "detailRetry": "重试",
+      "detailPrevious": "上一页",
+      "detailNext": "下一页",
       "eyebrow": "CLI 活动",
       "title": "CLI 控制台",
       "subtitle": "实时汇总 Claude Code 与 Codex CLI 的会话、提示词、工具调用和模型输出。Claude Code 使用本地 Hook，Codex 自动读取本机会话记录。",

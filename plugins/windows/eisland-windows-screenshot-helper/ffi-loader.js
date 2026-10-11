@@ -62,15 +62,32 @@ const sc = {
   sc_get_visible_windows: lib.func('sc_get_visible_windows', ownedString, []),
 };
 
+// 老 DLL 可继续使用原有字符串导出；正常发布的新 DLL 全程使用二进制接口。
+for (const name of ['sc_capture_primary_display_png', 'sc_capture_all_displays_png']) {
+  try { sc[`${name}_bytes`] = lib.func(`void* ${name}_bytes(_Out_ int* size)`); }
+  catch { /* 允许现有用户尚未重建的旧 DLL 回退。 */ }
+}
+
 function getLastError() {
   return sc.sc_get_last_error() || '';
 }
 
 function callPng(fnName) {
-  const b64 = sc[fnName]();
-  if (!b64) return null;
-  const data = Buffer.from(b64, 'base64');
-  return { data, size: data.length, format: 'png' };
+  if (typeof sc[`${fnName}_bytes`] !== 'function') {
+    const base64 = sc[fnName]();
+    if (!base64 || base64.length > Math.ceil(64 * 1024 * 1024 / 3) * 4) return null;
+    const data = Buffer.from(base64, 'base64');
+    return data.length ? { data, size: data.length, format: 'png' } : null;
+  }
+  const size = [0];
+  const ptr = sc[`${fnName}_bytes`](size);
+  if (!ptr) return null;
+  try {
+    if (!Number.isInteger(size[0]) || size[0] <= 0 || size[0] > 64 * 1024 * 1024) return null;
+    // 只复制一次 native PNG；必须在释放 CoTaskMem 前取得 JS 拥有的字节。
+    const data = Buffer.from(new Uint8Array(koffi.view(ptr, size[0])));
+    return { data, size: data.length, format: 'png' };
+  } finally { freeString(ptr); }
 }
 
 function callJson(fnName) {

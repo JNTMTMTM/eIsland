@@ -30,6 +30,8 @@ import type { ClaudeCodeHeatmapDaily } from './ClaudeCodeHeatmapDailyCount';
 
 /** Claude Code 状态快照 */
 export interface ClaudeCodeStatusSnapshot {
+  /** 增量订阅版本，缺口时重新获取摘要。 */
+  revision?: number;
   /** 是否启用 */
   enabled: boolean;
   /** 接收器是否运行中 */

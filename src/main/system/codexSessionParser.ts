@@ -19,6 +19,8 @@
  * @author 鸡哥
  */
 
+import { createHash } from 'crypto';
+import { summarizeCliEvent } from './cliEventDetails';
 import type { ClaudeCodeHeatmapDaily } from '../types/system/ClaudeCodeHeatmapDailyCount';
 import type { ClaudeCodeHookEvent, ClaudeCodeHookEventKind } from '../types/system/ClaudeCodeHookEvent';
 import type { ClaudeCodeSessionSnapshot, ClaudeCodeSessionPhase } from '../types/system/ClaudeCodeSessionSnapshot';
@@ -35,6 +37,7 @@ interface CodexParserContext {
   model: string | null;
   transcriptPath: string;
   includeDetails: boolean;
+  summaryOnly?: boolean;
 }
 
 interface MappedEvent {
@@ -96,6 +99,7 @@ function timestampOf(line: Record<string, unknown>, fallback: number): number {
 function detailItems(context: CodexParserContext, specs: Array<[string, unknown]>): Array<{ label: string; value: string }> {
   if (!context.includeDetails) return [];
   return specs.flatMap(([label, value]) => {
+    if (context.summaryOnly && label === 'rawEvent') return [];
     const text = stringify(value);
     return text ? [{ label, value: text }] : [];
   });
@@ -206,6 +210,98 @@ function incrementHeatmap(heatmap: ClaudeCodeHeatmapDaily, event: ClaudeCodeHook
 }
 
 /**
+ * 建立仅消费新增 JSON 行的解析器；乱序追加交给调用方重建，避免改变历史去重语义。
+ * @param transcriptPath - 原始会话路径。
+ * @param fallbackTimestamp - 缺少时间字段时使用的稳定起点。
+ * @returns 增量行消费、快照及完整解析结果恢复方法。
+ */
+export function createCodexAppendParser(transcriptPath: string, fallbackTimestamp: number) {
+  let context: CodexParserContext | null = null;
+  let index = -1;
+  let latestTimestamp = -Infinity;
+  let recent: ClaudeCodeHookEvent[] = [];
+  let heatmap: ClaudeCodeHeatmapDaily = {};
+  const nearby = new Map<string, Pick<ClaudeCodeHookEvent, 'id' | 'createdAt' | 'eventName'>>();
+  let unordered = false;
+
+  const consume = (line: Record<string, unknown>, source?: { offset: number; bytes: number }): void => {
+    index += 1;
+    const payload = asRecord(line.payload ?? line.item);
+    const type = asString(line.type);
+    if (!context) {
+      if (type !== 'session_meta') return;
+      const sessionId = asString(payload.id) ?? asString(payload.session_id) ?? asString(payload.thread_id);
+      if (!sessionId || sessionId.length > 512) return;
+      context = { sessionId, transcriptPath, cwd: asString(payload.cwd), model: asString(payload.model), includeDetails: true, summaryOnly: Boolean(source) };
+      const event: ClaudeCodeHookEvent = {
+        id: `${sessionId}-session`, sessionId, transcriptPath, cwd: context.cwd,
+        createdAt: timestampOf(line, fallbackTimestamp), eventName: 'SessionStart', kind: 'session',
+        summary: '发现新的 Codex 终端', detail: null, detailItems: detailItems(context, [['model', context.model], ['rawEvent', payload]]),
+        toolName: null, toolInputPreview: null, raw: payload,
+      };
+      recent = [source ? summarizeCliEvent({ ...event, detailProvider: 'codex', detailSource: source }) : event];
+      incrementHeatmap(heatmap, event);
+      return;
+    }
+    if (type === 'turn_context') {
+      context.cwd = asString(payload.cwd) ?? context.cwd;
+      context.model = asString(payload.model) ?? context.model;
+      return;
+    }
+    context.summaryOnly = Boolean(source);
+    const mapped = mapLine(line, context);
+    if (!mapped) return;
+    const createdAt = timestampOf(line, fallbackTimestamp + index);
+    if (createdAt < latestTimestamp) unordered = true;
+    latestTimestamp = Math.max(latestTimestamp, createdAt);
+    const fullEvent: ClaudeCodeHookEvent = {
+      ...mapped, id: `${context.sessionId}-${index}-${createdAt}`, sessionId: context.sessionId,
+      transcriptPath, cwd: context.cwd, createdAt, detail: null, raw: payload,
+    };
+    const event = source ? summarizeCliEvent({ ...fullEvent, detailProvider: 'codex', detailSource: source }) : fullEvent;
+    nearby.forEach((previous, key) => { if (latestTimestamp - previous.createdAt > 250) nearby.delete(key); });
+    // 去重保留完整内容的指纹，不能把数千条大提示词作为 Map 的常驻键。
+    const key = createHash('sha256').update(`${fullEvent.eventName}\u0000${fullEvent.summary}\u0000${fullEvent.toolName ?? ''}`).digest('hex');
+    const previous = nearby.get(key);
+    if (previous && createdAt >= previous.createdAt && createdAt - previous.createdAt <= 250) {
+      if (createdAt === previous.createdAt) return;
+      recent = recent.filter((item) => item.id !== previous.id);
+      const metric = previous.eventName === 'PreToolUse' ? 'tool' : previous.eventName === 'UserPromptSubmit' ? 'prompt' : null;
+      if (metric) {
+        const date = new Date(previous.createdAt);
+        const dateKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        const bucket = heatmap[dateKey];
+        if (bucket) {
+          bucket[metric] -= 1;
+          if (!bucket.session && !bucket.tool && !bucket.prompt) delete heatmap[dateKey];
+        }
+      }
+    }
+    if (!previous || createdAt >= previous.createdAt) nearby.set(key, { id: event.id, createdAt: event.createdAt, eventName: event.eventName });
+    if (nearby.size > 8192) nearby.delete(nearby.keys().next().value!);
+    incrementHeatmap(heatmap, event);
+    recent = [...recent, event].sort((a, b) => b.createdAt - a.createdAt).slice(0, 40);
+  };
+  const snapshot = (now: number): ParsedCodexSession | null => {
+    if (!context) return null;
+    const phase = phaseFrom(recent, now);
+    return { heatmap, events: recent, session: {
+      id: context.sessionId, title: sessionTitle(context.cwd, context.sessionId), cwd: context.cwd,
+      transcriptPath, phase, lastSummary: recent[0]?.summary ?? '', lastEventAt: recent[0]?.createdAt ?? fallbackTimestamp,
+      pendingPermission: phase === 'waiting_permission' ? recent[0] : null, events: recent,
+    } };
+  };
+  return {
+    consume, snapshot,
+    needsRebuild: () => unordered,
+    restore: (parsed: ParsedCodexSession | null): void => {
+      if (parsed) { recent = parsed.events; heatmap = parsed.heatmap; }
+      unordered = false;
+    },
+  };
+}
+
+/**
  * 迭代文本行，避免 split 额外保留整份日志的行数组。
  * @param content - 完整日志文本
  * @returns 按原顺序迭代的文本行
@@ -259,14 +355,17 @@ export function parseCodexSessionLines(
   transcriptPath: string,
   fallbackTimestamp: number,
   now = Date.now(),
+  sourceRange?: () => { offset: number; bytes: number },
 ): ParsedCodexSession | null {
   let metaLine: Record<string, unknown> | undefined;
+  let metaSource: { offset: number; bytes: number } | undefined;
   const metaIterator = jsonLines(readLines);
   let metaNext = metaIterator.next();
   while (!metaNext.done) {
     const line = metaNext.value;
     if (asString(line.type) === 'session_meta') {
       metaLine = line;
+      metaSource = sourceRange?.();
       break;
     }
     metaNext = metaIterator.next();
@@ -364,6 +463,7 @@ export function parseCodexSessionLines(
   const startEvent = selected.get(`${sessionId}-session`);
   if (startEvent) {
     startEvent.raw = meta;
+    if (metaSource) { startEvent.detailProvider = 'codex'; startEvent.detailSource = metaSource; }
     startEvent.detailItems = detailItems(detailContext, [['model', detailContext.model], ['rawEvent', meta]]);
   }
   index = -1;
@@ -386,6 +486,7 @@ export function parseCodexSessionLines(
       if (mapped) {
         event.detailItems = mapped.detailItems;
         event.raw = payload;
+        if (sourceRange) { event.detailProvider = 'codex'; event.detailSource = sourceRange(); }
       }
     }
     detailNext = detailIterator.next();

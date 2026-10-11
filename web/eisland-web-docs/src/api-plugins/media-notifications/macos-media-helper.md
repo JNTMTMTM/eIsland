@@ -6,7 +6,7 @@ icon: music
 
 # macOS Media Helper
 
-`eisland-macos-media-helper` · v26.1.2
+`eisland-macos-media-helper` · v26.1.3
 
 Current Now Playing metadata, artwork, timeline, events, and asynchronous controls through Swift + Node-API.
 
@@ -207,9 +207,11 @@ Builds apply ad-hoc signatures. A distributed Electron application must re-sign 
 
 ## Test
 
-The 15 Vitest cases exercise the real compiled Swift / Node-API layer against isolated Perl fixtures. Coverage includes metadata and artwork mapping, advancing and paused timelines, command units and modes, invalid input, nonblocking requests, timeouts and output limits, malformed data, source changes, shared monitoring, stale-query races, cancellation, and Worker termination. Tests skip on non-macOS hosts.
+The 57 Vitest cases include 33 cross-platform JS/API/loader checks and 24 real compiled Swift / Node-API checks against isolated Perl fixtures. Coverage includes metadata and artwork mapping, advancing and paused timelines, command units and modes, invalid input, nonblocking requests, timeouts and output limits, malformed data, source changes, shared monitoring, stale-query races, cancellation, and Worker termination. Native tests skip on non-macOS hosts; the JS checks still run. Added cases cover default clients and public wrappers, error deduplication, stopping inside callbacks, architecture/ASAR loading, missing resources, native argument validation, invalid artwork and track-specific preservation, and oversized or unexpectedly terminated streams.
 
 The suite has passed under Node, Electron in Node mode, and the repository Vitest plugins project. Real smoke checks have read track metadata and JPEG artwork from Soda Music. Actual player execution of transport commands, Rosetta, older supported OS releases, and signed distribution remain unverified.
+
+Run `npm run test:coverage` for V8 runtime JS coverage, or `npm run test:coverage:native` for LLVM coverage of owned Swift / C sources on macOS. On the development arm64 Mac, runtime JS statement, function, and line coverage reached 100%, with 99.11% branch coverage. The remaining JS branch is a defensive missing-cache check during timeline updates. Owned Swift / C line coverage reached 92.21%, including 97.31% for the Swift media core. Native gaps include process-launch, allocation, and low-level Node-API failures. The tests also reproduce and verify the fix for a stream-exit race that could discard stderr diagnostics before reading completed. Reports are `coverage/js/index.html` and `coverage/native/html/index.html`. The native command requires `npm run build` and Node headers, creates isolated instrumented binaries under `build/native-coverage/`, and leaves production prebuilds unchanged. Reports and instrumented binaries are ignored by Git. Build scripts, vendor code, and OS frameworks are outside coverage scope.
 
 Repository test commands are listed in [Plugin Commands](../../developer/commands/plugin-commands.md#macos-media-helper). Development tests and the smoke script are not included in the published npm archive.
 
@@ -227,5 +229,7 @@ Repository test commands are listed in [Plugin Commands](../../developer/command
 | `src/addon.c` / `src/bridge.h` | Node-API binding and Swift C ABI |
 | `scripts/build.mjs` | Native builds, export checks, and ad-hoc signing |
 | `vendor/VENDORED.md` | Backend provenance and pinned revision |
+| `scripts/native-coverage.mjs` | Isolated LLVM instrumentation and coverage reports |
+| `test/mediaJsRuntime.test.mjs` / `test/nativeLoaderRuntime.test.mjs` | Cross-platform public API, monitor, and loader tests |
 | `test/mediaHelperRuntime.test.mjs` | Vitest integration and resource lifecycle tests |
 | `test/smoke.cjs` | Read-only real-system metadata and artwork preview |

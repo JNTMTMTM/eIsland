@@ -35,6 +35,8 @@ const mocks = vi.hoisted(() => ({
   subscribe: vi.fn<(callback: (channel: string, data: unknown) => void) => () => void>(),
   unsubscribe: vi.fn(), preview: vi.fn<() => Promise<boolean>>(), open: vi.fn<() => Promise<boolean>>(), max: vi.fn(), select: vi.fn(),
 }));
+// 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
+vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('../../../../../store/slices', () => ({ default: () => ({ setMaxExpand: mocks.max, setMaxExpandTab: mocks.select }) }));
 
 /**

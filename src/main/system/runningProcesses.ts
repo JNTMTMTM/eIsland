@@ -37,6 +37,7 @@ const PROCESS_QUERY_TIMEOUT_MS = 4000;
 const PROCESS_ICON_CACHE_MAX = 240;
 
 const processIconCache = new Map<string, string | null>();
+let processNamesQuery: Promise<string[]> | null = null;
 
 interface RawWindowInfo {
   id?: unknown;
@@ -114,25 +115,39 @@ function parseTaskListProcessNames(raw: string): string[] {
   return [...names].sort((a, b) => a.localeCompare(b, 'zh-CN'));
 }
 
-function queryRunningProcessNames(): Promise<string[]> {
-  return new Promise((resolve) => {
-    exec(
-      'tasklist /fo csv /nh',
-      {
-        windowsHide: true,
-        timeout: PROCESS_QUERY_TIMEOUT_MS,
-        maxBuffer: 1024 * 1024,
-      },
-      (err, stdout) => {
-        if (err) {
-          console.error('[Process] query running process failed:', err.message);
-          resolve([]);
-          return;
-        }
-        resolve(parseTaskListProcessNames(stdout));
-      },
-    );
-  });
+/**
+ * 查询当前进程名称，同一轮并发请求共享系统快照。
+ * @returns tasklist 返回的进程名称；查询结束后下一次调用会重新采集。
+ */
+export function queryRunningProcessNames(): Promise<string[]> {
+  if (processNamesQuery) return processNamesQuery;
+  processNamesQuery = collectRunningProcessNames();
+  return processNamesQuery;
+}
+
+async function collectRunningProcessNames(): Promise<string[]> {
+  try {
+    return await new Promise<string[]>((resolve) => {
+      exec(
+        'tasklist /fo csv /nh',
+        {
+          windowsHide: true,
+          timeout: PROCESS_QUERY_TIMEOUT_MS,
+          maxBuffer: 1024 * 1024,
+        },
+        (err, stdout) => {
+          if (err) {
+            console.error('[Process] query running process failed:', err.message);
+            resolve([]);
+            return;
+          }
+          resolve(parseTaskListProcessNames(stdout));
+        },
+      );
+    });
+  } finally {
+    processNamesQuery = null;
+  }
 }
 
 /**

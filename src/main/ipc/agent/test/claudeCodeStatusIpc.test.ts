@@ -82,8 +82,8 @@ beforeEach(() => {
 });
 
 describe('Claude会话IPC', () => {
-  it('注册六通道并保留快照身份', () => {
-    expect(mocks.handlers.size).toBe(6);
+  it('注册七通道并保留快照身份', () => {
+    expect(mocks.handlers.size).toBe(7);
     expect(mocks.handlers.get('claude-code:status:get')?.()).toBe(snapshot);
     expect(mocks.handlers.get('claude-code:events:clear')?.()).toBe(snapshot);
   });

@@ -156,6 +156,8 @@ export interface AlbumOverviewProps {
   onMouseLeave: (item: AlbumItem) => void;
   gridVideoRefs: RefObject<Record<number, HTMLVideoElement | null>>;
   onPickFiles: () => void;
+  /** 可视区及预取条目变化时更新媒体请求。 */
+  onVisibleItemsChange?: (items: AlbumItem[]) => void;
 }
 
 /** AlbumHeader 组件入参 */
@@ -258,6 +260,8 @@ export interface UseAlbumItemsReturn {
   setItems: React.Dispatch<React.SetStateAction<AlbumItem[]>>;
   loaded: boolean;
   mediaLoadReady: boolean;
+  setVisibleItems: (items: AlbumItem[]) => void;
+  setDurationScanEnabled: (enabled: boolean) => void;
   metaCache: Record<number, AlbumMeta>;
   statusMessage: string;
   setStatusMessage: React.Dispatch<React.SetStateAction<string>>;

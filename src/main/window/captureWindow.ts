@@ -29,7 +29,7 @@ import { app, BrowserWindow, desktopCapturer, screen } from 'electron';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { is } from '@electron-toolkit/utils';
-import { capturePrimaryDisplayPng, captureAllDisplaysPng, getVisibleWindows } from './screenshotHelper';
+import { capturePrimaryDisplayPng, captureAllDisplaysPng, getVisibleWindows, encodeScreenshotPng } from './screenshotHelper';
 import { readScreenshotEngineConfig } from '../config/storeConfig';
 
 interface CreateCaptureWindowServiceOptions {
@@ -51,6 +51,7 @@ interface CaptureWindowService {
 export function createCaptureWindowService(options: CreateCaptureWindowServiceOptions): CaptureWindowService {
   let captureWindow: BrowserWindow | null = null;
   let isStartingCaptureWindow = false;
+  let captureAbort: AbortController | null = null;
 
   function getCaptureHtmlPath(): string {
     if (is.dev) {
@@ -66,6 +67,7 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
   }
 
   function closeCaptureWindow(): void {
+    captureAbort?.abort();
     if (captureWindow && !captureWindow.isDestroyed()) {
       captureWindow.close();
     }
@@ -188,14 +190,14 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
    * @param isMultiMonitor - 是否为多显示器环境
    * @returns 截图结果，JS 回退失败时返回 null
    */
-  async function tryCaptureScreenshot(vs: ReturnType<typeof getVirtualScreenBounds>, isMultiMonitor: boolean): Promise<CaptureResult | null> {
+  async function tryCaptureScreenshot(vs: ReturnType<typeof getVirtualScreenBounds>, isMultiMonitor: boolean, signal: AbortSignal): Promise<CaptureResult | null> {
     const enginePref = readScreenshotEngineConfig();
     let nativeScreenshot: Buffer | null = null;
 
     if (enginePref === 'plugin') {
-      nativeScreenshot = isMultiMonitor ? captureAllDisplaysPng() : null;
+      nativeScreenshot = isMultiMonitor ? await captureAllDisplaysPng(signal) : null;
       if (!nativeScreenshot) {
-        nativeScreenshot = capturePrimaryDisplayPng();
+        nativeScreenshot = await capturePrimaryDisplayPng(signal);
       }
     }
 
@@ -209,20 +211,27 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
       };
     }
 
+    if (signal.aborted) return null;
     /** JS 回退：仅覆盖主显示器 */
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: sw, height: sh } = primaryDisplay.size;
     const sf = primaryDisplay.scaleFactor || 1;
+    const pixelWidth = Math.round(sw * sf);
+    const pixelHeight = Math.round(sh * sf);
+    if (!Number.isSafeInteger(pixelWidth) || !Number.isSafeInteger(pixelHeight)
+      || pixelWidth <= 0 || pixelHeight <= 0 || pixelWidth * pixelHeight > 32 * 1024 * 1024) return null;
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
-      thumbnailSize: { width: Math.round(sw * sf), height: Math.round(sh * sf) },
+      thumbnailSize: { width: pixelWidth, height: pixelHeight },
     });
-    if (!sources || sources.length === 0) {
+    if (signal.aborted || !sources || sources.length === 0) {
       return null;
     }
 
+    const imageBytes = await encodeScreenshotPng(sources[0].thumbnail, signal);
+    if (!imageBytes) return null;
     return {
-      imageBytes: sources[0].thumbnail.toPNG(),
+      imageBytes,
       captureSource: 'js',
       winBounds: { x: primaryDisplay.bounds.x, y: primaryDisplay.bounds.y, width: sw, height: sh },
       virtualScreen: { x: primaryDisplay.bounds.x, y: primaryDisplay.bounds.y, width: sw, height: sh },
@@ -233,6 +242,8 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
   async function startRegionScreenshot(): Promise<void> {
     if (captureWindow || isStartingCaptureWindow) return;
     isStartingCaptureWindow = true;
+    const controller = new AbortController();
+    captureAbort = controller;
 
     try {
       const vs = getVirtualScreenBounds();
@@ -241,10 +252,10 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
 
       await waitForMainWindowHidden();
 
-      const visibleWindows = getVisibleWindows();
-      const capture = await tryCaptureScreenshot(vs, isMultiMonitor);
+      const visibleWindows = await getVisibleWindows(controller.signal);
+      const capture = await tryCaptureScreenshot(vs, isMultiMonitor, controller.signal);
 
-      if (!capture) {
+      if (!capture || controller.signal.aborted) {
         closeCaptureWindow();
         const mainWindow = options.getMainWindow();
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -322,6 +333,7 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
       }
     } finally {
       isStartingCaptureWindow = false;
+      captureAbort = null;
     }
   }
 
