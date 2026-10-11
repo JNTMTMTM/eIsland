@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "graph": {
+      "controls": "Functions and analysis",
+      "extra": "Additional functions, one per line (up to 4)",
+      "analyze": "Find zeros and intersections",
+      "reset": "Reset view",
+      "tracking": "Move over a curve to track coordinates",
+      "zero": "Zeros",
+      "intersection": "Intersections",
+      "none": "No points found in this view",
+      "identical": "Some curves coincide across this view",
+      "hint": "Numerical approximations in the visible x range"
+    },
     "units": {
       "category": "Category",
       "value": "Value",

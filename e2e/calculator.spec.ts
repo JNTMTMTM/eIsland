@@ -123,6 +123,11 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   await expect(page.locator('.coordinate-graph-canvas svg')).toBeVisible();
   const fitsCanvas = async (): Promise<number> => page.locator('.coordinate-graph-canvas').evaluate((canvas) => Math.abs(canvas.clientWidth - Number(canvas.querySelector('svg')?.getAttribute('width'))));
   await expect.poll(fitsCanvas).toBeLessThan(1);
+  await page.locator('.calc-graph-analysis summary').click();
+  await page.getByRole('textbox', { name: en.calculator.graph.extra }).fill('x+2');
+  await page.getByRole('button', { name: en.calculator.graph.analyze, exact: true }).click();
+  await expect(page.locator('.calc-graph-analysis')).toContainText('f1 ∩ f2');
+  await page.locator('.calc-graph-analysis summary').click();
   await page.getByRole('button', { name: en.calculator.sidebar.expand, exact: true }).click();
   await expect.poll(fitsCanvas).toBeLessThan(1);
   await page.getByRole('button', { name: en.calculator.coordinate.toggleKeys }).click();

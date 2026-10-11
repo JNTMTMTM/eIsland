@@ -71,7 +71,7 @@ describe('CoordinateGraph', () => {
     let resize: (() => void) | undefined;
     const disconnect = vi.fn();
     const removeAllListeners = vi.fn();
-    const chart = { removeAllListeners } as unknown as Chart;
+    const chart = { removeAllListeners, on: vi.fn(), removeListener: vi.fn() } as unknown as Chart;
     vi.stubGlobal('window', { addEventListener: vi.fn(), removeEventListener: vi.fn() });
     vi.stubGlobal('ResizeObserver', vi.fn().mockImplementation(function (callback: () => void) {
       resize = callback;

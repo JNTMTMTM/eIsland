@@ -574,7 +574,7 @@
 
 .calc-coordinate-layout {
   display: grid;
-  flex: 1;
+  flex: 1 0 auto;
   grid-template-columns: minmax(180px, .38fr) minmax(0, 1fr);
   gap: 10px;
   min-height: 0;
@@ -613,7 +613,7 @@
 .coordinate-graph-container {
   position: relative;
   display: flex;
-  flex: 1;
+  flex: 1 0 180px;
   flex-direction: column;
   min-width: 0;
   min-height: 156px;
@@ -621,6 +621,38 @@
   background: rgb(var(--color-text-rgb), .035);
   border: 1px solid rgb(var(--color-text-rgb), .08);
   border-radius: 12px;
+
+}
+
+.calc-graph-workspace {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 180px;
+
+}
+
+.calc-graph-trace,
+.calc-graph-analysis {
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .65);
+
+}
+
+.calc-graph-analysis summary {
+  cursor: pointer;
+
+}
+
+.calc-graph-analysis textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px;
+  color: inherit;
+  background: var(--color-island-bg);
+  border: 1px solid rgb(var(--color-text-rgb), .15);
+  border-radius: 6px;
 
 }
 

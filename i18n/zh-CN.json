@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "graph": {
+      "controls": "函数与分析",
+      "extra": "其他函数，每行一个（最多 4 条）",
+      "analyze": "查找零点和交点",
+      "reset": "重置视图",
+      "tracking": "移动到曲线上追踪坐标",
+      "zero": "零点",
+      "intersection": "交点",
+      "none": "当前视图中未找到点",
+      "identical": "部分曲线在当前区间重合",
+      "hint": "当前横坐标区间内的数值近似结果"
+    },
     "units": {
       "category": "类别",
       "value": "数值",

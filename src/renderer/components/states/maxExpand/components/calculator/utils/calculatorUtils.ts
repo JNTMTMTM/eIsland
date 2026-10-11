@@ -332,6 +332,16 @@ export function evaluateFormula(formula: string, angleUnit: CalcAngleUnit = 'rad
   return finite(evaluateNode(new FormulaParser(formula).parse(), { angleUnit }));
 }
 
+/** 编译单变量实数函数，供绘图分析与方程求解重复采样。
+ * @param formula - 包含变量 x 的公式
+ * @param angleUnit - 三角函数单位
+ * @returns 可在指定 x 处求值的函数
+ */
+export function compileNumericFormula(formula: string, angleUnit: CalcAngleUnit = 'radian'): (x: number) => number {
+  const node = new FormulaParser(formula).parse();
+  return (x) => finite(evaluateNode(node, { angleUnit, x }));
+}
+
 /**
  * 获取科学按钮写入线性公式槽位的片段。
  * @param fn - 科学运算按钮标识

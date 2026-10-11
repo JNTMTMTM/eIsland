@@ -2645,6 +2645,18 @@
     }
   },
   "calculator": {
+    "graph": {
+      "controls": "関数と解析",
+      "extra": "追加関数、1 行に 1 つ（最大 4 本）",
+      "analyze": "零点と交点を検索",
+      "reset": "表示をリセット",
+      "tracking": "曲線上で座標を追跡",
+      "zero": "零点",
+      "intersection": "交点",
+      "none": "表示範囲に点が見つかりません",
+      "identical": "表示範囲で重なる曲線があります",
+      "hint": "表示中の x 範囲における数値近似"
+    },
     "units": {
       "category": "種類",
       "value": "数値",
