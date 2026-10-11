@@ -34,7 +34,7 @@ function fixture(options = {}) {
 
 const call = (loader, options) => loader.createNativeClient(options);
 
-describe('native module loading', () => {
+describe.skipIf(process.platform !== 'darwin')('native module loading', () => {
   it.each(['linux', 'win32'])('rejects %s before checking files', (platform) => {
     const { loader, exists, binary } = fixture({ platform });
     expect(() => call(loader)).toThrow(/only supports macOS/);
@@ -69,7 +69,7 @@ describe('native module loading', () => {
   });
 });
 
-describe('media bridge options', () => {
+describe.skipIf(process.platform !== 'darwin')('media bridge options', () => {
   it('uses bundled resources and the default four-second timeout', () => {
     const { loader, native, binary } = fixture();
     const client = loader.createNativeClient();

@@ -1,6 +1,6 @@
 # eisland-macos-brightness-helper
 
-Native macOS hardware brightness query, control, and monitoring through Swift + Node-API. Version **26.0.2**.
+Native macOS hardware brightness query, control, and monitoring through Swift + Node-API. Version **26.0.3**.
 
 ## Requirements and build
 
@@ -73,7 +73,7 @@ This is an independent plugin. The main eIsland application's brightness IPC sti
 
 | Command | Purpose |
 |---------|---------|
-| `npm test` | Compile native logic tests on macOS; run 44 cases on macOS or 25 on other hosts |
+| `npm test` | Compile native logic tests and run 44 cases on macOS; skip all cases on other hosts |
 | `npm run test:coverage` | Run Vitest with V8 coverage of the four runtime JS files |
 | `npm run test:coverage:native` | Build isolated instrumented Swift / C binaries and generate LLVM coverage on macOS |
 | `npm run smoke` | Read actual hardware and print all snapshot fields |
@@ -85,7 +85,7 @@ The setting smoke always attempts restoration, including after a failed check. I
 
 The suite passed under Node, Electron in Node mode, and the repository Vitest plugins project. Type declarations, both ad-hoc signatures, npm archive contents, extracted-package loading, and Electron ASAR loading were also checked on arm64.
 
-The 44 cases cover the JS API, timer lifecycle, missing devices, error cleanup, restart, multiple monitors, real compiled Swift selection/write logic, DDC framing/checksums/ranges/scaling, and actual Node-API validation. Hardware targets are injected into internal Swift tests; no test-only backend is shipped. Only native test cases require macOS. The `pretest` hook skips native compilation on other hosts, allowing the 25 JS, loader, and build-guard cases to run. Four regression checks simulate Linux and Windows to verify the test-only path and the native-build platform restriction. Loader tests also cover both architectures, missing prebuilds, unsupported platforms, failed loads, caching, and ASAR path resolution. These tests do not establish external DDC hardware compatibility.
+The 44 cases cover the JS API, timer lifecycle, missing devices, error cleanup, restart, multiple monitors, real compiled Swift selection/write logic, DDC framing/checksums/ranges/scaling, and actual Node-API validation. Hardware targets are injected into internal Swift tests; no test-only backend is shipped. All test cases require macOS and are skipped on other hosts. Four regression checks simulate Linux and Windows on macOS to verify the test-only path and the native-build platform restriction. Loader tests also cover both architectures, missing prebuilds, unsupported platforms, failed loads, caching, and ASAR path resolution. These tests do not establish external DDC hardware compatibility.
 
 Coverage reports are separate: `coverage/js/index.html` covers runtime JavaScript; `coverage/native/html/index.html` covers the owned Swift and C sources. The native command requires an existing host build and Node headers (`npm run build`), writes instrumented binaries under `build/native-coverage/`, and leaves production prebuilds unchanged. On the development arm64 Mac, JS statement, branch, function, and line coverage reached 100%; native line coverage reached 68.78%, with the pure DDC protocol at 100%. Uncovered native code includes external-display and Intel backends, physical writes, and low-level failure paths. Reports and instrumented binaries are ignored by Git. Coverage does not include the build scripts or OS frameworks.
 

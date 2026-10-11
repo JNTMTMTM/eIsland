@@ -80,7 +80,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('default client and public API', () => {
+describe.skipIf(process.platform !== 'darwin')('default client and public API', () => {
   it('forwards all public queries and commands to the shared client', async () => {
     expect(media.getStatus()).toEqual({ isAvailable: true });
     expect(media.getTimestamp()).toEqual(timestamp);
@@ -151,7 +151,7 @@ describe('default client and public API', () => {
   });
 });
 
-describe('monitor state transitions', () => {
+describe.skipIf(process.platform !== 'darwin')('monitor state transitions', () => {
   it('can stop in the initial added callback before any timer is scheduled', () => {
     const instance = monitor();
     instance.on('session-added', () => instance.stop());

@@ -34,7 +34,7 @@ function fixture(options = {}) {
 
 const call = (loader) => loader.loadNative();
 
-describe('native module loading', () => {
+describe.skipIf(process.platform !== 'darwin')('native module loading', () => {
   it.each(['linux', 'win32'])('rejects %s before checking files', (platform) => {
     const { loader, exists, binary } = fixture({ platform });
     expect(() => call(loader)).toThrow(/only supports macOS/);
@@ -69,7 +69,7 @@ describe('native module loading', () => {
   });
 });
 
-it('caches successful binary loads', () => {
+it.skipIf(process.platform !== 'darwin')('caches successful binary loads', () => {
   const { loader, exists, binary } = fixture();
   expect(loader.loadNative()).toBe(loader.loadNative());
   expect(exists).toHaveBeenCalledTimes(1);

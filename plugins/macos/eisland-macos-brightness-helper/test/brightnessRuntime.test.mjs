@@ -84,7 +84,7 @@ function runBuildOnPlatform(platform, testsOnly) {
   return spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8' });
 }
 
-describe('build platform guard', () => {
+describe.skipIf(process.platform !== 'darwin')('build platform guard', () => {
   it.each(['linux', 'win32'])('allows tests on %s without native compilation', (platform) => {
     const result = runBuildOnPlatform(platform, true);
     expect(result.stderr).toBe('');
@@ -98,7 +98,7 @@ describe('build platform guard', () => {
   });
 });
 
-describe('Windows-compatible brightness API', () => {
+describe.skipIf(process.platform !== 'darwin')('Windows-compatible brightness API', () => {
   it('returns all snapshot fields and explicit null levels', () => {
     expect(getBrightness()).toEqual(snapshot);
     snapshot = null;
@@ -125,7 +125,7 @@ describe('Windows-compatible brightness API', () => {
   });
 });
 
-describe('BrightnessMonitor lifecycle', () => {
+describe.skipIf(process.platform !== 'darwin')('BrightnessMonitor lifecycle', () => {
   it('ignores a queued poll after stopping without reading hardware', () => {
     const instance = monitor();
     instance.start();

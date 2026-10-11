@@ -1,6 +1,6 @@
 # eisland-macos-media-helper
 
-基于 Swift + Node-API 的 macOS 当前播放源插件，版本 **26.1.3**。提供媒体信息、封面、播放时间戳、监听事件及异步媒体控制。
+基于 Swift + Node-API 的 macOS 当前播放源插件，版本 **26.1.4**。提供媒体信息、封面、播放时间戳、监听事件及异步媒体控制。
 
 支持 macOS 13+、Apple Silicon / Intel 和 Node-API 8。运行时不需要安装 Xcode、Swift 或 npm 原生构建工具；开发时需要 Xcode Command Line Tools。最低系统版本是构建目标，仍需在对应系统上实际验证。当前仓库以独立插件交付，尚未替换 eIsland 主应用中的 Windows 插件导入。
 
@@ -18,7 +18,7 @@ npm run build:all   # arm64 和 x64
 npm pack            # 自动构建两种架构并打包
 ```
 
-测试使用与主仓库一致的 Vitest 4.1，开发与 CI 建议使用 Node.js 22.12+。57 项测试包含 33 项跨平台 JS/API/加载器用例和 24 项真实原生测试，覆盖媒体查询、时间线、控制参数、监听、超时和 Worker 退出清理；原生用例在非 macOS 上跳过。新增用例覆盖默认客户端、顶层 API、ASAR、监听回调停止、错误去重、资源缺失、直接 Node-API 参数校验、封面保留与大小限制、异常输出等边界。在仓库根目录执行 `npm run test:plugins` 也会发现这些测试，macOS 上需先构建本插件。`npm run smoke` 保留为独立的真实系统读取脚本。
+测试使用与主仓库一致的 Vitest 4.1，开发与 CI 建议使用 Node.js 22.12+。57 项测试包含 33 项 JS/API/加载器用例和 24 项真实原生测试，覆盖媒体查询、时间线、控制参数、监听、超时和 Worker 退出清理；所有用例在非 macOS 上跳过。新增用例覆盖默认客户端、顶层 API、ASAR、监听回调停止、错误去重、资源缺失、直接 Node-API 参数校验、封面保留与大小限制、异常输出等边界。在仓库根目录执行 `npm run test:plugins` 也会发现这些测试，macOS 上需先构建本插件。`npm run smoke` 保留为独立的真实系统读取脚本。
 
 JS 报告位于 `coverage/js/index.html`，Swift / C 报告位于 `coverage/native/html/index.html`。原生覆盖率脚本需要先运行 `npm run build` 准备当前架构预编译文件和 Node 头文件；插桩产物写入 `build/native-coverage/`，不改写生产 prebuilds。覆盖率只统计插件拥有的运行时 JS、Swift 与 C 源码，不包含构建脚本、vendor 或系统框架。Git 已忽略报告和插桩产物。本机 arm64 上 JS 语句、函数和行覆盖率均为 100%，分支覆盖率为 99.11%；剩余一条分支是时间线更新时缓存缺失的防御性检查。Swift / C 合并行覆盖率为 92.21%，其中媒体 Swift 核心为 97.31%。原生剩余缺口包含进程启动失败、分配/Node-API 底层失败等路径。测试同时修复并验证了监听子进程退出时 stderr 读取尚未完成导致错误详情丢失的时序问题。
 
