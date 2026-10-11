@@ -2743,6 +2743,7 @@
       "hint": "Insert the previous result at full precision"
     },
     "history": {
+      "hint": "All calculator records in one place. Select a record to edit it in its original mode. The latest 100 records are kept.",
       "title": "History",
       "empty": "No calculations yet",
       "restore": "Edit this calculation",

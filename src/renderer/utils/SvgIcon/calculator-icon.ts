@@ -34,6 +34,7 @@ export const CalculatorIcon = {
   DIVISION: '../svg/calculator/DIVISION.svg',
   EXPAND: '../svg/app/EXPAND.svg',
   FRACTION: '../svg/calculator/FRACTION.svg',
+  HISTORY: '../svg/calculator/HISTORY.svg',
   INTEGRATION: '../svg/calculator/INTEGRATION.svg',
   MINUS: '../svg/calculator/MINUS.svg',
   MULTIPLICATION: '../svg/calculator/MULTIPLICATION.svg',

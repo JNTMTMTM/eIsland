@@ -31,16 +31,24 @@ import { solveEquation, type EquationResult } from '../utils/equationUtils';
 import { getCalculatorErrorCode } from '../utils/calculatorErrorUtils';
 import { formatDisplay } from '../utils/calculatorUtils';
 import type { CalcAngleUnit } from '../types/calculatorTypes';
+import type { CalculatorHistoryFields, CalculatorHistoryInput } from '../utils/historyUtils';
 
 /** 渲染单变量方程求解，明确区分解析解和区间数值近似。
+ * @param props - 历史恢复输入和成功求解记录回调
  * @returns 方程求解面板
  */
-export function EquationSolver(): ReactElement {
+export function EquationSolver({ initial, onRecord }: {
+  initial?: CalculatorHistoryFields<'equation'>; onRecord?: (entry: CalculatorHistoryInput) => void;
+} = {}): ReactElement {
   const { t } = useTranslation();
-  const [equation, setEquation] = useState('x^2=4'); const [lower, setLower] = useState('-10'); const [upper, setUpper] = useState('10');
-  const [unit, setUnit] = useState<CalcAngleUnit>('degree');
+  const [equation, setEquation] = useState(initial?.equation ?? 'x^2=4'); const [lower, setLower] = useState(initial?.lower ?? '-10'); const [upper, setUpper] = useState(initial?.upper ?? '10');
+  const [unit, setUnit] = useState<CalcAngleUnit>(initial?.angleUnit ?? 'degree');
   const [result, setResult] = useState<EquationResult | null>(null); const [error, setError] = useState('');
   const reset = (): void => { setResult(null); setError(''); };
+  const resultText = (value: EquationResult): string => value.status === 'infinite'
+    ? t(value.approximate ? 'calculator.equation.sampledIdentity' : 'calculator.equation.infinite')
+    : value.status === 'none' ? t(value.approximate ? 'calculator.equation.noneInRange' : 'calculator.equation.none')
+      : 'x ' + (value.approximate ? '≈ ' : '= ') + value.roots.map(formatDisplay).join(', ');
   return <section className="calc-feature-panel">
     <h3>{t('calculator.equation.title')}</h3>
     <label>{t('calculator.equation.expression')}<input value={equation} onChange={(event) => { setEquation(event.target.value); reset(); }} /></label>
@@ -50,12 +58,16 @@ export function EquationSolver(): ReactElement {
     </div>
     <label>{t('calculator.angleUnit.label')}<select value={unit} onChange={(event) => { setUnit(event.target.value as CalcAngleUnit); reset(); }}><option value="degree">{t('calculator.angleUnit.degree')}</option><option value="radian">{t('calculator.angleUnit.radian')}</option></select></label>
     <button className="calc-tool-btn" type="button" onClick={() => {
-      try { setResult(solveEquation(equation, lower.trim() ? Number(lower) : NaN, upper.trim() ? Number(upper) : NaN, unit)); setError(''); }
+      try {
+        const next = solveEquation(equation, lower.trim() ? Number(lower) : NaN, upper.trim() ? Number(upper) : NaN, unit);
+        setResult(next); setError('');
+        onRecord?.({ mode: 'equation', formula: equation, result: resultText(next), input: { equation, lower, upper, angleUnit: unit } });
+      }
       catch (failure) { setResult(null); setError(t(`calculator.errors.${getCalculatorErrorCode(failure)}`)); }
     }}>{t('calculator.equation.solve')}</button>
     <p>{t('calculator.equation.hint')}</p>
     <output className="calc-feature-result" aria-live="polite">
-      {error || (result ? result.status === 'infinite' ? t(result.approximate ? 'calculator.equation.sampledIdentity' : 'calculator.equation.infinite') : result.status === 'none' ? t(result.approximate ? 'calculator.equation.noneInRange' : 'calculator.equation.none') : 'x ' + (result.approximate ? '≈ ' : '= ') + result.roots.map(formatDisplay).join(', ') : '—')}
+      {error || (result ? resultText(result) : '—')}
     </output>
   </section>;
 }

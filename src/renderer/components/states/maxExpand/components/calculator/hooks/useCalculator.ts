@@ -74,6 +74,7 @@ function evaluateResult(document: FormulaDocument, angleUnit: CalcAngleUnit): Pa
 export function useCalculator(): UseCalculatorReturn {
   const [state, setState] = useState<CalcState>(INITIAL_STATE);
   const [angleUnit, setAngleUnitState] = useState<CalcAngleUnit>('degree');
+  const [calculationSequence, setCalculationSequence] = useState(0);
 
   const setAngleUnit = useCallback((unit: CalcAngleUnit): void => {
     if (unit === angleUnit) return;
@@ -120,6 +121,7 @@ export function useCalculator(): UseCalculatorReturn {
 
   const calculate = useCallback((): void => {
     setState((previous) => ({ ...previous, ...evaluateResult(previous.document, angleUnit) }));
+    setCalculationSequence((previous) => previous + 1);
   }, [angleUnit]);
 
   const clear = useCallback((): void => {
@@ -187,6 +189,7 @@ export function useCalculator(): UseCalculatorReturn {
     document: state.document,
     formula,
     result: state.result,
+    calculationSequence,
     errorCode: state.errorCode,
     cursor: state.cursor,
     angleUnit,

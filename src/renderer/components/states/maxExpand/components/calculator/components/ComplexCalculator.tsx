@@ -30,19 +30,26 @@ import { useTranslation } from 'react-i18next';
 import { evaluateComplexFormula, formatComplex, type ComplexNumber } from '../utils/complexUtils';
 import { formatDisplay } from '../utils/calculatorUtils';
 import { getCalculatorErrorCode } from '../utils/calculatorErrorUtils';
+import type { CalculatorHistoryFields, CalculatorHistoryInput } from '../utils/historyUtils';
 
 /** 渲染复数表达式输入、代数结果和极坐标信息。
+ * @param props - 历史恢复输入和成功计算记录回调
  * @returns 复数计算面板
  */
-export function ComplexCalculator(): ReactElement {
-  const { t } = useTranslation(); const [formula, setFormula] = useState('(1+2i)*(3-4i)');
+export function ComplexCalculator({ initial, onRecord }: {
+  initial?: CalculatorHistoryFields<'complex'>; onRecord?: (entry: CalculatorHistoryInput) => void;
+} = {}): ReactElement {
+  const { t } = useTranslation(); const [formula, setFormula] = useState(initial?.formula ?? '(1+2i)*(3-4i)');
   const [result, setResult] = useState<ComplexNumber | null>(null); const [error, setError] = useState('');
   return <section className="calc-feature-panel">
     <h3>{t('calculator.complex.title')}</h3>
     <label>{t('calculator.complex.expression')}<input value={formula} onChange={(event) => { setFormula(event.target.value); setResult(null); setError(''); }} /></label>
     <div className="calc-tools">
       <button className="calc-tool-btn" type="button" onClick={() => {
-        try { setResult(evaluateComplexFormula(formula)); setError(''); }
+        try {
+          const next = evaluateComplexFormula(formula); setResult(next); setError('');
+          onRecord?.({ mode: 'complex', formula, result: formatComplex(next), input: { formula } });
+        }
         catch (failure) { setResult(null); setError(t(`calculator.errors.${getCalculatorErrorCode(failure)}`)); }
       }}>{t('calculator.complex.calculate')}</button>
       <button className="calc-tool-btn" type="button" disabled={!result} onClick={() => {

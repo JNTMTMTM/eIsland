@@ -37,15 +37,19 @@ interface GraphPoint { x: number; y: number; label: string; kind: 'zero' | 'inte
 
 /** 绘制多条函数，并提供坐标追踪、零点和交点数值分析。
  * @param expression - 当前公式编辑器中的表达式
+ * @param initialExtra - 历史恢复时的附加函数
+ * @param onAnalyze - 成功分析后的记录回调
  * @returns 图像、附加函数和分析控制区
  */
-export function CoordinateGraph({ expression }: { expression: string }): ReactElement {
+export function CoordinateGraph({ expression, initialExtra = '', onAnalyze }: {
+  expression: string; initialExtra?: string; onAnalyze?: (extra: string, result: string) => void;
+}): ReactElement {
   const { t } = useTranslation();
   const plotRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<FunctionPlotOptions | null>(null);
   const chartRef = useRef<Chart | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [extra, setExtra] = useState('');
+  const [extra, setExtra] = useState(initialExtra);
   const [points, setPoints] = useState<GraphPoint[]>([]);
   const [analyzed, setAnalyzed] = useState(false); const [identical, setIdentical] = useState(false);
   const [trace, setTrace] = useState<{ x: number; y: number; index: number } | null>(null);
@@ -99,6 +103,8 @@ export function CoordinateGraph({ expression }: { expression: string }): ReactEl
         });
       });
       setPoints(found); setIdentical(overlaps); setAnalyzed(true); setError(null);
+      const summary = found.map((point) => point.label + ': (' + formatDisplay(point.x) + ', ' + formatDisplay(point.y) + ')').join('\n');
+      onAnalyze?.(extra, summary || t(overlaps ? 'calculator.graph.identical' : 'calculator.graph.none'));
     } catch { setError(t('calculator.coordinate.error')); }
   };
   return <div className="calc-graph-workspace">

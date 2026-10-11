@@ -25,38 +25,51 @@
  */
 
 
-import { useState, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CONVERSION_UNITS, convertUnit, type UnitCategory } from '../utils/unitConversionUtils';
 import { formatDisplay } from '../utils/calculatorUtils';
+import type { CalculatorHistoryFields, CalculatorHistoryInput } from '../utils/historyUtils';
 
 const CATEGORY_LABELS = { length: 'calculator.units.length', area: 'calculator.units.area', volume: 'calculator.units.volume', mass: 'calculator.units.mass', temperature: 'calculator.units.temperature', time: 'calculator.units.time', speed: 'calculator.units.speed' };
 
 /** 渲染实时单位换算和双向交换操作。
+ * @param props - 历史恢复输入和成功换算记录回调
  * @returns 单位换算面板
  */
-export function UnitConversion(): ReactElement {
+export function UnitConversion({ initial, onRecord }: {
+  initial?: CalculatorHistoryFields<'unitConversion'>; onRecord?: (entry: CalculatorHistoryInput) => void;
+} = {}): ReactElement {
   const { t } = useTranslation();
-  const [category, setCategory] = useState<UnitCategory>('length');
-  const [from, setFrom] = useState('m'); const [to, setTo] = useState('cm');
-  const [value, setValue] = useState('1');
+  const [category, setCategory] = useState<UnitCategory>(initial?.category ?? 'length');
+  const [from, setFrom] = useState(initial?.from ?? 'm'); const [to, setTo] = useState(initial?.to ?? 'cm');
+  const [value, setValue] = useState(initial?.value ?? '1');
+  const [edited, setEdited] = useState(false);
   const units = CONVERSION_UNITS.filter((unit) => unit.category === category);
   let result: number | null = null; let error = false;
   try { if (value.trim()) result = convertUnit(Number(value), from, to); } catch { error = true; }
+  const fromSymbol = units.find((unit) => unit.id === from)?.symbol;
+  const toSymbol = units.find((unit) => unit.id === to)?.symbol;
+  useEffect(() => {
+    if (!edited || result === null) return;
+    onRecord?.({ mode: 'unitConversion', formula: value + ' ' + fromSymbol + ' → ' + toSymbol,
+      result: formatDisplay(result) + ' ' + toSymbol, input: { category, from, to, value } });
+  }, [edited, result, value, category, from, to, fromSymbol, toSymbol, onRecord]);
   return <section className="calc-feature-panel">
     <h3>{t('calculator.modes.unitConversion')}</h3>
     <label>{t('calculator.units.category')}
       <select value={category} onChange={(event) => {
+        setEdited(true);
         const next = event.target.value as UnitCategory; const choices = CONVERSION_UNITS.filter((unit) => unit.category === next);
         setCategory(next); setFrom(choices[0].id); setTo(choices[1].id);
       }}>{(Object.keys(CATEGORY_LABELS) as UnitCategory[]).map((item) => <option key={item} value={item}>{t(CATEGORY_LABELS[item])}</option>)}</select>
     </label>
-    <label>{t('calculator.units.value')}<input inputMode="decimal" value={value} onChange={(event) => setValue(event.target.value)} /></label>
+    <label>{t('calculator.units.value')}<input inputMode="decimal" value={value} onChange={(event) => { setValue(event.target.value); setEdited(true); }} /></label>
     <div className="calc-feature-grid">
-      <label>{t('calculator.units.from')}<select value={from} onChange={(event) => setFrom(event.target.value)}>{units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select></label>
-      <label>{t('calculator.units.to')}<select value={to} onChange={(event) => setTo(event.target.value)}>{units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select></label>
+      <label>{t('calculator.units.from')}<select value={from} onChange={(event) => { setFrom(event.target.value); setEdited(true); }}>{units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select></label>
+      <label>{t('calculator.units.to')}<select value={to} onChange={(event) => { setTo(event.target.value); setEdited(true); }}>{units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select></label>
     </div>
-    <button className="calc-tool-btn" type="button" onClick={() => { setFrom(to); setTo(from); if (result !== null) setValue(String(result)); }}>{t('calculator.units.swap')}</button>
+    <button className="calc-tool-btn" type="button" onClick={() => { setFrom(to); setTo(from); setEdited(true); if (result !== null) setValue(String(result)); }}>{t('calculator.units.swap')}</button>
     <output className="calc-feature-result" aria-live="polite">{error ? t('calculator.units.error') : result === null ? '—' : formatDisplay(result) + ' ' + units.find((unit) => unit.id === to)?.symbol}</output>
   </section>;
 }

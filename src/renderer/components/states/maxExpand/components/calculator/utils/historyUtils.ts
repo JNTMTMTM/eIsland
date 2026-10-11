@@ -26,20 +26,34 @@
 
 import type { CalcAngleUnit, FormulaDocument } from '../types/calculatorTypes';
 import { serializeFormulaDocument } from './formulaDocumentUtils';
+import { CONVERSION_UNITS, type UnitCategory } from './unitConversionUtils';
+import type { MatrixOperation } from './matrixUtils';
 
-export interface CalculatorHistoryEntry {
-  id: string;
-  formula: string;
-  result: string;
-  angleUnit: CalcAngleUnit;
-  document: FormulaDocument;
+/** 各计算界面恢复历史时所需的完整输入。 */
+export type CalculatorHistoryInput = { formula: string; result: string } & (
+  | { mode: 'arithmetic' | 'scientific' | 'coordinate'; angleUnit: CalcAngleUnit; document: FormulaDocument; extra?: string }
+  | { mode: 'unitConversion'; input: { category: UnitCategory; from: string; to: string; value: string } }
+  | { mode: 'equation'; input: { equation: string; lower: string; upper: string; angleUnit: CalcAngleUnit } }
+  | { mode: 'complex'; input: { formula: string } }
+  | { mode: 'matrix'; input: { a: string; b: string; scalar: string; operation: MatrixOperation } }
+);
+
+/** 包含持久化标识的统一计算历史。 */
+export type CalculatorHistoryEntry = CalculatorHistoryInput & { id: string };
+
+/** 指定功能界面中可恢复的输入字段。 */
+export type CalculatorHistoryFields<Mode extends 'unitConversion' | 'equation' | 'complex' | 'matrix'> = Extract<CalculatorHistoryInput, { mode: Mode }>['input'];
+
+function boundedText(value: unknown, maximum = 5000): value is string {
+  return typeof value === 'string' && value.length <= maximum;
 }
 
 function validDocument(value: unknown, depth = 0): value is FormulaDocument {
   if (!value || typeof value !== 'object' || depth > 20) return false;
   const segments = (value as FormulaDocument).segments;
   return Array.isArray(segments) && segments.length > 0 && segments.length <= 1000 && segments.every((segment) => {
-    if (segment.type === 'text') return typeof segment.value === 'string';
+    if (!segment || typeof segment !== 'object') return false;
+    if (segment.type === 'text') return boundedText(segment.value);
     if (segment.type !== 'structure' || !segment.value || typeof segment.value.id !== 'string') return false;
     if (!['logn', 'fraction', 'sum', 'integral', 'derivative', 'sqrt', 'root'].includes(segment.value.kind)) return false;
     return segment.value.slots && Object.values(segment.value.slots).every((slot) => validDocument(slot, depth + 1));
@@ -52,11 +66,32 @@ function validDocument(value: unknown, depth = 0): value is FormulaDocument {
  */
 export function readCalculatorHistory(value: unknown): CalculatorHistoryEntry[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is CalculatorHistoryEntry => {
-    if (!entry || typeof entry.id !== 'string' || typeof entry.formula !== 'string' || typeof entry.result !== 'string') return false;
-    if (!Number.isFinite(Number(entry.result)) || !['degree', 'radian'].includes(entry.angleUnit) || !validDocument(entry.document)) return false;
-    try { return serializeFormulaDocument(entry.document) === entry.formula; } catch { return false; }
-  }).slice(0, 100);
+  const entries: CalculatorHistoryEntry[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object' || !boundedText(entry.id, 200) || !boundedText(entry.formula, 20000) || !boundedText(entry.result, 200000) || !entry.result.trim()) continue;
+    const mode = entry.mode ?? 'arithmetic';
+    if (['arithmetic', 'scientific', 'coordinate'].includes(mode)) {
+      if (!['degree', 'radian'].includes(entry.angleUnit) || !validDocument(entry.document) || (entry.extra !== undefined && !boundedText(entry.extra))) continue;
+      if (mode !== 'coordinate' && !Number.isFinite(Number(entry.result))) continue;
+      try { if (serializeFormulaDocument(entry.document) !== entry.formula) continue; } catch { continue; }
+    } else {
+      const input = entry.input;
+      if (!input || typeof input !== 'object') continue;
+      if (mode === 'unitConversion') {
+        if (!boundedText(input.value) || !Number.isFinite(Number(input.value)) || !input.value.trim()) continue;
+        if (![input.from, input.to].every((id) => CONVERSION_UNITS.some((unit) => unit.id === id && unit.category === input.category))) continue;
+      } else if (mode === 'equation') {
+        if (![input.equation, input.lower, input.upper].every((text) => boundedText(text)) || !['degree', 'radian'].includes(input.angleUnit)) continue;
+      } else if (mode === 'complex') {
+        if (!boundedText(input.formula)) continue;
+      } else if (mode === 'matrix') {
+        if (![input.a, input.b, input.scalar].every((text) => boundedText(text)) || !['add', 'subtract', 'multiply', 'scale', 'transpose', 'determinant', 'inverse', 'rank', 'solve'].includes(input.operation)) continue;
+      } else continue;
+    }
+    entries.push({ ...entry, mode } as CalculatorHistoryEntry);
+    if (entries.length === 100) break;
+  }
+  return entries;
 }
 
 /** 合并新旧记录，保留最新顺序并去重。
@@ -67,7 +102,7 @@ export function readCalculatorHistory(value: unknown): CalculatorHistoryEntry[] 
 export function mergeCalculatorHistory(recent: CalculatorHistoryEntry[], stored: CalculatorHistoryEntry[]): CalculatorHistoryEntry[] {
   const seen = new Set<string>();
   return [...recent, ...stored].filter((entry) => {
-    const key = JSON.stringify([entry.formula, entry.result, entry.angleUnit]);
+    const key = JSON.stringify([entry.mode, entry.formula, entry.result, 'angleUnit' in entry ? entry.angleUnit : entry.input, 'extra' in entry ? entry.extra : undefined]);
     if (seen.has(key)) return false;
     seen.add(key); return true;
   }).slice(0, 100);

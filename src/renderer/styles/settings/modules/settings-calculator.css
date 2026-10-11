@@ -177,7 +177,11 @@
 }
 
 .calc-history {
-  flex: 0 0 auto;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
   font-size: 12px;
   color: rgb(var(--color-text-rgb), .7);
 
@@ -253,33 +257,43 @@
 
 }
 
-.calc-history summary {
-  padding: 4px 0;
-  cursor: pointer;
+.calc-history h3 {
+  margin: 0;
+  font-size: 14px;
+
+}
+
+.calc-history-hint {
+  margin: 0;
 
 }
 
 .calc-history-list {
-  max-height: 180px;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
 
 }
 
 .calc-history-row {
   display: flex;
-  gap: 4px;
-  margin-bottom: 4px;
+  gap: 6px;
+  align-items: flex-start;
+  margin-bottom: 8px;
 
 }
 
 .calc-history-restore {
   display: flex;
   flex: 1;
-  gap: 8px;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
   min-width: 0;
-  padding: 6px;
+  padding: 10px;
+  font: inherit;
   color: inherit;
+  text-align: left;
   cursor: pointer;
   background: rgb(var(--color-text-rgb), .04);
   border: 0;
@@ -287,11 +301,33 @@
 
 }
 
-.calc-history-restore span {
-  flex: 1;
-  overflow: hidden;
-  text-align: left;
-  text-overflow: ellipsis;
+.calc-history-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-accent, #6390ff);
+
+}
+
+.calc-history-formula,
+.calc-history-result {
+  max-height: 84px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  scrollbar-width: none;
+
+}
+
+.calc-history-result {
+  font-size: 14px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-history-restore:hover {
+  background: rgb(var(--color-text-rgb), .08);
 
 }
 

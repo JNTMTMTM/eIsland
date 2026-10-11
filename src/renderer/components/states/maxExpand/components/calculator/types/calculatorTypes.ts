@@ -92,6 +92,8 @@ export interface UseCalculatorReturn {
   document: FormulaDocument;
   formula: string;
   result: string | null;
+  /** 每次按等号递增，用于区分相同输入的重新计算。 */
+  calculationSequence: number;
   cursor: FormulaCursor;
   angleUnit: CalcAngleUnit;
   setAngleUnit: (unit: CalcAngleUnit) => void;
@@ -128,7 +130,7 @@ export interface CalcButtonDef {
   className?: string;
 }
 
-export type CalcMode = 'arithmetic' | 'scientific' | 'coordinate' | 'unitConversion' | 'equation' | 'complex' | 'matrix';
+export type CalcMode = 'arithmetic' | 'scientific' | 'coordinate' | 'unitConversion' | 'equation' | 'complex' | 'matrix' | 'history';
 
 export interface CalcSidebarNavItem {
   mode: CalcMode;

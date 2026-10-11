@@ -47,6 +47,7 @@ export const CALC_SIDEBAR_NAV_ITEMS: CalcSidebarNavItem[] = [
   { mode: 'equation', icon: CalculatorIcon.SCIENTIFIC, labelKey: 'calculator.equation.title', defaultLabel: '方程求解' },
   { mode: 'complex', icon: CalculatorIcon.ROOT, labelKey: 'calculator.complex.title', defaultLabel: '复数' },
   { mode: 'matrix', icon: CalculatorIcon.SIGMA, labelKey: 'calculator.matrix.title', defaultLabel: '矩阵' },
+  { mode: 'history', icon: CalculatorIcon.HISTORY, labelKey: 'calculator.history.title', defaultLabel: '历史记录' },
 ];
 
 /** 四则运算按钮布局（5×4 网格） */

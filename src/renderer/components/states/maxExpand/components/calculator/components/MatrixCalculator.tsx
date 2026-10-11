@@ -30,15 +30,19 @@ import { useTranslation } from 'react-i18next';
 import { calculateMatrix, parseMatrix, type Matrix, type MatrixOperation } from '../utils/matrixUtils';
 import { evaluateFormula, formatDisplay } from '../utils/calculatorUtils';
 import { getCalculatorErrorCode } from '../utils/calculatorErrorUtils';
+import type { CalculatorHistoryFields, CalculatorHistoryInput } from '../utils/historyUtils';
 const OPERATIONS: Record<MatrixOperation, string> = { add: 'calculator.matrix.add', subtract: 'calculator.matrix.subtract', multiply: 'calculator.matrix.multiply', scale: 'calculator.matrix.scale', transpose: 'calculator.matrix.transpose', determinant: 'calculator.matrix.determinant', inverse: 'calculator.matrix.inverse', rank: 'calculator.matrix.rank', solve: 'calculator.matrix.solve' };
 
 /** 渲染矩阵输入、运算选择与矩阵结果。
+ * @param props - 历史恢复输入和成功计算记录回调
  * @returns 矩阵计算器
  */
-export function MatrixCalculator(): ReactElement {
+export function MatrixCalculator({ initial, onRecord }: {
+  initial?: CalculatorHistoryFields<'matrix'>; onRecord?: (entry: CalculatorHistoryInput) => void;
+} = {}): ReactElement {
   const { t } = useTranslation();
-  const [a, setA] = useState('1 2\n3 4'); const [b, setB] = useState('1 0\n0 1');
-  const [scalar, setScalar] = useState('2'); const [operation, setOperation] = useState<MatrixOperation>('multiply');
+  const [a, setA] = useState(initial?.a ?? '1 2\n3 4'); const [b, setB] = useState(initial?.b ?? '1 0\n0 1');
+  const [scalar, setScalar] = useState(initial?.scalar ?? '2'); const [operation, setOperation] = useState<MatrixOperation>(initial?.operation ?? 'multiply');
   const [result, setResult] = useState<Matrix | number | null>(null); const [error, setError] = useState('');
   const binary = ['add', 'subtract', 'multiply', 'solve'].includes(operation);
   const reset = (): void => { setResult(null); setError(''); };
@@ -53,7 +57,13 @@ export function MatrixCalculator(): ReactElement {
     </div>
     <div className="calc-tools">
       <button className="calc-tool-btn" type="button" onClick={() => {
-        try { setResult(calculateMatrix(operation, parseMatrix(a), binary ? parseMatrix(b) : undefined, operation === 'scale' ? evaluateFormula(scalar) : 1)); setError(''); }
+        try {
+          const next = calculateMatrix(operation, parseMatrix(a), binary ? parseMatrix(b) : undefined, operation === 'scale' ? evaluateFormula(scalar) : 1);
+          setResult(next); setError('');
+          onRecord?.({ mode: 'matrix', formula: t(OPERATIONS[operation]) + '\nA = ' + a + (binary ? '\nB = ' + b : operation === 'scale' ? '\nk = ' + scalar : ''),
+            result: typeof next === 'number' ? formatDisplay(next) : next.map((row) => row.map(formatDisplay).join('\t')).join('\n'),
+            input: { a, b, scalar, operation } });
+        }
         catch (failure) {
           setResult(null); const message = failure instanceof Error ? failure.message : '';
           setError(t(message === 'Singular matrix' ? 'calculator.matrix.singular' : message === 'Matrix dimensions' ? 'calculator.matrix.dimensions' : message === 'Invalid matrix' || failure instanceof SyntaxError ? 'calculator.matrix.invalid' : `calculator.errors.${getCalculatorErrorCode(failure)}`));

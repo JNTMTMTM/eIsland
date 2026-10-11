@@ -40,6 +40,7 @@ import { UnitConversion } from './UnitConversion';
 import { CalculatorHistory } from './CalculatorHistory';
 import { useCalculatorHistory } from '../hooks/useCalculatorHistory';
 import { normalizePastedFormula } from '../utils/clipboardUtils';
+import type { CalculatorHistoryEntry } from '../utils/historyUtils';
 
 // 静态按键只排版一次，避免每次输入都重复编译全部科学函数。
 const BUTTON_MATH = new Map(
@@ -97,8 +98,9 @@ function ButtonGrid({
 export function CalculatorTab(): ReactElement {
   const { t } = useTranslation();
   const calculator = useCalculator();
-  const history = useCalculatorHistory(calculator.document, calculator.result, calculator.angleUnit);
   const [activeMode, setActiveMode] = useState<CalcMode>('arithmetic');
+  const history = useCalculatorHistory(calculator.document, calculator.result, calculator.angleUnit, activeMode, calculator.calculationSequence);
+  const [restoredEntry, setRestoredEntry] = useState<CalculatorHistoryEntry | null>(null);
   const [collapsed, setCollapsed] = useState(true);
   const [showScientificKeys, setShowScientificKeys] = useState(true);
   const [clipboardFeedback, setClipboardFeedback] = useState('');
@@ -121,6 +123,7 @@ export function CalculatorTab(): ReactElement {
   };
 
   const handleSwitchMode = useCallback((mode: CalcMode): void => {
+    setRestoredEntry(null);
     setActiveMode(mode);
   }, []);
 
@@ -167,7 +170,18 @@ export function CalculatorTab(): ReactElement {
   const isCoordinate = activeMode === 'coordinate';
   const formulaLength = calculator.formula.length;
   const displayFontSize = formulaLength > 24 ? '20px' : formulaLength > 14 ? '26px' : '34px';
-  const standalonePanels: Partial<Record<CalcMode, ReactElement>> = { unitConversion: <UnitConversion />, equation: <EquationSolver />, complex: <ComplexCalculator />, matrix: <MatrixCalculator /> };
+  const restoreHistory = (entry: CalculatorHistoryEntry): void => {
+    setRestoredEntry(entry);
+    setActiveMode(entry.mode);
+    if ('document' in entry) calculator.restoreFormula(entry.document, entry.angleUnit);
+  };
+  const standalonePanels: Partial<Record<CalcMode, ReactElement>> = {
+    unitConversion: <UnitConversion key={restoredEntry?.id} initial={restoredEntry?.mode === 'unitConversion' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    equation: <EquationSolver key={restoredEntry?.id} initial={restoredEntry?.mode === 'equation' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    complex: <ComplexCalculator key={restoredEntry?.id} initial={restoredEntry?.mode === 'complex' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    matrix: <MatrixCalculator key={restoredEntry?.id} initial={restoredEntry?.mode === 'matrix' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    history: <CalculatorHistory entries={history.entries} storageError={history.storageError} onRestore={restoreHistory} onRemove={history.remove} onClear={history.clear} />,
+  };
   const standalone = standalonePanels[activeMode];
   const display = (
     <CalcDisplay
@@ -256,7 +270,9 @@ export function CalculatorTab(): ReactElement {
             </div>
             <div className="calc-coordinate-workspace">
               {display}
-              <CoordinateGraph expression={calculator.formula} />
+              <CoordinateGraph key={restoredEntry?.id} expression={calculator.formula}
+                initialExtra={restoredEntry?.mode === 'coordinate' ? restoredEntry.extra : undefined}
+                onAnalyze={(extra, result) => history.add({ mode: 'coordinate', formula: calculator.formula, result, document: calculator.document, angleUnit: 'radian', extra })} />
             </div>
           </div>
         ) : (
@@ -273,9 +289,6 @@ export function CalculatorTab(): ReactElement {
             )}
           </>
         )}
-        <CalculatorHistory entries={history.entries} storageError={history.storageError}
-          onRestore={(entry) => calculator.restoreFormula(entry.document, entry.angleUnit)}
-          onRemove={history.remove} onClear={history.clear} />
         </>)}
       </div>
     </div>

@@ -24,9 +24,9 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState } from 'react';
-import type { CalcAngleUnit, FormulaDocument } from '../types/calculatorTypes';
-import { mergeCalculatorHistory, readCalculatorHistory, type CalculatorHistoryEntry } from '../utils/historyUtils';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { CalcAngleUnit, CalcMode, FormulaDocument } from '../types/calculatorTypes';
+import { mergeCalculatorHistory, readCalculatorHistory, type CalculatorHistoryEntry, type CalculatorHistoryInput } from '../utils/historyUtils';
 import { serializeFormulaDocument } from '../utils/formulaDocumentUtils';
 
 const STORE_KEY = 'calculator-history';
@@ -35,12 +35,19 @@ const STORE_KEY = 'calculator-history';
  * @param document - 当前可编辑公式
  * @param result - 等号计算后的结果
  * @param angleUnit - 计算时采用的角度单位
+ * @param mode - 当前计算界面，用于记录来源
+ * @param calculationSequence - 等号操作序号，清空历史后重新计算仍可记录
  * @returns 历史记录、存储状态和管理方法
  */
-export function useCalculatorHistory(document: FormulaDocument, result: string | null, angleUnit: CalcAngleUnit) {
+export function useCalculatorHistory(document: FormulaDocument, result: string | null, angleUnit: CalcAngleUnit, mode: CalcMode, calculationSequence: number) {
   const [entries, setEntries] = useState<CalculatorHistoryEntry[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [storageError, setStorageError] = useState(false);
+  const lastCalculation = useRef<{ document: FormulaDocument; result: string; angleUnit: CalcAngleUnit; calculationSequence: number } | null>(null);
+  const add = useCallback((input: CalculatorHistoryInput): void => {
+    const entry = { ...input, id: crypto.randomUUID() };
+    setEntries((previous) => mergeCalculatorHistory([entry], previous));
+  }, []);
   useEffect(() => {
     let cancelled = false;
     const read = typeof window !== 'undefined' ? window.api?.storeRead?.(STORE_KEY) : undefined;
@@ -50,13 +57,16 @@ export function useCalculatorHistory(document: FormulaDocument, result: string |
     return () => { cancelled = true; };
   }, []);
   useEffect(() => {
-    if (result === null || !Number.isFinite(Number(result))) return;
-    const entry = { id: crypto.randomUUID(), formula: serializeFormulaDocument(document), result, angleUnit, document };
-    setEntries((previous) => mergeCalculatorHistory([entry], previous));
-  }, [document, result, angleUnit]);
+    if (result === null) { lastCalculation.current = null; return; }
+    const previous = lastCalculation.current;
+    if (previous?.document === document && previous.result === result && previous.angleUnit === angleUnit && previous.calculationSequence === calculationSequence) return;
+    lastCalculation.current = { document, result, angleUnit, calculationSequence };
+    if (!Number.isFinite(Number(result)) || (mode !== 'arithmetic' && mode !== 'scientific' && mode !== 'coordinate')) return;
+    add({ mode, formula: serializeFormulaDocument(document), result, angleUnit, document });
+  }, [document, result, angleUnit, mode, calculationSequence, add]);
   useEffect(() => {
     if (!loaded || typeof window === 'undefined' || !window.api?.storeWrite) return;
     window.api.storeWrite(STORE_KEY, entries).then((saved) => setStorageError(!saved)).catch(() => setStorageError(true));
   }, [entries, loaded]);
-  return { entries, storageError, clear: () => setEntries([]), remove: (id: string) => setEntries((previous) => previous.filter((entry) => entry.id !== id)) };
+  return { entries, storageError, add, clear: () => setEntries([]), remove: (id: string) => setEntries((previous) => previous.filter((entry) => entry.id !== id)) };
 }
