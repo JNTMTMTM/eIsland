@@ -178,7 +178,7 @@
   line-height: 1.4;
   color: rgb(var(--color-text-rgb), .94);
   white-space: nowrap;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 
 }
 
@@ -252,6 +252,7 @@
   text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  scrollbar-width: none;
 
 }
 
