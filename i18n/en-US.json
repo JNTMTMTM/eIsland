@@ -2,6 +2,7 @@
   "common": {
     "appName": "eIsland",
     "errors": {
+      "complexMode": "Use the Complex numbers mode for imaginary values",
       "rootMountNotFound": "#root mount node not found"
     }
   },
@@ -2645,6 +2646,16 @@
     }
   },
   "calculator": {
+    "complex": {
+      "title": "Complex numbers",
+      "expression": "Complex expression",
+      "calculate": "Calculate",
+      "hint": "Use i for the imaginary unit. Supports + − × ÷, powers, sqrt, ln, log, exp, sin, cos, tan, abs, arg, conj, re and im. Angles are radians; roots and logarithms use the principal branch.",
+      "modulus": "Modulus",
+      "argument": "Argument (RAD)",
+      "conjugate": "Conjugate",
+      "polar": "Polar form"
+    },
     "equation": {
       "title": "Equations",
       "expression": "Equation in x",

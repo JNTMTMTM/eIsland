@@ -35,9 +35,11 @@ export interface RootSearchResult { roots: number[]; identicallyZero: boolean }
  */
 export function findRealRoots(evaluate: (x: number) => number, lower: number, upper: number): RootSearchResult {
   if (!Number.isFinite(lower) || !Number.isFinite(upper) || lower >= upper || !Number.isFinite(upper - lower)) throw new Error('Invalid range');
-  const sample = (x: number): number => { try { const value = evaluate(x); return Number.isFinite(value) ? value : NaN; } catch { return NaN; } };
+  let sampleError: unknown;
+  const sample = (x: number): number => { try { const value = evaluate(x); return Number.isFinite(value) ? value : NaN; } catch (error) { sampleError = error; return NaN; } };
   const count = 512; const step = (upper - lower) / count;
   const points = Array.from({ length: count + 1 }, (_, index) => { const x = lower + index * step; return { x, y: sample(x) }; });
+  if (points.every((point) => !Number.isFinite(point.y))) throw sampleError instanceof Error ? sampleError : new Error('Non-finite result');
   if (points.every((point) => point.y === 0)) return { roots: [], identicallyZero: true };
   const roots: number[] = [];
   const add = (x: number): void => {

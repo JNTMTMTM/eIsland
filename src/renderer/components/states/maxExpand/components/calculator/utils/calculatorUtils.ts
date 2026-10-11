@@ -29,6 +29,7 @@ import type { CalcAngleUnit, ScientificFn } from '../types/calculatorTypes';
 type ExpressionNode =
   | { type: 'number'; value: number }
   | { type: 'variable' }
+  | { type: 'imaginary' }
   | { type: 'unary'; operator: '+' | '-'; value: ExpressionNode }
   | { type: 'binary'; operator: '+' | '-' | '×' | '÷' | '^'; left: ExpressionNode; right: ExpressionNode }
   | { type: 'postfix'; operator: '!' | '%'; value: ExpressionNode }
@@ -135,6 +136,7 @@ class FormulaParser {
     const identifier = this.readIdentifier();
     if (identifier === 'e') return { type: 'number', value: Math.E };
     if (identifier === 'x') return { type: 'variable' };
+    if (identifier === 'i') return { type: 'imaginary' };
     if (!identifier) throw new Error('Expected value');
 
     this.expect('(');
@@ -297,6 +299,7 @@ function evaluateCall(node: Extract<ExpressionNode, { type: 'call' }>, environme
 function evaluateNode(node: ExpressionNode, environment: EvaluationEnvironment): number {
   switch (node.type) {
     case 'number': return node.value;
+    case 'imaginary': throw new Error('Complex mode required');
     case 'variable':
       if (environment.x === undefined) throw new Error('Unbound variable');
       return environment.x;
@@ -370,6 +373,14 @@ export function getPolynomialCoefficients(formula: string, angleUnit: CalcAngleU
     try { return [finite(evaluateNode(node, { angleUnit }))]; } catch { return null; }
   };
   return read(new FormulaParser(formula).parse());
+}
+
+/** 将公式解析为复用的数学语法树。
+ * @param formula - 输入公式
+ * @returns 未执行求值的 AST
+ */
+export function parseCalculatorFormula(formula: string): ExpressionNode {
+  return new FormulaParser(formula).parse();
 }
 
 /**

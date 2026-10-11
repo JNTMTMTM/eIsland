@@ -2,6 +2,7 @@
   "common": {
     "appName": "eIsland",
     "errors": {
+      "complexMode": "含虚数单位 i 的公式请使用复数界面",
       "rootMountNotFound": "未找到 #root 挂载节点"
     }
   },
@@ -2645,6 +2646,16 @@
     }
   },
   "calculator": {
+    "complex": {
+      "title": "复数",
+      "expression": "复数表达式",
+      "calculate": "计算",
+      "hint": "用 i 表示虚数单位。支持四则运算、幂、sqrt、ln、log、exp、sin、cos、tan、abs、arg、conj、re、im；角度使用弧度，根式和对数取主值。",
+      "modulus": "模",
+      "argument": "辐角（RAD）",
+      "conjugate": "共轭",
+      "polar": "极坐标形式"
+    },
     "equation": {
       "title": "方程求解",
       "expression": "关于 x 的方程",

@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-export type CalculatorErrorCode = 'divisionByZero' | 'domain' | 'incomplete' | 'syntax' | 'unboundVariable' | 'unknownFunction' | 'range' | 'convergence' | 'overflow' | 'invalid';
+export type CalculatorErrorCode = 'divisionByZero' | 'domain' | 'incomplete' | 'syntax' | 'unboundVariable' | 'unknownFunction' | 'range' | 'convergence' | 'overflow' | 'complexMode' | 'invalid';
 
 /** 将求值错误转换为可翻译的用户提示标识。
  * @param error - 解析或计算时捕获的错误
@@ -32,6 +32,7 @@ export type CalculatorErrorCode = 'divisionByZero' | 'domain' | 'incomplete' | '
  */
 export function getCalculatorErrorCode(error: unknown): CalculatorErrorCode {
   const message = error instanceof Error ? error.message : '';
+  if (message === 'Complex mode required') return 'complexMode';
   if (message === 'Division by zero') return 'divisionByZero';
   if (message.startsWith('Invalid domain') || message.startsWith('Invalid logarithm') || message === 'Invalid factorial') return 'domain';
   if (message === 'Expected value' || message === 'Missing token') return 'incomplete';

@@ -2,6 +2,7 @@
   "common": {
     "appName": "eIsland",
     "errors": {
+      "complexMode": "虚数単位 i を含む式は複素数モードで計算してください",
       "rootMountNotFound": "#root マウントノードが見つかりません"
     }
   },
@@ -2645,6 +2646,16 @@
     }
   },
   "calculator": {
+    "complex": {
+      "title": "複素数",
+      "expression": "複素数の式",
+      "calculate": "計算",
+      "hint": "虚数単位は i。四則演算、累乗、sqrt、ln、log、exp、sin、cos、tan、abs、arg、conj、re、im に対応。角度はラジアン、根と対数は主値です。",
+      "modulus": "絶対値",
+      "argument": "偏角（RAD）",
+      "conjugate": "共役",
+      "polar": "極形式"
+    },
     "equation": {
       "title": "方程式",
       "expression": "x の方程式",

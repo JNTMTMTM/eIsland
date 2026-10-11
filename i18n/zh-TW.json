@@ -2,6 +2,7 @@
   "common": {
     "appName": "eIsland",
     "errors": {
+      "complexMode": "含虛數單位 i 的公式請使用複數介面",
       "rootMountNotFound": "未找到 #root 掛載節點"
     }
   },
@@ -2645,6 +2646,16 @@
     }
   },
   "calculator": {
+    "complex": {
+      "title": "複數",
+      "expression": "複數運算式",
+      "calculate": "計算",
+      "hint": "用 i 表示虛數單位。支援四則運算、冪、sqrt、ln、log、exp、sin、cos、tan、abs、arg、conj、re、im；角度使用弧度，根式和對數取主值。",
+      "modulus": "模",
+      "argument": "輻角（RAD）",
+      "conjugate": "共軛",
+      "polar": "極座標形式"
+    },
     "equation": {
       "title": "方程求解",
       "expression": "關於 x 的方程",
