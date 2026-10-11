@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import usePageActivity from './usePageActivity';
 import type selectDynamicIslandState from '../utils/selectDynamicIslandState';
 import { useDynamicIslandShell } from './useDynamicIslandShell';
 import { useIslandDominantColor } from './useIslandDominantColor';
@@ -70,6 +71,7 @@ interface DynamicIslandCoordinatorState {
  * @returns 灵动岛渲染所需的聚合状态。
  */
 export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinatorOptions): DynamicIslandCoordinatorState {
+  usePageActivity();
   const { store, t, language } = options;
   const {
     state,

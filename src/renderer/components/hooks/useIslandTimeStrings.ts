@@ -61,9 +61,11 @@ export function useIslandTimeStrings(options: UseIslandTimeStringsOptions): Isla
   useEffect(() => {
     if (!enabled) return;
     let dateKey = '';
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const period = precision === 'minute' ? 60_000 : 1000;
     const update = (): void => {
+      clearTimeout(timer);
+      if (typeof document !== 'undefined' && document.hidden) return;
       const now = new Date();
       setTimeStr(formatTime(now));
 
@@ -78,7 +80,11 @@ export function useIslandTimeStrings(options: UseIslandTimeStringsOptions): Isla
     };
 
     update();
-    return () => clearTimeout(timer);
+    if (typeof document !== 'undefined') document.addEventListener?.('visibilitychange', update);
+    return () => {
+      clearTimeout(timer);
+      if (typeof document !== 'undefined') document.removeEventListener?.('visibilitychange', update);
+    };
   }, [formatWeekday, precision, enabled]);
 
   return {

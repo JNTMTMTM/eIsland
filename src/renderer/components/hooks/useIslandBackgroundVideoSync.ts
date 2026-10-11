@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { canPlayBackgroundVideo, watchBackgroundVideo } from '../../utils/backgroundVideoPlayback';
 import type { IslandBgMediaType } from '../config/dynamicIslandConfig';
 
 interface UseIslandBackgroundVideoSyncOptions {
@@ -67,16 +68,17 @@ export function useIslandBackgroundVideoSync(options: UseIslandBackgroundVideoSy
     const el = bgVideoElementRef.current;
     if (!el) return;
     el.loop = false;
+    const stopWatching = watchBackgroundVideo(el, () => bgVideoLoopRef.current);
 
     const restart = (): void => {
-      if (!bgVideoLoopRef.current) return;
+      if (!bgVideoLoopRef.current || !canPlayBackgroundVideo(el)) return;
       try { el.currentTime = 0; } catch { /* ignore */ }
       el.play().catch(() => {});
     };
 
     const onEnded = (): void => { restart(); };
     const onTimeUpdate = (): void => {
-      if (!bgVideoLoopRef.current) return;
+      if (!bgVideoLoopRef.current || !canPlayBackgroundVideo(el)) return;
       const duration = el.duration;
       if (!Number.isFinite(duration) || duration <= 0) return;
       if (duration - el.currentTime <= 0.12) {
@@ -87,6 +89,7 @@ export function useIslandBackgroundVideoSync(options: UseIslandBackgroundVideoSy
     el.addEventListener('ended', onEnded);
     el.addEventListener('timeupdate', onTimeUpdate);
     return () => {
+      stopWatching();
       el.removeEventListener('ended', onEnded);
       el.removeEventListener('timeupdate', onTimeUpdate);
     };
@@ -96,7 +99,7 @@ export function useIslandBackgroundVideoSync(options: UseIslandBackgroundVideoSy
     if (!bgVideoLoop) return;
     const el = bgVideoElementRef.current;
     if (!el) return;
-    if (el.ended) {
+    if (el.ended && canPlayBackgroundVideo(el)) {
       try { el.currentTime = 0; } catch { /* ignore */ }
       el.play().catch(() => {});
     }

@@ -31,8 +31,19 @@ import { renderWithHooks, runEffects, unmountHooks } from '../../states/register
 import { useIslandTimeStrings } from '../useIslandTimeStrings';
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 beforeEach(() => { vi.useFakeTimers(); resetLifecycle(); vi.setSystemTime(new Date(2026, 9, 6, 23, 59, 59)); });
-afterEach(() => { unmountHooks(); vi.useRealTimers(); });
+afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 describe('useIslandTimeStrings 实际时间展示', () => {
+  it('隐藏后没有时钟唤醒，恢复时立即校准墙钟', () => {
+    const page = Object.assign(new EventTarget(), { hidden: false }); vi.stubGlobal('document', page);
+    const t = (key: string) => key;
+    renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN' })); runEffects();
+    page.hidden = true; page.dispatchEvent(new Event('visibilitychange'));
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(60_000);
+    page.hidden = false; page.dispatchEvent(new Event('visibilitychange'));
+    expect(vi.getTimerCount()).toBe(1);
+    expect(renderWithHooks(() => useIslandTimeStrings({ t, language: 'zh-CN' })).timeStr).toBe('00:00');
+  });
   it('分钟精度只在分钟边界刷新，禁用时没有唤醒', () => {
     const t = vi.fn((key: string) => key);
     vi.setSystemTime(new Date(2026, 9, 6, 12, 0, 0));

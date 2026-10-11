@@ -1,0 +1,31 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file runtimeVisibility.css
+ * @description 隐藏页面暂停展示动画。
+ * @author 鸡哥
+ */
+/* 隐藏窗口保留业务状态，停止纯展示动画。 */
+html.eisland-page-hidden *,
+html.eisland-page-hidden *::before,
+html.eisland-page-hidden *::after {
+  animation-play-state: paused !important;
+}
