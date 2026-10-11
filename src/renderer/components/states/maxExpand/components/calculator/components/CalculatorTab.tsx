@@ -203,6 +203,16 @@ export function CalculatorTab(): ReactElement {
         {standalone ? standalone : (<>
         <div className="calc-toolbar">
           <span className="calc-mode-title">{t(`calculator.modes.${activeMode}`)}</span>
+          <div className="calc-tools">
+            <button className="calc-tool-btn" type="button" disabled={calculator.answer === null}
+              title={t('calculator.answer.hint')} onMouseDown={(event) => event.preventDefault()} onClick={calculator.inputAnswer}>
+              {t('calculator.answer.label')}
+            </button>
+            <button className="calc-tool-btn" type="button" onClick={() => void copyFormula(calculator.formula)}>{t('calculator.clipboard.copyFormula')}</button>
+            <button className="calc-tool-btn" type="button" disabled={calculator.result === null || calculator.result === 'Error'} onClick={() => void copyFormula(calculator.result!)}>{t('calculator.clipboard.copyResult')}</button>
+            <button className="calc-tool-btn" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => void readClipboard()}>{t('calculator.clipboard.paste')}</button>
+            {clipboardFeedback && <span role="status">{clipboardFeedback}</span>}
+          </div>
           {isCoordinate ? (
             <span className="calc-function-label" title={t('calculator.coordinate.radianHint')}>
               {'y = f(x) · '}{t('calculator.angleUnit.radianShort')}
@@ -225,16 +235,6 @@ export function CalculatorTab(): ReactElement {
               ))}
             </div>
           )}
-        </div>
-        <div className="calc-tools">
-          <button className="calc-tool-btn" type="button" disabled={calculator.answer === null}
-            title={t('calculator.answer.hint')} onMouseDown={(event) => event.preventDefault()} onClick={calculator.inputAnswer}>
-            {t('calculator.answer.label')}
-          </button>
-          <button className="calc-tool-btn" type="button" onClick={() => void copyFormula(calculator.formula)}>{t('calculator.clipboard.copyFormula')}</button>
-          <button className="calc-tool-btn" type="button" disabled={calculator.result === null || calculator.result === 'Error'} onClick={() => void copyFormula(calculator.result!)}>{t('calculator.clipboard.copyResult')}</button>
-          <button className="calc-tool-btn" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => void readClipboard()}>{t('calculator.clipboard.paste')}</button>
-          {clipboardFeedback && <span role="status">{clipboardFeedback}</span>}
         </div>
         {isCoordinate ? (
           <div className="calc-coordinate-layout">

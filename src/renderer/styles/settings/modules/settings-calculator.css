@@ -131,6 +131,8 @@
 .calc-toolbar {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
   justify-content: space-between;
   min-height: 18px;
@@ -156,6 +158,15 @@
   flex: 0 0 auto;
   flex-wrap: wrap;
   gap: 4px;
+
+}
+
+.calc-toolbar .calc-tools {
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  margin-left: auto;
 
 }
 
