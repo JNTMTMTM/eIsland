@@ -72,14 +72,16 @@ describe('screenshot FFI loader boundary', () => {
   });
   it('解码PNG并返回准确大小和格式', () => {
     const addon = fixture.read<NativeLoader>();
-    const native = fixture.native('sc_capture_primary_display_png');
-    native.mockReturnValue('ZGF0YQ==');
+    const native = fixture.native('sc_capture_primary_display_png_bytes');
+    native.mockImplementation((size) => { (size as number[])[0] = 4; return 123; });
+    fixture.view.mockReturnValue(new Uint8Array([100, 97, 116, 97]).buffer);
     expect(addon.callPng('sc_capture_primary_display_png')).toEqual({ data: Buffer.from('data'), size: 4, format: 'png' });
-    expect(native).toHaveBeenCalledWith();
+    expect(native).toHaveBeenCalledWith([4]);
+    expect(fixture.native('sc_free_string')).toHaveBeenCalledWith(123);
   });
   it.each(['', null])('原生空PNG载荷%j返回null', (value) => {
     const addon = fixture.read<NativeLoader>();
-    fixture.native('sc_capture_primary_display_png').mockReturnValue(value);
+    fixture.native('sc_capture_primary_display_png_bytes').mockReturnValue(value);
     expect(addon.callPng('sc_capture_primary_display_png')).toBeNull();
   });
   it.each(['last error', ''])('错误查询返回原生文本或空串%j', (value) => {
@@ -102,4 +104,31 @@ describe('screenshot FFI loader boundary', () => {
     fixture.native('sc_get_visible_windows').mockReturnValue('{broken');
     expect(() => addon.callJson('sc_get_visible_windows')).toThrow(SyntaxError);
   });
+  it('oversized or invalid native lengths free the allocation without copying', () => {
+    const addon = fixture.read<NativeLoader>();
+    fixture.native('sc_capture_primary_display_png_bytes').mockImplementation((size) => { (size as number[])[0] = 65 * 1024 * 1024; return 123; });
+    expect(addon.callPng('sc_capture_primary_display_png')).toBeNull();
+    expect(fixture.view).not.toHaveBeenCalled();
+    expect(fixture.native('sc_free_string')).toHaveBeenCalledWith(123);
+  });
+  it('copy failure still frees the native PNG allocation', () => {
+    const addon = fixture.read<NativeLoader>();
+    fixture.native('sc_capture_primary_display_png_bytes').mockImplementation((size) => { (size as number[])[0] = 4; return 123; });
+    fixture.view.mockImplementation(() => { throw new Error('copy'); });
+    expect(() => addon.callPng('sc_capture_primary_display_png')).toThrow('copy');
+    expect(fixture.native('sc_free_string')).toHaveBeenCalledWith(123);
+  });
+
+  it('旧 DLL 缺少二进制导出时继续使用原有 PNG 导出', () => {
+    const bind = fixture.func.getMockImplementation()!;
+    fixture.func.mockImplementation((signature, ...args) => {
+      if (signature.includes('_png_bytes')) throw new Error('symbol missing');
+      return bind(signature, ...args);
+    });
+    const addon = fixture.read<NativeLoader>();
+    fixture.native('sc_capture_primary_display_png').mockReturnValue('ZGF0YQ==');
+    expect(addon.callPng('sc_capture_primary_display_png')).toEqual({ data: Buffer.from('data'), size: 4, format: 'png' });
+    expect(fixture.view).not.toHaveBeenCalled();
+  });
+
 });

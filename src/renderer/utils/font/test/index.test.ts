@@ -56,6 +56,19 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('font memory lifetime', () => {
+  it('uses authorized font URLs without decoding bytes and releases only legacy blobs', () => {
+    const decode = vi.fn(() => { throw new Error('Unexpected base64 decode'); });
+    vi.stubGlobal('atob', decode);
+    injectFontFace('eIsland-UI-Streamed', 'eisland-media://asset/first-font', 'woff2');
+    expect(styles.get('custom-font-eIsland-UI-Streamed')?.textContent).toContain("url('eisland-media://asset/first-font')");
+    injectFontFace('eIsland-UI-Next', 'eisland-media://asset/second-font', 'ttf');
+    expect(styles.size).toBe(1);
+    releaseCustomFonts('eIsland-UI');
+    expect(styles.size).toBe(0);
+    expect(decode).not.toHaveBeenCalled();
+    expect(createObjectURL).not.toHaveBeenCalled();
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+  });
   it('loads only the selected fonts out of large imported lists', async () => {
     const fonts = Array.from({ length: 100 }, (value, i) => {
       void value;

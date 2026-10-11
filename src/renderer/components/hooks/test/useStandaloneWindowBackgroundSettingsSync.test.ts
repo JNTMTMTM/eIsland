@@ -165,7 +165,7 @@ describe('Standalone background initialization', () => {
   it('loads local images through the real media resolver and absorbs leaf failures', async () => {
     values.set('island-bg-media', { type: 'image', source: 'C:/wallpaper.png' });
     await commit();
-    expect(api.loadWallpaperFile).toHaveBeenCalledWith('C:/wallpaper.png');
+    expect(api.loadWallpaperFile).toHaveBeenCalledWith('C:/wallpaper.png', true);
     expect(options.applyBgMedia).toHaveBeenCalledWith({ type: 'image', source: 'C:/wallpaper.png' }, 'data:image/png;base64,preview');
     api.loadWallpaperFile.mockRejectedValue(new Error('file unavailable'));
     broadcast('store:island-bg-media', 'C:/missing.png');

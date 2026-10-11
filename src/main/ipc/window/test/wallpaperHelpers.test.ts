@@ -87,6 +87,33 @@ vi.mock('fs', () => ({
   copyFileSync: copyFileSyncMock,
 }));
 
+
+vi.mock('node:fs/promises', () => ({
+  stat: async () => ({ isFile: () => true, size: 7 }),
+  mkdir: async (...args: unknown[]) => mkdirSyncMock(...args),
+  copyFile: async (...args: unknown[]) => copyFileSyncMock(...args),
+  rename: async () => {},
+  writeFile: async (path: string, data: Buffer) => writeFileSyncMock(path, data),
+  readdir: async () => readdirSyncMock() ?? [],
+  unlink: async (...args: unknown[]) => unlinkSyncMock(...args),
+  open: async (path: string) => {
+    const data = readFileSyncMock(path);
+    return { stat: async () => ({ isFile: () => true, size: data.length }),
+      read: async (bytes: Uint8Array) => { bytes.set(data); return { bytesRead: data.length }; }, close: async () => {} };
+  },
+}));
+vi.mock('../../../media/localAssets', () => ({ createLocalAssetUrl: async (path: string) => {
+  readFileSyncMock(path);
+  return 'eisland-media://asset/fixture';
+} }));
+vi.mock('../../../media/downloadWallpaper', () => ({ default: async (url: string, destination: (response: Response) => string) => {
+  const response = await netFetchMock(url);
+  if (!response.ok) throw new Error('HTTP failure');
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (!bytes.length) throw new Error('Empty response');
+  const path = destination(response); writeFileSyncMock(path, bytes); return path;
+} }));
+
 vi.mock('child_process', () => ({
   execFile: execFileMock,
 }));

@@ -63,6 +63,30 @@ public static class ScExports
         }
     }
 
+    /// <summary>返回原始 PNG，由调用方使用 sc_free_string 释放同一 CoTaskMem 分配器。</summary>
+    [UnmanagedCallersOnly(EntryPoint = "sc_capture_primary_display_png_bytes")]
+    public static IntPtr CapturePrimaryDisplayPngBytes(IntPtr size) => CaptureBytes(size, ScreenCapture.CapturePrimaryDisplayPng);
+
+    /// <summary>多屏截图二进制接口，避免 PNG 和 Base64 同时驻留。</summary>
+    [UnmanagedCallersOnly(EntryPoint = "sc_capture_all_displays_png_bytes")]
+    public static IntPtr CaptureAllDisplaysPngBytes(IntPtr size) => CaptureBytes(size, ScreenCapture.CaptureAllDisplaysPng);
+
+    private static IntPtr CaptureBytes(IntPtr size, Func<byte[]> capture)
+    {
+        _lastError = "";
+        Marshal.WriteInt32(size, 0);
+        try
+        {
+            var png = capture();
+            if (png.Length == 0) return IntPtr.Zero;
+            if (png.Length > 64 * 1024 * 1024) throw new InvalidOperationException("PNG exceeds 64 MiB");
+            var ptr = Marshal.AllocCoTaskMem(png.Length);
+            try { Marshal.Copy(png, 0, ptr, png.Length); Marshal.WriteInt32(size, png.Length); return ptr; }
+            catch { Marshal.FreeCoTaskMem(ptr); throw; }
+        }
+        catch (Exception error) { _lastError = error.ToString(); return IntPtr.Zero; }
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "sc_get_visible_windows")]
     public static IntPtr GetVisibleWindows()
     {

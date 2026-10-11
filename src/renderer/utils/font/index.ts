@@ -58,27 +58,29 @@ interface CustomFont {
 export function releaseCustomFonts(prefix: 'eIsland-UI' | 'eIsland-Lyrics'): void {
   document.querySelectorAll<HTMLStyleElement>('style[data-font-url]').forEach((style) => {
     if (!style.id.startsWith(`custom-font-${prefix}-`)) return;
-    if (style.dataset.fontUrl) URL.revokeObjectURL(style.dataset.fontUrl);
+    if (style.dataset.fontUrl?.startsWith('blob:')) URL.revokeObjectURL(style.dataset.fontUrl);
     style.remove();
   });
 }
 
 /**
- * 从 base64 数据注入 @font-face（复用已有 style 元素时会释放旧 Blob URL）
+ * 从本地授权 URL 注入 @font-face，兼容旧 base64 调用并释放旧 Blob URL
  * @param familyName - 字体族名称
- * @param base64Data - base64 编码的字体数据
+ * @param base64Data - 授权资源 URL 或兼容的 base64 字体数据
  * @param ext - 文件扩展名
  * @returns CSS font-family 值
  */
 export function injectFontFace(familyName: string, base64Data: string, ext: string): string {
-  const mime = FONT_MIME_MAP[ext] || 'font/ttf';
-  const binary = atob(base64Data);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  let url: string;
+  if (/^eisland-media:\/\/asset\/[a-zA-Z0-9-]+$/.test(base64Data)) {
+    url = base64Data;
+  } else {
+    // 兼容旧版本调用；新IPC只发送URL，不复制字体二进制或base64。
+    const mime = FONT_MIME_MAP[ext] || 'font/ttf';
+    const binary = atob(base64Data);
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    url = URL.createObjectURL(new Blob([bytes], { type: mime }));
   }
-  const blob = new Blob([bytes], { type: mime });
-  const url = URL.createObjectURL(blob);
   if (familyName.startsWith('eIsland-UI-')) releaseCustomFonts('eIsland-UI');
   if (familyName.startsWith('eIsland-Lyrics-')) releaseCustomFonts('eIsland-Lyrics');
 
@@ -90,7 +92,7 @@ export function injectFontFace(familyName: string, base64Data: string, ext: stri
     document.head.appendChild(style);
   } else {
     const previousUrl = style.dataset.fontUrl;
-    if (previousUrl) URL.revokeObjectURL(previousUrl);
+    if (previousUrl?.startsWith('blob:')) URL.revokeObjectURL(previousUrl);
   }
   style.dataset.fontUrl = url;
 
@@ -129,7 +131,7 @@ export async function initFonts(): Promise<void> {
       if (!font) return null;
       try {
         const result = await window.api.readFontFile(font.path);
-        return result ? injectFontFace(`${prefix}-${font.name}`, result.data, result.ext) : null;
+        return result ? injectFontFace(`${prefix}-${font.name}`, result.url ?? result.data, result.ext) : null;
       } catch {
         return null;
       }

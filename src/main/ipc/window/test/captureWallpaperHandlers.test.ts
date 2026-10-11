@@ -109,6 +109,7 @@ vi.mock('electron', () => ({
   },
 }));
 
+
 vi.mock('fs', () => ({
   writeFileSync: writeFileSyncMock,
   existsSync: existsSyncMock,
@@ -119,12 +120,40 @@ vi.mock('fs', () => ({
   copyFileSync: copyFileSyncMock,
 }));
 
+
+vi.mock('node:fs/promises', () => ({
+  stat: async () => ({ isFile: () => true, size: 7 }),
+  mkdir: async (...args: unknown[]) => mkdirSyncMock(...args),
+  copyFile: async (...args: unknown[]) => copyFileSyncMock(...args),
+  rename: async () => {},
+  writeFile: async (path: string, data: Buffer) => writeFileSyncMock(path, data),
+  readdir: async () => readdirSyncMock() ?? [],
+  unlink: async (...args: unknown[]) => unlinkSyncMock(...args),
+  open: async (path: string) => {
+    const data = readFileSyncMock(path);
+    return { stat: async () => ({ isFile: () => true, size: data.length }),
+      read: async (bytes: Uint8Array) => { bytes.set(data); return { bytesRead: data.length }; }, close: async () => {} };
+  },
+}));
+vi.mock('../../../media/localAssets', () => ({ createLocalAssetUrl: async (path: string) => {
+  readFileSyncMock(path);
+  return 'eisland-media://asset/fixture';
+} }));
+vi.mock('../../../media/downloadWallpaper', () => ({ default: async (url: string, destination: (response: Response) => string) => {
+  const response = await netFetchMock(url);
+  if (!response.ok) throw new Error('HTTP failure');
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (!bytes.length) throw new Error('Empty response');
+  const path = destination(response); writeFileSyncMock(path, bytes); return path;
+} }));
+
 vi.mock('child_process', () => ({
   execFile: execFileMock,
 }));
 
 vi.mock('../../../window/screenshotHelper', () => ({
   capturePrimaryDisplayPng: capturePrimaryDisplayPngMock,
+  encodeScreenshotPng: async (image: { toPNG: () => Buffer }) => image.toPNG(),
 }));
 
 import { registerCaptureIpcHandlers } from '../capture';
@@ -213,7 +242,7 @@ describe('capture and wallpaper ipc handlers', () => {
     startRegionScreenshot.mockRejectedValueOnce(new Error('boom'));
     await expect(handleHandlers.get('system:screenshot:region:start')?.({})).resolves.toBe(false);
 
-    await expect(handleHandlers.get('system:screenshot')?.({})).resolves.toBe(Buffer.from('abc').toString('base64'));
+    await expect(handleHandlers.get('system:screenshot')?.({})).resolves.toEqual(Buffer.from('abc'));
 
     onHandlers.get('capture-complete')?.({}, { dataURL: 'data:image/png;base64,AAA' });
     expect(createFromDataURLMock).toHaveBeenCalledWith('data:image/png;base64,AAA');
@@ -231,7 +260,7 @@ describe('capture and wallpaper ipc handlers', () => {
     )).resolves.toEqual({ success: false, code: 'loginRequired', message: '请先登录 Pro 账号后再使用图片翻译' });
     expect(closeCaptureWindow).toHaveBeenCalledTimes(1);
 
-    await onHandlers.get('capture-save')?.({}, { dataURL: 'data:image/png;base64,BBB' });
+    await onHandlers.get('capture-save')?.({}, { dataURL: `data:image/png;base64,${pngBuffer.toString('base64')}` });
     expect(captureWindow.hide).toHaveBeenCalled();
     expect(writeFileSyncMock).toHaveBeenCalledWith('C:/Pictures/s1.png', pngBuffer);
 
@@ -287,7 +316,7 @@ describe('capture and wallpaper ipc handlers', () => {
     expect(copyFileSyncMock).toHaveBeenCalled();
     expect(unlinkSyncMock).toHaveBeenCalledWith(expect.stringContaining('custom-bg-abc.png'));
 
-    await expect(loadFile?.({}, 'D:/wall/in.png')).resolves.toBe(`data:image/png;base64,${Buffer.from('img').toString('base64')}`);
+    await expect(loadFile?.({}, 'D:/wall/in.png')).resolves.toBe('eisland-media://asset/fixture');
     await expect(loadThumbnail?.({}, 'D:/wall/in.png')).resolves.toBe(`data:image/jpeg;base64,${Buffer.from('thumb').toString('base64')}`);
     expect(createThumbnailFromPathMock).toHaveBeenCalledWith('D:/wall/in.png', { width: 320, height: 320 });
     await expect(readBuffer?.({}, 'C:/AppData/eIsland/wallpapers/test.png')).resolves.toEqual(new Uint8Array(Buffer.from('img')));

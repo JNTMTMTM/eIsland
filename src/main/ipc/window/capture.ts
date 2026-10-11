@@ -27,8 +27,8 @@
 
 import { app, clipboard, desktopCapturer, dialog, ipcMain, nativeImage, type BrowserWindow } from 'electron';
 import { join } from 'path';
-import { writeFileSync } from 'fs';
-import { capturePrimaryDisplayPng } from '../../window/screenshotHelper';
+import { writeFile } from 'fs/promises';
+import { capturePrimaryDisplayPng, encodeScreenshotPng } from '../../window/screenshotHelper';
 import { recognizeCaptureTextLocally } from '../../services/captureLocalOcrService';
 import { recognizeCaptureText } from '../../services/captureOcrService';
 import { translateCaptureImage } from '../../services/imageTranslationService';
@@ -55,23 +55,34 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
     }
   });
 
-  ipcMain.handle('system:screenshot', async () => {
+  let screenshotPending = false;
+  ipcMain.handle('system:screenshot', async (event) => {
+    if (screenshotPending) return null;
+    screenshotPending = true;
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    event.sender?.once('destroyed', abort);
     try {
-      const nativeScreenshot = capturePrimaryDisplayPng();
+      const nativeScreenshot = await capturePrimaryDisplayPng(controller.signal);
+      if (controller.signal.aborted) return null;
       if (nativeScreenshot) {
-        return nativeScreenshot.toString('base64');
+        return nativeScreenshot;
       }
 
+      if (controller.signal.aborted) return null;
       const sources = await desktopCapturer.getSources({
         types: ['screen'],
         thumbnailSize: { width: 1920, height: 1080 },
       });
-      if (sources.length > 0) {
-        const screenshot = sources[0].thumbnail.toPNG();
-        return screenshot.toString('base64');
+      if (!controller.signal.aborted && sources.length > 0) {
+        const screenshot = await encodeScreenshotPng(sources[0].thumbnail, controller.signal);
+        return screenshot;
       }
     } catch (err) {
       console.error('[System] screenshot error:', err);
+    } finally {
+      screenshotPending = false;
+      event.sender?.removeListener('destroyed', abort);
     }
     return null;
   });
@@ -163,8 +174,10 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
       captureWindow.hide();
     }
     try {
-      const image = nativeImage.createFromDataURL(dataURL);
-      const pngBuffer = image.toPNG();
+      const prefix = 'data:image/png;base64,';
+      if (!dataURL.startsWith(prefix) || dataURL.length > 90 * 1024 * 1024) throw new Error('Invalid screenshot PNG');
+      // 截图区已经输出 PNG，不再解码成位图后重复压缩。
+      const pngBuffer = Buffer.from(dataURL.slice(prefix.length), 'base64');
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const result = await dialog.showSaveDialog({
         title: '保存截图',
@@ -172,7 +185,7 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
         filters: [{ name: 'PNG', extensions: ['png'] }],
       });
       if (!result.canceled && result.filePath) {
-        writeFileSync(result.filePath, pngBuffer);
+        await writeFile(result.filePath, pngBuffer);
       }
     } catch (err) {
       console.error('[Screenshot] save error:', err);

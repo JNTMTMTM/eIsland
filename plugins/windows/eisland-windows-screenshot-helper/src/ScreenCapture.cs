@@ -28,7 +28,7 @@ internal static class ScreenCapture
 
         var width = GetSystemMetrics(SM_CXSCREEN);
         var height = GetSystemMetrics(SM_CYSCREEN);
-        if (width <= 0 || height <= 0)
+        if (width <= 0 || height <= 0 || (long)width * height > 32 * 1024 * 1024)
         {
             _lastError = $"invalid primary display dimensions ({width}x{height})";
             return Array.Empty<byte>();
@@ -103,7 +103,7 @@ internal static class ScreenCapture
         var vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
         var vw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
         var vh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-        if (vw <= 0 || vh <= 0)
+        if (vw <= 0 || vh <= 0 || (long)vw * vh > 32 * 1024 * 1024)
         {
             _lastError = $"invalid virtual screen dimensions ({vw}x{vh})";
             return Array.Empty<byte>();

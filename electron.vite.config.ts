@@ -61,6 +61,7 @@ export default defineConfig(({ mode }): UserConfig => {
               index: resolve(__dirname, 'src/main/index.ts'),
               smtcWorker: resolve(__dirname, 'src/main/smtcWorker.ts'),
               codexWorker: resolve(__dirname, 'src/main/codexWorker.ts'),
+              screenshotWorker: resolve(__dirname, 'src/main/screenshotWorker.ts'),
               smtcCommandWorker: resolve(__dirname, 'src/main/smtcCommandWorker.ts'),
             }
         }

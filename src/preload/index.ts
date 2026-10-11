@@ -504,10 +504,10 @@ const api = {
   },
   /** ===== 系统工具 API ===== */
   /**
-   * 截图并返回 Base64 图片数据
-   * @returns Base64 编码的 PNG 图片数据，或 null（失败时）
+   * 截图并返回原始 PNG 字节
+   * @returns PNG 二进制图片数据，或 null（失败时）
    */
-  screenshot: (): Promise<string | null> => {
+  screenshot: (): Promise<Uint8Array | null> => {
     return ipcRenderer.invoke('system:screenshot');
   },
   /**
@@ -675,24 +675,24 @@ const api = {
    * 打开字体文件选择对话框
    * @returns 字体文件信息（path, data, ext, name），取消返回 null
    */
-  openFontDialog: (): Promise<{ path: string; data: string; ext: string; name: string } | null> => {
+  openFontDialog: (): Promise<{ path: string; data: string; url?: string; ext: string; name: string } | null> => {
     return ipcRenderer.invoke('dialog:open-font');
   },
   /**
-   * 读取字体文件并返回 base64 数据
+   * 读取字体元数据并返回受控本地 URL
    * @param filePath - 字体文件绝对路径
    * @returns 字体文件信息，失败返回 null
    */
-  readFontFile: (filePath: string): Promise<{ path: string; data: string; ext: string; name: string } | null> => {
+  readFontFile: (filePath: string): Promise<{ path: string; data: string; url?: string; ext: string; name: string } | null> => {
     return ipcRenderer.invoke('font:read-file', filePath);
   },
   /**
-   * 读取缓存的壁纸文件并返回 base64 data URL
+   * 读取壁纸元数据并返回受控本地 URL
    * @param filePath - 壁纸文件绝对路径
    * @returns data URL 字符串，失败返回 null
    */
-  loadWallpaperFile: (filePath: string): Promise<string | null> => {
-    return ipcRenderer.invoke('wallpaper:load-file', filePath);
+  loadWallpaperFile: (filePath: string, preview?: boolean): Promise<string | null> => {
+    return preview === true ? ipcRenderer.invoke('wallpaper:load-file', filePath, true) : ipcRenderer.invoke('wallpaper:load-file', filePath);
   },
   /**
    * 生成相册网格缩略图，避免批量传输和解码原图

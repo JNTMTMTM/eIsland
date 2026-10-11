@@ -50,6 +50,7 @@ import { registerWallpaperVideoIpcHandlers } from './ipc/media/wallpaperVideo';
 import { registerFormatFactoryIpcHandlers } from './ipc/app/formatFactory';
 import { registerNetIpcHandlers } from './ipc/app/net';
 import { registerMailIpcHandlers } from './ipc/app/mail';
+import { handleLocalAssetRequest } from './media/localAssets';
 import { registerReminderWakeups } from './services/reminderWakeups';
 import { registerStoreIpcHandlers } from './ipc/app/store';
 import { handleAlbumMediaRequest } from './media/albumMedia';
@@ -886,6 +887,7 @@ app.whenReady().then(() => {
    *   使用纯字符串切片解析以避免 Node URL 解析对非内置 scheme 的差异。
    */
   protocol.handle('eisland-media', (request) => {
+    if (request.url.startsWith('eisland-media://asset/')) return handleLocalAssetRequest(request);
     if (request.url.startsWith('eisland-media://album/')) return handleAlbumMediaRequest(request);
     try {
       const raw = request.url;

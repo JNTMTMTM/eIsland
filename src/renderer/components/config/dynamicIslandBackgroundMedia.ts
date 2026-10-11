@@ -87,7 +87,7 @@ export function normalizeBgMediaConfig(value: unknown): IslandBgMediaConfig | nu
 export async function resolveBgMediaPreviewUrl(media: IslandBgMediaConfig): Promise<string | null> {
   if (media.type === 'image') {
     if (isDirectBgMediaUrl(media.source)) return media.source;
-    return window.api?.loadWallpaperFile?.(media.source) ?? null;
+    return window.api?.loadWallpaperFile?.(media.source, true) ?? null;
   }
   if (isDirectBgMediaUrl(media.source)) return media.source;
   return toMediaUrl(media.source);

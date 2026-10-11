@@ -94,7 +94,7 @@ interface ExpectedApi {
   mediaToggleMuted: () => Promise<boolean | null>;
   mediaCurrentInfoGet: () => Promise<NowPlayingInfo | null>;
   onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => () => void;
-  screenshot: () => Promise<string | null>;
+  screenshot: () => Promise<Uint8Array | null>;
   startRegionScreenshot: () => Promise<boolean>;
   openTaskManager: () => void;
   getPerformanceSnapshot: (selection?: PerformanceHardwareSelection, includeHardwareOptions?: boolean) => Promise<PerformanceSnapshot>;
@@ -117,16 +117,18 @@ interface ExpectedApi {
   openFontDialog: () => Promise<{
     path: string;
     data: string;
+    url?: string;
     ext: string;
     name: string;
   } | null>;
   readFontFile: (filePath: string) => Promise<{
     path: string;
     data: string;
+    url?: string;
     ext: string;
     name: string;
   } | null>;
-  loadWallpaperFile: (filePath: string) => Promise<string | null>;
+  loadWallpaperFile: (filePath: string, preview?: boolean) => Promise<string | null>;
   loadAlbumThumbnail: (filePath: string) => Promise<string | null>;
   clearWallpaperCache: () => Promise<void>;
   setSystemDesktopWallpaper: (payload: SetWallpaperPayload) => Promise<boolean>;
