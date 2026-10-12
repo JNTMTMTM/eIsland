@@ -24,8 +24,9 @@
  * @author 鸡哥
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Readable } from 'node:stream';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { registerMailIpcHandlers } from '../mail';
 import type { MailAccountConfig, MailInboxItem } from '../types';
 
 const io = vi.hoisted(() => ({
@@ -37,24 +38,39 @@ vi.mock('electron', () => ({ ipcMain: { handle: (name: string, fn: never) => io.
 vi.mock('fs', () => ({ existsSync: () => false, readFileSync: () => { throw new Error('No legacy cache should be read'); } }));
 vi.mock('imapflow', () => ({ ImapFlow: class {
   mailbox = { exists: io.exists, uidValidity: io.validity };
-  connect = io.connect; logout = io.logout; close = io.close; fetchOne = io.fetch; download = io.download;
-  /** 模拟已经持有的收件箱锁。 */
-  async getMailboxLock() { return { release: io.release }; }
+
+  connect = io.connect;
+
+  logout = io.logout;
+
+  close = io.close;
+
+  fetchOne = io.fetch;
+
+  download = io.download;
+
+  /** 模拟已经持有的收件箱锁。
+   * @returns 已获得的锁
+   */
+  getMailboxLock() { return Promise.resolve({ release: io.release }); }
 } }));
-import { registerMailIpcHandlers } from '../mail';
 const config: MailAccountConfig = { emailAddress: 'a@test', imapHost: 'imap.test', imapPort: '993', imapSecure: true, authUser: 'a', authSecret: 'secret' };
-/** 调用已注册的 IPC 并返回业务结果。 */
+/** 调用已注册的 IPC 并返回业务结果。
+ * @param channel - IPC 通道
+ * @param args - 请求参数
+ * @returns 业务处理结果
+ */
 function invoke(channel: string, ...args: unknown[]) { return io.handlers.get(channel)!({}, ...args); }
 beforeEach(() => {
   vi.resetAllMocks(); io.handlers.clear(); io.exists = 100000; io.validity = 1n;
   io.connect.mockResolvedValue(undefined); io.logout.mockResolvedValue(undefined);
-  io.fetch.mockImplementation(async (uid: number) => ({ uid, size: 100 * 1024 * 1024, envelope: { subject: 'subject' }, bodyStructure: {
+  io.fetch.mockImplementation((uid: number) => Promise.resolve({ uid, size: 100 * 1024 * 1024, envelope: { subject: 'subject' }, bodyStructure: {
     type: 'multipart/mixed', childNodes: [
       { type: 'multipart/alternative', childNodes: [{ type: 'text/plain', part: '1.1' }, { type: 'text/html', part: '1.2' }] },
       { type: 'application/octet-stream', part: '2', disposition: 'attachment', size: 100 * 1024 * 1024 },
     ],
   } }));
-  io.download.mockImplementation(async () => ({ content: Readable.from([Buffer.from('<p>完整正文</p>')]) }));
+  io.download.mockImplementation(() => Promise.resolve({ content: Readable.from([Buffer.from('<p>完整正文</p>')]) }));
   registerMailIpcHandlers({ storeDir: 'fixture-store', mailConfigStoreKey: 'mail-config' });
 });
 describe('摘要列表与按需邮件正文', () => {
@@ -80,6 +96,12 @@ describe('摘要列表与按需邮件正文', () => {
     const result = await invoke('mail:message:get', config, '1', '1');
     expect(result.items[0]?.body).toBe('<pre>你好 &lt;tag&gt; &amp;</pre>');
   });
+  it('正文下载返回空对象时报告邮件已不存在，并释放锁和连接', async () => {
+    io.download.mockResolvedValue({});
+    const result = await invoke('mail:message:get', config, '3', '1');
+    expect(result).toEqual({ ok: false, items: [], message: 'Message no longer exists.' });
+    expect(io.release).toHaveBeenCalledOnce(); expect(io.logout).toHaveBeenCalledOnce();
+  });
   it('相同详情请求合并，列表不保存正文；不同邮箱代次不会命中旧详情', async () => {
     const [first, second] = await Promise.all([invoke('mail:message:get', config, '3', '1'), invoke('mail:message:get', config, '3', '1')]);
     expect(first).toEqual(second); expect(io.download).toHaveBeenCalledOnce();
@@ -91,12 +113,12 @@ describe('摘要列表与按需邮件正文', () => {
     expect((await invoke('mail:message:get', config, '4', '1')).ok).toBe(false);
   });
   it('8MB 字节 LRU 淘汰旧正文，超预算邮件完整返回但不缓存', async () => {
-    io.download.mockImplementation(async () => ({ content: Readable.from(['x'.repeat(3 * 1024 * 1024)]) }));
+    io.download.mockImplementation(() => Promise.resolve({ content: Readable.from(['x'.repeat(3 * 1024 * 1024)]) }));
     await invoke('mail:message:get', config, '1', '1');
     await invoke('mail:message:get', config, '2', '1');
     await invoke('mail:message:get', config, '1', '1');
     expect(io.download).toHaveBeenCalledTimes(3);
-    io.download.mockImplementation(async () => ({ content: Readable.from(['y'.repeat(5 * 1024 * 1024)]) }));
+    io.download.mockImplementation(() => Promise.resolve({ content: Readable.from(['y'.repeat(5 * 1024 * 1024)]) }));
     expect((await invoke('mail:message:get', config, '9', '1')).items[0]?.body.length).toBe(5 * 1024 * 1024);
     await invoke('mail:message:get', config, '9', '1');
     expect(io.download).toHaveBeenCalledTimes(5);

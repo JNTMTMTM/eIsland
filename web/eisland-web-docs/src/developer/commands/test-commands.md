@@ -9,7 +9,7 @@ icon: vial
 This document covers Vitest commands for running, filtering, and measuring test coverage, plus Playwright commands for Electron E2E testing.
 :::
 
-All commands are run from the eIsland project root, where `package.json` and `vitest.config.ts` are located:
+All commands are run from the eIsland project root, where `package.json` and `vitest.config.mts` are located:
 
 ```bash
 npm run <script>

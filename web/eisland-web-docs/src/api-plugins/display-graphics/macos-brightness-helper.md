@@ -16,7 +16,7 @@ This independent plugin lives in `plugins/macos/eisland-macos-brightness-helper`
 
 ## Build / Usage
 
-Requires macOS with arm64 or x64, Node.js 18+ / Node-API 8, and matching prebuilds. The deployment target is macOS 13.0; older OS releases still require runtime verification. Development requires Xcode Command Line Tools and Node.js 22.12+ for the locked Vitest 4.1 toolchain.
+Requires macOS with arm64 or x64, Node.js 18+ / Node-API 8, and matching prebuilds. The deployment target is macOS 13.0; older OS releases still require runtime verification. Development requires Xcode Command Line Tools and Node.js 24.21.0 for the locked Vitest 4.1 toolchain.
 
 ```bash
 cd plugins/macos/eisland-macos-brightness-helper

@@ -19,7 +19,7 @@
  */
 
 /**
- * @file vitest.config.ts
+ * @file vitest.config.mts
  * @description 按主进程、预加载、共享模块、原生插件与渲染进程划分 Vitest 测试项目。
  * @author 鸡哥
  */

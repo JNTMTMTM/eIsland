@@ -37,7 +37,8 @@ interface MemoRecord {
   dependencies?: readonly unknown[];
 }
 const languageData = vi.hoisted(() => ({
-  current: 'zh-CN'
+  current: 'zh-CN',
+  resolvedLanguage: undefined as string | undefined
 }));
 export const language = languageData;
 const translation = vi.hoisted(() => ({
@@ -48,7 +49,8 @@ vi.mock('react-i18next', async (original) => ({
   useTranslation: () => ({
     t: translation.t,
     i18n: {
-      language: languageData.current
+      language: languageData.current,
+      resolvedLanguage: languageData.resolvedLanguage
     }
   })
 }));

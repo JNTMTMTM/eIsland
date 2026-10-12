@@ -35,7 +35,7 @@ All plugins are compiled using **node-gyp** or **dotnet publish**, which require
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| **Node.js** | >= 22.x | JavaScript runtime for node-gyp |
+| **Node.js** | 24.21.0 | JavaScript runtime for node-gyp |
 | **npm** | >= 10.x | Package manager |
 | **Visual Studio Build Tools 2022** | Latest | C/C++ compiler toolchain |
 | **.NET 10 SDK** | >= 10.0 | Build .NET Native AOT plugins and temperature-helper |
@@ -301,7 +301,7 @@ plugin-name/
 ├── binding.gyp            # node-gyp build configuration (sources, libraries, flags)
 ├── index.js               # JavaScript entry point (exports native bindings)
 ├── index.d.ts             # TypeScript type definitions
-├── vitest.config.ts       # Test configuration
+├── vitest.config.mts      # Test configuration
 ├── src/                   # C/C++ source files
 │   ├── *.c or *.cpp       # Native implementation
 │   └── ...
@@ -312,6 +312,8 @@ plugin-name/
 ```
 
 :::note
+New or migrated suites use `vitest.config.mts`; some existing plugins still use `.ts`. Follow the filename in each plugin's `package.json` test script and update its `--config` paths when renaming the configuration.
+
 The `eisland-windows-smtc-helper` plugin uses C# instead of C/C++. Its `src/` directory contains `.cs` files and a `.csproj` project file instead of C sources and `binding.gyp`.
 :::
 
@@ -647,7 +649,7 @@ After completing the setup, verify everything works:
 
 ```bash
 # 1. Check Node.js version
-node -v  # Should be v22+ (v25 recommended)
+node -v  # Should print v24.21.0
 
 # 2. Check .NET SDK
 dotnet --version  # Should be 10.x.x or later

@@ -7,7 +7,8 @@
       "libraries": ["user32.lib", "dwmapi.lib"],
       "msvs_settings": {
         "VCCLCompilerTool": {
-          "AdditionalOptions": ["/GL-"]
+          "AdditionalOptions": ["/utf-8"],
+          "WholeProgramOptimization": "false"
         },
         "VCLinkerTool": {
           "AdditionalOptions": ["/LTCG:OFF"]

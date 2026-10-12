@@ -19,8 +19,8 @@
  */
 
 /**
- * @file vitest.config.ts
- * @description Windows 音频分析插件测试配置
+ * @file vitest.config.mts
+ * @description Vitest test configuration
  * @author 鸡哥
  */
 
