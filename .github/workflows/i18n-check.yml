@@ -79,7 +79,7 @@ jobs:
           path: .
 
       - name: Comment i18n report on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           EXIT_CODE: ${{ needs.i18n-check.outputs.exit_code }}
         with:

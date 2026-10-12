@@ -147,7 +147,7 @@ jobs:
           path: .
 
       - name: Comment test results on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           PRELOAD_EXIT_CODE: ${{ needs.vitest.outputs.preload_exit_code }}
           PRELOAD_DURATION_SECONDS: ${{ needs.vitest.outputs.preload_duration_seconds }}

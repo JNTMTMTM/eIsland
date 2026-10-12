@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Generate PR summary and post comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           # Fall back to GITHUB_TOKEN when BOT_PAT is unavailable (e.g. fork PRs)
           github-token: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
