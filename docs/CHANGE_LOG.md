@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-11T18:30:01.824Z
+> 生成时间：2026-10-12T18:51:30.997Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,16 @@
 
 ## Unreleased
 
+- 2026-10-12 | 37658d5f | dependabot[bot] | ci(deps): bump actions/download-artifact from 4 to 8 (#253)
+- 2026-10-12 | 7bb8ba9e | dependabot[bot] | ci(deps): bump actions/deploy-pages from 4 to 5 (#252)
+- 2026-10-12 | 7669e9f5 | dependabot[bot] | ci(deps): bump actions/github-script from 7 to 9 (#251)
+- 2026-10-12 | 4550fc7d | dependabot[bot] | ci(deps): bump actions/upload-artifact from 4 to 7 (#250)
+- 2026-10-12 | 0c30e579 | dependabot[bot] | ci(deps): bump actions/upload-pages-artifact from 3 to 5 (#249)
+- 2026-10-12 | 2491044f | dependabot[bot] | chore(deps): bump typescript from 5.9.3 to 7.0.2 in /sdk (#247)
+- 2026-10-12 | f946631c | dependabot[bot] | chore(deps): bump @eslint/js from 9.39.5 to 10.0.1 (#246)
+- 2026-10-12 | fd6f1b6b | dependabot[bot] | chore(deps): bump imapflow from 1.3.3 to 2.3.0 (#243)
+- 2026-10-12 | 37bc26c6 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc (#242)
+- 2026-10-11 | fba227aa | eislandBot | docs: auto update CHANGE_LOG.md for #240 by @dependabot[bot] [skip ci]
 - 2026-10-11 | 64d5d6a4 | dependabot[bot] | build(deps): migrate ESLint 10 with plugin compatibility and CI regression checks (#240)
 - 2026-10-11 | 0c80ddb1 | eislandBot | docs: auto update CHANGE_LOG.md for #241 by @dependabot[bot] [skip ci]
 - 2026-10-11 | c4b26d4c | dependabot[bot] | build(deps): upgrade Vite 8 with electron-vite 6 beta (#241)
