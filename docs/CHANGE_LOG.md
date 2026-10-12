@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-12T18:51:30.997Z
+> 生成时间：2026-10-12T20:57:36.738Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-12 | 5d4bf6c6 | 鸡哥 | build: standardize Node 24.21.0 and patch tooling vulnerabilities (#255)
+- 2026-10-12 | 65269aae | eislandBot | docs: auto update CHANGE_LOG.md for #251 by @dependabot[bot] [skip ci]
 - 2026-10-12 | 37658d5f | dependabot[bot] | ci(deps): bump actions/download-artifact from 4 to 8 (#253)
 - 2026-10-12 | 7bb8ba9e | dependabot[bot] | ci(deps): bump actions/deploy-pages from 4 to 5 (#252)
 - 2026-10-12 | 7669e9f5 | dependabot[bot] | ci(deps): bump actions/github-script from 7 to 9 (#251)
