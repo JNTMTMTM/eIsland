@@ -1866,7 +1866,7 @@ The PNG bytes are base64-encoded in the DLL, returned as a CoTaskMem string, the
 Plugins with tests use **Vitest** with the following configuration:
 
 ```ts
-// vitest.config.ts
+// vitest.config.mts
 export default defineConfig({
   test: {
     environment: 'node',

@@ -80,7 +80,7 @@ The plugin spawns a C# console EXE (`eIslandHardwareInfoReader.exe`) as a child 
 
 | Command | Script | Description |
 |---------|--------|-------------|
-| `npm test` | `vitest run --config vitest.config.ts` | Run unit tests |
+| `npm test` | `vitest run --config vitest.config.mts` | Run unit tests |
 | `npm run smoke` | `node test/hardware-info.smoke.ts` | Run smoke test |
 
 :::note

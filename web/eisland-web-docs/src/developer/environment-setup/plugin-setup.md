@@ -301,7 +301,7 @@ plugin-name/
 ├── binding.gyp            # node-gyp build configuration (sources, libraries, flags)
 ├── index.js               # JavaScript entry point (exports native bindings)
 ├── index.d.ts             # TypeScript type definitions
-├── vitest.config.ts       # Test configuration
+├── vitest.config.mts       # Test configuration
 ├── src/                   # C/C++ source files
 │   ├── *.c or *.cpp       # Native implementation
 │   └── ...
