@@ -73,7 +73,7 @@ jobs:
 
     steps:
       - name: Download check report
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: i18n-check-report
           path: .
