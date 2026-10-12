@@ -31,7 +31,7 @@
     "koffi": "^2.9.1"
   },
   "devDependencies": {
-    "@types/node": "^25.9.4"
+    "@types/node": "^24.19.2"
   },
   "files": [
     "index.js",

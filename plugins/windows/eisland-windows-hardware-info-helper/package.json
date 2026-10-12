@@ -23,7 +23,7 @@
     "smoke": "node test/hardware-info.smoke.ts"
   },
   "devDependencies": {
-    "@types/node": "^25.9.4",
+    "@types/node": "^24.19.2",
     "vitest": "^3.2.1"
   },
   "files": [

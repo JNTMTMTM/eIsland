@@ -23,7 +23,7 @@
     "node-gyp": "^11.2.0"
   },
   "devDependencies": {
-    "@types/node": "^25.9.3"
+    "@types/node": "^24.19.2"
   },
   "gypfile": true,
   "files": [

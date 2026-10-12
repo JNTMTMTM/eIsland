@@ -6,7 +6,7 @@ Native macOS hardware brightness query, control, and monitoring through Swift + 
 
 - macOS; deployment target 13.0 (older supported releases still require runtime verification).
 - Separate arm64 and x64 prebuilds; Node.js 18+ / Node-API 8 for consumers.
-- Development requires Xcode Command Line Tools and Node.js 22.12+ for Vitest 4.1 and the locked toolchain.
+- Development requires Xcode Command Line Tools and Node.js 24.21.0 for Vitest 4.1 and the locked toolchain.
 - The published package contains prebuilds and needs no compiler at runtime.
 
 ```bash

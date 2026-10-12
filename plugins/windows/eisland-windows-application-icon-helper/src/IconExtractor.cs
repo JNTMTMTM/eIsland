@@ -166,7 +166,7 @@ internal static class IconExtractor
 
             // 获取 IShellLinkW 接口
             Guid iidShellLink = IID_IShellLinkW;
-            hr = Marshal.QueryInterface(persistPtr, ref iidShellLink, out shellLinkPtr);
+            hr = Marshal.QueryInterface(persistPtr, in iidShellLink, out shellLinkPtr);
             if (hr != 0 || shellLinkPtr == IntPtr.Zero) return null;
 
             // IShellLinkW::GetPath (vtable slot 3)

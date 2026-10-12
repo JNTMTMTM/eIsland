@@ -6,7 +6,7 @@
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
   "engines": {
-    "node": ">=25.0.0"
+    "node": "24.21.0"
   },
   "scripts": {
     "dev": "electron-vite dev",
@@ -141,7 +141,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@playwright/test": "^1.64.0",
     "@types/dompurify": "^3.2.0",
-    "@types/node": "^25.6.0",
+    "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/react-katex": "^3.0.4",
