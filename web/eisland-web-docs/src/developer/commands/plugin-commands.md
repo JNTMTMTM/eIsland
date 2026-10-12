@@ -250,7 +250,7 @@ This is a pure .NET plugin with two build targets: a console exe (for Node.js) a
 **Directory:** `plugins/macos/eisland-macos-brightness-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-brightness-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
 
 :::info
-See the [API reference](../../api-plugins/display-graphics/macos-brightness-helper.md) for target selection, polling, DDC limits, and Electron packaging. Development requires Xcode Command Line Tools and Node.js 22.12+ for the locked Vitest toolchain.
+See the [API reference](../../api-plugins/display-graphics/macos-brightness-helper.md) for target selection, polling, DDC limits, and Electron packaging. Development requires Xcode Command Line Tools and Node.js 24.21.0 for the locked Vitest toolchain.
 :::
 
 ### Build / Usage
@@ -299,7 +299,7 @@ Native coverage requires an existing host build and Node headers (`npm run build
 **Directory:** `plugins/macos/eisland-macos-media-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-media-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
 
 :::info
-See the [API reference](../../api-plugins/media-notifications/macos-media-helper.md) for configuration, artwork, event handling, Electron packaging, and differences from Windows SMTC. Development requires Xcode Command Line Tools; use Node.js 22.12+ for Vitest 4.1 and its locked toolchain.
+See the [API reference](../../api-plugins/media-notifications/macos-media-helper.md) for configuration, artwork, event handling, Electron packaging, and differences from Windows SMTC. Development requires Xcode Command Line Tools; use Node.js 24.21.0 for Vitest 4.1 and its locked toolchain.
 :::
 
 ### Build / Usage

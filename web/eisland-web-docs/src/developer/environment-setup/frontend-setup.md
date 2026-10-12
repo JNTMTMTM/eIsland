@@ -15,14 +15,14 @@ The eIsland frontend is an **Electron + React + TypeScript** desktop application
 
 | Tool | Version | Purpose | Recommended |
 |------|---------|---------|---------|
-| **Node.js** | >= 22.x | JavaScript runtime | 25.6.0 |
+| **Node.js** | 24.21.0 | JavaScript runtime | 24.21.0 LTS |
 | **npm** | >= 10.x | Package manager | 11.15.0 |
 | **Git** | Latest | Version control | 2.53.0.windows.2 |
 | **VS Build Tools 2022** | Latest | Compile native C/C++ plugins | "Desktop development with C++" workload |
 | **.NET 10 SDK** | >= 10.0 | Build temperature-helper | 10.0 |
 
 :::warning
-Node.js 22+ is required because the project uses `--experimental-strip-types` for native TypeScript execution in build scripts.
+Use Node.js 24.21.0 LTS for development and CI. This version supports the native TypeScript execution used by the build scripts.
 :::
 
 ### Installing Node.js
@@ -31,23 +31,23 @@ Node.js 22+ is required because the project uses `--experimental-strip-types` fo
 
 ```bash
 # Install nvm-windows from https://github.com/coreybutler/nvm-windows
-nvm install 25
-nvm use 25
-node -v  # Should print v25.x.x
+nvm install 24.21.0
+nvm use 24.21.0
+node -v  # Should print v24.21.0
 ```
 
 **Windows (alternative — direct download):**
 :::note
-Download the recommended version's installer from [nodejs.org v25.6.0](https://nodejs.org/en/blog/release/v25.6.0) and run it.
+Download the recommended version's installer from [nodejs.org v24.21.0](https://nodejs.org/en/blog/release/v24.21.0) and run it.
 :::
 :::important
-Directly download Node.js v25.6.0 from [node-v25.6.0-x64.msi](https://nodejs.org/dist/v25.6.0/node-v25.6.0-x64.msi) and run it.
+Directly download Node.js v24.21.0 from [node-v24.21.0-x64.msi](https://nodejs.org/dist/v24.21.0/node-v24.21.0-x64.msi) and run it.
 :::
 
 **Verify installation:**
 
 ```bash
-node -v   # v25.6.0 or later
+node -v   # v24.21.0
 npm -v    # 11.x.x or later
 ```
 
@@ -236,7 +236,7 @@ These commands are for **testing and maintainer use only**. Regular developers d
 | `i18n:check` | Validate i18n completeness — all `t()` keys in both locale files | After any UI change that adds or modifies `t()` translation calls |
 
 :::warning
-`comment:check` and `i18n:check` use `--experimental-strip-types` (Node.js 22+ native TS execution). Ensure your Node.js version meets the requirement. See [Quality Commands](/developer/commands/quality-commands.md) for full details.
+`comment:check` and `i18n:check` use `--experimental-strip-types` (Node.js 24.21.0 native TS execution). Ensure your Node.js version meets the requirement. See [Quality Commands](/developer/commands/quality-commands.md) for full details.
 :::
 
 ### Lifecycle Hooks
@@ -337,7 +337,7 @@ After completing the setup, verify everything works:
 
 ```bash
 # 1. Check Node.js version
-node -v  # Should be v22+ (project uses v25.6.0)
+node -v  # Should print v24.21.0
 
 # 2. Install dependencies
 npm install

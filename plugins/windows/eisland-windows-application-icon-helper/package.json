@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-application-icon-helper",
-  "version": "26.0.2",
+  "version": "26.0.3",
   "description": "Extract Windows application/process icons by name, PID, or path via Native AOT DLL.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -29,7 +29,7 @@
     "koffi": "^2.9.1"
   },
   "devDependencies": {
-    "@types/node": "^25.9.4"
+    "@types/node": "^24.19.2"
   },
   "files": [
     "index.js",

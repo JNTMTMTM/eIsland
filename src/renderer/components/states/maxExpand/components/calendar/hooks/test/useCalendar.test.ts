@@ -25,15 +25,9 @@
  */
 
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { flushHookEffects, renderHook, resetHook, unmountHook } from './calendarHookHarness';
+import { flushHookEffects, language, renderHook, resetHook, unmountHook } from './calendarHookHarness';
 import type { KeyboardEvent } from 'react';
 
-const localization = vi.hoisted(() => ({ language: 'zh-CN', resolvedLanguage: undefined as string | undefined }));
-vi.resetModules();
-vi.doMock('react-i18next', async (original) => ({
-  ...(await original<typeof import('react-i18next')>()),
-  useTranslation: () => ({ t: (key: string) => key, i18n: localization })
-}));
 const { useCalendar } = await import('../useCalendar');
 let nativeWindow: EventTarget;
 
@@ -46,7 +40,7 @@ function render(): ReturnType<typeof useCalendar> {
 
 beforeEach(() => {
   resetHook(); vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 9, 5, 12));
-  localization.language = 'zh-CN'; localization.resolvedLanguage = undefined;
+  language.current = 'zh-CN'; language.resolvedLanguage = undefined;
   nativeWindow = Object.assign(new EventTarget(), { setTimeout, clearTimeout });
   vi.stubGlobal('window', nativeWindow);
 });
@@ -62,7 +56,7 @@ it.each([-1, 0, 1])('computes real day differences and translated relative label
 
 it('uses the resolved language when provided and otherwise the requested language', () => {
   expect(render().locale).toBe('zh-CN');
-  localization.resolvedLanguage = 'en-US';
+  language.resolvedLanguage = 'en-US';
   const hook = render(); expect(hook.locale).toBe('en-US'); expect(hook.formats.month.format(hook.selectedDate)).toBe('October 2026');
 });
 
