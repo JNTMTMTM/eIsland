@@ -52,7 +52,7 @@ jobs:
         run: npm run test:e2e:windows
       - name: Upload diagnostics
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-${{ matrix.os }}
           path: |
