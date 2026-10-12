@@ -301,7 +301,7 @@ plugin-name/
 ├── binding.gyp            # node-gyp build configuration (sources, libraries, flags)
 ├── index.js               # JavaScript entry point (exports native bindings)
 ├── index.d.ts             # TypeScript type definitions
-├── vitest.config.mts       # Test configuration
+├── vitest.config.mts      # Test configuration
 ├── src/                   # C/C++ source files
 │   ├── *.c or *.cpp       # Native implementation
 │   └── ...
@@ -312,6 +312,8 @@ plugin-name/
 ```
 
 :::note
+New or migrated suites use `vitest.config.mts`; some existing plugins still use `.ts`. Follow the filename in each plugin's `package.json` test script and update its `--config` paths when renaming the configuration.
+
 The `eisland-windows-smtc-helper` plugin uses C# instead of C/C++. Its `src/` directory contains `.cs` files and a `.csproj` project file instead of C sources and `binding.gyp`.
 :::
 
