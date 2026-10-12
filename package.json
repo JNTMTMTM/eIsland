@@ -151,6 +151,7 @@
     "electron": "^43.4.0",
     "electron-builder": "^26.17.0",
     "electron-vite": "6.0.0-beta.8",
+    "esbuild": "0.28.2",
     "ffmpeg-static": "^5.3.0",
     "lucide-react": "^1.53.0",
     "node-abi": "^4.37.0",
@@ -167,6 +168,7 @@
     "scripts/lint"
   ],
   "overrides": {
+    "tar": "^7.5.22",
     "ts-api-utils": {
       "typescript": "~6.0.3"
     }

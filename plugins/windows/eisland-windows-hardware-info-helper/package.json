@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-hardware-info-helper",
-  "version": "26.0.2",
+  "version": "26.0.3",
   "description": "Windows hardware information query via WMI (System.Management) EXE helper.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -19,12 +19,12 @@
     "build": "dotnet build src/eIslandHardwareInfoReader.csproj -c Release",
     "clean": "dotnet clean src/eIslandHardwareInfoReader.csproj",
     "rebuild": "npm run clean && npm run build",
-    "test": "vitest run --config vitest.config.ts",
+    "test": "vitest run --config vitest.config.mts",
     "smoke": "node test/hardware-info.smoke.ts"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
-    "vitest": "^3.2.1"
+    "vitest": "~4.1.10"
   },
   "files": [
     "index.js",

@@ -7,7 +7,7 @@ on:
       - 'src/**'
       - 'package.json'
       - 'package-lock.json'
-      - 'vitest.config.ts'
+      - 'vitest.config.mts'
       - 'tsconfig*.json'
       - 'eslint.config.mjs'
       - 'scripts/lint/**'

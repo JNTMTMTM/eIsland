@@ -48,26 +48,27 @@ describe('packaged volume helper path', () => {
       error: undefined,
       stdout: JSON.stringify({ level: 50 }),
     }));
-    const module = { exports: {} as VolumeModule };
+    const vmModule = { exports: {} as VolumeModule };
 
     vm.runInNewContext(
       readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8'),
       {
-        module,
-        exports: module.exports,
+        module: vmModule,
+        exports: vmModule.exports,
         __dirname: 'C:\\Program Files\\eIsland\\resources\\app.asar\\node_modules\\@eisland\\windows-volume-helper',
-        process: { platform: 'win32', resourcesPath },
+        process: { resourcesPath, platform: 'win32' },
         require: (id: string) => {
           if (id === 'node:child_process') return { spawnSync, spawn: vi.fn() };
           if (id === 'node:fs') return { existsSync: (candidate: string) => candidate === expectedHelperPath };
           if (id === 'node:path') return path;
           if (id === 'node:events') return { EventEmitter };
+          if (id === './async-control') return { createAsyncControl: vi.fn() };
           throw new Error(`Unexpected dependency: ${id}`);
         },
       },
     );
 
-    expect(module.exports.getVolume()).toBe(50);
+    expect(vmModule.exports.getVolume()).toBe(50);
     expect(spawnSync).toHaveBeenCalledWith(
       expectedHelperPath,
       ['get'],
@@ -83,13 +84,13 @@ describe('packaged volume helper path', () => {
       error: undefined,
       stdout: JSON.stringify({ level: 75 }),
     }));
-    const module = { exports: {} as VolumeModule };
+    const vmModule = { exports: {} as VolumeModule };
 
     vm.runInNewContext(
       readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8'),
       {
-        module,
-        exports: module.exports,
+        module: vmModule,
+        exports: vmModule.exports,
         __dirname: asarDir,
         process: { platform: 'win32' },
         require: (id: string) => {
@@ -97,12 +98,13 @@ describe('packaged volume helper path', () => {
           if (id === 'node:fs') return { existsSync: (candidate: string) => candidate === legacyHelperPath };
           if (id === 'node:path') return path;
           if (id === 'node:events') return { EventEmitter };
+          if (id === './async-control') return { createAsyncControl: vi.fn() };
           throw new Error(`Unexpected dependency: ${id}`);
         },
       },
     );
 
-    expect(module.exports.getVolume()).toBe(75);
+    expect(vmModule.exports.getVolume()).toBe(75);
     expect(spawnSync).toHaveBeenCalledWith(
       legacyHelperPath,
       ['get'],

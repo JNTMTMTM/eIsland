@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-brightness-helper",
-  "version": "26.0.5",
+  "version": "26.0.6",
   "description": "Windows screen brightness query and control via WMI and DDC/CI, with WMI event monitoring.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -19,15 +19,15 @@
     "build": "dotnet build src/eIslandBrightnessReader.csproj -c Release",
     "clean": "dotnet clean src/eIslandBrightnessReader.csproj",
     "rebuild": "npm run clean && npm run build",
-    "test": "vitest run --config vitest.config.ts",
-    "test:query": "vitest run --config vitest.config.ts test/brightness.test.ts",
-    "test:monitor": "vitest run --config vitest.config.ts test/brightness.monitor.test.ts",
+    "test": "vitest run --config vitest.config.mts",
+    "test:query": "vitest run --config vitest.config.mts test/brightness.test.ts",
+    "test:monitor": "vitest run --config vitest.config.mts test/brightness.monitor.test.ts",
     "smoke": "node --experimental-strip-types test/brightness.smoke.ts",
     "smoke:monitor": "node --experimental-strip-types test/brightness.monitor.smoke.ts"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
-    "vitest": "^3.2.1"
+    "vitest": "~4.1.10"
   },
   "files": [
     "index.js",

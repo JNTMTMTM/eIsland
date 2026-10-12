@@ -134,7 +134,7 @@ test('类型感知检查能发现悬空 Promise，声明文件不会因同名源
     overrideConfig: { languageOptions: { parserOptions: { disallowAutomaticSingleRunInference: true } } },
   });
   // 使用已纳入 TS 项目的文件名提供类型上下文；lintText 不会改写该文件。
-  const [result] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'vitest.config.ts')}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.ts' });
+  const [result] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'vitest.config.mts')}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.mts' });
   assert.equal(result.fatalErrorCount, 0);
   assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'), JSON.stringify(result.messages));
   const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'index.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/preload/index.d.ts' });
