@@ -10,7 +10,8 @@ permissions:
 
 jobs:
   build-and-upload:
-    runs-on: windows-latest
+    # Keep native addon builds on VS2022 while using node-gyp 11.
+    runs-on: windows-2022
 
     steps:
       - name: Checkout

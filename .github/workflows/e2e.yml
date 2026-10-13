@@ -26,7 +26,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        # node-gyp 11 requires VS2022; windows-latest now selects VS2026.
+        os: [windows-2022, macos-latest]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
