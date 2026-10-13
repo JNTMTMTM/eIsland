@@ -30,6 +30,7 @@
 #include <tlhelp32.h>
 #include <string.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 bool append_failure(ProcessCloseResult* result, DWORD pid, const WCHAR* name, DWORD error_code) {
   ProcessFailure* next_failures;
@@ -48,12 +49,35 @@ bool append_failure(ProcessCloseResult* result, DWORD pid, const WCHAR* name, DW
   return true;
 }
 
-void close_process_by_entry(const PROCESSENTRY32W* entry, ProcessCloseResult* result) {
+/**
+ * Rejects a PID replacement created after enumeration began or with a different image name.
+ * The same open handle is retained until termination, so a later PID reuse cannot change the target.
+ */
+static bool process_matches_snapshot(HANDLE handle, const PROCESSENTRY32W* entry, const FILETIME* snapshot_started_at) {
+  FILETIME creation, exit, kernel, user;
+  WCHAR image[32768];
+  DWORD image_length = sizeof(image) / sizeof(image[0]);
+  const WCHAR* basename;
+
+  if (!GetProcessTimes(handle, &creation, &exit, &kernel, &user) ||
+      !QueryFullProcessImageNameW(handle, 0, image, &image_length)) {
+    return false;
+  }
+  basename = wcsrchr(image, L'\\');
+  basename = basename == NULL ? image : basename + 1;
+  if (CompareFileTime(&creation, snapshot_started_at) > 0 || _wcsicmp(basename, entry->szExeFile) != 0) {
+    SetLastError(ERROR_RETRY);
+    return false;
+  }
+  return true;
+}
+
+void close_process_by_entry(const PROCESSENTRY32W* entry, const FILETIME* snapshot_started_at, ProcessCloseResult* result) {
   HANDLE process_handle;
   DWORD error_code;
 
   result->matched_count += 1;
-  process_handle = OpenProcess(PROCESS_TERMINATE, FALSE, entry->th32ProcessID);
+  process_handle = OpenProcess(PROCESS_TERMINATE | PROCESS_QUERY_LIMITED_INFORMATION, FALSE, entry->th32ProcessID);
 
   if (process_handle == NULL) {
     error_code = GetLastError();
@@ -61,6 +85,12 @@ void close_process_by_entry(const PROCESSENTRY32W* entry, ProcessCloseResult* re
     return;
   }
 
+  if (!process_matches_snapshot(process_handle, entry, snapshot_started_at)) {
+    error_code = GetLastError();
+    CloseHandle(process_handle);
+    append_failure(result, entry->th32ProcessID, entry->szExeFile, error_code);
+    return;
+  }
   if (TerminateProcess(process_handle, EXIT_CODE_TERMINATED_BY_EISLAND)) {
     result->terminated_count += 1;
     CloseHandle(process_handle);
@@ -82,10 +112,12 @@ bool entry_matches_target(const PROCESSENTRY32W* entry, const ProcessTarget* tar
 
 bool close_matching_processes(const ProcessTarget* target, ProcessCloseResult* result) {
   HANDLE snapshot;
+  FILETIME snapshot_started_at;
   PROCESSENTRY32W entry;
 
   memset(result, 0, sizeof(ProcessCloseResult));
 
+  GetSystemTimePreciseAsFileTime(&snapshot_started_at);
   snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
   if (snapshot == INVALID_HANDLE_VALUE) {
     append_failure(result, 0, L"", GetLastError());
@@ -103,7 +135,7 @@ bool close_matching_processes(const ProcessTarget* target, ProcessCloseResult* r
 
   do {
     if (entry_matches_target(&entry, target)) {
-      close_process_by_entry(&entry, result);
+      close_process_by_entry(&entry, &snapshot_started_at, result);
     }
   } while (Process32NextW(snapshot, &entry));
 

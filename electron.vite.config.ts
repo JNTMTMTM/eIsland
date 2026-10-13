@@ -40,7 +40,11 @@ export default defineConfig(({ mode }): UserConfig => {
   const isE2E = mode === 'e2e' || mode === 'e2e-windows';
   return {
     main: {
-      plugins: [externalizeDepsPlugin({ exclude: mode === 'e2e' ? e2eNativeModules : [] })],
+      plugins: [externalizeDepsPlugin({
+        // ffmpeg-static 依赖自身安装目录定位二进制，不能打入主进程输出目录。
+        include: ['ffmpeg-static'],
+        exclude: mode === 'e2e' ? e2eNativeModules : [],
+      })],
       define: {
         'process.env.EISLAND_E2E': JSON.stringify(isE2E ? '1' : ''),
         'process.env.EISLAND_E2E_NATIVE': JSON.stringify(mode === 'e2e-windows' ? '1' : ''),
@@ -54,7 +58,11 @@ export default defineConfig(({ mode }): UserConfig => {
         sourcemap: mode === 'development' ? 'inline' : false,
         outDir: isE2E ? 'e2e/out/main' : 'out/main',
         rollupOptions: {
-          ...(isE2E ? { output: { inlineDynamicImports: true } } : {}),
+          // 各 Worker 独立启动，不能因共享模块而执行主进程入口。
+          output: {
+            strictExecutionOrder: true,
+            ...(isE2E ? { inlineDynamicImports: true } : {}),
+          },
           input: isE2E
             ? { index: resolve(__dirname, 'e2e/main.mjs') }
             : {

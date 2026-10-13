@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-processes-attacker",
-  "version": "26.0.1",
+  "version": "26.0.3",
   "description": "Windows N-API addon for closing processes by name or process id.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -16,6 +16,7 @@
   ],
   "scripts": {
     "build": "node-gyp rebuild",
+    "test:native": "node-gyp rebuild --directory test && node test/native-safety.cjs",
     "clean": "node-gyp clean",
     "rebuild": "node-gyp clean && node-gyp rebuild"
   },

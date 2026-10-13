@@ -10,7 +10,8 @@ permissions:
 
 jobs:
   build-and-upload:
-    runs-on: windows-latest
+    # Keep native addon builds on VS2022 while using node-gyp 11.
+    runs-on: windows-2022
 
     steps:
       - name: Checkout
@@ -43,6 +44,11 @@ jobs:
 
       - name: Install Electron binary
         run: node node_modules/electron/install.js
+
+      - name: Install and verify FFmpeg binary
+        run: |
+          node node_modules/ffmpeg-static/install.js
+          node -e "const fs = require('node:fs'); const binary = require('ffmpeg-static'); if (!binary || !fs.existsSync(binary)) throw new Error('FFmpeg binary is missing');"
 
       - name: Build plugins
         run: npm run plugins:build

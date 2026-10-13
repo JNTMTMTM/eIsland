@@ -32,14 +32,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
+#include <stdint.h>
+#include <wchar.h>
 
 static bool read_string_target(napi_env env, napi_value value, ProcessTarget* target) {
   size_t copied_length;
   napi_status status;
 
+  status = napi_get_value_string_utf16(env, value, NULL, 0, &copied_length);
+  if (status != napi_ok || copied_length == 0 || copied_length >= MAX_PROCESS_NAME_LENGTH) {
+    napi_throw_type_error(env, NULL, "Process name must contain 1 to 259 characters without null characters.");
+    return false;
+  }
   status = napi_get_value_string_utf16(env, value, (char16_t*)target->name, MAX_PROCESS_NAME_LENGTH, &copied_length);
-  if (status != napi_ok || copied_length == 0) {
-    napi_throw_type_error(env, NULL, "Process name must be a non-empty string.");
+  if (status != napi_ok || wmemchr(target->name, L'\0', copied_length) != NULL) {
+    napi_throw_type_error(env, NULL, "Process name must contain 1 to 259 characters without null characters.");
     return false;
   }
 
@@ -51,11 +59,11 @@ static bool read_string_target(napi_env env, napi_value value, ProcessTarget* ta
 }
 
 static bool read_number_target(napi_env env, napi_value value, ProcessTarget* target) {
-  uint32_t pid;
-  napi_status status = napi_get_value_uint32(env, value, &pid);
+  double pid;
+  napi_status status = napi_get_value_double(env, value, &pid);
 
-  if (status != napi_ok || pid == 0) {
-    napi_throw_type_error(env, NULL, "Process id must be a positive integer.");
+  if (status != napi_ok || !isfinite(pid) || pid < 1 || pid > UINT32_MAX || (uint32_t)pid != pid) {
+    napi_throw_type_error(env, NULL, "Process id must be an integer between 1 and 4294967295.");
     return false;
   }
 
@@ -116,6 +124,7 @@ napi_value close_multiple_processes(napi_env env, napi_callback_info callback_in
   bool is_array;
   napi_value args[1];
   napi_value results;
+  ProcessTarget* targets;
 
   napi_get_cb_info(env, callback_info, &argc, args, NULL, NULL);
   if (argc < 1) {
@@ -132,24 +141,34 @@ napi_value close_multiple_processes(napi_env env, napi_callback_info callback_in
   }
 
   napi_get_array_length(env, args[0], &length);
-  napi_create_array_with_length(env, length, &results);
+  targets = length == 0 ? NULL : calloc(length, sizeof(ProcessTarget));
+  if (length != 0 && targets == NULL) {
+    napi_throw_error(env, NULL, "Unable to allocate process targets.");
+    return NULL;
+  }
 
+  // Parse the entire batch before any process can be terminated.
   for (index = 0; index < length; index += 1) {
     napi_value item;
+    if (napi_get_element(env, args[0], index, &item) != napi_ok || !read_target(env, item, &targets[index])) {
+      free(targets);
+      return NULL;
+    }
+  }
+  if (napi_create_array_with_length(env, length, &results) != napi_ok) {
+    free(targets);
+    return NULL;
+  }
+  for (index = 0; index < length; index += 1) {
     napi_value item_result;
-    ProcessTarget target;
     ProcessCloseResult close_result;
 
-    napi_get_element(env, args[0], index, &item);
-    if (!read_target(env, item, &target)) {
-      return results;
-    }
-
-    close_matching_processes(&target, &close_result);
-    item_result = make_result(env, &target, &close_result);
+    close_matching_processes(&targets[index], &close_result);
+    item_result = make_result(env, &targets[index], &close_result);
     napi_set_element(env, results, index, item_result);
     free(close_result.failures);
   }
 
+  free(targets);
   return results;
 }
