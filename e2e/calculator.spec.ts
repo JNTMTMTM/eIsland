@@ -46,6 +46,21 @@ async function showCalculator(desktop: { main: Page; app: ElectronApplication })
 
 test.beforeEach(async ({ desktop }) => showCalculator(desktop));
 
+/** 向可视化矩阵粘贴文本，隔离用户系统剪贴板。
+ * @param page - 当前测试页面
+ * @param name - 矩阵标识
+ * @param text - 原矩阵文本或 JSON
+ */
+async function pasteMatrix(page: Page, name: 'A' | 'B', text: string): Promise<void> {
+  const label = en.calculator.matrix.cell.replace('{{name}}', name).replace('{{row}}', '1').replace('{{column}}', '1');
+  const cell = page.getByRole('textbox', { name: label, exact: true });
+  await cell.focus();
+  await cell.evaluate((element, value) => {
+    const clipboard = new DataTransfer(); clipboard.setData('text/plain', value);
+    element.dispatchEvent(new ClipboardEvent('paste', { clipboardData: clipboard, bubbles: true, cancelable: true }));
+  }, text);
+}
+
 test('arithmetic preserves calculation and keeps all four keypad columns aligned', async ({ desktop }, testInfo) => {
   const page = desktop.main;
   const display = page.getByRole('textbox', { name: en.calculator.display.expression });
@@ -132,8 +147,9 @@ test('unit conversion, equations, complex arithmetic and matrices work through t
   await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
   await expect(page.locator('.calc-matrix-result td')).toHaveText(['-2', '1', '1.5', '-0.5']);
   await page.getByRole('combobox', { name: en.calculator.matrix.operation, exact: true }).selectOption('solve');
-  await page.getByRole('textbox', { name: en.calculator.matrix.a, exact: true }).fill('2 1\n1 3');
-  await page.getByRole('textbox', { name: en.calculator.matrix.b, exact: true }).fill('1\n2');
+  await expect(page.locator('.calc-matrix-operand textarea')).toHaveCount(0);
+  await pasteMatrix(page, 'A', '2 1\n1 3');
+  await pasteMatrix(page, 'B', '1\n2');
   await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
   await expect(page.locator('.calc-matrix-result td')).toHaveText(['0.2', '0.6']);
   await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('matrices.png') });
@@ -162,8 +178,98 @@ test('unit conversion, equations, complex arithmetic and matrices work through t
   await restoredPage.getByRole('button', { name: en.calculator.history.title, exact: true }).click();
   await restoredPage.locator('.calc-history-row[data-mode="matrix"] .calc-history-restore').filter({ hasText: '0.2' }).click();
   await expect(restoredPage.getByRole('combobox', { name: en.calculator.matrix.operation, exact: true })).toHaveValue('solve');
-  await expect(restoredPage.getByRole('textbox', { name: en.calculator.matrix.a, exact: true })).toHaveValue('2 1\n1 3');
-  await expect(restoredPage.getByRole('textbox', { name: en.calculator.matrix.b, exact: true })).toHaveValue('1\n2');
+  await expect(restoredPage.getByRole('region', { name: en.calculator.matrix.a, exact: true }).locator('.calc-matrix-cell')).toHaveText(['2', '1', '1', '3']);
+  await expect(restoredPage.getByRole('region', { name: en.calculator.matrix.b, exact: true }).locator('.calc-matrix-cell')).toHaveText(['1', '2']);
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('visual matrix editing preserves all operations, cell formulas, paste and clipboard results', async ({ desktop }, testInfo) => {
+  const page = desktop.main;
+  await page.getByRole('button', { name: en.calculator.matrix.title, exact: true }).click();
+  const a = page.getByRole('region', { name: en.calculator.matrix.a, exact: true });
+  await expect(a.locator('input, textarea')).toHaveCount(0);
+  const firstCell = a.locator('.calc-matrix-cell').first();
+  await firstCell.fill('12'); await firstCell.press('3');
+  await expect(firstCell).toHaveText('123');
+  await firstCell.press('Enter');
+  await expect(a.locator('.calc-matrix-cell').nth(1)).toBeFocused();
+  await firstCell.fill('');
+  await firstCell.evaluate((element) => {
+    const data = new DataTransfer(); data.setData('text/plain', 'logn(2,8)');
+    element.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+  });
+  await expect(firstCell).toHaveText('logn(2,8)');
+  await page.getByRole('combobox', { name: en.calculator.matrix.rows.replace('{{name}}', 'A'), exact: true }).selectOption('3');
+  await expect(a.locator('.calc-matrix-cell')).toHaveText(['logn(2,8)', '2', '3', '4', '0', '0']);
+  await pasteMatrix(page, 'A', '1 2\n3 4');
+  await expect(firstCell).toHaveText('1');
+  await expect(page.getByRole('combobox', { name: en.calculator.matrix.rows.replace('{{name}}', 'A'), exact: true })).toHaveValue('2');
+  const operation = page.getByRole('combobox', { name: en.calculator.matrix.operation, exact: true });
+  const cases = [
+    ['add', ['2', '2', '3', '5']], ['subtract', ['0', '2', '3', '3']], ['multiply', ['1', '2', '3', '4']],
+    ['scale', ['2', '4', '6', '8']], ['transpose', ['1', '3', '2', '4']], ['inverse', ['-2', '1', '1.5', '-0.5']],
+    ['solve', ['-2', '1', '1.5', '-0.5']],
+  ] as const;
+  for (const [kind, values] of cases) {
+    await operation.selectOption(kind);
+    await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
+    await expect(page.locator('.calc-matrix-result td')).toHaveText([...values]);
+  }
+  for (const [kind, value] of [['determinant', '-2'], ['rank', '2']]) {
+    await operation.selectOption(kind);
+    await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
+    await expect(page.locator('.calc-feature-result')).toHaveText(value);
+  }
+  await desktop.app.evaluate(({ ipcMain }) => {
+    let clipboard = '';
+    ipcMain.removeHandler('clipboard:read-text'); ipcMain.removeHandler('clipboard:write-text');
+    ipcMain.handle('clipboard:read-text', () => clipboard);
+    ipcMain.handle('clipboard:write-text', (_, value: string) => { clipboard = value; return true; });
+  });
+  await operation.selectOption('inverse');
+  await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.clipboard.copyResult, exact: true }).click();
+  expect(await page.evaluate(() => window.api.clipboardReadText())).toBe('-2\t1\n1.5\t-0.5');
+  await pasteMatrix(page, 'A', '1 2\n2 4');
+  await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
+  await expect(page.locator('.calc-feature-result')).toHaveText(en.calculator.matrix.singular);
+  await pasteMatrix(page, 'A', 'wrong\n2');
+  await expect(page.locator('.calc-feature-result')).toHaveText(en.calculator.matrix.invalid);
+  await expect(a.locator('.calc-matrix-cell')).toHaveText(['1', '2', '2', '4']);
+  await pasteMatrix(page, 'A', '[["1/2","0"],["0","2"]]');
+  await page.getByRole('button', { name: en.calculator.matrix.calculate, exact: true }).click();
+  await expect(page.locator('.calc-matrix-result td')).toHaveText(['2', '0', '0', '0.5']);
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('matrix-cell-editing.png') });
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('rewritten calculator workbenches fit narrow layouts and preserve keyboard calculations', async ({ desktop }, testInfo) => {
+  const page = desktop.main;
+  const titles = { unitConversion: en.calculator.modes.unitConversion, equation: en.calculator.equation.title, complex: en.calculator.complex.title, matrix: en.calculator.matrix.title };
+  for (const mode of ['unitConversion', 'equation', 'complex', 'matrix'] as const) {
+    await page.getByRole('button', { name: titles[mode], exact: true }).click();
+    await page.locator('.calculator-panel').evaluate((panel) => { panel.style.width = '484px'; panel.style.height = '364px'; });
+    if (mode === 'equation') {
+      const expression = page.getByRole('textbox', { name: en.calculator.equation.expression, exact: true });
+      await expression.fill('x^2=16'); await expression.press('Enter');
+      await expect(page.locator('.calc-feature-result')).toHaveText('x = -4, 4');
+      await page.getByRole('button', { name: en.calculator.angleUnit.radian, exact: true }).click();
+      await expression.fill('sin(x)=0'); await expression.press('Enter');
+      await expect(page.locator('.calc-workbench-badge')).toHaveText(en.calculator.workbench.approximate);
+    } else if (mode === 'complex') {
+      const expression = page.getByRole('textbox', { name: en.calculator.complex.expression, exact: true });
+      await expression.fill('0'); await expression.press('Enter');
+      await expect(page.locator('.calc-feature-result')).toHaveText('0');
+      await expect(page.locator('.calc-complex-details dd').nth(1)).toHaveText('—');
+    } else if (mode === 'matrix') {
+      await page.getByRole('combobox', { name: en.calculator.matrix.rows.replace('{{name}}', 'A'), exact: true }).selectOption('6');
+      await page.getByRole('combobox', { name: en.calculator.matrix.columns.replace('{{name}}', 'A'), exact: true }).selectOption('6');
+      await expect(page.getByRole('region', { name: en.calculator.matrix.a, exact: true }).locator('.calc-matrix-cell')).toHaveCount(36);
+    }
+    expect(await page.locator('.calc-main').evaluate((main) => main.scrollWidth - main.clientWidth)).toBeLessThanOrEqual(1);
+    await page.locator('.calc-main').evaluate((main) => main.scrollTop = 0);
+    await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath(mode + '-narrow.png') });
+  }
   expect(desktop.rendererErrors).toEqual([]);
 });
 

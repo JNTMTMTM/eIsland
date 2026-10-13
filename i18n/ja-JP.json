@@ -2646,7 +2646,15 @@
     }
   },
   "calculator": {
+    "workbench": {
+      "result": "計算結果",
+      "exact": "解析結果",
+      "approximate": "数値近似"
+    },
     "matrix": {
+      "rows": "行列 {{name}} の行数",
+      "columns": "行列 {{name}} の列数",
+      "cell": "行列 {{name}}、{{row}} 行 {{column}} 列",
       "title": "行列",
       "operation": "演算",
       "a": "行列 A",

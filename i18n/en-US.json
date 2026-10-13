@@ -2646,7 +2646,15 @@
     }
   },
   "calculator": {
+    "workbench": {
+      "result": "Result",
+      "exact": "Analytical",
+      "approximate": "Numerical approximation"
+    },
     "matrix": {
+      "rows": "Rows of matrix {{name}}",
+      "columns": "Columns of matrix {{name}}",
+      "cell": "Matrix {{name}}, row {{row}}, column {{column}}",
       "title": "Matrices",
       "operation": "Operation",
       "a": "Matrix A",

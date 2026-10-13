@@ -266,13 +266,6 @@
 
 }
 
-.calc-feature-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-
-}
-
 .calc-feature-result {
   padding: 12px;
   font-size: 22px;
@@ -301,6 +294,416 @@
 .calc-matrix-result td {
   padding: 6px 4px;
   overflow-wrap: anywhere;
+
+}
+
+.calc-workbench {
+  gap: 14px;
+
+}
+
+.calc-workbench-heading,
+.calc-workbench-result-heading,
+.calc-matrix-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+
+}
+
+.calc-workbench-heading h3 {
+  font-size: 16px;
+
+}
+
+.calc-workbench-heading label {
+  flex: 0 1 180px;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .55);
+
+}
+
+.calc-workbench-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+
+}
+
+.calc-workbench-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 14px;
+  background: rgb(var(--color-text-rgb), .045);
+  border: 1px solid rgb(var(--color-text-rgb), .1);
+  border-radius: 12px;
+
+}
+
+.calc-workbench-form,
+.calc-matrix-input-area,
+.calc-unit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+}
+
+.calc-workbench label {
+  gap: 6px;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-workbench input,
+.calc-workbench select {
+  font-size: 13px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-workbench input:focus,
+.calc-workbench select:focus {
+  border-color: rgb(var(--color-accent-rgb, 99, 144, 255), .5);
+
+}
+
+.calc-workbench .calc-workbench-expression {
+  padding: 12px;
+  font-family: "KaTeX_Main", serif;
+  font-size: 21px;
+
+}
+
+.calc-workbench-fields,
+.calc-complex-details,
+.calc-root-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+
+}
+
+.calc-workbench-angle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-primary-action,
+.calc-unit-swap {
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-accent, #6390ff);
+  cursor: pointer;
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .16);
+  border: 1px solid rgb(var(--color-accent-rgb, 99, 144, 255), .25);
+  border-radius: 8px;
+
+}
+
+.calc-primary-action:hover,
+.calc-unit-swap:hover {
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .24);
+
+}
+
+.calc-workbench-result {
+  background: rgb(var(--color-text-rgb), .085);
+  border-color: rgb(var(--color-text-rgb), .14);
+
+}
+
+.calc-workbench-result-heading {
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .65);
+
+}
+
+.calc-workbench-badge {
+  padding: 3px 7px;
+  font-size: 10px;
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .1);
+  border-radius: 5px;
+
+}
+
+.calc-workbench-result .calc-feature-result {
+  display: block;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0;
+  margin-top: 16px;
+  font-family: "KaTeX_Main", serif;
+  font-size: 30px;
+  line-height: 1.3;
+  color: rgb(var(--color-text-rgb), .95);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+
+}
+
+.calc-workbench-result .calc-workbench-error {
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #ff6b62;
+
+}
+
+.calc-root-list,
+.calc-complex-details {
+  margin: 12px 0 0;
+
+}
+
+.calc-root-card,
+.calc-complex-details > div {
+  min-width: 0;
+  padding: 10px;
+  overflow-wrap: anywhere;
+  background: rgb(var(--color-text-rgb), .045);
+  border-radius: 8px;
+
+}
+
+.calc-root-card {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+
+}
+
+.calc-root-card strong {
+  font-family: "KaTeX_Main", serif;
+  font-size: 20px;
+  font-weight: 400;
+
+}
+
+.calc-complex-details dt {
+  font-size: 10px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-complex-details dd {
+  margin: 6px 0 0;
+  font-family: "KaTeX_Main", serif;
+  font-size: 15px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-unit-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+
+}
+
+.calc-unit-swap {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 22px;
+  border-radius: 50%;
+
+}
+
+.calc-unit-value {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-unit-value input {
+  padding: 8px 0;
+  font-family: "KaTeX_Main", serif;
+  font-size: 32px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+
+}
+
+.calc-unit-value .calc-feature-result {
+  padding: 8px 0;
+  margin: 0;
+
+}
+
+.calc-matrix-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+
+}
+
+.calc-matrix-inputs-pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+}
+
+.calc-matrix-operand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+}
+
+.calc-matrix-name {
+  font-family: "KaTeX_Main", serif;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+
+}
+
+.calc-matrix-dimensions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+}
+
+.calc-matrix-dimensions select {
+  width: 40px;
+  padding: 3px;
+  font-size: 11px;
+  border-radius: 5px;
+
+}
+
+.calc-matrix-brackets {
+  position: relative;
+  min-width: 0;
+  padding: 6px 12px;
+
+}
+
+.calc-matrix-brackets::before,
+.calc-matrix-brackets::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  content: "";
+  border: 2px solid rgb(var(--color-text-rgb), .55);
+
+}
+
+.calc-matrix-brackets::before {
+  left: 0;
+  border-right: 0;
+
+}
+
+.calc-matrix-brackets::after {
+  right: 0;
+  border-left: 0;
+
+}
+
+.calc-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--matrix-columns), minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+
+}
+
+.calc-matrix-cell {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 2px;
+  overflow: auto hidden;
+  font-family: "KaTeX_Main", serif;
+  font-size: 18px;
+  line-height: 1.2;
+  color: rgb(var(--color-text-rgb), .95);
+  text-align: center;
+  white-space: nowrap;
+  cursor: text;
+  border-radius: 4px;
+  caret-color: var(--color-accent, #6390ff);
+  scrollbar-width: none;
+
+}
+
+.calc-matrix-cell:focus {
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .12);
+  box-shadow: inset 0 -2px 0 rgb(var(--color-accent-rgb, 99, 144, 255), .5);
+
+}
+
+.calc-matrix-cell[aria-invalid="true"] {
+  color: #ff6b62;
+  background: rgb(255 107 98 / 8%);
+
+}
+
+.calc-matrix-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+}
+
+.calc-matrix-actions .calc-primary-action {
+  flex: 1;
+
+}
+
+.calc-matrix-readonly {
+  margin: 8px 0;
+
+}
+
+@container (width < 640px) {
+  .calc-workbench-layout {
+    grid-template-columns: minmax(0, 1fr);
+
+  }
+
+}
+
+@container (width < 360px) {
+  .calc-unit-pair {
+    grid-template-columns: minmax(0, 1fr);
+
+  }
+
+  .calc-unit-swap {
+    justify-self: center;
+
+  }
+
+  .calc-matrix-inputs-pair {
+    grid-template-columns: minmax(0, 1fr);
+
+  }
 
 }
 
@@ -815,6 +1218,7 @@
 .calc-graph-analysis {
   flex: 1;
   min-height: 0;
+  padding-right: 8px;
   overflow: auto;
   overflow-wrap: anywhere;
   color: rgb(var(--color-text-rgb), .65);

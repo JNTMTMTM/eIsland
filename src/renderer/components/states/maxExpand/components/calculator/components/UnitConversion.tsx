@@ -55,21 +55,41 @@ export function UnitConversion({ initial, onRecord }: {
     onRecord?.({ mode: 'unitConversion', formula: value + ' ' + fromSymbol + ' → ' + toSymbol,
       result: formatDisplay(result) + ' ' + toSymbol, input: { category, from, to, value } });
   }, [edited, result, value, category, from, to, fromSymbol, toSymbol, onRecord]);
-  return <section className="calc-feature-panel">
-    <h3>{t('calculator.modes.unitConversion')}</h3>
-    <label>{t('calculator.units.category')}
-      <select value={category} onChange={(event) => {
-        setEdited(true);
-        const next = event.target.value as UnitCategory; const choices = CONVERSION_UNITS.filter((unit) => unit.category === next);
-        setCategory(next); setFrom(choices[0].id); setTo(choices[1].id);
-      }}>{(Object.keys(CATEGORY_LABELS) as UnitCategory[]).map((item) => <option key={item} value={item}>{t(CATEGORY_LABELS[item])}</option>)}</select>
-    </label>
-    <label>{t('calculator.units.value')}<input inputMode="decimal" value={value} onChange={(event) => { setValue(event.target.value); setEdited(true); }} /></label>
-    <div className="calc-feature-grid">
-      <label>{t('calculator.units.from')}<select value={from} onChange={(event) => { setFrom(event.target.value); setEdited(true); }}>{units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select></label>
-      <label>{t('calculator.units.to')}<select value={to} onChange={(event) => { setTo(event.target.value); setEdited(true); }}>{units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select></label>
+  return <section className="calc-feature-panel calc-workbench calc-unit-workbench">
+    <header className="calc-workbench-heading">
+      <h3>{t('calculator.modes.unitConversion')}</h3>
+      <label className="calc-unit-category">{t('calculator.units.category')}
+        <select value={category} onChange={(event) => {
+          setEdited(true);
+          const next = event.target.value as UnitCategory; const choices = CONVERSION_UNITS.filter((unit) => unit.category === next);
+          setCategory(next); setFrom(choices[0].id); setTo(choices[1].id);
+        }}>{(Object.keys(CATEGORY_LABELS) as UnitCategory[]).map((item) => <option key={item} value={item}>{t(CATEGORY_LABELS[item])}</option>)}</select>
+      </label>
+    </header>
+    <div className="calc-unit-pair">
+      <section className="calc-workbench-card calc-unit-card">
+        <label>{t('calculator.units.from')}<select value={from} onChange={(event) => { setFrom(event.target.value); setEdited(true); }}>
+          {units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select>
+        </label>
+        <label className="calc-unit-value">{t('calculator.units.value')}
+          <input inputMode="decimal" value={value} onChange={(event) => { setValue(event.target.value); setEdited(true); }} />
+        </label>
+      </section>
+      <button className="calc-unit-swap" type="button" aria-label={t('calculator.units.swap')} title={t('calculator.units.swap')}
+        onClick={() => { setFrom(to); setTo(from); setEdited(true); if (result !== null) setValue(String(result)); }}>
+        <span aria-hidden="true">⇄</span>
+      </button>
+      <section className="calc-workbench-card calc-workbench-result calc-unit-card">
+        <label>{t('calculator.units.to')}<select value={to} onChange={(event) => { setTo(event.target.value); setEdited(true); }}>
+          {units.map((unit) => <option value={unit.id} key={unit.id}>{unit.symbol}</option>)}</select>
+        </label>
+        <div className="calc-unit-value">
+          <span>{t('calculator.workbench.result')}</span>
+          <output className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} aria-live="polite">
+            {error ? t('calculator.units.error') : result === null ? '—' : formatDisplay(result) + ' ' + toSymbol}
+          </output>
+        </div>
+      </section>
     </div>
-    <button className="calc-tool-btn" type="button" onClick={() => { setFrom(to); setTo(from); setEdited(true); if (result !== null) setValue(String(result)); }}>{t('calculator.units.swap')}</button>
-    <output className="calc-feature-result" aria-live="polite">{error ? t('calculator.units.error') : result === null ? '—' : formatDisplay(result) + ' ' + units.find((unit) => unit.id === to)?.symbol}</output>
   </section>;
 }

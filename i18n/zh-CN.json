@@ -2646,7 +2646,15 @@
     }
   },
   "calculator": {
+    "workbench": {
+      "result": "计算结果",
+      "exact": "解析结果",
+      "approximate": "数值近似"
+    },
     "matrix": {
+      "rows": "矩阵 {{name}} 的行数",
+      "columns": "矩阵 {{name}} 的列数",
+      "cell": "矩阵 {{name}}，第 {{row}} 行第 {{column}} 列",
       "title": "矩阵",
       "operation": "运算",
       "a": "矩阵 A",

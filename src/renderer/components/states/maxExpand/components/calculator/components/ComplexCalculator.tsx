@@ -41,27 +41,38 @@ export function ComplexCalculator({ initial, onRecord }: {
 } = {}): ReactElement {
   const { t } = useTranslation(); const [formula, setFormula] = useState(initial?.formula ?? '(1+2i)*(3-4i)');
   const [result, setResult] = useState<ComplexNumber | null>(null); const [error, setError] = useState('');
-  return <section className="calc-feature-panel">
-    <h3>{t('calculator.complex.title')}</h3>
-    <label>{t('calculator.complex.expression')}<input value={formula} onChange={(event) => { setFormula(event.target.value); setResult(null); setError(''); }} /></label>
-    <div className="calc-tools">
-      <button className="calc-tool-btn" type="button" onClick={() => {
-        try {
-          const next = evaluateComplexFormula(formula); setResult(next); setError('');
-          onRecord?.({ mode: 'complex', formula, result: formatComplex(next), input: { formula } });
-        }
-        catch (failure) { setResult(null); setError(t(`calculator.errors.${getCalculatorErrorCode(failure)}`)); }
-      }}>{t('calculator.complex.calculate')}</button>
-      <button className="calc-tool-btn" type="button" disabled={!result} onClick={() => {
-        if (result) void window.api.clipboardWriteText(formatComplex(result)).then((saved) => { if (!saved) setError(t('calculator.clipboard.failed')); }).catch(() => setError(t('calculator.clipboard.failed')));
-      }}>{t('calculator.clipboard.copyResult')}</button>
+  const calculate = (): void => {
+    try {
+      const next = evaluateComplexFormula(formula); setResult(next); setError('');
+      onRecord?.({ mode: 'complex', formula, result: formatComplex(next), input: { formula } });
+    } catch (failure) { setResult(null); setError(t(`calculator.errors.${getCalculatorErrorCode(failure)}`)); }
+  };
+  return <section className="calc-feature-panel calc-workbench">
+    <header className="calc-workbench-heading"><h3>{t('calculator.complex.title')}</h3></header>
+    <div className="calc-workbench-layout">
+      <form className="calc-workbench-card calc-workbench-form" onSubmit={(event) => { event.preventDefault(); calculate(); }}>
+        <label>{t('calculator.complex.expression')}
+          <input className="calc-workbench-expression" value={formula} spellCheck={false}
+            onChange={(event) => { setFormula(event.target.value); setResult(null); setError(''); }} />
+        </label>
+        <button className="calc-primary-action" type="submit">{t('calculator.complex.calculate')}</button>
+      </form>
+      <section className="calc-workbench-card calc-workbench-result">
+        <div className="calc-workbench-result-heading"><span>{t('calculator.workbench.result')}</span>
+          <button className="calc-tool-btn" type="button" disabled={!result} onClick={() => {
+            if (result) void window.api.clipboardWriteText(formatComplex(result)).then((saved) => { if (!saved) setError(t('calculator.clipboard.failed')); }).catch(() => setError(t('calculator.clipboard.failed')));
+          }}>{t('calculator.clipboard.copyResult')}</button>
+        </div>
+        <output className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} aria-live="polite">
+          {error || (result ? formatComplex(result) : '—')}
+        </output>
+        {result && <dl className="calc-complex-details">
+          <div><dt>{t('calculator.complex.modulus')}</dt><dd>{formatDisplay(Math.hypot(result.re, result.im))}</dd></div>
+          <div><dt>{t('calculator.complex.argument')}</dt><dd>{result.re === 0 && result.im === 0 ? '—' : formatDisplay(Math.atan2(result.im, result.re))}</dd></div>
+          <div><dt>{t('calculator.complex.conjugate')}</dt><dd>{formatComplex({ re: result.re, im: -result.im })}</dd></div>
+          <div><dt>{t('calculator.complex.polar')}</dt><dd>{formatDisplay(Math.hypot(result.re, result.im))} ∠ {result.re === 0 && result.im === 0 ? '—' : formatDisplay(Math.atan2(result.im, result.re))}</dd></div>
+        </dl>}
+      </section>
     </div>
-    <output className="calc-feature-result" aria-live="polite">{error || (result ? formatComplex(result) : '—')}</output>
-    {result && <div className="calc-feature-grid">
-      <div>{t('calculator.complex.modulus')}: {formatDisplay(Math.hypot(result.re, result.im))}</div>
-      <div>{t('calculator.complex.argument')}: {result.re === 0 && result.im === 0 ? '—' : formatDisplay(Math.atan2(result.im, result.re))}</div>
-      <div>{t('calculator.complex.conjugate')}: {formatComplex({ re: result.re, im: -result.im })}</div>
-      <div>{t('calculator.complex.polar')}: {formatDisplay(Math.hypot(result.re, result.im))} ∠ {result.re === 0 && result.im === 0 ? '—' : formatDisplay(Math.atan2(result.im, result.re))}</div>
-    </div>}
   </section>;
 }

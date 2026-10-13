@@ -85,7 +85,7 @@ export function readCalculatorHistory(value: unknown): CalculatorHistoryEntry[] 
       } else if (mode === 'complex') {
         if (!boundedText(input.formula)) continue;
       } else if (mode === 'matrix') {
-        if (![input.a, input.b, input.scalar].every((text) => boundedText(text)) || !['add', 'subtract', 'multiply', 'scale', 'transpose', 'determinant', 'inverse', 'rank', 'solve'].includes(input.operation)) continue;
+        if (![input.a, input.b].every((text) => boundedText(text, 10000)) || !boundedText(input.scalar) || !['add', 'subtract', 'multiply', 'scale', 'transpose', 'determinant', 'inverse', 'rank', 'solve'].includes(input.operation)) continue;
       } else continue;
     }
     entries.push({ ...entry, mode } as CalculatorHistoryEntry);

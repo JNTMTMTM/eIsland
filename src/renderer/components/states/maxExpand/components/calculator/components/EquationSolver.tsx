@@ -49,24 +49,47 @@ export function EquationSolver({ initial, onRecord }: {
     ? t(value.approximate ? 'calculator.equation.sampledIdentity' : 'calculator.equation.infinite')
     : value.status === 'none' ? t(value.approximate ? 'calculator.equation.noneInRange' : 'calculator.equation.none')
       : 'x ' + (value.approximate ? '≈ ' : '= ') + value.roots.map(formatDisplay).join(', ');
-  return <section className="calc-feature-panel">
-    <h3>{t('calculator.equation.title')}</h3>
-    <label>{t('calculator.equation.expression')}<input value={equation} onChange={(event) => { setEquation(event.target.value); reset(); }} /></label>
-    <div className="calc-feature-grid">
-      <label>{t('calculator.equation.lower')}<input inputMode="decimal" value={lower} onChange={(event) => { setLower(event.target.value); reset(); }} /></label>
-      <label>{t('calculator.equation.upper')}<input inputMode="decimal" value={upper} onChange={(event) => { setUpper(event.target.value); reset(); }} /></label>
+  const solve = (): void => {
+    try {
+      const next = solveEquation(equation, lower.trim() ? Number(lower) : NaN, upper.trim() ? Number(upper) : NaN, unit);
+      setResult(next); setError('');
+      onRecord?.({ mode: 'equation', formula: equation, result: resultText(next), input: { equation, lower, upper, angleUnit: unit } });
+    } catch (failure) { setResult(null); setError(t(`calculator.errors.${getCalculatorErrorCode(failure)}`)); }
+  };
+  return <section className="calc-feature-panel calc-workbench">
+    <header className="calc-workbench-heading"><h3>{t('calculator.equation.title')}</h3></header>
+    <div className="calc-workbench-layout">
+      <form className="calc-workbench-card calc-workbench-form" onSubmit={(event) => { event.preventDefault(); solve(); }}>
+        <label>{t('calculator.equation.expression')}
+          <input className="calc-workbench-expression" value={equation} spellCheck={false}
+            onChange={(event) => { setEquation(event.target.value); reset(); }} />
+        </label>
+        <div className="calc-workbench-angle" role="group" aria-label={t('calculator.angleUnit.label')}>
+          <span>{t('calculator.angleUnit.label')}</span>
+          <div className="calc-angle-unit">{(['degree', 'radian'] as const).map((angle) => <button key={angle}
+            className="calc-angle-unit-btn" type="button" aria-pressed={unit === angle}
+            aria-label={t(angle === 'degree' ? 'calculator.angleUnit.degree' : 'calculator.angleUnit.radian')}
+            onClick={() => { setUnit(angle); reset(); }}>
+            {t(angle === 'degree' ? 'calculator.angleUnit.degreeShort' : 'calculator.angleUnit.radianShort')}
+          </button>)}</div>
+        </div>
+        <div className="calc-workbench-fields">
+          <label>{t('calculator.equation.lower')}<input inputMode="decimal" value={lower} onChange={(event) => { setLower(event.target.value); reset(); }} /></label>
+          <label>{t('calculator.equation.upper')}<input inputMode="decimal" value={upper} onChange={(event) => { setUpper(event.target.value); reset(); }} /></label>
+        </div>
+        <button className="calc-primary-action" type="submit">{t('calculator.equation.solve')}</button>
+      </form>
+      <section className="calc-workbench-card calc-workbench-result">
+        <div className="calc-workbench-result-heading"><span>{t('calculator.workbench.result')}</span>
+          {result && <span className="calc-workbench-badge">{t(result.approximate ? 'calculator.workbench.approximate' : 'calculator.workbench.exact')}</span>}
+        </div>
+        <output className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} aria-live="polite">
+          {error || (result ? resultText(result) : '—')}
+        </output>
+        {result?.status === 'finite' && <div className="calc-root-list">{result.roots.map((root, index) => <div className="calc-root-card" key={index}>
+          <span>x<sub>{index + 1}</sub></span><strong>{formatDisplay(root)}</strong>
+        </div>)}</div>}
+      </section>
     </div>
-    <label>{t('calculator.angleUnit.label')}<select value={unit} onChange={(event) => { setUnit(event.target.value as CalcAngleUnit); reset(); }}><option value="degree">{t('calculator.angleUnit.degree')}</option><option value="radian">{t('calculator.angleUnit.radian')}</option></select></label>
-    <button className="calc-tool-btn" type="button" onClick={() => {
-      try {
-        const next = solveEquation(equation, lower.trim() ? Number(lower) : NaN, upper.trim() ? Number(upper) : NaN, unit);
-        setResult(next); setError('');
-        onRecord?.({ mode: 'equation', formula: equation, result: resultText(next), input: { equation, lower, upper, angleUnit: unit } });
-      }
-      catch (failure) { setResult(null); setError(t(`calculator.errors.${getCalculatorErrorCode(failure)}`)); }
-    }}>{t('calculator.equation.solve')}</button>
-    <output className="calc-feature-result" aria-live="polite">
-      {error || (result ? resultText(result) : '—')}
-    </output>
   </section>;
 }
