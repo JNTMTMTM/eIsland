@@ -43,7 +43,7 @@ export const MAX_EXPAND_APPS = {
   miniGame: { icon: SvgIcon.INTERACTION },
   stock: { icon: SvgIcon.STOCK_CHOOSE },
   cli: { icon: SvgIcon.CODING },
-  calculator: { icon: SvgIcon.SHORTCUT_KEY },
+  calculator: { icon: SvgIcon.CALCULATOR },
   worldClock: { icon: SvgIcon.WORLDCLOCK },
   calendar: { icon: SvgIcon.CALENDER },
   settings: { icon: SvgIcon.SETTING },
