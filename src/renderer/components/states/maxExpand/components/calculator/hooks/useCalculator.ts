@@ -26,13 +26,16 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type {
+  CalcAngleUnit,
   CalcOperator,
   CalcState,
   FormulaCursor,
+  FormulaDocument,
   FormulaStructureKind,
   ScientificFn,
   UseCalculatorReturn,
 } from '../types/calculatorTypes';
+import { getCalculatorErrorCode } from '../utils/calculatorErrorUtils';
 import { INITIAL_STATE } from '../config/calculatorConfig';
 import { evaluateFormula, formatDisplay, getScientificInput } from '../utils/calculatorUtils';
 import {
@@ -55,16 +58,41 @@ const STRUCTURE_KIND: Partial<Record<ScientificFn, FormulaStructureKind>> = {
   nthroot: 'root',
 };
 
+function evaluateResult(document: FormulaDocument, angleUnit: CalcAngleUnit): Partial<CalcState> {
+  try {
+    const answer = evaluateFormula(serializeFormulaDocument(document), angleUnit);
+    return { result: formatDisplay(answer), answer, errorCode: null };
+  } catch (error) {
+    return { result: 'Error', errorCode: getCalculatorErrorCode(error) };
+  }
+}
+
 /**
  * 管理结构化公式、槽位光标和最终求值。
  * @returns 计算器编辑状态与操作方法
  */
 export function useCalculator(): UseCalculatorReturn {
   const [state, setState] = useState<CalcState>(INITIAL_STATE);
+  const [angleUnit, setAngleUnitState] = useState<CalcAngleUnit>('degree');
+  const [calculationSequence, setCalculationSequence] = useState(0);
+
+  const setAngleUnit = useCallback((unit: CalcAngleUnit): void => {
+    if (unit === angleUnit) return;
+    setAngleUnitState(unit);
+    // 切换单位时同步已有结果，避免新单位旁仍显示旧单位的计算值。
+    setState((previous) => previous.result === null ? previous : {
+      ...previous,
+      ...evaluateResult(previous.document, unit),
+    });
+  }, [angleUnit]);
 
   const insertText = useCallback((text: string, replaceInitial = true, cursorOffset = 0): void => {
     setState((previous) => ({
-      ...insertFormulaText(previous.document, previous.cursor, text, replaceInitial, cursorOffset),
+      ...previous,
+      ...(() => {
+        const target = previous.result !== null && replaceInitial ? createInitialFormula() : previous;
+        return insertFormulaText(target.document, target.cursor, text, replaceInitial, cursorOffset);
+      })(),
       result: null,
     }));
   }, []);
@@ -72,26 +100,38 @@ export function useCalculator(): UseCalculatorReturn {
   const inputText = useCallback((text: string): void => insertText(text), [insertText]);
   const inputDigit = useCallback((digit: string): void => insertText(digit), [insertText]);
   const inputDot = useCallback((): void => insertText('.'), [insertText]);
-  const inputOperator = useCallback((operator: CalcOperator): void => insertText(operator, false), [insertText]);
-
-  const calculate = useCallback((): void => {
+  const inputOperator = useCallback((operator: CalcOperator): void => {
     setState((previous) => {
-      try {
-        const formula = serializeFormulaDocument(previous.document);
-        return { ...previous, result: formatDisplay(evaluateFormula(formula)) };
-      } catch {
-        return { ...previous, result: 'Error' };
-      }
+      const initial = previous.result !== null && previous.result !== 'Error' && previous.answer !== null
+        ? insertFormulaText(createInitialFormula().document, createInitialFormula().cursor, String(previous.answer)) : previous;
+      return { ...previous, ...insertFormulaText(initial.document, initial.cursor, operator, false), result: null };
+    });
+  }, []);
+  const inputAnswer = useCallback((): void => {
+    setState((previous) => {
+      if (previous.answer === null) return previous;
+      const target = previous.result !== null ? createInitialFormula() : previous;
+      return {
+        ...previous,
+        ...insertFormulaText(target.document, target.cursor, '(' + String(previous.answer) + ')'),
+        result: null,
+      };
     });
   }, []);
 
+  const calculate = useCallback((): void => {
+    setState((previous) => ({ ...previous, ...evaluateResult(previous.document, angleUnit) }));
+    setCalculationSequence((previous) => previous + 1);
+  }, [angleUnit]);
+
   const clear = useCallback((): void => {
     const initial = createInitialFormula();
-    setState({ ...initial, result: null });
+    setState((previous) => ({ ...previous, ...initial, result: null }));
   }, []);
 
   const backspace = useCallback((): void => {
     setState((previous) => ({
+      ...previous,
       ...deleteFormulaContent(previous.document, previous.cursor, -1),
       result: null,
     }));
@@ -99,6 +139,7 @@ export function useCalculator(): UseCalculatorReturn {
 
   const deleteForward = useCallback((): void => {
     setState((previous) => ({
+      ...previous,
       ...deleteFormulaContent(previous.document, previous.cursor, 1),
       result: null,
     }));
@@ -129,7 +170,8 @@ export function useCalculator(): UseCalculatorReturn {
     const structureKind = STRUCTURE_KIND[fn];
     if (structureKind) {
       setState((previous) => ({
-        ...insertFormulaStructure(previous.document, previous.cursor, structureKind),
+        ...previous,
+      ...insertFormulaStructure(previous.document, previous.cursor, structureKind),
         result: null,
       }));
       return;
@@ -147,7 +189,17 @@ export function useCalculator(): UseCalculatorReturn {
     document: state.document,
     formula,
     result: state.result,
+    calculationSequence,
+    errorCode: state.errorCode,
     cursor: state.cursor,
+    angleUnit,
+    setAngleUnit,
+    restoreFormula: (document, unit) => {
+      setAngleUnitState(unit);
+      setState((previous) => ({ ...previous, document, cursor: moveFormulaCursorBoundary(document, 'end'), result: null }));
+    },
+    answer: state.answer,
+    inputAnswer,
     inputDigit,
     inputDot,
     inputOperator,

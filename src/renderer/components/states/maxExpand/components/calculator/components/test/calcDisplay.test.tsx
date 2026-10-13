@@ -39,9 +39,11 @@ describe('CalcDisplay', () => {
     expect(value(result, '.calc-expression', 'style')).toBeUndefined();
     expect(nodes(render(Component, { ...props, showValue: false }), '.calc-value')).toHaveLength(0);
   });
-  it('moves to the formula end on capture and forwards keyboard events', () => {
+  it('focuses on capture without resetting a clicked slot, and moves to the end only on a bubbling click', () => {
     const tree = render(Component, props);
     trigger(tree, '.calc-display', 'onClickCapture');
+    expect(props.onMoveEnd).not.toHaveBeenCalled();
+    trigger(tree, '.calc-display', 'onClick');
     trigger(tree, '.calc-display', 'onKeyDown', { key: 'Enter' });
     expect(props.onMoveEnd).toHaveBeenCalledOnce();
     expect(props.onKeyDown).toHaveBeenCalledWith({ key: 'Enter' });

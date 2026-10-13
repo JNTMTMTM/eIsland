@@ -60,6 +60,53 @@ it('reports real evaluator failures without losing the editable document', () =>
   expect(render().result).toBe('1');
 });
 
+it('chains operators and reuses an unrounded answer after clearing', () => {
+  let hook = render(); hook.inputText('1/3'); hook = render(); hook.calculate(); hook = render();
+  expect(hook.answer).toBe(1 / 3);
+  hook.inputOperator('×'); hook = render(); hook.inputDigit('3'); hook = render(); hook.calculate();
+  expect(render().currentValue).toBe(1);
+  hook = render(); hook.clear(); hook = render(); hook.inputAnswer(); hook = render(); hook.calculate();
+  expect(render().currentValue).toBe(1);
+  hook = render(); hook.inputDigit('7'); expect(render().formula).toBe('7');
+});
+
+it('starts a fresh Ans expression after equals and preserves Ans through evaluation errors', () => {
+  let hook = render(); hook.inputText('2+3'); hook = render(); hook.calculate(); hook = render();
+  hook.inputAnswer(); hook = render(); expect(hook.formula).toBe('(5)');
+  hook.calculate(); hook = render(); expect(hook.currentValue).toBe(5);
+  hook.inputOperator('+'); hook = render(); hook.inputAnswer(); hook = render();
+  expect(hook.formula).toBe('5+(5)'); hook.calculate(); hook = render(); expect(hook.currentValue).toBe(10);
+  hook.clear(); hook = render(); hook.inputText('1/0'); hook = render(); hook.calculate(); hook = render();
+  expect(hook.result).toBe('Error'); hook.inputAnswer(); hook = render(); expect(hook.formula).toBe('(10)');
+  hook.calculate(); expect(render().currentValue).toBe(10);
+});
+
+it('defaults to degrees and refreshes the existing result when changing units without moving the cursor', () => {
+  let hook = render();
+  expect(hook.angleUnit).toBe('degree');
+  hook.inputText('sin(30)'); hook = render(); hook.calculate(); hook = render();
+  expect(hook.result).toBe('0.5');
+  const { document, cursor } = hook;
+  hook.setAngleUnit('radian'); hook = render();
+  expect(hook.angleUnit).toBe('radian');
+  expect(hook.currentValue).toBeCloseTo(Math.sin(30));
+  expect(hook.document).toBe(document); expect(hook.cursor).toBe(cursor);
+  hook.setAngleUnit('degree'); hook = render();
+  expect(hook.result).toBe('0.5');
+});
+
+it('preserves the selected unit after clearing and waits for equals on an unevaluated formula', () => {
+  let hook = render(); hook.setAngleUnit('radian'); hook = render();
+  expect(hook.result).toBeNull();
+  hook.clear(); hook = render(); expect(hook.angleUnit).toBe('radian');
+  hook.inputText('sin(π/2)'); hook = render(); hook.calculate();
+  expect(render().result).toBe('1');
+  hook = render(); hook.clear(); hook = render(); hook.inputText('sin('); hook = render();
+  hook.setAngleUnit('degree'); hook = render(); expect(hook.result).toBeNull();
+  hook.calculate(); hook = render(); expect(hook.result).toBe('Error');
+  hook.setAngleUnit('radian'); expect(render().result).toBe('Error');
+});
+
 it('inserts sign and percentage using real serialization and numerical evaluation', () => {
   let hook = render(); hook.toggleSign(); hook = render(); hook.inputText('50');
   hook = render(); hook.percentage(); hook = render(); hook.calculate();

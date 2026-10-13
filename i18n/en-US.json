@@ -2,6 +2,7 @@
   "common": {
     "appName": "eIsland",
     "errors": {
+      "complexMode": "Use the Complex numbers mode for imaginary values",
       "rootMountNotFound": "#root mount node not found"
     }
   },
@@ -2645,6 +2646,143 @@
     }
   },
   "calculator": {
+    "workbench": {
+      "result": "Result",
+      "exact": "Analytical",
+      "approximate": "Numerical approximation"
+    },
+    "matrix": {
+      "rows": "Rows of matrix {{name}}",
+      "columns": "Columns of matrix {{name}}",
+      "cell": "Matrix {{name}}, row {{row}}, column {{column}}",
+      "title": "Matrices",
+      "operation": "Operation",
+      "a": "Matrix A",
+      "b": "Matrix B",
+      "scalar": "Scalar",
+      "calculate": "Calculate matrix",
+      "swap": "Swap A and B",
+      "result": "Matrix result",
+      "hint": "Up to 6 × 6 real matrices. Separate cells with spaces or commas, rows with newlines or semicolons; JSON arrays and expressions such as 1/2 are accepted. Numerical operations use floating-point precision.",
+      "add": "A + B",
+      "subtract": "A − B",
+      "multiply": "A × B",
+      "scale": "Scalar × A",
+      "transpose": "Transpose A",
+      "determinant": "Determinant of A",
+      "inverse": "Inverse of A",
+      "rank": "Rank of A",
+      "solve": "Solve A X = B",
+      "singular": "The matrix is singular or too ill-conditioned to invert or solve reliably",
+      "dimensions": "The matrix dimensions do not match this operation",
+      "invalid": "Enter a rectangular matrix of finite real numbers, up to 6 × 6"
+    },
+    "complex": {
+      "title": "Complex numbers",
+      "expression": "Complex expression",
+      "calculate": "Calculate",
+      "hint": "Use i for the imaginary unit. Supports + − × ÷, powers, sqrt, ln, log, exp, sin, cos, tan, abs, arg, conj, re and im. Angles are radians; roots and logarithms use the principal branch.",
+      "modulus": "Modulus",
+      "argument": "Argument (RAD)",
+      "undefinedArgument": "Undefined",
+      "conjugate": "Conjugate",
+      "polar": "Polar form"
+    },
+    "equation": {
+      "title": "Equations",
+      "expression": "Equation in x",
+      "lower": "Search lower bound",
+      "upper": "Search upper bound",
+      "solve": "Solve equation",
+      "hint": "Linear and quadratic equations return all real roots. Other equations use numerical search in the chosen range; closely spaced roots may be missed.",
+      "infinite": "Every real x satisfies this equation",
+      "none": "No real solution",
+      "noneInRange": "No roots found in the search range",
+      "sampledIdentity": "All sampled points satisfy the equation"
+    },
+    "graph": {
+      "controls": "Functions and analysis",
+      "extra": "Additional functions, one per line (up to 4)",
+      "analyze": "Find zeros and intersections",
+      "domainFind": "Find domain",
+      "rangeFind": "Find range",
+      "domainName": "Domain",
+      "rangeName": "Range",
+      "setComplete": "Complete interval",
+      "setEstimated": "Sample estimate in this view, x ∈ [{{lower}}, {{upper}}]; discontinuities or extrema may be missed",
+      "tangentStart": "Start tangent analysis",
+      "tangentStop": "Stop tangent analysis",
+      "reset": "Reset view",
+      "tracking": "Move over a curve to track coordinates",
+      "zero": "Zeros",
+      "intersection": "Intersections",
+      "none": "No points found in this view",
+      "identical": "Some curves coincide across this view",
+      "hint": "Numerical approximations in the visible x range"
+    },
+    "units": {
+      "category": "Category",
+      "value": "Value",
+      "from": "From unit",
+      "to": "To unit",
+      "swap": "Swap units",
+      "error": "Enter a finite number; temperatures must be above absolute zero",
+      "length": "Length",
+      "area": "Area",
+      "volume": "Volume",
+      "mass": "Mass",
+      "temperature": "Temperature",
+      "time": "Time",
+      "speed": "Speed"
+    },
+    "errors": {
+      "divisionByZero": "Cannot divide by zero",
+      "domain": "The input is outside this function’s domain",
+      "incomplete": "Complete the formula and close all brackets",
+      "syntax": "The formula contains an invalid symbol",
+      "unboundVariable": "Use graphing or equation solving for variable x",
+      "unknownFunction": "This function is not supported",
+      "range": "Check the function arguments or summation range",
+      "convergence": "The numerical calculation did not converge",
+      "overflow": "The result exceeds the numerical range",
+      "invalid": "Invalid expression"
+    },
+    "clipboard": {
+      "copyFormula": "Copy formula",
+      "copyResult": "Copy result",
+      "paste": "Paste",
+      "copied": "Copied",
+      "empty": "Clipboard is empty",
+      "failed": "Could not read or write the clipboard, or the formula is too long"
+    },
+    "answer": {
+      "label": "Ans",
+      "hint": "Insert the previous result at full precision"
+    },
+    "history": {
+      "title": "History",
+      "empty": "No calculations yet",
+      "restore": "Edit this calculation",
+      "remove": "Delete calculation",
+      "clear": "Clear history",
+      "pagination": "History pagination",
+      "pageSize": "Per page",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "pageSummary": "Page {{page}} / {{pages}}",
+      "storageError": "History could not be saved; current records are still available"
+    },
+    "angleUnit": {
+      "label": "Angle unit",
+      "degree": "Degrees (DEG)",
+      "radian": "Radians (RAD)",
+      "degreeShort": "DEG",
+      "radianShort": "RAD"
+    },
+    "display": {
+      "expression": "Expression",
+      "error": "Invalid expression"
+    },
     "modes": {
       "arithmetic": "Arithmetic",
       "scientific": "Scientific",
@@ -2664,6 +2802,10 @@
       "variable": "Variable x"
     },
     "coordinate": {
+      "numericKeys": "Numeric input",
+      "scientificKeys": "Scientific input",
+      "analysisKeys": "Analysis",
+      "radianHint": "Graph trigonometric functions use radians",
       "placeholder": "Enter function, e.g. x^2, sin(x)",
       "error": "Invalid expression",
       "plot": "Function graph",

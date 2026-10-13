@@ -47,6 +47,31 @@ describe('evaluateFormula', () => {
     expect(evaluateFormula('arctan(0)')).toBe(0);
   });
 
+  it.each([
+    { formula: 'sin(30)', expected: 0.5 },
+    { formula: 'cos(60)', expected: 0.5 },
+    { formula: 'tan(45)', expected: 1 },
+    { formula: 'arcsin(0.5)', expected: 30 },
+    { formula: 'arccos(0.5)', expected: 60 },
+    { formula: 'arctan(1)', expected: 45 },
+    { formula: 'sin(-30)', expected: -0.5 },
+    { formula: 'sin(arcsin(0.5))', expected: 0.5 },
+    { formula: '2sin(30)+frac(cos(60),2)', expected: 1.25 },
+    { formula: 'sum(sin(30x),1,2)', expected: 0.5 + Math.sqrt(3) / 2 },
+    { formula: 'integral(sin(x),0,180)', expected: 360 / Math.PI },
+    { formula: 'derivative(sin(x),0)', expected: Math.PI / 180 },
+  ])('使用角度单位求值 $formula', ({ formula, expected }) => {
+    expect(evaluateFormula(formula, 'degree')).toBeCloseTo(expected, 7);
+  });
+
+  it('保留显式弧度运算及反三角函数的定义域检查', () => {
+    expect(evaluateFormula('sin(30)', 'radian')).toBeCloseTo(Math.sin(30));
+    expect(evaluateFormula('sin(π/2)', 'radian')).toBeCloseTo(1);
+    expect(evaluateFormula('arcsin(0.5)', 'radian')).toBeCloseTo(Math.PI / 6);
+    expect(() => evaluateFormula('arcsin(2)', 'degree')).toThrow();
+    expect(() => evaluateFormula('arccos(-2)', 'degree')).toThrow();
+  });
+
   it('支持任意底数对数与分数', () => {
     expect(evaluateFormula('logn(2,8)')).toBe(3);
     expect(evaluateFormula('frac(1,2)+frac(1,4)')).toBe(0.75);

@@ -49,3 +49,8 @@ it('滚轮目标通过原生 closest 区分可编辑区和普通导航区', () =
   closest.mockImplementation((selector) => selector === '.clipboard-history-list' ? target : null);
   expect(shouldIgnoreWheelEvent(target)).toBe(true);
 });
+
+it('keeps calculator scrolling and graph zoom inside the current maxExpand tab', () => {
+  const target = { closest: (selector: string) => selector === '.calculator-panel' ? target : null } as unknown as HTMLElement;
+  expect(shouldIgnoreWheelEvent(target)).toBe(true);
+});

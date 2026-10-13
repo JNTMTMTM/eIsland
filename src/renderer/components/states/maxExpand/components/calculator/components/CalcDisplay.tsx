@@ -24,13 +24,17 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef, type KeyboardEvent, type ReactElement } from 'react';
+import { useEffect, useRef, type ClipboardEvent, type KeyboardEvent, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FormulaCursor, FormulaDocument } from '../types/calculatorTypes';
+import { serializeFormulaDocument } from '../utils/formulaDocumentUtils';
+import type { CalculatorErrorCode } from '../utils/calculatorErrorUtils';
 import { FormulaExpression } from './FormulaExpression';
 
 interface CalcDisplayProps {
   document: FormulaDocument;
   result: string | null;
+  errorCode?: CalculatorErrorCode | null;
   cursor: FormulaCursor;
   fontSize: string;
   hasResult: boolean;
@@ -38,6 +42,8 @@ interface CalcDisplayProps {
   onCursorChange: (cursor: FormulaCursor) => void;
   onMoveEnd: () => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
+  onPaste?: (event: ClipboardEvent<HTMLDivElement>) => void;
+  onCopy?: (event: ClipboardEvent<HTMLDivElement>) => void;
 }
 
 /**
@@ -48,6 +54,7 @@ interface CalcDisplayProps {
 export function CalcDisplay({
   document,
   result,
+  errorCode,
   cursor,
   fontSize,
   hasResult,
@@ -55,7 +62,10 @@ export function CalcDisplay({
   onCursorChange,
   onMoveEnd,
   onKeyDown,
+  onPaste,
+  onCopy,
 }: CalcDisplayProps): ReactElement {
+  const { t } = useTranslation();
   const displayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -67,22 +77,32 @@ export function CalcDisplay({
     onMoveEnd();
   };
 
+  const handleDisplayFocus = (): void => {
+    displayRef.current?.focus();
+  };
+
   return (
     <div
-      className={`calc-display${hasResult ? ' calc-display--has-result' : ''}`}
+      className={`calc-display${hasResult ? ' calc-display-has-result' : ''}`}
       ref={displayRef}
       role="textbox"
       tabIndex={0}
+      aria-label={t('calculator.display.expression')}
+      aria-description={serializeFormulaDocument(document)}
       aria-multiline="false"
-      onClickCapture={handleDisplayClick}
+      aria-invalid={result === 'Error'}
+      onClickCapture={handleDisplayFocus}
+      onClick={handleDisplayClick}
       onKeyDown={onKeyDown}
+      onPaste={onPaste}
+      onCopy={onCopy}
     >
-      <div className={`calc-expression${hasResult ? ' calc-expression--as-result' : ''}`} style={hasResult ? undefined : { fontSize }}>
+      <div className={`calc-expression${hasResult ? ' calc-expression-as-result' : ''}`} style={hasResult ? undefined : { fontSize }}>
         <FormulaExpression document={document} cursor={cursor} onCursorChange={onCursorChange} />
       </div>
-      {showValue && (
-        <div className={`calc-value${hasResult ? ' calc-value--as-expression' : ''}`}>
-          {result ?? ' '}
+      {showValue && result !== null && (
+        <div className={`calc-value${hasResult ? ' calc-value-as-expression' : ''}${result === 'Error' ? ' calc-value-error' : ''}`} aria-live="polite">
+          {result === 'Error' ? t(`calculator.errors.${errorCode ?? 'invalid'}`) : result ?? ' '}
         </div>
       )}
     </div>

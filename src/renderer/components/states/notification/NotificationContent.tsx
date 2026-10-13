@@ -33,8 +33,8 @@ import { ALARM_SOUND_STOP_EVENT } from '../../../utils/audio/alarmSound';
 import { getWebsiteFaviconUrl, getWebsiteFaviconUrls, getWebsiteHostname } from '../../../api/site/siteMetaApi';
 import { fetchUpdateSourceUrl } from '../../../api/user/userAccountApi';
 import { readLocalToken } from '../../../utils/userAccount';
-import { URL_FAVORITES_STORE_KEY, URL_FAVORITES_FOCUS_KEY, UPDATE_SOURCE_STORE_KEY, SETTINGS_OPEN_TAB_STORE_KEY } from './config/notificationConstants';
-import type { NotificationContentProps, UrlFavoriteItem, UpdateSourceKey } from './config/notificationTypes';
+import { URL_FAVORITES_STORE_KEY, URL_FAVORITES_FOCUS_KEY, UPDATE_SOURCE_STORE_KEY, SETTINGS_OPEN_TAB_STORE_KEY, STARTUP_UPDATE_CONTINUE_EVENT } from './config/notificationConstants';
+import type { NotificationContentProps, UrlFavoriteItem } from './config/notificationTypes';
 import { formatBytes, formatEta, normalizeUrl, resolveNotificationIconUrl, normalizeUpdateSource, isProOnlySource, sanitizeFavorites, persistFavorites } from './utils/notificationHelpers';
 import { useNotificationFavorites } from './hooks/useNotificationFavorites';
 import { useUpdateDownloadProgress } from './hooks/useUpdateDownloadProgress';
@@ -55,8 +55,6 @@ export function NotificationContent({
   updateVersion,
   updateSourceLabel,
   weatherAlertTime,
-  startupUpdateSource,
-  startupUpdateResolvedUrl,
   urls,
   breakReminderItemId,
   agentName: _agentName,
@@ -317,7 +315,8 @@ export function NotificationContent({
   const handleDismissUpdate = (): void => { dismiss(); };
 
   const handleCloseWeatherAlertAndContinueUpdateCheck = (): void => {
-    void window.api?.updaterCheck(startupUpdateSource, startupUpdateResolvedUrl).catch(() => {});
+    // 显式按钮及天气通知离开都由启动 Hook 统一续行并去重。
+    window.dispatchEvent(new Event(STARTUP_UPDATE_CONTINUE_EVENT));
     dismiss();
   };
 

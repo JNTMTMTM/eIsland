@@ -25,7 +25,7 @@
  * @author 鸡哥
  */
 
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 import type { AppUpdater, UpdateInfo } from 'electron-updater';
 
 interface InitUpdaterServiceOptions {
@@ -54,6 +54,17 @@ export function initUpdaterService(options: InitUpdaterServiceOptions): void {
   console.log(`[Updater] initialized, allowPrerelease=${updater.allowPrerelease}, forceDevUpdateConfig=${updater.forceDevUpdateConfig}`);
   console.log('[Updater] appPath:', options.getAppPath());
   console.log('[Updater] isPackaged:', options.isPackaged());
+
+  let pendingStartupRequest: { requestedAt: number } | null = null;
+  // 先订阅再查询待处理请求：无论渲染器在五秒延时前后就绪，都不会漏掉启动事件。
+  ipcMain.handle('updater:startup-auto-check-ready', (event) => {
+    if (event.sender !== options.getMainWindow()?.webContents) return null;
+    return pendingStartupRequest;
+  });
+  ipcMain.on('updater:startup-auto-check-received', (event, requestedAt: unknown) => {
+    if (event.sender !== options.getMainWindow()?.webContents) return;
+    if (pendingStartupRequest?.requestedAt === requestedAt) pendingStartupRequest = null;
+  });
 
   const emitToRenderer = (channel: string, payload: unknown): void => {
     BrowserWindow.getAllWindows().forEach((win) => {
@@ -114,8 +125,16 @@ export function initUpdaterService(options: InitUpdaterServiceOptions): void {
       return;
     }
     console.log('[Updater] startup auto-check requested, waiting renderer pre-check flow...');
-    emitToRenderer('updater:startup-auto-check-request', {
+    pendingStartupRequest = {
       requestedAt: Date.now(),
-    });
+    };
+    const win = options.getMainWindow();
+    if (win && !win.isDestroyed()) {
+      try {
+        win.webContents.send('updater:startup-auto-check-request', pendingStartupRequest);
+      } catch (error) {
+        console.warn('[Updater] startup request retained after renderer send failed:', error);
+      }
+    }
   }, options.autoCheckDelayMs ?? 5000);
 }

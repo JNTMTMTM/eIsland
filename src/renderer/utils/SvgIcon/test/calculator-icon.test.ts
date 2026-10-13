@@ -37,6 +37,7 @@ describe('CalculatorIcon', () => {
     expect(CalculatorIcon).toHaveProperty('DIVISION');
     expect(CalculatorIcon).toHaveProperty('EXPAND');
     expect(CalculatorIcon).toHaveProperty('FRACTION');
+    expect(CalculatorIcon).toHaveProperty('HISTORY');
     expect(CalculatorIcon).toHaveProperty('INTEGRATION');
     expect(CalculatorIcon).toHaveProperty('MINUS');
     expect(CalculatorIcon).toHaveProperty('MULTIPLICATION');
@@ -58,6 +59,6 @@ describe('CalculatorIcon', () => {
   });
 
   it('should contain exactly 20 keys', () => {
-    expect(Object.keys(CalculatorIcon)).toHaveLength(19);
+    expect(Object.keys(CalculatorIcon)).toHaveLength(20);
   });
 });

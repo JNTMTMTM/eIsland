@@ -25,14 +25,16 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
+import type { ReactElement } from 'react';
 import { render, nodes, value, trigger, text } from '../../../../test/componentHarness';
 import { CalculatorTab as Component } from '../CalculatorTab';
 import { CalcDisplay } from '../CalcDisplay';
 import { CalculatorSidebar } from '../CalculatorSidebar';
 import { CoordinateGraph } from '../CoordinateGraph';
-const state = vi.hoisted(() => ({ formula: 'x', result: null, inputDigit: vi.fn(), inputOperator: vi.fn(), inputText: vi.fn(), calculate: vi.fn(), moveCursorHorizontal: vi.fn(), moveCursorBoundary: vi.fn() }));
+const state = vi.hoisted(() => ({ formula: 'x', result: null, angleUnit: 'degree', setAngleUnit: vi.fn(), inputDigit: vi.fn(), inputOperator: vi.fn(), inputText: vi.fn(), calculate: vi.fn(), moveCursorHorizontal: vi.fn(), moveCursorBoundary: vi.fn() }));
 vi.mock('../../hooks/useCalculator', () => ({ useCalculator: () => state }));
 vi.mock('function-plot', () => ({ default: vi.fn() }));
+vi.mock('../../utils/FullWidthChart', () => ({ FullWidthChart: class {} }));
 describe('CalculatorTab', () => {
   it('switches arithmetic, scientific and coordinate layouts and keys', () => {
     const tree = render(Component);
@@ -41,10 +43,13 @@ describe('CalculatorTab', () => {
     expect(nodes(render(Component), '.calc-buttons-dual')).toHaveLength(1);
     trigger(tree, CalculatorSidebar, 'onSwitchMode', 'coordinate');
     const coordinate = render(Component);
-    expect(value(coordinate, CalcDisplay, 'showValue')).toBe(false);
+    const renderLayout = value(coordinate, CoordinateGraph, 'renderLayout') as (graph: ReactElement, analysis: ReactElement) => ReactElement;
+    const layout = renderLayout(<div />, <section />);
+    expect(value(layout, CalcDisplay, 'showValue')).toBe(false);
     expect(value(coordinate, CoordinateGraph, 'expression')).toBe('x');
-    trigger(coordinate, '.calc-btn--toggle', 'onClick');
-    expect(text(render(Component))).toContain('f(x)');
+    trigger(layout, '.calc-coordinate-tab-numeric', 'onClick', { currentTarget: { closest: () => null } });
+    const numericLayout = (value(render(Component), CoordinateGraph, 'renderLayout') as typeof renderLayout)(<div />, <section />);
+    expect(text(numericLayout)).toContain('f(x)');
     trigger(tree, CalculatorSidebar, 'onToggleCollapse');
     expect(value(render(Component), CalculatorSidebar, 'collapsed')).toBe(false);
   });

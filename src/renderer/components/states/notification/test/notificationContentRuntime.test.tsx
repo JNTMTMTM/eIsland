@@ -297,7 +297,7 @@ describe('NotificationContent real hooks', () => {
     await click('restartNow');
     expect(model.store.setIdle).toHaveBeenCalledTimes(4);
   });
-  it.each([undefined, '  ', 'not-a-date', '2026-10-06T12:34:00'] as const)('formats weather metadata %s and continues source check', async (time) => {
+  it.each([undefined, '  ', 'not-a-date', '2026-10-06T12:34:00'] as const)('formats weather metadata %s and dismisses for the startup hook to continue', async (time) => {
     props.type = 'weather-alert-startup';
     props.weatherAlertTime = time;
     props.startupUpdateSource = 'github';
@@ -307,9 +307,9 @@ describe('NotificationContent real hooks', () => {
     if (time === undefined || time === '  ') expected = 'notification.weatherAlert.timeUnknown';
     else if (time === 'not-a-date') expected = time;
     expect(text(run())).toContain(expected);
-    api.updaterCheck.mockRejectedValueOnce(new Error('offline'));
     await click('closeAndContinueUpdateCheck');
-    expect(api.updaterCheck).toHaveBeenCalledWith('github', 'https://source.example');
+    expect(model.store.setIdle).toHaveBeenCalledOnce();
+    expect(api.updaterCheck).not.toHaveBeenCalled();
     surface.api = undefined;
     await click('closeAndContinueUpdateCheck');
   });

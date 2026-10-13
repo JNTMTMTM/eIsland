@@ -30,11 +30,12 @@ Windows x64 安装 .NET 10 SDK、Native AOT 所需的 Visual Studio C++ 工具�
 npm run test:e2e:windows
 ```
 
-此命令先编译真实插件，再以 `--mode e2e-windows` 构建隔离的 Electron 应用，运行全部 12 个用例。
+此命令先编译真实插件，再以 `--mode e2e-windows` 构建隔离的 Electron 应用，运行全部 17 个用例。
 
 | 文件 | 覆盖 |
 |------|------|
 | `desktop.spec.ts` | 5 个跨平台业务 UI 用例：启动、待办生命周期、跨窗口同步、独立窗口重开、倒数日生命周期 |
+| `calculator.spec.ts` | 5 个计算器 UI 用例：四则运算按键对齐、角度/弧度切换、嵌套公式点击编辑与长公式滚动、绘图尺寸与模式切换、历史重启恢复与剪贴板、单位换算和方程/复数/矩阵运算 |
 | `windows.spec.ts` | 原生 HWND 裁剪区域随展开/收缩变化、真实桌面光标触发 hover/离开、全局快捷键隐藏/恢复与注销 |
 | `windows-native.spec.ts` | 真实 DLL 提取 PNG 图标与不存在路径、SMTC 状态查询、设备音量和屏幕亮度读写 |
 
@@ -60,9 +61,9 @@ SMTC 用例只查询当前会话，不控制正在播放的个人媒体。媒体
 
 ## CI 与诊断
 
-`.github/workflows/e2e.yml` 在 Windows 和 macOS 上分别以单 worker 串行运行，以普通 `pull_request` 触发且仅授予仓库只读权限。插件变更也会触发 E2E。Windows 使用 .NET 10 编译真实插件并运行全部用例；macOS 使用替身构建，仅运行 5 个业务 UI 用例，跳过 7 个 Windows 专用用例。
+`.github/workflows/e2e.yml` 在 Windows 和 macOS 上分别以单 worker 串行运行，以普通 `pull_request` 触发且仅授予仓库只读权限。插件变更也会触发 E2E。Windows 使用 .NET 10 编译真实插件并运行全部用例；macOS 使用替身构建，运行 10 个业务 UI 用例，跳过 7 个 Windows 专用用例。
 
-HTML 报告保存在 `e2e/playwright-report/`；每次启动的 trace、Electron 日志和失败截图保存在 `e2e/test-results/`。查看 trace：
+HTML 报告保存在 `e2e/playwright-report/`；每次启动的 trace、Electron 日志、失败截图和计算器三种模式的回归截图保存在 `e2e/test-results/`。查看 trace：
 
 ```sh
 npx playwright show-trace e2e/test-results/<test-directory>/trace-1.zip

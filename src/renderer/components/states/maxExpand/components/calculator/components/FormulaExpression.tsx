@@ -38,6 +38,7 @@ interface MeasuredAnchor {
 
 function renderKatex(tex: string): string {
   return katex.renderToString(tex, {
+    displayMode: true,
     strict: 'ignore',
     throwOnError: false,
     trust: ({ command }) => command === '\\htmlData',
@@ -57,14 +58,22 @@ export function FormulaExpression({ document, cursor, onCursorChange }: FormulaE
   const rootRef = useRef<HTMLSpanElement>(null);
   const compilation = useMemo(() => compileFormulaToKatex(document), [document]);
   const html = useMemo(() => renderKatex(compilation.tex), [compilation.tex]);
+  // 光标更新时复用 HTML 属性，避免重建点击目标和 KaTeX 的锚点 DOM。
+  const markup = useMemo(() => ({ __html: html }), [html]);
   const [measuredAnchors, setMeasuredAnchors] = useState<MeasuredAnchor[]>([]);
+  const caretRef = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return undefined;
+    let disposed = false;
 
     const measure = (): void => {
+      if (disposed) return;
       const rootRect = root.getBoundingClientRect();
+      // DOM 矩形包含父容器的缩放，覆盖层坐标需要还原为本地 CSS 像素。
+      const scaleX = root.offsetWidth ? rootRect.width / root.offsetWidth : 1;
+      const scaleY = root.offsetHeight ? rootRect.height / root.offsetHeight : 1;
       const nextMeasurements = compilation.anchors.flatMap((anchor) => {
         const element = root.querySelector<HTMLElement>(`[data-formula-anchor="${anchor.id}"]`);
         if (!element) return [];
@@ -72,10 +81,10 @@ export function FormulaExpression({ document, cursor, onCursorChange }: FormulaE
         return [{
           anchor,
           rect: {
-            left: rect.left - rootRect.left,
-            top: rect.top - rootRect.top,
-            width: rect.width,
-            height: rect.height,
+            left: (rect.left - rootRect.left) / (scaleX || 1),
+            top: (rect.top - rootRect.top) / (scaleY || 1),
+            width: rect.width / (scaleX || 1),
+            height: rect.height / (scaleY || 1),
           },
         }];
       });
@@ -87,8 +96,24 @@ export function FormulaExpression({ document, cursor, onCursorChange }: FormulaE
     observer?.observe(root);
     const fontsReady = globalThis.document?.fonts?.ready;
     if (fontsReady) void fontsReady.then(measure);
-    return () => observer?.disconnect();
+    return () => {
+      disposed = true;
+      observer?.disconnect();
+    };
   }, [compilation, html]);
+
+  const caret = getFormulaKatexCaret(cursor, measuredAnchors);
+  useLayoutEffect(() => {
+    // 只滚动公式自己的视口，避免改变 MaxExpand 或独立窗口的外部滚动位置。
+    const viewport = rootRef.current?.closest<HTMLElement>('.calc-expression');
+    const caretElement = caretRef.current;
+    if (!viewport || !caretElement) return;
+    const viewportRect = viewport.getBoundingClientRect();
+    const caretRect = caretElement.getBoundingClientRect();
+    const scale = viewport.offsetWidth ? viewportRect.width / viewport.offsetWidth : 1;
+    if (caretRect.right > viewportRect.right - 8) viewport.scrollLeft += (caretRect.right - viewportRect.right + 8) / (scale || 1);
+    if (caretRect.left < viewportRect.left + 8) viewport.scrollLeft -= (viewportRect.left - caretRect.left + 8) / (scale || 1);
+  }, [cursor, caret?.left, caret?.top]);
 
   const handleClick = (event: MouseEvent<HTMLSpanElement>): void => {
     const root = rootRef.current;
@@ -105,13 +130,13 @@ export function FormulaExpression({ document, cursor, onCursorChange }: FormulaE
     event.stopPropagation();
   };
 
-  const caret = getFormulaKatexCaret(cursor, measuredAnchors);
   return (
     <span ref={rootRef} className="calc-katex-expression" onClick={handleClick}>
-      <span className="calc-katex-render" dangerouslySetInnerHTML={{ __html: html }} />
+      <span className="calc-katex-render" dangerouslySetInnerHTML={markup} />
       {caret ? (
         <span
           className="calc-cursor calc-katex-cursor"
+          ref={caretRef}
           aria-hidden="true"
           style={{ left: caret.left, top: caret.top, height: caret.height }}
         />
