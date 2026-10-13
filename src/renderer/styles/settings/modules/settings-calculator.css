@@ -713,11 +713,6 @@
 
 }
 
-.calc-history-hint {
-  margin: 0;
-
-}
-
 .calc-history-list {
   flex: 1;
   min-height: 0;

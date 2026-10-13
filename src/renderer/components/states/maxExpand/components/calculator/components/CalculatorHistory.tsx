@@ -82,7 +82,6 @@ export function CalculatorHistory({ entries, storageError, onRestore, onRemove, 
       </label>
       <button className="calc-tool-btn" type="button" disabled={entries.length === 0} onClick={onClear}>{t('calculator.history.clear')}</button>
     </div>
-    <p className="calc-history-hint">{t('calculator.history.hint')}</p>
     {storageError && <p role="status">{t('calculator.history.storageError')}</p>}
     <div className="calc-history-list" ref={list}>
       {entries.length === 0 && <p>{t('calculator.history.empty')}</p>}
