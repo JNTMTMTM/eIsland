@@ -178,10 +178,12 @@ export function normalizeFractionExpression(expression: string): string {
  * @returns function-plot 可用的表达式
  */
 export function normalizeExpressionForPlot(expression: string): string {
+  // 先映射用户输入，再展开换底公式，保留换底公式使用的自然对数。
+  const plotted = expression.replace(/\blog\s*\(/g, 'log10(').replace(/\bln\s*\(/g, 'log(');
   return normalizeCbrtExpression(
     normalizeRootExpression(
       normalizeFractionExpression(
-        normalizeLogarithmExpression(expression),
+        normalizeLogarithmExpression(plotted),
       ),
     ),
   )

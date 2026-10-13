@@ -59,7 +59,7 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
   const [points, setPoints] = useState<GraphPoint[]>([]);
   const [analyzed, setAnalyzed] = useState(false); const [identical, setIdentical] = useState(false);
   const [tangentEnabled, setTangentEnabled] = useState(false);
-  const { update: updateTangent, clear: clearTangent, refresh: refreshTangent } = useGraphTangent(tangentEnabled, plotRef, chartRef);
+  const { update: updateTangent, clear: clearTangent, clearUntracked: clearUntrackedTangent, refresh: refreshTangent } = useGraphTangent(tangentEnabled, plotRef, chartRef);
   const expressions = [expression || '0', ...extra.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, 4)];
   const fitLegend = useCallback((): void => {
     const canvas = plotRef.current;
@@ -94,6 +94,7 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
       chartRef.current?.removeListener('tip:update', fitLegend);
       chartRef.current?.removeListener('tip:update', updateTangent);
       chartRef.current?.removeListener('mouseout', clearTangent);
+      chartRef.current?.removeListener('mousemove', clearUntrackedTangent);
       chartRef.current?.removeListener('after:draw', refreshTangent);
       if (!options.id || !Chart.cache[options.id]) new FullWidthChart(options);
       chartRef.current = functionPlot(options);
@@ -107,10 +108,11 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
       chartRef.current?.on('tip:update', fitLegend);
       chartRef.current?.on('tip:update', updateTangent);
       chartRef.current?.on('mouseout', clearTangent);
+      chartRef.current?.on('mousemove', clearUntrackedTangent);
       chartRef.current?.on('after:draw', refreshTangent);
       refreshTangent();
     } catch { canvas.replaceChildren(); setError(t('calculator.coordinate.error')); }
-  }, [expression, extra, points, t, fitLegend, updateTangent, clearTangent, refreshTangent]);
+  }, [expression, extra, points, t, fitLegend, updateTangent, clearTangent, clearUntrackedTangent, refreshTangent]);
   useEffect(() => {
     setPoints([]); setAnalyzed(false); setIdentical(false);
     clearTangent();

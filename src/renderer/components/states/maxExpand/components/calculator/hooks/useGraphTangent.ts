@@ -43,6 +43,9 @@ export function useGraphTangent(enabled: boolean, plotRef: RefObject<HTMLDivElem
     plotRef.current?.querySelector('.calc-graph-tangent')?.remove();
   }, [plotRef]);
   const clear = useCallback((): void => { pointRef.current = null; hide(); }, [hide]);
+  const clearUntracked = useCallback((): void => {
+    if (plotRef.current?.querySelector<SVGGElement>('.inner-tip')?.style.display === 'none') clear();
+  }, [plotRef, clear]);
   const refresh = useCallback((): void => {
     const chart = chartRef.current; const point = pointRef.current;
     const content = plotRef.current?.querySelector('g.content');
@@ -68,5 +71,5 @@ export function useGraphTangent(enabled: boolean, plotRef: RefObject<HTMLDivElem
     pointRef.current = point; refresh();
   }, [refresh]);
   useEffect(() => { enabledRef.current = enabled; refresh(); }, [enabled, refresh]);
-  return { update, clear, refresh };
+  return { update, clear, clearUntracked, refresh };
 }

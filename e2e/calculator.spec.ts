@@ -333,6 +333,43 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   expect(desktop.rendererErrors).toEqual([]);
 });
 
+test('logarithm graphs use the correct bases and hide tangents outside their domain', async ({ desktop }, testInfo) => {
+  const page = desktop.main;
+  await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();
+  for (const logarithm of ['ln', 'log'] as const) {
+    await page.getByRole('button', { name: en.calculator.coordinate.numericKeys, exact: true }).click();
+    await page.getByRole('button', { name: 'C', exact: true }).click();
+    await page.getByRole('button', { name: en.calculator.coordinate.scientificKeys, exact: true }).click();
+    await page.getByRole('button', { name: logarithm, exact: true }).click();
+    await page.getByRole('button', { name: en.calculator.functions.variable, exact: true }).click();
+    await expect(page.getByRole('textbox', { name: en.calculator.display.expression })).toHaveAttribute('aria-description', logarithm + '(x)');
+    await expect(page.locator('.coordinate-graph-error')).toHaveCount(0);
+    await expect(page.locator('.coordinate-graph-canvas .line-0')).toHaveAttribute('d', /.+/);
+    await page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true }).click();
+    if (logarithm === 'ln') await page.getByRole('button', { name: en.calculator.graph.tangentStart, exact: true }).click();
+    const bounds = await page.locator('.zoom-and-drag').boundingBox();
+    if (!bounds) throw new Error('Missing graph interaction area');
+    await page.mouse.move(bounds.x + bounds.width * .6, bounds.y + bounds.height / 2);
+    await expect(page.locator('.calc-graph-tangent')).toHaveCount(1);
+    const sample = await page.locator('.coordinate-graph-canvas').evaluate((canvas) => {
+      const trace = canvas.querySelector('.calc-graph-trace')!.textContent!;
+      const x = Number(trace.match(/x = ([^,]+)/)![1]); const y = Number(trace.match(/y = (.+)/)![1]);
+      const line = canvas.querySelector('.calc-graph-tangent')!;
+      const area = canvas.querySelector('.zoom-and-drag')!.getBoundingClientRect();
+      const slope = -(Number(line.getAttribute('y2')) - Number(line.getAttribute('y1'))) / (Number(line.getAttribute('x2')) - Number(line.getAttribute('x1'))) * area.width / area.height;
+      return { x, y, slope };
+    });
+    expect(sample.x).toBeGreaterThan(0);
+    expect(sample.y).toBeCloseTo(logarithm === 'ln' ? Math.log(sample.x) : Math.log10(sample.x), 9);
+    expect(sample.slope).toBeCloseTo(1 / (sample.x * (logarithm === 'ln' ? 1 : Math.LN10)), 5);
+    if (logarithm === 'ln') await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('graphing-natural-log.png') });
+    await page.mouse.move(bounds.x + bounds.width * .4, bounds.y + bounds.height / 2);
+    await expect(page.locator('.calc-graph-tangent')).toHaveCount(0);
+    await expect(page.locator('.coordinate-graph-error')).toHaveCount(0);
+  }
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
 test('tangent analysis follows the tracked curve and survives mode and view changes', async ({ desktop }, testInfo) => {
   const page = desktop.main;
   await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();

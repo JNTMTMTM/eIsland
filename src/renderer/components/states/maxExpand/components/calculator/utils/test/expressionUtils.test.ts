@@ -25,6 +25,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { EvalBuiltIn } from 'function-plot';
+import { compileNumericFormula } from '../calculatorUtils';
+import { estimateTangent } from '../tangentUtils';
 import {
   findClosingParenthesis,
   normalizeBinaryFunctionExpression,
@@ -119,6 +122,22 @@ describe('normalizeFractionExpression', () => {
 });
 
 describe('normalizeExpressionForPlot', () => {
+  it.each([
+    ['ln(x)', 2], ['ln (x)', 2], ['log(x)', 10], ['logn(2,x)', 8],
+    ['ln(log(x))', 100], ['log(ln(x))', 10], ['logn(log(100),ln(exp(x)))', 4],
+  ])('plots logarithms with the same value as the calculator: %s', (formula, x) => {
+    const datum = { fn: normalizeExpressionForPlot(formula) };
+    expect(EvalBuiltIn(datum, 'fn', { x })).toBeCloseTo(compileNumericFormula(formula)(x), 12);
+  });
+
+  it('supports natural-log tangents and keeps the non-positive domain undefined', () => {
+    const datum = { fn: normalizeExpressionForPlot('ln(x)') };
+    const evaluate = (x: number): number => EvalBuiltIn(datum, 'fn', { x });
+    expect(estimateTangent(evaluate, 2)!.slope).toBeCloseTo(.5, 6);
+    expect(estimateTangent(evaluate, 0)).toBeNull();
+    expect(estimateTangent(evaluate, -2)).toBeNull();
+  });
+
   it('替换三角反函数', () => {
     expect(normalizeExpressionForPlot('arcsin(x)')).toBe('asin(x)');
     expect(normalizeExpressionForPlot('arccos(x)')).toBe('acos(x)');
