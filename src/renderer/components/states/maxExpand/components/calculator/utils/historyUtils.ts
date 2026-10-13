@@ -67,30 +67,30 @@ function validDocument(value: unknown, depth = 0): value is FormulaDocument {
 export function readCalculatorHistory(value: unknown): CalculatorHistoryEntry[] {
   if (!Array.isArray(value)) return [];
   const entries: CalculatorHistoryEntry[] = [];
-  for (const entry of value) {
-    if (!entry || typeof entry !== 'object' || !boundedText(entry.id, 200) || !boundedText(entry.formula, 20000) || !boundedText(entry.result, 200000) || !entry.result.trim()) continue;
+  value.some((entry) => {
+    if (!entry || typeof entry !== 'object' || !boundedText(entry.id, 200) || !boundedText(entry.formula, 20000) || !boundedText(entry.result, 200000) || !entry.result.trim()) return false;
     const mode = entry.mode ?? 'arithmetic';
     if (['arithmetic', 'scientific', 'coordinate'].includes(mode)) {
-      if (!['degree', 'radian'].includes(entry.angleUnit) || !validDocument(entry.document) || (entry.extra !== undefined && !boundedText(entry.extra))) continue;
-      if (mode !== 'coordinate' && !Number.isFinite(Number(entry.result))) continue;
-      try { if (serializeFormulaDocument(entry.document) !== entry.formula) continue; } catch { continue; }
+      if (!['degree', 'radian'].includes(entry.angleUnit) || !validDocument(entry.document) || (entry.extra !== undefined && !boundedText(entry.extra))) return false;
+      if (mode !== 'coordinate' && !Number.isFinite(Number(entry.result))) return false;
+      try { if (serializeFormulaDocument(entry.document) !== entry.formula) return false; } catch { return false; }
     } else {
       const input = entry.input;
-      if (!input || typeof input !== 'object') continue;
+      if (!input || typeof input !== 'object') return false;
       if (mode === 'unitConversion') {
-        if (!boundedText(input.value) || !Number.isFinite(Number(input.value)) || !input.value.trim()) continue;
-        if (![input.from, input.to].every((id) => CONVERSION_UNITS.some((unit) => unit.id === id && unit.category === input.category))) continue;
+        if (!boundedText(input.value) || !Number.isFinite(Number(input.value)) || !input.value.trim()) return false;
+        if (![input.from, input.to].every((id) => CONVERSION_UNITS.some((unit) => unit.id === id && unit.category === input.category))) return false;
       } else if (mode === 'equation') {
-        if (![input.equation, input.lower, input.upper].every((text) => boundedText(text)) || !['degree', 'radian'].includes(input.angleUnit)) continue;
+        if (![input.equation, input.lower, input.upper].every((text) => boundedText(text)) || !['degree', 'radian'].includes(input.angleUnit)) return false;
       } else if (mode === 'complex') {
-        if (!boundedText(input.formula)) continue;
+        if (!boundedText(input.formula)) return false;
       } else if (mode === 'matrix') {
-        if (![input.a, input.b].every((text) => boundedText(text, 10000)) || !boundedText(input.scalar) || !['add', 'subtract', 'multiply', 'scale', 'transpose', 'determinant', 'inverse', 'rank', 'solve'].includes(input.operation)) continue;
-      } else continue;
+        if (![input.a, input.b].every((text) => boundedText(text, 10000)) || !boundedText(input.scalar) || !['add', 'subtract', 'multiply', 'scale', 'transpose', 'determinant', 'inverse', 'rank', 'solve'].includes(input.operation)) return false;
+      } else return false;
     }
     entries.push({ ...entry, mode } as CalculatorHistoryEntry);
-    if (entries.length === 100) break;
-  }
+    return entries.length === 100;
+  });
   return entries;
 }
 

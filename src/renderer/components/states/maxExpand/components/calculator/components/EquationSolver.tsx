@@ -86,7 +86,7 @@ export function EquationSolver({ initial, onRecord }: {
         <output className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} aria-live="polite">
           {error || (result ? resultText(result) : '')}
         </output>
-        {result?.status === 'finite' && <div className="calc-root-list">{result.roots.map((root, index) => <div className="calc-root-card" key={index}>
+        {result?.status === 'finite' && <div className="calc-root-list">{result.roots.map((root, index) => <div className="calc-root-card" key={root}>
           <span>x<sub>{index + 1}</sub></span><strong>{formatDisplay(root)}</strong>
         </div>)}</div>}
       </section>

@@ -37,9 +37,9 @@ function matrix(operation: 'inverse' | 'scale' | 'determinant' | 'solve', a: str
 }
 function render(entry: CalculatorHistoryEntry): void {
   const parts = formatHistoryMath(entry);
-  for (const part of [...parts.expression, ...parts.result]) {
+  [...parts.expression, ...parts.result].forEach((part) => {
     if (part.tex) expect(() => katex.renderToString(part.tex!, { throwOnError: true, trust: false })).not.toThrow();
-  }
+  });
 }
 
 describe('history math', () => {

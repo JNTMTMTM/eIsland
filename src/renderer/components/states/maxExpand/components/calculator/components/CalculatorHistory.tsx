@@ -27,13 +27,23 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CalculatorHistoryEntry } from '../utils/historyUtils';
-import { formatHistoryMath } from '../utils/historyMathUtils';
+import { formatHistoryMath, type HistoryMathPart } from '../utils/historyMathUtils';
 import { CALC_SIDEBAR_NAV_ITEMS } from '../config/calculatorConfig';
 import { HistoryMath } from './HistoryMath';
 
 interface HistoryActions {
   onRestore: (entry: CalculatorHistoryEntry) => void;
   onRemove: (id: string) => void;
+}
+
+function renderMathParts(parts: HistoryMathPart[]): ReactElement[] {
+  const occurrences = new Map<string, number>();
+  return parts.map((part) => {
+    const identity = JSON.stringify([part.text, part.tex]);
+    const occurrence = occurrences.get(identity) ?? 0;
+    occurrences.set(identity, occurrence + 1);
+    return <HistoryMath key={JSON.stringify([identity, occurrence])} part={part} />;
+  });
 }
 
 function HistoryRow({ entry, onRestore, onRemove }: { entry: CalculatorHistoryEntry } & HistoryActions): ReactElement {
@@ -47,8 +57,8 @@ function HistoryRow({ entry, onRestore, onRemove }: { entry: CalculatorHistoryEn
         {angleUnit && <small>{t(angleUnit === 'degree' ? 'calculator.angleUnit.degreeShort' : 'calculator.angleUnit.radianShort')}</small>}
         {entry.mode === 'matrix' && <small>{entry.formula.split('\n')[0]}</small>}
       </span>
-      <span className="calc-history-formula">{math.expression.map((part, index) => <HistoryMath key={index} part={part} />)}</span>
-      <strong className="calc-history-result">{math.result.map((part, index) => <HistoryMath key={index} part={part} />)}</strong>
+      <span className="calc-history-formula">{renderMathParts(math.expression)}</span>
+      <strong className="calc-history-result">{renderMathParts(math.result)}</strong>
     </button>
     <button className="calc-tool-btn calc-history-delete" type="button" aria-label={t('calculator.history.remove')} onClick={() => onRemove(entry.id)}>×</button>
   </div>;

@@ -39,9 +39,15 @@ export interface GraphSetEntry { formula: string; result: FunctionSetResult | nu
 export function GraphSetResults({ kind, entries }: { kind: GraphSetKind; entries: GraphSetEntry[] }): ReactElement {
   const { t } = useTranslation();
   const label = t(kind === 'domain' ? 'calculator.graph.domainName' : 'calculator.graph.rangeName');
+  const occurrences = new Map<string, number>();
+  const keyedEntries = entries.map((entry) => {
+    const occurrence = occurrences.get(entry.formula) ?? 0;
+    occurrences.set(entry.formula, occurrence + 1);
+    return { entry, key: JSON.stringify([entry.formula, occurrence]) };
+  });
   return <section className="calc-graph-set-results" data-kind={kind} role="status" aria-label={label}>
     <strong>{label}</strong>
-    {entries.map((entry, index) => <div className="calc-graph-set-card" key={index}>
+    {keyedEntries.map(({ entry, key }, index) => <div className="calc-graph-set-card" key={key}>
       <p className="calc-graph-set-formula">{'f' + (index + 1) + '(x) = ' + entry.formula}</p>
       <p className="calc-graph-set-value">{entry.result ? (entry.result.exact ? '' : '≈ ') + formatFunctionSet(entry.result) : t('calculator.coordinate.error')}</p>
       {entry.result && <p className="calc-graph-set-scope">{entry.result.exact ? t('calculator.graph.setComplete') : t('calculator.graph.setEstimated', {

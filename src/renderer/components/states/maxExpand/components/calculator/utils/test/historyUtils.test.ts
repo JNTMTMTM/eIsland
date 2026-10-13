@@ -60,3 +60,12 @@ it('deduplicates calculations and bounds the persisted history', () => {
   expect(mergeCalculatorHistory([{ ...entry, id: 'latest' }], [entry])).toHaveLength(1);
   expect(mergeCalculatorHistory(Array.from({ length: 120 }, (_, index) => ({ ...entry, formula: String(index) })), [])).toHaveLength(100);
 });
+
+it('stops reading after one hundred valid records while skipping corrupt entries', () => {
+  const records: unknown[] = [null, ...Array.from({ length: 100 }, (_, index) => ({ ...entry, id: String(index) }))];
+  Object.defineProperty(records, records.length, { get: () => { throw new Error('Read beyond history limit'); } });
+  const stored = readCalculatorHistory(records);
+  expect(stored).toHaveLength(100);
+  expect(stored[0].id).toBe('0');
+  expect(stored[99].id).toBe('99');
+});

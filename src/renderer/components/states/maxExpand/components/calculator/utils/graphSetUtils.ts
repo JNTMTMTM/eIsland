@@ -60,12 +60,12 @@ function union(values: Intervals): Intervals {
   const sorted = values.filter((v) => v.lower < v.upper || (v.lower === v.upper && v.lowerClosed && v.upperClosed))
     .sort((a, b) => a.lower - b.lower || Number(b.lowerClosed) - Number(a.lowerClosed));
   const result: Intervals = [];
-  for (const value of sorted) {
+  sorted.forEach((value) => {
     const last = result.at(-1);
     if (!last || value.lower > last.upper || (value.lower === last.upper && !value.lowerClosed && !last.upperClosed)) result.push({ ...value });
     else if (value.upper > last.upper) { last.upper = value.upper; last.upperClosed = value.upperClosed; }
     else if (value.upper === last.upper) last.upperClosed ||= value.upperClosed;
-  }
+  });
   return result;
 }
 
@@ -281,7 +281,7 @@ export function analyzeFunctionSets(formula: string, lower: number, upper: numbe
   };
   // 已知定义域的各分支分别取样，不能把极点两侧的值域直接连接起来。
   const views = domain === null ? [interval(lower, upper, true, true)] : intersect(domain, [interval(lower, upper, true, true)]);
-  for (const view of views) {
+  views.forEach((view) => {
     let start: number | null = null; let minimum = Infinity; let maximum = -Infinity; let previous = view.lower;
     for (let index = 0; index <= 2048; index += 1) {
       const fraction = index === 0 && !view.lowerClosed ? .5 : index === 2048 && !view.upperClosed ? 2047.5 : index;
@@ -298,7 +298,7 @@ export function analyzeFunctionSets(formula: string, lower: number, upper: numbe
       }
       previous = x;
     }
-  }
+  });
   // 仅求值失败与整个视图无实数值要区分；后者是合法的空采样结果。
   if (!evaluated && sampleError) throw sampleError;
   return {
