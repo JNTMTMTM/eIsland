@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-12T20:57:36.738Z
+> 生成时间：2026-10-13T02:13:33.756Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-12 | 8e55491a | 鸡哥 | fix: isolate workers and harden native media/process runtimes (#256)
+- 2026-10-12 | bf3c3437 | eislandBot | docs: auto update CHANGE_LOG.md for #255 by @JNTMTMTM [skip ci]
 - 2026-10-12 | 5d4bf6c6 | 鸡哥 | build: standardize Node 24.21.0 and patch tooling vulnerabilities (#255)
 - 2026-10-12 | 65269aae | eislandBot | docs: auto update CHANGE_LOG.md for #251 by @dependabot[bot] [skip ci]
 - 2026-10-12 | 37658d5f | dependabot[bot] | ci(deps): bump actions/download-artifact from 4 to 8 (#253)
