@@ -32,6 +32,7 @@ import { normalizeExpressionForPlot } from '../utils/expressionUtils';
 import { compileNumericFormula, formatDisplay } from '../utils/calculatorUtils';
 import { findRealRoots } from '../utils/numericRoots';
 import { FullWidthChart } from '../utils/FullWidthChart';
+import { useGraphTangent } from '../hooks/useGraphTangent';
 
 const COLORS = ['#6390ff', '#f5a65b', '#6dd3a0', '#d88cf5', '#f57186'];
 interface GraphPoint { x: number; y: number; label: string; kind: 'zero' | 'intersection' }
@@ -57,6 +58,8 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
   const [extra, setExtra] = useState(initialExtra);
   const [points, setPoints] = useState<GraphPoint[]>([]);
   const [analyzed, setAnalyzed] = useState(false); const [identical, setIdentical] = useState(false);
+  const [tangentEnabled, setTangentEnabled] = useState(false);
+  const { update: updateTangent, clear: clearTangent, refresh: refreshTangent } = useGraphTangent(tangentEnabled, plotRef, chartRef);
   const expressions = [expression || '0', ...extra.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, 4)];
   const fitLegend = useCallback((): void => {
     const canvas = plotRef.current;
@@ -89,6 +92,9 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
       }));
       if (points.length) options.data.push({ fnType: 'points', graphType: 'scatter', points: points.map((point) => [point.x, point.y]), color: '#f5a65b', skipTip: true });
       chartRef.current?.removeListener('tip:update', fitLegend);
+      chartRef.current?.removeListener('tip:update', updateTangent);
+      chartRef.current?.removeListener('mouseout', clearTangent);
+      chartRef.current?.removeListener('after:draw', refreshTangent);
       if (!options.id || !Chart.cache[options.id]) new FullWidthChart(options);
       chartRef.current = functionPlot(options);
       const legend = canvas.querySelector<SVGTextElement>('.top-right-legend');
@@ -99,14 +105,19 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
       }
       fitLegend();
       chartRef.current?.on('tip:update', fitLegend);
+      chartRef.current?.on('tip:update', updateTangent);
+      chartRef.current?.on('mouseout', clearTangent);
+      chartRef.current?.on('after:draw', refreshTangent);
+      refreshTangent();
     } catch { canvas.replaceChildren(); setError(t('calculator.coordinate.error')); }
-  }, [expression, extra, points, t, fitLegend]);
+  }, [expression, extra, points, t, fitLegend, updateTangent, clearTangent, refreshTangent]);
   useEffect(() => {
     setPoints([]); setAnalyzed(false); setIdentical(false);
+    clearTangent();
     const legend = plotRef.current?.querySelector('.top-right-legend');
     if (legend) { legend.textContent = t('calculator.graph.tracking'); legend.removeAttribute('fill'); }
     fitLegend();
-  }, [expression, extra, t, fitLegend]);
+  }, [expression, extra, t, fitLegend, clearTangent]);
   useEffect(() => { renderPlot(); }, [renderPlot]);
   useEffect(() => {
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(renderPlot);
@@ -136,7 +147,7 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
       onAnalyze?.(extra, summary || t(overlaps ? 'calculator.graph.identical' : 'calculator.graph.none'));
     } catch { setError(t('calculator.coordinate.error')); }
   };
-  const graph = <div className="calc-graph-workspace">
+  const graph = <div className="calc-graph-workspace" onMouseLeave={clearTangent}>
     <div className="coordinate-graph-canvas" ref={plotRef} aria-label={t('calculator.coordinate.plot')} />
     {error && <div className="coordinate-graph-error" role="status">{error}</div>}
   </div>;
@@ -144,6 +155,8 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
       <label>{t('calculator.graph.extra')}<textarea rows={3} value={extra} onChange={(event) => setExtra(event.target.value)} /></label>
       <div className="calc-tools">
         <button className="calc-tool-btn" type="button" onClick={analyze}>{t('calculator.graph.analyze')}</button>
+        <button className="calc-tool-btn calc-tangent-toggle" type="button" aria-pressed={tangentEnabled}
+          onClick={() => setTangentEnabled((enabled) => !enabled)}>{t(tangentEnabled ? 'calculator.graph.tangentStop' : 'calculator.graph.tangentStart')}</button>
         <button className="calc-tool-btn" type="button" onClick={() => { if (optionsRef.current) { optionsRef.current.xAxis!.domain = [-10, 10]; optionsRef.current.yAxis!.domain = [-10, 10]; } renderPlot(); }}>{t('calculator.graph.reset')}</button>
       </div>
       {analyzed && <div role="status">

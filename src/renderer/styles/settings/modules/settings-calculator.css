@@ -799,6 +799,19 @@
 
 }
 
+.calc-tangent-toggle[aria-pressed="true"] {
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .14);
+
+}
+
+.calc-graph-tangent {
+  pointer-events: none;
+  stroke-dasharray: 6 4;
+  stroke-width: 1.5;
+
+}
+
 .calc-graph-analysis {
   flex: 1;
   min-height: 0;

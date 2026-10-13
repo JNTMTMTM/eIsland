@@ -333,6 +333,65 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   expect(desktop.rendererErrors).toEqual([]);
 });
 
+test('tangent analysis follows the tracked curve and survives mode and view changes', async ({ desktop }, testInfo) => {
+  const page = desktop.main;
+  await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.functions.variable, exact: true }).click();
+  await page.getByRole('button', { name: 'x²', exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true }).click();
+  await expect(page.locator('.calc-graph-tangent')).toHaveCount(0);
+  await page.getByRole('button', { name: en.calculator.graph.tangentStart, exact: true }).click();
+  await expect(page.getByRole('button', { name: en.calculator.graph.tangentStop, exact: true })).toHaveAttribute('aria-pressed', 'true');
+  const plot = page.locator('.zoom-and-drag');
+  const move = async (ratio: number): Promise<void> => {
+    const bounds = await plot.boundingBox();
+    if (!bounds) throw new Error('Missing graph interaction area');
+    const x = ratio * 20 - 10;
+    await page.mouse.move(bounds.x + bounds.width * ratio, bounds.y + bounds.height * (10 - x * x) / 20);
+  };
+  const tangentError = async (): Promise<number> => page.locator('.coordinate-graph-canvas').evaluate((canvas) => {
+    const line = canvas.querySelector('.calc-graph-tangent')!;
+    const bounds = canvas.querySelector('.zoom-and-drag')!.getBoundingClientRect();
+    const x = Number(canvas.querySelector('.calc-graph-trace')!.textContent!.match(/x = ([^,]+)/)![1]);
+    const x1 = Number(line.getAttribute('x1')); const x2 = Number(line.getAttribute('x2'));
+    const y1 = Number(line.getAttribute('y1')); const y2 = Number(line.getAttribute('y2'));
+    const slope = -(y2 - y1) / (x2 - x1) * bounds.width / bounds.height;
+    const atContact = y1 + (y2 - y1) * (((x + 10) / 20 * bounds.width - x1) / (x2 - x1));
+    return Math.max(Math.abs(slope - 2 * x), Math.abs(atContact - (10 - x * x) / 20 * bounds.height));
+  });
+  await move(.6);
+  await expect(page.locator('.calc-graph-tangent')).toHaveCount(1);
+  await expect.poll(tangentError).toBeLessThan(.1);
+  await expect(page.locator('.calc-graph-tangent')).toHaveAttribute('stroke', '#6390ff');
+  const firstLine = await page.locator('.calc-graph-tangent').getAttribute('x1');
+  await move(.65);
+  await expect.poll(tangentError).toBeLessThan(.1);
+  await expect(page.locator('.calc-graph-tangent')).not.toHaveAttribute('x1', firstLine!);
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('graphing-tangent.png') });
+  await page.getByRole('button', { name: en.calculator.coordinate.numericKeys, exact: true }).click();
+  await move(.6);
+  await expect(page.locator('.calc-graph-tangent')).toHaveCount(1);
+  await page.mouse.wheel(0, -100);
+  await expect(page.locator('.calc-graph-tangent')).toHaveCount(1);
+  await page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.graph.reset, exact: true }).click();
+  await page.getByRole('textbox', { name: en.calculator.graph.extra }).fill('-x');
+  const bounds = await plot.boundingBox();
+  if (!bounds) throw new Error('Missing graph interaction area');
+  await page.mouse.move(bounds.x + bounds.width * .6, bounds.y + bounds.height * .6);
+  await expect(page.locator('.calc-graph-trace')).toContainText('f2:');
+  await expect(page.locator('.calc-graph-tangent')).toHaveAttribute('stroke', '#f5a65b');
+  await page.getByRole('button', { name: en.calculator.graph.tangentStop, exact: true }).click();
+  await move(.6);
+  await expect(page.locator('.calc-graph-tangent')).toHaveCount(0);
+  await page.getByRole('button', { name: en.calculator.graph.tangentStart, exact: true }).click();
+  await move(.6);
+  await expect(page.locator('.calc-graph-tangent')).toHaveCount(1);
+  await page.locator('.calc-toolbar').hover();
+  await expect(page.locator('.calc-graph-tangent')).toHaveCount(0);
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
 test('graphing fits its container and keeps tracking text inside at narrow container sizes', async ({ desktop }, testInfo) => {
   const page = desktop.main;
   await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();

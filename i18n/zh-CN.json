@@ -2695,6 +2695,8 @@
       "controls": "函数与分析",
       "extra": "其他函数，每行一个（最多 4 条）",
       "analyze": "查找零点和交点",
+      "tangentStart": "启动切线分析",
+      "tangentStop": "关闭切线分析",
       "reset": "重置视图",
       "tracking": "移动到曲线上追踪坐标",
       "zero": "零点",

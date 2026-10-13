@@ -2695,6 +2695,8 @@
       "controls": "函數與分析",
       "extra": "其他函數，每行一個（最多 4 條）",
       "analyze": "尋找零點和交點",
+      "tangentStart": "啟動切線分析",
+      "tangentStop": "關閉切線分析",
       "reset": "重設視圖",
       "tracking": "移到曲線上追蹤座標",
       "zero": "零點",

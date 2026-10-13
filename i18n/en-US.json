@@ -2695,6 +2695,8 @@
       "controls": "Functions and analysis",
       "extra": "Additional functions, one per line (up to 4)",
       "analyze": "Find zeros and intersections",
+      "tangentStart": "Start tangent analysis",
+      "tangentStop": "Stop tangent analysis",
       "reset": "Reset view",
       "tracking": "Move over a curve to track coordinates",
       "zero": "Zeros",
