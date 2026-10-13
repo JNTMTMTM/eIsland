@@ -2684,6 +2684,7 @@
       "hint": "虚数単位は i。四則演算、累乗、sqrt、ln、log、exp、sin、cos、tan、abs、arg、conj、re、im に対応。角度はラジアン、根と対数は主値です。",
       "modulus": "絶対値",
       "argument": "偏角（RAD）",
+      "undefinedArgument": "未定義",
       "conjugate": "共役",
       "polar": "極形式"
     },

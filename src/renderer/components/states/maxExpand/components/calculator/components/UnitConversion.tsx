@@ -86,7 +86,7 @@ export function UnitConversion({ initial, onRecord }: {
         <div className="calc-unit-value">
           <span>{t('calculator.workbench.result')}</span>
           <output className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} aria-live="polite">
-            {error ? t('calculator.units.error') : result === null ? '—' : formatDisplay(result) + ' ' + toSymbol}
+            {error ? t('calculator.units.error') : result === null ? '' : formatDisplay(result) + ' ' + toSymbol}
           </output>
         </div>
       </section>

@@ -2684,6 +2684,7 @@
       "hint": "Use i for the imaginary unit. Supports + − × ÷, powers, sqrt, ln, log, exp, sin, cos, tan, abs, arg, conj, re and im. Angles are radians; roots and logarithms use the principal branch.",
       "modulus": "Modulus",
       "argument": "Argument (RAD)",
+      "undefinedArgument": "Undefined",
       "conjugate": "Conjugate",
       "polar": "Polar form"
     },

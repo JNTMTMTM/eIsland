@@ -327,7 +327,7 @@ test('rewritten calculator workbenches fit narrow layouts and preserve keyboard 
       const expression = page.getByRole('textbox', { name: en.calculator.complex.expression, exact: true });
       await expression.fill('0'); await expression.press('Enter');
       await expect(page.locator('.calc-feature-result')).toHaveText('0');
-      await expect(page.locator('.calc-complex-details dd').nth(1)).toHaveText('—');
+      await expect(page.locator('.calc-complex-details dd').nth(1)).toHaveText(en.calculator.complex.undefinedArgument);
     } else if (mode === 'matrix') {
       await page.getByRole('combobox', { name: en.calculator.matrix.rows.replace('{{name}}', 'A'), exact: true }).selectOption('6');
       await page.getByRole('combobox', { name: en.calculator.matrix.columns.replace('{{name}}', 'A'), exact: true }).selectOption('6');

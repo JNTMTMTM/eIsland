@@ -2684,6 +2684,7 @@
       "hint": "用 i 表示虛數單位。支援四則運算、冪、sqrt、ln、log、exp、sin、cos、tan、abs、arg、conj、re、im；角度使用弧度，根式和對數取主值。",
       "modulus": "模",
       "argument": "輻角（RAD）",
+      "undefinedArgument": "未定義",
       "conjugate": "共軛",
       "polar": "極座標形式"
     },

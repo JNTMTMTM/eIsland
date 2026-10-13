@@ -99,7 +99,7 @@ export function MatrixCalculator({ initial, onRecord }: {
             {t('calculator.clipboard.copyResult')}</button>
         </div>
         <div className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} role="status">
-          {error || (result === null ? '—' : typeof result === 'number' ? formatDisplay(result) : <div className="calc-matrix-brackets calc-matrix-readonly">
+          {error || (result === null ? '' : typeof result === 'number' ? formatDisplay(result) : <div className="calc-matrix-brackets calc-matrix-readonly">
             <table className="calc-matrix-result" aria-label={t('calculator.matrix.result')}><tbody>{result.map((row, i) => <tr key={i}>
               {row.map((value, j) => <td key={j} title={formatDisplay(value)}>{formatDisplay(value)}</td>)}
             </tr>)}</tbody></table>

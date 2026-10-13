@@ -64,13 +64,13 @@ export function ComplexCalculator({ initial, onRecord }: {
           }}>{t('calculator.clipboard.copyResult')}</button>
         </div>
         <output className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} aria-live="polite">
-          {error || (result ? formatComplex(result) : '—')}
+          {error || (result ? formatComplex(result) : '')}
         </output>
         {result && <dl className="calc-complex-details">
           <div><dt>{t('calculator.complex.modulus')}</dt><dd>{formatDisplay(Math.hypot(result.re, result.im))}</dd></div>
-          <div><dt>{t('calculator.complex.argument')}</dt><dd>{result.re === 0 && result.im === 0 ? '—' : formatDisplay(Math.atan2(result.im, result.re))}</dd></div>
+          <div><dt>{t('calculator.complex.argument')}</dt><dd>{result.re === 0 && result.im === 0 ? t('calculator.complex.undefinedArgument') : formatDisplay(Math.atan2(result.im, result.re))}</dd></div>
           <div><dt>{t('calculator.complex.conjugate')}</dt><dd>{formatComplex({ re: result.re, im: -result.im })}</dd></div>
-          <div><dt>{t('calculator.complex.polar')}</dt><dd>{formatDisplay(Math.hypot(result.re, result.im))} ∠ {result.re === 0 && result.im === 0 ? '—' : formatDisplay(Math.atan2(result.im, result.re))}</dd></div>
+          <div><dt>{t('calculator.complex.polar')}</dt><dd>{result.re === 0 && result.im === 0 ? '0' : formatDisplay(Math.hypot(result.re, result.im)) + ' ∠ ' + formatDisplay(Math.atan2(result.im, result.re))}</dd></div>
         </dl>}
       </section>
     </div>

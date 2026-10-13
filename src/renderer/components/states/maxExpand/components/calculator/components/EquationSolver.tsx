@@ -84,7 +84,7 @@ export function EquationSolver({ initial, onRecord }: {
           {result && <span className="calc-workbench-badge">{t(result.approximate ? 'calculator.workbench.approximate' : 'calculator.workbench.exact')}</span>}
         </div>
         <output className={'calc-feature-result' + (error ? ' calc-workbench-error' : '')} aria-live="polite">
-          {error || (result ? resultText(result) : '—')}
+          {error || (result ? resultText(result) : '')}
         </output>
         {result?.status === 'finite' && <div className="calc-root-list">{result.roots.map((root, index) => <div className="calc-root-card" key={index}>
           <span>x<sub>{index + 1}</sub></span><strong>{formatDisplay(root)}</strong>
