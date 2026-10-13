@@ -829,6 +829,40 @@
 
 }
 
+.calc-graph-set-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+
+}
+
+.calc-graph-set-card {
+  padding: 8px;
+  background: rgb(var(--color-text-rgb), .06);
+  border: 1px solid rgb(var(--color-text-rgb), .1);
+  border-radius: 8px;
+
+}
+
+.calc-graph-set-card p {
+  margin: 0;
+  overflow-wrap: anywhere;
+
+}
+
+.calc-graph-set-value {
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-graph-set-scope {
+  font-size: 10px;
+  color: rgb(var(--color-text-rgb), .55);
+
+}
+
 .calc-graph-analysis textarea {
   box-sizing: border-box;
   width: 100%;

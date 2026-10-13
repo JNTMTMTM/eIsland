@@ -333,6 +333,38 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   expect(desktop.rendererErrors).toEqual([]);
 });
 
+test('domain and range analysis shows complete intervals for all functions and labels view estimates', async ({ desktop }, testInfo) => {
+  const page = desktop.main;
+  await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.functions.variable, exact: true }).click();
+  await page.getByRole('button', { name: 'x²', exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true }).click();
+  await page.getByRole('textbox', { name: en.calculator.graph.extra }).fill('ln(x)\n1/(x-1)\nsqrt(1-x^2)\nsin(x)');
+  await page.getByRole('button', { name: en.calculator.graph.domainFind, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.graph.rangeFind, exact: true }).click();
+  const domain = page.locator('.calc-graph-set-results[data-kind="domain"]');
+  const range = page.locator('.calc-graph-set-results[data-kind="range"]');
+  await expect(domain.locator('.calc-graph-set-value')).toHaveText(['(−∞, +∞)', '(0, +∞)', '(−∞, 1) ∪ (1, +∞)', '[-1, 1]', '(−∞, +∞)']);
+  await expect(range.locator('.calc-graph-set-value')).toHaveText(['[0, +∞)', '(−∞, +∞)', '(−∞, 0) ∪ (0, +∞)', '[0, 1]', '[-1, 1]']);
+  await expect(domain.locator('.calc-graph-set-scope')).toHaveText(Array(5).fill(en.calculator.graph.setComplete));
+  expect(await page.locator('.calc-main').evaluate((main) => main.scrollHeight - main.clientHeight)).toBeLessThanOrEqual(1);
+  await page.getByRole('button', { name: en.calculator.coordinate.numericKeys, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true }).click();
+  await expect(range.locator('.calc-graph-set-card')).toHaveCount(5);
+  await page.locator('.calc-graph-analysis').evaluate((analysis) => analysis.scrollTop = 0);
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('graphing-domain-range.png') });
+  await page.getByRole('textbox', { name: en.calculator.graph.extra }).fill('tan(x)');
+  await expect(domain).toHaveCount(0);
+  await expect(range).toHaveCount(0);
+  await page.getByRole('button', { name: en.calculator.graph.domainFind, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.graph.rangeFind, exact: true }).click();
+  await expect(domain.locator('.calc-graph-set-scope').nth(1)).toContainText('x ∈ [-10, 10]');
+  await expect(range.locator('.calc-graph-set-value').nth(1)).toContainText('≈');
+  await page.getByRole('button', { name: en.calculator.history.title, exact: true }).click();
+  await expect(page.locator('.calc-history-row[data-mode="coordinate"]')).toHaveCount(4);
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
 test('logarithm graphs use the correct bases and hide tangents outside their domain', async ({ desktop }, testInfo) => {
   const page = desktop.main;
   await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();
