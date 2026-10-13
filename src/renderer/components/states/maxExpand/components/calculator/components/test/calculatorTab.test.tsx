@@ -34,6 +34,7 @@ import { CoordinateGraph } from '../CoordinateGraph';
 const state = vi.hoisted(() => ({ formula: 'x', result: null, angleUnit: 'degree', setAngleUnit: vi.fn(), inputDigit: vi.fn(), inputOperator: vi.fn(), inputText: vi.fn(), calculate: vi.fn(), moveCursorHorizontal: vi.fn(), moveCursorBoundary: vi.fn() }));
 vi.mock('../../hooks/useCalculator', () => ({ useCalculator: () => state }));
 vi.mock('function-plot', () => ({ default: vi.fn() }));
+vi.mock('../../utils/FullWidthChart', () => ({ FullWidthChart: class {} }));
 describe('CalculatorTab', () => {
   it('switches arithmetic, scientific and coordinate layouts and keys', () => {
     const tree = render(Component);

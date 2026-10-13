@@ -31,9 +31,12 @@ import functionPlot, { Chart, type FunctionPlotOptions, type FunctionPlotDatum }
 import { normalizeExpressionForPlot } from '../utils/expressionUtils';
 import { compileNumericFormula, formatDisplay } from '../utils/calculatorUtils';
 import { findRealRoots } from '../utils/numericRoots';
+import { FullWidthChart } from '../utils/FullWidthChart';
 
 const COLORS = ['#6390ff', '#f5a65b', '#6dd3a0', '#d88cf5', '#f57186'];
 interface GraphPoint { x: number; y: number; label: string; kind: 'zero' | 'intersection' }
+/** 绘图库支持单条曲线的图例格式回调，但未在 datum 类型中声明。 */
+interface TracedPlotDatum extends FunctionPlotDatum { renderer: (x: number, y: number) => string }
 
 /** 绘制多条函数，并提供坐标追踪、零点和交点数值分析。
  * @param expression - 当前公式编辑器中的表达式
@@ -54,10 +57,18 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
   const [extra, setExtra] = useState(initialExtra);
   const [points, setPoints] = useState<GraphPoint[]>([]);
   const [analyzed, setAnalyzed] = useState(false); const [identical, setIdentical] = useState(false);
-  const [trace, setTrace] = useState<{ x: number; y: number; index: number } | null>(null);
   const expressions = [expression || '0', ...extra.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, 4)];
-  const onTip = useCallback((point: { x: number; y: number; index: number }): void => {
-    if (Number.isFinite(point.x) && Number.isFinite(point.y)) setTrace(point);
+  const fitLegend = useCallback((): void => {
+    const canvas = plotRef.current;
+    const legend = canvas?.querySelector<SVGTextElement>('.top-right-legend');
+    if (!canvas || !legend) return;
+    const width = Math.max(0, canvas.clientWidth - 4);
+    legend.setAttribute('x', String(canvas.clientWidth - 2));
+    legend.removeAttribute('textLength');
+    if (legend.getComputedTextLength() > width) {
+      legend.setAttribute('textLength', String(width));
+      legend.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+    }
   }, []);
   const renderPlot = useCallback((): void => {
     const canvas = plotRef.current;
@@ -72,14 +83,30 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
       };
       optionsRef.current = options; options.width = canvas.clientWidth; options.height = canvas.clientHeight;
       const functions = [expression || '0', ...extra.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, 4)];
-      options.data = functions.map((formula, index): FunctionPlotDatum => ({ fn: normalizeExpressionForPlot(formula), color: COLORS[index], graphType: 'polyline' }));
+      options.data = functions.map((formula, index): TracedPlotDatum => ({
+        fn: normalizeExpressionForPlot(formula), color: COLORS[index], graphType: 'polyline',
+        renderer: (x: number, y: number): string => 'f' + (index + 1) + ': x = ' + formatDisplay(x) + ', y = ' + formatDisplay(y),
+      }));
       if (points.length) options.data.push({ fnType: 'points', graphType: 'scatter', points: points.map((point) => [point.x, point.y]), color: '#f5a65b', skipTip: true });
-      chartRef.current?.removeListener('tip:update', onTip);
+      chartRef.current?.removeListener('tip:update', fitLegend);
+      if (!options.id || !Chart.cache[options.id]) new FullWidthChart(options);
       chartRef.current = functionPlot(options);
-      chartRef.current?.on('tip:update', onTip);
+      const legend = canvas.querySelector<SVGTextElement>('.top-right-legend');
+      if (legend) {
+        legend.classList.add('calc-graph-trace');
+        legend.setAttribute('role', 'status');
+        if (!legend.textContent) legend.textContent = t('calculator.graph.tracking');
+      }
+      fitLegend();
+      chartRef.current?.on('tip:update', fitLegend);
     } catch { canvas.replaceChildren(); setError(t('calculator.coordinate.error')); }
-  }, [expression, extra, points, onTip, t]);
-  useEffect(() => { setPoints([]); setAnalyzed(false); setIdentical(false); setTrace(null); }, [expression, extra]);
+  }, [expression, extra, points, t, fitLegend]);
+  useEffect(() => {
+    setPoints([]); setAnalyzed(false); setIdentical(false);
+    const legend = plotRef.current?.querySelector('.top-right-legend');
+    if (legend) { legend.textContent = t('calculator.graph.tracking'); legend.removeAttribute('fill'); }
+    fitLegend();
+  }, [expression, extra, t, fitLegend]);
   useEffect(() => { renderPlot(); }, [renderPlot]);
   useEffect(() => {
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(renderPlot);
@@ -110,11 +137,8 @@ export function CoordinateGraph({ expression, initialExtra = '', onAnalyze, rend
     } catch { setError(t('calculator.coordinate.error')); }
   };
   const graph = <div className="calc-graph-workspace">
-    <div className="coordinate-graph-container" aria-label={t('calculator.coordinate.plot')}>
-      <div className="coordinate-graph-canvas" ref={plotRef} />
-      {error && <div className="coordinate-graph-error" role="status">{error}</div>}
-    </div>
-    <output className="calc-graph-trace">{trace ? 'f' + (trace.index + 1) + ': x = ' + formatDisplay(trace.x) + ', y = ' + formatDisplay(trace.y) : t('calculator.graph.tracking')}</output>
+    <div className="coordinate-graph-canvas" ref={plotRef} aria-label={t('calculator.coordinate.plot')} />
+    {error && <div className="coordinate-graph-error" role="status">{error}</div>}
   </div>;
   const analysis = <section className="calc-graph-analysis" aria-label={t('calculator.graph.controls')}>
       <label>{t('calculator.graph.extra')}<textarea rows={3} value={extra} onChange={(event) => setExtra(event.target.value)} /></label>

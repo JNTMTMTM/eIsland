@@ -237,8 +237,19 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   await page.getByRole('button', { name: 'x²', exact: true }).click();
   await expect(display).toHaveAttribute('aria-description', 'x^2');
   await expect(page.locator('.coordinate-graph-canvas svg')).toBeVisible();
-  const fitsCanvas = async (): Promise<number> => page.locator('.coordinate-graph-canvas').evaluate((canvas) => Math.abs(canvas.clientWidth - Number(canvas.querySelector('svg')?.getAttribute('width'))));
+  const fitsCanvas = async (): Promise<number> => page.locator('.coordinate-graph-canvas').evaluate((canvas) => {
+    const svg = canvas.querySelector('svg')!;
+    const area = canvas.getBoundingClientRect(); const rendered = svg.getBoundingClientRect();
+    return Math.max(Math.abs(canvas.clientWidth - Number(svg.getAttribute('width'))), Math.abs(canvas.clientHeight - Number(svg.getAttribute('height'))), Math.abs(area.width - rendered.width), Math.abs(area.height - rendered.height));
+  });
+  const fitsFormula = async (): Promise<number> => page.locator('.calc-coordinate-workspace').evaluate((workspace) => {
+    const formula = workspace.querySelector('.calc-display')!.getBoundingClientRect();
+    const grid = workspace.querySelector('.zoom-and-drag')!.getBoundingClientRect();
+    return Math.max(Math.abs(formula.left - grid.left), Math.abs(formula.right - grid.right));
+  });
+  await expect(page.locator('.coordinate-graph-container')).toHaveCount(0);
   await expect.poll(fitsCanvas).toBeLessThan(1);
+  await expect.poll(fitsFormula).toBeLessThan(1);
   const graphSvg = await page.locator('.coordinate-graph-canvas svg').elementHandle();
   const graphWidth = await page.locator('.coordinate-graph-canvas svg').getAttribute('width');
   await page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true }).click();
@@ -264,9 +275,52 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   await expect(page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true })).toBeInViewport();
   await page.getByRole('button', { name: en.calculator.sidebar.expand, exact: true }).click();
   await expect.poll(fitsCanvas).toBeLessThan(1);
+  await expect.poll(fitsFormula).toBeLessThan(1);
   await page.getByRole('button', { name: en.calculator.coordinate.numericKeys, exact: true }).click();
   await expect(display).toHaveAttribute('aria-description', 'x^2');
-  await page.locator('.coordinate-graph-canvas').dispatchEvent('wheel', { deltaY: 80, bubbles: true });
+  const ticksBeforeZoom = await page.locator('.coordinate-graph-canvas .x.axis .tick text').allTextContents();
+  await page.locator('.zoom-and-drag').hover();
+  await expect(page.locator('.calc-graph-trace')).toContainText('x =');
+  await expect(page.locator('.top-right-legend.calc-graph-trace')).toHaveCount(1);
+  await expect(page.locator('output.calc-graph-trace')).toHaveCount(0);
+  const traceBounds = await page.locator('.calc-graph-trace').evaluate((legend) => {
+    const svg = legend.closest('svg')!.getBoundingClientRect();
+    const bounds = legend.getBoundingClientRect();
+    return { top: bounds.top - svg.top, bottom: bounds.bottom - svg.top, right: bounds.right - svg.right };
+  });
+  expect(traceBounds.top).toBeGreaterThanOrEqual(-1);
+  expect(traceBounds.bottom).toBeLessThanOrEqual(20);
+  expect(traceBounds.right).toBeLessThanOrEqual(1);
+  await expect(page.locator('.calc-graph-trace')).toHaveAttribute('fill', /.+/);
+  expect(await page.locator('.calc-graph-trace').evaluate((legend) => getComputedStyle(legend).fill)).toBe(await page.locator('.calc-graph-trace').evaluate((legend) => {
+    const expected = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    expected.setAttribute('fill', legend.getAttribute('fill')!);
+    legend.parentElement!.appendChild(expected);
+    const color = getComputedStyle(expected).fill;
+    expected.remove();
+    return color;
+  }));
+  await page.mouse.wheel(0, -180);
+  await expect.poll(() => page.locator('.coordinate-graph-canvas .x.axis .tick text').allTextContents()).not.toEqual(ticksBeforeZoom);
+  await expect.poll(fitsFormula).toBeLessThan(1);
+  const plotBounds = await page.locator('.zoom-and-drag').boundingBox();
+  if (!plotBounds) throw new Error('Missing graph interaction area');
+  await page.mouse.move(plotBounds.x + plotBounds.width * .8, plotBounds.y + plotBounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(plotBounds.x + plotBounds.width * .1, plotBounds.y + plotBounds.height / 2, { steps: 5 });
+  await page.mouse.up();
+  const ticksInside = await page.locator('.coordinate-graph-canvas svg').evaluate((svg) => {
+    const bounds = svg.getBoundingClientRect();
+    return Array.from(svg.querySelectorAll('.axis .tick text')).every((tick) => {
+      const label = tick.getBoundingClientRect();
+      return label.left >= bounds.left - 1 && label.right <= bounds.right + 1;
+    });
+  });
+  expect(ticksInside).toBe(true);
+  await page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.graph.reset, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.coordinate.numericKeys, exact: true }).click();
+  await expect.poll(fitsFormula).toBeLessThan(1);
   await expect(page.locator('.calculator-panel-coordinate')).toBeVisible();
   await expect(page.locator('.coordinate-graph-error')).toHaveCount(0);
   await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('graphing.png') });
@@ -276,5 +330,45 @@ test('graphing preserves the formula across modes and redraws after sidebar and 
   await expect(display).toHaveAttribute('aria-description', 'x^2');
   await expect(page.getByRole('button', { name: en.calculator.coordinate.analysisKeys, exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('textbox', { name: en.calculator.graph.extra })).toHaveValue(extraFunctions);
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('graphing fits its container and keeps tracking text inside at narrow container sizes', async ({ desktop }, testInfo) => {
+  const page = desktop.main;
+  await page.getByRole('button', { name: en.calculator.modes.coordinate, exact: true }).click();
+  await page.getByRole('button', { name: en.calculator.functions.variable, exact: true }).click();
+  for (const size of [[824, 364], [604, 324], [484, 364]]) {
+    // 固定面板尺寸，避免应用的原生窗口定位逻辑覆盖测试期间的尺寸变更。
+    await page.locator('.calculator-panel').evaluate((panel, [width, height]) => {
+      panel.style.width = width + 'px';
+      panel.style.height = height + 'px';
+    }, size);
+    for (const expanded of [true, false]) {
+      await page.getByRole('button', { name: expanded ? en.calculator.sidebar.expand : en.calculator.sidebar.collapse, exact: true }).click();
+      for (const panel of ['numericKeys', 'scientificKeys', 'analysisKeys'] as const) {
+        await page.getByRole('button', { name: en.calculator.coordinate[panel], exact: true }).click();
+        await expect.poll(() => page.locator('.calc-main').evaluate((main) => {
+          const bounds = main.getBoundingClientRect();
+          const regions = ['.calc-coordinate-layout', '.calc-coordinate-controls', '.calc-coordinate-workspace', '.coordinate-graph-canvas'];
+          return Math.max(main.scrollHeight - main.clientHeight, main.scrollWidth - main.clientWidth, ...regions.map((selector) => {
+            const region = main.querySelector(selector)!.getBoundingClientRect();
+            return Math.max(bounds.left - region.left, region.right - bounds.right, bounds.top - region.top, region.bottom - bounds.bottom);
+          }));
+        })).toBeLessThanOrEqual(1);
+        await page.locator('.zoom-and-drag').hover();
+        await expect(page.locator('.calc-graph-trace')).toContainText('x =');
+        await expect.poll(() => page.locator('.calc-graph-trace').evaluate((legend) => {
+          const svg = legend.closest('svg')!.getBoundingClientRect();
+          const bounds = legend.getBoundingClientRect();
+          return Math.max(svg.left - bounds.left, bounds.right - svg.right, svg.top - bounds.top, bounds.bottom - svg.bottom);
+        })).toBeLessThanOrEqual(1);
+        await page.locator('.calc-toolbar').hover();
+        await page.mouse.wheel(0, 200);
+        await page.locator('.calc-main').evaluate((main) => main.scrollTop = 100);
+        expect(await page.locator('.calc-main').evaluate((main) => main.scrollTop)).toBe(0);
+      }
+    }
+  }
+  await page.locator('.calculator-panel').screenshot({ path: testInfo.outputPath('graphing-narrow.png') });
   expect(desktop.rendererErrors).toEqual([]);
 });
