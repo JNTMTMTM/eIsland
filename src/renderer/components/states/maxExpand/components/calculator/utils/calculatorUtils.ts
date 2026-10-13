@@ -27,7 +27,7 @@
 import type { CalcAngleUnit, ScientificFn } from '../types/calculatorTypes';
 
 type ExpressionNode =
-  | { type: 'number'; value: number }
+  | { type: 'number'; value: number; symbol?: 'π' | 'e' }
   | { type: 'variable' }
   | { type: 'imaginary' }
   | { type: 'unary'; operator: '+' | '-'; value: ExpressionNode }
@@ -128,13 +128,13 @@ class FormulaParser {
       this.expect(')');
       return value;
     }
-    if (this.consume('π')) return { type: 'number', value: Math.PI };
+    if (this.consume('π')) return { type: 'number', value: Math.PI, symbol: 'π' };
 
     const number = this.readNumber();
     if (number !== null) return { type: 'number', value: number };
 
     const identifier = this.readIdentifier();
-    if (identifier === 'e') return { type: 'number', value: Math.E };
+    if (identifier === 'e') return { type: 'number', value: Math.E, symbol: 'e' };
     if (identifier === 'x') return { type: 'variable' };
     if (identifier === 'i') return { type: 'imaginary' };
     if (!identifier) throw new Error('Expected value');

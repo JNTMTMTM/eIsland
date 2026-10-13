@@ -2765,6 +2765,11 @@
       "restore": "Edit this calculation",
       "remove": "Delete calculation",
       "clear": "Clear history",
+      "pagination": "History pagination",
+      "pageSize": "Per page",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "pageSummary": "Page {{page}} / {{pages}}",
       "storageError": "History could not be saved; current records are still available"
     },
     "angleUnit": {

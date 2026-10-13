@@ -2765,6 +2765,11 @@
       "restore": "この計算を編集",
       "remove": "履歴を削除",
       "clear": "履歴をクリア",
+      "pagination": "履歴のページ送り",
+      "pageSize": "表示件数",
+      "previousPage": "前のページ",
+      "nextPage": "次のページ",
+      "pageSummary": "{{page}} / {{pages}} ページ",
       "storageError": "履歴を保存できませんでした。現在の履歴は引き続き使えます"
     },
     "angleUnit": {

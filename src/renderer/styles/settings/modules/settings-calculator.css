@@ -771,6 +771,7 @@
 
 .calc-history-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   font-size: 11px;
@@ -780,17 +781,91 @@
 
 .calc-history-formula,
 .calc-history-result {
-  max-height: 84px;
-  overflow: auto;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-  scrollbar-width: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  min-width: 0;
+  text-align: left;
 
 }
 
 .calc-history-result {
+  flex-direction: column;
+  align-items: stretch;
   font-size: 14px;
   color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-history-math {
+  display: block;
+  max-width: 100%;
+  overflow: auto hidden;
+  font-weight: 400;
+  scrollbar-width: none;
+
+}
+
+.calc-history-math::-webkit-scrollbar {
+  display: none;
+
+}
+
+.calc-history-math .katex-display {
+  margin: 4px 0;
+  text-align: left;
+
+}
+
+.calc-history-math .katex-display > .katex {
+  text-align: left;
+
+}
+
+.calc-history-text {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+
+}
+
+.calc-history-pagination {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  border-top: 1px solid rgb(var(--color-text-rgb), .08);
+
+}
+
+.calc-history-toolbar {
+  flex-wrap: wrap;
+
+}
+
+.calc-history-toolbar h3 {
+  margin-right: auto;
+
+}
+
+.calc-history-page-size {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+}
+
+.calc-history-page-size select {
+  padding: 4px;
+  font: inherit;
+  color: inherit;
+  background: rgb(var(--color-text-rgb), .04);
+  border: 1px solid rgb(var(--color-text-rgb), .08);
+  border-radius: 6px;
+
+}
+
+.calc-history-pagination .settings-hotkey-btn:disabled {
+  cursor: default;
+  opacity: .4;
 
 }
 

@@ -2765,6 +2765,11 @@
       "restore": "编辑这条计算",
       "remove": "删除记录",
       "clear": "清空历史",
+      "pagination": "历史记录分页",
+      "pageSize": "每页条数",
+      "previousPage": "上一页",
+      "nextPage": "下一页",
+      "pageSummary": "第 {{page}} / {{pages}} 页",
       "storageError": "历史记录保存失败，当前记录仍可使用"
     },
     "angleUnit": {
