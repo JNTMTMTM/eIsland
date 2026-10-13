@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-13T12:06:25.495Z
+> 生成时间：2026-10-13T23:56:28.175Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-13 | fc973dd2 | 鸡哥 | feat: 全面优化 maxexpand 状态机计算器界面功能 (#258)
+- 2026-10-13 | d1c2c64f | eislandBot | docs: auto update CHANGE_LOG.md for #248 by @dependabot[bot] [skip ci]
 - 2026-10-13 | f93700fe | dependabot[bot] | build: upgrade issue-report TypeScript with shared lint tooling (#248)
 - 2026-10-13 | 342c2fc9 | eislandBot | docs: auto update CHANGE_LOG.md for #257 by @JNTMTMTM [skip ci]
 - 2026-10-12 | c9a82943 | 鸡哥 | build: record native install script metadata in root lockfile (#257)
