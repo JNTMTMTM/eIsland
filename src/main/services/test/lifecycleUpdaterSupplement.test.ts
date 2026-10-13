@@ -32,7 +32,7 @@ import { initUpdaterService } from '../updaterService';
 import type { AppUpdater } from 'electron-updater';
 import type { App, BrowserWindow } from 'electron';
 const io = vi.hoisted(() => ({ handlers: new Map<string, () => void>(), windows: vi.fn(), frameRate: vi.fn<() => boolean>() }));
-vi.mock('electron', () => ({ app: { on: (event: string, handler: () => void) => io.handlers.set(event, handler) }, BrowserWindow: { getAllWindows: io.windows } }));
+vi.mock('electron', () => ({ app: { on: (event: string, handler: () => void) => io.handlers.set(event, handler) }, ipcMain: { handle: vi.fn(), on: vi.fn() }, BrowserWindow: { getAllWindows: io.windows } }));
 vi.mock('../../config/storeConfig', () => ({ readDisableFrameRateLimitConfig: io.frameRate }));
 class UpdaterFixture extends EventEmitter {
   autoDownload = true;
