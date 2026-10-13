@@ -49,6 +49,10 @@ void normalize_process_name(const WCHAR* source, WCHAR* output, size_t output_le
   source_length = wcslen(output);
 
   if (source_length > 0 && !string_ends_with_exe(output)) {
+    if (source_length + 4 >= output_length) {
+      output[0] = L'\0';
+      return;
+    }
     wcscat_s(output, output_length, L".exe");
   }
 }

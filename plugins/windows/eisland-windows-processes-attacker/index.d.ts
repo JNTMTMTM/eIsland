@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-/** 进程名称或正整数进程 ID。 */
+/** 不含空字符的 1–259 字符进程名称，或 1–4294967295 范围内的整数进程 ID。 */
 export type ProcessTarget = string | number;
 
 /** 未能终止的进程及 Windows 错误码。 */
@@ -52,6 +52,7 @@ export function closeProcess(target: ProcessTarget): ProcessCloseResult;
 
 /**
  * 同步终止多个目标对应的进程。
+ * 全部参数校验通过后才开始终止进程；Windows 操作失败记录在各项结果中。
  * @param targets - 进程名称或进程 ID 数组。
  * @returns 与目标数组顺序一致的终止结果。
  */

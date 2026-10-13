@@ -38,9 +38,10 @@
 bool append_failure(ProcessCloseResult* result, DWORD pid, const WCHAR* name, DWORD error_code);
 
 /**
- * Terminates the process described by @p entry and records the outcome.
+ * Verifies the opened process predates the snapshot and matches its image before termination.
+ * @param snapshot_started_at  Time captured before enumerating any process IDs.
  */
-void close_process_by_entry(const PROCESSENTRY32W* entry, ProcessCloseResult* result);
+void close_process_by_entry(const PROCESSENTRY32W* entry, const FILETIME* snapshot_started_at, ProcessCloseResult* result);
 
 /**
  * Checks whether a snapshot entry matches a target (by PID or name).
