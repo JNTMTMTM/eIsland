@@ -1423,6 +1423,17 @@ const api = {
     return ipcRenderer.invoke('island:animation-speed:set', speed);
   },
   /**
+   * 获取灵动岛整体缩放百分比。
+   * @returns 50–150 的缩放百分比。
+   */
+  islandScaleGet: (): Promise<number> => ipcRenderer.invoke('island:scale:get'),
+  /**
+   * 设置并保存灵动岛整体缩放。
+   * @param scale - 50–150 的缩放百分比。
+   * @returns 是否保存成功。
+   */
+  islandScaleSet: (scale: number): Promise<boolean> => ipcRenderer.invoke('island:scale:set', scale),
+  /**
    * 获取灵动岛形态模式 (notch / pill)
    */
   shapeModeGet: (): Promise<string> => {

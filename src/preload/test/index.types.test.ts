@@ -248,6 +248,8 @@ interface ExpectedApi {
   islandOpacityGet: () => Promise<number>;
   islandOpacitySet: (opacity: number) => Promise<boolean>;
   shapeModeGet: () => Promise<string>;
+  islandScaleGet: () => Promise<number>;
+  islandScaleSet: (scale: number) => Promise<boolean>;
   shapeModeSet: (mode: string) => Promise<boolean>;
   onShapeModeChanged: (callback: (mode: string, targetX: number, targetY: number) => void) => () => void;
   expandMouseleaveIdleGet: () => Promise<boolean>;

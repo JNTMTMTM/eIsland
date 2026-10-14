@@ -269,6 +269,8 @@ const TRANSPORT_ROUTES = [
   ['animationSpeedGet', 'island:animation-speed:get', 0, 'invoke'],
   ['animationSpeedSet', 'island:animation-speed:set', 1, 'invoke'],
   ['shapeModeGet', 'island:shape-mode:get', 0, 'invoke'],
+  ['islandScaleGet', 'island:scale:get', 0, 'invoke'],
+  ['islandScaleSet', 'island:scale:set', 1, 'invoke'],
   ['shapeModeSet', 'island:shape-mode:set', 1, 'invoke'],
   ['clipboardReadText', 'clipboard:read-text', 0, 'invoke'],
   ['clipboardWriteText', 'clipboard:write-text', 1, 'invoke'],
