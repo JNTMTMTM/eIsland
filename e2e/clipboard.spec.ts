@@ -26,6 +26,29 @@
 
 import { test, expect } from './fixtures';
 
+/**
+ * 恢复剪贴板快照，忽略平台返回的无 MIME 空项。
+ * @param electron - Electron 主进程剪贴板接口。
+ * @param saved - 按项目和 MIME 类型保存的原始载荷。
+ * @returns 剪贴板恢复完成的 Promise。
+ */
+async function restoreClipboard(
+  electron: Pick<typeof import('electron'), 'clipboard' | 'ClipboardItem'>,
+  saved: Array<Array<{ type: string; data: string }>>,
+): Promise<void> {
+  const { clipboard, ClipboardItem } = electron;
+  // macOS 等平台可用一个 types 为空的项目表示空剪贴板，不能构造空 ClipboardItem。
+  const items = saved.filter((item) => item.length > 0);
+  if (items.length === 0) { clipboard.clear(); return; }
+  await clipboard.write(items.map((item) => new ClipboardItem(Object.fromEntries(
+    item.map(({ type, data }): [string, Blob | Electron.ClipboardBookmark] => [type,
+      type === 'electron application/bookmark'
+        ? JSON.parse(data) as Electron.ClipboardBookmark
+        : new Blob([new Uint8Array(Buffer.from(data, 'base64'))], { type }),
+    ]),
+  ))));
+}
+
 test('uses the asynchronous clipboard API for text, images, Agent tools and URL monitoring', async ({ desktop }, testInfo) => {
   const version = await desktop.app.evaluate(() => process.versions.electron);
   await testInfo.attach('electron-version', { body: version, contentType: 'text/plain' });
@@ -41,6 +64,13 @@ test('uses the asynchronous clipboard API for text, images, Agent tools and URL 
 
   try {
     await desktop.main.evaluate(() => window.api.clipboardUrlMonitorSet(false));
+    // 在所有平台复现 CI 的空项形状，同时覆盖混有有效载荷的快照。
+    await desktop.app.evaluate(restoreClipboard, [[], []]);
+    expect(await desktop.main.evaluate(() => window.api.clipboardReadText())).toBe('');
+    await desktop.app.evaluate(restoreClipboard, [[], [{
+      type: 'text/plain', data: Buffer.from('clipboard restoration fixture').toString('base64'),
+    }], []]);
+    expect(await desktop.main.evaluate(() => window.api.clipboardReadText())).toBe('clipboard restoration fixture');
     expect(await desktop.main.evaluate(() => window.api.clipboardWriteText('clipboard IPC fixture'))).toBe(true);
     expect(await desktop.main.evaluate(() => window.api.clipboardReadText())).toBe('clipboard IPC fixture');
     const text = await desktop.main.evaluate(() => window.api.executeAgentLocalTool({ tool: 'clipboard.read' }));
@@ -91,15 +121,6 @@ test('uses the asynchronous clipboard API for text, images, Agent tools and URL 
     expect(desktop.rendererErrors).toEqual([]);
   } finally {
     await desktop.main.evaluate(() => window.api.clipboardUrlMonitorSet(false));
-    await desktop.app.evaluate(async ({ clipboard, ClipboardItem }, saved) => {
-      if (saved.length === 0) { clipboard.clear(); return; }
-      await clipboard.write(saved.map((item) => new ClipboardItem(Object.fromEntries(
-        item.map(({ type, data }): [string, Blob | Electron.ClipboardBookmark] => [type,
-          type === 'electron application/bookmark'
-            ? JSON.parse(data) as Electron.ClipboardBookmark
-            : new Blob([new Uint8Array(Buffer.from(data, 'base64'))], { type }),
-        ]),
-      ))));
-    }, previous);
+    await desktop.app.evaluate(restoreClipboard, previous);
   }
 });
