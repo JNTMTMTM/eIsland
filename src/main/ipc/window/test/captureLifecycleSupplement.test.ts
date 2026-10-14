@@ -42,7 +42,14 @@ const io = vi.hoisted(() => ({
   translate: vi.fn<(token: string, url: string, source: string, target: string, signal: AbortSignal) => Promise<unknown>>(),
 }));
 vi.mock('electron', () => ({
-  app: { getPath: () => 'C:/fixture-pictures' }, clipboard: { writeImage: io.clipboard },
+  app: { getPath: () => 'C:/fixture-pictures' }, clipboard: { write: io.clipboard },
+  ClipboardItem: class {
+    /**
+     * 保存异步复制测试的截图载荷。
+     * @param data - 按 MIME 类型索引的截图载荷。
+     */
+    constructor(readonly data: Record<string, Blob>) {}
+  },
   desktopCapturer: { getSources: io.sources }, dialog: { showSaveDialog: io.save },
   nativeImage: { createFromDataURL: io.image },
   ipcMain: { handle: (channel: string, handler: HandlerFixture) => io.handles.set(channel, handler), on: (channel: string, handler: HandlerFixture) => io.events.set(channel, handler) },
@@ -89,10 +96,18 @@ describe('截图图像来源及保存清理', () => {
     io.sources.mockRejectedValue(new Error('capture failed'));
     await expect(invoke('system:screenshot')).resolves.toBeNull(); expect(console.error).toHaveBeenCalled();
   });
-  it('剪贴板失败仍关闭截图窗口', () => {
-    io.clipboard.mockImplementation(() => { throw new Error('clipboard failed'); });
-    io.events.get('capture-complete')?.({}, { dataURL: 'data:image/png;base64,AA==' });
+  it('剪贴板失败仍关闭截图窗口', async () => {
+    io.clipboard.mockRejectedValue(new Error('clipboard failed'));
+    await io.events.get('capture-complete')?.({}, { dataURL: 'data:image/png;base64,AA==' });
     expect(close).toHaveBeenCalledOnce(); expect(console.error).toHaveBeenCalled();
+  });
+  it('剪贴板写入完成后才关闭截图窗口', async () => {
+    let finishWrite: () => void = () => {};
+    io.clipboard.mockImplementationOnce(() => new Promise<void>((resolve) => { finishWrite = resolve; }));
+    io.events.get('capture-complete')?.({}, { dataURL: 'data:image/png;base64,AA==' });
+    expect(close).not.toHaveBeenCalled();
+    finishWrite();
+    await vi.waitFor(() => expect(close).toHaveBeenCalledOnce());
   });
   it.each(['canceled', 'no-path', 'failure', 'absent-window', 'destroyed-window'])('%s 保存边界仍关闭窗口', async (scenario) => {
     if (scenario === 'no-path') io.save.mockResolvedValue({ canceled: false });

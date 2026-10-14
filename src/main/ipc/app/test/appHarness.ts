@@ -90,9 +90,10 @@ const mocks = vi.hoisted(() => ({
   trash: vi.fn<(file: string) => Promise<void>>(),
   broadcast: vi.fn<(sender: number, channel: string, value: unknown) => void>(),
   nowPlaying: vi.fn<() => unknown>(),
-  text: vi.fn<() => string>(),
+  text: vi.fn<() => Promise<string>>(),
+  clipboardItems: vi.fn<() => Promise<Array<{ types: string[]; getType: (type: string) => Promise<Blob> }>>>(),
   image: vi.fn<() => { isEmpty: () => boolean; toPNG: () => Buffer; getSize: () => { width: number; height: number } }>(),
-  clipboardWrite: vi.fn<(text: string) => void>(),
+  clipboardWrite: vi.fn<(text: string) => Promise<void>>(),
   capture: vi.fn<(options: unknown) => Promise<Array<{ thumbnail: { toPNG: () => Buffer } }>>>(),
   notification: vi.fn<(options: { title: string; body: string }) => { show: () => void }>(),
   showNotification: vi.fn<() => void>(),
@@ -119,7 +120,8 @@ vi.mock('electron', () => ({
   app: { quit: mocks.quit, relaunch: mocks.relaunch, exit: mocks.exit, getPath: mocks.getPath },
   BrowserWindow: { fromWebContents: mocks.ownerWindow, getFocusedWindow: mocks.focusedWindow },
   dialog: { showOpenDialog: mocks.openDialog, showSaveDialog: mocks.saveDialog },
-  clipboard: { readText: mocks.text, readImage: mocks.image, writeText: mocks.clipboardWrite },
+  clipboard: { readText: mocks.text, read: mocks.clipboardItems, writeText: mocks.clipboardWrite },
+  nativeImage: { createEmpty: () => ({ isEmpty: () => true }), createFromBuffer: mocks.image },
   desktopCapturer: { getSources: mocks.capture },
   Notification: mocks.notification,
   shell: { showItemInFolder: mocks.reveal, openPath: mocks.openPath, readShortcutLink: mocks.shortcut, openExternal: mocks.external, trashItem: mocks.trash },
@@ -236,7 +238,9 @@ export function resetHarness(): void {
   mocks.external.mockResolvedValue(undefined);
   mocks.trash.mockResolvedValue(undefined);
   mocks.nowPlaying.mockReturnValue(null);
-  mocks.text.mockReturnValue('fixture');
+  mocks.text.mockResolvedValue('fixture');
+  mocks.clipboardItems.mockResolvedValue([]);
+  mocks.clipboardWrite.mockResolvedValue(undefined);
   mocks.image.mockReturnValue({ isEmpty: () => true, toPNG: () => Buffer.from('png'), getSize: () => ({ width: 10, height: 20 }) });
   mocks.capture.mockResolvedValue([{ thumbnail: { toPNG: () => Buffer.from('png') } }]);
   // Electron Notification 由 new 调用，边界必须提供可构造函数。

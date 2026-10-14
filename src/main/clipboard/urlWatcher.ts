@@ -116,14 +116,27 @@ async function fetchPageTitle(url: string, signal: AbortSignal, timeoutMs = 3000
  */
 export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): void {
   if (!options.getEnabled() || clipboardPollTimer) return;
-  lastClipboardText = clipboard.readText() || '';
+  requestVersion += 1;
+  let reading = false;
 
-  clipboardPollTimer = setInterval(() => {
-    if (!options.getEnabled()) { stopClipboardUrlWatcher(); return; }
+  // 异步读取不能重叠；停止或重启后丢弃旧读取结果，避免通知已关闭的窗口。
+  const poll = async (baseline = false): Promise<void> => {
+    if (reading) return;
+    reading = true;
+    const readVersion = requestVersion;
+    let current: string;
+    try {
+      current = await clipboard.readText();
+    } catch (err) {
+      console.error('[ClipboardUrlWatcher] read error:', err);
+      return;
+    } finally {
+      reading = false;
+    }
+    if (readVersion !== requestVersion || !clipboardPollTimer || !options.getEnabled()) return;
+    if (baseline) { lastClipboardText = current; return; }
     const win = options.getWindow();
-    if (!win || win.isDestroyed()) return;
-    const current = clipboard.readText() || '';
-    if (current === lastClipboardText) return;
+    if (!win || win.isDestroyed() || current === lastClipboardText) return;
     lastClipboardText = current;
     titleRequest?.abort();
     titleRequest = null;
@@ -132,19 +145,29 @@ export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): v
     const urls = extractUrls(current, options.getDetectMode());
     const blacklist = options.getBlacklist();
     const filteredUrls = urls.filter((url) => !isUrlBlacklisted(url, blacklist));
-    if (filteredUrls.length > 0) {
-      const request = new AbortController();
-      titleRequest = request;
-      fetchPageTitle(filteredUrls[0], request.signal).then((title) => {
-        if (version !== requestVersion || !clipboardPollTimer || !options.getEnabled()) return;
-        const currentWindow = options.getWindow();
-        if (!currentWindow || currentWindow.isDestroyed()) return;
-        currentWindow.webContents.send('clipboard:urls-detected', { urls: filteredUrls, title });
-      }).finally(() => {
-        if (titleRequest === request) titleRequest = null;
-      });
+    if (filteredUrls.length === 0) return;
+    const request = new AbortController();
+    titleRequest = request;
+    try {
+      const title = await fetchPageTitle(filteredUrls[0], request.signal);
+      if (version !== requestVersion || !clipboardPollTimer || !options.getEnabled()) return;
+      const currentWindow = options.getWindow();
+      if (!currentWindow || currentWindow.isDestroyed()) return;
+      currentWindow.webContents.send('clipboard:urls-detected', { title, urls: filteredUrls });
+    } finally {
+      if (titleRequest === request) titleRequest = null;
     }
+  };
+
+  clipboardPollTimer = setInterval(() => {
+    if (!options.getEnabled()) { stopClipboardUrlWatcher(); return; }
+    const win = options.getWindow();
+    if (!win || win.isDestroyed()) return;
+    // eslint-disable-next-line promise/prefer-await-to-then -- 定时器必须同步返回，异步轮询单独处理拒绝。
+    poll().catch(console.error);
   }, 1000);
+  // eslint-disable-next-line promise/prefer-await-to-then -- 启动接口同步返回，异步基准读取单独处理拒绝。
+  poll(true).catch(console.error);
 }
 
 /**

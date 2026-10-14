@@ -25,7 +25,7 @@
  * @author 鸡哥
  */
 
-import { app, clipboard, desktopCapturer, dialog, ipcMain, nativeImage, type BrowserWindow } from 'electron';
+import { app, clipboard, ClipboardItem, desktopCapturer, dialog, ipcMain, nativeImage, type BrowserWindow } from 'electron';
 import { join } from 'path';
 import { writeFile } from 'fs/promises';
 import { capturePrimaryDisplayPng, encodeScreenshotPng } from '../../window/screenshotHelper';
@@ -87,14 +87,21 @@ export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOp
     return null;
   });
 
-  ipcMain.on('capture-complete', (_event, { dataURL }: { dataURL: string }) => {
+  const copyCapture = async (dataURL: string): Promise<void> => {
     try {
       const image = nativeImage.createFromDataURL(dataURL);
-      clipboard.writeImage(image);
+      await clipboard.write([new ClipboardItem({
+        'image/png': new Blob([new Uint8Array(image.toPNG())], { type: 'image/png' }),
+      })]);
     } catch (err) {
       console.error('[Screenshot] copy error:', err);
+    } finally {
+      options.closeCaptureWindow();
     }
-    options.closeCaptureWindow();
+  };
+  ipcMain.on('capture-complete', (_event, { dataURL }: { dataURL: string }) => {
+    // eslint-disable-next-line promise/prefer-await-to-then -- IPC 事件同步返回，异步复制由自身处理失败和窗口清理。
+    copyCapture(dataURL).catch(console.error);
   });
 
   ipcMain.handle('capture-ocr-local', async (event, payload: {

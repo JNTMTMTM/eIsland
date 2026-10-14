@@ -83,7 +83,14 @@ vi.mock('electron', () => ({
     getPath: appGetPathMock,
   },
   clipboard: {
-    writeImage: clipboardWriteImageMock,
+    write: clipboardWriteImageMock,
+  },
+  ClipboardItem: class {
+    /**
+     * 保存截图载荷，供写入内容断言使用。
+     * @param data - 按 MIME 类型索引的图像载荷。
+     */
+    constructor(readonly data: Record<string, Blob>) {}
   },
   desktopCapturer: {
     getSources: desktopCapturerGetSourcesMock,
@@ -244,9 +251,11 @@ describe('capture and wallpaper ipc handlers', () => {
 
     await expect(handleHandlers.get('system:screenshot')?.({})).resolves.toEqual(Buffer.from('abc'));
 
-    onHandlers.get('capture-complete')?.({}, { dataURL: 'data:image/png;base64,AAA' });
+    await onHandlers.get('capture-complete')?.({}, { dataURL: 'data:image/png;base64,AAA' });
     expect(createFromDataURLMock).toHaveBeenCalledWith('data:image/png;base64,AAA');
     expect(clipboardWriteImageMock).toHaveBeenCalled();
+    const items = clipboardWriteImageMock.mock.calls[0][0] as Array<{ data: Record<string, Blob> }>;
+    expect(Buffer.from(await items[0].data['image/png'].arrayBuffer())).toEqual(pngBuffer);
     expect(closeCaptureWindow).toHaveBeenCalledTimes(1);
 
     const translateSender = {
