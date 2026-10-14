@@ -354,7 +354,7 @@ afterAll(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.invoke.mockReset();
+  mocks.invoke.mockReset().mockResolvedValue(null);
   mocks.listeners.clear();
   mocks.remove.mockImplementation((channel, handler) => {
     mocks.listeners.get(channel)?.delete(handler);
@@ -362,6 +362,41 @@ beforeEach(() => {
 });
 
 describe('全部预加载API传输契约', () => {
+  it('50 settings subscribers share one IPC handler and release it through repeated mount cycles', () => {
+    const callbacks = Array.from({ length: 50 }, () => vi.fn());
+    const cancel = callbacks.map((callback) => mocks.api.onSettingsChanged(callback) as () => void);
+    expect(mocks.listeners.get('settings:changed')?.size).toBe(1);
+    const [handler] = [...mocks.listeners.get('settings:changed')!];
+    handler({}, 'store:theme', 'dark');
+    callbacks.forEach((callback) => { expect(callback).toHaveBeenCalledExactlyOnceWith('store:theme', 'dark'); });
+    cancel.forEach((unsubscribe) => { unsubscribe(); unsubscribe(); });
+    expect(mocks.listeners.get('settings:changed')?.size).toBe(0);
+    Array.from({ length: 100 }).forEach(() => {
+      const unsubscribe = mocks.api.onSettingsChanged(vi.fn()) as () => void;
+      expect(mocks.listeners.get('settings:changed')?.size).toBe(1);
+      unsubscribe();
+      expect(mocks.listeners.get('settings:changed')?.size).toBe(0);
+    });
+  });
+
+  it('settings fanout tolerates callback errors and cancellation during dispatch', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    let cancelSecond: () => void = () => {};
+    const cancelFirst = mocks.api.onSettingsChanged(() => { cancelSecond(); throw new Error('subscriber failed'); }) as () => void;
+    const second = vi.fn();
+    cancelSecond = mocks.api.onSettingsChanged(second) as () => void;
+    const third = vi.fn();
+    const cancelThird = mocks.api.onSettingsChanged(third) as () => void;
+    const [handler] = [...mocks.listeners.get('settings:changed')!];
+    handler({}, 'theme', 'dark');
+    expect(second).not.toHaveBeenCalled();
+    expect(third).toHaveBeenCalledExactlyOnceWith('theme', 'dark');
+    expect(console.error).toHaveBeenCalledWith('[Preload] settings subscriber failed:', expect.any(Error));
+    cancelFirst();
+    cancelThird();
+    expect(mocks.listeners.get('settings:changed')?.size).toBe(0);
+  });
+
   it('全部公开API均在通道、监听或文件桥接清单中，防止漏测新入口', () => {
     expect(Object.keys(mocks.api).sort()).toEqual([
       ...TRANSPORT_ROUTES.map((route) => route[0]),
@@ -400,7 +435,7 @@ describe('全部预加载API传输契约', () => {
     const other = vi.fn();
     const args: unknown[] = sessionScoped ? ['session-a', callback] : [callback];
     const unsubscribe = mocks.api[name](...args) as () => void;
-    mocks.api[name](...(sessionScoped ? ['session-b', other] : [other]));
+    const unsubscribeOther = mocks.api[name](...(sessionScoped ? ['session-b', other] : [other])) as () => void;
     const channel = prefix + (sessionScoped ? 'session-a' : '');
     const handlers = [...(mocks.listeners.get(channel) ?? [])];
     const [own] = handlers;
@@ -417,12 +452,47 @@ describe('全部预加载API传输契约', () => {
     }, ...payload);
     expect(callback).toHaveBeenCalledWith(...payload);
     expect(callback).toHaveBeenCalledOnce();
+    if (name === 'onSettingsChanged') {
+      expect(other).toHaveBeenCalledWith(...payload);
+      unsubscribe();
+      expect(mocks.remove).not.toHaveBeenCalled();
+      own({}, ...payload);
+      expect(callback).toHaveBeenCalledOnce();
+      expect(other).toHaveBeenCalledTimes(2);
+      unsubscribeOther();
+      expect(mocks.remove).toHaveBeenCalledWith(channel, own);
+      return;
+    }
     expect(other).not.toHaveBeenCalled();
     unsubscribe();
     expect(mocks.remove).toHaveBeenCalledWith(channel, own);
     expect(mocks.listeners.get(channel)?.has(own)).toBe(false);
     const remainingChannel = prefix + (sessionScoped ? 'session-b' : '');
     expect(mocks.listeners.get(remainingChannel)?.size).toBe(1);
+  });
+
+  it('startup handshake replays once, acknowledges delivery and ignores results after unsubscribe', async () => {
+    const data = { requestedAt: 123 };
+    let resolve: (value: unknown) => void = () => {};
+    mocks.invoke.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const callback = vi.fn();
+    const unsubscribe = mocks.api.onUpdaterStartupAutoCheckRequest(callback) as () => void;
+    expect(mocks.invoke).toHaveBeenCalledWith('updater:startup-auto-check-ready');
+    const [handler] = [...mocks.listeners.get('updater:startup-auto-check-request')!];
+    handler({}, data);
+    resolve(data);
+    await Promise.resolve();
+    expect(callback).toHaveBeenCalledExactlyOnceWith(data);
+    expect(mocks.send).toHaveBeenCalledExactlyOnceWith('updater:startup-auto-check-received', 123);
+    unsubscribe();
+
+    mocks.invoke.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const late = vi.fn();
+    const cancel = mocks.api.onUpdaterStartupAutoCheckRequest(late) as () => void;
+    cancel();
+    resolve(data);
+    await Promise.resolve();
+    expect(late).not.toHaveBeenCalled();
   });
 
   it.each(TRANSPORT_ROUTES.filter((route) => route[1].startsWith('window:') && route[3] === 'send' && route[2] === 1))('%s未传延时使用0', (name, channel) => {

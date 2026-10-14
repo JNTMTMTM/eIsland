@@ -26,12 +26,28 @@
 
 import { useCallback, useState, type KeyboardEvent, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import katex from 'katex';
 import type { CalcButtonDef, CalcMode, CalcOperator, ScientificFn } from '../types/calculatorTypes';
 import { BUTTON_LAYOUT, SCIENTIFIC_FN_LAYOUT } from '../config/calculatorConfig';
 import { useCalculator } from '../hooks/useCalculator';
 import { CalcDisplay } from './CalcDisplay';
 import { CalculatorSidebar } from './CalculatorSidebar';
 import { CoordinateGraph } from './CoordinateGraph';
+import { MatrixCalculator } from './MatrixCalculator';
+import { ComplexCalculator } from './ComplexCalculator';
+import { EquationSolver } from './EquationSolver';
+import { UnitConversion } from './UnitConversion';
+import { CalculatorHistory } from './CalculatorHistory';
+import { useCalculatorHistory } from '../hooks/useCalculatorHistory';
+import { normalizePastedFormula } from '../utils/clipboardUtils';
+import type { CalculatorHistoryEntry } from '../utils/historyUtils';
+
+// 静态按键只排版一次，避免每次输入都重复编译全部科学函数。
+const BUTTON_MATH = new Map(
+  [...BUTTON_LAYOUT.flat(), ...SCIENTIFIC_FN_LAYOUT.flat()]
+    .filter((button) => button.tex)
+    .map((button) => [button.alt, katex.renderToString(button.tex!, { output: 'html', throwOnError: false })]),
+);
 
 function ButtonGrid({
   layout,
@@ -46,8 +62,8 @@ function ButtonGrid({
 
   return (
     <div className={`calc-buttons${className ? ` ${className}` : ''}`}>
-      {layout.map((row, rowIndex) => (
-        <div className="calc-row" key={rowIndex}>
+      {layout.map((row) => (
+        <div className="calc-row" key={row.map((button) => button.alt).join(':')}>
           {row.map((button) => (
             <button
               className={`calc-btn ${button.className ?? ''}`}
@@ -57,9 +73,15 @@ function ButtonGrid({
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => onButton(button)}
             >
-              {button.icon
+              {button.tex ? (
+                <span
+                  className="calc-key-math"
+                  aria-hidden="true"
+                  dangerouslySetInnerHTML={{ __html: BUTTON_MATH.get(button.alt)! }}
+                />
+              ) : button.icon
                 ? <img className="calc-btn-icon" src={button.icon} alt={button.alt} />
-                : button.label
+                : <span className="calc-key-label">{button.label}</span>
               }
             </button>
           ))}
@@ -77,10 +99,31 @@ export function CalculatorTab(): ReactElement {
   const { t } = useTranslation();
   const calculator = useCalculator();
   const [activeMode, setActiveMode] = useState<CalcMode>('arithmetic');
+  const history = useCalculatorHistory(calculator.document, calculator.result, calculator.angleUnit, activeMode, calculator.calculationSequence);
+  const [restoredEntry, setRestoredEntry] = useState<CalculatorHistoryEntry | null>(null);
   const [collapsed, setCollapsed] = useState(true);
-  const [showScientificKeys, setShowScientificKeys] = useState(true);
+  const [coordinatePanel, setCoordinatePanel] = useState<'numeric' | 'scientific' | 'analysis'>('scientific');
+  const [clipboardFeedback, setClipboardFeedback] = useState('');
+  const pasteFormula = (text: string): void => {
+    try {
+      const formula = normalizePastedFormula(text);
+      if (!formula) { setClipboardFeedback(t('calculator.clipboard.empty')); return; }
+      calculator.inputText(formula); setClipboardFeedback('');
+    } catch { setClipboardFeedback(t('calculator.clipboard.failed')); }
+  };
+  const copyFormula = async (text: string): Promise<void> => {
+    try {
+      const copied = await window.api.clipboardWriteText(text);
+      setClipboardFeedback(t(copied ? 'calculator.clipboard.copied' : 'calculator.clipboard.failed'));
+    } catch { setClipboardFeedback(t('calculator.clipboard.failed')); }
+  };
+  const readClipboard = async (): Promise<void> => {
+    try { pasteFormula(await window.api.clipboardReadText()); }
+    catch { setClipboardFeedback(t('calculator.clipboard.failed')); }
+  };
 
   const handleSwitchMode = useCallback((mode: CalcMode): void => {
+    setRestoredEntry(null);
     setActiveMode(mode);
   }, []);
 
@@ -103,6 +146,7 @@ export function CalculatorTab(): ReactElement {
   }, [calculator]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     const key = event.key;
     if (/^[0-9]$/.test(key)) calculator.inputDigit(key);
     else if (key === '.') calculator.inputDot();
@@ -126,9 +170,43 @@ export function CalculatorTab(): ReactElement {
   const isCoordinate = activeMode === 'coordinate';
   const formulaLength = calculator.formula.length;
   const displayFontSize = formulaLength > 24 ? '20px' : formulaLength > 14 ? '26px' : '34px';
+  const restoreHistory = (entry: CalculatorHistoryEntry): void => {
+    setRestoredEntry(entry);
+    setActiveMode(entry.mode);
+    if ('document' in entry) calculator.restoreFormula(entry.document, entry.angleUnit);
+    if (entry.mode === 'coordinate') setCoordinatePanel('analysis');
+  };
+  const standalonePanels: Partial<Record<CalcMode, ReactElement>> = {
+    unitConversion: <UnitConversion key={restoredEntry?.id} initial={restoredEntry?.mode === 'unitConversion' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    equation: <EquationSolver key={restoredEntry?.id} initial={restoredEntry?.mode === 'equation' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    complex: <ComplexCalculator key={restoredEntry?.id} initial={restoredEntry?.mode === 'complex' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    matrix: <MatrixCalculator key={restoredEntry?.id} initial={restoredEntry?.mode === 'matrix' ? restoredEntry.input : undefined} onRecord={history.add} />,
+    history: <CalculatorHistory entries={history.entries} storageError={history.storageError} onRestore={restoreHistory} onRemove={history.remove} onClear={history.clear} />,
+  };
+  const standalone = standalonePanels[activeMode];
+  const display = (
+    <CalcDisplay
+      key={activeMode}
+      cursor={calculator.cursor}
+      document={calculator.document}
+      fontSize={displayFontSize}
+      result={isCoordinate ? null : calculator.result}
+      errorCode={calculator.errorCode}
+      hasResult={!isCoordinate && calculator.result !== null}
+      showValue={!isCoordinate}
+      onCursorChange={calculator.moveCursor}
+      onMoveEnd={() => calculator.moveCursorBoundary('end')}
+      onKeyDown={handleKeyDown}
+      onPaste={(event) => { event.preventDefault(); pasteFormula(event.clipboardData.getData('text/plain')); }}
+      onCopy={(event) => { event.preventDefault(); event.clipboardData.setData('text/plain', calculator.result && calculator.result !== 'Error' ? calculator.result : calculator.formula); }}
+    />
+  );
 
   return (
-    <div className="max-expand-tab-panel calculator-panel">
+    <div
+      className={`max-expand-tab-panel calculator-panel calculator-panel-${activeMode}`}
+      onKeyDown={(event) => { if (event.key === 'Tab') event.stopPropagation(); }}
+    >
       <CalculatorSidebar
         activeMode={activeMode}
         collapsed={collapsed}
@@ -137,61 +215,86 @@ export function CalculatorTab(): ReactElement {
       />
 
       <div className="calc-main">
-        {isCoordinate ? (
-          <div className="calc-coordinate-layout">
-            <div className="calc-coordinate-controls">
-              <button
-                type="button"
-                className="calc-btn calc-btn--toggle"
-                onClick={() => setShowScientificKeys((previous) => !previous)}
-                aria-label={t('calculator.coordinate.toggleKeys', { defaultValue: '切换输入面板' })}
-              >
-                {showScientificKeys ? '123' : 'f(x)'}
-              </button>
-              {showScientificKeys ? (
-                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci-inner" />
-              ) : (
-                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith-inner" />
-              )}
-            </div>
-            <div className="calc-coordinate-workspace">
-              <CalcDisplay
-                cursor={calculator.cursor}
-                document={calculator.document}
-                fontSize={displayFontSize}
-                result={null}
-                hasResult={false}
-                showValue={false}
-                onCursorChange={calculator.moveCursor}
-                onMoveEnd={() => calculator.moveCursorBoundary('end')}
-                onKeyDown={handleKeyDown}
-              />
-              <CoordinateGraph expression={calculator.formula} />
-            </div>
+        {standalone ? standalone : (<>
+        <div className="calc-toolbar">
+          <span className="calc-mode-title">{t(`calculator.modes.${activeMode}`)}</span>
+          <div className="calc-tools">
+            <button className="calc-tool-btn" type="button" disabled={calculator.answer === null}
+              title={t('calculator.answer.hint')} onMouseDown={(event) => event.preventDefault()} onClick={calculator.inputAnswer}>
+              {t('calculator.answer.label')}
+            </button>
+            <button className="calc-tool-btn" type="button" onClick={() => void copyFormula(calculator.formula)}>{t('calculator.clipboard.copyFormula')}</button>
+            <button className="calc-tool-btn" type="button" disabled={calculator.result === null || calculator.result === 'Error'} onClick={() => void copyFormula(calculator.result!)}>{t('calculator.clipboard.copyResult')}</button>
+            <button className="calc-tool-btn" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => void readClipboard()}>{t('calculator.clipboard.paste')}</button>
+            {clipboardFeedback && <span role="status">{clipboardFeedback}</span>}
           </div>
+          {isCoordinate ? (
+            <span className="calc-function-label" title={t('calculator.coordinate.radianHint')}>
+              {'y = f(x) · '}{t('calculator.angleUnit.radianShort')}
+            </span>
+          ) : (
+            <div className="calc-angle-unit" role="group" aria-label={t('calculator.angleUnit.label')}>
+              {(['degree', 'radian'] as const).map((unit) => (
+                <button
+                  className="calc-angle-unit-btn"
+                  key={unit}
+                  type="button"
+                  title={t(`calculator.angleUnit.${unit}`)}
+                  aria-label={t(`calculator.angleUnit.${unit}`)}
+                  aria-pressed={calculator.angleUnit === unit}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => calculator.setAngleUnit(unit)}
+                >
+                  {t(`calculator.angleUnit.${unit}Short`)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {isCoordinate ? (
+          <CoordinateGraph key={restoredEntry?.id} expression={calculator.formula}
+            initialExtra={restoredEntry?.mode === 'coordinate' ? restoredEntry.extra : undefined}
+            onAnalyze={(extra, result) => history.add({ mode: 'coordinate', formula: calculator.formula, result, document: calculator.document, angleUnit: 'radian', extra })}
+            renderLayout={(graph, analysis) => (
+              <div className="calc-coordinate-layout">
+                <div className="calc-coordinate-controls">
+                  <div className="calc-coordinate-tabs" role="group" aria-label={t('calculator.coordinate.toggleKeys')}>
+                    {(['numeric', 'scientific', 'analysis'] as const).map((panel) => (
+                      <button key={panel} type="button" className={`calc-coordinate-tab calc-coordinate-tab-${panel}`}
+                        aria-label={t(`calculator.coordinate.${panel}Keys`)} aria-pressed={coordinatePanel === panel}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={(event) => {
+                          setCoordinatePanel(panel);
+                          if (panel !== 'analysis') event.currentTarget.closest('.calc-coordinate-layout')?.querySelector<HTMLDivElement>('.calc-display')?.focus();
+                        }}>
+                        {panel === 'numeric' ? '123' : panel === 'scientific' ? 'f(x)' : t('calculator.coordinate.analysisKeys')}
+                      </button>
+                    ))}
+                  </div>
+                  {coordinatePanel === 'analysis' ? analysis : coordinatePanel === 'scientific' ? (
+                    <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons-sci-inner" />
+                  ) : (
+                    <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons-arith-inner" />
+                  )}
+                </div>
+                <div className="calc-coordinate-workspace">{display}{graph}</div>
+              </div>
+            )} />
         ) : (
           <>
-            <CalcDisplay
-              cursor={calculator.cursor}
-              document={calculator.document}
-              fontSize={displayFontSize}
-              result={calculator.result}
-              hasResult={calculator.result !== null}
-              onCursorChange={calculator.moveCursor}
-              onMoveEnd={() => calculator.moveCursorBoundary('end')}
-              onKeyDown={handleKeyDown}
-            />
+            {display}
 
             {isScientific ? (
               <div className="calc-buttons-dual">
-                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons--sci" />
-                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons--arith" />
+                <ButtonGrid layout={SCIENTIFIC_FN_LAYOUT} onButton={handleButton} className="calc-buttons-sci" />
+                <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} className="calc-buttons-arith" />
               </div>
             ) : (
               <ButtonGrid layout={BUTTON_LAYOUT} onButton={handleButton} />
             )}
           </>
         )}
+        </>)}
       </div>
     </div>
   );

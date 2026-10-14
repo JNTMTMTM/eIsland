@@ -22,7 +22,8 @@ jobs:
     name: Publish to npm
     permissions:
       contents: read
-    runs-on: ${{ matrix.runner || 'windows-latest' }}
+    # Keep native addon builds on VS2022 while using node-gyp 11.
+    runs-on: ${{ matrix.runner || 'windows-2022' }}
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +114,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    runs-on: ${{ matrix.runner || 'windows-latest' }}
+    runs-on: ${{ matrix.runner || 'windows-2022' }}
     strategy:
       fail-fast: false
       matrix:

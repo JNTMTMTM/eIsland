@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-12T20:57:36.738Z
+> 生成时间：2026-10-13T23:56:28.175Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,14 @@
 
 ## Unreleased
 
+- 2026-10-13 | fc973dd2 | 鸡哥 | feat: 全面优化 maxexpand 状态机计算器界面功能 (#258)
+- 2026-10-13 | d1c2c64f | eislandBot | docs: auto update CHANGE_LOG.md for #248 by @dependabot[bot] [skip ci]
+- 2026-10-13 | f93700fe | dependabot[bot] | build: upgrade issue-report TypeScript with shared lint tooling (#248)
+- 2026-10-13 | 342c2fc9 | eislandBot | docs: auto update CHANGE_LOG.md for #257 by @JNTMTMTM [skip ci]
+- 2026-10-12 | c9a82943 | 鸡哥 | build: record native install script metadata in root lockfile (#257)
+- 2026-10-13 | 9e6db5ee | eislandBot | docs: auto update CHANGE_LOG.md for #256 by @JNTMTMTM [skip ci]
+- 2026-10-12 | 8e55491a | 鸡哥 | fix: isolate workers and harden native media/process runtimes (#256)
+- 2026-10-12 | bf3c3437 | eislandBot | docs: auto update CHANGE_LOG.md for #255 by @JNTMTMTM [skip ci]
 - 2026-10-12 | 5d4bf6c6 | 鸡哥 | build: standardize Node 24.21.0 and patch tooling vulnerabilities (#255)
 - 2026-10-12 | 65269aae | eislandBot | docs: auto update CHANGE_LOG.md for #251 by @dependabot[bot] [skip ci]
 - 2026-10-12 | 37658d5f | dependabot[bot] | ci(deps): bump actions/download-artifact from 4 to 8 (#253)

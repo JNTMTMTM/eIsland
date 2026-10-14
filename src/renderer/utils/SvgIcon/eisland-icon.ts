@@ -135,7 +135,9 @@ export const SvgIcon = {
   CALENDER: '../svg/app/CALENDER.svg',
   COUNTDOWN: '../svg/app/COUNTDOWN.svg',
   WORLDCLOCK: '../svg/app/WORLDCLOCK.svg',
-  APP: '../svg/app/APP.svg'
+  APP: '../svg/app/APP.svg',
+  CALCULATOR: '../svg/app/CALCULATOR.svg',
+  EQUATION: '../svg/app/EQUATION.svg'
 } as const;
 
 export type SvgIconKey = keyof typeof SvgIcon;

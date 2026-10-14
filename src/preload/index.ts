@@ -27,6 +27,7 @@
 import { subscribeCliStatus } from './cliStatusSubscription';
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
+import subscribeSettings from './settingsSubscription';
 import type {
   Point,
   Bounds,
@@ -1345,15 +1346,7 @@ const api = {
   settingsPreview: (channel: string, value: unknown): Promise<boolean> => {
     return ipcRenderer.invoke('settings:preview', channel, value);
   },
-  onSettingsChanged: (callback: (channel: string, value: unknown) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, channel: string, value: unknown): void => {
-      callback(channel, value);
-    };
-    ipcRenderer.on('settings:changed', handler);
-    return () => {
-      ipcRenderer.removeListener('settings:changed', handler);
-    };
-  },
+  onSettingsChanged: subscribeSettings,
   /**
    * 获取灵动岛透明度
    * @returns 透明度值 10-100
@@ -1663,11 +1656,30 @@ const api = {
    * @returns 取消监听函数
    */
   onUpdaterStartupAutoCheckRequest: (callback: (data: UpdaterStartupAutoCheckRequestData) => void): (() => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, data: UpdaterStartupAutoCheckRequestData): void => {
+    let active = true;
+    let receivedAt: number | null = null;
+    const accept = (data: UpdaterStartupAutoCheckRequestData): void => {
+      if (!active || receivedAt === data.requestedAt) return;
       callback(data);
+      receivedAt = data.requestedAt;
+      ipcRenderer.send('updater:startup-auto-check-received', data.requestedAt);
+    };
+    const handler = (_event: Electron.IpcRendererEvent, data: UpdaterStartupAutoCheckRequestData): void => {
+      accept(data);
     };
     ipcRenderer.on('updater:startup-auto-check-request', handler);
+    const replayPending = async (): Promise<void> => {
+      try {
+        const data = await ipcRenderer.invoke('updater:startup-auto-check-ready') as UpdaterStartupAutoCheckRequestData | null;
+        if (data) accept(data);
+      } catch (error) {
+        console.warn('[Updater] startup request handshake failed:', error);
+      }
+    };
+    // eslint-disable-next-line promise/prefer-await-to-then -- 订阅接口须同步返回取消函数，异步握手单独处理拒绝。
+    replayPending().catch(console.error);
     return () => {
+      active = false;
       ipcRenderer.removeListener('updater:startup-auto-check-request', handler);
     };
   },

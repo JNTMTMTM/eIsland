@@ -31,6 +31,8 @@ import type { StartupWeatherAlertPayload } from '../../../api/weather/types/Weat
 type Options = Parameters<typeof import('../useIslandStartupAnnouncements').useIslandStartupAnnouncements>[0];
 const leaves = vi.hoisted(() => ({
   state: 'expand',
+  notification: null as Parameters<Options['setNotificationRef']['current']>[0] | null,
+  subscribers: new Set<() => void>(),
   token: vi.fn<() => string | null>(),
   weather: vi.fn<(token: string) => Promise<StartupWeatherAlertPayload>>(),
   source: vi.fn<typeof import('../../../api/user/userAccountApi.profile').fetchUpdateSourceUrl>(),
@@ -42,8 +44,13 @@ const leaves = vi.hoisted(() => ({
 vi.mock('../../../store/isLandStore', () => ({
   default: {
     getState: () => ({
-      state: leaves.state
-    })
+      state: leaves.state,
+      notification: leaves.notification
+    }),
+    subscribe: (listener: () => void) => {
+      leaves.subscribers.add(listener);
+      return () => { leaves.subscribers.delete(listener); };
+    }
   }
 }));
 vi.mock('../../../utils/SvgIcon', () => ({
@@ -160,6 +167,8 @@ beforeEach(() => {
   resetHook();
   vi.resetAllMocks();
   leaves.state = 'expand';
+  leaves.notification = null;
+  leaves.subscribers.clear();
   startup = undefined;
   unavailable = undefined;
   store = {};
@@ -177,7 +186,11 @@ beforeEach(() => {
   leaves.mode.mockResolvedValue('version-update-only');
   leaves.last.mockResolvedValue('');
   leaves.write.mockResolvedValue();
-  notification = vi.fn();
+  notification = vi.fn((data) => {
+    leaves.state = 'notification';
+    leaves.notification = data;
+    leaves.subscribers.forEach((listener) => listener());
+  });
   options = {
     language: 'zh-CN',
     state: 'expand',
@@ -197,14 +210,15 @@ beforeEach(() => {
     }
   };
   api = bridge();
-  vi.stubGlobal('window', {
+  vi.stubGlobal('window', Object.assign(new EventTarget(), {
     api
-  });
+  }));
 });
 afterEach(() => {
   unmountHook();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 describe('useIslandStartupAnnouncements runtime', () => {
   it('handles startup once and unregisters both subscriptions', async () => {
@@ -286,6 +300,95 @@ describe('useIslandStartupAnnouncements runtime', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     await triggerStartup();
     expect(warn).toHaveBeenCalledWith('[Updater] startup weather alert pre-check failed:', expect.any(Error));
+    expect(api.updaterCheck).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['store', 'source', 'weather'])('bounds a stalled %s pre-check and ignores its late completion', async (stage) => {
+    vi.useFakeTimers();
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    leaves.token.mockReturnValue(token('pro'));
+    let resolve: (value: never) => void = () => {};
+    const pending = new Promise<never>((done) => { resolve = done; });
+    if (stage === 'store') api.storeRead.mockReturnValueOnce(pending);
+    if (stage === 'source') {
+      store['update-source'] = 'tencent-cos';
+      leaves.source.mockReturnValueOnce(pending);
+    }
+    if (stage === 'weather') leaves.weather.mockReturnValueOnce(pending);
+    await triggerStartup();
+    expect(api.updaterCheck).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+    const value = stage === 'weather' ? payload() : { ok: true, data: { url: 'https://late.example' } };
+    resolve(value as never);
+    await settleHook();
+    expect(api.updaterCheck).toHaveBeenCalledTimes(1);
+    expect(notification).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('falls back to a public source when pro source lookup rejects', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    leaves.token.mockReturnValue(token('pro'));
+    store['update-source'] = 'tencent-cos';
+    leaves.source.mockRejectedValueOnce(new Error('source unavailable'));
+    await triggerStartup();
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+  });
+
+  it('continues if UI locking prevents the weather notification from being displayed', async () => {
+    notification.mockImplementation(() => {});
+    leaves.token.mockReturnValue(token('pro'));
+    leaves.weather.mockResolvedValue(payload());
+    await triggerStartup();
+    expect(notification).toHaveBeenCalledOnce();
+    expect(api.updaterCheck).toHaveBeenCalledTimes(1);
+    expect(leaves.subscribers.size).toBe(0);
+  });
+
+  it.each(['close', 'replace'])('continues once when the visible weather alert is removed by %s', async (action) => {
+    vi.useFakeTimers();
+    leaves.token.mockReturnValue(token('pro'));
+    leaves.weather.mockResolvedValue(payload());
+    await triggerStartup();
+    expect(leaves.subscribers.size).toBe(1);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(api.updaterCheck).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+    if (action === 'close') leaves.state = 'idle';
+    else leaves.notification = { title: 'Other', body: '', type: 'default' };
+    Array.from(leaves.subscribers).forEach((listener) => listener());
+    await settleHook();
+    expect(api.updaterCheck).toHaveBeenCalledTimes(1);
+    expect(leaves.subscribers.size).toBe(0);
+    unmountHook();
+    expect(api.updaterCheck).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps waiting across language changes and releases weather subscriptions on unmount', async () => {
+    leaves.token.mockReturnValue(token('pro'));
+    leaves.weather.mockResolvedValue(payload());
+    await triggerStartup();
+    options.language = 'en-US';
+    mount();
+    expect(api.updaterCheck).not.toHaveBeenCalled();
+    expect(leaves.subscribers.size).toBe(1);
+    unmountHook();
+    await settleHook();
+    expect(api.updaterCheck).toHaveBeenCalledTimes(1);
+    expect(leaves.subscribers.size).toBe(0);
+  });
+
+  it('the explicit continue event works even when UI locking prevents dismissal', async () => {
+    leaves.token.mockReturnValue(token('pro'));
+    leaves.weather.mockResolvedValue(payload());
+    await triggerStartup();
+    window.dispatchEvent(new Event('updater:startup-continue'));
+    await settleHook();
+    expect(leaves.state).toBe('notification');
+    expect(api.updaterCheck).toHaveBeenCalledTimes(1);
+    expect(leaves.subscribers.size).toBe(0);
+    window.dispatchEvent(new Event('updater:startup-continue'));
     expect(api.updaterCheck).toHaveBeenCalledTimes(1);
   });
   it.each([['Storm', 'Rain', 'Beijing', 1, 'Storm', 'Beijing', 'notification.weatherAlert.bodySingle'], ['', 'Rain', 'Beijing', 2, 'Rain', 'Beijing', 'notification.weatherAlert.bodyWithMore'], ['', '', '', 1, 'notification.weatherAlert.defaultTitle', 'notification.weatherAlert.unknownCity', 'notification.weatherAlert.bodySingle']] as const)('shows weather notification with title %s and count %s', async (title, type, city, count, expectedTitle, expectedCity, body) => {

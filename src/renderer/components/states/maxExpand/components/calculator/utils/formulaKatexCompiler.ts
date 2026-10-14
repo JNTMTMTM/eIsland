@@ -92,7 +92,7 @@ class FormulaKatexCompiler {
     if (segment.type === 'text') {
       if (segment.value.length === 0) {
         const cursor = cursorAt(path, segmentIndex, 0);
-        return this.withAnchor('token', cursor, cursor, '\\phantom{\\square}');
+        return this.withAnchor('token', cursor, cursor, '\\phantom{\\rule{0.04em}{0.7em}}');
       }
       return this.compileText(segment.value, path, segmentIndex, 0);
     }
@@ -165,7 +165,7 @@ class FormulaKatexCompiler {
       if (value[offset] === '^') {
         const next = value[offset + 1];
         if (next === '(') {
-          const close = value.indexOf(')', offset + 2);
+          const close = findClosingParenthesis(value, offset + 1);
           if (close >= 0) {
             const exponent = value.slice(offset + 2, close);
             const exponentTex = exponent

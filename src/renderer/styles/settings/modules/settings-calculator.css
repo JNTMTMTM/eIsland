@@ -11,594 +11,1420 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  */
 
 /**
  * @file settings-calculator.css
- * @description 计算器面板样式
+ * @description 三种计算器模式的自适应布局、数学排版和绘图样式。
  * @author 鸡哥
  */
 
-/* ========== 计算器容器 ========== */
 .calculator-panel {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  height: 100%;
-  padding: 0;
   box-sizing: border-box;
-  user-select: none;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
+  user-select: none;
+
 }
 
-/* ========== 侧边栏导航栏 ========== */
+.calculator-panel :focus {
+  outline: none;
+
+}
+
+/* 计算器内部滚动区统一采用设置内容页的细滚动条样式。 */
+.calculator-panel *::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+
+}
+
+.calculator-panel *::-webkit-scrollbar-track,
+.calculator-panel *::-webkit-scrollbar-corner {
+  background: transparent;
+
+}
+
+.calculator-panel *::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 2px;
+
+}
+
+.calculator-panel *::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-text-rgb), .2);
+
+}
+
+.calculator-panel *::-webkit-scrollbar-button {
+  display: none;
+
+}
+
 .calc-sidebar-nav {
   display: flex;
+  flex: 0 0 52px;
   flex-direction: column;
   gap: 4px;
+  width: 52px;
   padding: 8px 6px;
-  width: 48px;
-  min-width: 48px;
-  border-right: 1px solid rgba(var(--color-text-rgb), 0.08);
-  transition: width 0.2s ease, min-width 0.2s ease;
-  overflow: hidden;
+  overflow: hidden auto;
+  border-right: 1px solid rgb(var(--color-text-rgb), .08);
+  scrollbar-width: none;
+  transition: flex-basis .24s cubic-bezier(.22, 1, .36, 1), width .24s cubic-bezier(.22, 1, .36, 1);
+
 }
 
-.calc-sidebar-nav--expanded {
-  width: 130px;
-  min-width: 130px;
+.calc-sidebar-nav-expanded {
+  flex-basis: 180px;
+  width: 180px;
+
 }
 
-/* ========== 导航按钮 ========== */
 .calc-sidebar-nav-btn {
   display: flex;
+  flex: 0 0 36px;
+  gap: 8px;
   align-items: center;
   width: 100%;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: rgba(var(--color-text-rgb), 0.56);
-  cursor: pointer;
-  transition: color 0.2s ease;
-  white-space: nowrap;
+  padding: 0 10px;
   overflow: hidden;
+  color: rgb(var(--color-text-rgb), .56);
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+
 }
 
 .calc-sidebar-nav-btn:hover {
-  color: rgba(var(--color-text-rgb), 0.72);
+  color: rgb(var(--color-text-rgb), .9);
+  background: rgb(var(--color-text-rgb), .06);
+
 }
 
-.calc-sidebar-nav-btn--active {
-  color: rgba(var(--color-text-rgb), 1);
+.calc-sidebar-nav-btn-active {
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .12);
+
 }
 
 .calc-sidebar-nav-icon {
-  width: 17px;
-  height: 17px;
-  min-width: 17px;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
   pointer-events: none;
-  filter: brightness(0) invert(var(--icon-invert));
-  opacity: 0.72;
+  filter: brightness(0) invert(1);
+  opacity: .8;
+
 }
 
-.calc-sidebar-nav-btn--active .calc-sidebar-nav-icon {
-  opacity: 1;
-}
-
-/* ========== 导航标签（展开后显示） ========== */
 .calc-sidebar-nav-label {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
   font-size: 13px;
   font-weight: 500;
-  margin-left: 10px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity .18s ease, transform .24s cubic-bezier(.22, 1, .36, 1);
+  transform: translateX(-6px);
+
 }
 
-.calc-sidebar-nav--expanded .calc-sidebar-nav-label {
+.calc-sidebar-nav-expanded .calc-sidebar-nav-label {
   opacity: 1;
+  transform: translateX(0);
+
 }
 
-/* 展开/收起按钮 — 固定在底部 */
 .calc-sidebar-toggle-btn {
   margin-top: auto;
+
 }
 
-/* ========== 右侧主内容区 ========== */
 .calc-main {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px 12px;
+  overflow: auto;
+  container-type: inline-size;
+
+}
+
+.calculator-panel-coordinate .calc-main {
+  padding-bottom: 0;
+  overflow: clip;
+
+}
+
+.calc-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-tool-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .8);
+  cursor: pointer;
+  background: rgb(var(--color-text-rgb), .08);
+  border: 0;
+  border-radius: 6px;
+
+}
+
+.calc-tools {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 4px;
+
+}
+
+.calc-toolbar .calc-tools {
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  margin-left: auto;
+
+}
+
+.calc-tool-btn:disabled {
+  cursor: default;
+  opacity: .4;
+
+}
+
+.calc-history {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .7);
+
+}
+
+.calc-feature-panel {
   display: flex;
   flex-direction: column;
+  gap: 10px;
   min-width: 0;
-  padding: 12px 16px;
+  font-size: 13px;
+  color: rgb(var(--color-text-rgb), .8);
+
 }
 
-/* ========== 显示区域 ========== */
-.calc-display {
+.calc-feature-panel h3 {
+  margin: 0;
+  font-size: 14px;
+
+}
+
+.calc-feature-panel label {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+
+}
+
+.calc-feature-panel input,
+.calc-feature-panel select,
+.calc-feature-panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  font: inherit;
+  color: inherit;
+  background: var(--color-island-bg);
+  border: 1px solid rgb(var(--color-text-rgb), .16);
+  border-radius: 8px;
+
+}
+
+.calc-feature-result {
+  padding: 12px;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgb(var(--color-text-rgb), .12);
+
+}
+
+[data-theme="light"] .calc-feature-result {
+  background: rgb(var(--color-text-rgb), .04);
+  box-shadow: none;
+
+}
+
+.calc-matrix-result {
+  width: 100%;
+  font-size: 15px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  table-layout: fixed;
+
+}
+
+.calc-matrix-result td {
+  padding: 6px 4px;
+  overflow-wrap: anywhere;
+
+}
+
+.calc-workbench {
+  gap: 14px;
+
+}
+
+.calc-workbench-heading,
+.calc-workbench-result-heading,
+.calc-matrix-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+
+}
+
+.calc-workbench-heading h3 {
+  font-size: 16px;
+
+}
+
+.calc-workbench-heading label {
+  flex: 0 1 180px;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .55);
+
+}
+
+.calc-workbench-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+
+}
+
+.calc-workbench-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 14px;
+  background: rgb(var(--color-text-rgb), .045);
+  border: 1px solid rgb(var(--color-text-rgb), .1);
+  border-radius: 12px;
+
+}
+
+.calc-workbench-form,
+.calc-matrix-input-area,
+.calc-unit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+}
+
+.calc-workbench label {
+  gap: 6px;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-workbench input,
+.calc-workbench select {
+  font-size: 13px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-workbench input:focus,
+.calc-workbench select:focus {
+  border-color: rgb(var(--color-accent-rgb, 99, 144, 255), .5);
+
+}
+
+.calc-workbench .calc-workbench-expression {
+  padding: 12px;
+  font-family: "KaTeX_Main", serif;
+  font-size: 21px;
+
+}
+
+.calc-workbench-fields,
+.calc-complex-details,
+.calc-root-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+
+}
+
+.calc-workbench-angle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-primary-action,
+.calc-unit-swap {
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-accent, #6390ff);
+  cursor: pointer;
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .16);
+  border: 1px solid rgb(var(--color-accent-rgb, 99, 144, 255), .25);
+  border-radius: 8px;
+
+}
+
+.calc-primary-action:hover,
+.calc-unit-swap:hover {
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .24);
+
+}
+
+.calc-workbench-result {
+  background: rgb(var(--color-text-rgb), .085);
+  border-color: rgb(var(--color-text-rgb), .14);
+
+}
+
+.calc-workbench-result-heading {
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .65);
+
+}
+
+.calc-workbench-badge {
+  padding: 3px 7px;
+  font-size: 10px;
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .1);
+  border-radius: 5px;
+
+}
+
+.calc-workbench-result .calc-feature-result {
+  display: block;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0;
+  margin-top: 16px;
+  font-family: "KaTeX_Main", serif;
+  font-size: 30px;
+  line-height: 1.3;
+  color: rgb(var(--color-text-rgb), .95);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+
+}
+
+.calc-workbench-result .calc-workbench-error {
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #ff6b62;
+
+}
+
+.calc-root-list,
+.calc-complex-details {
+  margin: 12px 0 0;
+
+}
+
+.calc-root-card,
+.calc-complex-details > div {
+  min-width: 0;
+  padding: 10px;
+  overflow-wrap: anywhere;
+  background: rgb(var(--color-text-rgb), .045);
+  border-radius: 8px;
+
+}
+
+.calc-root-card {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+
+}
+
+.calc-root-card strong {
+  font-family: "KaTeX_Main", serif;
+  font-size: 20px;
+  font-weight: 400;
+
+}
+
+.calc-complex-details dt {
+  font-size: 10px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-complex-details dd {
+  margin: 6px 0 0;
+  font-family: "KaTeX_Main", serif;
+  font-size: 15px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-unit-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+
+}
+
+.calc-unit-swap {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 22px;
+  border-radius: 50%;
+
+}
+
+.calc-unit-value {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.calc-unit-value input {
+  padding: 8px 0;
+  font-family: "KaTeX_Main", serif;
+  font-size: 32px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+
+}
+
+.calc-unit-value .calc-feature-result {
+  padding: 8px 0;
+  margin: 0;
+
+}
+
+.calc-matrix-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+
+}
+
+.calc-matrix-inputs-pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+}
+
+.calc-matrix-operand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+}
+
+.calc-matrix-name {
+  font-family: "KaTeX_Main", serif;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+
+}
+
+.calc-matrix-dimensions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+}
+
+.calc-matrix-dimensions select {
+  width: 40px;
+  padding: 3px;
+  font-size: 11px;
+  border-radius: 5px;
+
+}
+
+.calc-matrix-brackets {
+  position: relative;
+  min-width: 0;
+  padding: 6px 12px;
+
+}
+
+.calc-matrix-brackets::before,
+.calc-matrix-brackets::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  content: "";
+  border: 2px solid rgb(var(--color-text-rgb), .55);
+
+}
+
+.calc-matrix-brackets::before {
+  left: 0;
+  border-right: 0;
+
+}
+
+.calc-matrix-brackets::after {
+  right: 0;
+  border-left: 0;
+
+}
+
+.calc-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--matrix-columns), minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+
+}
+
+.calc-matrix-cell {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 2px;
+  overflow: auto hidden;
+  font-family: "KaTeX_Main", serif;
+  font-size: 18px;
+  line-height: 1.2;
+  color: rgb(var(--color-text-rgb), .95);
+  text-align: center;
+  white-space: nowrap;
+  cursor: text;
+  border-radius: 4px;
+  caret-color: var(--color-accent, #6390ff);
+  scrollbar-width: none;
+
+}
+
+.calc-matrix-cell:focus {
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .12);
+  box-shadow: inset 0 -2px 0 rgb(var(--color-accent-rgb, 99, 144, 255), .5);
+
+}
+
+.calc-matrix-cell[aria-invalid="true"] {
+  color: #ff6b62;
+  background: rgb(255 107 98 / 8%);
+
+}
+
+.calc-matrix-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+}
+
+.calc-matrix-actions .calc-primary-action {
+  flex: 1;
+
+}
+
+.calc-matrix-readonly {
+  margin: 8px 0;
+
+}
+
+@container (width < 640px) {
+  .calc-workbench-layout {
+    grid-template-columns: minmax(0, 1fr);
+
+  }
+
+}
+
+@container (width < 360px) {
+  .calc-unit-pair {
+    grid-template-columns: minmax(0, 1fr);
+
+  }
+
+  .calc-unit-swap {
+    justify-self: center;
+
+  }
+
+  .calc-matrix-inputs-pair {
+    grid-template-columns: minmax(0, 1fr);
+
+  }
+
+}
+
+.calc-history h3 {
+  margin: 0;
+  font-size: 14px;
+
+}
+
+.calc-history-list {
+  flex: 1;
+  min-height: 0;
+  padding-right: 6px;
+  margin-right: -6px;
+  overflow: auto;
+
+}
+
+.calc-history-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: rgb(var(--color-text-rgb), .04);
+  border: 1px solid rgb(var(--color-text-rgb), .08);
+  border-radius: 10px;
+
+}
+
+.calc-history-delete {
+  display: flex;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 18px;
+
+}
+
+.calc-history-restore {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+
+}
+
+.calc-history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-accent, #6390ff);
+
+}
+
+.calc-history-formula,
+.calc-history-result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  min-width: 0;
+  text-align: left;
+
+}
+
+.calc-history-result {
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
-  padding: 10px 14px;
-  min-height: 98px;
-  margin-bottom: 8px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: rgba(var(--color-text-rgb), 0.04);
-  cursor: text;
-  outline: none;
+  font-size: 14px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-history-math {
+  display: block;
+  max-width: 100%;
+  overflow: auto hidden;
+  font-weight: 400;
+  scrollbar-width: none;
+
+}
+
+.calc-history-math::-webkit-scrollbar {
+  display: none;
+
+}
+
+.calc-history-math .katex-display {
+  margin: 4px 0;
+  text-align: left;
+
+}
+
+.calc-history-math .katex-display > .katex {
+  text-align: left;
+
+}
+
+.calc-history-text {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+
+}
+
+.calc-history-pagination {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  border-top: 1px solid rgb(var(--color-text-rgb), .08);
+
+}
+
+.calc-history-toolbar {
+  flex-wrap: wrap;
+
+}
+
+.calc-history-toolbar h3 {
+  margin-right: auto;
+
+}
+
+.calc-history-page-size {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+}
+
+.calc-history-page-size select {
+  padding: 4px;
+  font: inherit;
+  color: inherit;
+  background: rgb(var(--color-text-rgb), .04);
+  border: 1px solid rgb(var(--color-text-rgb), .08);
+  border-radius: 6px;
+
+}
+
+.calc-history-pagination .settings-hotkey-btn:disabled {
+  cursor: default;
+  opacity: .4;
+
+}
+
+.calc-history-row:hover {
+  background: rgb(var(--color-text-rgb), .06);
+
+}
+
+.calc-mode-title {
+  font-weight: 600;
+
+}
+
+.calc-angle-unit {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 2px;
+  background: rgb(var(--color-text-rgb), .05);
+  border-radius: 6px;
+
+}
+
+.calc-angle-unit-btn {
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+
+}
+
+.calc-angle-unit-btn:hover {
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-angle-unit-btn[aria-pressed="true"] {
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .16);
+
+}
+
+.calc-function-label {
+  font-family: "KaTeX_Main", serif;
+  font-style: italic;
+
+}
+
+.calc-display {
   box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  min-height: 84px;
+  padding: 8px 12px;
+  cursor: text;
+  background: rgb(var(--color-text-rgb), .035);
+  border: 1px solid rgb(var(--color-text-rgb), .08);
+  border-radius: 12px;
+  outline: none;
+
 }
 
 .calc-display:focus {
-  border-color: rgba(var(--color-accent-rgb, 99, 144, 255), 0.42);
+  border-color: rgb(var(--color-accent-rgb, 99, 144, 255), .5);
+
 }
 
+/* 自动左边距在短公式时右对齐；长公式从左起排，保留完整滚动范围。 */
 .calc-expression {
   display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  min-height: 40px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  color: rgba(var(--color-text-rgb), 0.92);
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 48px;
+  padding: 6px 4px;
+  overflow: auto hidden;
   font-size: 30px;
-  font-weight: 500;
-  line-height: 1.25;
-  scrollbar-width: none;
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgb(var(--color-text-rgb), .94);
   white-space: nowrap;
-}
+  scrollbar-width: none;
 
-.calc-expression::-webkit-scrollbar {
-  display: none;
 }
 
 .calc-katex-expression {
-  display: inline-block;
   position: relative;
-  min-width: max-content;
-  line-height: 1.25;
+  display: inline-block;
+  flex: 0 0 auto;
+  margin-left: auto;
+
 }
 
 .calc-katex-render {
   display: inline-block;
-  color: inherit;
+
 }
 
 .calc-katex-render .katex {
+  font-size: 1em;
   color: inherit;
+
+}
+
+.calc-katex-render .katex-display {
+  margin: 0;
+
+}
+
+/* 根号的拉伸 SVG 覆盖整个被开方区域，不能拦截数字和槽位的点击。 */
+.calc-katex-render .katex-html,
+.calc-katex-render .hide-tail,
+.calc-katex-render svg {
+  pointer-events: none;
+
+}
+
+.calc-katex-render [data-formula-anchor] {
+  pointer-events: auto;
+
 }
 
 .calc-katex-cursor {
-  display: block;
   position: absolute;
   z-index: 2;
+  display: block;
   width: 2px;
-  min-width: 2px;
-  min-height: 1em;
   pointer-events: none;
-  margin: 0;
+  background: var(--color-accent, #6390ff);
   border-radius: 1px;
+  animation: calc-cursor-blink 1s steps(1) infinite;
+
 }
 
-.calc-cursor {
-  align-self: stretch;
-  flex: 0 0 0.07em;
-  width: 0.07em;
-  min-height: 1em;
-  margin: 0.07em 0.035em;
-  border-radius: 0.035em;
-  background: var(--color-accent, #6390ff);
-  animation: calc-cursor-blink 1s steps(1) infinite;
+.calc-display:not(:focus) .calc-katex-cursor {
+  opacity: 0;
+  animation: none;
+
 }
 
 @keyframes calc-cursor-blink {
   0%, 48% { opacity: 1; }
   49%, 100% { opacity: 0; }
+
 }
 
 .calc-value {
-  min-height: 24px;
-  margin-top: 6px;
-  color: rgba(var(--color-text-rgb), 0.46);
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.1;
-  text-align: right;
-  transition: font-size 0.15s ease;
-}
-
-/* ========== 有结果时的样式互换 ========== */
-.calc-expression--as-result {
-  min-height: 24px;
-  color: rgba(var(--color-text-rgb), 0.46);
+  min-height: 18px;
+  overflow: auto;
   font-size: 14px;
-  font-weight: 500;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  line-height: 1.1;
-  order: -1;
+  line-height: 1.3;
+  color: rgb(var(--color-text-rgb), .5);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  scrollbar-width: none;
+
 }
 
-.calc-value--as-expression {
-  min-height: 40px;
-  margin-top: 0;
-  margin-bottom: 6px;
-  color: rgba(var(--color-text-rgb), 0.92);
-  font-size: 34px;
-  font-weight: 500;
-  font-family: var(--island-ui-font);
-  line-height: 1.25;
-  order: 1;
+.calc-expression-as-result {
+  min-height: 24px;
+  font-size: 18px;
+  color: rgb(var(--color-text-rgb), .55);
+
 }
 
-/* ========== 按钮网格（通用） ========== */
+.calc-value-as-expression {
+  font-size: 30px;
+  color: rgb(var(--color-text-rgb), .94);
+
+}
+
+.calc-value-error {
+  font-size: 14px;
+  color: #ff6b62;
+  white-space: normal;
+
+}
+
 .calc-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
   flex: 1;
-  min-height: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(28px, 1fr);
+  gap: 6px;
+  min-width: 0;
+  min-height: 164px;
+
 }
 
 .calc-row {
-  display: flex;
-  gap: 6px;
-  flex: 1;
-  min-height: 0;
-}
-
-/* ========== 双栏布局（科学模式） ========== */
-.calc-buttons-dual {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  flex: 1;
-  min-height: 0;
-}
-
-/* 左侧科学函数网格 — CSS Grid 实现正方形按钮 */
-.calc-buttons--sci {
-  flex: 0 0 200px;
-  width: 200px;
-  min-width: 200px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 4px;
-  align-content: start;
-  overflow: hidden;
-  animation: calc-scientific-keys-expand 0.2s ease both;
-}
-
-@keyframes calc-scientific-keys-expand {
-  from {
-    flex-basis: 0;
-    width: 0;
-    min-width: 0;
-    opacity: 0;
-  }
-
-  to {
-    flex-basis: 200px;
-    width: 200px;
-    min-width: 200px;
-    opacity: 1;
-  }
-}
-
-/* Grid 布局下 row 容器不参与布局，按钮直接进格子 */
-.calc-buttons--sci .calc-row {
   display: contents;
+
 }
 
-/* 右侧四则运算网格 — 占满剩余空间 */
-.calc-buttons--arith {
-  flex: 1;
-  min-width: 0;
+.calc-buttons-dual {
+  display: grid;
+  flex: 1 0 auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr);
+  gap: 10px;
+  min-height: 192px;
+
 }
 
-/* ========== 按钮基础样式 ========== */
+.calc-buttons-sci,
+.calc-buttons-sci-inner {
+  grid-auto-rows: minmax(24px, 1fr);
+  gap: 4px;
+  min-height: 192px;
+
+}
+
 .calc-btn {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 10px;
-  font-size: 18px;
+  min-width: 0;
+  min-height: 0;
+  padding: 3px 4px;
+  font-family: var(--island-ui-font);
+  font-size: 19px;
   font-weight: 400;
+  line-height: 1;
+  color: rgb(var(--color-text-rgb), .9);
   cursor: pointer;
-  background: rgba(var(--color-text-rgb), 0.07);
-  color: rgba(var(--color-text-rgb), 0.88);
-  transition: background 0.12s ease, transform 0.1s ease;
-  -webkit-tap-highlight-color: transparent;
+  background: rgb(var(--color-text-rgb), .07);
+  border: 1px solid rgb(var(--color-text-rgb), .035);
+  border-radius: 8px;
+  transition: background .12s ease;
+
 }
 
 .calc-btn:hover {
-  background: rgba(var(--color-text-rgb), 0.12);
+  background: rgb(var(--color-text-rgb), .13);
+
 }
 
 .calc-btn:active {
-  background: rgba(var(--color-text-rgb), 0.16);
-  transform: scale(0.96);
+  background: rgb(var(--color-text-rgb), .18);
+
 }
 
-/* ========== 功能按钮（C、±、%） ========== */
-.calc-btn--func {
-  background: rgba(var(--color-text-rgb), 0.12);
-  color: rgba(var(--color-text-rgb), 0.72);
+.calc-btn:focus-visible,
+.calc-sidebar-nav-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #6390ff);
+  outline-offset: -2px;
+
+}
+
+.calc-btn-func {
   font-size: 16px;
+  color: rgb(var(--color-text-rgb), .75);
+  background: rgb(var(--color-text-rgb), .11);
+
 }
 
-.calc-btn--func:hover {
-  background: rgba(var(--color-text-rgb), 0.18);
-}
-
-.calc-btn--func .calc-btn-icon {
-  width: 16px;
-  height: 16px;
-}
-
-/* ========== 运算符按钮 ========== */
-.calc-btn--op {
-  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.18);
+.calc-btn-op,
+.calc-btn-toggle {
   color: var(--color-accent, #6390ff);
-  font-size: 20px;
-  font-weight: 500;
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .14);
+
 }
 
-.calc-btn--op:hover {
-  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.28);
-}
-
-/* ========== 等号按钮 ========== */
-.calc-btn--equals {
-  background: var(--color-accent, #6390ff);
+.calc-btn-equals {
   color: #fff;
-  font-size: 22px;
-  font-weight: 500;
+  background: var(--color-accent, #6390ff);
+
 }
 
-.calc-btn--equals:hover {
+.calc-btn-equals:hover {
   background: var(--color-accent-hover, #7aa3ff);
+
 }
 
-/* ========== 按钮图标 ========== */
-.calc-btn-icon {
-  width: 20px;
-  height: 20px;
+.calc-btn-sci {
+  font-size: 14px;
+  background: rgb(var(--color-text-rgb), .045);
+
+}
+
+.calc-key-math {
+  display: inline-block;
   pointer-events: none;
-  filter: brightness(0) invert(var(--icon-invert));
-  opacity: 0.88;
+
 }
 
-.calc-btn--op .calc-btn-icon {
-  filter: brightness(0) invert(var(--icon-invert));
-  opacity: 0.9;
+.calc-key-math .katex {
+  font-size: 1em;
+
 }
 
-/* ========== 零按钮（占两列） ========== */
-.calc-btn--zero {
-  flex: 2;
+.calc-btn-icon {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  filter: brightness(0) invert(1);
+
 }
 
-/* ========== 科学函数按钮 ========== */
-.calc-btn--sci {
-  font-size: 13px;
-  font-weight: 500;
-  background: rgba(var(--color-text-rgb), 0.04);
-  color: rgba(var(--color-text-rgb), 0.68);
+[data-theme="light"] .calc-sidebar-nav-icon,
+[data-theme="light"] .calc-btn-icon {
+  filter: brightness(0) invert(0);
+
 }
 
-.calc-btn--sci:hover {
-  background: rgba(var(--color-text-rgb), 0.08);
-}
-
-/* ========== 切换按钮 ========== */
-.calc-btn--toggle {
-  flex: 0 0 28px;
-  width: 100%;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.18);
-  color: var(--color-accent, #6390ff);
-  margin-bottom: 4px;
-  height: 28px;
-  min-height: 28px;
-}
-
-.calc-btn--toggle:hover {
-  background: rgba(var(--color-accent-rgb, 99, 144, 255), 0.28);
-}
-
-/* ========== 绘图模式下的内部按钮网格 ========== */
-.calc-buttons--sci-inner {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 4px;
-  align-content: start;
-}
-
-.calc-buttons--sci-inner .calc-row {
-  display: contents;
-}
-
-.calc-buttons--arith-inner {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 4px;
-  align-content: start;
-}
-
-.calc-buttons--arith-inner .calc-row {
-  display: contents;
-}
-
-/* ========== 绘图模式四象限布局 ========== */
 .calc-coordinate-layout {
   display: grid;
-  grid-template-columns: minmax(178px, 0.36fr) minmax(0, 1fr);
+  flex: 1;
+  grid-template-columns: minmax(180px, .38fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   gap: 10px;
-  flex: 1;
   min-height: 0;
+
 }
 
 .calc-coordinate-controls {
-  grid-column: 1;
-  grid-row: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
   min-height: 0;
+
 }
 
-.calc-coordinate-controls .calc-buttons--sci-inner,
-.calc-coordinate-controls .calc-buttons--arith-inner {
-  flex: 1;
+.calc-coordinate-controls .calc-buttons {
+  grid-auto-rows: minmax(0, 1fr);
+  min-height: 0;
+
+}
+
+.calc-coordinate-tabs {
+  display: grid;
+  flex: 0 0 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+
+}
+
+.calc-coordinate-tab {
+  min-width: 0;
+  padding: 4px;
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .65);
+  cursor: pointer;
+  background: rgb(var(--color-text-rgb), .05);
+  border: 0;
+  border-radius: 6px;
+
+}
+
+.calc-coordinate-tab[aria-pressed="true"] {
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .14);
+
+}
+
+.calc-coordinate-tab:focus-visible {
+  outline: 2px solid var(--color-accent, #6390ff);
+  outline-offset: -2px;
+
 }
 
 .calc-coordinate-workspace {
-  grid-column: 2;
-  grid-row: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
   min-height: 0;
+
 }
 
-
-.coordinate-graph {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  padding: 12px 16px;
-  box-sizing: border-box;
-  user-select: none;
+.calc-coordinate-workspace .calc-display {
+  min-height: 72px;
+  max-height: 40%;
   overflow: hidden;
+
 }
 
-.coordinate-graph-display {
+.calc-graph-workspace {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  padding: 10px 14px;
-  min-height: 89px;
-  margin-bottom: 12px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: rgba(var(--color-text-rgb), 0.04);
-  cursor: text;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.coordinate-graph-display:focus-within {
-  border-color: rgba(var(--color-accent-rgb, 99, 144, 255), 0.42);
-}
-
-.coordinate-graph-input-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.coordinate-graph-label {
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(var(--color-text-rgb), 0.92);
-  white-space: nowrap;
-}
-
-.coordinate-graph-input {
   flex: 1;
-  height: 36px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: rgba(var(--color-text-rgb), 0.92);
-  font-size: 18px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  outline: none;
-}
-
-.coordinate-graph-input::placeholder {
-  color: rgba(var(--color-text-rgb), 0.36);
-}
-
-.coordinate-graph-error {
-  margin-top: 6px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: rgba(255, 59, 48, 0.1);
-  color: #ff3b30;
-  font-size: 12px;
-}
-
-.coordinate-graph-container {
-  display: flex;
   flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+
+}
+
+.calc-graph-trace,
+.calc-graph-analysis {
+  font-size: 11px;
+
+}
+
+.calc-graph-trace:not([fill]) {
+  fill: rgb(var(--color-text-rgb), .65);
+
+}
+
+.calc-graph-trace {
+  dominant-baseline: middle;
+
+}
+
+.calc-tangent-toggle[aria-pressed="true"] {
+  color: var(--color-accent, #6390ff);
+  background: rgb(var(--color-accent-rgb, 99, 144, 255), .14);
+
+}
+
+.calc-graph-tangent {
+  pointer-events: none;
+  stroke-dasharray: 6 4;
+  stroke-width: 1.5;
+
+}
+
+.calc-graph-analysis {
   flex: 1;
   min-height: 0;
-  border-radius: 10px;
-  background: rgba(var(--color-text-rgb), 0.04);
-  overflow: hidden;
+  padding-right: 8px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  color: rgb(var(--color-text-rgb), .65);
+
+}
+
+.calc-graph-analysis label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+
+}
+
+.calc-graph-set-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+
+}
+
+.calc-graph-set-card {
+  padding: 8px;
+  background: rgb(var(--color-text-rgb), .06);
+  border: 1px solid rgb(var(--color-text-rgb), .1);
+  border-radius: 8px;
+
+}
+
+.calc-graph-set-card p {
+  margin: 0;
+  overflow-wrap: anywhere;
+
+}
+
+.calc-graph-set-value {
+  font-size: 12px;
+  color: rgb(var(--color-text-rgb), .9);
+
+}
+
+.calc-graph-set-scope {
+  font-size: 10px;
+  color: rgb(var(--color-text-rgb), .55);
+
+}
+
+.calc-graph-analysis textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px;
+  font: inherit;
+  color: inherit;
+  resize: vertical;
+  background: var(--color-island-bg);
+  border: 1px solid rgb(var(--color-text-rgb), .15);
+  border-radius: 6px;
+
 }
 
 .coordinate-graph-canvas {
   flex: 1;
+  min-width: 0;
   min-height: 0;
+  overflow: hidden;
+
 }
 
-.coordinate-graph-container .function-plot {
+.coordinate-graph-canvas .function-plot {
+  display: block;
   width: 100%;
   height: 100%;
+
 }
 
-.coordinate-graph-container svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* ========== function-plot 样式覆盖 ========== */
-.coordinate-graph-container .tick text {
-  fill: rgba(var(--color-text-rgb), 0.56);
+.coordinate-graph-canvas .tick text,
+.coordinate-graph-canvas .tip text {
   font-size: 11px;
+  fill: rgb(var(--color-text-rgb), .65);
+
 }
 
-.coordinate-graph-container .tick line {
-  stroke: rgba(var(--color-text-rgb), 0.08);
+.coordinate-graph-canvas .tick line,
+.coordinate-graph-canvas .origin {
+  stroke: rgb(var(--color-text-rgb), .2);
+
 }
 
-.coordinate-graph-container .grid-line {
-  stroke: rgba(var(--color-text-rgb), 0.06);
+.coordinate-graph-canvas .domain {
+  stroke: rgb(var(--color-text-rgb), .28);
+
 }
 
-.coordinate-graph-container .axis-line {
-  stroke: rgba(var(--color-text-rgb), 0.16);
-}
-
-.coordinate-graph-container .tip {
-  background: rgba(var(--color-text-rgb), 0.92);
-  color: rgba(var(--color-background-rgb, 255, 255, 255), 1);
-  border-radius: 4px;
-  padding: 4px 8px;
+.coordinate-graph-error {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  left: 8px;
+  padding: 6px 8px;
   font-size: 12px;
+  color: #ff6b62;
+  background: var(--color-island-bg);
+  border-radius: 6px;
+
+}
+
+@container (width < 460px) {
+  .calc-buttons-dual {
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, 1fr);
+
+  }
+
+  .calc-buttons-dual .calc-buttons {
+    min-height: 180px;
+
+  }
+
+  .calc-coordinate-layout {
+    grid-template-columns: minmax(116px, .55fr) minmax(0, 1fr);
+
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calc-sidebar-nav,
+  .calc-sidebar-nav-label {
+    transition: none;
+
+  }
+
+  .calc-katex-cursor {
+    animation: none;
+
+  }
+
 }

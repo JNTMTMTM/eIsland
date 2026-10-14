@@ -26,7 +26,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        # node-gyp 11 requires VS2022; windows-latest now selects VS2026.
+        os: [windows-2022, macos-latest]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -44,6 +45,9 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Typecheck E2E
         run: npm run typecheck:e2e
+      - name: Test process termination safety
+        if: runner.os == 'Windows'
+        run: npm run plugin:build:processes && npm --prefix plugins/windows/eisland-windows-processes-attacker run test:native
       - name: Run E2E
         if: runner.os != 'Windows'
         run: npm run test:e2e

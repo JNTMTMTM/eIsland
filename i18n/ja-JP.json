@@ -2,6 +2,7 @@
   "common": {
     "appName": "eIsland",
     "errors": {
+      "complexMode": "虚数単位 i を含む式は複素数モードで計算してください",
       "rootMountNotFound": "#root マウントノードが見つかりません"
     }
   },
@@ -2645,6 +2646,143 @@
     }
   },
   "calculator": {
+    "workbench": {
+      "result": "計算結果",
+      "exact": "解析結果",
+      "approximate": "数値近似"
+    },
+    "matrix": {
+      "rows": "行列 {{name}} の行数",
+      "columns": "行列 {{name}} の列数",
+      "cell": "行列 {{name}}、{{row}} 行 {{column}} 列",
+      "title": "行列",
+      "operation": "演算",
+      "a": "行列 A",
+      "b": "行列 B",
+      "scalar": "スカラー",
+      "calculate": "行列を計算",
+      "swap": "A と B を交換",
+      "result": "行列の結果",
+      "hint": "最大 6 × 6 の実数行列。要素は空白またはカンマ、行は改行またはセミコロンで区切ります。JSON 配列や空白のない 1/2 などの式にも対応。浮動小数点精度を使用します。",
+      "add": "A + B",
+      "subtract": "A − B",
+      "multiply": "A × B",
+      "scale": "スカラー × A",
+      "transpose": "A の転置",
+      "determinant": "A の行列式",
+      "inverse": "A の逆行列",
+      "rank": "A の階数",
+      "solve": "A X = B を解く",
+      "singular": "特異または悪条件の行列のため、信頼できる逆行列・解を求められません",
+      "dimensions": "この演算に行列のサイズが適合しません",
+      "invalid": "有限の実数を含む長方形の行列を最大 6 × 6 で入力してください"
+    },
+    "complex": {
+      "title": "複素数",
+      "expression": "複素数の式",
+      "calculate": "計算",
+      "hint": "虚数単位は i。四則演算、累乗、sqrt、ln、log、exp、sin、cos、tan、abs、arg、conj、re、im に対応。角度はラジアン、根と対数は主値です。",
+      "modulus": "絶対値",
+      "argument": "偏角（RAD）",
+      "undefinedArgument": "未定義",
+      "conjugate": "共役",
+      "polar": "極形式"
+    },
+    "equation": {
+      "title": "方程式",
+      "expression": "x の方程式",
+      "lower": "検索下限",
+      "upper": "検索上限",
+      "solve": "方程式を解く",
+      "hint": "一次・二次方程式は全実数解を返します。その他は指定範囲の数値検索で、密接した根を見落とす場合があります。",
+      "infinite": "すべての実数 x が方程式を満たします",
+      "none": "実数解はありません",
+      "noneInRange": "指定範囲に根が見つかりません",
+      "sampledIdentity": "すべてのサンプル点が方程式を満たします"
+    },
+    "graph": {
+      "controls": "関数と解析",
+      "extra": "追加関数、1 行に 1 つ（最大 4 本）",
+      "analyze": "零点と交点を検索",
+      "domainFind": "定義域を検索",
+      "rangeFind": "値域を検索",
+      "domainName": "定義域",
+      "rangeName": "値域",
+      "setComplete": "全体の区間",
+      "setEstimated": "表示範囲の標本推定、x ∈ [{{lower}}, {{upper}}]；不連続点や極値を見落とす場合があります",
+      "tangentStart": "接線解析を開始",
+      "tangentStop": "接線解析を停止",
+      "reset": "表示をリセット",
+      "tracking": "曲線上で座標を追跡",
+      "zero": "零点",
+      "intersection": "交点",
+      "none": "表示範囲に点が見つかりません",
+      "identical": "表示範囲で重なる曲線があります",
+      "hint": "表示中の x 範囲における数値近似"
+    },
+    "units": {
+      "category": "種類",
+      "value": "数値",
+      "from": "変換元",
+      "to": "変換先",
+      "swap": "単位を交換",
+      "error": "有限の数値を入力してください。絶対零度未満は指定できません",
+      "length": "長さ",
+      "area": "面積",
+      "volume": "体積",
+      "mass": "質量",
+      "temperature": "温度",
+      "time": "時間",
+      "speed": "速度"
+    },
+    "errors": {
+      "divisionByZero": "ゼロでは除算できません",
+      "domain": "入力値が関数の定義域外です",
+      "incomplete": "式、空欄、括弧を完成させてください",
+      "syntax": "式に無効な記号があります",
+      "unboundVariable": "変数 x はグラフまたは方程式で使用してください",
+      "unknownFunction": "未対応の関数です",
+      "range": "引数または総和の範囲を確認してください",
+      "convergence": "数値計算が収束しませんでした",
+      "overflow": "結果が数値範囲を超えました",
+      "invalid": "無効な式です"
+    },
+    "clipboard": {
+      "copyFormula": "式をコピー",
+      "copyResult": "結果をコピー",
+      "paste": "貼り付け",
+      "copied": "コピーしました",
+      "empty": "クリップボードは空です",
+      "failed": "クリップボードを操作できないか、式が長すぎます"
+    },
+    "answer": {
+      "label": "Ans",
+      "hint": "前の結果を丸めずに挿入"
+    },
+    "history": {
+      "title": "計算履歴",
+      "empty": "計算履歴はありません",
+      "restore": "この計算を編集",
+      "remove": "履歴を削除",
+      "clear": "履歴をクリア",
+      "pagination": "履歴のページ送り",
+      "pageSize": "表示件数",
+      "previousPage": "前のページ",
+      "nextPage": "次のページ",
+      "pageSummary": "{{page}} / {{pages}} ページ",
+      "storageError": "履歴を保存できませんでした。現在の履歴は引き続き使えます"
+    },
+    "angleUnit": {
+      "label": "角度単位",
+      "degree": "度数法（DEG）",
+      "radian": "ラジアン（RAD）",
+      "degreeShort": "DEG",
+      "radianShort": "RAD"
+    },
+    "display": {
+      "expression": "計算式",
+      "error": "無効な式"
+    },
     "modes": {
       "arithmetic": "四則演算",
       "scientific": "関数電卓",
@@ -2664,6 +2802,10 @@
       "variable": "変数x"
     },
     "coordinate": {
+      "numericKeys": "数字入力",
+      "scientificKeys": "関数入力",
+      "analysisKeys": "解析",
+      "radianHint": "グラフの三角関数はラジアンを使用します",
       "placeholder": "関数を入力（例: x^2, sin(x)）",
       "error": "無効な式",
       "plot": "関数のグラフ",

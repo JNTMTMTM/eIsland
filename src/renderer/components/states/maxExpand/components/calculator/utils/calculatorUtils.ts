@@ -24,11 +24,12 @@
  * @author 鸡哥
  */
 
-import type { ScientificFn } from '../types/calculatorTypes';
+import type { CalcAngleUnit, ScientificFn } from '../types/calculatorTypes';
 
 type ExpressionNode =
-  | { type: 'number'; value: number }
+  | { type: 'number'; value: number; symbol?: 'π' | 'e' }
   | { type: 'variable' }
+  | { type: 'imaginary' }
   | { type: 'unary'; operator: '+' | '-'; value: ExpressionNode }
   | { type: 'binary'; operator: '+' | '-' | '×' | '÷' | '^'; left: ExpressionNode; right: ExpressionNode }
   | { type: 'postfix'; operator: '!' | '%'; value: ExpressionNode }
@@ -36,6 +37,7 @@ type ExpressionNode =
 
 interface EvaluationEnvironment {
   x?: number;
+  angleUnit: CalcAngleUnit;
 }
 
 const MAX_SUM_TERMS = 100_000;
@@ -86,29 +88,29 @@ class FormulaParser {
   }
 
   private parseTerm(): ExpressionNode {
-    let value = this.parsePower();
+    let value = this.parseUnary();
     while (true) {
       if (this.consume('×') || this.consume('*')) {
-        value = { type: 'binary', operator: '×', left: value, right: this.parsePower() };
+        value = { type: 'binary', operator: '×', left: value, right: this.parseUnary() };
       } else if (this.consume('÷') || this.consume('/')) {
-        value = { type: 'binary', operator: '÷', left: value, right: this.parsePower() };
+        value = { type: 'binary', operator: '÷', left: value, right: this.parseUnary() };
       } else if (this.startsImplicitFactor()) {
-        value = { type: 'binary', operator: '×', left: value, right: this.parsePower() };
+        value = { type: 'binary', operator: '×', left: value, right: this.parseUnary() };
       } else return value;
     }
   }
 
   private parsePower(): ExpressionNode {
-    const base = this.parseUnary();
+    const base = this.parsePostfix();
     return this.consume('^')
-      ? { type: 'binary', operator: '^', left: base, right: this.parsePower() }
+      ? { type: 'binary', operator: '^', left: base, right: this.parseUnary() }
       : base;
   }
 
   private parseUnary(): ExpressionNode {
     if (this.consume('+')) return { type: 'unary', operator: '+', value: this.parseUnary() };
     if (this.consume('-')) return { type: 'unary', operator: '-', value: this.parseUnary() };
-    return this.parsePostfix();
+    return this.parsePower();
   }
 
   private parsePostfix(): ExpressionNode {
@@ -126,14 +128,15 @@ class FormulaParser {
       this.expect(')');
       return value;
     }
-    if (this.consume('π')) return { type: 'number', value: Math.PI };
+    if (this.consume('π')) return { type: 'number', value: Math.PI, symbol: 'π' };
 
     const number = this.readNumber();
     if (number !== null) return { type: 'number', value: number };
 
     const identifier = this.readIdentifier();
-    if (identifier === 'e') return { type: 'number', value: Math.E };
+    if (identifier === 'e') return { type: 'number', value: Math.E, symbol: 'e' };
     if (identifier === 'x') return { type: 'variable' };
+    if (identifier === 'i') return { type: 'imaginary' };
     if (!identifier) throw new Error('Expected value');
 
     this.expect('(');
@@ -262,13 +265,21 @@ function evaluateCall(node: Extract<ExpressionNode, { type: 'call' }>, environme
   }
 
   const values = args.map((arg) => evaluateNode(arg, environment));
+  if (name === 'frac' && values[1] === 0) throw new Error('Division by zero');
+  if ((['sqrt', 'ln', 'log'].includes(name) && (name === 'sqrt' ? values[0] < 0 : values[0] <= 0))
+    || (['arcsin', 'arccos'].includes(name) && Math.abs(values[0]) > 1)
+    || (name === 'root' && values[0] === 0)) throw new Error('Invalid domain');
+  const angleScale = environment.angleUnit === 'degree' ? Math.PI / 180 : 1;
   switch (name) {
-    case 'sin': requireArgCount(name, args, 1); return finite(Math.sin(values[0]));
-    case 'cos': requireArgCount(name, args, 1); return finite(Math.cos(values[0]));
-    case 'tan': requireArgCount(name, args, 1); return finite(Math.tan(values[0]));
-    case 'arcsin': requireArgCount(name, args, 1); return finite(Math.asin(values[0]));
-    case 'arccos': requireArgCount(name, args, 1); return finite(Math.acos(values[0]));
-    case 'arctan': requireArgCount(name, args, 1); return finite(Math.atan(values[0]));
+    case 'sin': requireArgCount(name, args, 1); return finite(Math.sin(values[0] * angleScale));
+    case 'cos': requireArgCount(name, args, 1); return finite(Math.cos(values[0] * angleScale));
+    case 'tan':
+      requireArgCount(name, args, 1);
+      if (Math.abs(Math.cos(values[0] * angleScale)) < 1e-15) throw new Error('Invalid domain');
+      return finite(Math.tan(values[0] * angleScale));
+    case 'arcsin': requireArgCount(name, args, 1); return finite(Math.asin(values[0]) / angleScale);
+    case 'arccos': requireArgCount(name, args, 1); return finite(Math.acos(values[0]) / angleScale);
+    case 'arctan': requireArgCount(name, args, 1); return finite(Math.atan(values[0]) / angleScale);
     case 'log': requireArgCount(name, args, 1); return finite(Math.log10(values[0]));
     case 'ln': requireArgCount(name, args, 1); return finite(Math.log(values[0]));
     case 'sqrt': requireArgCount(name, args, 1); return finite(Math.sqrt(values[0]));
@@ -288,6 +299,7 @@ function evaluateCall(node: Extract<ExpressionNode, { type: 'call' }>, environme
 function evaluateNode(node: ExpressionNode, environment: EvaluationEnvironment): number {
   switch (node.type) {
     case 'number': return node.value;
+    case 'imaginary': throw new Error('Complex mode required');
     case 'variable':
       if (environment.x === undefined) throw new Error('Unbound variable');
       return environment.x;
@@ -303,7 +315,9 @@ function evaluateNode(node: ExpressionNode, environment: EvaluationEnvironment):
         case '+': return finite(left + right);
         case '-': return finite(left - right);
         case '×': return finite(left * right);
-        case '÷': return finite(left / right);
+        case '÷':
+          if (right === 0) throw new Error('Division by zero');
+          return finite(left / right);
         case '^': return finite(left ** right);
       }
     }
@@ -314,10 +328,59 @@ function evaluateNode(node: ExpressionNode, environment: EvaluationEnvironment):
 /**
  * 对完整公式执行 AST 解析与数值求值。
  * @param formula - 使用规范 DSL 与计算器显示运算符的公式
+ * @param angleUnit - 三角函数角度单位，默认使用数学公式中的弧度
  * @returns 公式计算结果
  */
-export function evaluateFormula(formula: string): number {
-  return finite(evaluateNode(new FormulaParser(formula).parse(), {}));
+export function evaluateFormula(formula: string, angleUnit: CalcAngleUnit = 'radian'): number {
+  return finite(evaluateNode(new FormulaParser(formula).parse(), { angleUnit }));
+}
+
+/** 编译单变量实数函数，供绘图分析与方程求解重复采样。
+ * @param formula - 包含变量 x 的公式
+ * @param angleUnit - 三角函数单位
+ * @returns 可在指定 x 处求值的函数
+ */
+export function compileNumericFormula(formula: string, angleUnit: CalcAngleUnit = 'radian'): (x: number) => number {
+  const node = new FormulaParser(formula).parse();
+  return (x) => finite(evaluateNode(node, { angleUnit, x }));
+}
+
+/** 提取实数二次及以下多项式系数，拒绝依赖采样猜测多项式。
+ * @param formula - 单变量公式
+ * @param angleUnit - 常量函数的角度单位
+ * @returns 常数、一次、二次项系数，非多项式返回 null
+ */
+export function getPolynomialCoefficients(formula: string, angleUnit: CalcAngleUnit): number[] | null {
+  const trim = (values: number[]): number[] => { while (values.length > 1 && values.at(-1) === 0) values.pop(); return values; };
+  const multiply = (a: number[], b: number[]): number[] | null => {
+    if (a.length + b.length > 4) return null;
+    const values = Array<number>(a.length + b.length - 1).fill(0);
+    a.forEach((value, i) => b.forEach((other, j) => { values[i + j] += value * other; }));
+    return trim(values);
+  };
+  const read = (node: ExpressionNode): number[] | null => {
+    if (node.type === 'number') return [node.value];
+    if (node.type === 'variable') return [0, 1];
+    if (node.type === 'unary') { const value = read(node.value); return value?.map((item) => node.operator === '-' ? -item : item) ?? null; }
+    if (node.type === 'binary') {
+      const a = read(node.left); const b = read(node.right); if (!a || !b) return null;
+      if (node.operator === '+' || node.operator === '-') return trim(Array.from({ length: Math.max(a.length, b.length) }, (_, i) => (a[i] ?? 0) + (node.operator === '+' ? 1 : -1) * (b[i] ?? 0)));
+      if (node.operator === '×') return multiply(a, b);
+      if (node.operator === '÷' && b.length === 1 && b[0] !== 0) return a.map((item) => item / b[0]);
+      if (node.operator === '^' && b.length === 1 && [0, 1, 2].includes(b[0])) return b[0] === 0 ? [1] : b[0] === 1 ? a : multiply(a, a);
+      return null;
+    }
+    try { return [finite(evaluateNode(node, { angleUnit }))]; } catch { return null; }
+  };
+  return read(new FormulaParser(formula).parse());
+}
+
+/** 将公式解析为复用的数学语法树。
+ * @param formula - 输入公式
+ * @returns 未执行求值的 AST
+ */
+export function parseCalculatorFormula(formula: string): ExpressionNode {
+  return new FormulaParser(formula).parse();
 }
 
 /**

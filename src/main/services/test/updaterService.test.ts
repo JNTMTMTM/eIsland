@@ -24,23 +24,27 @@
  * @author 鸡哥
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { getAllWindowsMock } = vi.hoisted(() => ({
+import { initUpdaterService } from '../updaterService';
+
+const { getAllWindowsMock, handle, on } = vi.hoisted(() => ({
+  handle: vi.fn<(channel: string, listener: (event: { sender: unknown }) => { requestedAt: number } | null) => void>(),
+  on: vi.fn<(channel: string, listener: (event: { sender: unknown }, requestedAt: unknown) => void) => void>(),
   getAllWindowsMock: vi.fn(),
 }));
 
 vi.mock('electron', () => ({
+  ipcMain: { handle, on },
   BrowserWindow: {
     getAllWindows: getAllWindowsMock,
   },
 }));
 
-import { initUpdaterService } from '../updaterService';
-
 describe('initUpdaterService', () => {
   const listeners = new Map<string, (...args: unknown[]) => void>();
   const send = vi.fn();
+  const mainWindow = { isDestroyed: () => false, webContents: { send } };
 
   const createUpdater = () => ({
     autoDownload: true,
@@ -57,6 +61,8 @@ describe('initUpdaterService', () => {
     vi.useFakeTimers();
     listeners.clear();
     send.mockReset();
+    handle.mockReset();
+    on.mockReset();
     getAllWindowsMock.mockReset();
     getAllWindowsMock.mockReturnValue([
       { isDestroyed: () => false, webContents: { send } },
@@ -64,12 +70,14 @@ describe('initUpdaterService', () => {
     ]);
   });
 
+  afterEach(() => { vi.useRealTimers(); });
+
   it('registers updater listeners and emits renderer events', () => {
     const updater = createUpdater();
 
     initUpdaterService({
       updater: updater as unknown as Parameters<typeof initUpdaterService>[0]['updater'],
-      getMainWindow: () => null,
+      getMainWindow: () => mainWindow as unknown as ReturnType<Parameters<typeof initUpdaterService>[0]['getMainWindow']>,
       getAppPath: () => '/app',
       isPackaged: () => true,
       autoCheckDelayMs: 100,
@@ -124,5 +132,45 @@ describe('initUpdaterService', () => {
       'updater:startup-auto-check-request',
       expect.anything(),
     );
+  });
+
+  it('retains a request for a late main renderer until its matching acknowledgement', () => {
+    initUpdaterService({
+      updater: createUpdater() as unknown as Parameters<typeof initUpdaterService>[0]['updater'],
+      getMainWindow: () => mainWindow as unknown as ReturnType<Parameters<typeof initUpdaterService>[0]['getMainWindow']>,
+      getAppPath: () => '/app',
+      isPackaged: () => false,
+      autoCheckDelayMs: 100,
+    });
+    const [[, ready]] = handle.mock.calls;
+    const [[, received]] = on.mock.calls;
+    const event = { sender: mainWindow.webContents };
+    expect(ready(event)).toBeNull();
+    vi.advanceTimersByTime(100);
+    const pending = ready(event);
+    expect(pending?.requestedAt).toEqual(expect.any(Number));
+    if (!pending) throw new Error('Missing pending startup request');
+    expect(ready({ sender: {} })).toBeNull();
+    received({ sender: {} }, pending.requestedAt);
+    received(event, pending.requestedAt - 1);
+    expect(ready(event)).toBe(pending);
+    received(event, pending.requestedAt);
+    expect(ready(event)).toBeNull();
+    expect(send).toHaveBeenCalledExactlyOnceWith('updater:startup-auto-check-request', pending);
+  });
+
+  it('keeps the request pending when the main window is not yet available', () => {
+    let win: typeof mainWindow | null = null;
+    initUpdaterService({
+      updater: createUpdater() as unknown as Parameters<typeof initUpdaterService>[0]['updater'],
+      getMainWindow: () => win as unknown as ReturnType<Parameters<typeof initUpdaterService>[0]['getMainWindow']>,
+      getAppPath: () => '/app',
+      isPackaged: () => false,
+      autoCheckDelayMs: 100,
+    });
+    vi.advanceTimersByTime(100);
+    expect(send).not.toHaveBeenCalled();
+    win = mainWindow;
+    expect(handle.mock.calls[0][1]({ sender: win.webContents })).not.toBeNull();
   });
 });

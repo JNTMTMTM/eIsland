@@ -24,7 +24,11 @@
  * @author 鸡哥
  */
 
+import type { CalculatorErrorCode } from '../utils/calculatorErrorUtils';
+
 export type CalcOperator = '+' | '-' | '×' | '÷';
+/** 三角函数输入与反三角函数输出使用的角度单位。 */
+export type CalcAngleUnit = 'degree' | 'radian';
 export type CalcButtonAction =
   | 'digit'
   | 'operator'
@@ -76,16 +80,26 @@ export interface FormulaCursor {
 }
 
 export interface CalcState {
+  errorCode?: CalculatorErrorCode | null;
+  answer: number | null;
   document: FormulaDocument;
   result: string | null;
   cursor: FormulaCursor;
 }
 
 export interface UseCalculatorReturn {
+  errorCode?: CalculatorErrorCode | null;
   document: FormulaDocument;
   formula: string;
   result: string | null;
+  /** 每次按等号递增，用于区分相同输入的重新计算。 */
+  calculationSequence: number;
   cursor: FormulaCursor;
+  angleUnit: CalcAngleUnit;
+  setAngleUnit: (unit: CalcAngleUnit) => void;
+  restoreFormula: (document: FormulaDocument, unit: CalcAngleUnit) => void;
+  answer: number | null;
+  inputAnswer: () => void;
   inputDigit: (digit: string) => void;
   inputDot: () => void;
   inputOperator: (operator: CalcOperator) => void;
@@ -105,6 +119,8 @@ export interface UseCalculatorReturn {
 
 export interface CalcButtonDef {
   label?: string;
+  /** 按键上的数学排版，仅接受内置 TeX。 */
+  tex?: string;
   icon?: string;
   alt: string;
   /** i18n 可访问名称键 */
@@ -114,7 +130,7 @@ export interface CalcButtonDef {
   className?: string;
 }
 
-export type CalcMode = 'arithmetic' | 'scientific' | 'coordinate';
+export type CalcMode = 'arithmetic' | 'scientific' | 'coordinate' | 'unitConversion' | 'equation' | 'complex' | 'matrix' | 'history';
 
 export interface CalcSidebarNavItem {
   mode: CalcMode;

@@ -2,6 +2,7 @@
   "common": {
     "appName": "eIsland",
     "errors": {
+      "complexMode": "含虚数单位 i 的公式请使用复数界面",
       "rootMountNotFound": "未找到 #root 挂载节点"
     }
   },
@@ -2645,6 +2646,143 @@
     }
   },
   "calculator": {
+    "workbench": {
+      "result": "计算结果",
+      "exact": "解析结果",
+      "approximate": "数值近似"
+    },
+    "matrix": {
+      "rows": "矩阵 {{name}} 的行数",
+      "columns": "矩阵 {{name}} 的列数",
+      "cell": "矩阵 {{name}}，第 {{row}} 行第 {{column}} 列",
+      "title": "矩阵",
+      "operation": "运算",
+      "a": "矩阵 A",
+      "b": "矩阵 B",
+      "scalar": "标量",
+      "calculate": "计算矩阵",
+      "swap": "交换 A 与 B",
+      "result": "矩阵结果",
+      "hint": "支持最多 6 × 6 实数矩阵。空格或逗号分列，换行或分号分行，也可粘贴 JSON 数组；元素支持 1/2 等无空格公式，使用浮点数值精度。",
+      "add": "A + B",
+      "subtract": "A − B",
+      "multiply": "A × B",
+      "scale": "标量 × A",
+      "transpose": "A 转置",
+      "determinant": "A 行列式",
+      "inverse": "A 逆矩阵",
+      "rank": "A 的秩",
+      "solve": "求解 A X = B",
+      "singular": "矩阵奇异或病态，无法可靠求逆或求解",
+      "dimensions": "矩阵维度不符合此运算要求",
+      "invalid": "请输入最多 6 × 6、各行列数相同的有限实数矩阵"
+    },
+    "complex": {
+      "title": "复数",
+      "expression": "复数表达式",
+      "calculate": "计算",
+      "hint": "用 i 表示虚数单位。支持四则运算、幂、sqrt、ln、log、exp、sin、cos、tan、abs、arg、conj、re、im；角度使用弧度，根式和对数取主值。",
+      "modulus": "模",
+      "argument": "辐角（RAD）",
+      "undefinedArgument": "未定义",
+      "conjugate": "共轭",
+      "polar": "极坐标形式"
+    },
+    "equation": {
+      "title": "方程求解",
+      "expression": "关于 x 的方程",
+      "lower": "搜索下限",
+      "upper": "搜索上限",
+      "solve": "求解方程",
+      "hint": "一次、二次方程返回全部实数解；其他方程在指定区间数值搜索，可能遗漏密集根。",
+      "infinite": "任意实数 x 均满足方程",
+      "none": "无实数解",
+      "noneInRange": "指定区间内未找到根",
+      "sampledIdentity": "所有采样点均满足方程"
+    },
+    "graph": {
+      "controls": "函数与分析",
+      "extra": "其他函数，每行一个（最多 4 条）",
+      "analyze": "查找零点和交点",
+      "domainFind": "寻找定义域",
+      "rangeFind": "寻找值域",
+      "domainName": "定义域",
+      "rangeName": "值域",
+      "setComplete": "完整区间",
+      "setEstimated": "当前视图采样估计，x ∈ [{{lower}}, {{upper}}]；可能遗漏间断点或极值",
+      "tangentStart": "启动切线分析",
+      "tangentStop": "关闭切线分析",
+      "reset": "重置视图",
+      "tracking": "移动到曲线上追踪坐标",
+      "zero": "零点",
+      "intersection": "交点",
+      "none": "当前视图中未找到点",
+      "identical": "部分曲线在当前区间重合",
+      "hint": "当前横坐标区间内的数值近似结果"
+    },
+    "units": {
+      "category": "类别",
+      "value": "数值",
+      "from": "原单位",
+      "to": "目标单位",
+      "swap": "交换单位",
+      "error": "请输入有效数值，温度不能低于绝对零度",
+      "length": "长度",
+      "area": "面积",
+      "volume": "体积",
+      "mass": "质量",
+      "temperature": "温度",
+      "time": "时间",
+      "speed": "速度"
+    },
+    "errors": {
+      "divisionByZero": "不能除以零",
+      "domain": "输入超出了函数的定义域",
+      "incomplete": "请补全公式、空槽和括号",
+      "syntax": "公式包含无效符号",
+      "unboundVariable": "变量 x 请用于绘图或方程求解",
+      "unknownFunction": "暂不支持此函数",
+      "range": "请检查函数参数或求和范围",
+      "convergence": "数值计算未收敛",
+      "overflow": "结果超出数值范围",
+      "invalid": "表达式无效"
+    },
+    "clipboard": {
+      "copyFormula": "复制公式",
+      "copyResult": "复制结果",
+      "paste": "粘贴",
+      "copied": "已复制",
+      "empty": "剪贴板为空",
+      "failed": "剪贴板读写失败，或公式超过长度限制"
+    },
+    "answer": {
+      "label": "Ans",
+      "hint": "插入上次结果，保留完整精度"
+    },
+    "history": {
+      "title": "历史记录",
+      "empty": "暂无计算记录",
+      "restore": "编辑这条计算",
+      "remove": "删除记录",
+      "clear": "清空历史",
+      "pagination": "历史记录分页",
+      "pageSize": "每页条数",
+      "previousPage": "上一页",
+      "nextPage": "下一页",
+      "pageSummary": "第 {{page}} / {{pages}} 页",
+      "storageError": "历史记录保存失败，当前记录仍可使用"
+    },
+    "angleUnit": {
+      "label": "角度单位",
+      "degree": "角度（DEG）",
+      "radian": "弧度（RAD）",
+      "degreeShort": "DEG",
+      "radianShort": "RAD"
+    },
+    "display": {
+      "expression": "计算公式",
+      "error": "表达式无效"
+    },
     "modes": {
       "arithmetic": "四则运算",
       "scientific": "科学计算",
@@ -2664,6 +2802,10 @@
       "variable": "变量 x"
     },
     "coordinate": {
+      "numericKeys": "数字输入",
+      "scientificKeys": "科学输入",
+      "analysisKeys": "分析",
+      "radianHint": "绘图中的三角函数使用弧度",
       "placeholder": "输入函数，如 x^2, sin(x)",
       "error": "无效的表达式",
       "plot": "函数图像",
