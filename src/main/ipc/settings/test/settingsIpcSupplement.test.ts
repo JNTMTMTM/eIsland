@@ -35,8 +35,8 @@ const io = vi.hoisted(() => ({
   exists: vi.fn<() => boolean>(),
   read: vi.fn<() => string>(),
   write: vi.fn<(path: string, data: string, encoding: string) => void>(),
-  clipRead: vi.fn<() => string>(),
-  clipWrite: vi.fn<(text: string) => void>(),
+  clipRead: vi.fn<() => Promise<string>>(),
+  clipWrite: vi.fn<(text: string) => Promise<void>>(),
   open: vi.fn<(url: string) => Promise<void>>(),
   broadcast: vi.fn(),
   login: vi.fn(),
@@ -99,7 +99,7 @@ beforeEach(() => {
   io.handlers.clear();
   io.exists.mockReturnValue(true);
   io.read.mockReturnValue('true');
-  io.clipRead.mockReturnValue('fixture');
+  io.clipRead.mockResolvedValue('fixture');
   io.open.mockResolvedValue();
   io.shapeRead.mockReturnValue('pill');
   io.shapeWrite.mockReturnValue(true);
@@ -108,15 +108,15 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('剪贴板设置真实规范化与边界', () => {
-  it('原生 read 返回空值或异常均返回空字符串，非法写入值规范为空', () => {
+  it('原生 read 返回空值或异常均返回空字符串，非法写入值规范为空', async () => {
     clipboardFixture();
-    io.clipRead.mockReturnValueOnce('').mockImplementationOnce(() => { throw new Error('clipboard read'); });
-    expect(invoke('clipboard:read-text')).toBe('');
-    expect(invoke('clipboard:read-text')).toBe('');
-    expect(invoke('clipboard:write-text', null)).toBe(true);
+    io.clipRead.mockResolvedValueOnce('').mockRejectedValueOnce(new Error('clipboard read'));
+    await expect(invoke('clipboard:read-text')).resolves.toBe('');
+    await expect(invoke('clipboard:read-text')).resolves.toBe('');
+    await expect(invoke('clipboard:write-text', null)).resolves.toBe(true);
     expect(io.clipWrite).toHaveBeenCalledExactlyOnceWith('');
-    io.clipWrite.mockImplementationOnce(() => { throw new Error('clipboard write'); });
-    expect(invoke('clipboard:write-text', 'fixture')).toBe(false);
+    io.clipWrite.mockRejectedValueOnce(new Error('clipboard write'));
+    await expect(invoke('clipboard:write-text', 'fixture')).resolves.toBe(false);
   });
   it('黑名单 set 清洗域名，add-domain 去重并拒绝非法域名', () => {
     clipboardFixture();

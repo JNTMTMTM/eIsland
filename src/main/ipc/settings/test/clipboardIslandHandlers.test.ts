@@ -122,14 +122,18 @@ describe('settings ipc handlers', () => {
 
     registerClipboardIpcHandlers(options);
 
-    clipboardReadTextMock.mockReturnValue('abc');
+    clipboardReadTextMock.mockResolvedValue('abc');
     const read = handlers.get('clipboard:read-text');
     const write = handlers.get('clipboard:write-text');
     const open = handlers.get('clipboard:open-url');
 
-    expect(read?.()).toBe('abc');
-    expect(write?.({}, 'hi')).toBe(true);
+    await expect(read?.()).resolves.toBe('abc');
+    await expect(write?.({}, 'hi')).resolves.toBe(true);
     expect(clipboardWriteTextMock).toHaveBeenCalledWith('hi');
+    clipboardReadTextMock.mockRejectedValueOnce(new Error('read denied'));
+    await expect(read?.()).resolves.toBe('');
+    clipboardWriteTextMock.mockRejectedValueOnce(new Error('write denied'));
+    await expect(write?.({}, 'hi')).resolves.toBe(false);
 
     shellOpenExternalMock.mockResolvedValue(undefined);
     await expect(open?.({}, 'https://example.com')).resolves.toBe(true);

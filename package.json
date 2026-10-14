@@ -148,7 +148,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^4.1.10",
     "autoprefixer": "^10.6.1",
-    "electron": "^44.7.0",
+    "electron": "^44.7.2",
     "electron-builder": "^26.17.0",
     "electron-vite": "6.0.0-beta.8",
     "esbuild": "0.28.2",

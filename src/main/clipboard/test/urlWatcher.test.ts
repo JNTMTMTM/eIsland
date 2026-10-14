@@ -97,15 +97,20 @@ function createMockWindow(destroyed = false) {
   };
 }
 
-/** Build default options, always providing a fresh window. */
+/**
+ * 创建监听器测试边界，默认使用独立窗口。
+ * @param overrides - 覆盖窗口、开关、检测模式或黑名单。
+ * @returns 监听器配置。
+ */
 function defaultOptions(overrides: Partial<{
   getWindow: () => ReturnType<typeof createMockWindow> | null;
   getEnabled: () => boolean;
   getDetectMode: () => 'https-only' | 'http-https' | 'domain-only';
   getBlacklist: () => string[];
 }> = {}) {
+  const getWindow = overrides.getWindow ?? (() => createMockWindow());
   return {
-    getWindow: overrides.getWindow ?? (() => createMockWindow()),
+    getWindow: () => getWindow() as unknown as Electron.BrowserWindow | null,
     getEnabled: overrides.getEnabled ?? (() => true),
     getDetectMode: overrides.getDetectMode ?? (() => 'http-https' as const),
     getBlacklist: overrides.getBlacklist ?? (() => [] as string[]),
@@ -120,7 +125,7 @@ describe('urlWatcher', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     // Re-establish mock defaults (restoreMocks clears them each test)
-    mockClipboardReadText.mockReturnValue('');
+    mockClipboardReadText.mockResolvedValue('');
   });
 
   afterEach(() => {
@@ -134,15 +139,15 @@ describe('urlWatcher', () => {
 
   describe('startClipboardUrlWatcher', () => {
     describe('启动条件', () => {
-      it('getEnabled 返回 false 时不启动定时器', () => {
+      it('getEnabled 返回 false 时不启动定时器', async () => {
         startClipboardUrlWatcher(defaultOptions({ getEnabled: () => false }));
 
-        vi.advanceTimersByTime(5000);
+        await vi.advanceTimersByTimeAsync(5000);
         expect(mockClipboardReadText).not.toHaveBeenCalled();
       });
 
       it('重复调用时不会创建第二个定时器', () => {
-        mockClipboardReadText.mockReturnValue('initial');
+        mockClipboardReadText.mockResolvedValue('initial');
         const opts = defaultOptions();
 
         startClipboardUrlWatcher(opts);
@@ -153,7 +158,7 @@ describe('urlWatcher', () => {
       });
 
       it('启动时立即读取当前剪贴板内容作为基准值', () => {
-        mockClipboardReadText.mockReturnValue('baseline text');
+        mockClipboardReadText.mockResolvedValue('baseline text');
 
         startClipboardUrlWatcher(defaultOptions());
 
@@ -162,18 +167,58 @@ describe('urlWatcher', () => {
     });
 
     describe('剪贴板轮询', () => {
-      it('剪贴板内容无变化时不触发 URL 提取', () => {
-        mockClipboardReadText.mockReturnValue('same text');
+      it('异步读取未完成时不启动重叠读取', async () => {
+        let finishRead: (text: string) => void = () => {};
+        mockClipboardReadText.mockImplementationOnce(() => new Promise<string>((resolve) => { finishRead = resolve; }));
+        startClipboardUrlWatcher(defaultOptions());
+        await vi.advanceTimersByTimeAsync(3000);
+        expect(mockClipboardReadText).toHaveBeenCalledTimes(1);
+        finishRead('baseline');
+        await vi.advanceTimersByTimeAsync(1000);
+        expect(mockClipboardReadText).toHaveBeenCalledTimes(2);
+      });
+
+      it('异步读取拒绝后继续轮询且不产生未处理拒绝', async () => {
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+          mockClipboardReadText.mockRejectedValueOnce(new Error('clipboard unavailable')).mockResolvedValue('plain text');
+          startClipboardUrlWatcher(defaultOptions());
+          await vi.advanceTimersByTimeAsync(1000);
+          expect(error).toHaveBeenCalledWith('[ClipboardUrlWatcher] read error:', expect.any(Error));
+          expect(mockClipboardReadText).toHaveBeenCalledTimes(2);
+        } finally {
+          error.mockRestore();
+        }
+      });
+
+      it('停止并重启后丢弃旧轮询的异步结果', async () => {
+        let finishRead: (text: string) => void = () => {};
+        const win = createMockWindow();
+        mockClipboardReadText.mockResolvedValueOnce('baseline')
+          .mockImplementationOnce(() => new Promise<string>((resolve) => { finishRead = resolve; }))
+          .mockResolvedValue('new baseline');
+        startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
+        await vi.advanceTimersByTimeAsync(1000);
+        stopClipboardUrlWatcher();
+        startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
+        finishRead('https://stale.example');
+        await vi.advanceTimersByTimeAsync(1000);
+        expect(mockNetFetch).not.toHaveBeenCalled();
+        expect(win.webContents.send).not.toHaveBeenCalled();
+      });
+
+      it('剪贴板内容无变化时不触发 URL 提取', async () => {
+        mockClipboardReadText.mockResolvedValue('same text');
 
         const win = createMockWindow();
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
-        vi.advanceTimersByTime(3000);
+        await vi.advanceTimersByTimeAsync(3000);
 
         expect(win.webContents.send).not.toHaveBeenCalled();
       });
 
-      it('窗口为 null 时跳过本轮轮询', () => {
-        mockClipboardReadText.mockReturnValueOnce('initial').mockReturnValue('new text');
+      it('窗口为 null 时跳过本轮轮询', async () => {
+        mockClipboardReadText.mockResolvedValueOnce('initial').mockResolvedValue('new text');
         const win = createMockWindow();
         let callCount = 0;
         const opts = defaultOptions({
@@ -184,17 +229,17 @@ describe('urlWatcher', () => {
         });
 
         startClipboardUrlWatcher(opts);
-        vi.advanceTimersByTime(1000);
+        await vi.advanceTimersByTimeAsync(1000);
 
         expect(win.webContents.send).not.toHaveBeenCalled();
       });
 
-      it('窗口已销毁时跳过本轮轮询', () => {
-        mockClipboardReadText.mockReturnValueOnce('initial').mockReturnValue('new text');
+      it('窗口已销毁时跳过本轮轮询', async () => {
+        mockClipboardReadText.mockResolvedValueOnce('initial').mockResolvedValue('new text');
         const opts = defaultOptions({ getWindow: () => createMockWindow(true) });
 
         startClipboardUrlWatcher(opts);
-        vi.advanceTimersByTime(1000);
+        await vi.advanceTimersByTimeAsync(1000);
 
         // No crash, no IPC send
       });
@@ -202,7 +247,7 @@ describe('urlWatcher', () => {
       it('剪贴板内容变化后同一文本不再重复处理', async () => {
         const win = createMockWindow();
         // 剪贴板先变为含 URL 的文本，然后保持不变
-        mockClipboardReadText.mockReturnValueOnce('first').mockReturnValue('https://example.com');
+        mockClipboardReadText.mockResolvedValueOnce('first').mockResolvedValue('https://example.com');
         mockNetFetch.mockResolvedValue(createMockResponse({ chunks: [encodeHtml('<title>T</title>')] }));
 
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
@@ -225,7 +270,7 @@ describe('urlWatcher', () => {
         const win = createMockWindow();
         const titleHtml = '<html><head><title>Example Page</title></head></html>';
         mockNetFetch.mockResolvedValue(createMockResponse({ chunks: [encodeHtml(titleHtml)] }));
-        mockClipboardReadText.mockReturnValueOnce('initial').mockReturnValue('visit https://example.com now');
+        mockClipboardReadText.mockResolvedValueOnce('initial').mockResolvedValue('visit https://example.com now');
 
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
         await vi.advanceTimersByTimeAsync(1000);
@@ -237,15 +282,15 @@ describe('urlWatcher', () => {
         });
       });
 
-      it('所有 URL 被黑名单过滤后不发送 IPC', () => {
-        mockClipboardReadText.mockReturnValueOnce('initial').mockReturnValue('visit https://blocked.com now');
+      it('所有 URL 被黑名单过滤后不发送 IPC', async () => {
+        mockClipboardReadText.mockResolvedValueOnce('initial').mockResolvedValue('visit https://blocked.com now');
         const win = createMockWindow();
 
         startClipboardUrlWatcher(defaultOptions({
           getWindow: () => win,
           getBlacklist: () => ['blocked.com'],
         }));
-        vi.advanceTimersByTime(1000);
+        await vi.advanceTimersByTimeAsync(1000);
 
         expect(mockNetFetch).not.toHaveBeenCalled();
         expect(win.webContents.send).not.toHaveBeenCalled();
@@ -254,7 +299,7 @@ describe('urlWatcher', () => {
       it('部分 URL 被黑名单过滤后仅发送未被阻止的 URL', async () => {
         const win = createMockWindow();
         mockNetFetch.mockResolvedValue(createMockResponse({ chunks: [encodeHtml('<title>OK</title>')] }));
-        mockClipboardReadText.mockReturnValueOnce('initial').mockReturnValue('https://blocked.com and https://ok.com');
+        mockClipboardReadText.mockResolvedValueOnce('initial').mockResolvedValue('https://blocked.com and https://ok.com');
 
         startClipboardUrlWatcher(defaultOptions({
           getWindow: () => win,
@@ -272,7 +317,7 @@ describe('urlWatcher', () => {
     describe('页面标题获取', () => {
       it('从 HTML 中提取 title 标签内容', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(
           createMockResponse({ chunks: [encodeHtml('<html><head><title>My Title</title></head></html>')] }),
         );
@@ -288,7 +333,7 @@ describe('urlWatcher', () => {
 
       it('title 标签带属性时仍能提取', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(
           createMockResponse({ chunks: [encodeHtml('<title lang="en">With Attrs</title>')] }),
         );
@@ -304,7 +349,7 @@ describe('urlWatcher', () => {
 
       it('HTML 无 title 标签时返回空标题', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(
           createMockResponse({ chunks: [encodeHtml('<html><body>No title here</body></html>')] }),
         );
@@ -320,7 +365,7 @@ describe('urlWatcher', () => {
 
       it('title 内容含前后空格时会被 trim', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(
           createMockResponse({ chunks: [encodeHtml('<title>   padded   </title>')] }),
         );
@@ -336,7 +381,7 @@ describe('urlWatcher', () => {
 
       it('标题跨越多个 chunk 时正确拼接', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         const part1 = encodeHtml('<html><ti');
         const part2 = encodeHtml('tle>Split Title</title></html>');
         mockNetFetch.mockResolvedValue(createMockResponse({ chunks: [part1, part2] }));
@@ -354,7 +399,7 @@ describe('urlWatcher', () => {
     describe('fetchPageTitle 边界条件', () => {
       it('响应 status 不 ok 且非 206 时返回空标题', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(createMockResponse({ ok: false, status: 500 }));
 
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
@@ -368,7 +413,7 @@ describe('urlWatcher', () => {
 
       it('status 206 (Partial Content) 视为有效响应', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(
           createMockResponse({ ok: false, status: 206, chunks: [encodeHtml('<title>Partial</title>')] }),
         );
@@ -384,7 +429,7 @@ describe('urlWatcher', () => {
 
       it('content-type 非 HTML/text 时返回空标题', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(createMockResponse({ contentType: 'application/json' }));
 
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
@@ -398,7 +443,7 @@ describe('urlWatcher', () => {
 
       it('content-type 为 text/plain 时仍尝试提取标题', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(
           createMockResponse({ contentType: 'text/plain', chunks: [encodeHtml('<title>Plain Title</title>')] }),
         );
@@ -414,7 +459,7 @@ describe('urlWatcher', () => {
 
       it('响应 body 为 null 时返回空标题', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue({
           ok: true,
           status: 200,
@@ -433,7 +478,7 @@ describe('urlWatcher', () => {
 
       it('content-type header 为 null 时返回空标题', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(createMockResponse({ contentType: null }));
 
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
@@ -447,7 +492,7 @@ describe('urlWatcher', () => {
 
       it('net.fetch 抛出异常时返回空标题', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockRejectedValue(new Error('Network error'));
 
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
@@ -461,7 +506,7 @@ describe('urlWatcher', () => {
 
       it('标题获取过程中窗口被销毁时不发送 IPC', async () => {
         const win = createMockWindow();
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('https://test.com');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('https://test.com');
         mockNetFetch.mockResolvedValue(createMockResponse({ chunks: [encodeHtml('<title>Gone</title>')] }));
 
         // 第一次 getWindow 返回正常窗口，第二次（在 .then 回调中）返回 null
@@ -479,15 +524,15 @@ describe('urlWatcher', () => {
         expect(win.webContents.send).not.toHaveBeenCalled();
       });
 
-      it('非 http/https 协议的 URL 不调用 net.fetch', () => {
+      it('非 http/https 协议的 URL 不调用 net.fetch', async () => {
         // 使用 'domain-only' 模式，但提供一个纯域名文本
         // domain-only 会 prepend https://，所以 ftp URL 不会被 extractUrls 提取
         // 直接测试：clipboard 无 URL → 不触发 fetch
-        mockClipboardReadText.mockReturnValueOnce('init').mockReturnValue('no urls here');
+        mockClipboardReadText.mockResolvedValueOnce('init').mockResolvedValue('no urls here');
         const win = createMockWindow();
 
         startClipboardUrlWatcher(defaultOptions({ getWindow: () => win }));
-        vi.advanceTimersByTime(1000);
+        await vi.advanceTimersByTimeAsync(1000);
 
         expect(mockNetFetch).not.toHaveBeenCalled();
         expect(win.webContents.send).not.toHaveBeenCalled();
@@ -504,19 +549,19 @@ describe('urlWatcher', () => {
       expect(() => stopClipboardUrlWatcher()).not.toThrow();
     });
 
-    it('停止后不再轮询剪贴板', () => {
-      mockClipboardReadText.mockReturnValue('text');
+    it('停止后不再轮询剪贴板', async () => {
+      mockClipboardReadText.mockResolvedValue('text');
       startClipboardUrlWatcher(defaultOptions());
       stopClipboardUrlWatcher();
 
       mockClipboardReadText.mockClear();
-      vi.advanceTimersByTime(5000);
+      await vi.advanceTimersByTimeAsync(5000);
 
       expect(mockClipboardReadText).not.toHaveBeenCalled();
     });
 
     it('连续停止两次不报错', () => {
-      mockClipboardReadText.mockReturnValue('text');
+      mockClipboardReadText.mockResolvedValue('text');
       startClipboardUrlWatcher(defaultOptions());
 
       stopClipboardUrlWatcher();
@@ -524,14 +569,14 @@ describe('urlWatcher', () => {
     });
 
     it('停止后可重新启动', () => {
-      mockClipboardReadText.mockReturnValue('text');
+      mockClipboardReadText.mockResolvedValue('text');
       const opts = defaultOptions();
 
       startClipboardUrlWatcher(opts);
       stopClipboardUrlWatcher();
 
       mockClipboardReadText.mockClear();
-      mockClipboardReadText.mockReturnValue('new text');
+      mockClipboardReadText.mockResolvedValue('new text');
       startClipboardUrlWatcher(opts);
 
       expect(mockClipboardReadText).toHaveBeenCalledTimes(1);

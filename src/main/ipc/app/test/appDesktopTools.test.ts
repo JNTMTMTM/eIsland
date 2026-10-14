@@ -50,11 +50,20 @@ describe('desktop integration tools at isolated leaf boundaries', () => {
     expect(await tool('win.screenshot', { path: 'capture.png' })).toMatchObject({ success: false, error: 'image write denied' });
   });
   it('reads clipboard text without an image and serializes an available image', async () => {
-    mocks.text.mockReturnValue('');
+    mocks.text.mockResolvedValue('');
     expect(await tool('clipboard.read', {})).toMatchObject({ success: true, result: { text: null, hasImage: false } });
-    mocks.text.mockReturnValue('text');
+    mocks.text.mockResolvedValue('text');
+    mocks.clipboardItems.mockResolvedValue([{ types: ['image/png'], getType: () => Promise.resolve(new Blob(['png'], { type: 'image/png' })) }]);
     mocks.image.mockReturnValue({ isEmpty: () => false, toPNG: () => Buffer.from('png'), getSize: () => ({ width: 10, height: 20 }) });
     expect(await tool('clipboard.read', {})).toMatchObject({ success: true, result: { text: 'text', hasImage: true, imageBase64: 'cG5n', imageSize: 3, imageWidth: 10, imageHeight: 20 } });
+  });
+  it('reads non-PNG images and propagates rejected clipboard reads', async () => {
+    mocks.clipboardItems.mockResolvedValue([{ types: ['image/jpeg'], getType: () => Promise.resolve(new Blob(['jpeg'], { type: 'image/jpeg' })) }]);
+    mocks.image.mockReturnValue({ isEmpty: () => false, toPNG: () => Buffer.from('png'), getSize: () => ({ width: 10, height: 20 }) });
+    expect(await tool('clipboard.read', {})).toMatchObject({ success: true, result: { hasImage: true } });
+    expect(mocks.image).toHaveBeenCalledWith(Buffer.from('jpeg'));
+    mocks.clipboardItems.mockRejectedValueOnce(new Error('clipboard read denied'));
+    expect(await tool('clipboard.read', {})).toMatchObject({ success: false, error: 'clipboard read denied' });
   });
   it('writes normalized clipboard text and avoids empty writes', async () => {
     expect(await tool('clipboard.write', { text: ' fixture ' })).toMatchObject({ success: true, result: { written: true, length: 7 } });
@@ -62,8 +71,22 @@ describe('desktop integration tools at isolated leaf boundaries', () => {
     mocks.clipboardWrite.mockClear();
     expect((await tool('clipboard.write', { text: ' ' })).success).toBe(false);
     expect(mocks.clipboardWrite).not.toHaveBeenCalled();
-    mocks.clipboardWrite.mockImplementation(() => { throw new Error('clipboard denied'); });
+    mocks.clipboardWrite.mockRejectedValue(new Error('clipboard denied'));
     expect(await tool('clipboard.write', { text: 'fixture' })).toMatchObject({ success: false, error: 'clipboard denied' });
+  });
+  it('waits for the clipboard write before reporting Agent success', async () => {
+    let finishWrite: () => void = () => {};
+    mocks.clipboardWrite.mockImplementationOnce(() => new Promise<void>((resolve) => { finishWrite = resolve; }));
+    let completed = false;
+    const pending = (async () => {
+      const result = await tool('clipboard.write', { text: 'fixture' });
+      completed = true;
+      return result;
+    })();
+    await vi.waitFor(() => expect(mocks.clipboardWrite).toHaveBeenCalled());
+    expect(completed).toBe(false);
+    finishWrite();
+    expect(await pending).toMatchObject({ success: true });
   });
   it('shows notifications with default or explicit titles after validation', async () => {
     expect(await tool('notification.send', { body: ' Body ' })).toMatchObject({ success: true, result: { title: 'eIsland Agent', body: 'Body', sent: true } });

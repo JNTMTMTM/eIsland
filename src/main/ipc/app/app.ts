@@ -1234,9 +1234,20 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
     // ── 剪贴板 ──
 
     if (tool === 'clipboard.read') {
-      const { clipboard } = await import('electron');
-      const text = clipboard.readText();
-      const image = clipboard.readImage();
+      const { clipboard, nativeImage } = await import('electron');
+      const text = await clipboard.readText();
+      const items = await clipboard.read();
+      const imageItem = items.find((item) => item.types.includes('image/png'))
+        ?? items.find((item) => item.types.some((type) => type.startsWith('image/')));
+      const imageType = imageItem?.types.includes('image/png')
+        ? 'image/png' : imageItem?.types.find((type) => type.startsWith('image/'));
+      let image = nativeImage.createEmpty();
+      if (imageItem && imageType) {
+        const blob = await imageItem.getType(imageType);
+        if ('arrayBuffer' in blob) {
+          image = nativeImage.createFromBuffer(Buffer.from(await blob.arrayBuffer()));
+        }
+      }
       const hasImage = !image.isEmpty();
       const result: Record<string, unknown> = { text: text || null, hasImage };
       if (hasImage) {
@@ -1253,7 +1264,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       const { clipboard } = await import('electron');
       const text = getStringArg(args, 'text');
       if (!text) throw new Error('clipboard.write 需要 text');
-      clipboard.writeText(text);
+      await clipboard.writeText(text);
       return { success: true, result: { written: true, length: text.length }, error: '', durationMs: Date.now() - startedAt };
     }
 

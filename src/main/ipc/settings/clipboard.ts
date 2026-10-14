@@ -58,17 +58,18 @@ interface RegisterClipboardIpcHandlersOptions {
  * @param options - 配置选项，包含存储目录、键名和状态管理函数
  */
 export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandlersOptions): void {
-  ipcMain.handle('clipboard:read-text', () => {
+  ipcMain.handle('clipboard:read-text', async () => {
     try {
-      return clipboard.readText() || '';
+      const text = await clipboard.readText();
+      return text;
     } catch {
       return '';
     }
   });
 
-  ipcMain.handle('clipboard:write-text', (_event, text: string) => {
+  ipcMain.handle('clipboard:write-text', async (_event, text: string) => {
     try {
-      clipboard.writeText(typeof text === 'string' ? text : '');
+      await clipboard.writeText(typeof text === 'string' ? text : '');
       return true;
     } catch {
       return false;
