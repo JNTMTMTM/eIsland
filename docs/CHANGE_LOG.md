@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-13T23:56:28.175Z
+> 生成时间：2026-10-14T21:11:40.202Z
 
 ## 27.0.0
 
@@ -3872,7 +3872,47 @@
 
 ## Unreleased
 
+- 2026-10-14 | 8a400df6 | dependabot[bot] | chore(deps): upgrade Electron to 44.7.2 and adapt clipboard APIs (#244)
+- 2026-10-14 | 23203c69 | 鸡哥 | Merge branch 'dev' into main
+- 2026-10-13 | 70b37cfd | eislandBot | docs: auto update CHANGE_LOG.md for #258 by @JNTMTMTM [skip ci]
 - 2026-10-13 | fc973dd2 | 鸡哥 | feat: 全面优化 maxexpand 状态机计算器界面功能 (#258)
+- 2026-10-14 | c78618e2 | 鸡哥 | feat(calculator): enhance history handling and improve performance with deduplication and optimized rendering
+- 2026-10-14 | 7691dd27 | 鸡哥 | feat(calculator): replace placeholder with 'Undefined' for complex argument and update output handling
+- 2026-10-14 | f751b59c | 鸡哥 | feat(calculator): update calculator icon and equation mode icon to use SvgIcon
+- 2026-10-14 | 8ed1264f | 鸡哥 | feat(svg): add CALCULATOR and EQUATION SVG icons and update SvgIcon references
+- 2026-10-14 | 20d3a3c2 | 鸡哥 | feat(calculator): remove history hint text from UI and localization files
+- 2026-10-14 | 1d299f8c | 鸡哥 | feat(calculator): enhance history functionality with pagination and math rendering
+- 2026-10-14 | 908560ea | 鸡哥 | feat(calculator): enhance matrix operations with editable cells and improved UI
+- 2026-10-14 | c42486e7 | 鸡哥 | feat(calculator): add domain and range analysis for functions
+- 2026-10-14 | 2a8759bc | 鸡哥 | feat(calculator): add logarithm graph tests and enhance expression normalization for tangent analysis
+- 2026-10-14 | b24a0324 | 鸡哥 | feat(calculator): implement tangent analysis feature with UI integration and styling
+- 2026-10-14 | aa7fff53 | 鸡哥 | feat(calculator): enhance graphing functionality and styling for better responsiveness
+- 2026-10-13 | e07fdc05 | 鸡哥 | feat: Enhance updater service and notification handling
+- 2026-10-12 | 86b64496 | 鸡哥 | feat(styles): increase sidebar width for expanded navigation
+- 2026-10-12 | ef6e980a | 鸡哥 | feat(styles): improve focus outline and background styling for calculator panel
+- 2026-10-12 | 38d70192 | 鸡哥 | feat(calculator): enhance history panel styling and add delete button class
+- 2026-10-12 | 8d54af1c | 鸡哥 | feat(styles): unify scrollbar styles for calculator panel
+- 2026-10-12 | 1b4bd7a9 | 鸡哥 | feat(calculator): implement coordinate input panel with numeric, scientific, and analysis modes
+- 2026-10-12 | fae0a0f9 | 鸡哥 | fix(calculator): remove hint paragraphs from ComplexCalculator, EquationSolver, and MatrixCalculator components
+- 2026-10-12 | d90bbf2c | 鸡哥 | feat(calculator): add history functionality and UI updates
+- 2026-10-12 | 1e2d5240 | 鸡哥 | fix(styles): reduce gap and padding in sidebar navigation for improved layout
+- 2026-10-12 | 3bcd2761 | 鸡哥 | feat(calculator): enhance toolbar layout with tool buttons and styling
+- 2026-10-12 | ea4168c2 | 鸡哥 | fix(calculator): prevent scientific keys from overlapping history
+- 2026-10-12 | 9a753d3b | 鸡哥 | fix(calculator): start fresh Ans expressions after equals
+- 2026-10-12 | 734daca5 | 鸡哥 | feat(calculator): add matrix algebra and linear-system solving
+- 2026-10-12 | 37bd0e67 | 鸡哥 | feat(calculator): add complex-number arithmetic and polar display
+- 2026-10-12 | 686cb568 | 鸡哥 | feat(calculator): add analytic and numerical equation solving
+- 2026-10-12 | 1b5c6a58 | 鸡哥 | feat(calculator): add multi-curve graph analysis and coordinate tracking
+- 2026-10-12 | 53e8a50c | 鸡哥 | feat(calculator): add seven-category unit conversion
+- 2026-10-12 | dbabd484 | 鸡哥 | feat(calculator): explain mathematical and formula errors
+- 2026-10-12 | be47a826 | 鸡哥 | feat(calculator): add formula and result clipboard actions
+- 2026-10-12 | 822270bf | 鸡哥 | feat(calculator): add full-precision Ans and chained calculations
+- 2026-10-12 | 85060ca0 | 鸡哥 | feat(calculator): add persistent editable calculation history
+- 2026-10-12 | 1ab550c6 | 鸡哥 | style(calculator): enhance sidebar navigation with smooth transitions and improved label visibility
+- 2026-10-12 | 84f8f6bc | 鸡哥 | feat(calculator): add angle unit functionality with degree/radian support
+- 2026-10-12 | a5236e59 | 鸡哥 | style(calculator): hide scrollbar in calculator styles
+- 2026-10-12 | 43317960 | 鸡哥 | feat(calculator): enhance calculator functionality and UI
+- 2026-10-12 | c8c0b524 | 鸡哥 | test: cover chat storage transactions and failure paths
 - 2026-10-13 | d1c2c64f | eislandBot | docs: auto update CHANGE_LOG.md for #248 by @dependabot[bot] [skip ci]
 - 2026-10-13 | f93700fe | dependabot[bot] | build: upgrade issue-report TypeScript with shared lint tooling (#248)
 - 2026-10-13 | 342c2fc9 | eislandBot | docs: auto update CHANGE_LOG.md for #257 by @JNTMTMTM [skip ci]
