@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-14T21:11:40.202Z
+> 生成时间：2026-10-15T05:01:33.021Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-14 | 7bfb363b | 鸡哥 | fix: 修复多个已知问题 (#259)
+- 2026-10-14 | af3ef219 | eislandBot | docs: auto update CHANGE_LOG.md for #244 by @dependabot[bot] [skip ci]
 - 2026-10-14 | 8a400df6 | dependabot[bot] | chore(deps): upgrade Electron to 44.7.2 and adapt clipboard APIs (#244)
 - 2026-10-14 | 23203c69 | 鸡哥 | Merge branch 'dev' into main
 - 2026-10-13 | 70b37cfd | eislandBot | docs: auto update CHANGE_LOG.md for #258 by @JNTMTMTM [skip ci]
