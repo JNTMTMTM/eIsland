@@ -224,6 +224,35 @@ describe('main window first expansion', () => {
     expect(ipcHandlers.get('window:get-bounds')?.()).toEqual({ x: 810, y: 106, width: 500, height: 72 });
   });
 
+  it('uses the startup geometry when Windows inflates bounds before the first pill move', async () => {
+    mocks.shapeMode = 'pill';
+    await startWindow();
+    expect(mocks.createWindow).toHaveBeenCalledWith(expect.objectContaining({ thickFrame: false }));
+    bounds.width += 8;
+    bounds.height += 4;
+    expect(ipcHandlers.get('window:get-bounds')?.()).toEqual({ x: 830, y: 46, width: 260, height: 52 });
+    ipcEvents.get('window:move-delta')?.({}, 10, 5);
+    expect(bounds).toEqual({ x: 540, y: 51, width: 860, height: 52 });
+    bounds.width += 8;
+    bounds.height += 4;
+    ipcEvents.get('window:expand')?.();
+    expect(bounds).toEqual({ x: 540, y: 51, width: 860, height: 72 });
+    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 180, y: 0, width: 500, height: 72 }]);
+  });
+
+  it('does not reuse the previous window size when moving a replacement pill', async () => {
+    mocks.shapeMode = 'pill';
+    const service = await startWindow();
+    ipcEvents.get('window:expand-settings')?.();
+    const replacement = { ...win };
+    mocks.createWindow.mockReturnValueOnce(replacement);
+    service.createWindow();
+    await events.get('ready-to-show')?.();
+    ipcEvents.get('window:move-delta')?.({}, 10, 5);
+    expect(bounds).toEqual({ x: 540, y: 51, width: 860, height: 52 });
+    expect(ipcHandlers.get('window:get-bounds')?.()).toEqual({ x: 840, y: 51, width: 260, height: 52 });
+  });
+
   it('does not expose the backing width during a delayed first resize', async () => {
     await startWindow();
     const initial = { ...bounds };

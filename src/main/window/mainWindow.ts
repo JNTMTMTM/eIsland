@@ -30,6 +30,7 @@ import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 import { readIslandShapeModeConfig, PILL_ISLAND_HEIGHT } from '../config/storeConfig';
 import { readIslandScaleConfig } from '../config/islandScaleConfig';
+import { readMainWindowBounds, setMainWindowBounds } from './mainWindowBounds';
 
 interface WindowSizeOptions {
   islandWidth: number;
@@ -117,10 +118,10 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     }
 
     if (!mainWindow || mainWindow.isDestroyed()) return;
-    const bounds = mainWindow.getBounds();
+    const bounds = readMainWindowBounds(mainWindow);
     const targetX = Math.round(initialCenterX - bounds.width / 2);
 
-    mainWindow.setBounds({
+    setMainWindowBounds(mainWindow, {
       x: targetX,
       y: nextBaseBounds.y,
       width: bounds.width,
@@ -174,7 +175,7 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
     mainWindow.setIgnoreMouseEvents(true, { forward: true });
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
-    mainWindow.setBounds(backingBounds, false);
+    setMainWindowBounds(mainWindow, backingBounds);
     // 扩宽的透明区域在首帧前裁掉，保留 idle 的可见区域与鼠标命中范围。
     mainWindow.setShape([{
       x: Math.round((backingWidth - initialBounds.width) / 2),
@@ -184,7 +185,7 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     }]);
 
     mainWindow.on('ready-to-show', async () => {
-      mainWindow.setBounds(backingBounds, false);
+      setMainWindowBounds(mainWindow, backingBounds);
       if (options.onBeforeShow) {
         options.onBeforeShow();
       }

@@ -200,6 +200,8 @@ describe('窗口状态与失败边界', () => {
     event('move-delta', 2, -1);
     expect(win.setBounds).toHaveBeenLastCalledWith({ x: 103, y: 199, width: 1000, height: 600 });
     event('expand');
+    expect(win.setBounds).toHaveBeenCalledTimes(3);
+    expect(win.setBounds).toHaveBeenLastCalledWith({ x: 0, y: 11, width: 1000, height: 200 });
     const expanded = win.setBounds.mock.calls.at(-1)?.[0];
     if (!expanded) throw new Error('expand did not set bounds');
     io.bounds = { ...expanded, width: expanded.width + 8, height: expanded.height + 4 };
