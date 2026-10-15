@@ -44,12 +44,16 @@ describe('NSIS overwrite-install process detection', () => {
     expect(installerScript).not.toMatch(/nsExec::|Get-CimInstance|wmic|IS_POWERSHELL_AVAILABLE/);
   });
 
-  it('queries and terminates through the same process handle', () => {
-    expect(installerScript).toContain('QueryFullProcessImageNameW(p r6,');
-    expect(installerScript).toContain('Push $6\n            Call ${EISLAND_TREE_FUNCTION}');
-    expect(installerScript).toContain('TerminateProcess(p r0,');
-    expect(installerScript).toContain('WaitForSingleObject(p r0, i 5000)');
-    expect(installerScript).toContain('CloseHandle(p r6)');
+  it.each([
+    { name: 'LF', newline: '\n' },
+    { name: 'CRLF', newline: '\r\n' },
+  ])('queries and terminates through the same process handle with $name line endings', ({ newline }) => {
+    const script = installerScript.replace(/\r?\n/g, newline);
+    expect(script).toContain('QueryFullProcessImageNameW(p r6,');
+    expect(script).toMatch(/Push \$6\r?\n[ \t]+Call \$\{EISLAND_TREE_FUNCTION\}/);
+    expect(script).toContain('TerminateProcess(p r0,');
+    expect(script).toContain('WaitForSingleObject(p r0, i 5000)');
+    expect(script).toContain('CloseHandle(p r6)');
   });
 
   it('compares Windows paths ordinally and rechecks at both mutation boundaries', () => {
