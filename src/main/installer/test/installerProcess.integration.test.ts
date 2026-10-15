@@ -91,7 +91,7 @@ check_handoff:
   \${IfNot} \${FileExists} "$INSTDIR\\files-ready"
     Sleep 10
     IntOp $TestExitPid $TestExitPid + 1
-    IntCmp $TestExitPid 500 0 wait_for_files
+    IntCmp $TestExitPid 1500 0 wait_for_files
     Abort
   \${EndIf}
   Call ${mode === 'uninstaller' ? 'un.' : ''}eIslandFinalProcessCheck
@@ -207,7 +207,7 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
           '${IfNot} ${FileExists} "$INSTDIR\\late-ready"',
           'Sleep 10',
           'IntOp $TestExitPid $TestExitPid + 1',
-          'IntCmp $TestExitPid 500 0 wait_for_late_app',
+          'IntCmp $TestExitPid 1500 0 wait_for_late_app',
           'Abort',
           '${EndIf}',
           '${EndIf}',
@@ -323,6 +323,32 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
     return result;
   }
 
+  /**
+   * 等待探针进入竞态窗口，并在准备失败时也释放、回收探针，保留原始失败。
+   * @param mode - 安装或卸载探针。
+   * @param directory - 本次场景目录。
+   * @param options - 探针操作和双向握手文件。
+   * @param setup - 在探针暂停期间启动需要检查的进程。
+   * @returns 已准备的测试进程及数据。
+   */
+  async function atProbeBarrier<T>(mode: ProbeMode, directory: string, options: {
+    action: 'check' | 'handoff'; variant?: ProbeVariant; marker: string; ready: string;
+  }, setup: () => Promise<T>): Promise<T> {
+    const pending = probe(mode, directory, options);
+    // 立即订阅拒绝；稍后仍通过 pending 抛出探针失败，避免等待标记期间产生未处理拒绝。
+    const settled = pending.then(() => undefined, () => undefined);
+    let result: T;
+    try {
+      await expect.poll(() => existsSync(join(directory, options.marker)), { timeout: 10_000 }).toBe(true);
+      result = await setup();
+    } finally {
+      writeFileSync(join(directory, options.ready), '');
+      await settled;
+    }
+    expect(await pending).toBe('checked');
+    return result;
+  }
+
   (['installer', 'uninstaller'] as const).forEach((mode) => {
     it(`${mode}: preserves its own updater ancestry while closing the launching app`, async () => {
       const directory = join(root, `${mode}-app-launched`);
@@ -332,23 +358,22 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
     }, 30_000);
     it(`${mode}: catches an app started after the first snapshot`, async () => {
       const directory = join(root, `${mode}-late-start`);
-      const pending = probe(mode, directory, { action: 'check', variant: 'late-start' });
-      await expect.poll(() => existsSync(join(directory, 'first-snapshot'))).toBe(true);
-      const target = await startFixture(directory);
-      writeFileSync(join(directory, 'late-ready'), '');
-      expect(await pending).toBe('checked');
+      const target = await atProbeBarrier(mode, directory, {
+        action: 'check', variant: 'late-start', marker: 'first-snapshot', ready: 'late-ready',
+      }, () => startFixture(directory));
       await expect.poll(() => target.exitCode !== null || target.signalCode !== null).toBe(true);
     }, 30_000);
 
     it(`${mode}: rechecks at file mutation and waits for children and grandchildren`, async () => {
       const directory = join(root, `${mode}-handoff-tree`);
-      const pending = probe(mode, directory, { action: 'handoff' });
-      await expect.poll(() => existsSync(join(directory, 'before-files'))).toBe(true);
-      const target = await startFixture(directory, 'eIsland.exe', false, true);
-      const descendants = JSON.parse(readFileSync(join(directory, 'tree-pids.json'), 'utf8')) as number[];
-      const unrelated = await startFixture(`${directory}-other`);
-      writeFileSync(join(directory, 'files-ready'), '');
-      expect(await pending).toBe('checked');
+      const { target, descendants, unrelated } = await atProbeBarrier(mode, directory, {
+        action: 'handoff', marker: 'before-files', ready: 'files-ready',
+      }, async () => {
+        const target = await startFixture(directory, 'eIsland.exe', false, true);
+        const descendants = JSON.parse(readFileSync(join(directory, 'tree-pids.json'), 'utf8')) as number[];
+        const unrelated = await startFixture(`${directory}-other`);
+        return { target, descendants, unrelated };
+      });
       await expect.poll(() => target.exitCode !== null || target.signalCode !== null).toBe(true);
       descendants.forEach((pid) => {
         expect(() => process.kill(pid, 0)).toThrow();
