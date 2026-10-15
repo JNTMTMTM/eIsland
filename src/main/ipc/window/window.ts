@@ -29,6 +29,7 @@ import { BrowserWindow, ipcMain, screen } from 'electron';
 import { broadcastSettingChange } from '../../utils/broadcast';
 import { readIslandScaleConfig, writeIslandScaleConfig } from '../../config/islandScaleConfig';
 import { normalizeIslandScale } from '../../../shared/islandScale';
+import { readMainWindowBounds, setMainWindowBounds } from '../../window/mainWindowBounds';
 import {
   readIslandShapeModeConfig,
   PILL_ISLAND_HEIGHT,
@@ -103,7 +104,7 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
  */
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   let pendingResizeTimer: ReturnType<typeof setTimeout> | null = null;
-  let logicalWindowSize: { width: number; height: number } | null = null;
+  const logicalWindowSizes = new WeakMap<BrowserWindow, { width: number; height: number }>();
   let islandScale = readIslandScaleConfig();
   let lastTargetBounds: ((win: BrowserWindow) => Electron.Rectangle) | null = null;
 
@@ -113,7 +114,8 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
    * @returns 可见区域的屏幕坐标与尺寸。
    */
   const getVisibleBounds = (win: BrowserWindow): Electron.Rectangle => {
-    const bounds = win.getBounds();
+    const bounds = readMainWindowBounds(win);
+    const logicalWindowSize = logicalWindowSizes.get(win);
     const width = logicalWindowSize?.width ?? Math.round(options.sizes.islandWidth * islandScale / 100);
     return {
       x: Math.round(bounds.x + (bounds.width - width) / 2),
@@ -142,12 +144,12 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     visibleWidth: number,
     visibleHeight: number,
   ): void => {
-    const currentBounds = win.getBounds();
+    const currentBounds = readMainWindowBounds(win);
     const backingWidth = Math.max(currentBounds.width, targetBounds.width, visibleWidth);
     const backingX = targetBounds.x - Math.round((backingWidth - targetBounds.width) / 2);
-    logicalWindowSize = { width: visibleWidth, height: visibleHeight };
+    logicalWindowSizes.set(win, { width: visibleWidth, height: visibleHeight });
 
-    win.setBounds({
+    setMainWindowBounds(win, {
       x: backingX,
       y: targetBounds.y,
       width: backingWidth,
@@ -183,7 +185,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     if (safeDelayMs > 0) {
       withWindow((win) => {
         const targetBounds = getScaledBounds(win);
-        const currentBounds = win.getBounds();
+        const currentBounds = readMainWindowBounds(win);
         const currentSize = getVisibleBounds(win);
         const currentCenterX = currentBounds.x + currentBounds.width / 2;
         applyWindowGeometry(
@@ -217,7 +219,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   const getEffectiveCenterX = (win: BrowserWindow): number => {
     const shapeMode = readIslandShapeModeConfig();
     if (shapeMode === 'pill') {
-      const bounds = win.getBounds();
+      const bounds = readMainWindowBounds(win);
       return bounds.x + bounds.width / 2;
     }
     return options.getInitialCenterX();
@@ -238,7 +240,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
       }
       return targetDisplay.workArea.y;
     }
-    return win.getBounds().y;
+    return readMainWindowBounds(win).y;
   };
 
   /** 根据当前形态模式返回对应高度（pill 模式各状态加高） */
@@ -378,8 +380,8 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.on('window:move-delta', (_event, dx: number, dy: number) => {
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     withWindow((win) => {
-      const bounds = win.getBounds();
-      win.setBounds({
+      const bounds = readMainWindowBounds(win);
+      setMainWindowBounds(win, {
         x: Math.round(bounds.x + dx),
         y: Math.round(bounds.y + dy),
         width: bounds.width,

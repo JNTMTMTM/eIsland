@@ -93,6 +93,56 @@ test.skip(process.platform !== 'win32', 'Requires the Windows graphical desktop 
   expect(desktop.rendererErrors).toEqual([]);
 }));
 
+[100, 75, 150].forEach((scale) => test(`keeps the pill aligned with its native clip while moving at ${scale}%`, async ({ desktop }, testInfo) => {
+  await desktop.main.evaluate(async (value) => {
+    await window.api.shapeModeSet('pill');
+    await window.api.islandScaleSet(value);
+  }, scale);
+  await desktop.restart();
+  const mainWindow = await desktop.app.browserWindow(desktop.main);
+  const handle = await mainWindow.evaluate((win: BrowserWindow) => win.getNativeWindowHandle().readBigUInt64LE().toString());
+  const initial = await desktop.main.evaluate(() => window.api.getWindowBounds());
+  expect(initial).toMatchObject({ width: Math.round(260 * scale / 100), height: Math.round(52 * scale / 100) });
+  const backingWidth = await mainWindow.evaluate((win: BrowserWindow) => win.getBounds().width);
+
+  const verifyAlignment = async (): Promise<void> => {
+    const visible = await desktop.main.evaluate(() => window.api.getWindowBounds());
+    const frame = await mainWindow.evaluate((win: BrowserWindow) => win.getBounds());
+    expect(frame.width).toBe(backingWidth);
+    expect(frame.height).toBe(visible.height);
+    const physical = await desktop.app.evaluate(({ screen, BrowserWindow }, bounds) => {
+      const main = BrowserWindow.getAllWindows().find((win) => win.webContents.getURL().endsWith('DynamicIslandIndex.html'));
+      return screen.dipToScreenRect(main ?? null, bounds);
+    }, visible);
+    await expect.poll(async () => JSON.parse(await nativeInput('-Action', 'region', '-WindowHandle', handle)) as Bounds).toEqual(physical);
+    const shell = await desktop.main.locator('.island-shell').boundingBox();
+    expect(shell).not.toBeNull();
+    if (!shell) throw new Error('Missing island shell');
+    expect(Math.abs(frame.x + (shell.x + shell.width / 2) * scale / 100 - visible.x - visible.width / 2)).toBeLessThanOrEqual(1);
+  };
+
+  const moveRepeatedly = async (): Promise<void> => {
+    const before = await desktop.main.evaluate(() => window.api.getWindowBounds());
+    const after = await desktop.main.evaluate(async () => {
+      Array.from({ length: 40 }).forEach(() => window.api.moveWindowDelta(2, 1));
+      return window.api.getWindowBounds();
+    });
+    expect(after).toEqual({ ...before, x: before.x + 80, y: before.y + 40 });
+    await verifyAlignment();
+  };
+
+  await verifyAlignment();
+  await moveRepeatedly();
+  await desktop.main.evaluate(() => window.api.expandWindowSettings());
+  await expect.poll(() => desktop.main.evaluate(() => window.api.getWindowBounds())).toMatchObject({ width: Math.round(860 * scale / 100), height: Math.round(416 * scale / 100) });
+  await moveRepeatedly();
+  await desktop.main.evaluate(() => window.api.collapseWindow());
+  await expect.poll(() => desktop.main.evaluate(() => window.api.getWindowBounds())).toMatchObject({ width: initial.width, height: initial.height });
+  await moveRepeatedly();
+  await desktop.main.screenshot({ path: testInfo.outputPath(`pill-drag-${scale}.png`) });
+  expect(desktop.rendererErrors).toEqual([]);
+}));
+
 test('uses the real desktop cursor to enter and leave the visible island', async ({ desktop }) => {
   await desktop.main.evaluate(() => window.api.islandScaleSet(75));
   const shell = desktop.main.locator('.island-shell');
