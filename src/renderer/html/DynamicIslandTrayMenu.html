@@ -20,7 +20,8 @@
 
 <!--
   @file DynamicIslandTrayMenu.html
-  @description 自绘托盘菜单 React 渲染入口
+  @description 自绘托盘菜单 React 渲染入口；#root 内置静态骨架屏，渲染脚本加载前即可绘制，
+  结构需与 trayMenu/components/TrayMenuSkeleton.tsx 保持一致
   @author 鸡哥
 -->
 <!doctype html>
@@ -29,9 +30,46 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>eIsland</title>
+    <link rel="stylesheet" href="../components/trayMenu/styles/trayMenuSkeleton.css" />
+    <!-- 主题由主进程通过 ?theme= 传入，骨架屏首帧即使用正确配色 -->
+    <script id="tray-menu-theme">
+      document.documentElement.dataset.theme = new URLSearchParams(location.search).get('theme') === 'light' ? 'light' : 'dark';
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="tray-skeleton" aria-hidden="true">
+        <div class="tray-skeleton-card tray-skeleton-user">
+          <span class="tray-skeleton-block tray-skeleton-avatar"></span>
+          <span class="tray-skeleton-lines">
+            <span class="tray-skeleton-block tray-skeleton-line"></span>
+            <span class="tray-skeleton-block tray-skeleton-line tray-skeleton-line-short"></span>
+          </span>
+        </div>
+        <div class="tray-skeleton-card tray-skeleton-music">
+          <span class="tray-skeleton-block tray-skeleton-cover"></span>
+          <span class="tray-skeleton-lines">
+            <span class="tray-skeleton-block tray-skeleton-line"></span>
+            <span class="tray-skeleton-block tray-skeleton-line tray-skeleton-line-short"></span>
+          </span>
+          <span class="tray-skeleton-controls">
+            <span class="tray-skeleton-block tray-skeleton-button"></span>
+            <span class="tray-skeleton-block tray-skeleton-button"></span>
+            <span class="tray-skeleton-block tray-skeleton-button"></span>
+          </span>
+        </div>
+        <div class="tray-skeleton-list">
+          <div class="tray-skeleton-row"><span class="tray-skeleton-block tray-skeleton-row-bar"></span></div>
+          <div class="tray-skeleton-row"><span class="tray-skeleton-block tray-skeleton-row-bar"></span></div>
+          <div class="tray-skeleton-row"><span class="tray-skeleton-block tray-skeleton-row-bar"></span></div>
+          <div class="tray-skeleton-separator"></div>
+          <div class="tray-skeleton-row"><span class="tray-skeleton-block tray-skeleton-row-bar"></span></div>
+          <div class="tray-skeleton-row"><span class="tray-skeleton-block tray-skeleton-row-bar"></span></div>
+          <div class="tray-skeleton-separator"></div>
+          <div class="tray-skeleton-row"><span class="tray-skeleton-block tray-skeleton-row-bar"></span></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="../components/DynamicIslandTrayMenuMain.tsx"></script>
   </body>
 </html>

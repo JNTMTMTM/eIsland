@@ -20,7 +20,7 @@
 
 /**
  * @file trayNowPlaying.test.ts
- * @description 托盘音乐卡片播放信息转换、广播订阅、打开时刷新与播放控制测试。
+ * @description 托盘音乐卡片播放信息转换、加载态、广播订阅、打开时刷新与播放控制测试。
  * @author 鸡哥
  */
 
@@ -116,6 +116,40 @@ describe('toTrayNowPlaying', () => {
 });
 
 describe('useTrayNowPlaying', () => {
+  it('stays loading until the first read settles, then refreshes later opens silently', async () => {
+    expect(render(0).loading).toBe(true);
+    let resolveInfo: (value: NowPlayingInfo | null) => void = () => undefined;
+    api.mediaCurrentInfoGet.mockReturnValueOnce(new Promise((resolve) => { resolveInfo = resolve; }));
+    render(1);
+    await settle();
+    expect(render(1).loading).toBe(true);
+    resolveInfo(info());
+    await settle();
+    expect(render(1)).toMatchObject({ loading: false, nowPlaying: PLAYING });
+    api.mediaCurrentInfoGet.mockReturnValueOnce(new Promise(() => undefined));
+    expect(render(2)).toMatchObject({ loading: false, nowPlaying: PLAYING });
+  });
+
+  it.each([
+    { name: 'a failed read', start: () => { api.mediaCurrentInfoGet.mockRejectedValueOnce(new Error('ipc failed')); render(1); } },
+    { name: 'a media broadcast', start: () => { api.mediaCurrentInfoGet.mockReturnValueOnce(new Promise(() => undefined)); render(1); broadcast?.(null); } },
+  ])('also leaves the loading state after $name', async ({ start }) => {
+    render(0);
+    start();
+    await settle();
+    expect(render(1)).toMatchObject({ loading: false, nowPlaying: null });
+  });
+
+  it('keeps loading when the pending read belongs to an unmounted menu', async () => {
+    let resolveInfo: (value: NowPlayingInfo | null) => void = () => undefined;
+    api.mediaCurrentInfoGet.mockReturnValueOnce(new Promise((resolve) => { resolveInfo = resolve; }));
+    render(1);
+    unmountHooks();
+    resolveInfo(info());
+    await settle();
+    expect(render(1)).toMatchObject({ loading: true, nowPlaying: null });
+  });
+
   it('subscribes to broadcasts without fetching before the menu opens', () => {
     expect(render(0).nowPlaying).toBeNull();
     expect(api.onNowPlayingInfo).toHaveBeenCalledOnce();

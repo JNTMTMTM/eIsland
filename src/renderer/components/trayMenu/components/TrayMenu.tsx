@@ -20,7 +20,7 @@
 
 /**
  * @file TrayMenu.tsx
- * @description 自绘托盘菜单：顶部用户信息卡片 + 音乐控制卡片 + 菜单项列表，渲染完成后上报高度供主进程定位
+ * @description 自绘托盘菜单：顶部用户信息卡片 + 音乐控制卡片 + 菜单项列表，菜单状态到达前显示骨架屏；渲染完成后上报高度供主进程定位
  * @author 鸡哥
  */
 
@@ -31,18 +31,19 @@ import { TRAY_MENU_ITEMS } from '../config/trayMenuItems';
 import { useTrayMenuState } from '../hooks/useTrayMenuState';
 import { useTrayNowPlaying } from '../hooks/useTrayNowPlaying';
 import { TrayMenuItem } from './TrayMenuItem';
+import { TrayMenuSkeleton } from './TrayMenuSkeleton';
 import { TrayMusicCard } from './TrayMusicCard';
 import { TrayUserCard } from './TrayUserCard';
 import '../styles/trayMenu.css';
 
 /**
  * 托盘菜单根组件
- * @returns 菜单元素；首次收到主进程状态前不渲染
+ * @returns 菜单元素；首次收到主进程状态前为骨架屏
  */
-export function TrayMenu(): ReactElement | null {
+export function TrayMenu(): ReactElement {
   const { t } = useTranslation();
   const { menuState, user, openCount } = useTrayMenuState();
-  const { nowPlaying, togglePlayback, playPrevious, playNext } = useTrayNowPlaying(openCount);
+  const { nowPlaying, loading, togglePlayback, playPrevious, playNext } = useTrayNowPlaying(openCount);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // 每次打开都在绘制前测量；等两帧确保新内容已绘制，主进程再把透明窗口显现，避免闪出旧画面。
@@ -67,14 +68,14 @@ export function TrayMenu(): ReactElement | null {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  if (!menuState) return null;
+  if (!menuState) return <TrayMenuSkeleton />;
 
   const visibleItems = TRAY_MENU_ITEMS.filter((item) => item.kind === 'separator' || !item.standaloneOnly || menuState.standaloneMode);
 
   return (
     <div ref={rootRef} className="tray-menu" role="menu" aria-label={t('tray.menuLabel')}>
       <TrayUserCard user={user} />
-      <TrayMusicCard nowPlaying={nowPlaying} onTogglePlayback={togglePlayback} onPrevious={playPrevious} onNext={playNext} />
+      <TrayMusicCard nowPlaying={nowPlaying} loading={loading} onTogglePlayback={togglePlayback} onPrevious={playPrevious} onNext={playNext} />
       <div className="tray-menu-list">
         {visibleItems.map((item) => {
           if (item.kind === 'separator') {

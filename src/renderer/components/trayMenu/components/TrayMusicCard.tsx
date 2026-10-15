@@ -20,7 +20,7 @@
 
 /**
  * @file TrayMusicCard.tsx
- * @description 托盘音乐控制卡片：展示当前播放歌曲，支持暂停、恢复、上一首、下一首
+ * @description 托盘音乐控制卡片：展示当前播放歌曲，支持暂停、恢复、上一首、下一首；读取中显示骨架屏
  * @author 鸡哥
  */
 
@@ -28,10 +28,13 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import type { TrayNowPlaying } from '../types';
+import '../styles/trayMenuSkeleton.css';
 
 interface TrayMusicCardProps {
   /** 当前播放信息，无媒体时为 null */
   nowPlaying: TrayNowPlaying | null;
+  /** 播放信息读取中 */
+  loading: boolean;
   /** 暂停或恢复播放 */
   onTogglePlayback: () => void;
   /** 上一首 */
@@ -45,13 +48,32 @@ interface TrayMusicCardProps {
  * @description 无媒体时保留卡片并禁用按钮，保持菜单高度稳定
  * @param props - 组件属性
  * @param props.nowPlaying - 当前播放信息
+ * @param props.loading - 播放信息读取中
  * @param props.onTogglePlayback - 暂停或恢复播放
  * @param props.onPrevious - 上一首
  * @param props.onNext - 下一首
  * @returns 卡片元素
  */
-export function TrayMusicCard({ nowPlaying, onTogglePlayback, onPrevious, onNext }: TrayMusicCardProps): ReactElement {
+export function TrayMusicCard({ nowPlaying, loading, onTogglePlayback, onPrevious, onNext }: TrayMusicCardProps): ReactElement {
   const { t } = useTranslation();
+
+  if (loading) {
+    return (
+      <div className="tray-music-card" aria-busy="true" aria-label={t('tray.music.label')}>
+        <span className="tray-skeleton-block tray-skeleton-cover" />
+        <span className="tray-skeleton-lines">
+          <span className="tray-skeleton-block tray-skeleton-line" />
+          <span className="tray-skeleton-block tray-skeleton-line tray-skeleton-line-short" />
+        </span>
+        <span className="tray-skeleton-controls">
+          <span className="tray-skeleton-block tray-skeleton-button" />
+          <span className="tray-skeleton-block tray-skeleton-button" />
+          <span className="tray-skeleton-block tray-skeleton-button" />
+        </span>
+      </div>
+    );
+  }
+
   const idle = !nowPlaying;
   const playLabel = nowPlaying?.isPlaying ? t('tray.music.pause') : t('tray.music.play');
 

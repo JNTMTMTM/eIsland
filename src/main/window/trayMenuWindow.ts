@@ -20,21 +20,22 @@
 
 /**
  * @file trayMenuWindow.ts
- * @description 自绘托盘菜单窗口：在光标附近弹出、失焦隐藏，并转发菜单动作
+ * @description 自绘托盘菜单窗口：在光标附近弹出（首次打开先显示骨架屏）、失焦隐藏，并转发菜单动作
  * @author 鸡哥
  */
 
 import { join } from 'path';
-import { BrowserWindow, ipcMain, screen } from 'electron';
+import { BrowserWindow, ipcMain, nativeTheme, screen } from 'electron';
 import { is } from '@electron-toolkit/utils';
+import { readThemeModeConfig } from '../config/storeConfig';
 import { TRAY_MENU_CHANNELS, isTrayMenuAction } from '../../shared/trayMenu';
 import type { TrayMenuAction, TrayMenuState } from '../../shared/trayMenu';
 
 /** 菜单窗口宽度（DIP），需与渲染层 .tray-menu 宽度保持一致 */
 export const TRAY_MENU_WIDTH = 272;
 
-/** 首次渲染前的占位高度，真实高度由渲染层上报 */
-const TRAY_MENU_INITIAL_HEIGHT = 360;
+/** 首次打开时的窗口高度，需与渲染层骨架屏 .tray-skeleton 高度一致，真实高度由渲染层上报 */
+const TRAY_MENU_INITIAL_HEIGHT = 355;
 
 let menuWindow: BrowserWindow | null = null;
 let menuMounted = false;
@@ -72,16 +73,42 @@ function getMenuBounds(height: number): Electron.Rectangle {
 }
 
 /**
- * 以完全透明的状态显示菜单窗口并下发状态
- * @description 隐藏过的透明窗口再次显示时会先露出上次的缓存画面和系统显示动画，造成闪烁；
- * 先在透明状态下显示，等渲染层绘制完新内容（ready）后再显现。
+ * 解析菜单首屏使用的视觉主题
+ * @description 骨架屏在渲染脚本加载前绘制，无法异步读取主题，由主进程通过页面参数传入
+ * @returns 视觉主题
+ */
+function resolveMenuTheme(): 'dark' | 'light' {
+  const mode = readThemeModeConfig();
+  if (mode !== 'system') return mode;
+  return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+}
+
+/**
+ * 首次打开时页面完成首帧（骨架屏）绘制后立即显示菜单
+ * @description 不必等待渲染脚本加载与挂载，数据就绪后由渲染层替换为真实内容
+ */
+function revealSkeleton(): void {
+  if (!pendingState || menuMounted || !menuWindow || menuWindow.isDestroyed()) return;
+  menuWindow.setBounds(getMenuBounds(lastHeight));
+  menuWindow.setOpacity(1);
+  menuWindow.showInactive();
+  menuRevealed = true;
+  menuWindow.focus();
+}
+
+/**
+ * 显示菜单窗口并下发状态
+ * @description 骨架屏已显示时直接下发；否则以完全透明的状态显示——隐藏过的透明窗口再次显示时
+ * 会先露出上次的缓存画面和系统显示动画，造成闪烁，等渲染层绘制完新内容（ready）后再显现。
  */
 function flushPendingState(): void {
   if (!pendingState || !menuMounted || !menuWindow || menuWindow.isDestroyed()) return;
-  menuRevealed = false;
-  menuWindow.setOpacity(0);
-  menuWindow.setBounds(getMenuBounds(lastHeight));
-  if (!menuWindow.isVisible()) menuWindow.showInactive();
+  if (!menuRevealed || !menuWindow.isVisible()) {
+    menuRevealed = false;
+    menuWindow.setOpacity(0);
+    menuWindow.setBounds(getMenuBounds(lastHeight));
+    if (!menuWindow.isVisible()) menuWindow.showInactive();
+  }
   menuWindow.webContents.send(TRAY_MENU_CHANNELS.open, pendingState);
   pendingState = null;
 }
@@ -102,6 +129,8 @@ function revealMenu(height: number): void {
 
 /** 收起托盘菜单，窗口保留以便下次快速弹出。 */
 export function hideTrayMenuWindow(): void {
+  // 渲染层尚未挂载时用户已关闭菜单，挂载后不应再弹出。
+  pendingState = null;
   if (!menuWindow || menuWindow.isDestroyed() || !menuWindow.isVisible()) return;
   menuRevealed = false;
   menuWindow.setOpacity(0);
@@ -166,6 +195,7 @@ function createMenuWindow(): BrowserWindow {
   window.setAlwaysOnTop(true, 'pop-up-menu');
   window.removeMenu();
   // 透明预显示阶段窗口未获得焦点，只有真正显现后的失焦才代表用户点了别处。
+  window.once('ready-to-show', revealSkeleton);
   window.on('blur', () => {
     if (menuRevealed) hideTrayMenuWindow();
   });
@@ -177,9 +207,10 @@ function createMenuWindow(): BrowserWindow {
     }
   });
 
+  const theme = resolveMenuTheme();
   const loading = is.dev && process.env.ELECTRON_RENDERER_URL
-    ? window.loadURL(`${process.env.ELECTRON_RENDERER_URL}/html/DynamicIslandTrayMenu.html`)
-    : window.loadFile(join(__dirname, '../renderer/html/DynamicIslandTrayMenu.html'));
+    ? window.loadURL(`${process.env.ELECTRON_RENDERER_URL}/html/DynamicIslandTrayMenu.html?theme=${theme}`)
+    : window.loadFile(join(__dirname, '../renderer/html/DynamicIslandTrayMenu.html'), { query: { theme } });
   // eslint-disable-next-line promise/prefer-await-to-then -- 创建函数需同步返回窗口，在此处理加载失败。
   loading.catch((error: unknown) => {
     console.error('[TrayMenu] Failed to load tray menu page:', error);

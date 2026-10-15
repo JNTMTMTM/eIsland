@@ -64,6 +64,7 @@ const reads: ReadCase[] = [...stringReads,
   { name: 'auto update prompt', read: config.readUpdateAutoPromptConfig, key: config.UPDATE_AUTO_PROMPT_STORE_KEY, fallback: true, valid: false },
   { name: 'startup animation', read: config.readStartupAnimationEnabledConfig, key: config.STARTUP_ANIMATION_ENABLED_STORE_KEY, fallback: true, valid: false },
   { name: 'disable frame rate limit', read: config.readDisableFrameRateLimitConfig, key: config.DISABLE_FRAME_RATE_LIMIT_STORE_KEY, fallback: false, valid: true },
+  { name: 'theme mode', read: config.readThemeModeConfig, key: config.THEME_MODE_STORE_KEY, fallback: 'dark', valid: 'system' },
   { name: 'first launch marker', read: config.readFirstLaunchConfig, key: config.FIRST_LAUNCH_STORE_KEY, fallback: true, valid: false, invalidExpected: false },
 ];
 const storeDir = join('C:/isolated-user-data', 'eIsland_store');
@@ -79,6 +80,7 @@ describe('reader value boundaries', () => {
   it.each(stringReads)('preserves an intentionally unbound empty $name string', ({ read }) => { mocks.read.mockReturnValue('""'); expect(read()).toBe(''); });
   it('filters non-string hidden-process entries before invoking the normalizer', () => { mocks.read.mockReturnValue('["A.exe",42,null,"B.exe"]'); expect(config.readHideProcessListConfig()).toEqual(['normalized.exe']); expect(mocks.names).toHaveBeenCalledWith(['A.exe', 'B.exe']); });
   it.each(['notch', 'pill'])('recognizes shape %s and rejects unsupported strings', (shape) => { mocks.read.mockReturnValue(JSON.stringify(shape)); expect(config.readIslandShapeModeConfig()).toBe(shape); mocks.read.mockReturnValue('"rounded"'); expect(config.readIslandShapeModeConfig()).toBe(config.DEFAULT_ISLAND_SHAPE_MODE); });
+  it.each([['light', 'light'], ['system', 'system'], ['dark', 'dark'], ['blue', 'dark'], ['', 'dark']])('normalizes persisted theme mode %s to %s', (stored, expected) => { mocks.read.mockReturnValue(JSON.stringify(stored)); expect(config.readThemeModeConfig()).toBe(expected); });
   it.each(['https-only', 'http-https', 'domain-only'])('recognizes clipboard mode %s', (mode) => { mocks.read.mockReturnValue(JSON.stringify(mode)); expect(config.readClipboardUrlDetectModeConfig()).toBe(mode); });
   it.each([['false', false], ['0', false], ['null', false], ['{}', false], ['[]', false]])('marks readable JSON %s as previously launched', (stored, expected) => { mocks.read.mockReturnValue(stored); expect(config.readFirstLaunchConfig()).toBe(expected); });
   it.each([[0, 0], [-5, 0], [0.4, 0], [0.6, 1000], [1000.4, 1000], [1000.6, 1001], [2000000, 1800000], ['1000', 0], [null, 0]] as const)('normalizes persisted SMTC %s to %s', (value, expected) => { mocks.read.mockReturnValue(JSON.stringify(value)); expect(config.readSmtcUnsubscribeMsConfig()).toBe(expected); });

@@ -630,6 +630,15 @@ export function readAppLanguageConfig(): 'zh-CN' | 'en-US' | 'zh-TW' | 'ja-JP' {
 }
 
 /**
+ * 读取主题模式
+ * @returns 主题模式，缺失或非法时为 dark（与 theme:mode:get 一致）
+ */
+export function readThemeModeConfig(): 'dark' | 'light' | 'system' {
+  const data = readJsonFile(THEME_MODE_STORE_KEY);
+  return data === 'light' || data === 'system' ? data : 'dark';
+}
+
+/**
  * 写入灵动岛形态模式配置
  * @param mode - 形态模式字符串（notch 或 pill）
  * @returns 是否写入成功

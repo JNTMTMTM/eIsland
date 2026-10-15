@@ -31,6 +31,8 @@ import type { TrayNowPlaying } from '../types';
 interface TrayNowPlayingControls {
   /** 当前播放信息，无媒体时为 null */
   nowPlaying: TrayNowPlaying | null;
+  /** 首次播放信息尚未读取到，卡片显示骨架屏 */
+  loading: boolean;
   /** 暂停或恢复播放 */
   togglePlayback: () => void;
   /** 上一首 */
@@ -54,15 +56,18 @@ export function toTrayNowPlaying(info: NowPlayingInfo | null, previous: TrayNowP
 }
 
 /**
- * 订阅媒体播放信息，每次打开菜单时主动刷新一次
+ * 订阅媒体播放信息，每次打开菜单后主动刷新一次
+ * @description 首次读取完成前处于加载态；之后的打开沿用已有信息静默刷新，避免每次都闪骨架屏
  * @param openCount - 菜单打开次数，变化时重新拉取完整信息（含封面）
  * @returns 播放信息与控制函数
  */
 export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   const [nowPlaying, setNowPlaying] = useState<TrayNowPlaying | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => window.api.onNowPlayingInfo((info) => {
     setNowPlaying((previous) => toTrayNowPlaying(info, previous));
+    setLoading(false);
   }), []);
 
   useEffect(() => {
@@ -73,7 +78,11 @@ export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
       .then((info) => {
         if (!cancelled) setNowPlaying((previous) => toTrayNowPlaying(info, previous));
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      // eslint-disable-next-line promise/prefer-await-to-then -- 读取失败同样结束加载态，显示未在播放。
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -92,5 +101,5 @@ export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
     if (nowPlaying) window.api.mediaNext().catch(() => undefined);
   };
 
-  return { nowPlaying, togglePlayback, playPrevious, playNext };
+  return { nowPlaying, loading, togglePlayback, playPrevious, playNext };
 }

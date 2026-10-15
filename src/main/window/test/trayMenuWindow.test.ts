@@ -20,7 +20,7 @@
 
 /**
  * @file trayMenuWindow.test.ts
- * @description 自绘托盘菜单窗口的创建、透明预显示、定位、失焦关闭与 IPC 校验测试。
+ * @description 自绘托盘菜单窗口的创建、首次打开骨架屏显示、透明预显示、定位、失焦关闭与 IPC 校验测试。
  * @author 鸡哥
  */
 
@@ -38,6 +38,8 @@ const mocks = vi.hoisted(() => ({
   cursor: { x: 100, y: 100 },
   workArea: { x: 0, y: 0, width: 1920, height: 1040 },
   dev: false,
+  themeMode: 'dark' as 'dark' | 'light' | 'system',
+  systemDark: true,
 }));
 
 vi.mock('electron', () => ({
@@ -48,12 +50,14 @@ vi.mock('electron', () => ({
       mocks.listeners.set(channel, listener);
     },
   },
+  nativeTheme: { get shouldUseDarkColors() { return mocks.systemDark; } },
   screen: {
     getCursorScreenPoint: () => ({ ...mocks.cursor }),
     getDisplayNearestPoint: () => ({ workArea: { ...mocks.workArea } }),
   },
 }));
 vi.mock('@electron-toolkit/utils', () => ({ is: { get dev() { return mocks.dev; } } }));
+vi.mock('../../config/storeConfig', () => ({ readThemeModeConfig: () => mocks.themeMode }));
 
 const STATE: TrayMenuState = { windowAvailable: true, alwaysOnTop: true, standaloneMode: false, language: 'zh-CN' };
 
@@ -64,6 +68,8 @@ beforeEach(() => {
   mocks.cursor = { x: 100, y: 100 };
   mocks.workArea = { x: 0, y: 0, width: 1920, height: 1040 };
   mocks.dev = false;
+  mocks.themeMode = 'dark';
+  mocks.systemDark = true;
   vi.stubEnv('ELECTRON_RENDERER_URL', undefined);
 });
 
@@ -116,10 +122,11 @@ describe('trayMenuWindow', () => {
     });
     expect(win.setAlwaysOnTop).toHaveBeenCalledWith(true, 'pop-up-menu');
     if (expected === 'url') {
-      expect(win.loadURL).toHaveBeenCalledWith(`${url}/html/DynamicIslandTrayMenu.html`);
+      expect(win.loadURL).toHaveBeenCalledWith(`${url}/html/DynamicIslandTrayMenu.html?theme=dark`);
       expect(win.loadFile).not.toHaveBeenCalled();
     } else {
       expect(win.loadFile.mock.calls[0][0]).toMatch(/DynamicIslandTrayMenu\.html$/);
+      expect((win.loadFile.mock.calls[0] as unknown[])[1]).toEqual({ query: { theme: 'dark' } });
       expect(win.loadURL).not.toHaveBeenCalled();
     }
   });
@@ -132,12 +139,81 @@ describe('trayMenuWindow', () => {
     expect(win.webContents.send).not.toHaveBeenCalled();
     emit('tray-menu:mounted', win.webContents);
     expect(win.setOpacity).toHaveBeenCalledWith(0);
-    expect(win.setBounds).toHaveBeenCalledWith({ height: 360, x: 100, y: 100, width: service.TRAY_MENU_WIDTH });
+    expect(win.setBounds).toHaveBeenCalledWith({ height: 355, x: 100, y: 100, width: service.TRAY_MENU_WIDTH });
     expect(win.showInactive).toHaveBeenCalledOnce();
     expect(win.show).not.toHaveBeenCalled();
     expect(win.focus).not.toHaveBeenCalled();
     expect(win.webContents.send).toHaveBeenCalledWith('tray-menu:open', STATE);
     expect(win.setOpacity.mock.invocationCallOrder[0]).toBeLessThan(win.showInactive.mock.invocationCallOrder[0]);
+  });
+
+  it.each([
+    { mode: 'light', systemDark: true, theme: 'light' },
+    { mode: 'system', systemDark: true, theme: 'dark' },
+    { mode: 'system', systemDark: false, theme: 'light' },
+  ] as const)('passes the $theme theme for mode=$mode so the skeleton paints in the right colors', async ({ mode, systemDark, theme }) => {
+    mocks.themeMode = mode;
+    mocks.systemDark = systemDark;
+    const { win, service } = await setup();
+    service.showTrayMenuWindow(STATE, vi.fn());
+    expect((win.loadFile.mock.calls[0] as unknown[])[1]).toEqual({ query: { theme } });
+  });
+
+  it('shows the skeleton as soon as the first frame paints, then hands the state over without hiding it', async () => {
+    mocks.cursor = { x: 1900, y: 1030 };
+    const { win, service } = await setup();
+    service.showTrayMenuWindow(STATE, vi.fn());
+    win.emit('ready-to-show');
+    expect(win.setBounds).toHaveBeenLastCalledWith({ height: 355, x: 1900 - service.TRAY_MENU_WIDTH, y: 675, width: service.TRAY_MENU_WIDTH });
+    expect(win.setOpacity).toHaveBeenCalledWith(1);
+    expect(win.showInactive).toHaveBeenCalledOnce();
+    expect(win.focus).toHaveBeenCalledOnce();
+    expect(win.setOpacity.mock.invocationCallOrder[0]).toBeLessThan(win.showInactive.mock.invocationCallOrder[0]);
+    win.setOpacity.mockClear();
+    emit('tray-menu:mounted', win.webContents);
+    expect(win.webContents.send).toHaveBeenCalledWith('tray-menu:open', STATE);
+    expect(win.setOpacity).not.toHaveBeenCalled();
+    expect(win.showInactive).toHaveBeenCalledOnce();
+    emit('tray-menu:ready', win.webContents, 300);
+    expect(win.setBounds).toHaveBeenLastCalledWith({ height: 300, x: 1900 - service.TRAY_MENU_WIDTH, y: 730, width: service.TRAY_MENU_WIDTH });
+    expect(win.setOpacity).not.toHaveBeenCalled();
+    expect(win.focus).toHaveBeenCalledOnce();
+    win.emit('blur');
+    expect(win.hide).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the transparent pre-show when the renderer mounts before the first paint', async () => {
+    const { win, service } = await setup();
+    service.showTrayMenuWindow(STATE, vi.fn());
+    emit('tray-menu:mounted', win.webContents);
+    win.emit('ready-to-show');
+    expect(win.setOpacity).toHaveBeenCalledOnce();
+    expect(win.setOpacity).toHaveBeenCalledWith(0);
+    expect(win.focus).not.toHaveBeenCalled();
+  });
+
+  it('does not pop up after mounting when the skeleton was dismissed', async () => {
+    const { win, service } = await setup();
+    service.showTrayMenuWindow(STATE, vi.fn());
+    win.emit('ready-to-show');
+    win.emit('blur');
+    expect(win.hide).toHaveBeenCalledOnce();
+    emit('tray-menu:mounted', win.webContents);
+    expect(win.webContents.send).not.toHaveBeenCalled();
+    expect(win.showInactive).toHaveBeenCalledOnce();
+    service.showTrayMenuWindow(STATE, vi.fn());
+    expect(win.setOpacity).toHaveBeenLastCalledWith(0);
+    expect(win.webContents.send).toHaveBeenCalledWith('tray-menu:open', STATE);
+  });
+
+  it('does not show anything when the menu was closed before the first paint', async () => {
+    const { win, service } = await setup();
+    service.showTrayMenuWindow(STATE, vi.fn());
+    service.hideTrayMenuWindow();
+    win.emit('ready-to-show');
+    emit('tray-menu:mounted', win.webContents);
+    expect(win.showInactive).not.toHaveBeenCalled();
+    expect(win.webContents.send).not.toHaveBeenCalled();
   });
 
   it('reveals only after a valid ready height and repositions later reports without refocusing', async () => {
