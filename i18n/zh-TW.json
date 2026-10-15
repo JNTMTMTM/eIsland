@@ -4813,6 +4813,16 @@
     "menuLabel": "系統匣選單",
     "notLoggedIn": "未登入",
     "loginHint": "登入後同步帳號資訊",
-    "proExpireAt": "Pro 到期 {{date}}"
+    "proExpireAt": "Pro 到期 {{date}}",
+    "music": {
+      "label": "音樂控制",
+      "idle": "未在播放",
+      "idleHint": "播放音樂後可在此控制",
+      "unknownArtist": "未知歌手",
+      "play": "播放",
+      "pause": "暫停",
+      "previous": "上一首",
+      "next": "下一首"
+    }
   }
 }

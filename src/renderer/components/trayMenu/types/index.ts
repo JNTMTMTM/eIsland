@@ -42,6 +42,18 @@ export interface TrayUserSummary {
   proExpireDate: string | null;
 }
 
+/** 托盘音乐卡片展示的当前播放信息 */
+export interface TrayNowPlaying {
+  /** 歌曲标题 */
+  title: string;
+  /** 歌手，未知时为空字符串 */
+  artist: string;
+  /** 是否正在播放 */
+  isPlaying: boolean;
+  /** 封面 data URI，未获取到时为 null */
+  thumbnail: string | null;
+}
+
 /** 托盘菜单项配置 */
 export type TrayMenuItemConfig =
   | {

@@ -20,7 +20,7 @@
 
 /**
  * @file trayMenu.css
- * @description 自绘托盘菜单样式：用户信息卡片（Pro 金色卡片沿用用户中心设计）与菜单项
+ * @description 自绘托盘菜单样式：用户信息卡片（Pro 金色卡片沿用用户中心设计）、音乐控制卡片与菜单项
  * @author 鸡哥
  */
 
@@ -158,6 +158,144 @@
   color: rgb(var(--color-text-rgb), .5);
   text-overflow: ellipsis;
   white-space: nowrap;
+
+}
+
+/** ===== 音乐控制卡片（固定高度，播放信息变化时菜单高度不变） ===== */
+.tray-music-card {
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 58px;
+  padding: 8px 10px;
+  background: rgb(var(--color-text-rgb), .05);
+  border: 1px solid rgb(var(--color-text-rgb), .08);
+  border-radius: 10px;
+
+}
+
+.tray-music-card-cover {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 8px;
+
+}
+
+.tray-music-card-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+}
+
+.tray-music-card-cover .tray-music-card-cover-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: .45;
+
+}
+
+.tray-music-card-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+}
+
+.tray-music-card-title,
+.tray-music-card-artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.tray-music-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .92);
+
+}
+
+.tray-music-card-artist {
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .5);
+
+}
+
+.tray-music-card-idle .tray-music-card-title {
+  font-weight: 500;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.tray-music-card-controls {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  align-items: center;
+
+}
+
+.tray-music-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  transition: background-color .12s ease;
+
+}
+
+.tray-music-card-btn-play {
+  width: 30px;
+  height: 30px;
+  background: rgb(var(--color-text-rgb), .08);
+
+}
+
+.tray-music-card-btn:hover:not(:disabled),
+.tray-music-card-btn:focus-visible {
+  background: rgb(var(--color-text-rgb), .14);
+  outline: none;
+
+}
+
+.tray-music-card-btn:disabled {
+  cursor: default;
+  opacity: .35;
+
+}
+
+.tray-music-card-btn-icon {
+  width: 14px;
+  height: 14px;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: .85;
+
+}
+
+.tray-music-card-btn-icon-sm {
+  width: 11px;
+  height: 11px;
 
 }
 

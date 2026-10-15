@@ -20,7 +20,7 @@
 
 /**
  * @file TrayMenu.tsx
- * @description 自绘托盘菜单：顶部用户信息卡片 + 菜单项列表，渲染完成后上报高度供主进程定位
+ * @description 自绘托盘菜单：顶部用户信息卡片 + 音乐控制卡片 + 菜单项列表，渲染完成后上报高度供主进程定位
  * @author 鸡哥
  */
 
@@ -29,7 +29,9 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TRAY_MENU_ITEMS } from '../config/trayMenuItems';
 import { useTrayMenuState } from '../hooks/useTrayMenuState';
+import { useTrayNowPlaying } from '../hooks/useTrayNowPlaying';
 import { TrayMenuItem } from './TrayMenuItem';
+import { TrayMusicCard } from './TrayMusicCard';
 import { TrayUserCard } from './TrayUserCard';
 import '../styles/trayMenu.css';
 
@@ -40,6 +42,7 @@ import '../styles/trayMenu.css';
 export function TrayMenu(): ReactElement | null {
   const { t } = useTranslation();
   const { menuState, user, openCount } = useTrayMenuState();
+  const { nowPlaying, togglePlayback, playPrevious, playNext } = useTrayNowPlaying(openCount);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // 每次打开都在绘制前测量；等两帧确保新内容已绘制，主进程再把透明窗口显现，避免闪出旧画面。
@@ -71,6 +74,7 @@ export function TrayMenu(): ReactElement | null {
   return (
     <div ref={rootRef} className="tray-menu" role="menu" aria-label={t('tray.menuLabel')}>
       <TrayUserCard user={user} />
+      <TrayMusicCard nowPlaying={nowPlaying} onTogglePlayback={togglePlayback} onPrevious={playPrevious} onNext={playNext} />
       <div className="tray-menu-list">
         {visibleItems.map((item) => {
           if (item.kind === 'separator') {

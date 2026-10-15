@@ -4813,6 +4813,16 @@
     "menuLabel": "トレイメニュー",
     "notLoggedIn": "未ログイン",
     "loginHint": "ログインするとアカウント情報を同期できます",
-    "proExpireAt": "Pro 有効期限 {{date}}"
+    "proExpireAt": "Pro 有効期限 {{date}}",
+    "music": {
+      "label": "音楽コントロール",
+      "idle": "再生していません",
+      "idleHint": "音楽を再生するとここで操作できます",
+      "unknownArtist": "不明なアーティスト",
+      "play": "再生",
+      "pause": "一時停止",
+      "previous": "前の曲",
+      "next": "次の曲"
+    }
   }
 }

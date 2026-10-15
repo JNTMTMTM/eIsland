@@ -4813,6 +4813,16 @@
     "menuLabel": "Tray menu",
     "notLoggedIn": "Not signed in",
     "loginHint": "Sign in to sync your account",
-    "proExpireAt": "Pro until {{date}}"
+    "proExpireAt": "Pro until {{date}}",
+    "music": {
+      "label": "Music controls",
+      "idle": "Nothing playing",
+      "idleHint": "Play music to control it here",
+      "unknownArtist": "Unknown artist",
+      "play": "Play",
+      "pause": "Pause",
+      "previous": "Previous",
+      "next": "Next"
+    }
   }
 }
