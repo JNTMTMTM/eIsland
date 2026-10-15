@@ -3182,6 +3182,10 @@
       },
       "position": {
         "title": "Dynamic Island Offset",
+        "scaleTitle": "Island Size",
+        "scaleHint": "Scale all Dynamic Island views proportionally (50%–150%). Changes apply immediately and save automatically.",
+        "scaleReset": "Reset to 100%",
+        "scaleSaveFailed": "Could not save the scale. Please try again.",
         "hint": "Saved automatically after adjustment.",
         "lockTitle": "Lock Dynamic Island Position",
         "lockHint": "When enabled, mouse dragging is disabled only in pill mode. Position calibration remains available.",

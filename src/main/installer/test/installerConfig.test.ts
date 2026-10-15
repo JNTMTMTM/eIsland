@@ -38,21 +38,40 @@ describe('NSIS overwrite-install process detection', () => {
     expect(builderConfig.nsis?.include).toBe('installer.nsh');
   });
 
-  it('matches the installed executable by exact path in PowerShell', () => {
-    expect(installerScript).toContain('$_.ExecutablePath -ieq [System.IO.Path]::GetFullPath');
-    expect(installerScript).not.toContain('$_.Path.StartsWith');
+  it('queries native executable paths without a shell or WMIC dependency', () => {
+    expect(installerScript).toContain('kernel32::QueryFullProcessImageNameW');
+    expect(installerScript).toContain('GetFullPathName $8 "$INSTDIR\\${PRODUCT_FILENAME}.exe"');
+    expect(installerScript).not.toMatch(/nsExec::|Get-CimInstance|wmic|IS_POWERSHELL_AVAILABLE/);
   });
 
-  it('uses path-aware process detection in the wmic fallback', () => {
-    expect(installerScript).toContain("wmic process where \"ExecutablePath='");
-    expect(installerScript).not.toContain('tasklist /FI "IMAGENAME eq');
-    expect(installerScript).toContain('taskkill /T /F /PID');
-    expect(installerScript).not.toContain('taskkill /T /F /IM "${APP_EXECUTABLE_FILENAME}"');
+  it.each([
+    { name: 'LF', newline: '\n' },
+    { name: 'CRLF', newline: '\r\n' },
+  ])('queries and terminates through the same process handle with $name line endings', ({ newline }) => {
+    const script = installerScript.replace(/\r?\n/g, newline);
+    expect(script).toContain('QueryFullProcessImageNameW(p r6,');
+    expect(script).toMatch(/Push \$6\r?\n[ \t]+Call \$\{EISLAND_TREE_FUNCTION\}/);
+    expect(script).toContain('TerminateProcess(p r0,');
+    expect(script).toContain('WaitForSingleObject(p r0, i 5000)');
+    expect(script).toContain('CloseHandle(p r6)');
   });
 
-  it('does not define a second current-process name check', () => {
-    expect(installerScript).toContain('${GetProcessInfo} 0 $pid $1 $2 $3 $4');
-    // eslint-disable-next-line eqeqeq -- `!=` is NSIS script content, not a JS comparison
-    expect(installerScript).toContain('$3 != "${APP_EXECUTABLE_FILENAME}"');
+  it('compares Windows paths ordinally and rechecks at both mutation boundaries', () => {
+    expect(installerScript).toContain('CompareStringOrdinal(w r5, i -1, w r8, i -1, i 1)');
+    expect(installerScript).toContain('Call un.eIslandFinalProcessCheck');
+    const extraction = readFileSync(resolve('resources/nsis/installer.nsh'), 'utf8');
+    expect(extraction).toMatch(/Call eIslandFinalProcessCheck\s+Call eIslandInstallApplicationFiles/);
+  });
+
+  it('builds native detection into both installers and uninstallers', () => {
+    expect(installerScript).toContain('!ifdef BUILD_UNINSTALLER');
+    expect(installerScript).toContain('!define EISLAND_PROCESS_FUNCTION un.eIslandProcessAction');
+    expect(installerScript).toContain('!define EISLAND_PROCESS_FUNCTION eIslandProcessAction');
+  });
+
+  it('does not let query failure continue installation or report success on cancellation', () => {
+    expect(installerScript).toContain('${elseif} $R0 == 2');
+    expect(installerScript).toContain('Goto eIslandCheckFailed');
+    expect(installerScript).toMatch(/SetErrorLevel 2\s+Quit/g);
   });
 });

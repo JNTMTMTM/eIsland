@@ -211,6 +211,20 @@ describe('main entry hotkey callbacks and overlay guards', () => {
 });
 
 describe('main entry remaining runtime adapters', () => {
+  it.each([50, 75, 125, 150].flatMap((scale) => ['notch', 'pill'].map((mode) => ({ scale, mode }))))('suppresses voice overlay for $mode at $scale% including reserved backing width', async ({ scale, mode }) => {
+    await load();
+    leaf('readIslandShapeModeConfig').mockReturnValue(mode);
+    mocks.main!.webContents.getZoomFactor.mockReturnValue(scale / 100);
+    const hotkeys = options('createHotkeyService');
+    [mode === 'pill' ? 164 : 150, mode === 'pill' ? 416 : 400].forEach((height) => {
+      mocks.main!.getBounds = () => ({ x: 0, y: 0, width: 1290, height: Math.round(height * scale / 100) });
+      call(hotkeys, 'onAgentVoiceInputHotkeyHold');
+      expect(mocks.windows).toHaveLength(0);
+    });
+    mocks.main!.getBounds = () => ({ x: 0, y: 0, width: 1290, height: Math.round((mode === 'pill' ? 52 : 42) * scale / 100) });
+    call(hotkeys, 'onAgentVoiceInputHotkeyHold');
+    expect(mocks.windows).toHaveLength(1);
+  });
   it('exposes every window getter and music runtime getter through the supplied adapters', async () => { await load(); ['createCaptureWindowService','createMainWindowService','createAutoHideWatcher','createExternalAgentWatcher','createClaudeCodeStatusService','createCodexStatusService','createSmtcService','createHotkeyService','registerWindowIpcHandlers','registerMediaIpcHandlers'].forEach((name) => expect(call(options(name), 'getMainWindow')).toBe(mocks.main)); const music = options('registerMusicIpcHandlers'); expect(call(music, 'getWhitelist')).toEqual(['custom.exe']); expect(call(music, 'getSmtcUnsubscribeMs')).toBe(1234); const updater = options('initUpdaterService'); expect(call(updater, 'isPackaged')).toBe(true); const clipboard = options('registerClipboardIpcHandlers'); call(clipboard, 'startWatcher'); const [, [watcher]] = leaf('startClipboardUrlWatcher').mock.calls; expect(call(watcher as OptionBag, 'getWindow')).toBe(mocks.main); });
   it('collects reserved hotkeys using persisted fallback and prefers active bindings when available', async () => { await load(); const optionsBag = options('registerScreenshotHotkeyIpcHandlers'); const pairs = [['Hide','Hotkey'],['Quit','QuitHotkey'],['NextSong','NextSongHotkey'],['PlayPauseSong','PlayPauseSongHotkey'],['ResetPosition','ResetPositionHotkey'],['ToggleTray','ToggleTrayHotkey'],['ShowSettingsWindow','ShowSettingsWindowHotkey'],['OpenClipboardHistory','OpenClipboardHistoryHotkey'],['ToggleUiLock','ToggleUiLockHotkey'],['AgentVoiceInput','AgentVoiceInputHotkey'],['ToggleShapeMode','ToggleShapeModeHotkey']]; expect(call(optionsBag, 'getReservedHotkeys')).toEqual(pairs.map((pair) => `configured:read${pair[1]}Config`)); pairs.forEach(([current]) => leaf(`hotkeyService.getCurrent${current}Hotkey`).mockReturnValue(`live:${current}`)); expect(call(optionsBag, 'getReservedHotkeys')).toEqual(pairs.map(([current]) => `live:${current}`)); });
   it('creates the store directory before registering IPC when it is absent', async () => { leaf('existsSync').mockReturnValue(false); await load(); expect(leaf('mkdirSync')).toHaveBeenCalledWith(join('C:/isolated-user-data', 'eIsland_store'), { recursive: true }); expect(leaf('mkdirSync').mock.invocationCallOrder[0]).toBeLessThan(leaf('registerStoreIpcHandlers').mock.invocationCallOrder[0]); });

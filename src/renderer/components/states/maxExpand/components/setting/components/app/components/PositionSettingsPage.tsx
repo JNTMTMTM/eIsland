@@ -27,6 +27,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppSettingsSectionProps } from './types';
+import IslandScaleSettingsCard from './islandScaleSettingsCard';
 
 type PositionSettingsPageProps = Pick<
   AppSettingsSectionProps,
@@ -74,6 +75,7 @@ export function PositionSettingsPage({
   return (
     <div className="max-expand-settings-section">
       <div className="settings-cards">
+        <IslandScaleSettingsCard />
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.position.displayTitle', { defaultValue: '显示器选择' })}</div>

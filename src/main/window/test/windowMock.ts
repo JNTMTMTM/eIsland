@@ -37,6 +37,7 @@ export default function mockWindow() {
     state,
     webContents: Object.assign(new EventEmitter(), {
       send: vi.fn<(channel: string, data?: unknown) => void>(),
+      getZoomFactor: vi.fn(() => 1),
       setWindowOpenHandler: vi.fn<(handler: (details: { url: string }) => { action: string }) => void>(),
     }),
     isDestroyed: () => state.destroyed,

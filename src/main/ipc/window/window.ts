@@ -27,6 +27,8 @@
 
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import { readIslandScaleConfig, writeIslandScaleConfig } from '../../config/islandScaleConfig';
+import { normalizeIslandScale } from '../../../shared/islandScale';
 import {
   readIslandShapeModeConfig,
   PILL_ISLAND_HEIGHT,
@@ -102,6 +104,8 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   let pendingResizeTimer: ReturnType<typeof setTimeout> | null = null;
   let logicalWindowSize: { width: number; height: number } | null = null;
+  let islandScale = readIslandScaleConfig();
+  let lastTargetBounds: ((win: BrowserWindow) => Electron.Rectangle) | null = null;
 
   /**
    * 首次 resize 前也按 idle 宽度返回逻辑边界，排除预留的透明区域。
@@ -110,12 +114,12 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
    */
   const getVisibleBounds = (win: BrowserWindow): Electron.Rectangle => {
     const bounds = win.getBounds();
-    const width = logicalWindowSize?.width ?? options.sizes.islandWidth;
+    const width = logicalWindowSize?.width ?? Math.round(options.sizes.islandWidth * islandScale / 100);
     return {
       x: Math.round(bounds.x + (bounds.width - width) / 2),
       y: bounds.y,
       width,
-      height: logicalWindowSize?.height ?? bounds.height,
+      height: logicalWindowSize?.height ?? Math.round(getHeight(options.sizes.islandHeight, PILL_ISLAND_HEIGHT) * islandScale / 100),
     };
   };
 
@@ -140,7 +144,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ): void => {
     const currentBounds = win.getBounds();
     const backingWidth = Math.max(currentBounds.width, targetBounds.width, visibleWidth);
-    const backingX = Math.round(targetBounds.x - (backingWidth - targetBounds.width) / 2);
+    const backingX = targetBounds.x - Math.round((backingWidth - targetBounds.width) / 2);
     logicalWindowSize = { width: visibleWidth, height: visibleHeight };
 
     win.setBounds({
@@ -159,6 +163,17 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   };
 
   const resizeWindow = (getTargetBounds: (win: BrowserWindow) => Electron.Rectangle, delayMs = 0): void => {
+    lastTargetBounds = getTargetBounds;
+    const getScaledBounds = (win: BrowserWindow): Electron.Rectangle => {
+      const target = getTargetBounds(win);
+      const width = Math.round(target.width * islandScale / 100);
+      return {
+        ...target,
+        x: Math.round(target.x + (target.width - width) / 2),
+        width,
+        height: Math.round(target.height * islandScale / 100),
+      };
+    };
     const safeDelayMs = Number.isFinite(delayMs) ? Math.max(0, delayMs) : 0;
     if (pendingResizeTimer) {
       clearTimeout(pendingResizeTimer);
@@ -167,7 +182,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
     if (safeDelayMs > 0) {
       withWindow((win) => {
-        const targetBounds = getTargetBounds(win);
+        const targetBounds = getScaledBounds(win);
         const currentBounds = win.getBounds();
         const currentSize = getVisibleBounds(win);
         const currentCenterX = currentBounds.x + currentBounds.width / 2;
@@ -185,7 +200,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
       pendingResizeTimer = setTimeout(() => {
         pendingResizeTimer = null;
         withWindow((win) => {
-          const targetBounds = getTargetBounds(win);
+          const targetBounds = getScaledBounds(win);
           applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
         });
       }, safeDelayMs);
@@ -193,7 +208,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     }
 
     withWindow((win) => {
-      const targetBounds = getTargetBounds(win);
+      const targetBounds = getScaledBounds(win);
       applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
     });
   };
@@ -230,6 +245,26 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   const getHeight = (notchHeight: number, pillHeight: number): number => {
     return readIslandShapeModeConfig() === 'pill' ? pillHeight : notchHeight;
   };
+
+  ipcMain.handle('island:scale:get', () => islandScale);
+
+  ipcMain.handle('island:scale:set', (event, value: unknown) => {
+    const nextScale = normalizeIslandScale(value);
+    if (!writeIslandScaleConfig(nextScale)) return false;
+    islandScale = nextScale;
+    withWindow((win) => {
+      win.webContents.setZoomFactor(islandScale / 100);
+    });
+    // 重新计算当前目标状态，也取消尚未完成的旧比例延迟收缩。
+    resizeWindow(lastTargetBounds ?? ((win) => ({
+      x: Math.round(getEffectiveCenterX(win) - options.sizes.islandWidth / 2),
+      y: getEffectiveY(win),
+      width: options.sizes.islandWidth,
+      height: getHeight(options.sizes.islandHeight, PILL_ISLAND_HEIGHT),
+    })));
+    broadcastSettingChange(event.sender.id, 'island:scale', islandScale);
+    return true;
+  });
 
   ipcMain.on('window:enable-mouse-passthrough', () => {
     withWindow((win) => {

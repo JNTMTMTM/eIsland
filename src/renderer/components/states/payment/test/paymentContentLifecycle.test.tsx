@@ -126,6 +126,8 @@ describe('支付页真实渠道订单与状态组合', () => {
     expect(useIslandStore.getState()).toMatchObject({ state: 'maxExpand', maxExpandTab: 'settings' });
   });
   it('选中渠道后计算真实订阅周期，邮箱无效与会话后来失效均不创建订单', async () => {
+    // 订阅周期按本地日历计算，UTC 零点在部分时区属于前一天。
+    vi.setSystemTime(new Date(2026, 0, 1));
     await commit(); select(); expect(textContent(form())).toContain('2026-01-01 - 2026-02-01');
     await create('invalid'); expect(feedback()).toBe('settings.user.payment.emailInvalid');
     storage.delete('user-account-token'); await create(); expect(feedback()).toBe('settings.user.payment.loginRequired');

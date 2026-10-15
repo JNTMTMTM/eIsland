@@ -95,6 +95,7 @@ import {
   LYRICS_WIDTH, LYRICS_HEIGHT, LYRICS_TRANSLATION_HEIGHT,
   EXPANDED_FULL_WIDTH, EXPANDED_FULL_HEIGHT,
   SETTINGS_WIDTH, SETTINGS_HEIGHT,
+  PILL_EXPANDED_FULL_HEIGHT, PILL_SETTINGS_HEIGHT,
   SMTC_UNSUBSCRIBE_NEVER, DEFAULT_SMTC_UNSUBSCRIBE_MS,
   SMTC_RUNTIME_CLEANUP_INTERVAL_MS,
   DEFAULT_WHITELIST, DEFAULT_HIDE_PROCESS_LIST,
@@ -166,8 +167,13 @@ function detectAnyFullscreenWindow(): boolean {
 function isIslandInExpandedOrMaxExpandState(): boolean {
   if (!mainWindow || mainWindow.isDestroyed()) return false;
   const bounds = mainWindow.getBounds();
-  const inExpanded = bounds.width === EXPANDED_FULL_WIDTH && bounds.height === EXPANDED_FULL_HEIGHT;
-  const inMaxExpand = bounds.width === SETTINGS_WIDTH && bounds.height === SETTINGS_HEIGHT;
+  const scale = mainWindow.webContents.getZoomFactor();
+  const pill = readIslandShapeModeConfig() === 'pill';
+  // 原生窗口保留透明宽度；缩放后的可见宽度可以小于 backing window。
+  const inExpanded = bounds.width >= Math.round(EXPANDED_FULL_WIDTH * scale)
+    && bounds.height === Math.round((pill ? PILL_EXPANDED_FULL_HEIGHT : EXPANDED_FULL_HEIGHT) * scale);
+  const inMaxExpand = bounds.width >= Math.round(SETTINGS_WIDTH * scale)
+    && bounds.height === Math.round((pill ? PILL_SETTINGS_HEIGHT : SETTINGS_HEIGHT) * scale);
   return inExpanded || inMaxExpand;
 }
 

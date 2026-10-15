@@ -436,9 +436,9 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
       if (store.shapeMode !== nextMode) store.setShapeMode(nextMode);
       applyWindowForState(currentState, transitionDuration);
 
-      void window.api.getWindowBounds().then((bounds) => {
+      void Promise.all([window.api.getWindowBounds(), window.api.islandScaleGet?.() ?? 100]).then(([bounds, scale]) => {
         if (currentVersion !== shapeChangeVersion || !bounds) return;
-        const targetCenterX = targetX + ISLAND_WIDTH / 2;
+        const targetCenterX = targetX + Math.round(ISLAND_WIDTH * scale / 100) / 2;
         const currentCenterX = bounds.x + bounds.width / 2;
         const dx = Math.round(targetCenterX - currentCenterX);
         const dy = Math.round(targetY - bounds.y);

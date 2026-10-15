@@ -29,6 +29,7 @@ import { BrowserWindow, screen, shell } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 import { readIslandShapeModeConfig, PILL_ISLAND_HEIGHT } from '../config/storeConfig';
+import { readIslandScaleConfig } from '../config/islandScaleConfig';
 
 interface WindowSizeOptions {
   islandWidth: number;
@@ -81,8 +82,10 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
   function getInitialIslandBounds(): Electron.Rectangle {
     const targetDisplay = getTargetDisplay();
-    const { x: workX, y: workY, width: workWidth, height: workHeight } = targetDisplay.workArea;
-    const centeredX = Math.round(workX + (workWidth - options.sizes.islandWidth) / 2);
+    const scale = readIslandScaleConfig() / 100;
+    const width = Math.round(options.sizes.islandWidth * scale);
+    const { x: workX, y: workY, width: workWidth } = targetDisplay.workArea;
+    const centeredX = Math.round(workX + (workWidth - width) / 2);
     const offset = options.getIslandPositionOffset();
     const x = centeredX + offset.x;
     const shapeMode = readIslandShapeModeConfig();
@@ -94,8 +97,8 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     return {
       x,
       y,
-      width: options.sizes.islandWidth,
-      height,
+      width,
+      height: Math.round(height * scale),
     };
   }
 
@@ -104,7 +107,7 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     options.setIslandPositionOffset(normalized);
 
     const nextBaseBounds = getInitialIslandBounds();
-    initialCenterX = nextBaseBounds.x + options.sizes.islandWidth / 2;
+    initialCenterX = nextBaseBounds.x + nextBaseBounds.width / 2;
 
     const mainWindow = options.getMainWindow();
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -127,8 +130,9 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
 
   function createWindow(): void {
     const initialBounds = getInitialIslandBounds();
-    initialCenterX = initialBounds.x + options.sizes.islandWidth / 2;
-    const backingWidth = Math.max(options.sizes.backingWidth, initialBounds.width);
+    initialCenterX = initialBounds.x + initialBounds.width / 2;
+    const scale = readIslandScaleConfig() / 100;
+    const backingWidth = Math.max(Math.round(options.sizes.backingWidth * scale), initialBounds.width);
     const backingBounds = {
       ...initialBounds,
       x: Math.round(initialCenterX - backingWidth / 2),
@@ -152,6 +156,8 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
         ? join(__dirname, '../../resources/icon/eisland_256x256.ico')
         : join(process.resourcesPath, 'icon/eisland_256x256.ico'),
       webPreferences: {
+        zoomFactor: scale,
+        zoomMode: 'isolated',
         preload: join(__dirname, '../preload/index.js'),
         sandbox: false,
         contextIsolation: true,

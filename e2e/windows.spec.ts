@@ -65,7 +65,8 @@ const test = desktopTest.extend<{ cursorGuard: void }>({
 
 test.skip(process.platform !== 'win32', 'Requires the Windows graphical desktop and Win32 APIs.');
 
-test('clips the native Windows region to logical bounds when expanding and collapsing', async ({ desktop }) => {
+[100, 75, 150].forEach((scale) => test(`clips the native Windows region at ${scale}% when expanding and collapsing`, async ({ desktop }) => {
+  await desktop.main.evaluate((value) => window.api.islandScaleSet(value), scale);
   const mainWindow = await desktop.app.browserWindow(desktop.main);
   const handle = await mainWindow.evaluate((win: BrowserWindow) => win.getNativeWindowHandle().readBigUInt64LE().toString());
   const initial = await desktop.main.evaluate(() => window.api.getWindowBounds());
@@ -84,15 +85,16 @@ test('clips the native Windows region to logical bounds when expanding and colla
 
   await verifyRegion();
   await desktop.main.evaluate(() => window.api.expandWindowSettings());
-  await expect.poll(() => desktop.main.evaluate(() => window.api.getWindowBounds())).toMatchObject({ width: 860, height: 400 });
+  await expect.poll(() => desktop.main.evaluate(() => window.api.getWindowBounds())).toMatchObject({ width: Math.round(860 * scale / 100), height: Math.round(400 * scale / 100) });
   await verifyRegion();
   await desktop.main.evaluate(() => window.api.collapseWindow());
   await expect.poll(() => desktop.main.evaluate(() => window.api.getWindowBounds())).toEqual(initial);
   await verifyRegion();
   expect(desktop.rendererErrors).toEqual([]);
-});
+}));
 
 test('uses the real desktop cursor to enter and leave the visible island', async ({ desktop }) => {
+  await desktop.main.evaluate(() => window.api.islandScaleSet(75));
   const shell = desktop.main.locator('.island-shell');
   const initial = await desktop.main.evaluate(() => window.api.getWindowBounds());
   const center = { x: Math.round(initial.x + initial.width / 2), y: Math.round(initial.y + initial.height / 2) };

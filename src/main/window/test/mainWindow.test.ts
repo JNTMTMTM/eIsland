@@ -32,6 +32,7 @@ const mocks = vi.hoisted(() => ({
   on: vi.fn(),
   handle: vi.fn(),
   shapeMode: 'notch',
+  scale: 100,
 }));
 
 vi.mock('electron', () => ({
@@ -46,6 +47,7 @@ vi.mock('electron', () => ({
 }));
 vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }));
 vi.mock('../../utils/broadcast', () => ({ broadcastSettingChange: vi.fn() }));
+vi.mock('../../config/islandScaleConfig', () => ({ readIslandScaleConfig: () => mocks.scale }));
 vi.mock('../../config/storeConfig', () => ({
   readIslandShapeModeConfig: () => mocks.shapeMode,
   PILL_ISLAND_HEIGHT: 52,
@@ -127,6 +129,7 @@ describe('main window first expansion', () => {
     vi.stubEnv('ELECTRON_RENDERER_URL', undefined);
     vi.clearAllMocks();
     mocks.shapeMode = 'notch';
+    mocks.scale = 100;
     displaySelection = 'primary';
     offset = { x: 0, y: 0 };
     mainWindow = null;
@@ -148,6 +151,18 @@ describe('main window first expansion', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllEnvs();
+  });
+
+  it.each(['notch', 'pill'])('restores the saved scale before the first %s frame and scales later expansions', async (mode) => {
+    mocks.shapeMode = mode; mocks.scale = 50;
+    await startWindow();
+    expect(mocks.createWindow).toHaveBeenCalledWith(expect.objectContaining({
+      width: 430, height: mode === 'pill' ? 26 : 21,
+      webPreferences: expect.objectContaining({ zoomFactor: 0.5, zoomMode: 'isolated' }),
+    }));
+    expect(ipcHandlers.get('window:get-bounds')?.()).toEqual({ x: 895, y: mode === 'pill' ? 46 : 0, width: 130, height: mode === 'pill' ? 26 : 21 });
+    ipcEvents.get('window:expand-settings')?.();
+    expect(ipcHandlers.get('window:get-bounds')?.()).toMatchObject({ width: 430, height: mode === 'pill' ? 208 : 203 });
   });
 
   it.each(['notch', 'pill'])('keeps the first idle frame centered during %s hover expansion', async (mode) => {

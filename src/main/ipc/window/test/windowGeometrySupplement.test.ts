@@ -30,6 +30,7 @@ type HandlerFixture = (...args: unknown[]) => unknown;
 const io = vi.hoisted(() => ({
   events: new Map<string, HandlerFixture>(), handles: new Map<string, HandlerFixture>(),
   mode: vi.fn<() => 'pill' | 'notch'>(), broadcast: vi.fn(),
+  scale: 100, writeScale: vi.fn<() => boolean>(),
   bounds: { x: 100, y: 200, width: 1000, height: 600 },
   selection: 'primary', offset: { x: 1, y: 2 }, main: vi.fn<() => BrowserWindow | null>(),
 }));
@@ -42,6 +43,9 @@ vi.mock('electron', () => ({
   },
 }));
 vi.mock('../../../utils/broadcast', () => ({ broadcastSettingChange: io.broadcast }));
+vi.mock('../../../config/islandScaleConfig', () => ({
+  readIslandScaleConfig: () => io.scale, writeIslandScaleConfig: io.writeScale,
+}));
 vi.mock('../../../config/storeConfig', () => ({
   readIslandShapeModeConfig: io.mode, PILL_ISLAND_HEIGHT: 52, PILL_EXPANDED_HEIGHT: 72,
   PILL_NOTIFICATION_HEIGHT: 100, PILL_LYRICS_HEIGHT: 52, PILL_LYRICS_TRANSLATION_HEIGHT: 72,
@@ -50,7 +54,7 @@ vi.mock('../../../config/storeConfig', () => ({
 const win = {
   isDestroyed: vi.fn<() => boolean>(), getBounds: vi.fn<() => Rectangle>(),
   setBounds: vi.fn<(bounds: Rectangle) => void>(), setShape: vi.fn(), hide: vi.fn(),
-  setIgnoreMouseEvents: vi.fn(), webContents: { send: vi.fn(), invalidate: vi.fn() },
+  setIgnoreMouseEvents: vi.fn(), webContents: { send: vi.fn(), invalidate: vi.fn(), setZoomFactor: vi.fn() },
 };
 const hidden = vi.fn(); const writePosition = vi.fn<() => boolean>(); const writeDisplay = vi.fn<() => boolean>();
 const setSelection = vi.fn(); const applyOffset = vi.fn();
@@ -72,6 +76,7 @@ function handle(channel: string, ...args: unknown[]): unknown { return io.handle
 beforeEach(async () => {
   vi.resetModules(); vi.resetAllMocks(); io.events.clear(); io.handles.clear();
   io.bounds = { x: 100, y: 200, width: 1000, height: 600 }; io.selection = 'primary'; io.offset = { x: 1, y: 2 };
+  io.scale = 100; io.writeScale.mockReturnValue(true);
   io.mode.mockReturnValue('notch'); io.main.mockReturnValue(win as unknown as BrowserWindow);
   win.isDestroyed.mockReturnValue(false); win.getBounds.mockImplementation(() => ({ ...io.bounds }));
   win.setBounds.mockImplementation((bounds) => { io.bounds = { ...bounds }; });
@@ -96,6 +101,33 @@ const states = [
   ['expand-settings', 1000, 610, 416], ['collapse', 300, 100, 52],
 ] as const;
 describe('各状态窗口形态与逻辑边界', () => {
+  it.each(states)('%s 缩放后同时调整渲染、裁剪和命中边界并保留中心', (channel, width, notchHeight) => {
+    event(channel);
+    expect(io.handles.get('island:scale:set')?.({ sender: { id: 7 } }, 75)).toBe(true);
+    expect(win.webContents.setZoomFactor).toHaveBeenLastCalledWith(0.75);
+    expect(handle('get-bounds')).toEqual({ width: Math.round(width * 0.75), height: Math.round(notchHeight * 0.75), x: Math.round(500 - Math.round(width * 0.75) / 2), y: 11 });
+    expect(io.handles.get('island:scale:get')?.()).toBe(75);
+    expect(io.broadcast).toHaveBeenLastCalledWith(7, 'island:scale', 75);
+    event(channel);
+    expect(handle('get-bounds')).toMatchObject({ width: Math.round(width * 0.75) });
+  });
+  it('pill 缩放保持拖动后的中心与纵坐标，并取消旧比例的延迟收缩', async () => {
+    vi.useFakeTimers(); io.mode.mockReturnValue('pill');
+    event('expand-settings'); event('collapse', 250);
+    io.handles.get('island:scale:set')?.({ sender: { id: 7 } }, 50);
+    expect(handle('get-bounds')).toEqual({ x: 525, y: 200, width: 150, height: 26 });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(handle('get-bounds')).toEqual({ x: 525, y: 200, width: 150, height: 26 });
+  });
+  it('保存失败时保持原有比例与窗口，异常数字回退为默认值', () => {
+    io.writeScale.mockReturnValue(false);
+    expect(io.handles.get('island:scale:set')?.({ sender: { id: 7 } }, 50)).toBe(false);
+    expect(win.webContents.setZoomFactor).not.toHaveBeenCalled();
+    expect(io.handles.get('island:scale:get')?.()).toBe(100);
+    io.writeScale.mockReturnValue(true);
+    io.handles.get('island:scale:set')?.({ sender: { id: 7 } }, Infinity);
+    expect(io.writeScale).toHaveBeenLastCalledWith(100);
+  });
   it.each(states)('%s 在 notch 与 pill 模式使用各自高度与中心', (channel, width, notchHeight, pillHeight) => {
     event(channel);
     expect(handle('get-bounds')).toEqual({ width, x: 500 - width / 2, y: 11, height: notchHeight });
@@ -110,8 +142,8 @@ describe('各状态窗口形态与逻辑边界', () => {
     expect(io.bounds.y).toBe(selection === '2' ? -200 : 11);
   });
   it('首次查询排除透明预留区并复制位置对象', () => {
-    expect(handle('get-bounds')).toEqual({ x: 450, y: 200, width: 300, height: 600 });
-    expect(handle('get-mouse-window-state')).toEqual({ mousePosition: { x: 10, y: 20 }, bounds: { x: 450, y: 200, width: 300, height: 600 } });
+    expect(handle('get-bounds')).toEqual({ x: 450, y: 200, width: 300, height: 100 });
+    expect(handle('get-mouse-window-state')).toEqual({ mousePosition: { x: 10, y: 20 }, bounds: { x: 450, y: 200, width: 300, height: 100 } });
     expect(handle('island-display:get')).toBe('primary');
     const position = handle('island-position:get');
     expect(position).toEqual({ x: 1, y: 2 }); expect(position).not.toBe(io.offset);
