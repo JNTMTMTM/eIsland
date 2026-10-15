@@ -104,6 +104,8 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   let pendingResizeTimer: ReturnType<typeof setTimeout> | null = null;
   let logicalWindowSize: { width: number; height: number } | null = null;
+  /** 主动设置的外框尺寸。拖动时回写它，避免回读 getBounds 后的放大尺寸。 */
+  let backingWindowSize: { width: number; height: number } | null = null;
   let islandScale = readIslandScaleConfig();
   let lastTargetBounds: ((win: BrowserWindow) => Electron.Rectangle) | null = null;
 
@@ -146,6 +148,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     const backingWidth = Math.max(currentBounds.width, targetBounds.width, visibleWidth);
     const backingX = targetBounds.x - Math.round((backingWidth - targetBounds.width) / 2);
     logicalWindowSize = { width: visibleWidth, height: visibleHeight };
+    backingWindowSize = { width: backingWidth, height: visibleHeight };
 
     win.setBounds({
       x: backingX,
@@ -379,11 +382,15 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     withWindow((win) => {
       const bounds = win.getBounds();
+      // Windows 透明窗口在 setBounds 后 getBounds 可能变大。回写放大值会让居中岛体相对 setShape 裁剪区向右滑出。
+      if (!backingWindowSize) {
+        backingWindowSize = { width: bounds.width, height: bounds.height };
+      }
       win.setBounds({
         x: Math.round(bounds.x + dx),
         y: Math.round(bounds.y + dy),
-        width: bounds.width,
-        height: bounds.height,
+        width: backingWindowSize.width,
+        height: backingWindowSize.height,
       });
     });
   });

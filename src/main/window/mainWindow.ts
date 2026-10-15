@@ -147,6 +147,8 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
       show: false,
       frame: false,
       transparent: true,
+      /** Windows 默认 thick frame 会在移动时撑大无边框透明窗口的客户区。 */
+      thickFrame: false,
       backgroundColor: '#00000000',
       resizable: false,
       alwaysOnTop: true,

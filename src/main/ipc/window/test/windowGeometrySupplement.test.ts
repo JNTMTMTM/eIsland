@@ -193,6 +193,24 @@ describe('窗口状态与失败边界', () => {
     event('move-delta', NaN, 1); event('move-delta', 1, Infinity);
     expect(win.setBounds).toHaveBeenCalledOnce();
   });
+  it('移动时忽略 getBounds 被放大的宽高，尺寸变化后改用新外框', () => {
+    event('move-delta', 1, 0);
+    io.bounds.width += 8;
+    io.bounds.height += 4;
+    event('move-delta', 2, -1);
+    expect(win.setBounds).toHaveBeenLastCalledWith({ x: 103, y: 199, width: 1000, height: 600 });
+    event('expand');
+    const expanded = win.setBounds.mock.calls.at(-1)?.[0];
+    if (!expanded) throw new Error('expand did not set bounds');
+    io.bounds = { ...expanded, width: expanded.width + 8, height: expanded.height + 4 };
+    event('move-delta', 3, 4);
+    expect(win.setBounds).toHaveBeenLastCalledWith({
+      x: expanded.x + 3,
+      y: expanded.y + 4,
+      width: expanded.width,
+      height: expanded.height,
+    });
+  });
   it('配置写入失败原样返回 false，并广播已经应用的设置', () => {
     expect(handle('island-display:set', 'invalid')).toBe(false); expect(setSelection).toHaveBeenCalledWith('2');
     expect(handle('island-position:set', { x: 50 })).toBe(false); expect(applyOffset).toHaveBeenCalledWith({ x: 8, y: 9 });
