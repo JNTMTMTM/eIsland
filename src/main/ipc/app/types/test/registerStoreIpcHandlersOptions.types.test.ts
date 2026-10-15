@@ -30,6 +30,7 @@ import type { RegisterStoreIpcHandlersOptions } from "../RegisterStoreIpcHandler
 /** 固定 RegisterStoreIpcHandlersOptions 的完整公开形状，独立于源类型展开。 */
 interface ExpectedRegisterStoreIpcHandlersOptions {
   storeDir: string;
+  onWrite?: (key: string) => void;
 }
 
 describe("RegisterStoreIpcHandlersOptions.ts 完整类型契约", () => {

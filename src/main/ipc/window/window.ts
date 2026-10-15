@@ -60,7 +60,7 @@ interface WindowIpcSizeOptions {
 interface RegisterWindowIpcHandlersOptions {
   getMainWindow: () => BrowserWindow | null;
   getInitialCenterX: () => number;
-  setHiddenByAutoHideProcess: (hidden: boolean) => void;
+  setManualVisibility: (visible: boolean) => void;
   getIslandPositionOffset: () => { x: number; y: number };
   getIslandDisplaySelection: () => string;
   sanitizeIslandDisplaySelection: (selection: unknown) => string;
@@ -367,7 +367,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:hide', () => {
     withWindow((win) => {
-      options.setHiddenByAutoHideProcess(false);
+      options.setManualVisibility(false);
       win.hide();
     });
   });

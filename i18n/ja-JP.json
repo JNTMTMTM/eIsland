@@ -4801,5 +4801,14 @@
     "feedback": {
       "loginCancelled": "ログインがキャンセルされたか、タイムアウトしました"
     }
+  },
+  "tray": {
+    "showIsland": "アイランドを表示",
+    "hideIsland": "アイランドを非表示",
+    "openSettings": "設定画面を開く",
+    "alwaysOnTop": "常に最前面に表示",
+    "openLogFolder": "ログフォルダーを開く",
+    "restart": "eIsland を再起動",
+    "quit": "終了"
   }
 }

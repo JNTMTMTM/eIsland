@@ -31,6 +31,7 @@ import { is } from '@electron-toolkit/utils';
 import { readIslandShapeModeConfig, PILL_ISLAND_HEIGHT } from '../config/storeConfig';
 import { readIslandScaleConfig } from '../config/islandScaleConfig';
 import { readMainWindowBounds, setMainWindowBounds } from './mainWindowBounds';
+import { restoreIslandAlwaysOnTop } from './islandAlwaysOnTop';
 
 interface WindowSizeOptions {
   islandWidth: number;
@@ -174,7 +175,7 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     options.setMainWindow(mainWindow);
 
     mainWindow.setIgnoreMouseEvents(true, { forward: true });
-    mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    restoreIslandAlwaysOnTop(mainWindow);
     setMainWindowBounds(mainWindow, backingBounds);
     // 扩宽的透明区域在首帧前裁掉，保留 idle 的可见区域与鼠标命中范围。
     mainWindow.setShape([{
@@ -195,7 +196,7 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
       if (!mainWindow.isDestroyed()) {
         mainWindow.webContents.send('island:show');
         mainWindow.show();
-        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+        restoreIslandAlwaysOnTop(mainWindow);
       }
     });
 

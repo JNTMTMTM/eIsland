@@ -4801,5 +4801,14 @@
     "feedback": {
       "loginCancelled": "登錄已取消或超時"
     }
+  },
+  "tray": {
+    "showIsland": "顯示靈動島",
+    "hideIsland": "隱藏靈動島",
+    "openSettings": "開啟設定介面",
+    "alwaysOnTop": "視窗置頂",
+    "openLogFolder": "開啟日誌資料夾",
+    "restart": "重新啟動靈動島",
+    "quit": "結束"
   }
 }

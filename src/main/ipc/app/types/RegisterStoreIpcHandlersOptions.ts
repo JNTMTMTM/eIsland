@@ -28,4 +28,6 @@
 export interface RegisterStoreIpcHandlersOptions {
   /** 存储目录路径 */
   storeDir: string;
+  /** 写入成功后的回调，供主进程同步依赖该键的原生界面 */
+  onWrite?: (key: string) => void;
 }

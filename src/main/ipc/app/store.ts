@@ -87,6 +87,7 @@ export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOption
       writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
       // 包含发起窗口，确保各窗口按主进程提交顺序接收更新。
       broadcastSettingChange(-1, `store:${key}`, data);
+      options.onWrite?.(key);
       return 'updated';
     } catch (err) {
       console.error(`[Store] compare-and-swap '${key}' error:`, err);
@@ -101,6 +102,7 @@ export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOption
       writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
       const notifySender = key === 'alarms' || key === 'alarm-sound-enabled' || key === 'alarm-notification-enabled' || key === 'break-reminder-items';
       broadcastSettingChange(notifySender ? -1 : event.sender.id, `store:${key}`, data);
+      options.onWrite?.(key);
       return true;
     } catch (err) {
       console.error(`[Store] write '${key}' error:`, err);

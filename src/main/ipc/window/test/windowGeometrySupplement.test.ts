@@ -84,7 +84,7 @@ beforeEach(async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   target = await import('../window');
   target.registerWindowIpcHandlers({
-    getMainWindow: io.main, getInitialCenterX: () => 500, setHiddenByAutoHideProcess: hidden,
+    getMainWindow: io.main, getInitialCenterX: () => 500, setManualVisibility: hidden,
     getIslandPositionOffset: () => io.offset, getIslandDisplaySelection: () => io.selection,
     sanitizeIslandDisplaySelection: () => '2', setIslandDisplaySelection: setSelection,
     sanitizeIslandPositionOffset: () => ({ x: 8, y: 9 }), applyIslandPositionOffset: applyOffset,

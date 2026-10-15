@@ -4801,5 +4801,14 @@
     "feedback": {
       "loginCancelled": "Login cancelled or timed out"
     }
+  },
+  "tray": {
+    "showIsland": "Show Island",
+    "hideIsland": "Hide Island",
+    "openSettings": "Open Settings",
+    "alwaysOnTop": "Always on Top",
+    "openLogFolder": "Open Log Folder",
+    "restart": "Restart eIsland",
+    "quit": "Quit"
   }
 }

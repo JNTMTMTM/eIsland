@@ -313,6 +313,15 @@ export const DISABLE_FRAME_RATE_LIMIT_STORE_KEY = 'disable-frame-rate-limit';
 /** 首次启动标记存储键名 */
 export const FIRST_LAUNCH_STORE_KEY = 'first-launch';
 
+/** 独立窗口模式存储键名 */
+export const STANDALONE_WINDOW_MODE_STORE_KEY = 'standalone-window-mode';
+
+/** 旧版倒计时窗口模式存储键名，兼容升级前的独立模式配置 */
+export const LEGACY_STANDALONE_WINDOW_MODE_STORE_KEY = 'countdown-window-mode';
+
+/** 界面语言存储键名 */
+export const APP_LANGUAGE_STORE_KEY = 'i18n-language';
+
 // ===== Helper =====
 
 function getStoreDir(): string {
@@ -589,6 +598,35 @@ export function writeIslandDisplaySelectionConfig(selection: string): boolean {
 export function readIslandShapeModeConfig(): string {
   const data = readJsonFile(ISLAND_SHAPE_MODE_STORE_KEY);
   return data === 'notch' || data === 'pill' ? data : DEFAULT_ISLAND_SHAPE_MODE;
+}
+
+/**
+ * 读取是否处于独立窗口模式
+ * @description 当前键缺失或非字符串时回退旧键，托盘与快捷键共用同一判断
+ * @returns 是否为独立窗口模式
+ */
+export function readStandaloneWindowModeEnabledConfig(): boolean {
+  const readMode = (key: string): string | null => {
+    const data = readJsonFile(key);
+    return typeof data === 'string' ? data : null;
+  };
+  const mode = readMode(STANDALONE_WINDOW_MODE_STORE_KEY) ?? readMode(LEGACY_STANDALONE_WINDOW_MODE_STORE_KEY);
+  return mode === 'standalone';
+}
+
+/**
+ * 读取界面语言
+ * @description 与渲染进程规则一致：未保存时跟随系统语言，未知语言回退简体中文
+ * @returns 规范化后的语言代码
+ */
+export function readAppLanguageConfig(): 'zh-CN' | 'en-US' | 'zh-TW' | 'ja-JP' {
+  const stored = readJsonFile(APP_LANGUAGE_STORE_KEY);
+  const raw = typeof stored === 'string' && stored ? stored : app.getLocale();
+  if (raw === 'zh-TW' || raw === 'zh-Hant' || raw === 'zh-HK' || raw === 'zh-MO') return 'zh-TW';
+  if (raw === 'zh' || raw.startsWith('zh-')) return 'zh-CN';
+  if (raw === 'en' || raw.startsWith('en-')) return 'en-US';
+  if (raw === 'ja' || raw.startsWith('ja-')) return 'ja-JP';
+  return 'zh-CN';
 }
 
 /**

@@ -77,6 +77,8 @@ describe('main window first expansion', () => {
     setShape: vi.fn(),
     setIgnoreMouseEvents: vi.fn(),
     setAlwaysOnTop: vi.fn(),
+    isVisible: () => false,
+    moveTop: vi.fn(),
     show: vi.fn(),
     on: (event: string, callback: () => void | Promise<void>) => { events.set(event, callback); },
     loadFile: vi.fn(),
@@ -108,7 +110,7 @@ describe('main window first expansion', () => {
     registerWindowIpcHandlers({
       getMainWindow: () => mainWindow,
       getInitialCenterX: service.getInitialCenterX,
-      setHiddenByAutoHideProcess: vi.fn(),
+      setManualVisibility: vi.fn(),
       getIslandPositionOffset: () => offset,
       getIslandDisplaySelection: () => displaySelection,
       sanitizeIslandDisplaySelection: () => displaySelection,

@@ -4801,5 +4801,14 @@
     "feedback": {
       "loginCancelled": "登录已取消或超时"
     }
+  },
+  "tray": {
+    "showIsland": "显示灵动岛",
+    "hideIsland": "隐藏灵动岛",
+    "openSettings": "打开配置界面",
+    "alwaysOnTop": "窗口置顶",
+    "openLogFolder": "打开日志文件夹",
+    "restart": "重启灵动岛",
+    "quit": "退出"
   }
 }

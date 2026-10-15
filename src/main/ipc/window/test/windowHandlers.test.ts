@@ -115,7 +115,7 @@ describe('window ipc handlers', () => {
     registerWindowIpcHandlers({
       getMainWindow: () => win as never,
       getInitialCenterX: () => 500,
-      setHiddenByAutoHideProcess: vi.fn(),
+      setManualVisibility: vi.fn(),
       getIslandPositionOffset: () => ({ x: 1, y: 2 }),
       getIslandDisplaySelection: () => 'primary',
       sanitizeIslandDisplaySelection: () => 'primary',
@@ -176,7 +176,7 @@ describe('window ipc handlers', () => {
     registerWindowIpcHandlers({
       getMainWindow: () => win as never,
       getInitialCenterX: () => 500,
-      setHiddenByAutoHideProcess: vi.fn(),
+      setManualVisibility: vi.fn(),
       getIslandPositionOffset: () => ({ x: 1, y: 2 }),
       getIslandDisplaySelection: () => 'primary',
       sanitizeIslandDisplaySelection: () => 'display-2',

@@ -35,6 +35,8 @@ let standaloneWindow: BrowserWindow | null = null;
  */
 function openStandaloneWindow(): void {
   if (standaloneWindow && !standaloneWindow.isDestroyed()) {
+    if (standaloneWindow.isMinimized()) standaloneWindow.restore();
+    standaloneWindow.show();
     standaloneWindow.focus();
     return;
   }

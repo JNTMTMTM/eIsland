@@ -36,7 +36,7 @@ vi.mock('@electron-toolkit/utils', () => ({ is: { get dev() { return io.dev; } }
 vi.mock('../../config/storeConfig', () => ({ readIslandShapeModeConfig: () => io.mode, PILL_ISLAND_HEIGHT: 52 }));
 const events = new Map<string, () => void | Promise<void>>();
 const win = { isDestroyed: vi.fn<() => boolean>(), getBounds: () => ({ x: 0, y: 0, width: 800, height: 42 }),
-  setBounds: vi.fn(), setShape: vi.fn(), setIgnoreMouseEvents: vi.fn(), setAlwaysOnTop: vi.fn(), setBackgroundColor: vi.fn(),
+  setBounds: vi.fn(), setShape: vi.fn(), setIgnoreMouseEvents: vi.fn(), setAlwaysOnTop: vi.fn(), setBackgroundColor: vi.fn(), isVisible: () => false, moveTop: vi.fn(),
   show: vi.fn(), loadURL: vi.fn(), loadFile: vi.fn(),
   on: (event: string, callback: () => void | Promise<void>) => events.set(event, callback),
   webContents: { send: vi.fn(), executeJavaScript: vi.fn(), setWindowOpenHandler: vi.fn() }

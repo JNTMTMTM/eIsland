@@ -53,7 +53,16 @@ function createMockWindow(overrides: Partial<{
     show: overrides.show ?? vi.fn(),
     hide: overrides.hide ?? vi.fn(),
     setAlwaysOnTop: overrides.setAlwaysOnTop ?? vi.fn(),
+    moveTop: vi.fn(),
   };
+}
+
+/** 通过一次命中规则的检查让监听器进入已自动隐藏状态。
+ * @param watcher - 待设置状态的监听器。
+ */
+async function markHiddenByRule(watcher: ReturnType<typeof createAutoHideWatcher>): Promise<void> {
+  hasAnyFocusedWindowTitleMock.mockResolvedValueOnce(true);
+  await watcher.checkNow();
 }
 
 describe('createAutoHideWatcher', () => {
@@ -136,7 +145,7 @@ describe('createAutoHideWatcher', () => {
         defaultWindowTitleList: ['app.exe'],
       });
 
-      watcher.setHiddenByAutoHideProcess(true);
+      await markHiddenByRule(watcher);
 
       await watcher.checkNow();
 
@@ -169,7 +178,7 @@ describe('createAutoHideWatcher', () => {
         defaultWindowTitleList: ['app.exe'],
       });
 
-      watcher.setHiddenByAutoHideProcess(true);
+      await markHiddenByRule(watcher);
       watcher.setAutoHideWindowTitleList([]);
 
       await watcher.checkNow();
@@ -177,7 +186,7 @@ describe('createAutoHideWatcher', () => {
       expect(mockWindow.show).toHaveBeenCalledTimes(1);
       expect(mockWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
       expect(watcher.getHiddenByAutoHideProcess()).toBe(false);
-      expect(hasAnyFocusedWindowTitleMock).not.toHaveBeenCalled();
+      expect(hasAnyFocusedWindowTitleMock).toHaveBeenCalledOnce();
     });
 
     it('does not show window when title list becomes empty and window is already visible', async () => {
@@ -189,7 +198,7 @@ describe('createAutoHideWatcher', () => {
         defaultWindowTitleList: ['app.exe'],
       });
 
-      watcher.setHiddenByAutoHideProcess(true);
+      await markHiddenByRule(watcher);
       watcher.setAutoHideWindowTitleList([]);
 
       await watcher.checkNow();
@@ -278,6 +287,60 @@ describe('createAutoHideWatcher', () => {
       await watcher.checkNow();
 
       expect(hasAnyFocusedWindowTitleMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('manual show overrides only the current matching scene, then automatic hiding resumes', async () => {
+      const watcher = createAutoHideWatcher({ getMainWindow, defaultWindowTitleList: ['game'] });
+      watcher.setManualVisibility(true);
+      hasAnyFocusedWindowTitleMock.mockResolvedValue(true);
+      await watcher.checkNow();
+      await watcher.checkNow();
+      expect(mockWindow.hide).not.toHaveBeenCalled();
+      hasAnyFocusedWindowTitleMock.mockResolvedValue(false);
+      await watcher.checkNow();
+      hasAnyFocusedWindowTitleMock.mockResolvedValue(true);
+      await watcher.checkNow();
+      expect(mockWindow.hide).toHaveBeenCalledOnce();
+    });
+
+    it.each([true, false])('ignores a pending query after manual visibility changes to %s', async (visible) => {
+      let resolveCheck!: (value: boolean) => void;
+      mockWindow = createMockWindow({ isVisible: () => visible });
+      const watcher = createAutoHideWatcher({ getMainWindow, defaultWindowTitleList: ['game'] });
+      await markHiddenByRule(watcher);
+      vi.mocked(mockWindow.hide).mockClear();
+      hasAnyFocusedWindowTitleMock.mockImplementationOnce(() => new Promise<boolean>((resolve) => { resolveCheck = resolve; }));
+      const pending = watcher.checkNow();
+      watcher.setManualVisibility(visible);
+      resolveCheck(visible);
+      await pending;
+      expect(mockWindow.show).not.toHaveBeenCalled();
+      expect(mockWindow.hide).not.toHaveBeenCalled();
+      expect(watcher.getHiddenByAutoHideProcess()).toBe(false);
+    });
+
+    it('drops a manual hide once the main window is recreated', async () => {
+      const watcher = createAutoHideWatcher({ getMainWindow, defaultWindowTitleList: ['game'] });
+      watcher.setManualVisibility(false);
+      expect(watcher.isManuallyHidden()).toBe(true);
+      mockWindow = createMockWindow();
+      expect(watcher.isManuallyHidden()).toBe(false);
+      hasAnyFocusedWindowTitleMock.mockResolvedValue(true);
+      await watcher.checkNow();
+      expect(mockWindow.hide).toHaveBeenCalledOnce();
+    });
+
+    it('does not touch a window destroyed while a native query is pending', async () => {
+      let resolveCheck!: (value: boolean) => void;
+      let destroyed = false;
+      mockWindow = createMockWindow({ isDestroyed: () => destroyed });
+      hasAnyFocusedWindowTitleMock.mockImplementationOnce(() => new Promise<boolean>((resolve) => { resolveCheck = resolve; }));
+      const watcher = createAutoHideWatcher({ getMainWindow, defaultWindowTitleList: ['game'] });
+      const pending = watcher.checkNow();
+      destroyed = true;
+      resolveCheck(true);
+      await pending;
+      expect(mockWindow.hide).not.toHaveBeenCalled();
     });
   });
 
@@ -435,20 +498,7 @@ describe('createAutoHideWatcher', () => {
       expect(watcher.getHiddenByAutoHideProcess()).toBe(false);
     });
 
-    it('setHiddenByAutoHideProcess updates the flag', () => {
-      const watcher = createAutoHideWatcher({
-        getMainWindow,
-        defaultWindowTitleList: ['app.exe'],
-      });
-
-      watcher.setHiddenByAutoHideProcess(true);
-      expect(watcher.getHiddenByAutoHideProcess()).toBe(true);
-
-      watcher.setHiddenByAutoHideProcess(false);
-      expect(watcher.getHiddenByAutoHideProcess()).toBe(false);
-    });
-
-    it('does not share state between separate instances', () => {
+    it('does not share state between separate instances', async () => {
       const watcherA = createAutoHideWatcher({
         getMainWindow,
         defaultWindowTitleList: ['a.exe'],
@@ -459,7 +509,8 @@ describe('createAutoHideWatcher', () => {
       });
 
       watcherA.setAutoHideWindowTitleList(['changed-a.exe']);
-      watcherA.setHiddenByAutoHideProcess(true);
+      await markHiddenByRule(watcherA);
+      expect(watcherA.getHiddenByAutoHideProcess()).toBe(true);
 
       expect(watcherB.getAutoHideWindowTitleList()).toEqual(['b.exe']);
       expect(watcherB.getHiddenByAutoHideProcess()).toBe(false);
