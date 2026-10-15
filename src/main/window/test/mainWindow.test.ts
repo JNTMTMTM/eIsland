@@ -245,7 +245,9 @@ describe('main window first expansion', () => {
     const service = await startWindow();
     ipcEvents.get('window:expand-settings')?.();
     const replacement = { ...win };
-    mocks.createWindow.mockReturnValueOnce(replacement);
+    mocks.createWindow.mockImplementationOnce(function createReplacementWindow(this: typeof replacement) {
+      return Object.assign(this, replacement);
+    });
     service.createWindow();
     await events.get('ready-to-show')?.();
     ipcEvents.get('window:move-delta')?.({}, 10, 5);
