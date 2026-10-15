@@ -46,8 +46,17 @@ describe('NSIS overwrite-install process detection', () => {
 
   it('queries and terminates through the same process handle', () => {
     expect(installerScript).toContain('QueryFullProcessImageNameW(p r6,');
-    expect(installerScript).toContain('TerminateProcess(p r6,');
+    expect(installerScript).toContain('Push $6\n            Call ${EISLAND_TREE_FUNCTION}');
+    expect(installerScript).toContain('TerminateProcess(p r0,');
+    expect(installerScript).toContain('WaitForSingleObject(p r0, i 5000)');
     expect(installerScript).toContain('CloseHandle(p r6)');
+  });
+
+  it('compares Windows paths ordinally and rechecks at both mutation boundaries', () => {
+    expect(installerScript).toContain('CompareStringOrdinal(w r5, i -1, w r8, i -1, i 1)');
+    expect(installerScript).toContain('Call un.eIslandFinalProcessCheck');
+    const extraction = readFileSync(resolve('resources/nsis/installer.nsh'), 'utf8');
+    expect(extraction).toMatch(/Call eIslandFinalProcessCheck\s+Call eIslandInstallApplicationFiles/);
   });
 
   it('builds native detection into both installers and uninstallers', () => {
