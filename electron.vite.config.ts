@@ -99,7 +99,8 @@ export default defineConfig(({ mode }): UserConfig => {
             DynamicIslandStandalone: resolve(__dirname, 'src/renderer/html/DynamicIslandStandalone.html'),
             DynamicIslandAibackground: resolve(__dirname, 'src/renderer/html/DynamicIslandAibackground/index.html'),
             DynamicIslandSplash: resolve(__dirname, 'src/renderer/html/DynamicIslandSplash.html'),
-            DynamicIslandGuide: resolve(__dirname, 'src/renderer/html/DynamicIslandGuide.html')
+            DynamicIslandGuide: resolve(__dirname, 'src/renderer/html/DynamicIslandGuide.html'),
+            DynamicIslandTrayMenu: resolve(__dirname, 'src/renderer/html/DynamicIslandTrayMenu.html')
           }
         },
       },

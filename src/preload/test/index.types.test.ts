@@ -30,6 +30,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 // eslint-disable-next-line import-x/extensions -- 契约测试必须显式指向声明文件，避免把运行时入口当作声明。
 import type {} from '../index.d.ts';
 import type { ElectronAPI } from '@electron-toolkit/preload';
+import type { TrayMenuAction, TrayMenuState } from '../../shared/trayMenu';
 import type { Point, Bounds, IslandDisplayInfo, SearchLocalFilesOptions, SearchLocalFileResult, SaveTextFilePayload, SaveTextFileResult, ComputeFileHashResult, ExecuteAgentLocalToolRequest, ExecuteAgentLocalToolResult, OllamaChatRequest, ChatEvent, ChatStartResult, ChatAbortResult, CustomDirectChatRequest, NowPlayingInfo, SmtcTimestampResult, DetectSourceAppIdResult, ImageCompressionStartPayload, ImageCompressionStartResult, ImageCompressionTask, SaveImageAsResult, ResolveShortcutResult, ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult, NetFetchOptions, NetFetchResult, MailInboxResult, NavOrderPayload, SetWallpaperPayload, DownloadStartPayload, DownloadStartResult, DownloadTask, UpdaterCheckResult, UpdaterProgress, UpdaterDownloadedData, UpdaterAvailableData, UpdaterNotAvailableData, UpdaterStartupAutoCheckRequestData, ClipboardUrlsDetectedData, MusicProviderAuthStatus, MusicProviderId, MusicProviderQrCodeResult, QishuiBusinessRequestOptions, QishuiBusinessStatus, QishuiLyricsResult, QishuiSongsResult, QishuiSongUrlResult, ExternalAgentData, RunningProcessInfo, RunningWindowInfo, PerformanceHardwareSelection, PerformanceSnapshot, ClaudeCodeStatusSnapshot, ClaudeCodeHookMutationResult, CodexStatusSnapshot, CodexMonitorMutationResult, } from '../types';
 interface ExpectedApi {
   enableMousePassthrough: () => void;
@@ -289,6 +290,11 @@ interface ExpectedApi {
   updaterInstall: () => Promise<boolean>;
   updaterVersion: () => Promise<string>;
   guideReset: () => Promise<boolean>;
+  onTrayMenuOpen: (callback: (state: TrayMenuState) => void) => () => void;
+  trayMenuMounted: () => void;
+  trayMenuReady: (height: number) => void;
+  trayMenuAction: (action: TrayMenuAction) => void;
+  trayMenuClose: () => void;
   onUpdaterProgress: (callback: (progress: UpdaterProgress) => void) => () => void;
   onUpdaterDownloaded: (callback: (data: UpdaterDownloadedData) => void) => () => void;
   onUpdaterAvailable: (callback: (data: UpdaterAvailableData) => void) => () => void;

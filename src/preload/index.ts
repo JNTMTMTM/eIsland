@@ -88,6 +88,8 @@ import type {
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
 } from './types';
+import { TRAY_MENU_CHANNELS } from '../shared/trayMenu';
+import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
 
 /** 自定义 API，供渲染进程调用 */
 const api = {
@@ -1604,6 +1606,46 @@ const api = {
    */
   guideReset: (): Promise<boolean> => {
     return ipcRenderer.invoke('guide:reset');
+  },
+  /**
+   * 订阅托盘菜单打开事件（仅托盘菜单窗口使用）
+   * @param callback - 收到本次打开的菜单状态
+   * @returns 取消订阅函数
+   */
+  onTrayMenuOpen: (callback: (state: TrayMenuState) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: TrayMenuState): void => {
+      callback(state);
+    };
+    ipcRenderer.on(TRAY_MENU_CHANNELS.open, handler);
+    return () => {
+      ipcRenderer.removeListener(TRAY_MENU_CHANNELS.open, handler);
+    };
+  },
+  /**
+   * 通知主进程托盘菜单渲染层已订阅打开事件
+   */
+  trayMenuMounted: (): void => {
+    ipcRenderer.send(TRAY_MENU_CHANNELS.mounted);
+  },
+  /**
+   * 通知主进程托盘菜单已渲染完成，可按内容高度定位并显示
+   * @param height - 菜单内容高度（CSS 像素）
+   */
+  trayMenuReady: (height: number): void => {
+    ipcRenderer.send(TRAY_MENU_CHANNELS.ready, height);
+  },
+  /**
+   * 执行托盘菜单动作，主进程会先收起菜单
+   * @param action - 菜单动作
+   */
+  trayMenuAction: (action: TrayMenuAction): void => {
+    ipcRenderer.send(TRAY_MENU_CHANNELS.action, action);
+  },
+  /**
+   * 关闭托盘菜单
+   */
+  trayMenuClose: (): void => {
+    ipcRenderer.send(TRAY_MENU_CHANNELS.close);
   },
   /**
    * 监听下载进度

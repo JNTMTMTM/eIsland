@@ -86,6 +86,7 @@ import type {
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
 } from './types';
+import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
 
 declare global {
   interface Window {
@@ -343,6 +344,11 @@ declare global {
       updaterInstall: () => Promise<boolean>;
       updaterVersion: () => Promise<string>;
       guideReset: () => Promise<boolean>;
+      onTrayMenuOpen: (callback: (state: TrayMenuState) => void) => () => void;
+      trayMenuMounted: () => void;
+      trayMenuReady: (height: number) => void;
+      trayMenuAction: (action: TrayMenuAction) => void;
+      trayMenuClose: () => void;
       onUpdaterProgress: (callback: (progress: UpdaterProgress) => void) => () => void;
       onUpdaterDownloaded: (callback: (data: UpdaterDownloadedData) => void) => () => void;
       onUpdaterAvailable: (callback: (data: UpdaterAvailableData) => void) => () => void;

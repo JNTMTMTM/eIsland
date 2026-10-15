@@ -1,0 +1,215 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file trayMenuWindow.ts
+ * @description 自绘托盘菜单窗口：在光标附近弹出、失焦隐藏，并转发菜单动作
+ * @author 鸡哥
+ */
+
+import { join } from 'path';
+import { BrowserWindow, ipcMain, screen } from 'electron';
+import { is } from '@electron-toolkit/utils';
+import { TRAY_MENU_CHANNELS, isTrayMenuAction } from '../../shared/trayMenu';
+import type { TrayMenuAction, TrayMenuState } from '../../shared/trayMenu';
+
+/** 菜单窗口宽度（DIP），需与渲染层 .tray-menu 宽度保持一致 */
+export const TRAY_MENU_WIDTH = 272;
+
+/** 首次渲染前的占位高度，真实高度由渲染层上报 */
+const TRAY_MENU_INITIAL_HEIGHT = 360;
+
+let menuWindow: BrowserWindow | null = null;
+let menuMounted = false;
+let menuRevealed = false;
+let pendingState: TrayMenuState | null = null;
+let lastHeight = TRAY_MENU_INITIAL_HEIGHT;
+let anchor = { x: 0, y: 0 };
+let actionHandler: ((action: TrayMenuAction) => void) | null = null;
+let ipcRegistered = false;
+
+/**
+ * 判断 IPC 是否来自当前菜单窗口，忽略其他窗口伪造的菜单消息
+ * @param sender - IPC 发送方
+ * @returns 是否来自菜单窗口
+ */
+function isFromMenuWindow(sender: Electron.WebContents): boolean {
+  return Boolean(menuWindow && !menuWindow.isDestroyed() && sender === menuWindow.webContents);
+}
+
+/**
+ * 计算光标附近的菜单位置
+ * @description 默认向右下展开，超出工作区时向左/向上翻转（Windows 任务栏托盘通常在右下角）
+ * @param height - 菜单内容高度（DIP）
+ * @returns 菜单窗口边界
+ */
+function getMenuBounds(height: number): Electron.Rectangle {
+  const area = screen.getDisplayNearestPoint(anchor).workArea;
+  const fitsRight = anchor.x + TRAY_MENU_WIDTH <= area.x + area.width;
+  const fitsBelow = anchor.y + height <= area.y + area.height;
+  const rawX = fitsRight ? anchor.x : anchor.x - TRAY_MENU_WIDTH;
+  const rawY = fitsBelow ? anchor.y : anchor.y - height;
+  const x = Math.min(Math.max(rawX, area.x), area.x + area.width - TRAY_MENU_WIDTH);
+  const y = Math.min(Math.max(rawY, area.y), area.y + area.height - height);
+  return { height, x: Math.round(x), y: Math.round(y), width: TRAY_MENU_WIDTH };
+}
+
+/**
+ * 以完全透明的状态显示菜单窗口并下发状态
+ * @description 隐藏过的透明窗口再次显示时会先露出上次的缓存画面和系统显示动画，造成闪烁；
+ * 先在透明状态下显示，等渲染层绘制完新内容（ready）后再显现。
+ */
+function flushPendingState(): void {
+  if (!pendingState || !menuMounted || !menuWindow || menuWindow.isDestroyed()) return;
+  menuRevealed = false;
+  menuWindow.setOpacity(0);
+  menuWindow.setBounds(getMenuBounds(lastHeight));
+  if (!menuWindow.isVisible()) menuWindow.showInactive();
+  menuWindow.webContents.send(TRAY_MENU_CHANNELS.open, pendingState);
+  pendingState = null;
+}
+
+/**
+ * 按真实内容高度定位并显现菜单
+ * @param height - 渲染层上报的内容高度（DIP）
+ */
+function revealMenu(height: number): void {
+  if (!menuWindow || menuWindow.isDestroyed() || !menuWindow.isVisible()) return;
+  lastHeight = height;
+  menuWindow.setBounds(getMenuBounds(height));
+  if (menuRevealed) return;
+  menuRevealed = true;
+  menuWindow.setOpacity(1);
+  menuWindow.focus();
+}
+
+/** 收起托盘菜单，窗口保留以便下次快速弹出。 */
+export function hideTrayMenuWindow(): void {
+  if (!menuWindow || menuWindow.isDestroyed() || !menuWindow.isVisible()) return;
+  menuRevealed = false;
+  menuWindow.setOpacity(0);
+  menuWindow.hide();
+}
+
+/** 注册菜单 IPC，只注册一次，菜单窗口重建后继续沿用。 */
+function registerTrayMenuIpc(): void {
+  if (ipcRegistered) return;
+  ipcRegistered = true;
+  ipcMain.on(TRAY_MENU_CHANNELS.mounted, (event) => {
+    if (!isFromMenuWindow(event.sender)) return;
+    menuMounted = true;
+    flushPendingState();
+  });
+  ipcMain.on(TRAY_MENU_CHANNELS.ready, (event, height: unknown) => {
+    if (!isFromMenuWindow(event.sender)) return;
+    if (typeof height !== 'number' || !Number.isFinite(height) || height <= 0) return;
+    revealMenu(Math.ceil(height));
+  });
+  ipcMain.on(TRAY_MENU_CHANNELS.action, (event, action: unknown) => {
+    if (!isFromMenuWindow(event.sender) || !isTrayMenuAction(action)) return;
+    // 先收起菜单再执行动作，避免显示灵动岛等动作被菜单窗口遮挡或抢回焦点。
+    hideTrayMenuWindow();
+    actionHandler?.(action);
+  });
+  ipcMain.on(TRAY_MENU_CHANNELS.close, (event) => {
+    if (isFromMenuWindow(event.sender)) hideTrayMenuWindow();
+  });
+}
+
+/**
+ * 创建隐藏的菜单窗口并加载渲染入口
+ * @returns 菜单窗口
+ */
+function createMenuWindow(): BrowserWindow {
+  const window = new BrowserWindow({
+    width: TRAY_MENU_WIDTH,
+    height: TRAY_MENU_INITIAL_HEIGHT,
+    show: false,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    title: '',
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      // 菜单在透明预显示阶段完成渲染与测量，不能被后台节流延迟。
+      backgroundThrottling: false,
+    },
+  });
+  window.setAlwaysOnTop(true, 'pop-up-menu');
+  window.removeMenu();
+  // 透明预显示阶段窗口未获得焦点，只有真正显现后的失焦才代表用户点了别处。
+  window.on('blur', () => {
+    if (menuRevealed) hideTrayMenuWindow();
+  });
+  window.on('closed', () => {
+    if (menuWindow === window) {
+      menuWindow = null;
+      menuMounted = false;
+      menuRevealed = false;
+    }
+  });
+
+  const loading = is.dev && process.env.ELECTRON_RENDERER_URL
+    ? window.loadURL(`${process.env.ELECTRON_RENDERER_URL}/html/DynamicIslandTrayMenu.html`)
+    : window.loadFile(join(__dirname, '../renderer/html/DynamicIslandTrayMenu.html'));
+  // eslint-disable-next-line promise/prefer-await-to-then -- 创建函数需同步返回窗口，在此处理加载失败。
+  loading.catch((error: unknown) => {
+    console.error('[TrayMenu] Failed to load tray menu page:', error);
+  });
+  return window;
+}
+
+/**
+ * 在光标位置弹出托盘菜单
+ * @param state - 本次打开时的菜单状态快照
+ * @param onAction - 用户选择菜单项后的处理函数
+ */
+export function showTrayMenuWindow(state: TrayMenuState, onAction: (action: TrayMenuAction) => void): void {
+  registerTrayMenuIpc();
+  actionHandler = onAction;
+  anchor = screen.getCursorScreenPoint();
+  pendingState = state;
+  if (!menuWindow || menuWindow.isDestroyed()) {
+    menuMounted = false;
+    menuWindow = createMenuWindow();
+    return;
+  }
+  flushPendingState();
+}
+
+/** 销毁托盘菜单窗口，托盘销毁或应用退出时调用。 */
+export function destroyTrayMenuWindow(): void {
+  if (menuWindow && !menuWindow.isDestroyed()) menuWindow.destroy();
+  menuWindow = null;
+  menuMounted = false;
+  menuRevealed = false;
+  pendingState = null;
+}

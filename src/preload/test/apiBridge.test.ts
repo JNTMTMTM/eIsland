@@ -298,6 +298,10 @@ const TRANSPORT_ROUTES = [
   ['updaterInstall', 'updater:install', 0, 'invoke'],
   ['updaterVersion', 'updater:version', 0, 'invoke'],
   ['guideReset', 'guide:reset', 0, 'invoke'],
+  ['trayMenuMounted', 'tray-menu:mounted', 0, 'send'],
+  ['trayMenuReady', 'tray-menu:ready', 1, 'send'],
+  ['trayMenuAction', 'tray-menu:action', 1, 'send'],
+  ['trayMenuClose', 'tray-menu:close', 0, 'send'],
   ['clipboardOpenUrl', 'clipboard:open-url', 1, 'invoke'],
   ['claudeCodeEventDetail', 'claude-code:event:detail', 2, 'invoke'],
   ['codexEventDetail', 'codex:event:detail', 2, 'invoke'],
@@ -316,6 +320,7 @@ const TRANSPORT_ROUTES = [
 
 const LISTENER_ROUTES = [
   ['onIslandPositionOffsetChanged', 'window:island-position:changed', 1, false],
+  ['onTrayMenuOpen', 'tray-menu:open', 1, false],
   ['onOllamaChatEvent', 'ollama:chat:event:', 1, true],
   ['onCustomDirectChatEvent', 'customDirect:chat:event:', 1, true],
   ['onNowPlayingInfo', 'nowplaying:info', 1, false],

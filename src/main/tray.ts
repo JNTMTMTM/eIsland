@@ -20,7 +20,7 @@
 
 /**
  * @file tray.ts
- * @description 系统托盘模块：托盘图标加载、托盘实例创建及右键菜单配置
+ * @description 系统托盘模块：托盘图标加载、托盘实例创建、菜单动作及右键菜单（自绘窗口 / Linux 原生菜单）
  * @author 鸡哥
  */
 
@@ -34,6 +34,8 @@ import { tray as jaJPLabels } from '../../i18n/ja-JP.json';
 import { openStandaloneWindow } from './window/standaloneWindow';
 import { restoreIslandAlwaysOnTop, setIslandAlwaysOnTop } from './window/islandAlwaysOnTop';
 import { readAppLanguageConfig, readStandaloneWindowModeEnabledConfig } from './config/storeConfig';
+import { destroyTrayMenuWindow, hideTrayMenuWindow, showTrayMenuWindow } from './window/trayMenuWindow';
+import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
 
 interface TrayOptions {
   onVisibilityChange?: (visible: boolean) => void;
@@ -73,7 +75,7 @@ function refreshTrayMenu(): void {
 
 /**
  * 创建系统托盘
- * @description 初始化托盘图标、右键菜单，提供退出和显示窗口功能
+ * @description 初始化托盘图标与右键菜单：Windows/macOS 弹出自绘菜单窗口（含用户信息卡片），Linux 使用原生菜单
  * @param getMainWindow - 读取托盘控制的主窗口，主窗口重建后仍指向新窗口。
  * @param options - 手动可见性与现有设置入口的回调。
  * @returns 当前托盘实例。
@@ -104,83 +106,90 @@ function createTray(getMainWindow: () => BrowserWindow | null, options: TrayOpti
     }
   };
 
+  // 自绘菜单与 Linux 原生菜单共用同一组动作，保证两种菜单行为一致。
+  const runAction = (action: TrayMenuAction): void => {
+    switch (action) {
+      case 'show-island':
+        setVisible(true);
+        break;
+      case 'hide-island':
+        setVisible(false);
+        break;
+      case 'open-settings':
+        if (options.onOpenSettings) options.onOpenSettings();
+        else openStandaloneWindow();
+        break;
+      case 'toggle-always-on-top': {
+        const target = getWindow();
+        if (!target) return;
+        setIslandAlwaysOnTop(target, !target.isAlwaysOnTop());
+        options.onAlwaysOnTopChange?.();
+        refreshTrayMenu();
+        break;
+      }
+      case 'open-log-folder':
+        // eslint-disable-next-line promise/prefer-await-to-then -- 菜单回调需同步返回，在此处理原生异步操作的拒绝。
+        shell.openPath(logDir).catch((error: unknown) => {
+          console.error('[Tray] Failed to open log directory:', error);
+        });
+        break;
+      case 'restart':
+        app.relaunch();
+        app.quit();
+        break;
+      case 'quit':
+        app.quit();
+        break;
+    }
+  };
+
   // 每次打开菜单都重新读取运行模式、语言和窗口状态，避免启动时的快照长期失效。
-  const buildMenu = (): Electron.Menu => {
-    const labels = TRAY_LABELS[readAppLanguageConfig()];
+  const getMenuState = (): TrayMenuState => {
     const mainWindow = getWindow();
+    return {
+      windowAvailable: Boolean(mainWindow),
+      alwaysOnTop: mainWindow ? mainWindow.isAlwaysOnTop() : false,
+      standaloneMode: readStandaloneWindowModeEnabledConfig(),
+      language: readAppLanguageConfig(),
+    };
+  };
+
+  const buildMenu = (): Electron.Menu => {
+    const state = getMenuState();
+    const labels = TRAY_LABELS[readAppLanguageConfig()];
 
     const menuItems: Electron.MenuItemConstructorOptions[] = [
-      {
-        label: labels.showIsland,
-        enabled: Boolean(mainWindow),
-        click: () => setVisible(true),
-      },
-      {
-        label: labels.hideIsland,
-        enabled: Boolean(mainWindow),
-        click: () => setVisible(false),
-      },
+      { label: labels.showIsland, enabled: state.windowAvailable, click: () => runAction('show-island') },
+      { label: labels.hideIsland, enabled: state.windowAvailable, click: () => runAction('hide-island') },
     ];
-
-    if (readStandaloneWindowModeEnabledConfig()) {
-      menuItems.push({
-        label: labels.openSettings,
-        click: () => {
-          if (options.onOpenSettings) options.onOpenSettings();
-          else openStandaloneWindow();
-        }
-      });
+    if (state.standaloneMode) {
+      menuItems.push({ label: labels.openSettings, click: () => runAction('open-settings') });
     }
-
     menuItems.push(
       {
         label: labels.alwaysOnTop,
         type: 'checkbox',
-        enabled: Boolean(mainWindow),
-        checked: mainWindow ? mainWindow.isAlwaysOnTop() : false,
-        click: (menuItem) => {
-          const target = getWindow();
-          if (!target) return;
-          setIslandAlwaysOnTop(target, Boolean(menuItem.checked));
-          options.onAlwaysOnTopChange?.();
-          refreshTrayMenu();
-        }
+        enabled: state.windowAvailable,
+        checked: state.alwaysOnTop,
+        click: () => runAction('toggle-always-on-top'),
       },
       { type: 'separator' },
-      {
-        label: labels.openLogFolder,
-        click: () => {
-          // eslint-disable-next-line promise/prefer-await-to-then -- Electron 菜单需同步返回，在此处理原生异步操作的拒绝。
-          shell.openPath(logDir).catch((error: unknown) => {
-            console.error('[Tray] Failed to open log directory:', error);
-          });
-        }
-      },
-      {
-        label: labels.restart,
-        click: () => {
-          app.relaunch();
-          app.quit();
-        }
-      },
+      { label: labels.openLogFolder, click: () => runAction('open-log-folder') },
+      { label: labels.restart, click: () => runAction('restart') },
       { type: 'separator' },
-      {
-        label: labels.quit,
-        click: () => {
-          app.quit();
-        }
-      }
+      { label: labels.quit, click: () => runAction('quit') },
     );
 
     return Menu.buildFromTemplate(menuItems);
   };
   buildCurrentMenu = buildMenu;
   tray.setToolTip('eIsland');
-  // Windows/macOS 手动弹出最新菜单，避免原生自动弹出早于菜单刷新；Linux 只能预先设置菜单，由 refreshTrayMenu 同步。
+  // Linux 托盘只能预先设置原生菜单，由 refreshTrayMenu 同步；其他平台右键时弹出自绘菜单窗口。
   if (process.platform === 'linux') refreshTrayMenu();
-  else tray.on('right-click', () => { tray?.popUpContextMenu(buildMenu()); });
+  else tray.on('right-click', () => { showTrayMenuWindow(getMenuState(), runAction); });
 
   tray.on('click', () => {
+    hideTrayMenuWindow();
     const mainWindow = getWindow();
     if (!mainWindow) return;
     setVisible(!mainWindow.isVisible() || mainWindow.isMinimized());
@@ -194,6 +203,7 @@ function createTray(getMainWindow: () => BrowserWindow | null, options: TrayOpti
  * @description 应用退出时调用，释放托盘资源
  */
 function destroyTray(): void {
+  destroyTrayMenuWindow();
   if (tray) {
     tray.destroy();
     tray = null;
@@ -206,6 +216,7 @@ function destroyTray(): void {
  */
 function toggleTray(): void {
   if (tray) {
+    destroyTrayMenuWindow();
     tray.destroy();
     tray = null;
   } else {

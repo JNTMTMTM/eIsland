@@ -4809,6 +4809,10 @@
     "alwaysOnTop": "Always on Top",
     "openLogFolder": "Open Log Folder",
     "restart": "Restart eIsland",
-    "quit": "Quit"
+    "quit": "Quit",
+    "menuLabel": "Tray menu",
+    "notLoggedIn": "Not signed in",
+    "loginHint": "Sign in to sync your account",
+    "proExpireAt": "Pro until {{date}}"
   }
 }

@@ -4809,6 +4809,10 @@
     "alwaysOnTop": "窗口置顶",
     "openLogFolder": "打开日志文件夹",
     "restart": "重启灵动岛",
-    "quit": "退出"
+    "quit": "退出",
+    "menuLabel": "托盘菜单",
+    "notLoggedIn": "未登录",
+    "loginHint": "登录后同步账号信息",
+    "proExpireAt": "Pro 到期 {{date}}"
   }
 }

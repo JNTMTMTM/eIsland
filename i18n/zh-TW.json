@@ -4809,6 +4809,10 @@
     "alwaysOnTop": "視窗置頂",
     "openLogFolder": "開啟日誌資料夾",
     "restart": "重新啟動靈動島",
-    "quit": "結束"
+    "quit": "結束",
+    "menuLabel": "系統匣選單",
+    "notLoggedIn": "未登入",
+    "loginHint": "登入後同步帳號資訊",
+    "proExpireAt": "Pro 到期 {{date}}"
   }
 }

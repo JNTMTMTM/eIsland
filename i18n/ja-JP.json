@@ -4809,6 +4809,10 @@
     "alwaysOnTop": "常に最前面に表示",
     "openLogFolder": "ログフォルダーを開く",
     "restart": "eIsland を再起動",
-    "quit": "終了"
+    "quit": "終了",
+    "menuLabel": "トレイメニュー",
+    "notLoggedIn": "未ログイン",
+    "loginHint": "ログインするとアカウント情報を同期できます",
+    "proExpireAt": "Pro 有効期限 {{date}}"
   }
 }
