@@ -34,7 +34,7 @@ import { tray as jaJPLabels } from '../../i18n/ja-JP.json';
 import { openStandaloneWindow } from './window/standaloneWindow';
 import { restoreIslandAlwaysOnTop, setIslandAlwaysOnTop } from './window/islandAlwaysOnTop';
 import { readAppLanguageConfig, readStandaloneWindowModeEnabledConfig } from './config/storeConfig';
-import { destroyTrayMenuWindow, hideTrayMenuWindow, showTrayMenuWindow } from './window/trayMenuWindow';
+import { destroyTrayMenuWindow, hideTrayMenuWindow, scheduleTrayMenuPreload, showTrayMenuWindow } from './window/trayMenuWindow';
 import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
 
 interface TrayOptions {
@@ -184,9 +184,13 @@ function createTray(getMainWindow: () => BrowserWindow | null, options: TrayOpti
   };
   buildCurrentMenu = buildMenu;
   tray.setToolTip('eIsland');
-  // Linux 托盘只能预先设置原生菜单，由 refreshTrayMenu 同步；其他平台右键时弹出自绘菜单窗口。
-  if (process.platform === 'linux') refreshTrayMenu();
-  else tray.on('right-click', () => { showTrayMenuWindow(getMenuState(), runAction); });
+  // Linux 托盘只能预先设置原生菜单，由 refreshTrayMenu 同步；其他平台右键时弹出自绘菜单窗口（后台预加载）。
+  if (process.platform === 'linux') {
+    refreshTrayMenu();
+  } else {
+    tray.on('right-click', () => { showTrayMenuWindow(getMenuState(), runAction); });
+    scheduleTrayMenuPreload();
+  }
 
   tray.on('click', () => {
     hideTrayMenuWindow();

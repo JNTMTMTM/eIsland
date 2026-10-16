@@ -50,6 +50,7 @@ const mocks = vi.hoisted(() => ({
   showMenu: vi.fn<(state: TrayMenuState, onAction: (action: TrayMenuAction) => void) => void>(),
   hideMenu: vi.fn(),
   destroyMenu: vi.fn(),
+  preloadMenu: vi.fn(),
   onTop: true
 }));
 /**
@@ -116,7 +117,8 @@ vi.mock('../system/runningProcesses', () => ({ hasAnyFocusedWindowTitle: mocks.f
 vi.mock('../window/trayMenuWindow', () => ({
   showTrayMenuWindow: mocks.showMenu,
   hideTrayMenuWindow: mocks.hideMenu,
-  destroyTrayMenuWindow: mocks.destroyMenu
+  destroyTrayMenuWindow: mocks.destroyMenu,
+  scheduleTrayMenuPreload: mocks.preloadMenu
 }));
 
 const windowMock = {
@@ -280,6 +282,7 @@ describe('系统托盘', () => {
       createNativeTray(() => windowMock as unknown as BrowserWindow);
       expect(mocks.events.has('right-click')).toBe(false);
       expect(mocks.showMenu).not.toHaveBeenCalled();
+      expect(mocks.preloadMenu).not.toHaveBeenCalled();
       expect(mocks.setContextMenu).toHaveBeenCalledOnce();
       expect(mocks.entries[0].label).toBe('アイランドを表示');
       mocks.files.set(join('C:/test-user', 'eIsland_store', 'i18n-language.json'), '"en-US"');
@@ -300,8 +303,9 @@ describe('系统托盘', () => {
     });
   });
 
-  it('非Linux平台刷新为空操作', () => {
+  it('非Linux平台创建托盘时安排后台预加载菜单窗口，刷新为空操作', () => {
     createTray(windowMock as unknown as BrowserWindow);
+    expect(mocks.preloadMenu).toHaveBeenCalledOnce();
     refreshTrayMenu();
     expect(mocks.setContextMenu).not.toHaveBeenCalled();
   });

@@ -20,7 +20,7 @@
 
 /**
  * @file trayMenuWindow.ts
- * @description 自绘托盘菜单窗口：在光标附近弹出（首次打开先显示骨架屏）、失焦隐藏，并转发菜单动作
+ * @description 自绘托盘菜单窗口：启动后在后台预加载，在光标附近弹出（页面未就绪时先显示骨架屏）、失焦隐藏，并转发菜单动作
  * @author 鸡哥
  */
 
@@ -34,17 +34,22 @@ import type { TrayMenuAction, TrayMenuState } from '../../shared/trayMenu';
 /** 菜单窗口宽度（DIP），需与渲染层 .tray-menu 宽度保持一致 */
 export const TRAY_MENU_WIDTH = 272;
 
+/** 启动后预加载菜单窗口的延迟，错开主窗口与启动动画的加载高峰 */
+const TRAY_MENU_PRELOAD_DELAY_MS = 3000;
+
 /** 首次打开时的窗口高度，需与渲染层骨架屏 .tray-skeleton 高度一致，真实高度由渲染层上报 */
 const TRAY_MENU_INITIAL_HEIGHT = 355;
 
 let menuWindow: BrowserWindow | null = null;
 let menuMounted = false;
+let menuPainted = false;
 let menuRevealed = false;
 let pendingState: TrayMenuState | null = null;
 let lastHeight = TRAY_MENU_INITIAL_HEIGHT;
 let anchor = { x: 0, y: 0 };
 let actionHandler: ((action: TrayMenuAction) => void) | null = null;
 let ipcRegistered = false;
+let preloadTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
  * 判断 IPC 是否来自当前菜单窗口，忽略其他窗口伪造的菜单消息
@@ -195,7 +200,10 @@ function createMenuWindow(): BrowserWindow {
   window.setAlwaysOnTop(true, 'pop-up-menu');
   window.removeMenu();
   // 透明预显示阶段窗口未获得焦点，只有真正显现后的失焦才代表用户点了别处。
-  window.once('ready-to-show', revealSkeleton);
+  window.once('ready-to-show', () => {
+    menuPainted = true;
+    revealSkeleton();
+  });
   window.on('blur', () => {
     if (menuRevealed) hideTrayMenuWindow();
   });
@@ -203,6 +211,7 @@ function createMenuWindow(): BrowserWindow {
     if (menuWindow === window) {
       menuWindow = null;
       menuMounted = false;
+      menuPainted = false;
       menuRevealed = false;
     }
   });
@@ -219,6 +228,29 @@ function createMenuWindow(): BrowserWindow {
 }
 
 /**
+ * 创建菜单窗口并重置页面就绪状态
+ */
+function openMenuWindow(): void {
+  registerTrayMenuIpc();
+  menuMounted = false;
+  menuPainted = false;
+  menuWindow = createMenuWindow();
+}
+
+/**
+ * 延迟在后台预创建隐藏的菜单窗口
+ * @description 首次右键时页面与脚本已加载完成，无需现建窗口；用户在预加载前右键时由 showTrayMenuWindow 直接创建
+ * @param delayMs - 延迟毫秒数
+ */
+export function scheduleTrayMenuPreload(delayMs = TRAY_MENU_PRELOAD_DELAY_MS): void {
+  if (preloadTimer) clearTimeout(preloadTimer);
+  preloadTimer = setTimeout(() => {
+    preloadTimer = null;
+    if (!menuWindow || menuWindow.isDestroyed()) openMenuWindow();
+  }, delayMs);
+}
+
+/**
  * 在光标位置弹出托盘菜单
  * @param state - 本次打开时的菜单状态快照
  * @param onAction - 用户选择菜单项后的处理函数
@@ -229,18 +261,22 @@ export function showTrayMenuWindow(state: TrayMenuState, onAction: (action: Tray
   anchor = screen.getCursorScreenPoint();
   pendingState = state;
   if (!menuWindow || menuWindow.isDestroyed()) {
-    menuMounted = false;
-    menuWindow = createMenuWindow();
+    openMenuWindow();
     return;
   }
+  // 预加载的页面已绘制但脚本尚未挂载时，ready-to-show 已触发过，直接显示骨架屏。
+  if (!menuMounted && menuPainted) revealSkeleton();
   flushPendingState();
 }
 
 /** 销毁托盘菜单窗口，托盘销毁或应用退出时调用。 */
 export function destroyTrayMenuWindow(): void {
+  if (preloadTimer) clearTimeout(preloadTimer);
+  preloadTimer = null;
   if (menuWindow && !menuWindow.isDestroyed()) menuWindow.destroy();
   menuWindow = null;
   menuMounted = false;
+  menuPainted = false;
   menuRevealed = false;
   pendingState = null;
 }

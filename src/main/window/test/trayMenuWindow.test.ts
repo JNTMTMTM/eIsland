@@ -20,7 +20,7 @@
 
 /**
  * @file trayMenuWindow.test.ts
- * @description 自绘托盘菜单窗口的创建、首次打开骨架屏显示、透明预显示、定位、失焦关闭与 IPC 校验测试。
+ * @description 自绘托盘菜单窗口的后台预加载、创建、首次打开骨架屏显示、透明预显示、定位、失焦关闭与 IPC 校验测试。
  * @author 鸡哥
  */
 
@@ -341,6 +341,77 @@ describe('trayMenuWindow', () => {
     expect(win.destroy).toHaveBeenCalledOnce();
     service.hideTrayMenuWindow();
     expect(win.hide).not.toHaveBeenCalled();
+  });
+
+  describe('background preload', () => {
+    beforeEach(() => { vi.useFakeTimers(); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    it('creates a hidden window after the startup delay so the first right-click opens instantly', async () => {
+      const { win, service } = await setup();
+      service.scheduleTrayMenuPreload();
+      vi.advanceTimersByTime(2999);
+      expect(mocks.create).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1);
+      expect(mocks.create).toHaveBeenCalledOnce();
+      win.emit('ready-to-show');
+      emit('tray-menu:mounted', win.webContents);
+      expect(win.showInactive).not.toHaveBeenCalled();
+      expect(win.webContents.send).not.toHaveBeenCalled();
+      service.showTrayMenuWindow(STATE, vi.fn());
+      expect(mocks.create).toHaveBeenCalledOnce();
+      expect(win.setOpacity).toHaveBeenCalledWith(0);
+      expect(win.webContents.send).toHaveBeenCalledWith('tray-menu:open', STATE);
+      emit('tray-menu:ready', win.webContents, 300);
+      expect(win.setOpacity).toHaveBeenLastCalledWith(1);
+      expect(win.focus).toHaveBeenCalledOnce();
+    });
+
+    it('shows the skeleton at once when opened after the preload painted but before the script mounted', async () => {
+      const { win, service } = await setup();
+      service.scheduleTrayMenuPreload(0);
+      vi.advanceTimersByTime(0);
+      win.emit('ready-to-show');
+      service.showTrayMenuWindow(STATE, vi.fn());
+      expect(win.setOpacity).toHaveBeenCalledWith(1);
+      expect(win.showInactive).toHaveBeenCalledOnce();
+      expect(win.focus).toHaveBeenCalledOnce();
+      emit('tray-menu:mounted', win.webContents);
+      expect(win.webContents.send).toHaveBeenCalledWith('tray-menu:open', STATE);
+      expect(win.setOpacity).not.toHaveBeenCalledWith(0);
+    });
+
+    it('waits for the first paint when opened while the preloaded page is still loading', async () => {
+      const { win, service } = await setup();
+      service.scheduleTrayMenuPreload(0);
+      vi.advanceTimersByTime(0);
+      service.showTrayMenuWindow(STATE, vi.fn());
+      expect(win.showInactive).not.toHaveBeenCalled();
+      win.emit('ready-to-show');
+      expect(win.showInactive).toHaveBeenCalledOnce();
+      expect(win.setOpacity).toHaveBeenCalledWith(1);
+    });
+
+    it('skips the preload when the menu already exists, restarts the delay when rescheduled and cancels on destroy', async () => {
+      const { service } = await setup();
+      service.showTrayMenuWindow(STATE, vi.fn());
+      service.scheduleTrayMenuPreload(10);
+      vi.advanceTimersByTime(10);
+      expect(mocks.create).toHaveBeenCalledOnce();
+      service.destroyTrayMenuWindow();
+      service.scheduleTrayMenuPreload(10);
+      vi.advanceTimersByTime(5);
+      service.scheduleTrayMenuPreload(10);
+      vi.advanceTimersByTime(5);
+      expect(mocks.create).toHaveBeenCalledOnce();
+      vi.advanceTimersByTime(5);
+      expect(mocks.create).toHaveBeenCalledTimes(2);
+      service.destroyTrayMenuWindow();
+      service.scheduleTrayMenuPreload(10);
+      service.destroyTrayMenuWindow();
+      vi.advanceTimersByTime(10);
+      expect(mocks.create).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('reports a page load failure without an unhandled rejection', async () => {
