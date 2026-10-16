@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-15T05:01:33.021Z
+> 生成时间：2026-10-16T05:01:46.802Z
 
 ## 27.0.0
 
@@ -3872,7 +3872,31 @@
 
 ## Unreleased
 
+- 2026-10-15 | 1d2d6345 | JNTMTMTM | Merge pull request #261 from JNTMTMTM/dev
+- 2026-10-15 | 4a22d2ac | 鸡哥 | feat: enhance installer process handling with ancestry cycle and slow snapshot variants in tests
+- 2026-10-15 | 15f04212 | 鸡哥 | refactor: replace for loops with forEach for improved readability in various test files
+- 2026-10-15 | cf805df3 | 鸡哥 | feat: implement island window transition management and animations
+- 2026-10-15 | 81f2fabf | 鸡哥 | feat: implement logging for calibration status changes in playback synchronization
+- 2026-10-15 | e011a7f5 | 鸡哥 | feat: enhance SMTC session management and playback calibration
+- 2026-10-15 | a7c4647d | 鸡哥 | fix: update import paths and file names for tray menu components and styles
+- 2026-10-15 | 5b838cc2 | 鸡哥 | feat: add Dynamic Island Tray Menu module with hooks and styles
+- 2026-10-15 | 04063926 | 鸡哥 | feat(trayMenu): implement background preload for tray menu window
+- 2026-10-15 | 73924f75 | 鸡哥 | feat(trayMenu): implement skeleton loading screen for tray menu components
+- 2026-10-15 | 84427835 | 鸡哥 | chore: update react and react-dom to version 19.3.1 in package.json and package-lock.json
+- 2026-10-15 | 8eaaa3a3 | 鸡哥 | chore: update vitest dependency to version 5.0.5 in package.json
+- 2026-10-15 | 209a5a2b | 鸡哥 | feat: add music control card to tray menu with playback functionality
+- 2026-10-15 | 82b0d685 | 鸡哥 | feat: add custom tray menu implementation with user card and menu items
+- 2026-10-15 | 18ab58e4 | 鸡哥 | feat: enhance tray functionality and window management
+- 2026-10-16 | 543a44e4 | silenthim | fix:修复了pill状态下灵动岛从右侧消失的问题 (#260)
+- 2026-10-14 | 62ca7b04 | 鸡哥 | chore: sync dev into main
+- 2026-10-15 | b836296b | eislandBot | docs: auto update CHANGE_LOG.md for #259 by @JNTMTMTM [skip ci]
 - 2026-10-14 | 7bfb363b | 鸡哥 | fix: 修复多个已知问题 (#259)
+- 2026-10-14 | 4483f223 | 鸡哥 | test: enhance NSIS process handle queries to support different line endings
+- 2026-10-14 | 5a1a3734 | 鸡哥 | test: adjust subscription period calculation for local timezone in payment lifecycle tests
+- 2026-10-14 | 963e2d49 | 鸡哥 | feat: enhance process management and file handling in installer
+- 2026-10-14 | 0d92087e | 鸡哥 | feat: add dynamic island scale settings with persistence (#39)
+- 2026-10-14 | e6c12b48 | 鸡哥 | fix: adjust will-change property to prevent text blurriness during animations
+- 2026-10-14 | 431e9652 | 鸡哥 | feat: enhance NSIS process detection and termination logic; add integration tests
 - 2026-10-14 | af3ef219 | eislandBot | docs: auto update CHANGE_LOG.md for #244 by @dependabot[bot] [skip ci]
 - 2026-10-14 | 8a400df6 | dependabot[bot] | chore(deps): upgrade Electron to 44.7.2 and adapt clipboard APIs (#244)
 - 2026-10-14 | 23203c69 | 鸡哥 | Merge branch 'dev' into main
