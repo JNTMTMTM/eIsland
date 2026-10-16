@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/**'
+      - 'plugins/**'
       - 'package.json'
       - 'package-lock.json'
       - 'vitest.config.mts'
@@ -15,6 +16,12 @@ on:
       - 'web/eisland-web-issue-report/package*.json'
       - '.github/workflows/test.yml'
   workflow_dispatch:
+    inputs:
+      project:
+        description: 'Vitest project to run'
+        type: choice
+        default: all
+        options: [all, main, preload, shared, plugins, renderer]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -52,21 +59,25 @@ jobs:
         run: npm run lint:config:test
 
   vitest:
+    name: Vitest (${{ matrix.project }})
     runs-on: windows-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(inputs.project && inputs.project != 'all' && format('["{0}"]', inputs.project) || '["main","preload","shared","plugins","renderer"]') }}
     defaults:
       run:
         shell: bash
-    outputs:
-      preload_exit_code: ${{ steps.preload_test.outputs.exit_code }}
-      preload_duration_seconds: ${{ steps.preload_test.outputs.duration_seconds }}
-      full_exit_code: ${{ steps.full_test.outputs.exit_code }}
-      full_duration_seconds: ${{ steps.full_test.outputs.duration_seconds }}
+    env:
+      VITEST_PROJECT: ${{ matrix.project }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -80,55 +91,26 @@ jobs:
       - name: Install Electron binary
         run: node node_modules/electron/install.js
 
-      - name: Run preload tests
-        id: preload_test
-        continue-on-error: true
+      - name: Run project tests
         run: |
           START=$(date +%s)
           EXIT_CODE=0
-          FORCE_COLOR=0 NO_COLOR=1 npm run test:preload > preload-test.log 2>&1 || EXIT_CODE=$?
+          FORCE_COLOR=0 NO_COLOR=1 npm test -- --project "$VITEST_PROJECT" --reporter=default --reporter=json --outputFile=vitest-results.json > vitest.log 2>&1 || EXIT_CODE=$?
           END=$(date +%s)
-          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
-          echo "duration_seconds=$((END - START))" >> "$GITHUB_OUTPUT"
-          cat preload-test.log
-          exit 0
-
-      - name: Run full test suite
-        id: full_test
-        continue-on-error: true
-        run: |
-          START=$(date +%s)
-          EXIT_CODE=0
-          FORCE_COLOR=0 NO_COLOR=1 npm run test > full-test.log 2>&1 || EXIT_CODE=$?
-          END=$(date +%s)
-          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
-          echo "duration_seconds=$((END - START))" >> "$GITHUB_OUTPUT"
-          cat full-test.log
-          exit 0
+          printf '{"exit_code":%s,"duration_seconds":%s}\n' "$EXIT_CODE" "$((END - START))" > test-metadata.json
+          cat vitest.log
+          exit "$EXIT_CODE"
 
       - name: Upload test logs
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-logs
+          name: test-logs-${{ matrix.project }}
           path: |
-            preload-test.log
-            full-test.log
+            vitest.log
+            vitest-results.json
+            test-metadata.json
           if-no-files-found: warn
-
-      - name: Fail workflow when tests fail
-        if: always()
-        run: |
-          if [ "${{ steps.preload_test.outputs.exit_code }}" != "0" ] || [ "${{ steps.full_test.outputs.exit_code }}" != "0" ]; then
-            echo "Tests failed. preload=${{ steps.preload_test.outputs.exit_code }}, full=${{ steps.full_test.outputs.exit_code }}"
-            echo ""
-            echo "--- preload-test.log tail ---"
-            if [ -f preload-test.log ]; then tail -n 120 preload-test.log; else echo "preload-test.log not found"; fi
-            echo ""
-            echo "--- full-test.log tail ---"
-            if [ -f full-test.log ]; then tail -n 160 full-test.log; else echo "full-test.log not found"; fi
-            exit 1
-          fi
 
   comment-test-report:
     if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
@@ -143,215 +125,97 @@ jobs:
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
-          name: test-logs
-          path: .
+          pattern: test-logs-*
+          path: test-reports
 
       - name: Comment test results on PR
         uses: actions/github-script@v9
         env:
-          PRELOAD_EXIT_CODE: ${{ needs.vitest.outputs.preload_exit_code }}
-          PRELOAD_DURATION_SECONDS: ${{ needs.vitest.outputs.preload_duration_seconds }}
-          FULL_EXIT_CODE: ${{ needs.vitest.outputs.full_exit_code }}
-          FULL_DURATION_SECONDS: ${{ needs.vitest.outputs.full_duration_seconds }}
+          VITEST_RESULT: ${{ needs.vitest.result }}
         with:
           github-token: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('node:fs');
             const marker = '<!-- test-workflow-report -->';
 
-            // ==================== Log Parsing ====================
-
-            /**
-             * Read a log file, return empty string if missing
-             * @param {string} path - log file path
-             * @returns {string}
-             */
-            const readLog = (path) => {
-              try {
-                return fs.readFileSync(path, 'utf8').trim();
-              } catch {
-                return '';
-              }
+            // 各矩阵任务使用独立附件；报告缺失或测试进程异常退出都不能显示为通过。
+            const projects = ['main', 'preload', 'shared', 'plugins', 'renderer'];
+            const readFile = (path) => {
+              try { return fs.readFileSync(path, 'utf8').trim(); } catch { return ''; }
             };
-
-            /**
-             * Parse vitest log into per-module results and failure details
-             * @param {string} log - raw vitest output
-             * @returns {{ modules: Array<{name: string, passed: number, failed: number, skipped: number, duration: string}>, failures: Array<{test: string, module: string, error: string}> }}
-             */
-            const parseVitestLog = (log) => {
-              if (!log) return { modules: [], failures: [] };
-
-              const modules = [];
-              const failures = [];
-              const lines = log.split('\n');
-
-              // Match module summary lines: "  PASS / FAIL  src/path/file.test.ts (N tests) Xms"
-              // Also matches vitest default: "  src/path/file.test.ts (N) | Xms" style
-              const moduleRe = /^\s*(?:PASS|FAIL|✓|✗|×)\s+(.+?)\s+\((\d+)\s*(?:tests?)?\s*(?:\|\s*(\d+)\s*failed)?\)\s*(?:([\d.]+)\s*ms)?/i;
-              // Fallback: "  src/path/file.test.ts ...." lines
-              const moduleRe2 = /^\s*(✓|✗|×|PASS|FAIL)\s+(\S.*?)(?:\s+\((\d+)\s*(?:tests?)?\))?\s*(?:([\d.]+)\s*ms)?/i;
-              // Failure detail lines: " FAIL  test name" or "AssertionError: ..."
-              const failTestRe = /^\s*(?:FAIL|✗|×)\s+(.+)/;
-              const errorLineRe = /^(?:Error|AssertionError|TypeError|ReferenceError|SyntaxError|RangeError|Expected|Received|Difference):/;
-
-              let currentModule = null;
-              let collectingError = false;
-              let currentFailTest = '';
-              let errorLines = [];
-
-              for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-
-                // Try to match a module summary line
-                let m = line.match(moduleRe);
-                if (!m) m = line.match(moduleRe2);
-
-                if (m) {
-                  // Flush previous failure
-                  if (collectingError && currentFailTest) {
-                    failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
-                    collectingError = false;
-                    errorLines = [];
-                  }
-
-                  const modPath = m[2] || m[1];
-                  const passed = (m[1] === 'PASS' || m[1] === '✓') ? 1 : 0;
-                  const failed = m[3] ? parseInt(m[3]) : (m[1] === 'FAIL' || m[1] === '✗' || m[1] === '×') ? 1 : 0;
-                  const duration = m[4] ? `${m[4]}ms` : '';
-
-                  currentModule = modPath.trim();
-                  modules.push({ name: currentModule, passed: passed || 0, failed, skipped: 0, duration });
-                  continue;
-                }
-
-                // Match individual fail test lines
-                const ftm = line.match(failTestRe);
-                if (ftm && !line.match(/^\s*(PASS|FAIL|✓|✗|×)\s+\S+\s+\(/)) {
-                  if (collectingError && currentFailTest) {
-                    failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
-                    errorLines = [];
-                  }
-                  currentFailTest = ftm[1].trim();
-                  collectingError = true;
-                  continue;
-                }
-
-                // Collect error details
-                if (collectingError) {
-                  if (line.trim() === '' && errorLines.length > 0) {
-                    // End of error block
-                    failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
-                    collectingError = false;
-                    errorLines = [];
-                  } else if (line.trim()) {
-                    errorLines.push(line);
-                  }
-                }
-              }
-
-              // Flush last failure
-              if (collectingError && currentFailTest) {
-                failures.push({ test: currentFailTest, module: currentModule || 'unknown', error: errorLines.join('\n').trim() || '(no details)' });
-              }
-
-              return { modules, failures };
+            const readJson = (path) => {
+              try { return JSON.parse(readFile(path)); } catch { return null; }
             };
-
-            /**
-             * Aggregate parsed modules into directory-level groups
-             * @param {Array} modules - parsed module results
-             * @returns {Array<{group: string, passed: number, failed: number, skipped: number, duration: string, files: Array}>}
-             */
-            const groupByDirectory = (modules) => {
-              const groups = {};
-              for (const mod of modules) {
-                // Extract directory: "src/renderer/components/foo.test.ts" -> "src/renderer/components"
-                const parts = mod.name.replace(/\\/g, '/').split('/');
-                const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '(root)';
-                if (!groups[dir]) {
-                  groups[dir] = { group: dir, passed: 0, failed: 0, skipped: 0, totalDuration: 0, files: [] };
-                }
-                groups[dir].passed += mod.passed;
-                groups[dir].failed += mod.failed;
-                groups[dir].skipped += mod.skipped;
-                const ms = parseFloat(mod.duration) || 0;
-                groups[dir].totalDuration += ms;
-                groups[dir].files.push(mod);
-              }
-              return Object.values(groups).sort((a, b) => a.group.localeCompare(b.group));
-            };
-
-            // ==================== Build Report ====================
-
-            const preloadCode = process.env.PRELOAD_EXIT_CODE || '1';
-            const fullCode = process.env.FULL_EXIT_CODE || '1';
-            const preloadDuration = process.env.PRELOAD_DURATION_SECONDS || '-';
-            const fullDuration = process.env.FULL_DURATION_SECONDS || '-';
-            const overallPass = preloadCode === '0' && fullCode === '0';
-
-            const shortSha = (context.sha || '').slice(0, 7) || 'unknown';
+            const escape = (value) => String(value ?? '')
+              .replace(/[&<>|`@\r\n]/g, (character) => `&#${character.charCodeAt(0)};`);
+            const results = projects.map((project) => {
+              const directory = `test-reports/test-logs-${project}`;
+              const metadata = readJson(`${directory}/test-metadata.json`);
+              const json = readJson(`${directory}/vitest-results.json`);
+              const report = Array.isArray(json?.testResults) && Number.isInteger(json?.numTotalTests) ? json : null;
+              const status = !metadata || !report ? 'ERROR'
+                : metadata.exit_code === 0 && report.success === true ? 'PASS' : 'FAIL';
+              return { project, directory, metadata, report, status };
+            });
+            const overallPass = process.env.VITEST_RESULT === 'success' && results.every((result) => result.status === 'PASS');
+            const totals = results.reduce((total, { report }) => ({
+              passed: total.passed + (report?.numPassedTests ?? 0),
+              failed: total.failed + (report?.numFailedTests ?? 0),
+              skipped: total.skipped + (report?.numPendingTests ?? 0) + (report?.numTodoTests ?? 0),
+            }), { passed: 0, failed: 0, skipped: 0 });
+            const sha = context.payload.pull_request.head.sha;
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const preloadLog = readLog('preload-test.log');
-            const fullLog = readLog('full-test.log');
-            const preloadParsed = parseVitestLog(preloadLog);
-            const fullParsed = parseVitestLog(fullLog);
-            const fullGroups = groupByDirectory(fullParsed.modules);
+            let body = `${marker}\n## Test Report\n\n`;
+            body += `**${overallPass ? 'PASS' : 'FAIL'}** · Commit: \`${sha.slice(0, 7)}\`\n\n`;
+            body += `${totals.passed} passed, ${totals.failed} failed, ${totals.skipped} skipped/todo\n\n`;
+            body += '| Project | Status | Passed | Failed | Skipped / Todo | Duration |\n';
+            body += '|---------|--------|--------|--------|----------------|----------|\n';
+            for (const { project, report, metadata, status } of results) {
+              body += `| ${project} | ${status} | ${report?.numPassedTests ?? '-'} | ${report?.numFailedTests ?? '-'} | ${report ? report.numPendingTests + report.numTodoTests : '-'} | ${metadata ? `${metadata.duration_seconds}s` : '-'} |\n`;
+            }
+            body += '\nProjects run in parallel; durations are per project. ERROR means its report or execution metadata is unavailable.\n\n';
 
-            const totalPassed = fullParsed.modules.reduce((s, m) => s + m.passed, 0);
-            const totalFailed = fullParsed.modules.reduce((s, m) => s + m.failed, 0);
-            const totalModules = fullParsed.modules.length;
-
-            // ==================== Render ====================
-
-            let body = `${marker}\n`;
-            body += `## Test Report\n\n`;
-
-            // -- Summary row
-            body += `| Suite | Status | Tests | Duration |\n`;
-            body += `|-------|--------|-------|----------|\n`;
-            body += `| Preload | ${preloadCode === '0' ? 'PASS' : 'FAIL'} | - | ${preloadDuration}s |\n`;
-            body += `| Full | ${fullCode === '0' ? 'PASS' : 'FAIL'} | ${totalPassed} passed, ${totalFailed} failed | ${fullDuration}s |\n`;
-            body += `\n`;
-
-            // -- Per-module breakdown
-            if (fullGroups.length > 0) {
-              body += `### Module Breakdown\n\n`;
-              body += `| Module | Passed | Failed | Duration |\n`;
-              body += `|--------|--------|--------|----------|\n`;
-              for (const g of fullGroups) {
-                const dur = g.totalDuration > 1000 ? `${(g.totalDuration / 1000).toFixed(1)}s` : `${Math.round(g.totalDuration)}ms`;
-                const status = g.failed > 0 ? `${g.passed} / ${g.failed} failed` : `${g.passed} passed`;
-                body += `| ${g.group} | ${g.passed} | ${g.failed} | ${dur} |\n`;
+            for (const { project, directory, report, status } of results) {
+              if (report) {
+                const groups = new Map();
+                for (const file of report.testResults) {
+                  const name = file.name.replace(/\\/g, '/').replace(/^.*?\/(?=src\/|plugins\/)/, '');
+                  const module = name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : '(root)';
+                  const group = groups.get(module) ?? { passed: 0, failed: 0, skipped: 0 };
+                  for (const assertion of file.assertionResults) {
+                    if (assertion.status === 'passed') group.passed++;
+                    else if (assertion.status === 'failed') group.failed++;
+                    else group.skipped++;
+                  }
+                  groups.set(module, group);
+                }
+                body += `<details>\n<summary>${project}: module breakdown</summary>\n\n`;
+                body += '| Module | Passed | Failed | Skipped / Todo |\n|--------|--------|--------|----------------|\n';
+                let tableLength = 0;
+                for (const [module, group] of [...groups].sort(([left], [right]) => left.localeCompare(right))) {
+                  const row = `| ${escape(module)} | ${group.passed} | ${group.failed} | ${group.skipped} |\n`;
+                  if (tableLength + row.length > 4000) {
+                    body += '\nModule breakdown truncated; see the JSON artifact for all files.\n';
+                    break;
+                  }
+                  body += row;
+                  tableLength += row.length;
+                }
+                body += '\n</details>\n\n';
               }
-              body += `\n`;
-            }
-
-            // -- Failure details
-            if (fullParsed.failures.length > 0) {
-              body += `### Failures\n\n`;
-              for (const f of fullParsed.failures) {
-                body += `**${f.module}** > \`${f.test}\`\n\n`;
-                body += `\`\`\`\n${f.error}\n\`\`\`\n\n`;
+              if (status !== 'PASS') {
+                const failures = (report?.testResults ?? []).filter((file) => file.status === 'failed')
+                  .map((file) => [file.name, file.message, ...file.assertionResults
+                    .filter((assertion) => assertion.status === 'failed')
+                    .map((assertion) => `${assertion.fullName}\n${assertion.failureMessages.join('\n')}`)]
+                    .filter(Boolean).join('\n')).join('\n\n');
+                const log = readFile(`${directory}/vitest.log`);
+                const details = failures || log || 'No report or log available. Check job setup and dependency installation.';
+                body += `<details>\n<summary>${project}: failure details</summary>\n\n<pre>${escape(details.slice(-3000)).slice(0, 6000)}</pre>\n\n</details>\n\n`;
               }
             }
-
-            // -- Preload details (collapsed)
-            if (preloadLog) {
-              body += `<details>\n<summary>Preload test output</summary>\n\n`;
-              body += `\`\`\`\n${preloadLog.length > 6000 ? preloadLog.slice(0, 6000) + '\n... (truncated)' : preloadLog}\n\`\`\`\n`;
-              body += `</details>\n\n`;
-            }
-
-            // -- Full raw log (collapsed, only if failures exist)
-            if (fullParsed.failures.length > 0 && fullLog) {
-              body += `<details>\n<summary>Full test log</summary>\n\n`;
-              body += `\`\`\`\n${fullLog.length > 8000 ? fullLog.slice(0, 8000) + '\n... (truncated)' : fullLog}\n\`\`\`\n`;
-              body += `</details>\n\n`;
-            }
-
-            body += `[View workflow run](${runUrl})`;
+            body += `[View workflow run and project artifacts](${runUrl})`;
 
             // ==================== Post Comment ====================
 
