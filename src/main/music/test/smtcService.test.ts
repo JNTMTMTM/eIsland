@@ -377,6 +377,57 @@ describe('createSmtcService', () => {
   /* -------------------------------------------------------------- */
 
   describe('worker message: session-update', () => {
+    it('preserves sample time and rate through delayed and metadata-only broadcasts', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const now = vi.spyOn(Date, 'now').mockReturnValue(100000);
+      const svc = createSmtcService(defaultOptions({ getWhitelist: () => ['spotify'] }));
+      svc.initWorker();
+      svc.setCurrentDeviceId('Spotify.exe');
+      const session = {
+        media: { title: 'Song', artist: 'Artist', albumTitle: 'Album' },
+        playback: { playbackStatus: 4, playbackType: 1, playbackRate: 2 },
+        timeline: { position: 30, duration: 180, sampledAtMs: 98000 },
+      };
+      emitWorkerMessage({ session, type: 'session-update', sourceAppId: 'Spotify.exe' });
+      expect(mockWindow.webContents.send).toHaveBeenLastCalledWith('nowplaying:info', expect.objectContaining({
+        position_ms: 30000, positionTimestampMs: 98000, playbackRate: 2,
+      }));
+      now.mockReturnValue(101000);
+      emitWorkerMessage({ session, type: 'session-update', sourceAppId: 'Spotify.exe' });
+      expect(mockWindow.webContents.send).toHaveBeenLastCalledWith('nowplaying:info', expect.objectContaining({
+        position_ms: 30000, positionTimestampMs: 98000, playbackRate: 2,
+      }));
+      svc.cleanupWorker();
+    });
+
+    it('freezes the extrapolated position on pause without a fresh timeline and resumes there', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const now = vi.spyOn(Date, 'now').mockReturnValue(100000);
+      const svc = createSmtcService(defaultOptions({ getWhitelist: () => ['spotify'] }));
+      svc.initWorker();
+      svc.setCurrentDeviceId('Spotify.exe');
+      const media = { title: 'Song', artist: 'Artist', albumTitle: 'Album' };
+      emitWorkerMessage({ type: 'session-update', sourceAppId: 'Spotify.exe', session: {
+        media, playback: { playbackStatus: 4, playbackRate: 2 },
+        timeline: { position: 30, duration: 180, sampledAtMs: 100000 },
+      } });
+      now.mockReturnValue(102000);
+      emitWorkerMessage({ type: 'session-update', sourceAppId: 'Spotify.exe', session: {
+        media, playback: { playbackStatus: 5, playbackRate: 2 }, timeline: null,
+      } });
+      expect(mockWindow.webContents.send).toHaveBeenLastCalledWith('nowplaying:info', expect.objectContaining({
+        position_ms: 34000, positionTimestampMs: 102000, isPlaying: false,
+      }));
+      now.mockReturnValue(110000);
+      emitWorkerMessage({ type: 'session-update', sourceAppId: 'Spotify.exe', session: {
+        media, playback: { playbackStatus: 4, playbackRate: 0 }, timeline: null,
+      } });
+      expect(mockWindow.webContents.send).toHaveBeenLastCalledWith('nowplaying:info', expect.objectContaining({
+        position_ms: 34000, positionTimestampMs: 110000, playbackRate: 0, isPlaying: true,
+      }));
+      svc.cleanupWorker();
+    });
+
     it('stores session runtime for whitelisted apps and emits nowplaying:info', async () => {
       const { createSmtcService } = await import('../smtcService');
       const svc = createSmtcService(defaultOptions({ getWhitelist: () => ['spotify'] }));

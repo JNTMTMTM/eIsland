@@ -87,10 +87,6 @@ public static class SmtcSessionMonitor
     private static readonly Dictionary<string, Action> _unsubscribeSessions = new();
     private static TypedEventHandler<GlobalSystemMediaTransportControlsSessionManager, SessionsChangedEventArgs>? _sessionsChangedHandler;
 
-    /// <summary>Timeline 变更节流：每会话 200ms 最多触发一次</summary>
-    private static readonly ConcurrentDictionary<string, long> _lastTimelineSignal = new();
-    private const long TimelineThrottleMs = 200;
-
     /// <summary>初始化 Win32 事件</summary>
     private static bool EnsureEvents()
     {
@@ -338,7 +334,6 @@ public static class SmtcSessionMonitor
                 if (_unsubscribeSessions.Remove(id, out var unsubscribe)) unsubscribe();
                 _sessions.TryRemove(id, out _);
                 _pendingChanges[id] = new SessionDelta { SourceAppId = id, Version = ++_revision, Removed = true };
-                _lastTimelineSignal.TryRemove(id, out _);
             }
         }
         catch { /* 忽略同步错误 */ }
@@ -388,11 +383,7 @@ public static class SmtcSessionMonitor
                     || !ReferenceEquals(current, unsubscribe)) return;
                 try
                 {
-                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    var last = _lastTimelineSignal.GetOrAdd(id, 0);
-                    if (now - last < TimelineThrottleMs) return;
-                    _lastTimelineSignal[id] = now;
-
+                    // 增量队列已按会话合并；丢弃窗口内事件会漏掉拖动后的最终位置。
                     var info = BuildSessionInfo(session, refreshThumbnail: false);
                     PublishSession(info, false);
                     SignalChange();
@@ -428,8 +419,10 @@ public static class SmtcSessionMonitor
         var media = !refreshThumbnail && cached != null
             ? cached.Media
             : BuildMediaMetadata(session, refreshThumbnail, cached?.Media?.Thumbnail);
-        var playback = BuildPlaybackInfo(session);
-        var timeline = BuildTimelineInfo(session);
+        GlobalSystemMediaTransportControlsSessionPlaybackInfo? playbackInfo = null;
+        try { playbackInfo = session.GetPlaybackInfo(); } catch { }
+        var playback = playbackInfo == null ? null : BuildPlaybackInfo(playbackInfo);
+        var timeline = playbackInfo == null ? null : BuildTimelineInfo(session, playbackInfo);
 
         return new SessionInfo
         {
@@ -488,12 +481,10 @@ public static class SmtcSessionMonitor
         }
     }
 
-    private static PlaybackInfoSnapshot? BuildPlaybackInfo(GlobalSystemMediaTransportControlsSession session)
+    private static PlaybackInfoSnapshot? BuildPlaybackInfo(GlobalSystemMediaTransportControlsSessionPlaybackInfo info)
     {
         try
         {
-            var info = session.GetPlaybackInfo();
-
             // 数值映射：与 SMTCMonitor (Rust) 对齐
             // SMTCMonitor 使用 GlobalSystemMediaTransportControlsSessionPlaybackStatus 枚举数值：
             // 0=Closed, 1=Opened, 2=Changing, 3=Stopped, 4=Playing, 5=Paused, 6=Unknown
@@ -545,19 +536,21 @@ public static class SmtcSessionMonitor
         }
     }
 
-    private static TimelineInfo? BuildTimelineInfo(GlobalSystemMediaTransportControlsSession session)
+    private static TimelineInfo? BuildTimelineInfo(GlobalSystemMediaTransportControlsSession session,
+        GlobalSystemMediaTransportControlsSessionPlaybackInfo playbackInfo)
     {
         try
         {
-            var t = session.GetTimelineProperties();
+            var t = SmtcController.ReadTimeline(session, playbackInfo);
             return new TimelineInfo
             {
-                Position = t.Position.TotalSeconds,
-                Duration = t.EndTime.TotalSeconds - t.StartTime.TotalSeconds,
-                StartTime = t.StartTime.TotalSeconds,
-                EndTime = t.EndTime.TotalSeconds,
-                MinSeekTime = t.MinSeekTime.TotalSeconds,
-                MaxSeekTime = t.MaxSeekTime.TotalSeconds,
+                Position = t.Position,
+                SampledAtMs = t.SampledAtMs,
+                Duration = t.EndTime - t.StartTime,
+                StartTime = t.StartTime,
+                EndTime = t.EndTime,
+                MinSeekTime = t.MinSeekTime,
+                MaxSeekTime = t.MaxSeekTime,
             };
         }
         catch
@@ -585,7 +578,6 @@ public static class SmtcSessionMonitor
             _sessions.Clear();
             _pendingChanges.Clear();
             _revision = 0;
-            _lastTimelineSignal.Clear();
             _changeCounter = 0;
         }
 

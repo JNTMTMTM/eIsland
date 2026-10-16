@@ -51,6 +51,22 @@ describe('real TTML syllable parser', () => {
     ]);
   });
 
+  it.each(['00:01.5', '00:01.50', '00:01.500', '00:00:01.500'])(
+    'keeps fractional-second precision for %s', (start) => {
+      const raw = `<p begin="${start}" end="00:03"><span begin="00:01.750" end="00:02.250">Hello</span></p>`;
+      expect(parseTTML(raw)).toEqual([
+        { time_ms: 1500, duration_ms: 1500, text: 'Hello', syllables: [{ start_offset_ms: 250, duration_ms: 500, text: 'Hello' }] },
+      ]);
+    },
+  );
+
+  it('keeps whole-second line and syllable times finite', () => {
+    const raw = '<p begin="00:01" end="00:00:03"><span begin="00:02" end="00:00:03">Hello</span></p>';
+    expect(parseTTML(raw)).toEqual([
+      { time_ms: 1000, duration_ms: 2000, text: 'Hello', syllables: [{ start_offset_ms: 1000, duration_ms: 1000, text: 'Hello' }] },
+    ]);
+  });
+
   it('ignores empty or incomplete syllables without discarding the valid line', () => {
     const raw = '<p in="00:01.00" nd="00:02.00">'
       + '<span in="00:01.00" nd="00:02.00"></span>'

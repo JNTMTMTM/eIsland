@@ -117,7 +117,12 @@ smtc.on('session-media-changed', (sourceAppId: string, mediaProps: MediaProps) =
 
 smtc.on('session-playback-changed', (sourceAppId: string, playbackInfo: PlaybackInfo) => {
   const existing = sessionCache.get(sourceAppId) ?? { media: null, playback: null, timeline: null };
-  sessionCache.set(sourceAppId, { ...existing, playback: playbackInfo });
+  // Monitor 已合并同批次的时间线；暂停/恢复时不能把新状态配到旧位置。
+  const fresh = smtc.getCachedSession(sourceAppId);
+  const timeline = fresh ? fresh.timeline : existing.timeline;
+  const updated = { ...existing, playback: playbackInfo };
+  updated.timeline = timeline;
+  sessionCache.set(sourceAppId, updated);
   postSessionUpdate(sourceAppId, false);
 });
 
@@ -130,6 +135,34 @@ smtc.on('session-timeline-changed', (sourceAppId: string, timelineProps: Timelin
 /** 接收主进程请求：主动查询当前所有 SMTC 会话（用于播放源检测按钮） */
 parentPort.on('message', (msg: SmtcCommandRequest | { type: 'cancel-command'; requestId: number } | { type: 'detect-sources' }) => {
   if (msg.type === 'command') {
+    if (msg.command === 'getTimestamp' && msg.deadline > Date.now()) {
+      const cached = smtc.getCachedSession(msg.sourceAppId);
+      const timeline = cached?.timeline;
+      // 监控时钟记录了暂停与变速历史；新命令进程无法从一个旧 WinRT 采样还原这些区间。
+      if (timeline && Number.isFinite(timeline.sampledAtMs)) {
+        const status = cached?.playback?.playbackStatus;
+        const playbackStatuses: Record<number, string> = { 0: 'closed', 1: 'opened', 2: 'changing', 3: 'stopped', 4: 'playing', 5: 'paused' };
+        parentPort!.postMessage({
+          type: 'command-result',
+          requestId: msg.requestId,
+          result: {
+            isAvailable: true,
+            playbackStatus: playbackStatuses[status ?? -1] ?? 'unknown',
+            playbackRate: cached?.playback?.playbackRate,
+            sourceAppUserModelId: msg.sourceAppId,
+            timeline: {
+              position: timeline.position,
+              sampledAtMs: timeline.sampledAtMs,
+              startTime: 0,
+              endTime: timeline.duration,
+              minSeekTime: 0,
+              maxSeekTime: timeline.duration,
+            },
+          },
+        });
+        return;
+      }
+    }
     commands.execute(msg, (response) => parentPort!.postMessage(response));
     return;
   }

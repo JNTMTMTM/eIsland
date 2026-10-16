@@ -96,6 +96,9 @@ export type NowPlayingInfo = {
   album: string;
   duration_ms: number;
   position_ms: number;
+  /** position_ms 对应的 Unix 毫秒时间，用于补偿跨进程传输延迟。 */
+  positionTimestampMs?: number;
+  playbackRate?: number;
   isPlaying: boolean;
   thumbnail?: string | null;
   canFastForward: boolean;

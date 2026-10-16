@@ -72,16 +72,28 @@ describe('SMTC 会话快照与通知差异', () => {
     json.mockReturnValue([{ sourceAppId: 'id', media: { [key]: key === 'trackNumber' ? 2 : 'changed' } }]); vi.advanceTimersByTime(100); expect(changed).toHaveBeenCalledOnce();
     counter.mockReturnValue(2); vi.advanceTimersByTime(100); expect(changed).toHaveBeenCalledOnce(); target.stop();
   });
-  it.each(['playbackStatus', 'playbackType'])('播放属性 %s 单独变化通知', (key) => {
+  it.each(['playbackStatus', 'playbackType', 'playbackRate'])('播放属性 %s 单独变化通知', (key) => {
     const target = monitor(); const changed = vi.fn(); target.on('session-playback-changed', changed);
     json.mockReturnValue([{ sourceAppId: 'id', playback: { playbackStatus: 4, playbackType: 1 } }]); target.start(); counter.mockReturnValue(1);
     json.mockReturnValue([{ sourceAppId: 'id', playback: { playbackStatus: 4, playbackType: 1, [key]: 2 } }]); vi.advanceTimersByTime(100); expect(changed).toHaveBeenCalledOnce(); target.stop();
   });
-  it.each(['position', 'duration'])('时间线 %s 变化小于半秒不通知，达到半秒才通知', (key) => {
+  it.each(['position', 'duration'])('时间线 %s 保留小于半秒的校正，不吞掉逐字歌词的细小变化', (key) => {
     const target = monitor(); const changed = vi.fn(); target.on('session-timeline-changed', changed);
     json.mockReturnValue([{ sourceAppId: 'id', timeline: { position: 0, duration: 0 } }]); target.start(); counter.mockReturnValue(1);
-    json.mockReturnValue([{ sourceAppId: 'id', timeline: { [key]: 0.49 } }]); vi.advanceTimersByTime(100); expect(changed).not.toHaveBeenCalled();
-    counter.mockReturnValue(2); json.mockReturnValue([{ sourceAppId: 'id', timeline: { [key]: 1 } }]); vi.advanceTimersByTime(100); expect(changed).toHaveBeenCalledOnce(); target.stop();
+    json.mockReturnValue([{ sourceAppId: 'id', timeline: { [key]: 0.049 } }]); vi.advanceTimersByTime(100); expect(changed).toHaveBeenCalledOnce();
+    counter.mockReturnValue(2); json.mockReturnValue([{ sourceAppId: 'id', timeline: { [key]: 1 } }]); vi.advanceTimersByTime(100); expect(changed).toHaveBeenCalledTimes(2); target.stop();
+  });
+  it('透传采样时刻与速率，重复读取缓存不会重设旧时间线的采样时刻', () => {
+    const target = monitor(); const changed = vi.fn(); target.on('session-timeline-changed', changed);
+    const sampledAtMs = Date.now() - 1250;
+    json.mockReturnValue([{ sourceAppId: 'id', playback: { playbackStatus: 4, playbackRate: 1.5 }, timeline: { sampledAtMs, position: 10, duration: 100 } }]);
+    target.start(); vi.advanceTimersByTime(500);
+    expect(target.getCachedSession('id')).toMatchObject({ playback: { playbackRate: 1.5 }, timeline: { sampledAtMs } });
+    expect(target.getMediaSessions()[0]?.timeline?.sampledAtMs).toBe(sampledAtMs);
+    counter.mockReturnValue(1);
+    json.mockReturnValue([{ sourceAppId: 'id', playback: { playbackStatus: 4, playbackRate: 1.5 }, timeline: { position: 10, duration: 100, sampledAtMs: sampledAtMs + 500 } }]);
+    vi.advanceTimersByTime(100);
+    expect(changed).toHaveBeenCalledExactlyOnceWith('id', { position: 10, duration: 100, sampledAtMs: sampledAtMs + 500 });
   });
   it('media/playback/timeline 两者为空无通知，从缺失到存在或反向均通知', () => {
     const target = monitor(); const media = vi.fn(); const playback = vi.fn(); const timeline = vi.fn(); target.on('session-media-changed', media); target.on('session-playback-changed', playback); target.on('session-timeline-changed', timeline);

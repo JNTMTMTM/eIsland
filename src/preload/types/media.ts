@@ -47,6 +47,9 @@ export interface NowPlayingInfo {
   album: string;
   duration_ms: number;
   position_ms: number;
+  /** position_ms 对应的 Unix 毫秒时间，用于补偿跨进程传输延迟。 */
+  positionTimestampMs?: number;
+  playbackRate?: number;
   isPlaying: boolean;
   thumbnail?: string | null;
   canFastForward: boolean;
@@ -54,6 +57,7 @@ export interface NowPlayingInfo {
   canLike: boolean;
   canChangeVolume: boolean;
   canSetOutput: boolean;
+  deviceId?: string;
 }
 
 /** SMTC 播放源信息 */
@@ -78,12 +82,16 @@ export interface SmtcTimeline {
   position: number;
   minSeekTime: number;
   maxSeekTime: number;
+  /** position 对应的 Unix 毫秒采样时间。 */
+  sampledAtMs?: number;
 }
 
 /** SMTC 时间戳结果 */
 export interface SmtcTimestampResult {
   isAvailable: boolean;
   playbackStatus: string;
+  playbackRate?: number | null;
+  sourceAppUserModelId?: string | null;
   timeline: SmtcTimeline | null;
 }
 

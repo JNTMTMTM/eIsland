@@ -441,7 +441,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
 
                 <div className="settings-card-subgroup">
                   <div className="settings-card-subgroup-title">{t('settings.music.lyrics.calibrateTitle', { defaultValue: '歌词校准' })}</div>
-                  <div className="settings-music-hint">{t('settings.music.lyrics.calibrateHint', { defaultValue: '歌词获取后延迟读取 SMTC 时间戳，修正歌词时间偏移' })}</div>
+                  <div className="settings-music-hint">{t('settings.music.lyrics.calibrateHint', { defaultValue: '歌词加载后按播放时长延迟校准进度，暂停时停止计时；修改设置对当前歌曲立即生效' })}</div>
                   <div className="settings-card-inline-row">
                     <label className="settings-card-check">
                       <input

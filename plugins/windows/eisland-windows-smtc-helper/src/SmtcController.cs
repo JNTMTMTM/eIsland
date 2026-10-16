@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.Runtime.CompilerServices;
 using Windows.Media;
 using Windows.Graphics.Imaging;
 using Windows.Media.Control;
@@ -30,6 +31,43 @@ public static class SmtcController
 {
     internal static string CommandSourceAppId { get; set; } = "";
     private static GlobalSystemMediaTransportControlsSessionManager? _commandManager;
+    private static readonly ConditionalWeakTable<GlobalSystemMediaTransportControlsSession, TimelineClock> TimelineClocks = new();
+
+    /// <summary>播放器不随暂停或倍速变化更新原始时间线时，保留已观察到的状态分段。</summary>
+    internal sealed class TimelineClock
+    {
+        private (double Position, double Start, double End, DateTimeOffset Updated)? _source;
+        private double _position;
+        private DateTimeOffset _sampledAt;
+        private bool _playing;
+        private double? _rate;
+
+        /// <summary>新原始样本采用播放器时间；相同样本按上次状态推进后切换到本次状态。</summary>
+        /// <param name="position">原始播放位置，单位为秒。</param>
+        /// <param name="startTime">媒体起点，单位为秒。</param>
+        /// <param name="endTime">媒体终点，未知时为零。</param>
+        /// <param name="lastUpdatedTime">播放器发布时间。</param>
+        /// <param name="isPlaying">本次播放状态。</param>
+        /// <param name="playbackRate">本次播放速率。</param>
+        /// <param name="now">本次采样的 UTC 时刻。</param>
+        /// <returns>本次采样时刻的播放位置。</returns>
+        internal double Sample(double position, double startTime, double endTime,
+            DateTimeOffset lastUpdatedTime, bool isPlaying, double? playbackRate, DateTimeOffset now)
+        {
+            lock (this)
+            {
+                var source = (position, startTime, endTime, lastUpdatedTime);
+                _position = _source == source
+                    ? ProjectTimelinePosition(_position, startTime, endTime, _sampledAt, _playing, _rate, now)
+                    : ProjectTimelinePosition(position, startTime, endTime, lastUpdatedTime, isPlaying, playbackRate, now);
+                _source = source;
+                _sampledAt = now;
+                _playing = isPlaying;
+                _rate = playbackRate;
+                return _position;
+            }
+        }
+    }
 
     private static async Task<GlobalSystemMediaTransportControlsSession?> GetCurrentSessionAsync()
     {
@@ -238,9 +276,6 @@ public static class SmtcController
             if (session == null)
                 return MediaStatus.Empty;
 
-            var playbackInfo = session.GetPlaybackInfo();
-            var timeline = session.GetTimelineProperties();
-
             string? title = null;
             string? artist = null;
             string? albumTitle = null;
@@ -271,6 +306,9 @@ public static class SmtcController
             }
             catch { }
 
+            // 封面解码和媒体查询可能耗时；最后采样时间线，避免把旧位置标成当前值。
+            var playbackInfo = session.GetPlaybackInfo();
+            var timelineProperties = ReadTimeline(session, playbackInfo);
             var playbackStatus = playbackInfo.PlaybackStatus switch
             {
                 GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing => "playing",
@@ -294,15 +332,6 @@ public static class SmtcController
                 IsRewindEnabled = playbackInfo.Controls.IsRewindEnabled,
                 IsChannelUpEnabled = playbackInfo.Controls.IsChannelUpEnabled,
                 IsChannelDownEnabled = playbackInfo.Controls.IsChannelDownEnabled,
-            };
-
-            var timelineProperties = new TimelineProperties
-            {
-                StartTime = timeline.StartTime.TotalSeconds,
-                EndTime = timeline.EndTime.TotalSeconds,
-                Position = timeline.Position.TotalSeconds,
-                MinSeekTime = timeline.MinSeekTime.TotalSeconds,
-                MaxSeekTime = timeline.MaxSeekTime.TotalSeconds,
             };
 
             return new MediaStatus
@@ -330,6 +359,48 @@ public static class SmtcController
         }
     }
 
+    /// <summary>将播放器在 LastUpdatedTime 发布的位置推进到采样时刻；暂停与停止不外推。</summary>
+    /// <param name="position">播放器发布的位置，单位为秒。</param>
+    /// <param name="startTime">媒体起点，单位为秒。</param>
+    /// <param name="endTime">媒体终点，未知时为零。</param>
+    /// <param name="lastUpdatedTime">播放器更新时间；未提供或未来时间不补偿。</param>
+    /// <param name="isPlaying">仅正在播放时推进时间。</param>
+    /// <param name="playbackRate">播放速率；缺省或无效时按正常速度。</param>
+    /// <param name="now">本次采样的 UTC 时刻。</param>
+    /// <returns>限制在媒体范围内的当前位置。</returns>
+    internal static double ProjectTimelinePosition(double position, double startTime, double endTime,
+        DateTimeOffset lastUpdatedTime, bool isPlaying, double? playbackRate, DateTimeOffset now)
+    {
+        var rate = playbackRate is double value && double.IsFinite(value) && value >= 0 ? value : 1;
+        var age = lastUpdatedTime > DateTimeOffset.UnixEpoch && lastUpdatedTime <= now
+            ? (now - lastUpdatedTime).TotalSeconds : 0;
+        var current = Math.Max(startTime, position + (isPlaying ? age * rate : 0));
+        return endTime > startTime ? Math.Min(endTime, current) : current;
+    }
+
+    /// <summary>为命令查询和监控共用同一时间线算法，避免校准与播放显示采用不同的时间基准。</summary>
+    /// <param name="session">本次查询的媒体会话。</param>
+    /// <param name="playbackInfo">与时间线一同读取的播放状态。</param>
+    /// <returns>带采样时刻的当前时间线。</returns>
+    internal static TimelineProperties ReadTimeline(GlobalSystemMediaTransportControlsSession session,
+        GlobalSystemMediaTransportControlsSessionPlaybackInfo playbackInfo)
+    {
+        var timeline = session.GetTimelineProperties();
+        var now = DateTimeOffset.UtcNow;
+        return new TimelineProperties
+        {
+            StartTime = timeline.StartTime.TotalSeconds,
+            EndTime = timeline.EndTime.TotalSeconds,
+            Position = TimelineClocks.GetValue(session, static _ => new TimelineClock()).Sample(timeline.Position.TotalSeconds, timeline.StartTime.TotalSeconds,
+                timeline.EndTime.TotalSeconds, timeline.LastUpdatedTime,
+                playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing,
+                playbackInfo.PlaybackRate, now),
+            SampledAtMs = now.ToUnixTimeMilliseconds(),
+            MinSeekTime = timeline.MinSeekTime.TotalSeconds,
+            MaxSeekTime = timeline.MaxSeekTime.TotalSeconds,
+        };
+    }
+
     /// <summary>
     /// 轻量级获取当前播放时间戳（不含媒体元数据），用于歌词校准等场景
     /// </summary>
@@ -342,7 +413,7 @@ public static class SmtcController
                 return TimestampInfo.Empty;
 
             var playbackInfo = session.GetPlaybackInfo();
-            var timeline = session.GetTimelineProperties();
+            var timelineProperties = ReadTimeline(session, playbackInfo);
 
             var playbackStatus = playbackInfo.PlaybackStatus switch
             {
@@ -355,19 +426,12 @@ public static class SmtcController
                 _ => "unknown"
             };
 
-            var timelineProperties = new TimelineProperties
-            {
-                StartTime = timeline.StartTime.TotalSeconds,
-                EndTime = timeline.EndTime.TotalSeconds,
-                Position = timeline.Position.TotalSeconds,
-                MinSeekTime = timeline.MinSeekTime.TotalSeconds,
-                MaxSeekTime = timeline.MaxSeekTime.TotalSeconds,
-            };
-
             return new TimestampInfo
             {
                 IsAvailable = true,
                 PlaybackStatus = playbackStatus,
+                PlaybackRate = playbackInfo.PlaybackRate,
+                SourceAppUserModelId = session.SourceAppUserModelId,
                 Timeline = timelineProperties,
             };
         }

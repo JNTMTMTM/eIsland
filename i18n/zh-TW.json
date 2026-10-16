@@ -3646,7 +3646,7 @@
         "clockHint": "在歌詞界面封面與歌詞之間顯示當前北京時間",
         "clockToggle": "顯示當前時間",
         "calibrateTitle": "歌詞校準",
-        "calibrateHint": "歌詞獲取後延遲讀取 SMTC 時間戳，修正歌詞時間偏移",
+        "calibrateHint": "歌詞載入後按播放時長延遲校準進度，暫停時停止計時；修改設定對目前歌曲立即生效",
         "calibrateToggle": "啟用歌詞校準",
         "calibrateDelayLabel": "觸發延遲（秒）"
       },

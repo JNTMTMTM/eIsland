@@ -70,6 +70,20 @@ describe.each(flags)('Music $channel preference', ({ channel, key, fallback }) =
   it('returns false after a persistence failure', () => { io.write.mockImplementationOnce(() => { throw new Error('full'); }); expect(invoke(`music:${  channel  }:set`, true)).toBe(false); });
 });
 describe('Music lyric calibration delay boundaries', () => {
+  it('broadcasts successful calibration changes to every window, including the sender', () => {
+    expect(invoke('music:lyrics-calibrate-enabled:set', true)).toBe(true);
+    expect(io.broadcast).toHaveBeenLastCalledWith(-1, 'music:lyrics-calibrate-enabled', true);
+    expect(invoke('music:lyrics-calibrate-delay:set', 3.8)).toBe(true);
+    expect(io.broadcast).toHaveBeenLastCalledWith(-1, 'music:lyrics-calibrate-delay', 3);
+    expect(invoke('music:lyrics-calibrate-delay:set', Infinity)).toBe(true);
+    expect(io.broadcast).toHaveBeenLastCalledWith(-1, 'music:lyrics-calibrate-delay', 20);
+  });
+  it('does not apply a calibration setting when persistence fails', () => {
+    io.write.mockImplementation(() => { throw new Error('full'); });
+    expect(invoke('music:lyrics-calibrate-enabled:set', false)).toBe(false);
+    expect(invoke('music:lyrics-calibrate-delay:set', 0)).toBe(false);
+    expect(io.broadcast).not.toHaveBeenCalled();
+  });
   it.each([[undefined, 20], ['0', 0], ['12.5', 12.5], ['-1', 20], ['"5"', 20], ['null', 20], ['{broken', 20]])('reads %s as %s seconds', (stored, expected) => {
     if (stored !== undefined) io.files.set(join('C:/store', 'delay.json'), stored);
     expect(invoke('music:lyrics-calibrate-delay:get')).toBe(expected);

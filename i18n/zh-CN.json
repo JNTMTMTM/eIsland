@@ -3646,7 +3646,7 @@
         "clockHint": "在歌词界面封面与歌词之间显示当前北京时间",
         "clockToggle": "显示当前时间",
         "calibrateTitle": "歌词校准",
-        "calibrateHint": "歌词获取后延迟读取 SMTC 时间戳，修正歌词时间偏移",
+        "calibrateHint": "歌词加载后按播放时长延迟校准进度，暂停时停止计时；修改设置对当前歌曲立即生效",
         "calibrateToggle": "启用歌词校准",
         "calibrateDelayLabel": "触发延迟（秒）"
       },

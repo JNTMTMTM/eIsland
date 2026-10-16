@@ -25,6 +25,8 @@ public class TimelineProperties
     public double StartTime { get; init; }
     public double EndTime { get; init; }
     public double Position { get; init; }
+    /// <summary>Position 对应的 UTC Unix 毫秒，消费端据此补偿传输延迟。</summary>
+    public long SampledAtMs { get; init; }
     public double MinSeekTime { get; init; }
     public double MaxSeekTime { get; init; }
 }
@@ -37,6 +39,8 @@ public class TimestampInfo
     public bool IsAvailable { get; init; }
     /// <summary>播放状态字符串，与 MediaStatus.PlaybackStatus 格式一致</summary>
     public string? PlaybackStatus { get; init; }
+    public double? PlaybackRate { get; init; }
+    public string? SourceAppUserModelId { get; init; }
     public TimelineProperties? Timeline { get; init; }
 
     public static TimestampInfo Empty => new() { IsAvailable = false };
@@ -121,6 +125,8 @@ public class PlaybackInfoSnapshot
 public class TimelineInfo
 {
     public double Position { get; init; }
+    /// <summary>Position 对应的 UTC Unix 毫秒，缓存读取必须保留此值。</summary>
+    public long SampledAtMs { get; init; }
     public double Duration { get; init; }
     public double StartTime { get; init; }
     public double EndTime { get; init; }

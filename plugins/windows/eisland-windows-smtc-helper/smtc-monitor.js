@@ -220,7 +220,8 @@ class SmtcMonitor extends EventEmitter {
     if (!a || !b) return true;
     return (
       a.playbackStatus !== b.playbackStatus ||
-      a.playbackType !== b.playbackType
+      a.playbackType !== b.playbackType ||
+      a.playbackRate !== b.playbackRate
     );
   }
 
@@ -229,8 +230,9 @@ class SmtcMonitor extends EventEmitter {
     if (!a && !b) return false;
     if (!a || !b) return true;
     return (
-      Math.abs(a.position - b.position) >= 0.5 ||
-      Math.abs(a.duration - b.duration) >= 0.5
+      a.position !== b.position ||
+      a.duration !== b.duration ||
+      a.sampledAtMs !== b.sampledAtMs
     );
   }
 
@@ -254,16 +256,18 @@ class SmtcMonitor extends EventEmitter {
 
     const playback = raw.playback
       ? {
-          playbackStatus: raw.playback.playbackStatus,
-          playbackType: raw.playback.playbackType || 0,
-        }
+        playbackStatus: raw.playback.playbackStatus,
+        playbackType: raw.playback.playbackType || 0,
+        ...(raw.playback.playbackRate === undefined ? {} : { playbackRate: raw.playback.playbackRate }),
+      }
       : null;
 
     const timeline = raw.timeline
       ? {
-          position: raw.timeline.position || 0,
-          duration: raw.timeline.duration || 0,
-        }
+        position: raw.timeline.position || 0,
+        duration: raw.timeline.duration || 0,
+        ...(Number.isFinite(raw.timeline.sampledAtMs) ? { sampledAtMs: raw.timeline.sampledAtMs } : {}),
+      }
       : null;
 
     return {
