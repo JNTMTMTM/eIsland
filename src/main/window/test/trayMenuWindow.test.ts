@@ -221,7 +221,7 @@ describe('trayMenuWindow', () => {
     service.showTrayMenuWindow(STATE, vi.fn());
     emit('tray-menu:mounted', win.webContents);
     win.setOpacity.mockClear();
-    for (const invalid of [0, -1, Number.NaN, Number.POSITIVE_INFINITY, '200']) emit('tray-menu:ready', win.webContents, invalid);
+    [0, -1, Number.NaN, Number.POSITIVE_INFINITY, '200'].forEach((invalid) => emit('tray-menu:ready', win.webContents, invalid));
     emit('tray-menu:ready', { foreign: true }, 200);
     expect(win.setOpacity).not.toHaveBeenCalled();
     emit('tray-menu:ready', win.webContents, 199.2);

@@ -297,20 +297,20 @@ it('取消置顶后语音和CLI背景保持相同层级，不覆盖主窗口的�
   call(options('createHotkeyService'), 'onAgentVoiceInputHotkeyHold');
   mocks.handlers.get('cli-glow:show')!();
   expect(mocks.windows).toHaveLength(2);
-  for (const background of mocks.windows) {
+  mocks.windows.forEach((background) => {
     expect(background.setAlwaysOnTop).toHaveBeenLastCalledWith(false, 'screen-saver');
     background.emit('ready-to-show');
-  }
+  });
   expect(mocks.main!.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
   expect(mocks.main!.moveTop).toHaveBeenCalled();
   const [, trayOptions] = leaf('createTray').mock.calls[0] as [unknown, OptionBag];
-  for (const enabled of [true, false]) {
+  [true, false].forEach((enabled) => {
     setIslandAlwaysOnTop(mocks.main! as unknown as Electron.BrowserWindow, enabled);
     call(trayOptions, 'onAlwaysOnTopChange');
-    for (const background of mocks.windows) {
+    mocks.windows.forEach((background) => {
       expect(background.setAlwaysOnTop).toHaveBeenLastCalledWith(enabled, 'screen-saver');
-    }
-  }
+    });
+  });
   mocks.main!.moveTop.mockClear();
   mocks.windows.forEach((background) => background.hide());
   call(trayOptions, 'onAlwaysOnTopChange');

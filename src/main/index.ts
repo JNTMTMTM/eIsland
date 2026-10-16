@@ -193,12 +193,12 @@ function raiseIslandAboveBackground(): void {
 /** 托盘切换置顶时，将已显示的背景窗口同步到相同层级；无背景时不调整主窗口层级。 */
 function syncIslandBackgroundLayers(): void {
   let hasVisibleBackground = false;
-  for (const background of [agentVoiceInputWindow, cliGlowWindow]) {
+  [agentVoiceInputWindow, cliGlowWindow].forEach((background) => {
     if (background && !background.isDestroyed() && background.isVisible()) {
       background.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
       hasVisibleBackground = true;
     }
-  }
+  });
   if (hasVisibleBackground) raiseIslandAboveBackground();
 }
 

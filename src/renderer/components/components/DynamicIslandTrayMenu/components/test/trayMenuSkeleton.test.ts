@@ -26,6 +26,7 @@
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { runInNewContext } from 'node:vm';
 import { describe, expect, it, vi } from 'vitest';
 import { elements } from '../../../../test/elementHarness';
 import { TRAY_MENU_ITEMS } from '../../config/trayMenuItems';
@@ -88,8 +89,7 @@ describe('DynamicIslandTrayMenu.html', () => {
     const script = /<script id="tray-menu-theme">([\s\S]*?)<\/script>/.exec(html)?.[1];
     expect(script).toBeDefined();
     const document = { documentElement: { dataset: {} as Record<string, string> } };
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval -- 执行 HTML 中的真实内联脚本以验证主题解析。
-    new Function('document', 'location', script ?? '')(document, { search });
+    runInNewContext(script ?? '', { document, URLSearchParams, location: { search } });
     expect(document.documentElement.dataset.theme).toBe(theme);
   });
 });
