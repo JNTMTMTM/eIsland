@@ -1,0 +1,199 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file tray-menu-skeleton.css
+ * @description 托盘菜单骨架屏样式：由 HTML 入口直接引用，在渲染脚本与主题样式加载前即可绘制
+ * @author 鸡哥
+ */
+
+/** ===== 骨架屏主题变量（与 reset.css 主题配色一致，首屏时 reset.css 尚未加载） ===== */
+:root {
+  --tray-skeleton-rgb: 255, 255, 255;
+  --tray-skeleton-bg: #000;
+
+}
+
+[data-theme="light"] {
+  --tray-skeleton-rgb: 0, 0, 0;
+  --tray-skeleton-bg: #f5f5f7;
+
+}
+
+/** 托盘菜单页面专用：首屏去掉浏览器默认边距，保持透明背景 */
+html,
+body {
+  margin: 0;
+  background: transparent;
+
+}
+
+/** ===== 骨架屏容器（总高度 355px，需与主进程 TRAY_MENU_INITIAL_HEIGHT 一致） ===== */
+.tray-skeleton {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 272px;
+  padding: 6px;
+  overflow: hidden;
+  background-color: var(--tray-skeleton-bg);
+  border: 1px solid rgb(var(--tray-skeleton-rgb), .12);
+  border-radius: 12px;
+
+}
+
+.tray-skeleton-card {
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid rgb(var(--tray-skeleton-rgb), .08);
+  border-radius: 10px;
+
+}
+
+.tray-skeleton-user {
+  height: 60px;
+
+}
+
+.tray-skeleton-music {
+  height: 58px;
+
+}
+
+.tray-skeleton-avatar {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+
+}
+
+.tray-skeleton-cover {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+
+}
+
+.tray-skeleton-lines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+
+}
+
+.tray-skeleton-line {
+  width: 72%;
+  height: 10px;
+
+}
+
+.tray-skeleton-line-short {
+  width: 46%;
+  height: 8px;
+
+}
+
+.tray-skeleton-controls {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+  align-items: center;
+
+}
+
+.tray-skeleton-button {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+
+}
+
+.tray-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+}
+
+.tray-skeleton-row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: 31px;
+  padding: 0 10px;
+
+}
+
+.tray-skeleton-row-bar {
+  width: 58%;
+  height: 10px;
+
+}
+
+.tray-skeleton-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: rgb(var(--tray-skeleton-rgb), .08);
+
+}
+
+/** ===== 流光动画块（音乐卡片加载态复用） ===== */
+.tray-skeleton-block {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--tray-skeleton-rgb), .06) 25%,
+    rgb(var(--tray-skeleton-rgb), .16) 37%,
+    rgb(var(--tray-skeleton-rgb), .06) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: 5px;
+  animation: tray-skeleton-shimmer 1.4s ease infinite;
+
+}
+
+@keyframes tray-skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+
+  }
+
+  100% {
+    background-position: 0 50%;
+
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tray-skeleton-block {
+    animation: none;
+
+  }
+
+}

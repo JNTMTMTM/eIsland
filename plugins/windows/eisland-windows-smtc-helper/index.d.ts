@@ -29,6 +29,8 @@ export interface TimelineProperties {
   endTime: number;
   /** Current playback position in seconds */
   position: number;
+  /** UTC Unix milliseconds at which position was sampled; absent in older helpers. */
+  sampledAtMs?: number;
   /** Minimum seekable time in seconds */
   minSeekTime: number;
   /** Maximum seekable time in seconds */
@@ -81,6 +83,10 @@ export interface CommandResult {
 export interface TimestampInfo {
   isAvailable: boolean;
   playbackStatus: 'playing' | 'paused' | 'stopped' | 'closed' | 'opened' | 'changing' | 'unknown';
+  /** Playback rate, when the media source exposes it. */
+  playbackRate?: number | null;
+  /** Session identity used to reject stale calibration results after switching players. */
+  sourceAppUserModelId?: string | null;
   timeline: TimelineProperties | null;
 }
 
@@ -100,11 +106,14 @@ export interface MediaProps {
 export interface PlaybackInfo {
   playbackStatus: number;
   playbackType: number;
+  playbackRate?: number | null;
 }
 
 export interface TimelineProps {
   position: number;
   duration: number;
+  /** UTC Unix milliseconds associated with position; retained when reading cached sessions. */
+  sampledAtMs?: number;
 }
 
 export interface SessionSnapshot {

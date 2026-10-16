@@ -28,6 +28,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createCaptureWindowService } from '../captureWindow';
 import mockWindow from './windowMock';
+import { setIslandAlwaysOnTop } from '../islandAlwaysOnTop';
 import type { BrowserWindow, BrowserWindowConstructorOptions, Rectangle } from 'electron';
 interface DisplayFixture { id: number; bounds: Rectangle; size: { width: number; height: number }; scaleFactor: number; }
 interface SourceFixture { thumbnail: { toPNG: () => Buffer }; }
@@ -38,14 +39,14 @@ vi.mock('fs', () => ({ existsSync: mocks.exists }));
 vi.mock('../screenshotHelper', () => ({ capturePrimaryDisplayPng: mocks.nativePrimary, captureAllDisplaysPng: mocks.nativeAll, getVisibleWindows: mocks.visible, encodeScreenshotPng: async (image: SourceFixture['thumbnail']) => image.toPNG() }));
 vi.mock('../../config/storeConfig', () => ({ readScreenshotEngineConfig: mocks.engine }));
 function display(id: number, x = 0, y = 0, width = 1920, height = 1080, scaleFactor = 1): DisplayFixture { return { id, scaleFactor, bounds: { x, y, width, height }, size: { width, height } }; }
-function setup(main: ReturnType<typeof mockWindow> | null = mockWindow()) { const capture = mockWindow(); function constructWindow() { return capture; } mocks.create.mockImplementation(constructWindow); const service = createCaptureWindowService({ getMainWindow: () => main as unknown as BrowserWindow | null }); return { main, capture, service }; }
+function setup(main: ReturnType<typeof mockWindow> | null = mockWindow(), canRestoreMainWindow?: () => boolean) { const capture = mockWindow(); function constructWindow() { return capture; } mocks.create.mockImplementation(constructWindow); const service = createCaptureWindowService({ getMainWindow: () => main as unknown as BrowserWindow | null, canRestoreMainWindow }); return { main, capture, service }; }
 beforeEach(() => {
   vi.resetAllMocks(); vi.useFakeTimers(); mocks.dev = true; mocks.displays = [display(1)]; mocks.primary.mockReturnValue(mocks.displays[0]); mocks.appPath.mockReturnValue('C:/mock-app'); mocks.exists.mockReturnValue(false); mocks.engine.mockReturnValue('plugin'); mocks.nativePrimary.mockReturnValue(Buffer.from('native-primary')); mocks.nativeAll.mockReturnValue(Buffer.from('native-all')); mocks.visible.mockReturnValue([{ hwnd: 'A', title: 'Example' }]); mocks.sources.mockResolvedValue([{ thumbnail: { toPNG: () => Buffer.from('js-primary') } }]); mocks.dip.mockImplementation((target, bounds) => { expect(target).toBeNull(); const scale = mocks.displays.find((item) => item.bounds === bounds)?.scaleFactor || 1; return { x: bounds.x * scale, y: bounds.y * scale, width: bounds.width * scale, height: bounds.height * scale }; });
   vi.stubGlobal('process', Object.assign(Object.create(process) as NodeJS.Process, { resourcesPath: 'C:/mock-resources' })); vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 describe('captureWindow', () => {
-  it('hides the main window before capture, stages the overlay and restores main on closing', async () => { const { main, capture, service } = setup(); main!.state.visible = true; expect(service.getCaptureWindow()).toBeNull(); await service.startRegionScreenshot(); expect(main!.hide).toHaveBeenCalledOnce(); expect(main!.listenerCount('hide')).toBe(0); expect(main!.hide.mock.invocationCallOrder[0]).toBeLessThan(mocks.nativePrimary.mock.invocationCallOrder[0]); expect(service.getCaptureWindow()).toBe(capture); expect(mocks.create.mock.calls[0][0]).toMatchObject({ x: 0, y: 0, width: 1920, height: 1080, show: false, opacity: 0, skipTaskbar: true }); expect(capture.setBounds).toHaveBeenCalledWith({ x: 0, y: 0, width: 1920, height: 1080 }); expect(capture.setIgnoreMouseEvents.mock.calls).toEqual([[true], [false]]); expect(capture.showInactive).toHaveBeenCalledOnce(); expect(capture.setOpacity).toHaveBeenCalledWith(1); expect(capture.focus).toHaveBeenCalledOnce(); expect(capture.webContents.send).toHaveBeenCalledWith('capture-image', expect.objectContaining({ imageBytes: Buffer.from('native-primary'), captureSource: 'plugin', scaleFactor: 1, displays: [{ id: 1, bounds: mocks.displays[0].bounds, physicalBounds: mocks.displays[0].bounds, scaleFactor: 1 }], physicalScreen: { x: 0, y: 0, width: 1920, height: 1080 }, visibleWindows: [{ hwnd: 'A', title: 'Example' }] })); service.closeCaptureWindow(); expect(capture.close).toHaveBeenCalledOnce(); expect(service.getCaptureWindow()).toBeNull(); expect(main!.show).toHaveBeenCalledOnce(); expect(main!.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver'); service.closeCaptureWindow(); expect(capture.close).toHaveBeenCalledOnce(); });
+  it('hides the main window before capture, stages the overlay and restores main on closing', async () => { const { main, capture, service } = setup(); main!.state.visible = true; expect(service.getCaptureWindow()).toBeNull(); expect(service.isCapturing()).toBe(false); const starting = service.startRegionScreenshot(); expect(service.isCapturing()).toBe(true); await starting; expect(service.isCapturing()).toBe(true); expect(main!.hide).toHaveBeenCalledOnce(); expect(main!.listenerCount('hide')).toBe(0); expect(main!.hide.mock.invocationCallOrder[0]).toBeLessThan(mocks.nativePrimary.mock.invocationCallOrder[0]); expect(service.getCaptureWindow()).toBe(capture); expect(mocks.create.mock.calls[0][0]).toMatchObject({ x: 0, y: 0, width: 1920, height: 1080, show: false, opacity: 0, skipTaskbar: true }); expect(capture.setBounds).toHaveBeenCalledWith({ x: 0, y: 0, width: 1920, height: 1080 }); expect(capture.setIgnoreMouseEvents.mock.calls).toEqual([[true], [false]]); expect(capture.showInactive).toHaveBeenCalledOnce(); expect(capture.setOpacity).toHaveBeenCalledWith(1); expect(capture.focus).toHaveBeenCalledOnce(); expect(capture.webContents.send).toHaveBeenCalledWith('capture-image', expect.objectContaining({ imageBytes: Buffer.from('native-primary'), captureSource: 'plugin', scaleFactor: 1, displays: [{ id: 1, bounds: mocks.displays[0].bounds, physicalBounds: mocks.displays[0].bounds, scaleFactor: 1 }], physicalScreen: { x: 0, y: 0, width: 1920, height: 1080 }, visibleWindows: [{ hwnd: 'A', title: 'Example' }] })); service.closeCaptureWindow(); expect(capture.close).toHaveBeenCalledOnce(); expect(service.getCaptureWindow()).toBeNull(); expect(service.isCapturing()).toBe(false); expect(main!.show).toHaveBeenCalledOnce(); expect(main!.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver'); service.closeCaptureWindow(); expect(capture.close).toHaveBeenCalledOnce(); });
   it('combines negative-coordinate monitors and their physical bounds using largest scale', async () => { mocks.displays = [display(1, -1280, -100, 1280, 1024, 1), display(2, 0, 0, 1920, 1080, 2)]; mocks.primary.mockReturnValue(mocks.displays[1]); const { capture, service } = setup(null); await service.startRegionScreenshot(); expect(mocks.nativeAll).toHaveBeenCalledOnce(); expect(mocks.nativePrimary).not.toHaveBeenCalled(); expect(mocks.sources).not.toHaveBeenCalled(); expect(capture.setBounds).toHaveBeenCalledWith({ x: -1280, y: -100, width: 3200, height: 1180 }); expect(capture.webContents.send).toHaveBeenCalledWith('capture-image', expect.objectContaining({ imageBytes: Buffer.from('native-all'), virtualScreen: { x: -1280, y: -100, width: 3200, height: 1180 }, physicalScreen: { x: -1280, y: -100, width: 5120, height: 2260 }, scaleFactor: 2 })); });
   it('falls back from all-monitor native capture to primary native capture', async () => { mocks.displays.push(display(2, -1920)); mocks.nativeAll.mockReturnValue(null); const { capture, service } = setup(null); await service.startRegionScreenshot(); expect(mocks.nativePrimary).toHaveBeenCalledOnce(); expect(capture.webContents.send).toHaveBeenCalledWith('capture-image', expect.objectContaining({ imageBytes: Buffer.from('native-primary'), captureSource: 'plugin' })); });
   it.each(['js', 'plugin'])('uses JS primary-screen capture for engine=%s when native data is unavailable', async (engine) => { mocks.engine.mockReturnValue(engine); mocks.nativePrimary.mockReturnValue(null); mocks.nativeAll.mockReturnValue(null); mocks.displays = [display(1, -100, 30, 801, 601, 1.25), display(2, 701)]; mocks.primary.mockReturnValue(mocks.displays[0]); const { capture, service } = setup(null); await service.startRegionScreenshot(); if (engine === 'js') { expect(mocks.nativeAll).not.toHaveBeenCalled(); expect(mocks.nativePrimary).not.toHaveBeenCalled(); } expect(mocks.sources).toHaveBeenCalledWith({ types: ['screen'], thumbnailSize: { width: 1001, height: 751 } }); expect(capture.setBounds).toHaveBeenCalledWith({ x: -100, y: 30, width: 801, height: 601 }); expect(capture.webContents.send).toHaveBeenCalledWith('capture-image', expect.objectContaining({ imageBytes: Buffer.from('js-primary'), virtualScreen: { x: -100, y: 30, width: 801, height: 601 }, captureSource: 'js', displays: [], physicalScreen: null, scaleFactor: 1.25 })); });
@@ -91,4 +92,29 @@ it('JS 回退在 desktopCapturer 分配超大缩略图前拒绝超预算物理�
   expect(mocks.sources).not.toHaveBeenCalled();
   expect(mocks.create).not.toHaveBeenCalled();
   expect(main?.show).toHaveBeenCalledOnce();
+});
+
+
+it.each(['close', 'empty', 'error'] as const)('截图%s路径恢复窗口时尊重取消置顶', async (outcome) => {
+  const { main, service } = setup();
+  setIslandAlwaysOnTop(main! as unknown as BrowserWindow, false);
+  main!.setAlwaysOnTop.mockClear();
+  if (outcome !== 'close') {
+    mocks.engine.mockReturnValue('js');
+    if (outcome === 'empty') mocks.sources.mockResolvedValue([]);
+    else mocks.sources.mockRejectedValue(new Error('capture failed'));
+  }
+  await service.startRegionScreenshot();
+  if (outcome === 'close') service.closeCaptureWindow();
+  expect(main!.show).toHaveBeenCalled();
+  expect(main!.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
+});
+
+it('截图期间从托盘手动隐藏，结束截图也不反向显示窗口', async () => {
+  let canRestore = true;
+  const { main, service } = setup(mockWindow(), () => canRestore);
+  await service.startRegionScreenshot();
+  canRestore = false;
+  service.closeCaptureWindow();
+  expect(main!.show).not.toHaveBeenCalled();
 });

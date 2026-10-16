@@ -46,7 +46,7 @@ import { createHotkeyService } from '../hotkeyService';
 describe('createHotkeyService', () => {
   const options = {
     getMainWindow: vi.fn(),
-    setHiddenByAutoHideProcess: vi.fn(),
+    setManualVisibility: vi.fn(),
     readHideHotkeyConfig: () => 'Ctrl+H',
     readQuitHotkeyConfig: () => 'Ctrl+Q',
     readScreenshotHotkeyConfig: () => 'Ctrl+Shift+S',
@@ -79,7 +79,7 @@ describe('createHotkeyService', () => {
     unregisterMock.mockReset();
     appQuitMock.mockReset();
     options.getMainWindow.mockReset();
-    options.setHiddenByAutoHideProcess.mockReset();
+    options.setManualVisibility.mockReset();
     options.onScreenshotHotkey.mockReset();
     options.onOpenClipboardHistoryHotkey.mockReset();
     registerMock.mockReturnValue(true);
@@ -104,7 +104,7 @@ describe('createHotkeyService', () => {
     const callback = registerMock.mock.calls[0]?.[1] as (() => void);
     callback();
 
-    expect(options.setHiddenByAutoHideProcess).toHaveBeenCalledWith(false);
+    expect(options.setManualVisibility).toHaveBeenCalledWith(true);
     expect(show).toHaveBeenCalledTimes(1);
     expect(setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
     expect(hide).not.toHaveBeenCalled();

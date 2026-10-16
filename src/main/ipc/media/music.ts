@@ -178,6 +178,7 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
     try {
       const filePath = join(options.storeDir, `${options.lyricsCalibrateEnabledStoreKey}.json`);
       writeFileSync(filePath, JSON.stringify(enabled, null, 2), 'utf-8');
+      broadcastSettingChange(-1, 'music:lyrics-calibrate-enabled', enabled);
       return true;
     } catch (err) {
       console.error('[LyricsCalibrateEnabled] persist error:', err);
@@ -237,7 +238,7 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
       if (!existsSync(filePath)) return options.defaultLyricsCalibrateDelay;
       const raw = readFileSync(filePath, 'utf-8');
       const data = JSON.parse(raw);
-      return typeof data === 'number' && data >= 0 ? data : options.defaultLyricsCalibrateDelay;
+      return typeof data === 'number' && Number.isFinite(data) && data >= 0 ? data : options.defaultLyricsCalibrateDelay;
     } catch {
       return options.defaultLyricsCalibrateDelay;
     }
@@ -245,9 +246,10 @@ export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOption
 
   ipcMain.handle('music:lyrics-calibrate-delay:set', (_event, delaySec: number) => {
     try {
-      const sanitized = typeof delaySec === 'number' && delaySec >= 0 ? Math.floor(delaySec) : options.defaultLyricsCalibrateDelay;
+      const sanitized = typeof delaySec === 'number' && Number.isFinite(delaySec) && delaySec >= 0 ? Math.floor(delaySec) : options.defaultLyricsCalibrateDelay;
       const filePath = join(options.storeDir, `${options.lyricsCalibrateDelayStoreKey}.json`);
       writeFileSync(filePath, JSON.stringify(sanitized, null, 2), 'utf-8');
+      broadcastSettingChange(-1, 'music:lyrics-calibrate-delay', sanitized);
       return true;
     } catch (err) {
       console.error('[LyricsCalibrateDelay] persist error:', err);

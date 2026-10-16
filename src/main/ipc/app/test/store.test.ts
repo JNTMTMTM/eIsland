@@ -237,6 +237,22 @@ describe('registerStoreIpcHandlers', () => {
     });
   });
 
+  describe('write notifications', () => {
+    it('notifies onWrite only after a successful write or swap', () => {
+      const onWrite = vi.fn();
+      registerStoreIpcHandlers({ onWrite, storeDir: 'C:/store' });
+      handlers.get('store:write')!({ sender: { id: 1 } }, 'i18n-language', 'en-US');
+      expect(onWrite).toHaveBeenLastCalledWith('i18n-language');
+      existsSyncMock.mockReturnValue(false);
+      expect(handlers.get('store:compare-and-swap')!({}, 'standalone-window-mode', null, 'standalone')).toBe('updated');
+      expect(onWrite).toHaveBeenLastCalledWith('standalone-window-mode');
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      writeFileSyncMock.mockImplementation(() => { throw new Error('read-only'); });
+      handlers.get('store:write')!({ sender: { id: 1 } }, 'i18n-language', 'zh-CN');
+      expect(onWrite).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('strict reads and compare-and-swap', () => {
     beforeEach(() => {
       registerStoreIpcHandlers({ storeDir: 'C:/store' });

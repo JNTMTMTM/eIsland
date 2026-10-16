@@ -40,3 +40,16 @@ describe('standaloneWindow', () => {
   it('closes and clears the instance; absent and destroyed windows are ignored', async () => { const { win, service } = await setup(); service.closeStandaloneWindow(); service.openStandaloneWindow(); win.state.destroyed = true; service.closeStandaloneWindow(); expect(win.close).not.toHaveBeenCalled(); win.state.destroyed = false; service.closeStandaloneWindow(); expect(win.close).toHaveBeenCalledOnce(); expect(service.getStandaloneWindow()).toBeNull(); service.closeStandaloneWindow(); expect(win.close).toHaveBeenCalledOnce(); });
   it('replaces a destroyed instance and ignores a stale ready event after closing', async () => { const { win, service } = await setup(); service.openStandaloneWindow(); win.state.destroyed = true; const replacement = mockWindow(); function constructReplacement() { return replacement; } mocks.create.mockImplementation(constructReplacement); service.openStandaloneWindow(); expect(service.getStandaloneWindow()).toBe(replacement); replacement.close(); replacement.emit('ready-to-show'); expect(replacement.show).not.toHaveBeenCalled(); });
 });
+
+
+it('现有配置窗口隐藏或最小化后再次打开会恢复显示', async () => {
+  const { win, service } = await setup();
+  service.openStandaloneWindow();
+  win.state.minimized = true;
+  win.state.visible = false;
+  service.openStandaloneWindow();
+  expect(win.restore).toHaveBeenCalledOnce();
+  expect(win.state.visible).toBe(true);
+  expect(win.focus).toHaveBeenCalledOnce();
+  expect(mocks.create).toHaveBeenCalledOnce();
+});

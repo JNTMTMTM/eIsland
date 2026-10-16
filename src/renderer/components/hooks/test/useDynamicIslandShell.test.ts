@@ -28,20 +28,33 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { lifecycleHooks, renderWithHooks, runEffects, unmountHooks } from '../../components/test/contentLifecycleHarness';
 import { hookMocks } from '../../test/elementHarness';
 import useIslandStore from '../../../store/isLandStore';
+import { beginIslandWindowTransition, completeIslandWindowTransition, getIslandWindowTransitionId } from '../../../utils/islandWindowTransition';
 import { useDynamicIslandShell } from '../useDynamicIslandShell';
 import { deferredBackground, ipc, resetStandalone, settleBackground, surface, values } from './standaloneIpcHarness';
 vi.hoisted(() => { vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } })); });
-vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
+vi.mock('react', async (load) => ({
+  ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks,
+  useLayoutEffect: lifecycleHooks.useEffect,
+  useSyncExternalStore: (...[, getSnapshot]: [unknown, () => number]) => getSnapshot(),
+}));
 type Options = Parameters<typeof useDynamicIslandShell>[0];
 const native = {
   expandWindow: vi.fn(), expandWindowFull: vi.fn(), expandWindowNotification: vi.fn(), disableMousePassthrough: vi.fn(),
+  beginWindowTransition: vi.fn(), completeWindowTransition: vi.fn(),
 };
+const frames = new Map<number, FrameRequestCallback>();
+let nextFrame = 0;
 beforeEach(() => {
   vi.useFakeTimers(); resetStandalone();
+  frames.clear();
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    nextFrame += 1; frames.set(nextFrame, callback); return nextFrame;
+  });
+  vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id));
   vi.stubGlobal('window', Object.assign(surface, { api: { ...ipc, ...native } }));
   useIslandStore.setState({ state: 'idle', uiStateLocked: false, maxExpandAppModeEnabled: false, maxExpandLauncherVisible: false, maxExpandTab: 'todo', hoverTab: 'time' });
 });
-afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { unmountHooks(); completeIslandWindowTransition(getIslandWindowTransitionId()); vi.useRealTimers(); vi.unstubAllGlobals(); });
 /**
  * 将真实 Zustand 状态动作传入壳层，只由父组件参数指定当前渲染状态。
  * @param patch - 父组件配置覆盖。
@@ -71,7 +84,61 @@ function commit(input: Options): ReturnType<typeof useDynamicIslandShell> {
 async function mount(input: Options): Promise<ReturnType<typeof useDynamicIslandShell>> {
   commit(input); await settleBackground(); return commit(input);
 }
+/** 绘制已提交的最终动画帧，保留 requestAnimationFrame 的一次性语义。 */
+function paint(): void {
+  const pending = [...frames.values()];
+  frames.clear();
+  pending.forEach((callback) => callback(performance.now()));
+}
 describe('壳层真实状态动作和形变时序', () => {
+  it('从实际commit开始保护并在最终绘制帧确认原生画布，忽略IPC前的忙帧', async () => {
+    const input = options({ state: 'notification' });
+    await mount(input);
+    const id = beginIslandWindowTransition('notification', 'idle');
+    await vi.advanceTimersByTimeAsync(180);
+    input.state = 'idle'; commit(input);
+    await vi.advanceTimersByTimeAsync(699);
+    expect(native.completeWindowTransition).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(native.completeWindowTransition).not.toHaveBeenCalled();
+    paint();
+    expect(native.completeWindowTransition).toHaveBeenCalledWith(id);
+  });
+  it('初始挂载前请求和同帧反转都在最终状态绘制后确认', async () => {
+    const initial = beginIslandWindowTransition('notification', 'idle');
+    const input = options();
+    await mount(input);
+    paint();
+    expect(native.completeWindowTransition).toHaveBeenLastCalledWith(initial);
+    beginIslandWindowTransition('idle', 'notification');
+    const reversed = beginIslandWindowTransition('notification', 'idle');
+    commit(input);
+    expect(native.completeWindowTransition).toHaveBeenCalledTimes(1);
+    paint();
+    expect(native.completeWindowTransition).toHaveBeenLastCalledWith(reversed);
+  });
+  it('新切换和卸载取消旧确认帧，形态令牌不会被状态壳层误确认', async () => {
+    const input = options();
+    await mount(input);
+    beginIslandWindowTransition('idle', 'notification');
+    input.state = 'notification'; commit(input);
+    await vi.advanceTimersByTimeAsync(700);
+    expect(frames.size).toBe(1);
+    const latest = beginIslandWindowTransition('notification', 'hover');
+    input.state = 'hover'; commit(input);
+    paint();
+    expect(native.completeWindowTransition).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(700);
+    unmountHooks();
+    paint();
+    expect(native.completeWindowTransition).not.toHaveBeenCalled();
+    completeIslandWindowTransition(latest);
+    native.completeWindowTransition.mockClear();
+    beginIslandWindowTransition('notch', 'pill', 'shape');
+    await mount(input);
+    paint();
+    expect(native.completeWindowTransition).not.toHaveBeenCalled();
+  });
   it('初始状态不形变，状态变化显示前态，完成后清空并停止保护', async () => {
     const input = options(); expect(await mount(input)).toMatchObject({ morphing: false, fromState: '' });
     expect(vi.getTimerCount()).toBe(0);
@@ -92,6 +159,23 @@ describe('壳层真实状态动作和形变时序', () => {
   it('非形变时仅改变动画配置不启动保护', async () => {
     const input = options(); await mount(input); input.animationSpeed = 'slow'; commit(input);
     expect(commit(input).morphing).toBe(false); expect(vi.getTimerCount()).toBe(0);
+  });
+  it.each([
+    ['slow', true, 1100], ['medium', true, 700], ['fast', true, 360],
+    ['slow', false, 660], ['medium', false, 420], ['fast', false, 220],
+  ] as const)('快速反转采用最新来源和%s/%s时长，旧完成回调不提前清除保护', async (animationSpeed, springAnimation, duration) => {
+    const input = options({ animationSpeed, springAnimation, state: 'notification' });
+    await mount(input);
+    input.state = 'idle'; commit(input);
+    await vi.advanceTimersByTimeAsync(80);
+    input.state = 'hover'; commit(input);
+    expect(commit(input)).toMatchObject({ morphing: true, fromState: 'idle' });
+    expect(vi.getTimerCount()).toBe(1);
+    await vi.advanceTimersByTimeAsync(duration - 80);
+    expect(commit(input)).toMatchObject({ morphing: true, fromState: 'idle' });
+    await vi.advanceTimersByTimeAsync(80);
+    expect(commit(input)).toMatchObject({ morphing: false, fromState: '' });
+    expect(vi.getTimerCount()).toBe(0);
   });
   it.each([
     { isMusicPlaying: false, coverImage: 'cover.png', isPlaying: true, expected: null },

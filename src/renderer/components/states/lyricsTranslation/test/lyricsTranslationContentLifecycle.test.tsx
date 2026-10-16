@@ -76,14 +76,14 @@ describe('真实双语歌词内容组合与状态回退', () => {
   it.each([null, { status: 'not-fetched', lines: null }, { status: 'available', lines: null }, { status: 'available', lines: [] }] satisfies Array<TranslationLyricsResult | null>)('缺失翻译%j走真实回退并恢复普通歌词窗口', async (translationLyrics) => {
     useIslandStore.setState({ translationLyrics }); const root = await commit();
     expect(root.props.translationText).toBe(''); expect(useIslandStore.getState().state).toBe('lyrics');
-    expect(contentApi.expandWindowLyrics).toHaveBeenCalledTimes(2); expect(contentApi.enableMousePassthrough).toHaveBeenCalledOnce();
+    expect(contentApi.expandWindowLyrics).toHaveBeenCalledExactlyOnceWith(700); expect(contentApi.enableMousePassthrough).toHaveBeenCalledOnce();
   });
   it('歌词行变化后原文等于翻译时真实回退，稳定索引重绘不重复窗口副作用', async () => {
     useIslandStore.setState({ translationLyrics: { status: 'available', lines: [{ time_ms: 1000, text: '翻译' }, { time_ms: 2000, text: 'second' }] } });
     await commit(); useIslandStore.setState({ currentPositionMs: 2000 });
     const root = renderContent(); expect(root.props).toMatchObject({ currentIdx: 1, currentText: 'second', translationText: 'second' }); runEffects();
-    expect(useIslandStore.getState().state).toBe('lyrics'); expect(contentApi.expandWindowLyrics).toHaveBeenCalledTimes(2);
-    renderContent(); runEffects(); expect(contentApi.expandWindowLyrics).toHaveBeenCalledTimes(2);
+    expect(useIslandStore.getState().state).toBe('lyrics'); expect(contentApi.expandWindowLyrics).toHaveBeenCalledExactlyOnceWith(700);
+    renderContent(); runEffects(); expect(contentApi.expandWindowLyrics).toHaveBeenCalledExactlyOnceWith(700);
   });
   it('当前索引未变时一致文本保持双语状态，真实换行且内容不同仍保持双语', async () => {
     useIslandStore.setState({ translationLyrics: { status: 'available', lines: [{ time_ms: 1000, text: 'original' }, { time_ms: 2000, text: '不同翻译' }] } });

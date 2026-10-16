@@ -3646,7 +3646,7 @@
         "clockHint": "カバー画像と歌詞の間に現在の北京時間を表示します",
         "clockToggle": "現在時刻を表示",
         "calibrateTitle": "歌詞のタイミング補正",
-        "calibrateHint": "歌詞取得後に SMTC のタイムスタンプを読み取り、タイミングのずれを補正します",
+        "calibrateHint": "歌詞読み込み後、再生時間に基づく指定の遅延で再生位置を同期します。一時停止中はカウントを止め、設定変更は現在の曲にすぐ反映されます",
         "calibrateToggle": "歌詞のタイミング補正を有効にする",
         "calibrateDelayLabel": "補正までの遅延（秒）"
       },
@@ -4800,6 +4800,29 @@
     },
     "feedback": {
       "loginCancelled": "ログインがキャンセルされたか、タイムアウトしました"
+    }
+  },
+  "tray": {
+    "showIsland": "アイランドを表示",
+    "hideIsland": "アイランドを非表示",
+    "openSettings": "設定画面を開く",
+    "alwaysOnTop": "常に最前面に表示",
+    "openLogFolder": "ログフォルダーを開く",
+    "restart": "eIsland を再起動",
+    "quit": "終了",
+    "menuLabel": "トレイメニュー",
+    "notLoggedIn": "未ログイン",
+    "loginHint": "ログインするとアカウント情報を同期できます",
+    "proExpireAt": "Pro 有効期限 {{date}}",
+    "music": {
+      "label": "音楽コントロール",
+      "idle": "再生していません",
+      "idleHint": "音楽を再生するとここで操作できます",
+      "unknownArtist": "不明なアーティスト",
+      "play": "再生",
+      "pause": "一時停止",
+      "previous": "前の曲",
+      "next": "次の曲"
     }
   }
 }

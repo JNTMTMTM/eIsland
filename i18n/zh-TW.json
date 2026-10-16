@@ -3646,7 +3646,7 @@
         "clockHint": "在歌詞界面封面與歌詞之間顯示當前北京時間",
         "clockToggle": "顯示當前時間",
         "calibrateTitle": "歌詞校準",
-        "calibrateHint": "歌詞獲取後延遲讀取 SMTC 時間戳，修正歌詞時間偏移",
+        "calibrateHint": "歌詞載入後按播放時長延遲校準進度，暫停時停止計時；修改設定對目前歌曲立即生效",
         "calibrateToggle": "啟用歌詞校準",
         "calibrateDelayLabel": "觸發延遲（秒）"
       },
@@ -4800,6 +4800,29 @@
     },
     "feedback": {
       "loginCancelled": "登錄已取消或超時"
+    }
+  },
+  "tray": {
+    "showIsland": "顯示靈動島",
+    "hideIsland": "隱藏靈動島",
+    "openSettings": "開啟設定介面",
+    "alwaysOnTop": "視窗置頂",
+    "openLogFolder": "開啟日誌資料夾",
+    "restart": "重新啟動靈動島",
+    "quit": "結束",
+    "menuLabel": "系統匣選單",
+    "notLoggedIn": "未登入",
+    "loginHint": "登入後同步帳號資訊",
+    "proExpireAt": "Pro 到期 {{date}}",
+    "music": {
+      "label": "音樂控制",
+      "idle": "未在播放",
+      "idleHint": "播放音樂後可在此控制",
+      "unknownArtist": "未知歌手",
+      "play": "播放",
+      "pause": "暫停",
+      "previous": "上一首",
+      "next": "下一首"
     }
   }
 }

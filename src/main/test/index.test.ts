@@ -88,10 +88,11 @@ vi.mock('@electron-toolkit/utils', () => ({ electronApp: { setAppUserModelId: le
 vi.mock('electron-updater', () => ({ autoUpdater: { marker: 'updater' } }));
 vi.mock('../config/storeConfig', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../config/storeConfig')>();
-  const overrideNames = Object.keys(actual).filter((name) => /^(read|write)/.test(name));
+  // 独立模式读取保留真实实现，以覆盖当前键与旧键的回退规则。
+  const overrideNames = Object.keys(actual).filter((name) => /^(read|write)/.test(name) && name !== 'readStandaloneWindowModeEnabledConfig');
   return { ...actual, ...Object.fromEntries(overrideNames.map((name) => [name, leaf(name)])) };
 });
-vi.mock('../tray', () => ({ createTray: leaf('createTray'), destroyTray: leaf('destroyTray'), toggleTray: leaf('toggleTray') }));
+vi.mock('../tray', () => ({ createTray: leaf('createTray'), destroyTray: leaf('destroyTray'), refreshTrayMenu: leaf('refreshTrayMenu'), toggleTray: leaf('toggleTray') }));
 vi.mock('../log/mainLog', () => ({ createSessionMainLogger: leaf('createSessionMainLogger') }));
 vi.mock('../clipboard/urlWatcher', () => ({ startClipboardUrlWatcher: leaf('startClipboardUrlWatcher'), stopClipboardUrlWatcher: leaf('stopClipboardUrlWatcher') }));
 vi.mock('../clipboard/clipboardUrlState', () => ({ createClipboardUrlState: factory('createClipboardUrlState', 'clipboardUrlState', ['getBlacklist', 'getDetectMode', 'getMonitorEnabled', 'setBlacklist', 'setDetectMode', 'setMonitorEnabled']) }));
@@ -130,14 +131,14 @@ vi.mock('../services/reminderWakeups', () => ({ registerReminderWakeups: leaf('r
 vi.mock('../services/chromiumFlags', () => ({ applyChromiumPerformanceFlags: leaf('applyChromiumPerformanceFlags') }));
 vi.mock('../services/hotkeyService', () => ({ createHotkeyService: factory('createHotkeyService', 'hotkeyService', ['getCurrentAgentVoiceInputHotkey', 'getCurrentHideHotkey', 'getCurrentNextSongHotkey', 'getCurrentOpenClipboardHistoryHotkey', 'getCurrentPlayPauseSongHotkey', 'getCurrentQuitHotkey', 'getCurrentResetPositionHotkey', 'getCurrentScreenshotHotkey', 'getCurrentShowSettingsWindowHotkey', 'getCurrentTogglePassthroughHotkey', 'getCurrentToggleShapeModeHotkey', 'getCurrentToggleTrayHotkey', 'getCurrentToggleUiLockHotkey', 'registerAgentVoiceInputHotkey', 'registerHideHotkey', 'registerNextSongHotkey', 'registerOpenClipboardHistoryHotkey', 'registerPlayPauseSongHotkey', 'registerQuitHotkey', 'registerResetPositionHotkey', 'registerScreenshotHotkey', 'registerShowSettingsWindowHotkey', 'registerTogglePassthroughHotkey', 'registerToggleShapeModeHotkey', 'registerToggleTrayHotkey', 'registerToggleUiLockHotkey', 'resumeIslandHotkeys', 'suspendIslandHotkeys']) }));
 vi.mock('../services/updaterService', () => ({ initUpdaterService: leaf('initUpdaterService') }));
-vi.mock('../window/captureWindow', () => ({ createCaptureWindowService: factory('createCaptureWindowService', 'captureWindowService', ['closeCaptureWindow', 'getCaptureWindow', 'startRegionScreenshot']) }));
+vi.mock('../window/captureWindow', () => ({ createCaptureWindowService: factory('createCaptureWindowService', 'captureWindowService', ['closeCaptureWindow', 'getCaptureWindow', 'isCapturing', 'startRegionScreenshot']) }));
 vi.mock('../window/mainWindow', () => ({ createMainWindowService: factory('createMainWindowService', 'mainWindowService', ['applyIslandPositionOffset', 'createWindow', 'getInitialCenterX', 'notifyShapeModeChanged']) }));
 vi.mock('../window/standaloneWindow', () => ({ openStandaloneWindow: leaf('openStandaloneWindow') }));
 vi.mock('../window/splashWindow', () => ({ showSplashWindow: leaf('showSplashWindow'), closeSplashWindow: leaf('closeSplashWindow') }));
 vi.mock('../window/guideWindow', () => ({ showGuideWindow: leaf('showGuideWindow') }));
 vi.mock('../music/smtcService', () => ({ createSmtcService: factory('createSmtcService', 'smtcService', ['cleanupWorker', 'clearPendingSourceSwitchEntry', 'detectAllSources', 'getCurrentDeviceId', 'getPendingSourceSwitchEntry', 'getPendingSourceSwitchId', 'getSmtcSessionRuntime', 'requestCommand', 'initWorker', 'isWhitelisted', 'setCurrentDeviceId', 'setPendingSourceSwitchId']) }));
 vi.mock('../music/smtcAccessor', () => ({ setSmtcAccessor: leaf('setSmtcAccessor') }));
-vi.mock('../system/autoHideWatcher', () => ({ createAutoHideWatcher: factory('createAutoHideWatcher', 'autoHideWatcher', ['checkNow', 'getAutoHideFullscreenWindows', 'getConfiguredHideWindowTitleList', 'setAutoHideFullscreenWindows', 'setAutoHideWindowTitleList', 'setConfiguredHideWindowTitleList', 'setHiddenByAutoHideProcess', 'start', 'stop']) }));
+vi.mock('../system/autoHideWatcher', () => ({ createAutoHideWatcher: factory('createAutoHideWatcher', 'autoHideWatcher', ['checkNow', 'getAutoHideFullscreenWindows', 'getConfiguredHideWindowTitleList', 'setAutoHideFullscreenWindows', 'setAutoHideWindowTitleList', 'setConfiguredHideWindowTitleList', 'setManualVisibility', 'isManuallyHidden', 'start', 'stop']) }));
 vi.mock('../system/externalAgentWatcher', () => ({ createExternalAgentWatcher: factory('createExternalAgentWatcher', 'externalAgentWatcher', ['start', 'stop']) }));
 vi.mock('../system/claudeCodeStatusService', () => ({ createClaudeCodeStatusService: factory('createClaudeCodeStatusService', 'claudeCodeStatusService', ['start', 'stop']) }));
 vi.mock('../system/codexStatusService', () => ({ createCodexStatusService: factory('createCodexStatusService', 'codexStatusService', ['start', 'stop']) }));
@@ -172,7 +173,7 @@ async function media(url: string): Promise<Response> { return await mocks.protoc
 
 describe('main entry boot and dependency wiring', () => {
   it('requests the instance lock and pre-registers flags/protocol privileges before readiness', async () => { mocks.lock = false; await load(false); expect(leaf('app.quit')).toHaveBeenCalledOnce(); expect(leaf('applyChromiumPerformanceFlags')).toHaveBeenCalledWith(electron.app); expect(leaf('protocol.registerSchemesAsPrivileged')).toHaveBeenCalledWith([{ scheme: 'eisland-media', privileges: { standard: true, secure: true, corsEnabled: true, supportFetchAPI: true, stream: true } }, { scheme: 'eisland-qishui', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } }]); expect(leaf('mainWindowService.createWindow')).not.toHaveBeenCalled(); expect(leaf('registerAppLifecycleHandlers')).toHaveBeenCalledOnce(); });
-  it.each(['win32', 'darwin', 'linux'])('boots safely on %s and limits OS polling to Windows', async (system) => { platform(system); await load(); expect(leaf('app.quit')).not.toHaveBeenCalled(); expect(leaf('setAppUserModelId')).toHaveBeenCalledWith('com.eisland.app'); expect(leaf('mainWindowService.createWindow')).toHaveBeenCalledOnce(); expect(leaf('createTray')).toHaveBeenCalledWith(mocks.main); expect(leaf('smtcService.initWorker')).toHaveBeenCalledOnce(); expect(leaf('setSmtcAccessor')).toHaveBeenCalledWith(leaf('smtcService.getSmtcSessionRuntime'), leaf('smtcService.getCurrentDeviceId')); expect(leaf('claudeCodeStatusService.start')).toHaveBeenCalledOnce(); expect(leaf('codexStatusService.start')).toHaveBeenCalledOnce(); expect(leaf('autoHideWatcher.start')).toHaveBeenCalledTimes(system === 'win32' ? 1 : 0); expect(leaf('externalAgentWatcher.start')).toHaveBeenCalledTimes(system === 'win32' ? 1 : 0); expect(leaf('autoHideWatcher.setAutoHideWindowTitleList')).toHaveBeenCalledWith(['Hidden']); expect(leaf('autoHideWatcher.setAutoHideFullscreenWindows')).toHaveBeenCalledWith(true); });
+  it.each(['win32', 'darwin', 'linux'])('boots safely on %s and limits OS polling to Windows', async (system) => { platform(system); await load(); expect(leaf('app.quit')).not.toHaveBeenCalled(); expect(leaf('setAppUserModelId')).toHaveBeenCalledWith('com.eisland.app'); expect(leaf('mainWindowService.createWindow')).toHaveBeenCalledOnce(); expect(leaf('createTray')).toHaveBeenCalledWith(expect.any(Function) as unknown, { onVisibilityChange: leaf('autoHideWatcher.setManualVisibility'), onOpenSettings: expect.any(Function), onAlwaysOnTopChange: expect.any(Function) }); expect(leaf('smtcService.initWorker')).toHaveBeenCalledOnce(); expect(leaf('setSmtcAccessor')).toHaveBeenCalledWith(leaf('smtcService.getSmtcSessionRuntime'), leaf('smtcService.getCurrentDeviceId')); expect(leaf('claudeCodeStatusService.start')).toHaveBeenCalledOnce(); expect(leaf('codexStatusService.start')).toHaveBeenCalledOnce(); expect(leaf('autoHideWatcher.start')).toHaveBeenCalledTimes(system === 'win32' ? 1 : 0); expect(leaf('externalAgentWatcher.start')).toHaveBeenCalledTimes(system === 'win32' ? 1 : 0); expect(leaf('autoHideWatcher.setAutoHideWindowTitleList')).toHaveBeenCalledWith(['Hidden']); expect(leaf('autoHideWatcher.setAutoHideFullscreenWindows')).toHaveBeenCalledWith(true); });
   it.each([true, false])('respects startup animation=%s', async (enabled) => { mocks.startupAnimation = enabled; await load(); expect(leaf('showSplashWindow')).toHaveBeenCalledTimes(enabled ? 1 : 0); expect(leaf('mainWindowService.createWindow')).toHaveBeenCalledOnce(); });
   it.each([{ firstLaunch: true, packaged: true, show: true, write: true }, { firstLaunch: false, packaged: true, show: false, write: false }, { firstLaunch: false, packaged: false, show: true, write: false }])('shows guide for first=$firstLaunch packaged=$packaged', async ({ firstLaunch, packaged, show, write }) => { mocks.firstLaunch = firstLaunch; mocks.packaged = packaged; await load(); await call(options('createMainWindowService'), 'onReadyToShow'); expect(leaf('closeSplashWindow')).toHaveBeenCalledOnce(); expect(leaf('showGuideWindow')).toHaveBeenCalledTimes(show ? 1 : 0); expect(leaf('writeFirstLaunchConfig')).toHaveBeenCalledTimes(write ? 1 : 0); if (show) expect(leaf('closeSplashWindow').mock.invocationCallOrder[0]).toBeLessThan(leaf('showGuideWindow').mock.invocationCallOrder[0]); if (write) { await call(options('createMainWindowService'), 'onReadyToShow'); expect(leaf('showGuideWindow')).toHaveBeenCalledOnce(); expect(leaf('writeFirstLaunchConfig')).toHaveBeenCalledOnce(); } });
   it('waits for guide completion before writing the first-launch marker', async () => { mocks.firstLaunch = true; let finish: () => void = () => undefined; leaf('showGuideWindow').mockImplementation(() => new Promise<void>((resolveGuide) => { finish = resolveGuide; })); await load(); const pending = call(options('createMainWindowService'), 'onReadyToShow'); await Promise.resolve(); expect(leaf('writeFirstLaunchConfig')).not.toHaveBeenCalled(); finish(); await pending; expect(leaf('writeFirstLaunchConfig')).toHaveBeenCalledOnce(); });
@@ -242,4 +243,76 @@ describe('main entry direct overlay closing', () => {
     await load(); const hotkeys = options('createHotkeyService'); call(hotkeys, 'onAgentVoiceInputHotkeyHold'); const [voice] = mocks.windows; voice.close(); call(hotkeys, 'onAgentVoiceInputHotkeyHold'); expect(mocks.windows).toHaveLength(2); expect(mocks.windows[1]).not.toBe(voice);
     mocks.handlers.get('cli-glow:show')!(); const [, , glow] = mocks.windows; glow.close(); mocks.handlers.get('cli-glow:show')!(); expect(mocks.windows).toHaveLength(4); expect(mocks.windows[3]).not.toBe(glow);
   });
+});
+
+
+it('托盘按需读取当前主窗口，并在菜单相关配置写入或主窗口重建后刷新菜单', async () => {
+  await load();
+  const [getMainWindow] = leaf('createTray').mock.calls[0] as [() => unknown];
+  expect(getMainWindow()).toBe(mocks.main);
+  expect(leaf('refreshTrayMenu')).toHaveBeenCalled();
+  leaf('refreshTrayMenu').mockClear();
+  const [[storeOptions]] = leaf('registerStoreIpcHandlers').mock.calls as [[OptionBag]];
+  call(storeOptions, 'onWrite', 'island-position');
+  expect(leaf('refreshTrayMenu')).not.toHaveBeenCalled();
+  ['standalone-window-mode', 'countdown-window-mode', 'i18n-language'].forEach((key) => call(storeOptions, 'onWrite', key));
+  expect(leaf('refreshTrayMenu')).toHaveBeenCalledTimes(3);
+});
+
+it('截图期间剪贴板快捷键不显示被截图流程隐藏的主窗口', async () => {
+  await load();
+  const hotkeys = options('createHotkeyService');
+  expect(hotkeys.isCapturing).toBe(leaf('captureWindowService.isCapturing'));
+  mocks.main!.hide();
+  leaf('captureWindowService.isCapturing').mockReturnValue(true);
+  call(hotkeys, 'onOpenClipboardHistoryHotkey');
+  expect(mocks.main!.isVisible()).toBe(false);
+  expect(leaf('autoHideWatcher.setManualVisibility')).not.toHaveBeenCalled();
+  leaf('captureWindowService.isCapturing').mockReturnValue(false);
+  call(hotkeys, 'onOpenClipboardHistoryHotkey');
+  expect(mocks.main!.isVisible()).toBe(true);
+  expect(leaf('autoHideWatcher.setManualVisibility')).toHaveBeenCalledWith(true);
+});
+
+it('托盘沿用快捷键设置导航，并将手动隐藏接入截图恢复判断', async () => {
+  await load();
+  const [, trayOptions] = leaf('createTray').mock.calls[0] as [unknown, OptionBag];
+  const hotkeys = options('createHotkeyService');
+  expect(trayOptions.onOpenSettings).toBe(hotkeys.onShowSettingsWindowHotkey);
+  mocks.modeFiles.set('standalone-window-mode', 'standalone');
+  call(trayOptions, 'onOpenSettings');
+  expect(leaf('broadcastSettingChange')).toHaveBeenCalledWith(-1, 'store:standalone-window-active-tab', 'settings');
+  const capture = options('createCaptureWindowService');
+  leaf('autoHideWatcher.isManuallyHidden').mockReturnValue(true);
+  expect(call(capture, 'canRestoreMainWindow')).toBe(false);
+  leaf('autoHideWatcher.isManuallyHidden').mockReturnValue(false);
+  expect(call(capture, 'canRestoreMainWindow')).toBe(true);
+});
+
+it('取消置顶后语音和CLI背景保持相同层级，不覆盖主窗口的选择', async () => {
+  await load();
+  const { setIslandAlwaysOnTop } = await import('../window/islandAlwaysOnTop');
+  mocks.main!.show();
+  setIslandAlwaysOnTop(mocks.main! as unknown as Electron.BrowserWindow, false);
+  call(options('createHotkeyService'), 'onAgentVoiceInputHotkeyHold');
+  mocks.handlers.get('cli-glow:show')!();
+  expect(mocks.windows).toHaveLength(2);
+  mocks.windows.forEach((background) => {
+    expect(background.setAlwaysOnTop).toHaveBeenLastCalledWith(false, 'screen-saver');
+    background.emit('ready-to-show');
+  });
+  expect(mocks.main!.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
+  expect(mocks.main!.moveTop).toHaveBeenCalled();
+  const [, trayOptions] = leaf('createTray').mock.calls[0] as [unknown, OptionBag];
+  [true, false].forEach((enabled) => {
+    setIslandAlwaysOnTop(mocks.main! as unknown as Electron.BrowserWindow, enabled);
+    call(trayOptions, 'onAlwaysOnTopChange');
+    mocks.windows.forEach((background) => {
+      expect(background.setAlwaysOnTop).toHaveBeenLastCalledWith(enabled, 'screen-saver');
+    });
+  });
+  mocks.main!.moveTop.mockClear();
+  mocks.windows.forEach((background) => background.hide());
+  call(trayOptions, 'onAlwaysOnTopChange');
+  expect(mocks.main!.moveTop).not.toHaveBeenCalled();
 });

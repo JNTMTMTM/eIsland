@@ -34,9 +34,9 @@ beforeEach(resetLifecycle);
 type Options = Parameters<typeof useIslandShellPresentation>[0];
 const base: Options = { state: 'idle', morphing: false, fromState: '', showGlow: null, springAnimation: false, animationSpeed: 'medium', shapeMode: 'notch', dominantColor: [1, 2, 3] };
 describe('useIslandShellPresentation 实际展示值', () => {
-  it('idle 无状态类且无 glow 样式', () => {
+  it('idle 显式标记收拢目标且无 glow 样式', () => {
     const result = renderWithHooks(() => useIslandShellPresentation(base));
-    expect(result.shellClassName).toBe('island-shell shape-notch  speed-medium'); expect(result.shellStyle).toBeUndefined();
+    expect(result.shellClassName).toBe('island-shell shape-notch idle speed-medium'); expect(result.shellStyle).toBeUndefined();
   });
   it('组合真实状态、变形来源、暂停、弹簧与形状参数', () => {
     const input: Options = { ...base, state: 'hover', morphing: true, fromState: 'lyrics', showGlow: 'paused', springAnimation: true, animationSpeed: 'fast', shapeMode: 'pill' };

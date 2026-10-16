@@ -28,12 +28,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useIslandSettingsSync } from '../useIslandSettingsSync';
 import { ISLAND_WIDTH } from '../../../../shared/islandDimensions';
 import { renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../components/test/contentLifecycleHarness';
+import { beginIslandWindowTransition, completeIslandWindowTransition, getIslandWindowTransitionId } from '../../../utils/islandWindowTransition';
 import type useIslandStore from '../../../store/isLandStore';
 
 type Store = ReturnType<typeof useIslandStore.getState>;
 const io = vi.hoisted(() => ({
   state: ((): Store['state'] => 'idle')(),
   animationSpeed: ((): Store['animationSpeed'] => 'medium')(),
+  springAnimation: true,
   shapeMode: ((): Store['shapeMode'] => 'notch')(),
   setSpringAnimation: vi.fn<Store['setSpringAnimation']>(),
   setAnimationSpeed: vi.fn<Store['setAnimationSpeed']>(),
@@ -56,6 +58,8 @@ vi.mock('react', async (original) => ({
 type Options = Parameters<typeof useIslandSettingsSync>[0];
 type Bounds = Awaited<ReturnType<Window['api']['getWindowBounds']>>;
 const api = {
+  beginWindowTransition: vi.fn<(id: number) => void>(),
+  completeWindowTransition: vi.fn<(id: number) => void>(),
   enableMousePassthrough: vi.fn<Window['api']['enableMousePassthrough']>(),
   expandMouseleaveIdleGet: vi.fn<Window['api']['expandMouseleaveIdleGet']>(),
   maxexpandMouseleaveIdleGet: vi.fn<Window['api']['maxexpandMouseleaveIdleGet']>(),
@@ -161,6 +165,7 @@ beforeEach(() => {
   frameId = 0;
   io.state = 'idle';
   io.animationSpeed = 'medium';
+  io.springAnimation = true;
   io.shapeMode = 'notch';
   io.setShapeMode.mockImplementation((mode) => { io.shapeMode = mode; });
   api.storeRead.mockReset().mockImplementation((key) => Promise.resolve(values.get(key)));
@@ -201,7 +206,7 @@ beforeEach(() => {
   };
   surface = new EventTarget();
   vi.stubGlobal('window', Object.assign(surface, { api }));
-  vi.stubGlobal('document', { getElementById: getLayer, documentElement: { style: { setProperty } } });
+  vi.stubGlobal('document', { getElementById: getLayer, querySelector: () => null, documentElement: { style: { setProperty } } });
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
     frameId += 1;
     frames.set(frameId, callback);
@@ -212,6 +217,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   unmountHooks();
+  completeIslandWindowTransition(getIslandWindowTransitionId());
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -463,6 +469,63 @@ describe('Island IPC and local settings', () => {
 });
 
 describe('Island shape transitions and window animations', () => {
+  it('keeps shape protection through correction and confirms only after the final frame', async () => {
+    await commit();
+    shape();
+    const [[id]] = api.beginWindowTransition.mock.calls;
+    await settle();
+    tick(700);
+    await settle();
+    expect(api.completeWindowTransition).not.toHaveBeenCalled();
+    tick(716);
+    expect(api.completeWindowTransition).toHaveBeenCalledWith(id);
+  });
+  it('never confirms a newer state token or an unchanged shape using that state token', async () => {
+    await commit();
+    shape();
+    await settle();
+    tick(700);
+    await settle();
+    const id = beginIslandWindowTransition('notification', 'idle');
+    tick(716);
+    expect(api.completeWindowTransition).not.toHaveBeenCalled();
+    shape();
+    await settle();
+    tick(700);
+    await settle();
+    tick(716);
+    expect(api.completeWindowTransition).not.toHaveBeenCalled();
+    expect(getIslandWindowTransitionId()).toBe(id);
+  });
+  it('releases protection after the full duration and a frame when native bounds fail', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      await commit();
+      api.getWindowBounds.mockRejectedValueOnce(new Error('bounds unavailable'));
+      shape();
+      const [[id]] = api.beginWindowTransition.mock.calls;
+      await settle();
+      await vi.advanceTimersByTimeAsync(699);
+      expect(frames.size).toBe(0);
+      expect(api.completeWindowTransition).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+      tick(716);
+      expect(api.completeWindowTransition).toHaveBeenCalledWith(id);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+  it.each([['slow', 660], ['medium', 420], ['fast', 220]] as const)('shape switching without spring uses the %s duration', async (speed, duration) => {
+    io.animationSpeed = speed;
+    io.springAnimation = false;
+    io.state = 'notification';
+    await commit();
+    shape();
+    await settle();
+    tick(duration);
+    await settle();
+    expect(api.expandWindowNotification).toHaveBeenCalledWith(duration);
+  });
   it.each([
     ['hover', 'expandWindow'], ['notification', 'expandWindowNotification'], ['agent', 'expandWindowNotification'],
     ['stt', 'expandWindowNotification'], ['cli', 'expandWindowNotification'], ['lyrics', 'expandWindowLyrics'],

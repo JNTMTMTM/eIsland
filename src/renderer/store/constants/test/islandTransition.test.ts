@@ -25,15 +25,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { getIslandMorphDuration, getIslandWindowShrinkDelay } from '../islandTransition';
+import { getIslandMorphDuration } from '../islandTransition';
 
-describe('getIslandWindowShrinkDelay', () => {
-  it('keeps the old window canvas while a smaller state is animating', () => {
-    expect(getIslandWindowShrinkDelay('expanded', 'idle', 'medium')).toBe(700);
-    expect(getIslandWindowShrinkDelay('hover', 'idle', 'fast')).toBe(360);
-    expect(getIslandWindowShrinkDelay('maxExpand', 'expanded', 'slow')).toBe(1100);
-  });
-
+describe('getIslandMorphDuration', () => {
   it('provides a protection duration for shape-mode changes', () => {
     expect(getIslandMorphDuration('slow')).toBe(1100);
     expect(getIslandMorphDuration('medium')).toBe(700);
@@ -48,13 +42,4 @@ describe('getIslandWindowShrinkDelay', () => {
     expect(getIslandMorphDuration('unknown')).toBe(700);
   });
 
-  it('uses zero-area fallbacks when a state is missing from the area map', () => {
-    expect(getIslandWindowShrinkDelay('futureState' as never, 'idle', 'medium')).toBe(0);
-    expect(getIslandWindowShrinkDelay('idle', 'futureState' as never, 'medium')).toBe(700);
-  });
-
-  it('resizes immediately when the target state is not smaller', () => {
-    expect(getIslandWindowShrinkDelay('idle', 'hover', 'medium')).toBe(0);
-    expect(getIslandWindowShrinkDelay('expanded', 'maxExpand', 'medium')).toBe(0);
-  });
 });

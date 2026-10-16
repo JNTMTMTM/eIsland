@@ -115,7 +115,7 @@ describe('window ipc handlers', () => {
     registerWindowIpcHandlers({
       getMainWindow: () => win as never,
       getInitialCenterX: () => 500,
-      setHiddenByAutoHideProcess: vi.fn(),
+      setManualVisibility: vi.fn(),
       getIslandPositionOffset: () => ({ x: 1, y: 2 }),
       getIslandDisplaySelection: () => 'primary',
       sanitizeIslandDisplaySelection: () => 'primary',
@@ -146,15 +146,16 @@ describe('window ipc handlers', () => {
     expect(win.setBounds).toHaveBeenCalledTimes(2);
 
     vi.useFakeTimers();
+    // 原生回读的放大尺寸不应覆盖 expand/collapse 已记录的 600px 外框。
     win.getBounds.mockReturnValue({ x: 100, y: 200, width: 1000, height: 600 });
     onHandlers.get('window:expand')?.({}, 700);
     expect(win.setBounds).toHaveBeenCalledTimes(3);
-    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 200, y: 0, width: 600, height: 200 }]);
+    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 0, y: 0, width: 600, height: 200 }]);
     vi.advanceTimersByTime(699);
     expect(win.setBounds).toHaveBeenCalledTimes(3);
     vi.advanceTimersByTime(1);
     expect(win.setBounds).toHaveBeenCalledTimes(4);
-    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 200, y: 0, width: 600, height: 200 }]);
+    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 0, y: 0, width: 600, height: 200 }]);
     expect(win.webContents.invalidate).toHaveBeenCalledTimes(4);
     vi.useRealTimers();
 
@@ -162,9 +163,9 @@ describe('window ipc handlers', () => {
     expect(handleHandlers.get('window:get-mouse-position')?.()).toEqual({ x: 10, y: 20 });
     expect(handleHandlers.get('window:get-mouse-window-state')?.()).toEqual({
       mousePosition: { x: 10, y: 20 },
-      bounds: { x: 200, y: 0, width: 600, height: 200 },
+      bounds: { x: 0, y: 0, width: 600, height: 200 },
     });
-    expect(handleHandlers.get('window:get-bounds')?.()).toEqual({ x: 200, y: 0, width: 600, height: 200 });
+    expect(handleHandlers.get('window:get-bounds')?.()).toEqual({ x: 0, y: 0, width: 600, height: 200 });
     expect(handleHandlers.get('window:island-displays:list')?.()).toEqual([{ id: '1', width: 1920, height: 1080, isPrimary: true }]);
   });
 
@@ -175,7 +176,7 @@ describe('window ipc handlers', () => {
     registerWindowIpcHandlers({
       getMainWindow: () => win as never,
       getInitialCenterX: () => 500,
-      setHiddenByAutoHideProcess: vi.fn(),
+      setManualVisibility: vi.fn(),
       getIslandPositionOffset: () => ({ x: 1, y: 2 }),
       getIslandDisplaySelection: () => 'primary',
       sanitizeIslandDisplaySelection: () => 'display-2',

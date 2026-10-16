@@ -26,6 +26,9 @@
 
 /** 灵动岛主体容器 */
 .island-shell {
+  --shell-morph-duration: .68s;
+  --shell-pulse-duration: .55s;
+
   position: relative;
   width: 260px;
   height: 42px;
@@ -90,7 +93,8 @@
 .island-shell.shape-pill.bindEmail,
 .island-shell.shape-pill.payment,
 .island-shell.shape-pill.announcement,
-.island-shell.shape-pill.questionnaire {
+.island-shell.shape-pill.questionnaire,
+.island-shell.shape-pill[class~="musicProvidersLogin"] {
   border-radius: 26px;
 }
 
@@ -108,7 +112,8 @@
 .island-shell.shape-pill.bindEmail,
 .island-shell.shape-pill.payment,
 .island-shell.shape-pill.announcement,
-.island-shell.shape-pill.questionnaire {
+.island-shell.shape-pill.questionnaire,
+.island-shell.shape-pill[class~="musicProvidersLogin"] {
   height: 416px;
 }
 
@@ -182,26 +187,27 @@
 
 /** 状态切换形变脉冲动画（通用兜底） */
 .island-shell.spring-animation.morphing {
-  animation: shellMorph 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: shellMorph var(--shell-pulse-duration) cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+/* 回弹保留压缩与恢复，不超出原生窗口当前/目标尺寸包络，避免 setShape 裁切边缘。 */
 @keyframes shellMorph {
   0%   { transform: scale(1); }
-  25%  { transform: scale(0.975, 1.01); }
-  55%  { transform: scale(1.012, 0.993); }
-  80%  { transform: scale(0.998, 1.002); }
+  25%  { transform: scale(0.975, 1); }
+  55%  { transform: scale(1, 0.993); }
+  80%  { transform: scale(0.998, 1); }
   100% { transform: scale(1); }
 }
 
 /** idle → hover：横向弹性膨胀 */
 .island-shell.spring-animation.hover.morphing.from-idle {
-  animation: shellExpandFromIdle 0.68s cubic-bezier(0.25, 1.06, 0.45, 1);
+  animation: shellExpandFromIdle var(--shell-morph-duration) cubic-bezier(0.25, 1, 0.45, 1);
 }
 
 @keyframes shellExpandFromIdle {
-  0%   { transform: scaleX(0.85) scaleY(1.03); }
-  35%  { transform: scaleX(1.03) scaleY(0.97); }
-  65%  { transform: scaleX(0.995) scaleY(1.005); }
+  0%   { transform: scaleX(0.85) scaleY(1); }
+  35%  { transform: scaleX(1) scaleY(0.97); }
+  65%  { transform: scaleX(0.995) scaleY(1); }
   100% { transform: scale(1); }
 }
 
@@ -211,13 +217,13 @@
 .island-shell.spring-animation.hover.morphing.from-guide,
 .island-shell.spring-animation.hover.morphing.from-announcement,
 .island-shell.spring-animation.hover.morphing.from-questionnaire {
-  animation: shellContractToHover 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: shellContractToHover var(--shell-morph-duration) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes shellContractToHover {
-  0%   { transform: scaleX(1.06) scaleY(0.96); }
-  30%  { transform: scaleX(0.97) scaleY(1.02); }
-  60%  { transform: scaleX(1.008) scaleY(0.997); }
+  0%   { transform: scaleX(1) scaleY(0.96); }
+  30%  { transform: scaleX(0.97) scaleY(1); }
+  60%  { transform: scaleX(1) scaleY(0.997); }
   100% { transform: scale(1); }
 }
 
@@ -225,14 +231,14 @@
 .island-shell.spring-animation.notification.morphing.from-idle,
 .island-shell.spring-animation.agent.morphing.from-idle,
 .island-shell.spring-animation.stt.morphing.from-idle {
-  animation: shellExpandToNotification 0.68s cubic-bezier(0.25, 1.06, 0.45, 1);
+  animation: shellExpandToNotification var(--shell-morph-duration) cubic-bezier(0.25, 1, 0.45, 1);
 }
 
 @keyframes shellExpandToNotification {
-  0%   { transform: scaleX(0.86) scaleY(1.06); }
-  32%  { transform: scaleX(1.028) scaleY(0.974); }
-  60%  { transform: scaleX(0.996) scaleY(1.004); }
-  80%  { transform: scaleX(1.002) scaleY(0.999); }
+  0%   { transform: scaleX(0.86) scaleY(1); }
+  32%  { transform: scaleX(1) scaleY(0.974); }
+  60%  { transform: scaleX(0.996) scaleY(1); }
+  80%  { transform: scaleX(1) scaleY(0.999); }
   100% { transform: scale(1); }
 }
 
@@ -240,52 +246,52 @@
 .island-shell.spring-animation.notification.morphing.from-hover,
 .island-shell.spring-animation.agent.morphing.from-hover,
 .island-shell.spring-animation.stt.morphing.from-hover {
-  animation: shellExpandNotifFromHover 0.72s cubic-bezier(0.25, 1.08, 0.45, 1);
+  animation: shellExpandNotifFromHover var(--shell-morph-duration) cubic-bezier(0.25, 1, 0.45, 1);
 }
 
 @keyframes shellExpandNotifFromHover {
-  0%   { transform: scaleY(0.92) scaleX(1.01); }
-  45%  { transform: scaleY(1.025) scaleX(0.99); }
-  75%  { transform: scaleY(0.997) scaleX(1.001); }
+  0%   { transform: scaleY(0.92) scaleX(1); }
+  45%  { transform: scaleY(1) scaleX(0.99); }
+  75%  { transform: scaleY(0.997) scaleX(1); }
   100% { transform: scale(1); }
 }
 
-/** notification → hover：同尺寸，微妙呼吸 */
+/** notification → hover：收缩并轻微回弹 */
 .island-shell.spring-animation.hover.morphing.from-notification,
 .island-shell.spring-animation.hover.morphing.from-agent,
 .island-shell.spring-animation.hover.morphing.from-stt {
-  animation: shellCrossfade 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: shellCrossfade var(--shell-morph-duration) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes shellCrossfade {
-  0%   { transform: scaleY(1.06) scaleX(0.99); }
-  50%  { transform: scaleY(0.995) scaleX(1.003); }
+  0%   { transform: scaleY(1) scaleX(0.99); }
+  50%  { transform: scaleY(0.995) scaleX(1); }
   100% { transform: scale(1); }
 }
 
 /** hover → idle：柔和收拢 */
-.island-shell.spring-animation.morphing.from-hover:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement) {
-  animation: shellShrinkToIdle 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+.island-shell.spring-animation.morphing.from-hover:where(.idle, .minimal, .lyrics, [class~="lyricsTranslation"], [class~="agentVoiceInput"]) {
+  animation: shellShrinkToIdle var(--shell-morph-duration) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /** notification → idle：横向收拢 */
-.island-shell.spring-animation.morphing.from-notification:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement),
-.island-shell.spring-animation.morphing.from-agent:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement),
-.island-shell.spring-animation.morphing.from-stt:not(.hover):not(.expanded):not(.maxExpand):not(.notification):not(.agent):not(.stt):not(.guide):not(.announcement) {
-  animation: shellShrinkFromNotification 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+.island-shell.spring-animation.morphing.from-notification:where(.idle, .minimal, .lyrics, [class~="lyricsTranslation"], [class~="agentVoiceInput"]),
+.island-shell.spring-animation.morphing.from-agent:where(.idle, .minimal, .lyrics, [class~="lyricsTranslation"], [class~="agentVoiceInput"]),
+.island-shell.spring-animation.morphing.from-stt:where(.idle, .minimal, .lyrics, [class~="lyricsTranslation"], [class~="agentVoiceInput"]) {
+  animation: shellShrinkFromNotification var(--shell-morph-duration) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes shellShrinkFromNotification {
-  0%   { transform: scaleX(0.92) scaleY(1.04); }
-  38%  { transform: scaleX(1.015) scaleY(0.99); }
-  68%  { transform: scaleX(0.998) scaleY(1.002); }
+  0%   { transform: scaleX(0.92) scaleY(1); }
+  38%  { transform: scaleX(1) scaleY(0.99); }
+  68%  { transform: scaleX(0.998) scaleY(1); }
   100% { transform: scale(1); }
 }
 
 @keyframes shellShrinkToIdle {
-  0%   { transform: scaleX(0.92) scaleY(1.04); }
-  40%  { transform: scaleX(1.015) scaleY(0.99); }
-  70%  { transform: scaleX(0.998) scaleY(1.002); }
+  0%   { transform: scaleX(0.92) scaleY(1); }
+  40%  { transform: scaleX(1) scaleY(0.99); }
+  70%  { transform: scaleX(0.998) scaleY(1); }
   100% { transform: scale(1); }
 }
 
@@ -293,6 +299,9 @@
 
 /** 慢速：基础过渡 */
 .island-shell.speed-slow {
+  --shell-morph-duration: 1.08s;
+  --shell-pulse-duration: .88s;
+
   transition: width 0.64s ease,
               height 0.64s ease,
               border-radius 0.64s ease,
@@ -306,24 +315,12 @@
               background 0.72s ease,
               box-shadow 1.08s ease;
 }
-.island-shell.speed-slow.morphing { animation-duration: 0.88s; }
-.island-shell.spring-animation.speed-slow.hover.morphing.from-idle { animation-duration: 1.08s; }
-.island-shell.spring-animation.speed-slow.hover.morphing.from-expanded,
-.island-shell.spring-animation.speed-slow.hover.morphing.from-maxExpand,
-.island-shell.spring-animation.speed-slow.hover.morphing.from-guide,
-.island-shell.spring-animation.speed-slow.hover.morphing.from-announcement { animation-duration: 1.08s; }
-.island-shell.spring-animation.speed-slow.notification.morphing.from-idle,
-.island-shell.spring-animation.speed-slow.agent.morphing.from-idle,
-.island-shell.spring-animation.speed-slow.stt.morphing.from-idle { animation-duration: 1.08s; }
-.island-shell.spring-animation.speed-slow.notification.morphing.from-hover,
-.island-shell.spring-animation.speed-slow.agent.morphing.from-hover,
-.island-shell.spring-animation.speed-slow.stt.morphing.from-hover { animation-duration: 1.15s; }
-.island-shell.spring-animation.speed-slow.hover.morphing.from-notification,
-.island-shell.spring-animation.speed-slow.hover.morphing.from-agent,
-.island-shell.spring-animation.speed-slow.hover.morphing.from-stt { animation-duration: 1.08s; }
 
 /** 快速：基础过渡 */
 .island-shell.speed-fast {
+  --shell-morph-duration: .34s;
+  --shell-pulse-duration: .28s;
+
   transition: width 0.2s ease,
               height 0.2s ease,
               border-radius 0.2s ease,
@@ -337,21 +334,6 @@
               background 0.22s ease,
               box-shadow 0.34s ease;
 }
-.island-shell.speed-fast.morphing { animation-duration: 0.28s; }
-.island-shell.spring-animation.speed-fast.hover.morphing.from-idle { animation-duration: 0.34s; }
-.island-shell.spring-animation.speed-fast.hover.morphing.from-expanded,
-.island-shell.spring-animation.speed-fast.hover.morphing.from-maxExpand,
-.island-shell.spring-animation.speed-fast.hover.morphing.from-guide,
-.island-shell.spring-animation.speed-fast.hover.morphing.from-announcement { animation-duration: 0.34s; }
-.island-shell.spring-animation.speed-fast.notification.morphing.from-idle,
-.island-shell.spring-animation.speed-fast.agent.morphing.from-idle,
-.island-shell.spring-animation.speed-fast.stt.morphing.from-idle { animation-duration: 0.34s; }
-.island-shell.spring-animation.speed-fast.notification.morphing.from-hover,
-.island-shell.spring-animation.speed-fast.agent.morphing.from-hover,
-.island-shell.spring-animation.speed-fast.stt.morphing.from-hover { animation-duration: 0.36s; }
-.island-shell.spring-animation.speed-fast.hover.morphing.from-notification,
-.island-shell.spring-animation.speed-fast.hover.morphing.from-agent,
-.island-shell.spring-animation.speed-fast.hover.morphing.from-stt { animation-duration: 0.34s; }
 
 /** Idle 内容 */
 .idle-content {

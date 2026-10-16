@@ -3646,7 +3646,7 @@
         "clockHint": "在歌词界面封面与歌词之间显示当前北京时间",
         "clockToggle": "显示当前时间",
         "calibrateTitle": "歌词校准",
-        "calibrateHint": "歌词获取后延迟读取 SMTC 时间戳，修正歌词时间偏移",
+        "calibrateHint": "歌词加载后按播放时长延迟校准进度，暂停时停止计时；修改设置对当前歌曲立即生效",
         "calibrateToggle": "启用歌词校准",
         "calibrateDelayLabel": "触发延迟（秒）"
       },
@@ -4800,6 +4800,29 @@
     },
     "feedback": {
       "loginCancelled": "登录已取消或超时"
+    }
+  },
+  "tray": {
+    "showIsland": "显示灵动岛",
+    "hideIsland": "隐藏灵动岛",
+    "openSettings": "打开配置界面",
+    "alwaysOnTop": "窗口置顶",
+    "openLogFolder": "打开日志文件夹",
+    "restart": "重启灵动岛",
+    "quit": "退出",
+    "menuLabel": "托盘菜单",
+    "notLoggedIn": "未登录",
+    "loginHint": "登录后同步账号信息",
+    "proExpireAt": "Pro 到期 {{date}}",
+    "music": {
+      "label": "音乐控制",
+      "idle": "未在播放",
+      "idleHint": "播放音乐后可在此控制",
+      "unknownArtist": "未知歌手",
+      "play": "播放",
+      "pause": "暂停",
+      "previous": "上一首",
+      "next": "下一首"
     }
   }
 }

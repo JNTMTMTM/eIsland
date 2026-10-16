@@ -86,6 +86,7 @@ import type {
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
 } from './types';
+import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
 
 declare global {
   interface Window {
@@ -93,6 +94,10 @@ declare global {
     api: {
       enableMousePassthrough: () => void;
       disableMousePassthrough: () => void;
+      /** 登记本次过渡；必须先于对应的尺寸请求发送。 */
+      beginWindowTransition: (id: number) => void;
+      /** 最终动画帧完成后确认；旧标识不会收缩新状态。 */
+      completeWindowTransition: (id: number) => void;
       expandWindow: (delayMs?: number) => void;
       expandWindowNotification: (delayMs?: number) => void;
       expandWindowLyrics: (delayMs?: number) => void;
@@ -343,6 +348,11 @@ declare global {
       updaterInstall: () => Promise<boolean>;
       updaterVersion: () => Promise<string>;
       guideReset: () => Promise<boolean>;
+      onTrayMenuOpen: (callback: (state: TrayMenuState) => void) => () => void;
+      trayMenuMounted: () => void;
+      trayMenuReady: (height: number) => void;
+      trayMenuAction: (action: TrayMenuAction) => void;
+      trayMenuClose: () => void;
       onUpdaterProgress: (callback: (progress: UpdaterProgress) => void) => () => void;
       onUpdaterDownloaded: (callback: (data: UpdaterDownloadedData) => void) => () => void;
       onUpdaterAvailable: (callback: (data: UpdaterAvailableData) => void) => () => void;

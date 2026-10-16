@@ -27,10 +27,10 @@
 import { app, BrowserWindow, globalShortcut, protocol, net, ipcMain } from 'electron';
 import { join, resolve as resolvePath, sep } from 'path';
 import { pathToFileURL } from 'url';
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, existsSync, writeFileSync } from 'fs';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { autoUpdater } from 'electron-updater';
-import { createTray, destroyTray, toggleTray } from './tray';
+import { createTray, destroyTray, refreshTrayMenu, toggleTray } from './tray';
 import { createSessionMainLogger } from './log/mainLog';
 import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/urlWatcher';
 import { createClipboardUrlState } from './clipboard/clipboardUrlState';
@@ -133,12 +133,19 @@ import {
   writeIslandPositionOffsetConfig, writeIslandDisplaySelectionConfig,
   readClipboardUrlMonitorEnabledConfig, readClipboardUrlDetectModeConfig, readClipboardUrlBlacklistConfig,
   readUpdateAutoPromptConfig, readStartupAnimationEnabledConfig,
-  readFirstLaunchConfig, writeFirstLaunchConfig,
+  readFirstLaunchConfig, writeFirstLaunchConfig, readStandaloneWindowModeEnabledConfig,
+  STANDALONE_WINDOW_MODE_STORE_KEY, LEGACY_STANDALONE_WINDOW_MODE_STORE_KEY, APP_LANGUAGE_STORE_KEY,
 } from './config/storeConfig';
+import { isIslandAlwaysOnTop, restoreIslandAlwaysOnTop } from './window/islandAlwaysOnTop';
 import type { IslandPositionOffset } from './config/storeConfig';
 
 // 由构建配置固定；正式构建不能通过环境变量启用测试分支。
 const isE2E = process.env.EISLAND_E2E === '1';
+
+/** 影响托盘菜单内容的存储键，写入后需刷新托盘菜单 */
+const TRAY_MENU_STORE_KEYS = new Set([
+  STANDALONE_WINDOW_MODE_STORE_KEY, LEGACY_STANDALONE_WINDOW_MODE_STORE_KEY, APP_LANGUAGE_STORE_KEY,
+]);
 
 /** 防止 Electron 创建多个实例 */
 const gotTheLock = app.requestSingleInstanceLock();
@@ -177,6 +184,24 @@ function isIslandInExpandedOrMaxExpandState(): boolean {
   return inExpanded || inMaxExpand;
 }
 
+/** 统一恢复主窗口层级，避免非置顶背景反而盖住主窗口。 */
+function raiseIslandAboveBackground(): void {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  restoreIslandAlwaysOnTop(mainWindow);
+}
+
+/** 托盘切换置顶时，将已显示的背景窗口同步到相同层级；无背景时不调整主窗口层级。 */
+function syncIslandBackgroundLayers(): void {
+  let hasVisibleBackground = false;
+  [agentVoiceInputWindow, cliGlowWindow].forEach((background) => {
+    if (background && !background.isDestroyed() && background.isVisible()) {
+      background.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
+      hasVisibleBackground = true;
+    }
+  });
+  if (hasVisibleBackground) raiseIslandAboveBackground();
+}
+
 /**
  * 创建全屏透明 Agent 语音输入窗口
  * @description 加载 DynamicIslandAibackground/index.html，显示 Agent 语音输入背景光效
@@ -187,7 +212,9 @@ function showAgentVoiceInputWindow(): void {
   }
 
   if (agentVoiceInputWindow && !agentVoiceInputWindow.isDestroyed()) {
+    agentVoiceInputWindow.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
     agentVoiceInputWindow.show();
+    raiseIslandAboveBackground();
     return;
   }
 
@@ -220,7 +247,7 @@ function showAgentVoiceInputWindow(): void {
   });
 
   agentVoiceInputWindow.setIgnoreMouseEvents(true);
-  agentVoiceInputWindow.setAlwaysOnTop(true, 'screen-saver');
+  agentVoiceInputWindow.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
   agentVoiceInputWindow.removeMenu();
 
   if (app.isPackaged) {
@@ -232,7 +259,9 @@ function showAgentVoiceInputWindow(): void {
   const voiceWindow = agentVoiceInputWindow;
   voiceWindow.once('ready-to-show', () => {
     if (agentVoiceInputWindow === voiceWindow && !voiceWindow.isDestroyed()) {
+      voiceWindow.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
       voiceWindow.show();
+      raiseIslandAboveBackground();
     }
   });
 
@@ -241,9 +270,9 @@ function showAgentVoiceInputWindow(): void {
     if (agentVoiceInputWindow === voiceWindow) agentVoiceInputWindow = null;
   });
 
-  // 确保灵动岛始终在 Agent 语音输入窗口之上
+  // 主窗口与背景采用相同置顶层级，再将主窗口移到背景上方。
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    raiseIslandAboveBackground();
     mainWindow.webContents.send('agent-voice-input:state', true);
   }
 }
@@ -273,7 +302,9 @@ function hideAgentVoiceInputWindow(): void {
  */
 function showCliGlowWindow(): void {
   if (cliGlowWindow && !cliGlowWindow.isDestroyed()) {
+    cliGlowWindow.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
     cliGlowWindow.show();
+    raiseIslandAboveBackground();
     return;
   }
 
@@ -306,7 +337,7 @@ function showCliGlowWindow(): void {
   });
 
   cliGlowWindow.setIgnoreMouseEvents(true);
-  cliGlowWindow.setAlwaysOnTop(true, 'screen-saver');
+  cliGlowWindow.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
   cliGlowWindow.removeMenu();
 
   if (app.isPackaged) {
@@ -318,7 +349,9 @@ function showCliGlowWindow(): void {
   const glowWindow = cliGlowWindow;
   glowWindow.once('ready-to-show', () => {
     if (cliGlowWindow === glowWindow && !glowWindow.isDestroyed()) {
+      glowWindow.setAlwaysOnTop(isIslandAlwaysOnTop(), 'screen-saver');
       glowWindow.show();
+      raiseIslandAboveBackground();
     }
   });
 
@@ -326,9 +359,9 @@ function showCliGlowWindow(): void {
     if (cliGlowWindow === glowWindow) cliGlowWindow = null;
   });
 
-  // 保证灵动岛始终位于光效窗口之上
+  // 尊重托盘的置顶选择，同时保持主窗口位于光效上方。
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    raiseIslandAboveBackground();
   }
 }
 
@@ -349,6 +382,7 @@ function hideCliGlowWindow(): void {
 }
 
 const captureWindowService = createCaptureWindowService({
+  canRestoreMainWindow: () => !autoHideWatcher.isManuallyHidden(),
   getMainWindow: () => mainWindow,
 });
 /** 运行时白名单（可被用户修改） */
@@ -367,6 +401,8 @@ const mainWindowService = createMainWindowService({
   getMainWindow: () => mainWindow,
   setMainWindow: (window) => {
     mainWindow = window;
+    // 主窗口重建后刷新托盘菜单的可用状态（Linux 菜单需预先设置）。
+    refreshTrayMenu();
   },
   getIslandPositionOffset: () => islandPositionOffset,
   getIslandDisplaySelection: () => islandDisplaySelection,
@@ -423,9 +459,28 @@ const smtcService = createSmtcService({
   cleanupIntervalMs: SMTC_RUNTIME_CLEANUP_INTERVAL_MS,
 });
 
+/** 打开现有独立设置页，并同步已打开窗口的当前标签。 */
+function showSettingsWindow(): void {
+  if (!readStandaloneWindowModeEnabledConfig()) return;
+
+  const storeDir = join(app.getPath('userData'), 'eIsland_store');
+  if (!existsSync(storeDir)) {
+    mkdirSync(storeDir, { recursive: true });
+  }
+  try {
+    writeFileSync(join(storeDir, 'standalone-window-active-tab.json'), JSON.stringify('settings', null, 2), 'utf-8');
+  } catch {
+    // ignore
+  }
+
+  openStandaloneWindow();
+  broadcastSettingChange(-1, 'store:standalone-window-active-tab', 'settings');
+}
+
 const hotkeyService = createHotkeyService({
   getMainWindow: () => mainWindow,
-  setHiddenByAutoHideProcess: autoHideWatcher.setHiddenByAutoHideProcess,
+  setManualVisibility: autoHideWatcher.setManualVisibility,
+  isCapturing: captureWindowService.isCapturing,
   readHideHotkeyConfig: readHotkeyConfig,
   readQuitHotkeyConfig,
   readScreenshotHotkeyConfig,
@@ -461,39 +516,15 @@ const hotkeyService = createHotkeyService({
   onToggleTrayHotkey: () => {
     toggleTray();
   },
-  onShowSettingsWindowHotkey: () => {
-    const storeDir = join(app.getPath('userData'), 'eIsland_store');
-    const readMode = (key: string): string | null => {
-      try {
-        const filePath = join(storeDir, `${key}.json`);
-        if (!existsSync(filePath)) return null;
-        const parsed = JSON.parse(readFileSync(filePath, 'utf-8'));
-        return typeof parsed === 'string' ? parsed : null;
-      } catch {
-        return null;
-      }
-    };
-    const mode = readMode('standalone-window-mode') ?? readMode('countdown-window-mode');
-    if (mode !== 'standalone') return;
-
-    if (!existsSync(storeDir)) {
-      mkdirSync(storeDir, { recursive: true });
-    }
-    try {
-      writeFileSync(join(storeDir, 'standalone-window-active-tab.json'), JSON.stringify('settings', null, 2), 'utf-8');
-    } catch {
-      // ignore
-    }
-
-    openStandaloneWindow();
-    broadcastSettingChange(-1, 'store:standalone-window-active-tab', 'settings');
-  },
+  onShowSettingsWindowHotkey: showSettingsWindow,
   onOpenClipboardHistoryHotkey: () => {
     const target = mainWindow;
     if (!target || target.isDestroyed()) return;
-    if (!target.isVisible()) {
+    // 截图期间主窗口由截图流程临时隐藏，此时不抢先显示以免进入截图画面。
+    if (!target.isVisible() && !captureWindowService.isCapturing()) {
+      autoHideWatcher.setManualVisibility(true);
       target.show();
-      target.setAlwaysOnTop(true, 'screen-saver');
+      restoreIslandAlwaysOnTop(target);
     }
     broadcastSettingChange(-1, 'shortcut:open-clipboard-history', Date.now());
   },
@@ -527,7 +558,7 @@ function registerIpcHandlers(): void {
   registerWindowIpcHandlers({
     getMainWindow: () => mainWindow,
     getInitialCenterX: mainWindowService.getInitialCenterX,
-    setHiddenByAutoHideProcess: autoHideWatcher.setHiddenByAutoHideProcess,
+    setManualVisibility: autoHideWatcher.setManualVisibility,
     getIslandPositionOffset: () => islandPositionOffset,
     getIslandDisplaySelection: () => islandDisplaySelection,
     sanitizeIslandDisplaySelection,
@@ -608,7 +639,12 @@ function registerIpcHandlers(): void {
     },
   });
 
-  registerStoreIpcHandlers({ storeDir });
+  registerStoreIpcHandlers({
+    storeDir,
+    onWrite: (key) => {
+      if (TRAY_MENU_STORE_KEYS.has(key)) refreshTrayMenu();
+    },
+  });
   registerReminderWakeups();
   registerClaudeCodeStatusIpcHandlers({ service: claudeCodeStatusService });
   registerCodexStatusIpcHandlers(codexStatusService);
@@ -950,7 +986,11 @@ app.whenReady().then(() => {
   }
   mainWindowService.createWindow();
   if (!isE2E) {
-    createTray(mainWindow);
+    createTray(() => mainWindow, {
+      onVisibilityChange: autoHideWatcher.setManualVisibility,
+      onOpenSettings: showSettingsWindow,
+      onAlwaysOnTopChange: syncIslandBackgroundLayers,
+    });
     smtcService.initWorker();
     startClipboardUrlWatcher({
       getWindow: () => mainWindow,

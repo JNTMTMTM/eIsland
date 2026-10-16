@@ -3646,7 +3646,7 @@
         "clockHint": "Show current Beijing time between cover and lyrics",
         "clockToggle": "Show current time",
         "calibrateTitle": "Lyrics Calibration",
-        "calibrateHint": "Read SMTC timestamp after lyrics fetch to correct timing offset",
+        "calibrateHint": "Resync playback position after the selected delay while playing. Pausing stops the countdown; changes apply to the current song immediately.",
         "calibrateToggle": "Enable lyrics calibration",
         "calibrateDelayLabel": "Trigger delay (seconds)"
       },
@@ -4800,6 +4800,29 @@
     },
     "feedback": {
       "loginCancelled": "Login cancelled or timed out"
+    }
+  },
+  "tray": {
+    "showIsland": "Show Island",
+    "hideIsland": "Hide Island",
+    "openSettings": "Open Settings",
+    "alwaysOnTop": "Always on Top",
+    "openLogFolder": "Open Log Folder",
+    "restart": "Restart eIsland",
+    "quit": "Quit",
+    "menuLabel": "Tray menu",
+    "notLoggedIn": "Not signed in",
+    "loginHint": "Sign in to sync your account",
+    "proExpireAt": "Pro until {{date}}",
+    "music": {
+      "label": "Music controls",
+      "idle": "Nothing playing",
+      "idleHint": "Play music to control it here",
+      "unknownArtist": "Unknown artist",
+      "play": "Play",
+      "pause": "Pause",
+      "previous": "Previous",
+      "next": "Next"
     }
   }
 }

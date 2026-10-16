@@ -1,0 +1,371 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file tray-menu.css
+ * @description 自绘托盘菜单样式：用户信息卡片（Pro 金色卡片沿用用户中心设计）、音乐控制卡片与菜单项
+ * @author 鸡哥
+ */
+
+/** ===== 菜单容器（宽度需与主进程 TRAY_MENU_WIDTH 一致） ===== */
+.tray-menu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 272px;
+  padding: 6px;
+  overflow: hidden;
+  font-family: var(--island-ui-font);
+  color: rgb(var(--color-text-rgb), .9);
+  user-select: none;
+  background-color: var(--color-island-bg);
+  border: 1px solid rgb(var(--color-text-rgb), .12);
+  border-radius: 12px;
+
+}
+
+/** ===== 用户信息卡片 ===== */
+.tray-user-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  background: linear-gradient(135deg, rgb(var(--color-text-rgb), .08), rgb(var(--color-text-rgb), .03));
+  border: 1px solid rgb(var(--color-text-rgb), .1);
+  border-radius: 10px;
+
+}
+
+/** Pro 卡片：与用户中心 settings-user-info-summary-card--pro 相同的金色渐变与内高光 */
+.tray-user-card-pro {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(125deg, rgb(242 203 81 / 30%) 0%, rgb(242 203 81 / 9%) 34%, rgb(var(--color-text-rgb), .03) 72%),
+    linear-gradient(135deg, rgb(var(--color-text-rgb), .08), rgb(var(--color-text-rgb), .03));
+  border-color: rgb(242 203 81 / 45%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 239 184 / 45%),
+    inset 0 0 0 1px rgb(242 203 81 / 16%);
+
+}
+
+.tray-user-card-pro::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(112deg, rgb(242 203 81 / 42%) 0%, rgb(242 203 81 / 12%) 24%, rgb(242 203 81 / 0%) 58%);
+  border-radius: inherit;
+  opacity: .9;
+
+}
+
+.tray-user-card-pro > * {
+  position: relative;
+  z-index: 1;
+
+}
+
+.tray-user-card-avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  background: rgb(var(--color-text-rgb), .12);
+  border: 1px solid rgb(var(--color-text-rgb), .1);
+  border-radius: 50%;
+
+}
+
+.tray-user-card-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+}
+
+.tray-user-card-avatar-placeholder {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .55);
+  text-transform: uppercase;
+
+}
+
+.tray-user-card-identity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+}
+
+.tray-user-card-name {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .95);
+
+}
+
+.tray-user-card-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.tray-user-card-pro-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+
+}
+
+.tray-user-card-detail {
+  overflow: hidden;
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .5);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+/** ===== 音乐控制卡片（固定高度，播放信息变化时菜单高度不变） ===== */
+.tray-music-card {
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 58px;
+  padding: 8px 10px;
+  background: rgb(var(--color-text-rgb), .05);
+  border: 1px solid rgb(var(--color-text-rgb), .08);
+  border-radius: 10px;
+
+}
+
+.tray-music-card-cover {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 8px;
+
+}
+
+.tray-music-card-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+}
+
+.tray-music-card-cover .tray-music-card-cover-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: .45;
+
+}
+
+.tray-music-card-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+}
+
+.tray-music-card-title,
+.tray-music-card-artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.tray-music-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .92);
+
+}
+
+.tray-music-card-artist {
+  font-size: 11px;
+  color: rgb(var(--color-text-rgb), .5);
+
+}
+
+.tray-music-card-idle .tray-music-card-title {
+  font-weight: 500;
+  color: rgb(var(--color-text-rgb), .6);
+
+}
+
+.tray-music-card-controls {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  align-items: center;
+
+}
+
+.tray-music-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  transition: background-color .12s ease;
+
+}
+
+.tray-music-card-btn-play {
+  width: 30px;
+  height: 30px;
+  background: rgb(var(--color-text-rgb), .08);
+
+}
+
+.tray-music-card-btn:hover:not(:disabled),
+.tray-music-card-btn:focus-visible {
+  background: rgb(var(--color-text-rgb), .14);
+  outline: none;
+
+}
+
+.tray-music-card-btn:disabled {
+  cursor: default;
+  opacity: .35;
+
+}
+
+.tray-music-card-btn-icon {
+  width: 14px;
+  height: 14px;
+  filter: brightness(0) invert(var(--icon-invert));
+  opacity: .85;
+
+}
+
+.tray-music-card-btn-icon-sm {
+  width: 11px;
+  height: 11px;
+
+}
+
+/** ===== 菜单项 ===== */
+.tray-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+}
+
+.tray-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: rgb(var(--color-text-rgb), .88);
+  text-align: left;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  transition: background-color .12s ease;
+
+}
+
+.tray-menu-item:hover:not(:disabled),
+.tray-menu-item:focus-visible {
+  background: rgb(var(--color-text-rgb), .08);
+  outline: none;
+
+}
+
+.tray-menu-item:disabled {
+  cursor: default;
+  opacity: .4;
+
+}
+
+.tray-menu-item-danger {
+  color: rgb(255 107 107);
+
+}
+
+.tray-menu-item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+/** 复选标记：用边框绘制对勾，避免依赖字体字符 */
+.tray-menu-item-check {
+  flex-shrink: 0;
+  width: 5px;
+  height: 9px;
+  margin-right: 3px;
+  border-right: 2px solid rgb(var(--color-text-rgb), .85);
+  border-bottom: 2px solid rgb(var(--color-text-rgb), .85);
+  transform: rotate(45deg) translateY(-2px);
+
+}
+
+.tray-menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: rgb(var(--color-text-rgb), .08);
+
+}

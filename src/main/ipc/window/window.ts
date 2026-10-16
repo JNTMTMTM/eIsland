@@ -29,6 +29,7 @@ import { BrowserWindow, ipcMain, screen } from 'electron';
 import { broadcastSettingChange } from '../../utils/broadcast';
 import { readIslandScaleConfig, writeIslandScaleConfig } from '../../config/islandScaleConfig';
 import { normalizeIslandScale } from '../../../shared/islandScale';
+import { readMainWindowBounds, setMainWindowBounds } from '../../window/mainWindowBounds';
 import {
   readIslandShapeModeConfig,
   PILL_ISLAND_HEIGHT,
@@ -59,7 +60,7 @@ interface WindowIpcSizeOptions {
 interface RegisterWindowIpcHandlersOptions {
   getMainWindow: () => BrowserWindow | null;
   getInitialCenterX: () => number;
-  setHiddenByAutoHideProcess: (hidden: boolean) => void;
+  setManualVisibility: (visible: boolean) => void;
   getIslandPositionOffset: () => { x: number; y: number };
   getIslandDisplaySelection: () => string;
   sanitizeIslandDisplaySelection: (selection: unknown) => string;
@@ -102,8 +103,17 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
  * @param options - 配置选项，包含窗口获取和位置管理函数
  */
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
-  let pendingResizeTimer: ReturnType<typeof setTimeout> | null = null;
-  let logicalWindowSize: { width: number; height: number } | null = null;
+  interface WindowTransition { win: BrowserWindow; id: number }
+  interface PendingWindowResize {
+    win: BrowserWindow;
+    bounds: Electron.Rectangle;
+    transition: WindowTransition | null;
+    timer: ReturnType<typeof setTimeout>;
+    complete: () => void;
+  }
+  let activeTransition: WindowTransition | null = null;
+  let pendingResize: PendingWindowResize | null = null;
+  const logicalWindowSizes = new WeakMap<BrowserWindow, { width: number; height: number }>();
   let islandScale = readIslandScaleConfig();
   let lastTargetBounds: ((win: BrowserWindow) => Electron.Rectangle) | null = null;
 
@@ -113,7 +123,8 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
    * @returns 可见区域的屏幕坐标与尺寸。
    */
   const getVisibleBounds = (win: BrowserWindow): Electron.Rectangle => {
-    const bounds = win.getBounds();
+    const bounds = readMainWindowBounds(win);
+    const logicalWindowSize = logicalWindowSizes.get(win);
     const width = logicalWindowSize?.width ?? Math.round(options.sizes.islandWidth * islandScale / 100);
     return {
       x: Math.round(bounds.x + (bounds.width - width) / 2),
@@ -142,12 +153,12 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
     visibleWidth: number,
     visibleHeight: number,
   ): void => {
-    const currentBounds = win.getBounds();
+    const currentBounds = readMainWindowBounds(win);
     const backingWidth = Math.max(currentBounds.width, targetBounds.width, visibleWidth);
     const backingX = targetBounds.x - Math.round((backingWidth - targetBounds.width) / 2);
-    logicalWindowSize = { width: visibleWidth, height: visibleHeight };
+    logicalWindowSizes.set(win, { width: visibleWidth, height: visibleHeight });
 
-    win.setBounds({
+    setMainWindowBounds(win, {
       x: backingX,
       y: targetBounds.y,
       width: backingWidth,
@@ -175,17 +186,27 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
       };
     };
     const safeDelayMs = Number.isFinite(delayMs) ? Math.max(0, delayMs) : 0;
-    if (pendingResizeTimer) {
-      clearTimeout(pendingResizeTimer);
-      pendingResizeTimer = null;
-    }
+    withWindow((win) => {
+      const targetBounds = getScaledBounds(win);
+      if (safeDelayMs === 0) activeTransition = null;
+      const transition = activeTransition?.win === win ? activeTransition : null;
+      // 相同状态的重复请求不重新计时，否则持续到达的通知会无限推迟裁剪收敛。
+      if (safeDelayMs > 0 && pendingResize?.win === win
+        && pendingResize.transition === transition
+        && pendingResize.bounds.x === targetBounds.x && pendingResize.bounds.y === targetBounds.y
+        && pendingResize.bounds.width === targetBounds.width && pendingResize.bounds.height === targetBounds.height) return;
+      if (pendingResize) {
+        clearTimeout(pendingResize.timer);
+        pendingResize = null;
+      }
+      const currentBounds = readMainWindowBounds(win);
+      const currentSize = getVisibleBounds(win);
+      const currentCenterX = currentBounds.x + currentBounds.width / 2;
+      const needsProtection = currentSize.width > targetBounds.width || currentSize.height > targetBounds.height
+        || Math.abs(currentCenterX - (targetBounds.x + targetBounds.width / 2)) > 0.5
+        || currentBounds.y !== targetBounds.y;
 
-    if (safeDelayMs > 0) {
-      withWindow((win) => {
-        const targetBounds = getScaledBounds(win);
-        const currentBounds = win.getBounds();
-        const currentSize = getVisibleBounds(win);
-        const currentCenterX = currentBounds.x + currentBounds.width / 2;
+      if (safeDelayMs > 0 && needsProtection) {
         applyWindowGeometry(
           win,
           {
@@ -196,19 +217,28 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
           Math.max(currentSize.width, targetBounds.width),
           Math.max(currentSize.height, targetBounds.height),
         );
-      });
-      pendingResizeTimer = setTimeout(() => {
-        pendingResizeTimer = null;
-        withWindow((win) => {
-          const targetBounds = getScaledBounds(win);
-          applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
-        });
-      }, safeDelayMs);
-      return;
-    }
-
-    withWindow((win) => {
-      const targetBounds = getScaledBounds(win);
+        const request: PendingWindowResize = {
+          win,
+          transition,
+          bounds: targetBounds,
+          // renderer 完成后才收缩；超时仅用于渲染进程退出等无法确认的情况。
+          timer: setTimeout(() => request.complete(), transition ? Math.max(5000, Math.min(safeDelayMs * 3, 30000)) : safeDelayMs),
+          complete: () => {
+            if (pendingResize !== request) return;
+            pendingResize = null;
+            clearTimeout(request.timer);
+            if (activeTransition === transition) activeTransition = null;
+            // 延迟收缩只属于发起请求的窗口，不能裁剪已重建的主窗口。
+            if (options.getMainWindow() !== win) return;
+            withWindow((currentWindow) => {
+              const finalBounds = getScaledBounds(currentWindow);
+              applyWindowGeometry(currentWindow, finalBounds, finalBounds.width, finalBounds.height);
+            });
+          },
+        };
+        pendingResize = request;
+        return;
+      }
       applyWindowGeometry(win, targetBounds, targetBounds.width, targetBounds.height);
     });
   };
@@ -217,7 +247,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   const getEffectiveCenterX = (win: BrowserWindow): number => {
     const shapeMode = readIslandShapeModeConfig();
     if (shapeMode === 'pill') {
-      const bounds = win.getBounds();
+      const bounds = readMainWindowBounds(win);
       return bounds.x + bounds.width / 2;
     }
     return options.getInitialCenterX();
@@ -238,13 +268,35 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
       }
       return targetDisplay.workArea.y;
     }
-    return win.getBounds().y;
+    return readMainWindowBounds(win).y;
   };
 
   /** 根据当前形态模式返回对应高度（pill 模式各状态加高） */
   const getHeight = (notchHeight: number, pillHeight: number): number => {
     return readIslandShapeModeConfig() === 'pill' ? pillHeight : notchHeight;
   };
+
+  ipcMain.on('window:transition:begin', (event, id: number) => {
+    if (!Number.isSafeInteger(id) || id < 1) return;
+    withWindow((win) => {
+      if (event.sender !== win.webContents) return;
+      if (activeTransition?.win === win && activeTransition.id === id) return;
+      if (pendingResize) {
+        clearTimeout(pendingResize.timer);
+        pendingResize = null;
+      }
+      activeTransition = { win, id };
+    });
+  });
+
+  ipcMain.on('window:transition:complete', (event, id: number) => {
+    withWindow((win) => {
+      if (event.sender !== win.webContents || activeTransition?.win !== win || activeTransition.id !== id) return;
+      const transition = activeTransition;
+      activeTransition = null;
+      if (pendingResize?.win === win && pendingResize.transition === transition) pendingResize.complete();
+    });
+  });
 
   ipcMain.handle('island:scale:get', () => islandScale);
 
@@ -365,7 +417,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
 
   ipcMain.on('window:hide', () => {
     withWindow((win) => {
-      options.setHiddenByAutoHideProcess(false);
+      options.setManualVisibility(false);
       win.hide();
     });
   });
@@ -378,8 +430,8 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.on('window:move-delta', (_event, dx: number, dy: number) => {
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     withWindow((win) => {
-      const bounds = win.getBounds();
-      win.setBounds({
+      const bounds = readMainWindowBounds(win);
+      setMainWindowBounds(win, {
         x: Math.round(bounds.x + dx),
         y: Math.round(bounds.y + dy),
         width: bounds.width,

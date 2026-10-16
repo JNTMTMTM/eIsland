@@ -28,6 +28,7 @@ import { useEffect } from 'react';
 import useIslandStore from '../../store/isLandStore';
 import type { NotificationData } from '../../store/types';
 import { getIslandMorphDuration } from '../../store/constants/islandTransition';
+import { beginIslandWindowTransition, completeIslandWindowTransition, getIslandWindowTransitionId } from '../../utils/islandWindowTransition';
 import { ISLAND_WIDTH } from '../../../shared/islandDimensions';
 import {
   ISLAND_BG_MEDIA_STORE_KEY,
@@ -370,6 +371,7 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
      */
     /** 当前动画帧 ID，用于取消 */
     let animFrameId = 0;
+    let completionTimeout: ReturnType<typeof setTimeout> | undefined;
     let shapeChangeVersion = 0;
 
     const animateWindowMove = (totalDx: number, totalDy: number, duration: number): Promise<void> => {
@@ -430,33 +432,61 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         cancelAnimationFrame(animFrameId);
         animFrameId = 0;
       }
+      if (completionTimeout) clearTimeout(completionTimeout);
 
       const currentState = store.state;
-      const transitionDuration = getIslandMorphDuration(store.animationSpeed);
+      const transitionDuration = getIslandMorphDuration(store.animationSpeed, store.springAnimation);
+      const transitionId = store.shapeMode !== nextMode
+        ? beginIslandWindowTransition(store.shapeMode, nextMode, 'shape')
+        : getIslandWindowTransitionId('shape');
       if (store.shapeMode !== nextMode) store.setShapeMode(nextMode);
       applyWindowForState(currentState, transitionDuration);
 
-      void Promise.all([window.api.getWindowBounds(), window.api.islandScaleGet?.() ?? 100]).then(([bounds, scale]) => {
-        if (currentVersion !== shapeChangeVersion || !bounds) return;
-        const targetCenterX = targetX + Math.round(ISLAND_WIDTH * scale / 100) / 2;
-        const currentCenterX = bounds.x + bounds.width / 2;
-        const dx = Math.round(targetCenterX - currentCenterX);
-        const dy = Math.round(targetY - bounds.y);
-        return animateWindowMove(dx, dy, transitionDuration).then(async () => {
+      const completeAfterPaint = (delay = 0): void => {
+        if (!transitionId || currentVersion !== shapeChangeVersion) return;
+        const queueFrame = (): void => {
+          animFrameId = requestAnimationFrame(() => {
+            if (currentVersion === shapeChangeVersion) completeIslandWindowTransition(transitionId);
+          });
+        };
+        if (delay) completionTimeout = setTimeout(queueFrame, delay);
+        else queueFrame();
+      };
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises -- IPC 监听器同步返回；内部已捕获异步失败并安排画布保护释放。
+      void (async () => {
+        try {
+          const [bounds, scale] = await Promise.all([window.api.getWindowBounds(), window.api.islandScaleGet?.() ?? 100]);
+          if (currentVersion !== shapeChangeVersion) return;
+          if (!bounds) {
+            completeAfterPaint(transitionDuration);
+            return;
+          }
+          const targetCenterX = targetX + Math.round(ISLAND_WIDTH * scale / 100) / 2;
+          const currentCenterX = bounds.x + bounds.width / 2;
+          const dx = Math.round(targetCenterX - currentCenterX);
+          const dy = Math.round(targetY - bounds.y);
+          await animateWindowMove(dx, dy, transitionDuration);
           if (currentVersion !== shapeChangeVersion) return;
           const settledBounds = await window.api.getWindowBounds();
-          if (currentVersion !== shapeChangeVersion || !settledBounds) return;
-          const correctionX = Math.round(targetCenterX - (settledBounds.x + settledBounds.width / 2));
-          const correctionY = Math.round(targetY - settledBounds.y);
-          if (correctionX !== 0 || correctionY !== 0) {
-            window.api?.moveWindowDelta?.(correctionX, correctionY);
+          if (currentVersion !== shapeChangeVersion) return;
+          if (settledBounds) {
+            const correctionX = Math.round(targetCenterX - (settledBounds.x + settledBounds.width / 2));
+            const correctionY = Math.round(targetY - settledBounds.y);
+            if (correctionX !== 0 || correctionY !== 0) {
+              window.api?.moveWindowDelta?.(correctionX, correctionY);
+            }
           }
-        });
-      }).catch(() => {});
+          completeAfterPaint();
+        } catch {
+          // 原生位置读取失败时仍保留完整形变时间，随后释放当前画布保护。
+          completeAfterPaint(transitionDuration);
+        }
+      })();
     });
     return () => {
       shapeChangeVersion += 1;
       if (animFrameId) cancelAnimationFrame(animFrameId);
+      if (completionTimeout) clearTimeout(completionTimeout);
       unsub?.();
     };
   }, []);

@@ -68,7 +68,6 @@ export function LyricsTranslationContent(): ReactElement {
     if (currentIdx === lastIdxRef.current) return;
     lastIdxRef.current = currentIdx;
     if (currentText && translationText && currentText === translationText) {
-      window.api?.expandWindowLyrics();
       useIslandStore.getState().setLyrics();
     }
   }, [currentIdx, currentText, translationText]);

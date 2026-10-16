@@ -59,7 +59,7 @@ const readers = {
 };
 const options = {
   getMainWindow: vi.fn<() => BrowserWindow | null>(),
-  setHiddenByAutoHideProcess: vi.fn<(hidden: boolean) => void>(),
+  setManualVisibility: vi.fn<(hidden: boolean) => void>(),
   readHideHotkeyConfig: readers.Hide,
   readQuitHotkeyConfig: readers.Quit,
   readScreenshotHotkeyConfig: readers.Screenshot,
@@ -152,7 +152,7 @@ describe('hide-window callback and persisted binding boundaries', () => {
     const service = createHotkeyService(options);
     service.registerHideHotkey('Hide');
     press('Hide');
-    expect(options.setHiddenByAutoHideProcess).toHaveBeenCalledWith(false);
+    expect(options.setManualVisibility).toHaveBeenCalledWith(false);
     expect(mocks.hide).toHaveBeenCalledOnce();
     expect(mocks.show).not.toHaveBeenCalled();
     expect(mocks.alwaysOnTop).not.toHaveBeenCalled();
@@ -161,9 +161,16 @@ describe('hide-window callback and persisted binding boundaries', () => {
     const service = createHotkeyService(options);
     service.registerHideHotkey('Show');
     press('Show');
-    expect(options.setHiddenByAutoHideProcess).toHaveBeenCalledWith(false);
+    expect(options.setManualVisibility).toHaveBeenCalledWith(true);
     expect(mocks.show).toHaveBeenCalledOnce();
     expect(mocks.alwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
+  });
+  it('ignores the toggle while a screenshot temporarily hides the window', () => {
+    const service = createHotkeyService({ ...options, isCapturing: () => true });
+    service.registerHideHotkey('Show');
+    press('Show');
+    expect(options.setManualVisibility).not.toHaveBeenCalled();
+    expect(mocks.show).not.toHaveBeenCalled();
   });
   it.each(['absent', 'destroyed'])('ignores the hide callback for an %s window', (state) => {
     if (state === 'absent') options.getMainWindow.mockReturnValue(null);
@@ -171,7 +178,7 @@ describe('hide-window callback and persisted binding boundaries', () => {
     const service = createHotkeyService(options);
     service.registerHideHotkey('Hide');
     press('Hide');
-    expect(options.setHiddenByAutoHideProcess).not.toHaveBeenCalled();
+    expect(options.setManualVisibility).not.toHaveBeenCalled();
     expect(mocks.show).not.toHaveBeenCalled();
     expect(mocks.hide).not.toHaveBeenCalled();
   });

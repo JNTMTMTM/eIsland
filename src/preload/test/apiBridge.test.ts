@@ -81,6 +81,8 @@ const isolation = Object.getOwnPropertyDescriptor(process, 'contextIsolated');
 const TRANSPORT_ROUTES = [
   ['enableMousePassthrough', 'window:enable-mouse-passthrough', 0, 'send'],
   ['disableMousePassthrough', 'window:disable-mouse-passthrough', 0, 'send'],
+  ['beginWindowTransition', 'window:transition:begin', 1, 'send'],
+  ['completeWindowTransition', 'window:transition:complete', 1, 'send'],
   ['expandWindow', 'window:expand', 1, 'send'],
   ['expandWindowNotification', 'window:expand-notification', 1, 'send'],
   ['expandWindowLyrics', 'window:expand-lyrics', 1, 'send'],
@@ -298,6 +300,10 @@ const TRANSPORT_ROUTES = [
   ['updaterInstall', 'updater:install', 0, 'invoke'],
   ['updaterVersion', 'updater:version', 0, 'invoke'],
   ['guideReset', 'guide:reset', 0, 'invoke'],
+  ['trayMenuMounted', 'tray-menu:mounted', 0, 'send'],
+  ['trayMenuReady', 'tray-menu:ready', 1, 'send'],
+  ['trayMenuAction', 'tray-menu:action', 1, 'send'],
+  ['trayMenuClose', 'tray-menu:close', 0, 'send'],
   ['clipboardOpenUrl', 'clipboard:open-url', 1, 'invoke'],
   ['claudeCodeEventDetail', 'claude-code:event:detail', 2, 'invoke'],
   ['codexEventDetail', 'codex:event:detail', 2, 'invoke'],
@@ -316,6 +322,7 @@ const TRANSPORT_ROUTES = [
 
 const LISTENER_ROUTES = [
   ['onIslandPositionOffsetChanged', 'window:island-position:changed', 1, false],
+  ['onTrayMenuOpen', 'tray-menu:open', 1, false],
   ['onOllamaChatEvent', 'ollama:chat:event:', 1, true],
   ['onCustomDirectChatEvent', 'customDirect:chat:event:', 1, true],
   ['onNowPlayingInfo', 'nowplaying:info', 1, false],
@@ -497,9 +504,20 @@ describe('全部预加载API传输契约', () => {
     expect(late).not.toHaveBeenCalled();
   });
 
-  it.each(TRANSPORT_ROUTES.filter((route) => route[1].startsWith('window:') && route[3] === 'send' && route[2] === 1))('%s未传延时使用0', (name, channel) => {
+  it.each(TRANSPORT_ROUTES.filter((route) => /^(window:expand(?:-|$)|window:collapse$)/.test(route[1]) && route[3] === 'send' && route[2] === 1))('%s未传延时使用0', (name, channel) => {
     mocks.api[name]();
     expect(mocks.send).toHaveBeenCalledWith(channel, 0);
+  });
+
+  it('形变开始、调整尺寸与完成确认按发送顺序保留同一个令牌', () => {
+    mocks.api.beginWindowTransition(17);
+    mocks.api.collapseWindow(220);
+    mocks.api.completeWindowTransition(17);
+    expect(mocks.send.mock.calls).toEqual([
+      ['window:transition:begin', 17],
+      ['window:collapse', 220],
+      ['window:transition:complete', 17],
+    ]);
   });
 
   it('性能采样默认请求硬件选项，也可显式关闭', async () => {

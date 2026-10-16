@@ -26,10 +26,12 @@
  */
 
 import { app, BrowserWindow, globalShortcut } from 'electron';
+import { restoreIslandAlwaysOnTop } from '../window/islandAlwaysOnTop';
 
 interface CreateHotkeyServiceOptions {
   getMainWindow: () => BrowserWindow | null;
-  setHiddenByAutoHideProcess: (hidden: boolean) => void;
+  setManualVisibility: (visible: boolean) => void;
+  isCapturing?: () => boolean;
   readHideHotkeyConfig: () => string;
   readQuitHotkeyConfig: () => string;
   readScreenshotHotkeyConfig: () => string;
@@ -126,13 +128,15 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
       const success = globalShortcut.register(accelerator, () => {
         const mainWindow = options.getMainWindow();
         if (!mainWindow || mainWindow.isDestroyed()) return;
+        // 截图流程临时隐藏主窗口，此时的不可见不代表手动隐藏，忽略切换。
+        if (options.isCapturing?.()) return;
 
-        options.setHiddenByAutoHideProcess(false);
+        options.setManualVisibility(!mainWindow.isVisible());
         if (mainWindow.isVisible()) {
           mainWindow.hide();
         } else {
           mainWindow.show();
-          mainWindow.setAlwaysOnTop(true, 'screen-saver');
+          restoreIslandAlwaysOnTop(mainWindow);
         }
       });
 

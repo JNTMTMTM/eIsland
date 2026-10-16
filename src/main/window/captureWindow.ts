@@ -31,13 +31,16 @@ import { existsSync } from 'fs';
 import { is } from '@electron-toolkit/utils';
 import { capturePrimaryDisplayPng, captureAllDisplaysPng, getVisibleWindows, encodeScreenshotPng } from './screenshotHelper';
 import { readScreenshotEngineConfig } from '../config/storeConfig';
+import { restoreIslandAlwaysOnTop } from './islandAlwaysOnTop';
 
 interface CreateCaptureWindowServiceOptions {
   getMainWindow: () => BrowserWindow | null;
+  canRestoreMainWindow?: () => boolean;
 }
 
 interface CaptureWindowService {
   getCaptureWindow: () => BrowserWindow | null;
+  isCapturing: () => boolean;
   closeCaptureWindow: () => void;
   startRegionScreenshot: () => Promise<void>;
 }
@@ -258,9 +261,9 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
       if (!capture || controller.signal.aborted) {
         closeCaptureWindow();
         const mainWindow = options.getMainWindow();
-        if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow && !mainWindow.isDestroyed() && options.canRestoreMainWindow?.() !== false) {
           mainWindow.show();
-          mainWindow.setAlwaysOnTop(true, 'screen-saver');
+          restoreIslandAlwaysOnTop(mainWindow);
         }
         return;
       }
@@ -297,9 +300,9 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
       captureWindow.on('closed', () => {
         captureWindow = null;
         const mainWindow = options.getMainWindow();
-        if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow && !mainWindow.isDestroyed() && options.canRestoreMainWindow?.() !== false) {
           mainWindow.show();
-          mainWindow.setAlwaysOnTop(true, 'screen-saver');
+          restoreIslandAlwaysOnTop(mainWindow);
         }
       });
 
@@ -327,9 +330,9 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
       }
       captureWindow = null;
       const mainWindow = options.getMainWindow();
-      if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow && !mainWindow.isDestroyed() && options.canRestoreMainWindow?.() !== false) {
         mainWindow.show();
-        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+        restoreIslandAlwaysOnTop(mainWindow);
       }
     } finally {
       isStartingCaptureWindow = false;
@@ -339,6 +342,7 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
 
   return {
     getCaptureWindow: () => captureWindow,
+    isCapturing: () => isStartingCaptureWindow || captureWindow !== null,
     closeCaptureWindow,
     startRegionScreenshot,
   };

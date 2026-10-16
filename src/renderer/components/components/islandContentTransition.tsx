@@ -85,6 +85,10 @@ export default function IslandContentTransition({
       return { target: state, pending: false, retained: null };
     }
     if (!changed) return transition;
+    // 返回尚未卸载的页面时直接复用原树，避免为已挂载内容重新等待整段动画。
+    if (transition.retained?.state === state) {
+      return { target: state, pending: false, retained: null };
+    }
     const pending = transition.pending || (
       ISLAND_STATE_AREA[transition.target] !== ISLAND_STATE_AREA[state]
       && (isHeavyState(transition.target) || isHeavyState(state))

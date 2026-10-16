@@ -37,6 +37,8 @@ interface Session {
   } | null;
   timeline: {
     position: number;
+    duration?: number;
+    sampledAtMs?: number;
   } | null;
 }
 
@@ -160,6 +162,35 @@ afterEach(() => {
 });
 
 describe('SMTC Worker', () => {
+  it('暂停使用同批时间线，并保留读取失败的空时间线供主进程冻结位置', async () => {
+    mocks.sessions.mockReturnValue([{ media, playback, timeline, sourceAppId: 'app' }]);
+    await import('../smtcWorker');
+    const paused = { playbackStatus: 5 };
+    const freshTimeline = { position: 3 };
+    mocks.sessions.mockReturnValue([{ media, sourceAppId: 'app', playback: paused, timeline: freshTimeline }]);
+    emit('session-playback-changed', 'app', paused);
+    expect(mocks.post.mock.lastCall?.[0]).toMatchObject({ session: { playback: paused, timeline: freshTimeline } });
+    mocks.sessions.mockReturnValue([{ media, sourceAppId: 'app', playback: paused, timeline: null }]);
+    emit('session-playback-changed', 'app', paused);
+    expect(mocks.post.mock.lastCall?.[0]).toMatchObject({ session: { playback: paused, timeline: null } });
+  });
+
+  it('校准复用监控会话的时间锚点，保留暂停历史且不启动新命令进程', async () => {
+    const sampledTimeline = { position: 12, duration: 180, sampledAtMs: 1000 };
+    mocks.sessions.mockReturnValue([{ media, playback, sourceAppId: 'app', timeline: sampledTimeline }]);
+    await import('../smtcWorker');
+    const request = { type: 'command', requestId: 7, command: 'getTimestamp', sourceAppId: 'app', deadline: Date.now() + 4000 };
+    mocks.message?.(request);
+    expect(mocks.execute).not.toHaveBeenCalled();
+    expect(mocks.post.mock.lastCall?.[0]).toMatchObject({
+      type: 'command-result', requestId: 7,
+      result: { isAvailable: true, playbackStatus: 'playing', sourceAppUserModelId: 'app', timeline: { position: 12, sampledAtMs: 1000 } },
+    });
+    mocks.sessions.mockReturnValue([]);
+    mocks.message?.(request);
+    expect(mocks.execute).toHaveBeenCalledWith(request, expect.any(Function));
+  });
+
   it('非Worker环境拒绝启动，不创建原生监听', async () => {
     mocks.active = false;
     await expect(import('../smtcWorker')).rejects.toThrow('must be run as a Worker');

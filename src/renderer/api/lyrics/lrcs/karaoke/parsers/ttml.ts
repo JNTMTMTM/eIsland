@@ -22,7 +22,7 @@
  * @file ttml.ts
  * @description Apple Music TTML 逐字歌词解析器 — 移植自 Lyrix parsers/applemusic.rs
  *              解析 TTML XML 中 `<p>` + `<span>` 结构提取逐字音节
- *              时间格式: `HH:MM:SS.cs` 或 `MM:SS.cs`（centiseconds → milliseconds）
+ *              时间格式: `HH:MM:SS` 或 `MM:SS`，秒支持任意小数精度
  * @author 鸡哥
  * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
@@ -32,28 +32,15 @@ import type { KaraokeLine, KaraokeSyllable } from '../types';
 /* ── 时间解析 ──────────────────────────────────────────────────────── */
 
 /**
- * 解析音节级时间标签（MM:SS.cs 或 HH:MM:SS.cs）
- * cs = centiseconds（百分之一秒），乘 10 转毫秒
+ * 解析音节级时钟标签，按秒的小数精度换算毫秒，避免将毫秒误读为百分秒。
+ * @param tag - MM:SS 或 HH:MM:SS 格式，可带小数秒
+ * @returns 对应毫秒数，不支持的格式返回 0
  */
 function parseTimeMs(tag: string): number {
-  const t = tag.trim();
-  const parts = t.split(':');
-  let ms = 0;
-  if (parts.length === 3) {
-    // HH:MM:SS.cs
-    ms += parseInt(parts[0], 10) * 3_600_000;
-    ms += parseInt(parts[1], 10) * 60_000;
-    const [sec, cs] = parts[2].split('.');
-    ms += parseInt(sec, 10) * 1_000;
-    ms += parseInt(cs, 10) * 10;
-  } else if (parts.length === 2) {
-    // MM:SS.cs
-    ms += parseInt(parts[0], 10) * 60_000;
-    const [sec, cs] = parts[1].split('.');
-    ms += parseInt(sec, 10) * 1_000;
-    ms += parseInt(cs, 10) * 10;
-  }
-  return ms;
+  const parts = tag.trim().split(':');
+  if (parts.length !== 2 && parts.length !== 3) return 0;
+  const seconds = parts.reduce((total, part) => total * 60 + Number(part), 0);
+  return Math.round(seconds * 1000);
 }
 
 /* ── 属性提取辅助 ──────────────────────────────────────────────────── */

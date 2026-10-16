@@ -36,6 +36,8 @@ describe('media contracts', () => {
       album: string;
       duration_ms: number;
       position_ms: number;
+      positionTimestampMs?: number;
+      playbackRate?: number;
       isPlaying: boolean;
       thumbnail?: string | null;
       canFastForward: boolean;
@@ -43,6 +45,7 @@ describe('media contracts', () => {
       canLike: boolean;
       canChangeVolume: boolean;
       canSetOutput: boolean;
+      deviceId?: string;
     }>();
     const fixture: NowPlayingInfo = { title: 'sample', artist: 'sample', album: 'sample', duration_ms: 0, position_ms: 0, isPlaying: false, thumbnail: null, canFastForward: false, canSkip: false, canLike: false, canChangeVolume: false, canSetOutput: false };
     expect(fixture).toBeDefined();
@@ -82,6 +85,7 @@ describe('media contracts', () => {
       position: number;
       minSeekTime: number;
       maxSeekTime: number;
+      sampledAtMs?: number;
     }>();
     const fixture: SmtcTimeline = { startTime: 0, endTime: 0, position: 0, minSeekTime: 0, maxSeekTime: 0 };
     expect(fixture).toBeDefined();
@@ -93,6 +97,8 @@ describe('media contracts', () => {
     expectTypeOf<SmtcTimestampResult>().toEqualTypeOf<{
       isAvailable: boolean;
       playbackStatus: string;
+      playbackRate?: number | null;
+      sourceAppUserModelId?: string | null;
       timeline: SmtcTimeline | null;
     }>();
     const fixture: SmtcTimestampResult = { isAvailable: false, playbackStatus: 'sample', timeline: null };

@@ -44,6 +44,8 @@ interface SmtcSessionRuntimeEntry {
     album: string;
     duration_ms: number;
     position_ms: number;
+    positionTimestampMs: number;
+    playbackRate: number;
     isPlaying: boolean;
     thumbnail: string | null;
     canFastForward: boolean;
@@ -191,19 +193,21 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         const payload = currentEntry?.hasTitle ? currentEntry.payload : null;
         const outboundPayload = payload && !includeThumbnail
           ? {
-              title: payload.title,
-              artist: payload.artist,
-              album: payload.album,
-              duration_ms: payload.duration_ms,
-              position_ms: payload.position_ms,
-              isPlaying: payload.isPlaying,
-              canFastForward: payload.canFastForward,
-              canSkip: payload.canSkip,
-              canLike: payload.canLike,
-              canChangeVolume: payload.canChangeVolume,
-              canSetOutput: payload.canSetOutput,
-              deviceId: payload.deviceId,
-            }
+            title: payload.title,
+            artist: payload.artist,
+            album: payload.album,
+            duration_ms: payload.duration_ms,
+            position_ms: payload.position_ms,
+            positionTimestampMs: payload.positionTimestampMs,
+            playbackRate: payload.playbackRate,
+            isPlaying: payload.isPlaying,
+            canFastForward: payload.canFastForward,
+            canSkip: payload.canSkip,
+            canLike: payload.canLike,
+            canChangeVolume: payload.canChangeVolume,
+            canSetOutput: payload.canSetOutput,
+            deviceId: payload.deviceId,
+          }
           : payload;
         BrowserWindow.getAllWindows().forEach((win) => {
           if (!win.isDestroyed()) {
@@ -230,8 +234,8 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         sourceAppId?: string;
         session?: {
           media: { title: string; artist: string; albumTitle: string; thumbnail?: string | null } | null;
-          playback: { playbackStatus: number; playbackType: number } | null;
-          timeline: { position: number; duration: number } | null;
+          playback: { playbackStatus: number; playbackType: number; playbackRate?: number | null } | null;
+          timeline: { position: number; duration: number; sampledAtMs?: number } | null;
         };
         sources?: Array<{ sourceAppId: string; isPlaying: boolean; hasTitle: boolean; thumbnail: string | null }>;
       }) => {
@@ -305,23 +309,34 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         const sameTrack = Boolean(
           prevPayload
           && prevPayload.title === (media?.title ?? '')
-          && prevPayload.artist === (media?.artist ?? ''),
+          && prevPayload.artist === (media?.artist ?? '')
+          && prevPayload.album === (media?.albumTitle ?? ''),
         );
         const shouldEmitThumbnail = hasThumbnailUpdate && (!sameTrack || nextThumbnail !== (prevPayload?.thumbnail ?? null));
         const durationMs = timeline
           ? Math.round((timeline.duration ?? 0) * 1000)
           : sameTrack ? prevPayload!.duration_ms : 0;
+        const playbackRate = typeof playback?.playbackRate === 'number' && Number.isFinite(playback.playbackRate) && playback.playbackRate >= 0
+          ? playback.playbackRate : 1;
+        // 元数据或暂停事件缺少新时间线时，先按旧播放状态推进，再切换状态。
+        const previousPositionMs = sameTrack && prevPayload
+          ? prevPayload.position_ms + (prevPayload.isPlaying ? Math.max(0, now - prevPayload.positionTimestampMs) * prevPayload.playbackRate : 0)
+          : 0;
         const positionMs = timeline
           ? Math.round((timeline.position ?? 0) * 1000)
-          : sameTrack ? prevPayload!.position_ms : 0;
+          : Math.max(0, durationMs > 0 ? Math.min(durationMs, previousPositionMs) : previousPositionMs);
+        const positionTimestampMs = typeof timeline?.sampledAtMs === 'number' && Number.isFinite(timeline.sampledAtMs)
+          ? timeline.sampledAtMs : now;
 
         const payload = {
+          positionTimestampMs,
+          playbackRate,
+          isPlaying,
           title: media?.title ?? '',
           artist: media?.artist ?? '',
           album: media?.albumTitle ?? '',
           duration_ms: durationMs,
           position_ms: positionMs,
-          isPlaying,
           thumbnail: nextThumbnail,
           canFastForward: false,
           canSkip: false,

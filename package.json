@@ -146,7 +146,7 @@
     "@types/react-dom": "^19.3.0",
     "@types/react-katex": "^3.0.4",
     "@vitejs/plugin-react": "^5.0.0",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.5",
     "autoprefixer": "^10.6.1",
     "electron": "^44.7.2",
     "electron-builder": "^26.17.0",
@@ -157,12 +157,12 @@
     "node-abi": "^4.37.0",
     "npm-run-all2": "^9.0.3",
     "postcss": "^8.5.29",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.5"
   },
   "workspaces": [
     "scripts/lint"

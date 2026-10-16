@@ -60,7 +60,7 @@ afterAll(() => {
 });
 describe('production tray resources', () => {
   it('loads its real tray icon path from packaged extraResources and destroys the tray', () => {
-    createTray(null);
+    createTray(() => null);
     expect(mocks.icon).toHaveBeenCalledWith(join('C:\\fixture-resources', 'icon/eisland_16x16.ico'));
     destroyTray();
     expect(mocks.destroy).toHaveBeenCalledOnce();

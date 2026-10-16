@@ -26,6 +26,7 @@
  */
 
 import { BrowserWindow } from 'electron';
+import { restoreIslandAlwaysOnTop } from '../window/islandAlwaysOnTop';
 import { hasAnyFocusedWindowTitle } from './runningProcesses';
 
 interface CreateAutoHideWatcherOptions {
@@ -47,7 +48,8 @@ interface AutoHideWatcherService {
   getAutoHideFullscreenWindows: () => boolean;
   setAutoHideFullscreenWindows: (enabled: boolean) => void;
   getHiddenByAutoHideProcess: () => boolean;
-  setHiddenByAutoHideProcess: (hidden: boolean) => void;
+  setManualVisibility: (visible: boolean) => void;
+  isManuallyHidden: () => boolean;
 }
 
 /**
@@ -65,6 +67,21 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
   let watcherTimer: NodeJS.Timeout | null = null;
   let checkInFlight = false;
   let hiddenByAutoHideProcess = false;
+  let manualVisibility: boolean | null = null;
+  let manualVisibilityWindow: BrowserWindow | null = null;
+  let visibilityRevision = 0;
+
+  /**
+   * 读取当前主窗口的手动可见性；主窗口重建后旧选择不再生效。
+   * @returns 手动显示为 true，手动隐藏为 false，未手动操作为 null。
+   */
+  function getManualVisibility(): boolean | null {
+    if (manualVisibility !== null && manualVisibilityWindow !== options.getMainWindow()) {
+      manualVisibility = null;
+      manualVisibilityWindow = null;
+    }
+    return manualVisibility;
+  }
 
   async function checkNow(): Promise<void> {
     if (checkInFlight) return;
@@ -72,6 +89,7 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
     if (!mainWindow || mainWindow.isDestroyed()) return;
 
     checkInFlight = true;
+    const revision = visibilityRevision;
     try {
       const hasWindowTitleRules = autoHideWindowTitleList.length > 0;
       const shouldHideByFocusedTitle = hasWindowTitleRules
@@ -81,6 +99,14 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
         ? await options.isAnyFullscreenWindow()
         : false;
       const shouldHide = shouldHideByFocusedTitle || shouldHideByFullscreen;
+      // 查询期间的手动操作或窗口销毁优先，过期结果不得反向覆盖用户选择。
+      if (revision !== visibilityRevision || mainWindow.isDestroyed() || options.getMainWindow() !== mainWindow) return;
+      const manual = getManualVisibility();
+      if (manual !== null) {
+        // 手动显示覆盖当前隐藏场景，场景结束后恢复自动规则；手动隐藏持续到再次显示。
+        if (manual && !shouldHide) manualVisibility = null;
+        return;
+      }
 
       if (shouldHide) {
         if (mainWindow.isVisible()) {
@@ -93,7 +119,7 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
       if (hiddenByAutoHideProcess) {
         if (!mainWindow.isVisible()) {
           mainWindow.show();
-          mainWindow.setAlwaysOnTop(true, 'screen-saver');
+          restoreIslandAlwaysOnTop(mainWindow);
         }
         hiddenByAutoHideProcess = false;
       }
@@ -138,8 +164,12 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
       autoHideFullscreenWindows = enabled;
     },
     getHiddenByAutoHideProcess: () => hiddenByAutoHideProcess,
-    setHiddenByAutoHideProcess: (hidden) => {
-      hiddenByAutoHideProcess = hidden;
+    setManualVisibility: (visible) => {
+      manualVisibility = visible;
+      manualVisibilityWindow = options.getMainWindow();
+      hiddenByAutoHideProcess = false;
+      visibilityRevision += 1;
     },
+    isManuallyHidden: () => getManualVisibility() === false,
   };
 }

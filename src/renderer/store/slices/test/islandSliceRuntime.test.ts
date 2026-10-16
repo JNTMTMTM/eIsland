@@ -34,10 +34,11 @@ vi.mock('../../../utils/audio/notificationSound', () => ({
   playNotificationSoundOnce: sound
 }));
 const api = {
+  beginWindowTransition: vi.fn<(id: number) => void>(),
   collapseWindow: vi.fn<(delay: number) => void>(),
   expandWindow: vi.fn<(delay: number) => void>(),
   expandWindowFull: vi.fn<(delay: number) => void>(),
-  expandWindowSettings: vi.fn<() => void>(),
+  expandWindowSettings: vi.fn<(delay: number) => void>(),
   expandWindowLyrics: vi.fn<(delay: number) => void>(),
   expandWindowLyricsTranslation: vi.fn<(delay: number) => void>(),
   expandWindowNotification: vi.fn<(delay: number) => void>(),
@@ -283,20 +284,32 @@ const authReturns: {
   passthrough: 'disable'
 }, {
   state: 'resetPassword',
+  method: 'expandWindowSettings',
+  passthrough: 'disable',
   result: 'maxExpand'
 }, {
   state: 'setPassword',
+  method: 'expandWindowSettings',
+  passthrough: 'disable',
   result: 'maxExpand'
 }, {
   state: 'bindOAuth',
+  method: 'expandWindowSettings',
+  passthrough: 'disable',
   result: 'maxExpand'
 }, {
   state: 'bindEmail',
+  method: 'expandWindowSettings',
+  passthrough: 'disable',
   result: 'maxExpand'
 }, {
-  state: 'cli'
+  state: 'cli',
+  method: 'expandWindowNotification',
+  passthrough: 'disable'
 }, {
-  state: 'questionnaire'
+  state: 'questionnaire',
+  method: 'expandWindowSettings',
+  passthrough: 'disable'
 }];
 beforeEach(() => {
   storage = installStorage();
@@ -310,6 +323,42 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('Island slice window transitions and lock contract', () => {
+  it.each(transitions)('protects the current native canvas when switching to $state at every animation setting', ({ invoke, resize }) => {
+    const island = store();
+    const durations = [
+      { animationSpeed: 'slow', springAnimation: true, delay: 1100 },
+      { animationSpeed: 'medium', springAnimation: true, delay: 700 },
+      { animationSpeed: 'fast', springAnimation: true, delay: 360 },
+      { animationSpeed: 'slow', springAnimation: false, delay: 660 },
+      { animationSpeed: 'medium', springAnimation: false, delay: 420 },
+      { animationSpeed: 'fast', springAnimation: false, delay: 220 },
+    ] as const;
+    durations.forEach(({ animationSpeed, springAnimation, delay }) => {
+      island.setState({ animationSpeed, springAnimation, state: 'notification' });
+      invoke(island.getState());
+      expect(api[resize]).toHaveBeenLastCalledWith(delay);
+    });
+  });
+
+  it('keeps animation protection when a notification dismissal is interrupted by hover', () => {
+    const island = store();
+    island.getState().setNotification(notification);
+    island.getState().setIdle();
+    island.getState().setHover();
+    expect(api.collapseWindow).toHaveBeenLastCalledWith(700);
+    expect(api.expandWindow).toHaveBeenLastCalledWith(700);
+    expect(api.beginWindowTransition).toHaveBeenCalledTimes(3);
+    expect(api.beginWindowTransition.mock.invocationCallOrder[2]).toBeLessThan(api.expandWindow.mock.invocationCallOrder[0]);
+  });
+
+  it('preserves the current acknowledgement when notification content changes without a state change', () => {
+    const island = store();
+    island.getState().setNotification(notification);
+    island.getState().setNotification({ ...notification, body: 'Updated details' });
+    expect(api.beginWindowTransition).toHaveBeenCalledOnce();
+    expect(api.expandWindowNotification).toHaveBeenCalledTimes(2);
+  });
+
   it.each(transitions)('opens $state with its corresponding window API and pointer mode', ({
     state,
     invoke,
@@ -472,7 +521,7 @@ describe('Island slice authentication and standalone contract', () => {
     island.getState().returnFromAuth();
     expect(island.getState().state).toBe(result || state);
     expect(island.getState().authReturnState).toBeNull();
-    if (method) expect(api[method]).toHaveBeenCalledOnce();else expect(Object.values(api).every((mock) => mock.mock.calls.length === 0)).toBe(true);
+    if (method) expect(api[method]).toHaveBeenCalledExactlyOnceWith(700);else expect(Object.values(api).every((mock) => mock.mock.calls.length === 0)).toBe(true);
     if (passthrough === 'enable') expect(api.enableMousePassthrough).toHaveBeenCalledOnce();
     if (passthrough === 'disable') expect(api.disableMousePassthrough).toHaveBeenCalledOnce();
   });

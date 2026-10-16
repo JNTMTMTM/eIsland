@@ -32,7 +32,7 @@ import { vi } from 'vitest';
  */
 export default function mockWindow() {
   const emitter = new EventEmitter();
-  const state = { destroyed: false, visible: false };
+  const state = { destroyed: false, visible: false, minimized: false };
   const window = Object.assign(emitter, {
     state,
     webContents: Object.assign(new EventEmitter(), {
@@ -42,10 +42,13 @@ export default function mockWindow() {
     }),
     isDestroyed: () => state.destroyed,
     isVisible: () => state.visible,
+    isMinimized: () => state.minimized,
+    restore: vi.fn(() => { state.minimized = false; }),
     show: vi.fn(() => { state.visible = true; }),
     showInactive: vi.fn(() => { state.visible = true; }),
     hide: vi.fn(() => { state.visible = false; emitter.emit('hide'); }),
     focus: vi.fn(),
+    moveTop: vi.fn(),
     center: vi.fn(),
     removeMenu: vi.fn(),
     setAlwaysOnTop: vi.fn(),

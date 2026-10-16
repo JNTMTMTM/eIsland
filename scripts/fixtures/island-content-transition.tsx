@@ -21,7 +21,8 @@ import { useLayoutEffect, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import IslandContentTransition from '../../src/renderer/components/components/islandContentTransition';
-import { getIslandMorphDuration } from '../../src/renderer/store/constants/islandTransition';
+import { getIslandMorphDuration, ISLAND_STATE_AREA } from '../../src/renderer/store/constants/islandTransition';
+import { beginIslandWindowTransition, completeIslandWindowTransition } from '../../src/renderer/utils/islandWindowTransition';
 import type { IslandState } from '../../src/renderer/store/types';
 import '../../src/renderer/styles/shell/shell.css';
 
@@ -238,15 +239,19 @@ async function testInterruptions(): Promise<void> {
   reset();
   render({ state: 'maxExpand', animationSpeed: 'fast' });
   await frame();
-  render({ state: 'cli', animationSpeed: 'fast' });
+  const retainedPage = document.querySelector('[data-fixture-state="maxExpand"]');
+  render({ state: 'notification', animationSpeed: 'fast' });
   await wait(60);
   render({ state: 'maxExpand', animationSpeed: 'fast' });
+  assert(Boolean(retainedPage && visible(retainedPage)), 'Reversing to retained content must make it visible in the same commit.');
+  assert(document.querySelector('[data-fixture-state="maxExpand"]') === retainedPage, 'Reversing must preserve the retained DOM and its local state.');
+  assert(!document.querySelector('[data-fixture-loading]'), 'Reversing must not delay an already mounted page behind a loading fallback.');
   await wait(480);
   await frame();
   assert(livePages === 1 && Boolean(document.querySelector('[data-fixture-state="maxExpand"]')), 'A stale collapse timer removed the reversed target.');
   assert(events.filter((event) => event.state === 'maxExpand' && event.type === 'mount').length === 1, 'Rapid reversal should reuse the retained heavy page.');
   assertLayout('maxExpand');
-  checks.push('rapid reverse: maxExpand → cli → maxExpand');
+  checks.push('rapid reverse: maxExpand → notification → maxExpand restores the same DOM immediately');
 
   render({ state: 'login', animationSpeed: 'fast' });
   assert(Boolean(document.querySelector('[data-fixture-state="login"]')), 'Equal-size heavy pages should switch immediately.');
@@ -396,7 +401,181 @@ declare global {
   }
 }
 
+/**
+ * 在真实 Chromium 中并行检查所有通知双向切换和中途反转的形变边界。
+ * @returns 覆盖的组合数及实际采样帧数。
+ */
+async function testShellTransitions(): Promise<{ cases: number; frames: number }> {
+  const host = document.createElement('div');
+  host.style.cssText = 'position:absolute;left:0;top:0;width:1000px;pointer-events:none;';
+  document.body.append(host);
+  const paths: IslandState[][] = Object.keys(ISLAND_STATE_AREA)
+    .filter((state) => state !== 'notification')
+    .flatMap((state) => [['notification', state], [state, 'notification']] as IslandState[][]);
+  paths.push(['notification', 'idle', 'hover'], ['maxExpand', 'idle', 'notification'], ['idle', 'maxExpand', 'idle']);
+  const variants = ['pill', 'notch'].flatMap((shape) => ['slow', 'medium', 'fast'].flatMap((speed) => (
+    [true, false].map((spring) => ({ shape, speed, spring }))
+  )));
+  let caseCount = 0;
+  let frames = 0;
+  try {
+    // 每种配置内并行采样全部路径，避免数百个动画同时布局干扰真实的帧时序。
+    await variants.reduce(async (previous, { shape, speed, spring }) => {
+      await previous;
+      host.replaceChildren();
+      const cases = paths.map((path) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'position:absolute;left:0;top:0;width:1000px;';
+        const element = document.createElement('div');
+        row.append(element); host.append(row);
+        const classes = `island-shell shape-${shape} speed-${speed}${spring ? ' spring-animation' : ''}`;
+        element.style.cssText = 'transition:none;animation:none;';
+        let width = 0;
+        let height = 0;
+        let finalWidth = 0;
+        let finalHeight = 0;
+        path.forEach((state) => {
+          element.className = `${classes} ${state}`;
+          const bounds = element.getBoundingClientRect();
+          width = Math.max(width, bounds.width); height = Math.max(height, bounds.height);
+          finalWidth = bounds.width; finalHeight = bounds.height;
+          if (shape === 'pill' && state === 'musicProvidersLogin') {
+            assert(bounds.height === 416, 'Pill music provider login must share the 416px settings canvas.');
+            assert(getComputedStyle(element).borderRadius === '26px', 'Pill music provider login must keep the rounded settings shape.');
+          }
+        });
+        element.className = `${classes} ${path[0]}`;
+        element.getBoundingClientRect();
+        return { element, path, shape, speed, spring, width, height, finalWidth, finalHeight,
+          step: 1, start: 0, guard: getIslandMorphDuration(speed, spring) };
+      });
+      cases.forEach((item) => {
+        const { element } = item;
+        element.style.cssText = '';
+        element.className = `island-shell shape-${item.shape} speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[1]} morphing from-${item.path[0]}`;
+        const style = getComputedStyle(element);
+        assert(parseFloat(style.animationDuration) * 1000 <= item.guard,
+          `${item.shape}/${item.speed}/${item.path.join('→')}: animation outlasts the native canvas guard.`);
+        if (ISLAND_STATE_AREA[item.path[1]] > ISLAND_STATE_AREA[item.path[0]]) {
+          assert(!style.animationName.startsWith('shellShrink'), `${item.path.join('→')}: expanding target received a shrinking keyframe.`);
+        }
+      });
+      await frame();
+      const started = performance.now();
+      cases.forEach((item) => Object.assign(item, { start: started }));
+      const sample = async (): Promise<void> => {
+        await frame();
+        frames += 1;
+        let active = false;
+        cases.forEach((item) => {
+          const now = performance.now();
+          const { element } = item;
+          if (item.path.length > 2 && item.step === 1 && now - item.start >= 80) {
+            element.className = `island-shell shape-${item.shape} speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[2]} morphing from-${item.path[1]}`;
+            element.getBoundingClientRect();
+            Object.assign(item, { step: 2, start: performance.now() });
+          }
+          const bounds = element.getBoundingClientRect();
+          const label = `${item.shape}/${item.speed}/${item.spring}/${item.path.join('→')}`;
+          assert(bounds.width <= item.width + 0.5 && bounds.height <= item.height + 0.5,
+            `${label}: shell ${bounds.width}×${bounds.height} exceeds ${item.width}×${item.height} native envelope.`);
+          assert(bounds.top >= -0.5, `${label}: shell extends above the native window.`);
+          if (now - item.start < item.guard + 60) active = true;
+          else {
+            assert(Math.abs(bounds.width - item.finalWidth) < 0.5 && Math.abs(bounds.height - item.finalHeight) < 0.5,
+              `${label}: shell ${bounds.width}×${bounds.height} did not reach ${item.finalWidth}×${item.finalHeight} before canvas protection expired.`);
+          }
+        });
+        if (active) await sample();
+      };
+      await sample();
+      caseCount += cases.length;
+    }, Promise.resolve());
+    checks.push('all notification directions, animation speeds, spring modes, shapes and interrupted shell envelopes');
+    return { frames, cases: caseCount };
+  } finally {
+    host.remove();
+  }
+}
+
+/**
+ * 模拟目标 class 提交后主线程阻塞，确认真实 CSS 完成后才允许原生画布收缩。
+ * @returns 每个忙帧场景在实际确认时的尺寸和耗时。
+ */
+async function testBusyShellAcknowledgements(): Promise<Record<string, unknown>[]> {
+  const previousApi = Object.getOwnPropertyDescriptor(window, 'api');
+  const host = document.createElement('div');
+  host.style.cssText = 'position:absolute;left:0;top:0;width:1000px;';
+  document.body.append(host);
+  let acknowledge: ((id: number) => void) | undefined;
+  Object.defineProperty(window, 'api', {
+    configurable: true,
+    value: { beginWindowTransition: () => {}, completeWindowTransition: (id: number) => acknowledge?.(id) },
+  });
+  const scenarios = [true, false].flatMap((spring) => [
+    { spring, busyMs: 180, reverse: false },
+    { spring, busyMs: 500, reverse: false },
+    { spring, busyMs: 500, reverse: true },
+  ]);
+  const results: Record<string, unknown>[] = [];
+  try {
+    await scenarios.reduce(async (previous, { spring, busyMs, reverse }) => {
+      await previous;
+      host.replaceChildren();
+      const shell = document.createElement('div');
+      const classes = `island-shell shape-notch speed-fast${spring ? ' spring-animation' : ''}`;
+      shell.className = `${classes} notification`;
+      host.append(shell);
+      await frame();
+      const guard = getIslandMorphDuration('fast', spring);
+      const oldId = beginIslandWindowTransition('notification', 'idle');
+      let expectedId = oldId;
+      let started = 0;
+      const acknowledgements: number[] = [];
+      const result = await new Promise<{ id: number; width: number; height: number; elapsedMs: number }>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Busy shell acknowledgement did not settle.')), 3000);
+        acknowledge = (id) => {
+          const bounds = shell.getBoundingClientRect();
+          acknowledgements.push(id);
+          clearTimeout(timeout);
+          resolve({ id, width: bounds.width, height: bounds.height, elapsedMs: Math.round(performance.now() - started) });
+        };
+        requestAnimationFrame(() => {
+          started = performance.now();
+          shell.className = `${classes} idle morphing from-notification`;
+          if (reverse) {
+            completeIslandWindowTransition(oldId);
+            expectedId = beginIslandWindowTransition('idle', 'hover');
+            shell.className = `${classes} hover morphing from-idle`;
+          }
+          setTimeout(() => {
+            shell.classList.remove('morphing', 'from-notification', 'from-idle');
+            requestAnimationFrame(() => completeIslandWindowTransition(expectedId));
+          }, guard);
+          // 不读取中途尺寸；布局读取会提前刷新 CSS 起点，掩盖真实忙帧问题。
+          while (performance.now() - started < busyMs) { /* 模拟不可中断的重页面提交。 */ }
+        });
+      });
+      const label = `spring=${spring}, busy=${busyMs}, reverse=${reverse}`;
+      assert(result.id === expectedId, `${label}: stale transition released the native canvas.`);
+      assert(Math.abs(result.width - (reverse ? 500 : 260)) < 0.5 && Math.abs(result.height - (reverse ? 60 : 42)) < 0.5,
+        `${label}: native acknowledgement arrived before final shell geometry (${result.width}×${result.height}).`);
+      await frame();
+      assert(acknowledgements.length === 1, `${label}: an interrupted transition emitted a stale or duplicate acknowledgement.`);
+      results.push({ spring, busyMs, reverse, ...result });
+    }, Promise.resolve());
+    checks.push('busy 180/500ms: spring on/off and cancelled transitions acknowledge only settled geometry');
+    return results;
+  } finally {
+    host.remove();
+    if (previousApi) Object.defineProperty(window, 'api', previousApi);
+    else Reflect.deleteProperty(window, 'api');
+  }
+}
+
 window.runIslandTransitionTests = async () => {
+  const shellTransitions = await testShellTransitions();
+  const busyShellAcknowledgements = await testBusyShellAcknowledgements();
   await testLifecycle();
   await testInterruptions();
   await testPerformanceMode();
@@ -405,5 +584,5 @@ window.runIslandTransitionTests = async () => {
   const baselineExit = await benchmark(false, 'exit');
   const scheduledExit = await benchmark(true, 'exit');
   reset();
-  return { checks, livePages, passed: checks.length, benchmark: { baselineEnter, scheduledEnter, baselineExit, scheduledExit } };
+  return { checks, livePages, shellTransitions, busyShellAcknowledgements, passed: checks.length, benchmark: { baselineEnter, scheduledEnter, baselineExit, scheduledExit } };
 };
