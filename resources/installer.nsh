@@ -29,7 +29,11 @@ Function ${EISLAND_CHILD_FUNCTION}
   Push $7
   Push $8
   Push $9
+  Push $R0
+  Push $R1
+  Push $R2
   StrCpy $9 2
+  StrCpy $R0 0
   System::Call 'kernel32::CreateToolhelp32Snapshot(i 2, i 0) p.r2'
   ${if} $2 == -1
     Goto eIslandChildDone
@@ -40,7 +44,8 @@ Function ${EISLAND_CHILD_FUNCTION}
     Goto eIslandChildClose
   ${endIf}
   System::Call '*$3(i 556)'
-  System::Call 'kernel32::Process32FirstW(p r2, p r3) i.r4'
+  System::Call 'kernel32::Process32FirstW(p r2, p r3) i.r4 ?e'
+  Pop $8
   ${doWhile} $4 != 0
     System::Call '*$3(i, i, i.r5, p, i, i, i.r6)'
     ${if} $5 == $1
@@ -48,15 +53,32 @@ Function ${EISLAND_CHILD_FUNCTION}
         StrCpy $9 3
         Goto eIslandChildFree
       ${endIf}
-      Goto eIslandChildAncestry
+      StrCpy $9 0
     ${endIf}
-    System::Call 'kernel32::Process32NextW(p r2, p r3) i.r4'
+    # Copy the snapshot once. Rewinding Toolhelp for every ancestor is costly
+    # when many processes are running, even though the snapshot is immutable.
+    System::Alloc 12
+    Pop $R1
+    ${if} $R1 == 0
+      StrCpy $9 2
+      Goto eIslandChildFree
+    ${endIf}
+    System::Call '*$R1(p $R0, i r5, i r6)'
+    StrCpy $R0 $R1
+    System::Call 'kernel32::Process32NextW(p r2, p r3) i.r4 ?e'
+    Pop $8
   ${loop}
+  ${if} $8 != 18
+    StrCpy $9 2
+  ${endIf}
   # The child exited, or the snapshot could not be queried. Neither is safe to kill.
-  Goto eIslandChildFree
+  ${if} $9 != 0
+    Goto eIslandChildFree
+  ${endIf}
 
   eIslandChildAncestry:
   System::Call 'kernel32::GetCurrentProcessId() i.r7'
+  StrCpy $R1 $R0
   eIslandChildParent:
   ${if} $7 == $1
     StrCpy $9 1
@@ -66,26 +88,40 @@ Function ${EISLAND_CHILD_FUNCTION}
     StrCpy $9 0
     Goto eIslandChildFree
   ${endIf}
-  System::Call 'kernel32::Process32FirstW(p r2, p r3) i.r4 ?e'
-  Pop $8
-  ${doWhile} $4 != 0
-    System::Call '*$3(i, i, i.r5, p, i, i, i.r6)'
+  StrCpy $R2 0
+  eIslandChildLookup:
+  ${doWhile} $R1 != 0
+    System::Call '*$R1(p .r6, i .r5, i .r8)'
     ${if} $5 == $7
-      StrCpy $7 $6
+      # Consume the parent link so a cycle caused by PID reuse ends at zero.
+      # Continue toward older snapshot entries before wrapping to the head.
+      System::Call '*$R1(p r6, i r5, i 0)'
+      StrCpy $7 $8
+      StrCpy $R1 $6
       Goto eIslandChildParent
     ${endIf}
-    System::Call 'kernel32::Process32NextW(p r2, p r3) i.r4 ?e'
-    Pop $8
+    StrCpy $R1 $6
   ${loop}
-  ${if} $8 == 18
-    StrCpy $9 0 # An installer ancestor has already exited.
+  ${if} $R2 == 0
+    StrCpy $R1 $R0
+    StrCpy $R2 1
+    Goto eIslandChildLookup
   ${endIf}
+  StrCpy $9 0 # An installer ancestor has already exited.
   eIslandChildFree:
+  ${doWhile} $R0 != 0
+    System::Call '*$R0(p .r6)'
+    System::Free $R0
+    StrCpy $R0 $6
+  ${loop}
   System::Free $3
   eIslandChildClose:
   System::Call 'kernel32::CloseHandle(p r2)'
   eIslandChildDone:
   StrCpy $0 $9
+  Pop $R2
+  Pop $R1
+  Pop $R0
   Pop $9
   Pop $8
   Pop $7

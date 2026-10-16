@@ -31,7 +31,7 @@ import { join, resolve } from 'node:path';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 type ProbeMode = 'installer' | 'uninstaller';
-type ProbeVariant = 'normal' | 'snapshot-failure' | 'process-exit' | 'query-failure' | 'late-start' | 'wait-failure';
+type ProbeVariant = 'normal' | 'snapshot-failure' | 'process-exit' | 'query-failure' | 'late-start' | 'wait-failure' | 'ancestry-cycle' | 'slow-ancestry-snapshot';
 
 const registerIndexes = Array.from(Array<number>(20).keys());
 const registers = registerIndexes.map((index) => (index < 10 ? `$${index}` : `$R${index - 10}`));
@@ -150,7 +150,8 @@ async function runExecutable(executable: string, args: string[], env = process.e
     child.stderr.on('data', (chunk: Buffer) => { output += chunk.toString(); });
     const timeout = setTimeout(() => {
       child.kill();
-      reject(new Error(`Process timed out: ${executable}\n${output}`));
+      const trace = env.EISLAND_TEST_OUTPUT ? `${env.EISLAND_TEST_OUTPUT}.trace` : '';
+      reject(new Error(`Process timed out: ${executable} (exit=${child.exitCode}, signal=${child.signalCode})\n${output}\n${trace && existsSync(trace) ? readFileSync(trace, 'utf8').slice(-16_384) : ''}`));
     }, 20_000);
     child.once('error', (error) => { clearTimeout(timeout); reject(error); });
     child.once('close', (code) => {
@@ -190,6 +191,13 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
     ].join('\n');
     const sources: Record<ProbeVariant, string> = {
       normal: installerSource,
+      // 模拟祖先进程退出后 PID 被复用，使安装器祖先链出现循环。
+      'ancestry-cycle': installerSource.replace("System::Call '*$R1(p $R0, i r5, i r6)'", "System::Call '*$R1(p $R0, i r5, i r5)'"),
+      // 放大每次重新枚举的代价，回归并发负载下反复遍历快照导致的超时。
+      'slow-ancestry-snapshot': installerSource.replaceAll(
+        "System::Call 'kernel32::Process32FirstW(p r2, p r3)",
+        "Sleep 1000\n  System::Call 'kernel32::Process32FirstW(p r2, p r3)",
+      ),
       'snapshot-failure': failureSource,
       'process-exit': installerSource.replace(queryCall!, exitBeforeQuery),
       'query-failure': installerSource.replace(queryCall!, 'StrCpy $3 0'),
@@ -218,7 +226,25 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
       const directory = join(root, variant);
       mkdirSync(directory);
       const variantInclude = join(directory, 'installer.nsh');
-      writeFileSync(variantInclude, contents, 'utf8');
+      // 只在测试副本中记录阶段和系统时钟，让超时报告保留实际停留的位置。
+      const traced = [
+        'Function ${EISLAND_CHILD_FUNCTION}',
+        'eIslandChildParent:',
+        'eIslandChildDone:',
+        'Function ${EISLAND_TREE_FUNCTION}',
+        "System::Call 'kernel32::WaitForSingleObject(p r0, i 5000) i.r3'",
+        'eIslandTreeDone:',
+        'eIslandCheckRunning:',
+      ].reduce((source, marker) => source.replaceAll(marker, [
+        marker,
+        'FileOpen $TestFile "$TestOutput.trace" a',
+        'FileSeek $TestFile 0 END',
+        "System::Call 'kernel32::GetTickCount() i.s'",
+        'Pop $TestExitPid',
+        `FileWrite $TestFile "$TestExitPid ${marker.replaceAll('"', '')}: 0=$0 1=$1 7=$7 R0=$R0$\\r$\\n"`,
+        'FileClose $TestFile',
+      ].join('\n  ')), contents);
+      writeFileSync(variantInclude, traced, 'utf8');
       return { directory, variantInclude };
     });
     await Promise.all((['installer', 'uninstaller'] as const).flatMap((mode) => builds.map(async ({ directory, variantInclude }) => {
@@ -289,6 +315,7 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
     if (!existsSync(executable)) copyFileSync(join(root, variant, `${mode}-probe.exe`), executable);
     const output = join(root, 'probe-result.txt');
     if (existsSync(output)) rmSync(output);
+    if (existsSync(`${output}.trace`)) rmSync(`${output}.trace`);
     if (existsSync(`${output}.exit`)) rmSync(`${output}.exit`);
     const args = ['/S', ...(updated ? ['--updated'] : []), ...(mode === 'uninstaller' ? [`_?=${directory}`] : [])];
     // NSIS 的 _?= 会读取命令行余下全部字符，目录含空格时也不能额外加引号。
@@ -364,10 +391,10 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
       await expect.poll(() => target.exitCode !== null || target.signalCode !== null).toBe(true);
     }, 30_000);
 
-    it(`${mode}: rechecks at file mutation and waits for children and grandchildren`, async () => {
-      const directory = join(root, `${mode}-handoff-tree`);
+    it.each(['normal', 'ancestry-cycle', 'slow-ancestry-snapshot'] as const)(`${mode}: rechecks at file mutation and waits for children and grandchildren (%s)`, async (variant) => {
+      const directory = join(root, `${mode}-handoff-tree-${variant}`);
       const { target, descendants, unrelated } = await atProbeBarrier(mode, directory, {
-        action: 'handoff', marker: 'before-files', ready: 'files-ready',
+        variant, action: 'handoff', marker: 'before-files', ready: 'files-ready',
       }, async () => {
         const target = await startFixture(directory, 'eIsland.exe', false, true);
         const descendants = JSON.parse(readFileSync(join(directory, 'tree-pids.json'), 'utf8')) as number[];
