@@ -36,13 +36,13 @@ vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), .
 const expandWindowLyrics = vi.fn(); const enableMousePassthrough = vi.fn();
 beforeEach(() => {
   resetStandalone(); vi.stubGlobal('window', Object.assign(surface, { api: { expandWindowLyrics, enableMousePassthrough } }));
-  useIslandStore.setState({ state: 'lyricsTranslation', uiStateLocked: false, animationSpeed: 'medium' });
+  useIslandStore.setState({ state: 'lyricsTranslation', uiStateLocked: false, animationSpeed: 'medium', springAnimation: true });
 });
 afterEach(() => { unmountHooks(); vi.unstubAllGlobals(); });
 describe('翻译缺失时真实状态回退', () => {
   it.each([null, []] satisfies Array<LyricLine[] | null>)('缺失翻译%j进入普通歌词且执行真实窗口行为', (translation) => {
     renderWithHooks(() => useTranslationFallback(translation)); runEffects();
-    expect(useIslandStore.getState().state).toBe('lyrics'); expect(expandWindowLyrics).toHaveBeenCalledTimes(2);
+    expect(useIslandStore.getState().state).toBe('lyrics'); expect(expandWindowLyrics).toHaveBeenCalledExactlyOnceWith(700);
     expect(enableMousePassthrough).toHaveBeenCalledOnce();
   });
   it('有效翻译保持状态，同一数组不重复执行，清空后才回退', () => {
@@ -57,5 +57,11 @@ describe('翻译缺失时真实状态回退', () => {
     vi.stubGlobal('window', Object.assign(surface, { api: undefined }));
     renderWithHooks(() => useTranslationFallback(null)); runEffects();
     expect(useIslandStore.getState().state).toBe('lyrics'); expect(expandWindowLyrics).not.toHaveBeenCalled();
+  });
+  it('界面锁定时不绕过状态动作提前裁小窗口', () => {
+    useIslandStore.setState({ uiStateLocked: true });
+    renderWithHooks(() => useTranslationFallback(null)); runEffects();
+    expect(useIslandStore.getState().state).toBe('lyricsTranslation');
+    expect(expandWindowLyrics).not.toHaveBeenCalled();
   });
 });

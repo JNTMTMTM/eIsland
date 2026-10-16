@@ -62,7 +62,7 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
   } = options;
 
   const shellClassName = useMemo(() => {
-    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0])}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
+    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0]) || 'idle'}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
   }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed, shapeMode]);
 
   const shellStyle = useMemo<React.CSSProperties | undefined>(() => {

@@ -117,6 +117,19 @@ describe('actual content transition lifecycle', () => {
     flushFrames();
     expect(textContent(render())).toBe('New light');
   });
+  it.each(['notification', 'expanded'] as const)('restores retained content immediately when reversing from %s', (intermediate) => {
+    render({ state: 'maxExpand', children: createElement('section', {}, 'Old heavy') });
+    render({ state: intermediate, children: createElement('section', {}, 'Intermediate') });
+    vi.advanceTimersByTime(60);
+    const tree = render({ state: 'maxExpand', children: createElement('section', {}, 'Restored heavy') });
+    const restored = findElement(tree, (node) => elementProps(node)['data-island-state'] === 'maxExpand');
+    expect(elementProps(restored)).toMatchObject({ hidden: false, inert: false, style: { display: 'contents' } });
+    expect(textContent(tree)).toBe('Restored heavy');
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(1000);
+    flushFrames();
+    expect(textContent(render())).toBe('Restored heavy');
+  });
   it('preserves the original outgoing tree through an interrupted heavy transition and replaces its timer', () => {
     render({ state: 'expanded', children: createElement('section', {}, 'Expanded') });
     expect(textContent(render({ state: 'maxExpand', children: createElement('section', {}, 'Max') }))).toBe('ExpandedLoading');

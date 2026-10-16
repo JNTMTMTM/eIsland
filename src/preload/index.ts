@@ -108,6 +108,20 @@ const api = {
     ipcRenderer.send('window:disable-mouse-passthrough');
   },
   /**
+   * 在尺寸请求之前登记本次渲染过渡，防止忙帧期间原生窗口先行收缩。
+   * @param id - 当前渲染进程递增的正整数过渡标识。
+   */
+  beginWindowTransition: (id: number): void => {
+    ipcRenderer.send('window:transition:begin', id);
+  },
+  /**
+   * 动画最终帧绘制后确认本次过渡，允许原生窗口收敛裁剪范围。
+   * @param id - 与 beginWindowTransition 对应的过渡标识。
+   */
+  completeWindowTransition: (id: number): void => {
+    ipcRenderer.send('window:transition:complete', id);
+  },
+  /**
    * 展开窗口到 hover 状态尺寸
    * @description 基于初始中心点，向两边均匀扩展
    */

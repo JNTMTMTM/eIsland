@@ -28,6 +28,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
+import { getIslandMorphDuration } from '../../../../store/constants/islandTransition';
+import { beginIslandWindowTransition } from '../../../../utils/islandWindowTransition';
 import { loginUserByAccount, loginUserByEmailWithCode, sendUserEmailCode, fetchOAuthProviders } from '../../../../api/user/userAccountApi';
 import { updateSessionToken } from '../../../../utils/authSession';
 import { runSliderCaptcha } from '../../../../utils/sliderCaptcha';
@@ -59,7 +61,8 @@ export function useLogin() {
         }
       })();
       if (!standalone) {
-        window.api?.expandWindowSettings();
+        beginIslandWindowTransition(prev.state, 'resetPassword');
+        window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.disableMousePassthrough();
       }
       const inAuthFlow = prevState === 'login' || prevState === 'register' || prevState === 'payment' || prevState === 'resetPassword';

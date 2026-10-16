@@ -24,9 +24,10 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import useIslandStore from '../../store/isLandStore';
 import { getIslandMorphDuration } from '../../store/constants/islandTransition';
+import { completeIslandWindowTransition, getIslandWindowTransitionId, subscribeIslandWindowTransition } from '../../utils/islandWindowTransition';
 import type { IslandState } from '../../store/types';
 
 const MUSIC_OUTER_GLOW_EFFECT_STORE_KEY = 'music-outer-glow-effect-enabled';
@@ -82,6 +83,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   } = options;
 
   const prevStateRef = useRef(state);
+  const transitionId = useSyncExternalStore(subscribeIslandWindowTransition, () => getIslandWindowTransitionId('state'));
   const morphingRef = useRef(false);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');
@@ -107,20 +109,34 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
     };
   }, []);
 
-  useEffect(() => {
+  // 目标状态与来源动画必须在同一次绘制前提交，避免先显示新尺寸再补上一帧旧动画。
+  useLayoutEffect(() => {
+    let completionFrame = 0;
+    const completeOnNextFrame = (): void => {
+      if (transitionId) {
+        completionFrame = requestAnimationFrame(() => completeIslandWindowTransition(transitionId));
+      }
+    };
     if (prevStateRef.current !== state) {
       setFromState(prevStateRef.current);
       prevStateRef.current = state;
-    } else if (!morphingRef.current) return;
+    } else if (!morphingRef.current) {
+      completeOnNextFrame();
+      return () => { if (completionFrame) cancelAnimationFrame(completionFrame); };
+    }
     morphingRef.current = true;
     setMorphing(true);
     const id = setTimeout(() => {
       morphingRef.current = false;
       setMorphing(false);
       setFromState('');
+      completeOnNextFrame();
     }, getIslandMorphDuration(animationSpeed, springAnimation));
-    return () => clearTimeout(id);
-  }, [state, animationSpeed, springAnimation]);
+    return () => {
+      clearTimeout(id);
+      if (completionFrame) cancelAnimationFrame(completionFrame);
+    };
+  }, [state, animationSpeed, springAnimation, transitionId]);
 
   const handleIslandClick = useCallback(() => {
     /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 点击均进入 hover */

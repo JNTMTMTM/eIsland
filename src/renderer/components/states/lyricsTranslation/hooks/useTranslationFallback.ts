@@ -35,7 +35,6 @@ import useIslandStore from '../../../../store/slices';
 export function useTranslationFallback(translationLines: LyricLine[] | null): void {
   useEffect(() => {
     if (!translationLines || translationLines.length === 0) {
-      window.api?.expandWindowLyrics();
       useIslandStore.getState().setLyrics();
     }
   }, [translationLines]);

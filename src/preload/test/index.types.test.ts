@@ -35,6 +35,8 @@ import type { Point, Bounds, IslandDisplayInfo, SearchLocalFilesOptions, SearchL
 interface ExpectedApi {
   enableMousePassthrough: () => void;
   disableMousePassthrough: () => void;
+  beginWindowTransition: (id: number) => void;
+  completeWindowTransition: (id: number) => void;
   expandWindow: (delayMs?: number) => void;
   expandWindowNotification: (delayMs?: number) => void;
   expandWindowLyrics: (delayMs?: number) => void;

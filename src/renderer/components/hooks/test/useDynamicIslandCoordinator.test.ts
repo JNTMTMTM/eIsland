@@ -28,6 +28,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { lifecycleHooks, renderWithHooks, runEffects, unmountHooks } from '../../components/test/contentLifecycleHarness';
 import { hookMocks } from '../../test/elementHarness';
 import useIslandStore from '../../../store/isLandStore';
+import { completeIslandWindowTransition, getIslandWindowTransitionId } from '../../../utils/islandWindowTransition';
 import selectDynamicIslandState from '../../utils/selectDynamicIslandState';
 import { LOCAL_ISLAND_BG_SYNC_EVENT } from '../../config/dynamicIslandConfig';
 import { useDynamicIslandCoordinator } from '../useDynamicIslandCoordinator';
@@ -35,7 +36,11 @@ import { createVideo, videoEvent } from './backgroundVideoHarness';
 import { broadcast, ipc, settleBackground, surface } from './standaloneIpcHarness';
 import { claude, cliIpc, resetCliBoundary, snapshot } from './cliHookHarness';
 vi.hoisted(() => { vi.stubGlobal('localStorage', { getItem: () => null }); vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } })); });
-vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks, useLayoutEffect: lifecycleHooks.useEffect }));
+vi.mock('react', async (load) => ({
+  ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks,
+  useLayoutEffect: lifecycleHooks.useEffect,
+  useSyncExternalStore: (...[, getSnapshot]: [unknown, () => number]) => getSnapshot(),
+}));
 vi.mock('react-i18next', async (load) => ({ ...(await load<typeof import('react-i18next')>()), useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('../../../store/isLandStore', async (load) => {
   const actual = await load<typeof import('../../../store/isLandStore')>();
@@ -66,6 +71,8 @@ const layer = { style: { backgroundImage: '', opacity: '', filter: '' } };
 const t = (key: string): string => key;
 beforeEach(() => {
   vi.useFakeTimers(); vi.setSystemTime(new Date('2026-01-01T00:00:00Z')); resetCliBoundary();
+  vi.stubGlobal('requestAnimationFrame', () => 1);
+  vi.stubGlobal('cancelAnimationFrame', vi.fn());
   listeners.clear(); unsubscriptions.clear(); images.length = 0; css.clear(); css.set('--island-opacity', '100');
   const subscriptionApi = Object.fromEntries(subscriptions.map((name) => [name, vi.fn((listener: (data: unknown) => void) => {
     listeners.set(name, listener); const cleanup = vi.fn(() => { listeners.delete(name); }); unsubscriptions.set(name, cleanup); return cleanup;
@@ -86,7 +93,7 @@ beforeEach(() => {
     timerData: { state: 'idle', remainingSeconds: 0, inputHours: '00', inputMinutes: '00', inputSeconds: '00' },
     maxExpandAppModeEnabled: false, maxExpandLauncherVisible: false, maxExpandTab: 'todo', hoverTab: 'time' });
 });
-afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { unmountHooks(); completeIslandWindowTransition(getIslandWindowTransitionId()); vi.useRealTimers(); vi.unstubAllGlobals(); });
 /**
  * 使用真实主窗口选择器和全部真实子 Hook 提交协调器。
  * @returns 当前窗口渲染输入。

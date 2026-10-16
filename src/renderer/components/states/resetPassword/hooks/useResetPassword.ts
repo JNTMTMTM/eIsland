@@ -28,6 +28,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../store/slices';
+import { getIslandMorphDuration } from '../../../../store/constants/islandTransition';
+import { beginIslandWindowTransition } from '../../../../utils/islandWindowTransition';
 import { resetUserPassword, sendUserEmailCode } from '../../../../api/user/userAccountApi';
 import { runSliderCaptcha } from '../../../../utils/sliderCaptcha';
 import { EMAIL_PATTERN, type Feedback } from '../config/resetPasswordConfig';
@@ -48,7 +50,8 @@ export function useResetPassword() {
         }
       })();
       if (!standalone) {
-        window.api?.expandWindowSettings();
+        beginIslandWindowTransition(prev.state, 'login');
+        window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.disableMousePassthrough();
       }
       return { state: 'login' as never, authReturnState: prev.authReturnState };
@@ -64,7 +67,8 @@ export function useResetPassword() {
         }
       })();
       if (!standalone) {
-        window.api?.expandWindowSettings();
+        beginIslandWindowTransition(prev.state, 'register');
+        window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.disableMousePassthrough();
       }
       return { state: 'register' as never, authReturnState: prev.authReturnState };

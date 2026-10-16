@@ -73,6 +73,16 @@ function event(channel: string, ...args: unknown[]): unknown { return io.events.
  * @returns 处理器结果
  */
 function handle(channel: string, ...args: unknown[]): unknown { return io.handles.get(`window:${channel}`)?.({ sender: { id: 7 } }, ...args); }
+/**
+ * 从主窗口发出形变生命周期事件。
+ * @param phase - 开始或完成阶段
+ * @param id - 本次形变令牌
+ * @param sender - 实际发送消息的页面
+ * @returns 处理器结果
+ */
+function transition(phase: 'begin' | 'complete', id: number, sender: unknown = win.webContents): unknown {
+  return io.events.get(`window:transition:${phase}`)?.({ sender }, id);
+}
 beforeEach(async () => {
   vi.resetModules(); vi.resetAllMocks(); io.events.clear(); io.handles.clear();
   io.bounds = { x: 100, y: 200, width: 1000, height: 600 }; io.selection = 'primary'; io.offset = { x: 1, y: 2 };
@@ -160,6 +170,152 @@ describe('各状态窗口形态与逻辑边界', () => {
   it('延迟提交前窗口销毁则安全跳过最终几何更新', () => {
     vi.useFakeTimers(); event('expand', 100); win.isDestroyed.mockReturnValue(true);
     vi.advanceTimersByTime(100); expect(win.setBounds).toHaveBeenCalledOnce();
+  });
+  it('增长立即预留画布，不因完整动画保护时长创建多余延迟', () => {
+    vi.useFakeTimers(); event('collapse');
+    event('expand-notification', 700);
+    expect(handle('get-bounds')).toMatchObject({ width: 500, height: 210 });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('通知切换到更宽更矮状态时，立即扩宽并保护旧高度直到动画结束', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    event('expand', 700);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 210 });
+    expect(io.bounds.height).toBe(210);
+    vi.advanceTimersByTime(699);
+    expect(win.setShape).toHaveBeenLastCalledWith([{ x: 200, y: 0, width: 600, height: 210 }]);
+    vi.advanceTimersByTime(1);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 200 });
+  });
+  it('通知收缩被 hover 打断后，以当前包络保护新动画，不提前执行旧收缩', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    event('collapse', 700);
+    vi.advanceTimersByTime(200);
+    event('expand', 700);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 210 });
+    vi.advanceTimersByTime(500);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 210 });
+    vi.advanceTimersByTime(199);
+    expect(io.bounds.height).toBe(210);
+    vi.advanceTimersByTime(1);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 200 });
+  });
+  it('重复目标不推迟原收缩截止时间，内容刷新不会让旧通知画布一直滞留', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    event('collapse', 700);
+    vi.advanceTimersByTime(500);
+    event('collapse', 700);
+    expect(vi.getTimerCount()).toBe(1);
+    vi.advanceTimersByTime(200);
+    expect(handle('get-bounds')).toMatchObject({ width: 300, height: 100 });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('取消后迟到的旧回调不会裁剪当前画布或清除新请求', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    const timer = vi.spyOn(globalThis, 'setTimeout');
+    event('collapse', 700);
+    const oldCallback = timer.mock.calls[0]?.[0];
+    vi.advanceTimersByTime(200);
+    event('expand', 700);
+    const calls = win.setBounds.mock.calls.length;
+    oldCallback?.();
+    expect(win.setBounds).toHaveBeenCalledTimes(calls);
+    vi.advanceTimersByTime(700);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 200 });
+  });
+  it('旧窗口的收缩回调不能改动新建窗口', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    event('collapse', 700);
+    const replacement = { ...win, setBounds: vi.fn(), setShape: vi.fn() };
+    io.main.mockReturnValue(replacement as unknown as BrowserWindow);
+    vi.advanceTimersByTime(700);
+    expect(replacement.setBounds).not.toHaveBeenCalled();
+    expect(replacement.setShape).not.toHaveBeenCalled();
+  });
+});
+describe('renderer 完成确认保护原生窗口', () => {
+  it('renderer 忙帧超过名义动画时长仍保留通知包络，匹配确认后立即收敛', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    transition('begin', 1); event('collapse', 220);
+    vi.advanceTimersByTime(1000);
+    expect(handle('get-bounds')).toMatchObject({ width: 500, height: 210 });
+    expect(io.bounds.height).toBe(210);
+    transition('complete', 1);
+    expect(handle('get-bounds')).toMatchObject({ width: 300, height: 100 });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('新形变替换令牌并保护混合宽高，迟到的旧确认不能收缩', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    transition('begin', 1); event('collapse', 700);
+    vi.advanceTimersByTime(200);
+    transition('begin', 2); event('expand', 700);
+    transition('complete', 1);
+    vi.advanceTimersByTime(1000);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 210 });
+    expect(vi.getTimerCount()).toBe(1);
+    transition('complete', 2);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 200 });
+  });
+  it('重复开始与相同目标不延长五秒兜底，缺失确认仍能释放画布', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    transition('begin', 1); event('collapse', 220);
+    vi.advanceTimersByTime(3000);
+    transition('begin', 1); event('collapse', 220);
+    vi.advanceTimersByTime(1999);
+    expect(handle('get-bounds')).toMatchObject({ width: 500, height: 210 });
+    vi.advanceTimersByTime(1);
+    expect(handle('get-bounds')).toMatchObject({ width: 300, height: 100 });
+    transition('complete', 1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it.each([[2000, 6000], [20000, 30000]])('时长 %d 的兜底为 %d 毫秒', (delay, fallback) => {
+    vi.useFakeTimers(); event('expand-notification');
+    transition('begin', 1); event('collapse', delay);
+    vi.advanceTimersByTime(fallback - 1);
+    expect(handle('get-bounds')).toMatchObject({ width: 500, height: 210 });
+    vi.advanceTimersByTime(1);
+    expect(handle('get-bounds')).toMatchObject({ width: 300, height: 100 });
+  });
+  it('立即调整清除待确认形变，后续旧确认与超时均不能恢复旧尺寸', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    transition('begin', 1); event('collapse', 700);
+    event('expand');
+    transition('complete', 1);
+    vi.advanceTimersByTime(5000);
+    expect(handle('get-bounds')).toMatchObject({ width: 600, height: 200 });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('纯增长立即完成几何，确认只释放令牌，不改变后续传统延时请求', () => {
+    vi.useFakeTimers(); event('collapse');
+    transition('begin', 1); event('expand-notification', 700);
+    expect(handle('get-bounds')).toMatchObject({ width: 500, height: 210 });
+    expect(vi.getTimerCount()).toBe(0);
+    transition('complete', 1); event('collapse', 220);
+    vi.advanceTimersByTime(220);
+    expect(handle('get-bounds')).toMatchObject({ width: 300, height: 100 });
+  });
+  it('其他窗口的生命周期消息与非法令牌不能创建保护或确认当前形变', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    transition('begin', 1, {}); transition('begin', NaN); transition('begin', 0);
+    transition('begin', -1); transition('begin', 1.5);
+    event('collapse', 220); vi.advanceTimersByTime(220);
+    expect(handle('get-bounds')).toMatchObject({ width: 300, height: 100 });
+    event('expand-notification'); transition('begin', 2); event('collapse', 220);
+    transition('complete', 2, {}); vi.advanceTimersByTime(1000);
+    expect(handle('get-bounds')).toMatchObject({ width: 500, height: 210 });
+    transition('complete', 2);
+    expect(handle('get-bounds')).toMatchObject({ width: 300, height: 100 });
+  });
+  it('已替换窗口的确认和兜底均不能修改新的主窗口', () => {
+    vi.useFakeTimers(); event('expand-notification');
+    transition('begin', 1); event('collapse', 220);
+    const replacement = { ...win, webContents: { ...win.webContents }, setBounds: vi.fn(), setShape: vi.fn() };
+    io.main.mockReturnValue(replacement as unknown as BrowserWindow);
+    transition('complete', 1);
+    transition('complete', 1, replacement.webContents);
+    vi.advanceTimersByTime(5000);
+    expect(replacement.setBounds).not.toHaveBeenCalled();
+    expect(replacement.setShape).not.toHaveBeenCalled();
   });
 });
 describe('窗口状态与失败边界', () => {

@@ -94,6 +94,10 @@ declare global {
     api: {
       enableMousePassthrough: () => void;
       disableMousePassthrough: () => void;
+      /** 登记本次过渡；必须先于对应的尺寸请求发送。 */
+      beginWindowTransition: (id: number) => void;
+      /** 最终动画帧完成后确认；旧标识不会收缩新状态。 */
+      completeWindowTransition: (id: number) => void;
       expandWindow: (delayMs?: number) => void;
       expandWindowNotification: (delayMs?: number) => void;
       expandWindowLyrics: (delayMs?: number) => void;

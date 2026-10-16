@@ -24,11 +24,12 @@
  * @author 鸡哥
  */
 
+import { emptyNotification } from '../constants/defaults';
+import { getIslandMorphDuration } from '../constants/islandTransition';
+import { playNotificationSoundOnce } from '../../utils/audio/notificationSound';
+import { beginIslandWindowTransition } from '../../utils/islandWindowTransition';
 import type { StateCreator } from 'zustand';
 import type { IslandSlice } from '../types';
-import { emptyNotification } from '../constants/defaults';
-import { getIslandWindowShrinkDelay } from '../constants/islandTransition';
-import { playNotificationSoundOnce } from '../../utils/audio/notificationSound';
 
 function isStandaloneRenderer(): boolean {
   try {
@@ -77,28 +78,33 @@ export const createIslandSlice: StateCreator<
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
     if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement' || prev.state === 'questionnaire' || prev.state === 'musicProvidersLogin')) return prev;
-    window.api?.collapseWindow(getIslandWindowShrinkDelay(prev.state, 'idle', prev.animationSpeed));
+    // 每次切换都传完整保护时长；快速反向切换时，原生画布可能仍比 prev.state 大。
+    beginIslandWindowTransition(prev.state, 'idle');
+    window.api?.collapseWindow(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.enableMousePassthrough();
     return { state: 'idle' as const, authReturnState: null };
   }),
 
   setHover: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'hover') return prev;
-    window.api?.expandWindow(getIslandWindowShrinkDelay(prev.state, 'hover', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'hover');
+    window.api?.expandWindow(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'hover', authReturnState: null };
   }),
 
   setExpanded: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'expanded') return prev;
-    window.api?.expandWindowFull(getIslandWindowShrinkDelay(prev.state, 'expanded', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'expanded');
+    window.api?.expandWindowFull(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'expanded', authReturnState: null };
   }),
 
   setMaxExpand: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'maxExpand') return prev;
-    window.api?.expandWindowSettings();
+    beginIslandWindowTransition(prev.state, 'maxExpand');
+    window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'maxExpand', authReturnState: null };
   }),
@@ -107,7 +113,8 @@ export const createIslandSlice: StateCreator<
     if (prev.uiStateLocked && prev.state !== 'login') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
-      window.api?.expandWindowSettings();
+      beginIslandWindowTransition(prev.state, 'login');
+      window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
       window.api?.disableMousePassthrough();
     }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment')
@@ -120,7 +127,8 @@ export const createIslandSlice: StateCreator<
     if (prev.uiStateLocked && prev.state !== 'register') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
-      window.api?.expandWindowSettings();
+      beginIslandWindowTransition(prev.state, 'register');
+      window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
       window.api?.disableMousePassthrough();
     }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment')
@@ -133,7 +141,8 @@ export const createIslandSlice: StateCreator<
     if (prev.uiStateLocked && prev.state !== 'payment') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
-      window.api?.expandWindowSettings();
+      beginIslandWindowTransition(prev.state, 'payment');
+      window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
       window.api?.disableMousePassthrough();
     }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail')
@@ -146,7 +155,8 @@ export const createIslandSlice: StateCreator<
     if (prev.uiStateLocked && prev.state !== 'setPassword') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
-      window.api?.expandWindowSettings();
+      beginIslandWindowTransition(prev.state, 'setPassword');
+      window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
       window.api?.disableMousePassthrough();
     }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail')
@@ -159,7 +169,8 @@ export const createIslandSlice: StateCreator<
     if (prev.uiStateLocked && prev.state !== 'bindOAuth') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
-      window.api?.expandWindowSettings();
+      beginIslandWindowTransition(prev.state, 'bindOAuth');
+      window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
       window.api?.disableMousePassthrough();
     }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail')
@@ -172,7 +183,8 @@ export const createIslandSlice: StateCreator<
     if (prev.uiStateLocked && prev.state !== 'bindEmail') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
-      window.api?.expandWindowSettings();
+      beginIslandWindowTransition(prev.state, 'bindEmail');
+      window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
       window.api?.disableMousePassthrough();
     }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail')
@@ -185,7 +197,8 @@ export const createIslandSlice: StateCreator<
     if (prev.uiStateLocked && prev.state !== 'musicProvidersLogin') return prev;
     const standalone = isStandaloneRenderer();
     if (!standalone) {
-      window.api?.expandWindowSettings();
+      beginIslandWindowTransition(prev.state, 'musicProvidersLogin');
+      window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
       window.api?.disableMousePassthrough();
     }
     const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'musicProvidersLogin')
@@ -197,103 +210,115 @@ export const createIslandSlice: StateCreator<
   returnFromAuth: () => set((prev) => {
     if (prev.uiStateLocked) return prev;
     const standalone = isStandaloneRenderer();
-    const target = prev.authReturnState ?? 'maxExpand';
+    const authStates = ['login', 'register', 'payment', 'setPassword', 'bindOAuth', 'bindEmail', 'resetPassword', 'musicProvidersLogin'];
+    const returnState = prev.authReturnState ?? 'maxExpand';
+    const target = authStates.includes(returnState) ? 'maxExpand' : returnState;
 
     if (!standalone) {
+      beginIslandWindowTransition(prev.state, target);
       if (target === 'idle') {
-        window.api?.collapseWindow(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
+        window.api?.collapseWindow(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.enableMousePassthrough();
       } else if (target === 'hover') {
-        window.api?.expandWindow(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
+        window.api?.expandWindow(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.disableMousePassthrough();
       } else if (target === 'expanded') {
-        window.api?.expandWindowFull(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
+        window.api?.expandWindowFull(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.disableMousePassthrough();
-      } else if (target === 'maxExpand' || target === 'guide' || target === 'login' || target === 'register' || target === 'payment' || target === 'announcement' || target === 'musicProvidersLogin') {
-        window.api?.expandWindowSettings();
+      } else if (target === 'maxExpand' || target === 'guide' || target === 'announcement' || target === 'questionnaire') {
+        window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.disableMousePassthrough();
       } else if (target === 'lyrics' || target === 'agentVoiceInput' || target === 'lyricsTranslation') {
         if (target === 'lyricsTranslation') {
-          window.api?.expandWindowLyricsTranslation(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
+          window.api?.expandWindowLyricsTranslation(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         } else {
-          window.api?.expandWindowLyrics(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
+          window.api?.expandWindowLyrics(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         }
         window.api?.enableMousePassthrough();
-      } else if (target === 'notification' || target === 'agent' || target === 'stt') {
-        window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, target, prev.animationSpeed));
+      } else if (target === 'notification' || target === 'agent' || target === 'stt' || target === 'cli') {
+        window.api?.expandWindowNotification(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
         window.api?.disableMousePassthrough();
       }
     }
-    const authStates = ['login', 'register', 'payment', 'setPassword', 'bindOAuth', 'bindEmail', 'resetPassword', 'musicProvidersLogin'];
-    return { state: authStates.includes(target) ? 'maxExpand' : target, authReturnState: null };
+    return { state: target, authReturnState: null };
   }),
 
   setLyrics: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'lyrics') return prev;
-    window.api?.expandWindowLyrics(getIslandWindowShrinkDelay(prev.state, 'lyrics', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'lyrics');
+    window.api?.expandWindowLyrics(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.enableMousePassthrough();
     return { state: 'lyrics', authReturnState: null };
   }),
 
   setLyricsTranslation: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'lyricsTranslation') return prev;
-    window.api?.expandWindowLyricsTranslation(getIslandWindowShrinkDelay(prev.state, 'lyricsTranslation', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'lyricsTranslation');
+    window.api?.expandWindowLyricsTranslation(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.enableMousePassthrough();
     return { state: 'lyricsTranslation', authReturnState: null };
   }),
 
   setNotification: (data) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'notification') return prev;
-    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'notification', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'notification');
+    window.api?.expandWindowNotification(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     if (data.type !== 'cli-session-detected') playNotificationSoundOnce();
     return { state: 'notification', notification: data, authReturnState: null };
   }),
 
   setGuide: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'guide') return prev;
-    window.api?.expandWindowSettings();
+    beginIslandWindowTransition(prev.state, 'guide');
+    window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'guide' as const, authReturnState: null };
   }),
 
   setAnnouncement: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'announcement') return prev;
-    window.api?.expandWindowSettings();
+    beginIslandWindowTransition(prev.state, 'announcement');
+    window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'announcement' as const, authReturnState: null };
   }),
 
   setQuestionnaire: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'questionnaire') return prev;
-    window.api?.expandWindowSettings();
+    beginIslandWindowTransition(prev.state, 'questionnaire');
+    window.api?.expandWindowSettings(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'questionnaire' as const, authReturnState: null };
   }),
 
   setAgentVoiceInput: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'agentVoiceInput') return prev;
-    window.api?.expandWindowLyrics(getIslandWindowShrinkDelay(prev.state, 'agentVoiceInput', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'agentVoiceInput');
+    window.api?.expandWindowLyrics(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.enableMousePassthrough();
     return { state: 'agentVoiceInput' as const, authReturnState: null };
   }),
 
   setStt: (text?: string) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'stt') return prev;
-    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'stt', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'stt');
+    window.api?.expandWindowNotification(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'stt' as const, sttText: text ?? '', authReturnState: null };
   }),
 
   setAgent: (prompt?: string) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'agent') return prev;
-    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'agent', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'agent');
+    window.api?.expandWindowNotification(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'agent' as const, agentPrompt: prompt ?? prev.sttText ?? '', authReturnState: null };
   }),
 
   setCli: () => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'cli') return prev;
-    window.api?.expandWindowNotification(getIslandWindowShrinkDelay(prev.state, 'cli', prev.animationSpeed));
+    beginIslandWindowTransition(prev.state, 'cli');
+    window.api?.expandWindowNotification(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
     return { state: 'cli' as const, authReturnState: null };
   }),

@@ -36,7 +36,6 @@ export function useActionButtons(): {
   handleQuit: () => void;
 } {
   const handleHide = useCallback(() => {
-    window.api.collapseWindow();
     window.api?.hideWindow();
   }, []);
 

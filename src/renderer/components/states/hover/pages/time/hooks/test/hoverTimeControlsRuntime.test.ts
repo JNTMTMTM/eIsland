@@ -235,13 +235,12 @@ describe('true screenshot and native action buttons', () => {
     expect(region).toHaveBeenCalledOnce();
     expect(screenshot).not.toHaveBeenCalled();
   });
-  it('hide invokes collapse before hide, quit invokes native exit without executing real system actions', () => {
+  it('hide preserves the current window geometry, quit invokes native exit without executing real system actions', () => {
     const actions = renderHook(useActionButtons);
     actions.handleHide();
     actions.handleQuit();
-    expect(collapse).toHaveBeenCalledOnce();
+    expect(collapse).not.toHaveBeenCalled();
     expect(hide).toHaveBeenCalledOnce();
-    expect(collapse.mock.invocationCallOrder[0]).toBeLessThan(hide.mock.invocationCallOrder[0]);
     expect(quit).toHaveBeenCalledOnce();
   });
 });
