@@ -20,7 +20,7 @@
 
 /**
  * @file DynamicIslandTrayMenuMain.tsx
- * @description 自绘托盘菜单渲染入口，菜单组件与样式位于 trayMenu 模块
+ * @description 自绘托盘菜单渲染入口，菜单组件与样式位于 components/DynamicIslandTrayMenu 模块
  * @author 鸡哥
  */
 
@@ -29,7 +29,7 @@ import { createRoot } from 'react-dom/client';
 import '../styles/reset/reset.css';
 import i18n from '../i18n';
 import { initTheme } from '../utils/theme';
-import { TrayMenu } from './trayMenu';
+import { TrayMenu } from './components/DynamicIslandTrayMenu';
 
 const root = document.getElementById('root');
 if (!root) {

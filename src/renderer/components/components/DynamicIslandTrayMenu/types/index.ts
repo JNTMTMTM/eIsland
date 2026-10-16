@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { TrayMenuAction } from '../../../../shared/trayMenu';
+import type { TrayMenuAction } from '../../../../../shared/trayMenu';
 
 /** 托盘顶部用户卡片展示的账号摘要 */
 export interface TrayUserSummary {

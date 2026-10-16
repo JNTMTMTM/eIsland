@@ -26,7 +26,7 @@
  */
 
 import type { ReactElement } from 'react';
-import '../styles/trayMenuSkeleton.css';
+import '../styles/tray-menu-skeleton.css';
 
 /** 菜单项骨架分组，与默认（非独立窗口模式）菜单项及分隔线布局一致 */
 const ROW_GROUPS = [['show', 'hide', 'top'], ['log', 'restart'], ['quit']];

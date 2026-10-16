@@ -27,7 +27,7 @@
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../utils/SvgIcon';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 import type { TrayUserSummary } from '../types';
 
 interface TrayUserCardProps {

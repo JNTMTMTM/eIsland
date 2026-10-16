@@ -26,9 +26,9 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../utils/SvgIcon';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 import type { TrayNowPlaying } from '../types';
-import '../styles/trayMenuSkeleton.css';
+import '../styles/tray-menu-skeleton.css';
 
 interface TrayMusicCardProps {
   /** 当前播放信息，无媒体时为 null */

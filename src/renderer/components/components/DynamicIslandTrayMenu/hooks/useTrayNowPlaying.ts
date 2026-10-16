@@ -25,7 +25,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import type { NowPlayingInfo } from '../../../../preload/types/media';
+import type { NowPlayingInfo } from '../../../../../preload/types/media';
 import type { TrayNowPlaying } from '../types';
 
 interface TrayNowPlayingControls {

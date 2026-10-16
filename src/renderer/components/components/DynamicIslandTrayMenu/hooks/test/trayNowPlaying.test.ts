@@ -25,11 +25,11 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../components/test/contentLifecycleHarness';
-import { hookMocks } from '../../test/elementHarness';
-import { toTrayNowPlaying, useTrayNowPlaying } from '../hooks/useTrayNowPlaying';
-import type { NowPlayingInfo } from '../../../../preload/types/media';
-import type { TrayNowPlaying } from '../types';
+import { lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../../test/contentLifecycleHarness';
+import { hookMocks } from '../../../../test/elementHarness';
+import { toTrayNowPlaying, useTrayNowPlaying } from '../useTrayNowPlaying';
+import type { NowPlayingInfo } from '../../../../../../preload/types/media';
+import type { TrayNowPlaying } from '../../types';
 
 vi.mock('react', async (load) => ({
   ...(await load<typeof import('react')>()),

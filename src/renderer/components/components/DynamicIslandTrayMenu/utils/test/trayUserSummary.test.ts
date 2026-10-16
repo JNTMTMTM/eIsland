@@ -25,7 +25,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { formatTrayDate, readTrayUserSummary } from '../utils/trayUserSummary';
+import { formatTrayDate, readTrayUserSummary } from '../trayUserSummary';
 
 const storage = new Map<string, string>();
 

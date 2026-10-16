@@ -25,18 +25,18 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../components/test/contentLifecycleHarness';
-import { elements, findElement, hookMocks, invoke, textContent } from '../../test/elementHarness';
-import { TrayMenu } from '../components/TrayMenu';
-import { TrayMenuItem } from '../components/TrayMenuItem';
-import { TrayMenuSkeleton } from '../components/TrayMenuSkeleton';
-import { TrayMusicCard } from '../components/TrayMusicCard';
-import { TrayUserCard } from '../components/TrayUserCard';
-import { TRAY_MENU_ITEMS } from '../config/trayMenuItems';
-import type { TestElement } from '../../test/elementHarness';
-import type { TrayMenuState } from '../../../../shared/trayMenu';
-import type { NowPlayingInfo } from '../../../../preload/types/media';
-import type { TrayNowPlaying, TrayUserSummary } from '../types';
+import { lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../../test/contentLifecycleHarness';
+import { elements, findElement, hookMocks, invoke, textContent } from '../../../../test/elementHarness';
+import { TrayMenu } from '../TrayMenu';
+import { TrayMenuItem } from '../TrayMenuItem';
+import { TrayMenuSkeleton } from '../TrayMenuSkeleton';
+import { TrayMusicCard } from '../TrayMusicCard';
+import { TrayUserCard } from '../TrayUserCard';
+import { TRAY_MENU_ITEMS } from '../../config/trayMenuItems';
+import type { TestElement } from '../../../../test/elementHarness';
+import type { TrayMenuState } from '../../../../../../shared/trayMenu';
+import type { NowPlayingInfo } from '../../../../../../preload/types/media';
+import type { TrayNowPlaying, TrayUserSummary } from '../../types';
 
 const mocks = vi.hoisted(() => ({
   i18n: { language: 'zh-CN', changeLanguage: vi.fn<(language: string) => Promise<void>>() },
@@ -54,8 +54,8 @@ vi.mock('react-i18next', () => ({
     t: (key: string, options?: { date?: string }) => (options?.date ? `${key}:${options.date}` : key),
   }),
 }));
-vi.mock('../../../i18n', () => ({ default: mocks.i18n }));
-vi.mock('../utils/trayUserSummary', () => ({ readTrayUserSummary: mocks.summary }));
+vi.mock('../../../../../i18n', () => ({ default: mocks.i18n }));
+vi.mock('../../utils/trayUserSummary', () => ({ readTrayUserSummary: mocks.summary }));
 
 const SIGNED_OUT: TrayUserSummary = { loggedIn: false, name: '', avatar: null, email: '', isPro: false, proExpireDate: null };
 const REGULAR: TrayUserSummary = { loggedIn: true, name: 'island', avatar: 'https://cdn.example.com/a.png', email: 'island@example.com', isPro: false, proExpireDate: null };

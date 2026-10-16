@@ -27,14 +27,14 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
-import { elements } from '../../test/elementHarness';
-import { TRAY_MENU_ITEMS } from '../config/trayMenuItems';
-import { TrayMenuSkeleton } from '../components/TrayMenuSkeleton';
-import type { TestElement } from '../../test/elementHarness';
+import { elements } from '../../../../test/elementHarness';
+import { TRAY_MENU_ITEMS } from '../../config/trayMenuItems';
+import { TrayMenuSkeleton } from '../TrayMenuSkeleton';
+import type { TestElement } from '../../../../test/elementHarness';
 
-vi.mock('../styles/trayMenuSkeleton.css', () => ({}));
+vi.mock('../../styles/tray-menu-skeleton.css', () => ({}));
 
-const html = readFileSync(fileURLToPath(new URL('../../../html/DynamicIslandTrayMenu.html', import.meta.url)), 'utf-8');
+const html = readFileSync(fileURLToPath(new URL('../../../../../html/DynamicIslandTrayMenu.html', import.meta.url)), 'utf-8');
 
 /**
  * 读取 #root 内静态骨架的标签与 class（先序）。
@@ -74,7 +74,7 @@ describe('TrayMenuSkeleton', () => {
 
 describe('DynamicIslandTrayMenu.html', () => {
   it('loads the skeleton stylesheet before the renderer script', () => {
-    const stylesheet = html.indexOf('href="../components/trayMenu/styles/trayMenuSkeleton.css"');
+    const stylesheet = html.indexOf('href="../components/components/DynamicIslandTrayMenu/styles/tray-menu-skeleton.css"');
     expect(stylesheet).toBeGreaterThan(0);
     expect(stylesheet).toBeLessThan(html.indexOf('<script type="module"'));
   });

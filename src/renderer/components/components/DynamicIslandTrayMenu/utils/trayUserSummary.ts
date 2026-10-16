@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { getRoleFromToken, readLocalProfile, readLocalToken } from '../../../utils/userAccount';
+import { getRoleFromToken, readLocalProfile, readLocalToken } from '../../../../utils/userAccount';
 import type { TrayUserSummary } from '../types';
 
 /**

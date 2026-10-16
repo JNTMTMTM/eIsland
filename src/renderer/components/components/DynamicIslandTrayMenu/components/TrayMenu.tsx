@@ -34,7 +34,7 @@ import { TrayMenuItem } from './TrayMenuItem';
 import { TrayMenuSkeleton } from './TrayMenuSkeleton';
 import { TrayMusicCard } from './TrayMusicCard';
 import { TrayUserCard } from './TrayUserCard';
-import '../styles/trayMenu.css';
+import '../styles/tray-menu.css';
 
 /**
  * 托盘菜单根组件
