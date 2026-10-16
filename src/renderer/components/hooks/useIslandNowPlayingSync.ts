@@ -59,6 +59,16 @@ function logTranslationLyricsStatus(translation: TranslationLyricsResult): void 
 }
 
 /**
+ * 记录校准状态变化，避免随播放进度刷新重复输出。
+ * @param status - 可用于控制台过滤的状态标识。
+ * @param message - 状态说明。
+ * @param details - 时间偏差或跳过原因等诊断信息。
+ */
+function logCalibrationStatus(status: string, message: string, details: Record<string, unknown> = {}): void {
+  console.log(`[LyricsCalibrate] status=${status} ${message}`, details);
+}
+
+/**
  * @description 同步系统播放信息、进度与歌词数据。
  * @param options - 播放信息同步配置。
  */
@@ -161,27 +171,65 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
     const calibrateProgress = async (version: number): Promise<void> => {
       const capturedTimelineVersion = timelineVersion;
       const capturedSettingsVersion = calibrationSettingsVersion;
+      const source = currentSource;
+      logCalibrationStatus('started', '开始校准播放时钟', { source });
       try {
         const ts = await window.api.smtcGetTimestamp();
-        if (disposed || requestVersion !== version || timelineVersion !== capturedTimelineVersion
-          || calibrationSettingsVersion !== capturedSettingsVersion || !calibrationEnabled) return;
-        if (!ts?.isAvailable || !ts.timeline || !Number.isFinite(ts.timeline.position)) return;
-        if (ts.sourceAppUserModelId && ts.sourceAppUserModelId !== currentSource) return;
-        if (ts.playbackStatus && (ts.playbackStatus === 'playing') !== playing) return;
+        if (disposed) return;
+        if (requestVersion !== version || timelineVersion !== capturedTimelineVersion
+          || calibrationSettingsVersion !== capturedSettingsVersion || !calibrationEnabled) {
+          logCalibrationStatus('skipped', '曲目、进度或设置已变化，忽略旧校准结果', { source, reason: 'context-changed' });
+          return;
+        }
+        if (!ts?.isAvailable || !ts.timeline) {
+          logCalibrationStatus('skipped', '播放器时间戳不可用，保留当前播放时钟', { source, reason: 'timestamp-unavailable' });
+          return;
+        }
+        if (!Number.isFinite(ts.timeline.position)) {
+          logCalibrationStatus('skipped', '播放器位置无效，保留当前播放时钟', { source, reason: 'invalid-position' });
+          return;
+        }
+        if (ts.sourceAppUserModelId && ts.sourceAppUserModelId !== currentSource) {
+          logCalibrationStatus('skipped', '时间戳来自其他播放器，忽略校准结果', { source, reason: 'source-changed' });
+          return;
+        }
+        if (ts.playbackStatus && (ts.playbackStatus === 'playing') !== playing) {
+          logCalibrationStatus('skipped', '播放状态已变化，忽略校准结果', { source, reason: 'playback-changed' });
+          return;
+        }
         const { sampledAtMs } = ts.timeline;
         const { playbackRate: rate } = ts;
+        const now = Date.now();
+        const previous = progressBaseRef.current;
+        const beforeMs = Math.max(0, previous.positionMs + (playing ? Math.max(0, now - previous.timestamp) * previous.playbackRate : 0));
         progressBaseRef.current = {
           positionMs: ts.timeline.position * 1000,
           durationMs: progressBaseRef.current.durationMs,
-          timestamp: typeof sampledAtMs === 'number' && Number.isFinite(sampledAtMs) ? sampledAtMs : Date.now(),
+          timestamp: typeof sampledAtMs === 'number' && Number.isFinite(sampledAtMs) ? sampledAtMs : now,
           playbackRate: typeof rate === 'number' && Number.isFinite(rate) && rate >= 0
             ? rate : progressBaseRef.current.playbackRate,
         };
         hasPosition = true;
         tick();
         reconcileProgress();
-      } catch {
-        // 原生时间戳暂时不可用时，保留已有时钟和歌词。
+        const base = progressBaseRef.current;
+        const afterMs = Math.max(0, base.positionMs + (playing ? Math.max(0, now - base.timestamp) * base.playbackRate : 0));
+        const before = base.durationMs > 0 ? Math.min(base.durationMs, beforeMs) : beforeMs;
+        const after = base.durationMs > 0 ? Math.min(base.durationMs, afterMs) : afterMs;
+        logCalibrationStatus('calibrated', '播放时钟校准完成，正偏差表示进度前移，负偏差表示后移', {
+          source,
+          beforeMs: Math.round(before),
+          afterMs: Math.round(after),
+          deltaMs: Math.round(after - before),
+          playbackRate: base.playbackRate,
+        });
+      } catch (error) {
+        if (!disposed) {
+          logCalibrationStatus('failed', '读取播放器时间戳失败，保留当前播放时钟', {
+            source,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
       }
     };
 
@@ -195,6 +243,10 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
         await calibrateProgress(version);
       }, delayMs) : null;
       calTimerRef.current = { timerId, remainingMs: delayMs, startedAt: Date.now(), pending: true };
+      logCalibrationStatus(playing ? 'scheduled' : 'waiting-playback', playing ? '已安排校准，按播放时间倒计时' : '等待恢复播放后继续校准倒计时', {
+        remainingMs: delayMs,
+        source: currentSource,
+      });
     };
 
     const unsubscribeCalibration = window.api?.onSettingsChanged?.((channel, value) => {
@@ -209,6 +261,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       calibrationSettingsVersion += 1;
       clearCalibration();
       if (calibrationEnabled && hasLyrics) scheduleCalibration(calibrationDelayMs);
+      else logCalibrationStatus(calibrationEnabled ? 'waiting-lyrics' : 'disabled', calibrationEnabled ? '校准已启用，等待歌词加载' : '校准已关闭，已取消待执行校准');
     });
 
     const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
@@ -267,6 +320,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           if (!isCurrent()) return;
           if (!lyricsEnabled) {
             setLyricsLoadingRef.current(false);
+            logCalibrationStatus('skipped', '歌词功能已关闭，不启动校准', { reason: 'lyrics-disabled' });
             return;
           }
 
@@ -301,6 +355,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           if (capturedDelayVersion === calibrationDelayVersion) {
             calibrationDelayMs = calibrateDelaySec * 1000;
           }
+          logCalibrationStatus(calibrationEnabled ? 'waiting-lyrics' : 'disabled', calibrationEnabled ? '校准已启用，等待歌词加载' : '校准已关闭');
 
           const normalLyricsPromise = fetchLyricsWithTranslation(title, artist, deviceId)
             .catch(() => null);
@@ -347,6 +402,8 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           hasLyrics = Boolean(lyrics?.length);
           if (hasLyrics && calibrationEnabled) {
             scheduleCalibration(calibrationDelayMs);
+          } else if (calibrationEnabled) {
+            logCalibrationStatus('skipped', '未获取到歌词，不启动校准', { reason: 'no-lyrics' });
           }
         };
 
@@ -364,6 +421,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           startedAt: 0,
           pending: true,
         };
+        logCalibrationStatus('paused', '播放已暂停，校准倒计时冻结', { remainingMs: calTimerRef.current.remainingMs });
       }
 
       if (info && typeof info.position_ms === 'number' && Number.isFinite(info.position_ms)) {

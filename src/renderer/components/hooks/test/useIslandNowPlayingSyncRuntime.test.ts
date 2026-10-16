@@ -132,6 +132,14 @@ async function emit(info: NowPlayingInfo | null): Promise<void> {
   await settleHook();
   await settleHook();
 }
+/** 只读取校准日志，排除同一请求中的翻译状态日志。
+ * @returns 校准事件及其结构化详情
+ */
+function calibrationLogs(): unknown[][] {
+  return vi.mocked(console.log).mock.calls.filter(([message]) => (
+    typeof message === 'string' && message.startsWith('[LyricsCalibrate] ')
+  ));
+}
 beforeEach(() => {
   unmountHook();
   resetHook();
@@ -222,6 +230,7 @@ describe('useIslandNowPlayingSync runtime', () => {
     }
     options.setSyncedLyrics.mockClear();
     options.updateProgress.mockClear();
+    vi.mocked(console.log).mockClear();
     pending.resolve({
       isAvailable: true,
       timeline: {
@@ -231,6 +240,14 @@ describe('useIslandNowPlayingSync runtime', () => {
     await settleHook();
     expect(options.setSyncedLyrics).not.toHaveBeenCalled();
     expect(options.updateProgress).not.toHaveBeenCalled();
+    if (stage === 'disposed') {
+      expect(calibrationLogs()).toEqual([]);
+    } else {
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('[LyricsCalibrate] status=skipped '),
+        expect.objectContaining({ reason: 'context-changed' }),
+      );
+    }
   });
   it('settings read failures retain defaults and rejected normal request publishes not-fetched translation/null lyrics', async () => {
     [enabled, translation, karaokeEnabled, calibrate, delay].forEach((fn) => fn.mockRejectedValue(new Error('setting')));
@@ -501,6 +518,15 @@ describe('useIslandNowPlayingSync runtime', () => {
     await vi.advanceTimersByTimeAsync(1000);
     expect(options.updateProgress).toHaveBeenLastCalledWith(1990);
     expect(options.setSyncedLyrics.mock.calls).toEqual([[null], [lyrics().lyrics]]);
+    const reasons = {
+      'other-player': 'source-changed',
+      paused: 'playback-changed',
+      'invalid-position': 'invalid-position',
+    };
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=skipped '),
+      expect.objectContaining({ reason: reasons[stage] }),
+    );
   });
   it('re-fetches the same track for a different player and rejects the original player lyrics', async () => {
     const pending = deferred<LyricsFetchResult | null>();
@@ -572,6 +598,161 @@ describe('useIslandNowPlayingSync runtime', () => {
     expect(timestamp).not.toHaveBeenCalled();
     expect(unsubscribeSettings).toHaveBeenCalledOnce();
     expect(vi.getTimerCount()).toBe(0);
+  });
+  it('logs scheduled, started and calibrated clock values without logging every progress tick', async () => {
+    timestamp.mockResolvedValue({
+      isAvailable: true,
+      playbackStatus: 'playing',
+      playbackRate: 2,
+      sourceAppUserModelId: 'player',
+      timeline: { position: 3, sampledAtMs: 10500 },
+    });
+    mount();
+    await emit(song());
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=waiting-lyrics '),
+      expect.any(Object),
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=scheduled '),
+      expect.objectContaining({ remainingMs: 1000, source: 'player' }),
+    );
+    const scheduledLogs = calibrationLogs();
+    await vi.advanceTimersByTimeAsync(990);
+    expect(calibrationLogs()).toEqual(scheduledLogs);
+    await vi.advanceTimersByTimeAsync(10);
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=started '),
+      expect.objectContaining({ source: 'player' }),
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=calibrated '),
+      expect.objectContaining({ beforeMs: 2000, afterMs: 4000, deltaMs: 2000, playbackRate: 2, source: 'player' }),
+    );
+    const completedLogs = calibrationLogs();
+    await vi.advanceTimersByTimeAsync(660);
+    expect(calibrationLogs()).toEqual(completedLogs);
+    expect(options.updateProgress).toHaveBeenLastCalledWith(5300);
+  });
+  it.each(['unavailable', 'missing-timeline'] as const)('logs a useful skip reason for %s timestamps', async (stage) => {
+    timestamp.mockResolvedValue({ isAvailable: stage === 'missing-timeline' });
+    mount();
+    await emit(song());
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=skipped '),
+      expect.objectContaining({ reason: 'timestamp-unavailable' }),
+    );
+    expect(calibrationLogs().filter(([message]) => String(message).includes('status=calibrated '))).toEqual([]);
+  });
+  it.each([new Error('timestamp failed'), 'timestamp failed'])('logs timestamp failure as a readable error: %s', async (error) => {
+    timestamp.mockRejectedValue(error);
+    mount();
+    await emit(song());
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=failed '),
+      expect.objectContaining({ error: 'timestamp failed', source: 'player' }),
+    );
+    expect(options.setSyncedLyrics).toHaveBeenLastCalledWith(lyrics().lyrics);
+  });
+  it('logs waiting for playback, pause and remaining-time scheduling when calibration resumes', async () => {
+    mount();
+    await emit(song({ isPlaying: false }));
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=waiting-playback '),
+      expect.objectContaining({ remainingMs: 1000 }),
+    );
+    vi.mocked(console.log).mockClear();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(calibrationLogs()).toEqual([]);
+    await emit(song());
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=scheduled '),
+      expect.objectContaining({ remainingMs: 1000, source: 'player' }),
+    );
+    await vi.advanceTimersByTimeAsync(400);
+    await emit(song({ isPlaying: false }));
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=paused '),
+      expect.objectContaining({ remainingMs: 600 }),
+    );
+    vi.mocked(console.log).mockClear();
+    await vi.advanceTimersByTimeAsync(5000);
+    await emit(song());
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=scheduled '),
+      expect.objectContaining({ remainingMs: 600, source: 'player' }),
+    );
+    await vi.advanceTimersByTimeAsync(599);
+    expect(timestamp).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(timestamp).toHaveBeenCalledOnce();
+  });
+  it('logs disabled both for the initial setting and an immediate settings change', async () => {
+    calibrate.mockResolvedValue(false);
+    mount();
+    await emit(song());
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=disabled '),
+      expect.any(Object),
+    );
+    settingsChanged?.('music:lyrics-calibrate-enabled', true);
+    vi.mocked(console.log).mockClear();
+    settingsChanged?.('music:lyrics-calibrate-enabled', false);
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=disabled '),
+      expect.any(Object),
+    );
+    const disabledLogs = calibrationLogs();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(timestamp).not.toHaveBeenCalled();
+    expect(calibrationLogs()).toEqual(disabledLogs);
+  });
+  it('logs waiting for lyrics when calibration is enabled before the lyric request completes', async () => {
+    const pending = deferred<LyricsFetchResult | null>();
+    leaves.normal.mockReturnValue(pending.promise);
+    calibrate.mockResolvedValue(false);
+    mount();
+    await emit(song());
+    vi.mocked(console.log).mockClear();
+    settingsChanged?.('music:lyrics-calibrate-enabled', true);
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=waiting-lyrics '),
+      expect.any(Object),
+    );
+    expect(calibrationLogs().filter(([message]) => String(message).includes('status=scheduled '))).toEqual([]);
+    pending.resolve(lyrics());
+    await settleHook();
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=scheduled '),
+      expect.objectContaining({ remainingMs: 1000, source: 'player' }),
+    );
+  });
+  it.each(['lyrics-disabled', 'no-lyrics'] as const)('logs why calibration cannot start for %s', async (reason) => {
+    if (reason === 'lyrics-disabled') enabled.mockResolvedValue(false);
+    else leaves.normal.mockResolvedValue(null);
+    mount();
+    await emit(song());
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=skipped '),
+      expect.objectContaining({ reason }),
+    );
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(timestamp).not.toHaveBeenCalled();
+    expect(calibrationLogs().filter(([message]) => String(message).includes('status=scheduled '))).toEqual([]);
+  });
+  it('does not emit a late failure after the hook is disposed', async () => {
+    const pending = deferred<Awaited<ReturnType<typeof timestamp>>>();
+    timestamp.mockReturnValue(pending.promise);
+    mount();
+    await emit(song());
+    await vi.advanceTimersByTimeAsync(1000);
+    unmountHook();
+    vi.mocked(console.log).mockClear();
+    pending.reject(new Error('late timestamp failure'));
+    await settleHook();
+    expect(calibrationLogs()).toEqual([]);
   });
   it('missing optional bridge registers nothing and cleans up safely', () => {
     vi.stubGlobal('window', {});
