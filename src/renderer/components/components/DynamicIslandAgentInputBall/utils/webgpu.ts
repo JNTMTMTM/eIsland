@@ -72,12 +72,14 @@ export async function initWebGPU(
     if (errors.length) {
       throw new Error(errors.map((m: any) => `${m.lineNum}:${m.linePos} ${m.message}`).join('\n'));
     }
-    const pipeline = device.createRenderPipeline({
+    // 异步等待驱动编译完成，避免首次提交时阻塞语音界面的 GPU 队列。
+    const pipeline = await device.createRenderPipelineAsync({
       layout: 'auto',
       vertex: { module: shader, entryPoint: 'vs_main' },
       fragment: { module: shader, entryPoint: 'fs_main', targets: [{ format }] },
       primitive: { topology: 'triangle-list' },
     });
+    signal?.throwIfAborted();
     const values = new Float32Array(uniformData);
     uniformBuffer = device.createBuffer({
       size: values.byteLength,
