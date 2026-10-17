@@ -69,5 +69,21 @@ export interface HardwareListSnapshot {
 
 export function getCpu(): CpuSnapshot;
 export function getMemory(): MemorySnapshot;
+/** 立即读取缓存并异步刷新；首次返回不可用快照。
+ * @returns 最近的缓存快照
+ */
 export function getTemperature(): TemperatureSnapshot;
+/** 立即读取缓存并异步发现硬件；首次返回不可用快照。
+ * @returns 最近的缓存快照
+ */
 export function getHardwareList(): HardwareListSnapshot;
+/** 等待温度刷新；并发请求共享采集，结果缓存两秒。
+ * @returns 温度快照
+ */
+export function getTemperatureAsync(): Promise<TemperatureSnapshot>;
+/** 首次等待设备发现，后续读取硬件列表缓存。
+ * @returns 硬件列表快照
+ */
+export function getHardwareListAsync(): Promise<HardwareListSnapshot>;
+/** 终止 helper、完成等待中的请求并清空缓存。 */
+export function dispose(): void;

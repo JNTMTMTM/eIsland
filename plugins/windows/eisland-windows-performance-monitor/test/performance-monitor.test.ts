@@ -25,48 +25,12 @@
  * @author 鸡哥
  */
 
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 
-const monitor = require('../') as {
-  getCpu: () => {
-    usagePercent: number;
-    hasBaseline: boolean;
-  };
-  getMemory: () => {
-    totalBytes: number;
-    usedBytes: number;
-    availableBytes: number;
-    usagePercent: number;
-  };
-  getTemperature: () => {
-    isAvailable: boolean;
-    readings: Array<{
-      id: string;
-      label: string;
-      category: string;
-      temperatureCelsius: number;
-      source: string;
-    }>;
-    maxTemperatureCelsius: number | null;
-  };
-  getHardwareList: () => {
-    isAvailable: boolean;
-    cpus: Array<{
-      id: string;
-      name: string;
-      category: string;
-      hardwareType: string;
-      source: string;
-    }>;
-    gpus: Array<{
-      id: string;
-      name: string;
-      category: string;
-      hardwareType: string;
-      source: string;
-    }>;
-  };
-};
+// eslint-disable-next-line import-x/extensions -- Node 直接执行冒烟脚本时必须保留入口扩展名。
+import monitor from '../index.js';
+
+afterAll(() => monitor.dispose());
 
 describe('windows-performance-monitor', () => {
   it('exports CPU, memory, temperature, and hardware list snapshot methods', () => {
@@ -100,8 +64,12 @@ describe('windows-performance-monitor', () => {
     expect(memory.usagePercent).toBeLessThanOrEqual(100);
   });
 
-  it('returns temperature snapshot shape', () => {
-    const temperature = monitor.getTemperature();
+  it('returns temperature snapshot shape without blocking the event loop', async () => {
+    let heartbeat = false;
+    const timer = setTimeout(() => { heartbeat = true; }, 0);
+    const temperature = await monitor.getTemperatureAsync();
+    clearTimeout(timer);
+    if (temperature.isAvailable) expect(heartbeat).toBe(true);
 
     expect(temperature.isAvailable).toBeTypeOf('boolean');
     expect(Array.isArray(temperature.readings)).toBe(true);
@@ -109,28 +77,28 @@ describe('windows-performance-monitor', () => {
       typeof temperature.maxTemperatureCelsius === 'number' || temperature.maxTemperatureCelsius === null,
     ).toBe(true);
 
-    for (const reading of temperature.readings) {
+    temperature.readings.forEach((reading) => {
       expect(reading.id).toBeTypeOf('string');
       expect(reading.label).toBeTypeOf('string');
       expect(reading.category).toBeTypeOf('string');
       expect(reading.temperatureCelsius).toBeTypeOf('number');
       expect(reading.source).toBeTypeOf('string');
-    }
+    });
   });
 
-  it('returns hardware list snapshot shape', () => {
-    const hardwareList = monitor.getHardwareList();
+  it('returns hardware list snapshot shape', async () => {
+    const hardwareList = await monitor.getHardwareListAsync();
 
     expect(hardwareList.isAvailable).toBeTypeOf('boolean');
     expect(Array.isArray(hardwareList.cpus)).toBe(true);
     expect(Array.isArray(hardwareList.gpus)).toBe(true);
 
-    for (const device of [...hardwareList.cpus, ...hardwareList.gpus]) {
+    [...hardwareList.cpus, ...hardwareList.gpus].forEach((device) => {
       expect(device.id).toBeTypeOf('string');
       expect(device.name).toBeTypeOf('string');
       expect(device.category === 'cpu' || device.category === 'gpu').toBe(true);
       expect(device.hardwareType).toBeTypeOf('string');
       expect(device.source).toBeTypeOf('string');
-    }
+    });
   });
 });
