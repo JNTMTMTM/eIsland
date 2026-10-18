@@ -30,7 +30,7 @@ import '../styles/index.css';
 import '../styles/settings/settings.css';
 import '../styles/standalone-window.css';
 import { initTheme } from '../utils/theme';
-import { bootstrapAuthSession } from '../utils/authSession';
+import { bootstrapAuthSession, refreshAuthSession } from '../utils/authSession';
 import useIslandStore from '../store/slices';
 import i18n from '../i18n';
 import { StandaloneWindow } from './StandaloneWindow';
@@ -44,7 +44,7 @@ const rootEl = root;
 
 async function bootstrap(): Promise<void> {
   await initTheme();
-  await bootstrapAuthSession();
+  const token = await bootstrapAuthSession();
 
   const handleNowPlayingUpdate = useIslandStore.getState().handleNowPlayingUpdate;
   const initialInfo = await window.api.mediaCurrentInfoGet().catch(() => null);
@@ -62,6 +62,9 @@ async function bootstrap(): Promise<void> {
       <StandaloneWindow />
     </StrictMode>
   );
+
+  // eslint-disable-next-line promise/prefer-await-to-then -- 首屏不等待在线刷新，catch 仅兜底后台任务异常。
+  refreshAuthSession(token).catch(console.error);
 }
 
 void bootstrap();
