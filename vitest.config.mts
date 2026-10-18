@@ -26,6 +26,11 @@
 
 import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 
+const nativeIntegrationTests = [
+  'src/main/installer/test/*.integration.test.ts',
+  'src/main/window/test/screenshotProcess.test.ts',
+];
+
 export default defineConfig({
   test: {
     environment: 'node',
@@ -47,6 +52,17 @@ export default defineConfig({
         test: {
           name: { label: 'main', color: 'yellow' },
           include: ['src/main/**/*.test.{ts,tsx}'],
+          exclude: nativeIntegrationTests,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'main-integration', color: 'yellow' },
+          include: nativeIntegrationTests,
+          // 真实进程扫描、安装和终止在单元测试释放负载后独占执行阶段。
+          sequence: { groupOrder: 1 },
+          fileParallelism: false,
         },
       },
       {

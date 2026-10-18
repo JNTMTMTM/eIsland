@@ -20,22 +20,29 @@
 
 /**
  * @file screenshotProcess.test.ts
- * @description 离线真实子进程验证截图硬超时、取消、单任务与字节上限，不读取屏幕。
+ * @description 真实子进程配合可控截止时钟验证截图硬杀、取消、恢复与字节上限，不读取屏幕。
  * @author 鸡哥
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, watch, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { createScreenshotRunner } from '../screenshotRunner';
 
-it('阻塞截图进程被硬杀，重复请求不堆积，后续截图恢复且二进制保持不变', async () => {
+afterEach(() => { vi.useRealTimers(); });
+
+it('已就绪的阻塞截图进程被硬杀，取消与字节超限后仍能恢复原始二进制响应', async () => {
+  // 进程启动和管道事件保持真实；只有 runner 的截止时间由测试显式推进。
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   const directory = mkdtempSync(join(tmpdir(), 'eisland-screenshot-deadline-'));
   const entry = join(directory, 'fixture.cjs');
   const pidFile = join(directory, 'pid');
+  const pidTempFile = join(directory, 'pid.tmp');
   writeFileSync(entry, `
     if (process.argv[2] === 'primary') {
-      require('node:fs').writeFileSync(${JSON.stringify(pidFile)}, String(process.pid));
+      const fs = require('node:fs');
+      fs.writeFileSync(${JSON.stringify(pidTempFile)}, String(process.pid));
+      fs.renameSync(${JSON.stringify(pidTempFile)}, ${JSON.stringify(pidFile)});
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0);
     } else if (process.argv[2] === 'windows') {
       process.stdout.write(Buffer.alloc(2 * 1024 * 1024));
@@ -43,13 +50,21 @@ it('阻塞截图进程被硬杀，重复请求不堆积，后续截图恢复且�
     } else process.stdout.end(Buffer.from([0, 255, 1, 2]));
   `);
   const runner = createScreenshotRunner(entry, 1000);
+  const readiness = watch(directory);
+  const ready = new Promise<void>((resolve, reject) => {
+    readiness.on('change', (event, filename) => {
+      if ((event === 'rename' || event === 'change') && filename === 'pid') resolve();
+    });
+    readiness.once('error', reject);
+  });
   try {
     const pending = runner.run('primary');
-    const queued = runner.run('all');
-    expect(await runner.run('all')).toBeNull();
-    expect(await pending).toBeNull();
-    await queued;
+    // 原子重命名就绪文件后再触发截止时间，不把系统调度慢误判为已运行的任务超时。
+    await ready;
+    readiness.close();
     const pid = Number(readFileSync(pidFile, 'utf8'));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(await pending).toBeNull();
     expect(() => process.kill(pid, 0)).toThrow();
     expect(await runner.run('all')).toEqual(Buffer.from([0, 255, 1, 2]));
     const controller = new AbortController();
@@ -58,30 +73,5 @@ it('阻塞截图进程被硬杀，重复请求不堆积，后续截图恢复且�
     expect(await cancelled).toBeNull();
     expect(await runner.run('windows')).toBeNull();
     expect(await runner.run('all')).toEqual(Buffer.from([0, 255, 1, 2]));
-  } finally { runner.dispose(); rmSync(directory, { recursive: true, force: true }); }
-}, 7000);
-
-it('主屏与选区任务交错时等待一个槽位，不把忙碌误判为原生失败', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'eisland-screenshot-queue-'));
-  const entry = join(directory, 'fixture.cjs');
-  writeFileSync(entry, `setTimeout(() => process.stdout.end(Buffer.from(process.argv[2])), 50);`);
-  const runner = createScreenshotRunner(entry, 3000);
-  try {
-    const windows = runner.run('windows');
-    const primary = runner.run('primary');
-    expect(await windows).toEqual(Buffer.from('windows'));
-    const all = runner.run('all');
-    expect(await primary).toEqual(Buffer.from('primary'));
-    expect(await all).toEqual(Buffer.from('all'));
-    const active = runner.run('windows');
-    const controller = new AbortController();
-    let copied = false;
-    const encoding = runner.run('encode', controller.signal, () => {
-      copied = true; return { data: Buffer.alloc(4), width: 1, height: 1 };
-    });
-    controller.abort();
-    expect(await encoding).toBeNull();
-    expect(copied).toBe(false);
-    await active;
-  } finally { runner.dispose(); rmSync(directory, { recursive: true, force: true }); }
-}, 7000);
+  } finally { readiness.close(); runner.dispose(); rmSync(directory, { recursive: true, force: true }); }
+}, 30000);

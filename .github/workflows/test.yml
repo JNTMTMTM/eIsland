@@ -98,7 +98,11 @@ jobs:
         run: |
           START=$(date +%s)
           EXIT_CODE=0
-          FORCE_COLOR=0 NO_COLOR=1 npm test -- --project "$VITEST_PROJECT" --reporter=default --reporter=json --outputFile=vitest-results.json > vitest.log 2>&1 || EXIT_CODE=$?
+          PROJECT_ARGS=(--project "$VITEST_PROJECT")
+          if [ "$VITEST_PROJECT" = main ]; then
+            PROJECT_ARGS+=(--project main-integration)
+          fi
+          FORCE_COLOR=0 NO_COLOR=1 npm test -- "${PROJECT_ARGS[@]}" --reporter=default --reporter=json --outputFile=vitest-results.json > vitest.log 2>&1 || EXIT_CODE=$?
           END=$(date +%s)
           printf '{"exit_code":%s,"duration_seconds":%s}\n' "$EXIT_CODE" "$((END - START))" > test-metadata.json
           cat vitest.log

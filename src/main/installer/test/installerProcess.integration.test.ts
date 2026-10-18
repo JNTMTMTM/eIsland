@@ -45,6 +45,7 @@ function findCompiler(): string | undefined {
 }
 
 const compiler = findCompiler();
+const PROBE_TIMEOUT_MS = 20_000;
 
 function nsisString(value: string): string {
   return value.replaceAll('$', '$$').replaceAll('"', '$\\"');
@@ -146,17 +147,19 @@ async function runExecutable(executable: string, args: string[], env = process.e
   await new Promise<void>((resolveRun, reject) => {
     const child = spawn(executable, args, { env, windowsHide: true, windowsVerbatimArguments: rawArguments, stdio: ['ignore', 'pipe', 'pipe'] });
     let output = '';
+    let failure: Error | null = null;
     child.stdout.on('data', (chunk: Buffer) => { output += chunk.toString(); });
     child.stderr.on('data', (chunk: Buffer) => { output += chunk.toString(); });
     const timeout = setTimeout(() => {
-      child.kill();
       const trace = env.EISLAND_TEST_OUTPUT ? `${env.EISLAND_TEST_OUTPUT}.trace` : '';
-      reject(new Error(`Process timed out: ${executable} (exit=${child.exitCode}, signal=${child.signalCode})\n${output}\n${trace && existsSync(trace) ? readFileSync(trace, 'utf8').slice(-16_384) : ''}`));
-    }, 20_000);
+      failure = new Error(`Process timed out: ${executable} (exit=${child.exitCode}, signal=${child.signalCode})\n${output}\n${trace && existsSync(trace) ? readFileSync(trace, 'utf8').slice(-16_384) : ''}`);
+      child.kill();
+    }, PROBE_TIMEOUT_MS);
     child.once('error', (error) => { clearTimeout(timeout); reject(error); });
     child.once('close', (code) => {
       clearTimeout(timeout);
-      if (code === 0) resolveRun();
+      if (failure) reject(failure);
+      else if (code === 0) resolveRun();
       else reject(new Error(`Process exited with ${code}: ${executable}\n${output}`));
     });
   });
@@ -166,6 +169,7 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
   let root: string;
   let fixture: string;
   const children: ChildProcess[] = [];
+  let probeSequence = 0;
 
   beforeAll(async () => {
     root = mkdtempSync(join(tmpdir(), 'eisland-nsis-test-'));
@@ -291,7 +295,8 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
     }
     if (launchInstaller) {
       // 模拟 app → updater helper → NSIS，检查关闭应用树时不会杀掉安装器祖先。
-      const bridgeScript = "const request=JSON.parse(process.argv[1]); const child=require('node:child_process').spawn(request.executable,request.args,{env:{...process.env,...request.env},detached:true,windowsHide:true,windowsVerbatimArguments:request.rawArguments,stdio:'ignore'}); child.once('exit',code=>{require('node:fs').writeFileSync(request.env.EISLAND_TEST_OUTPUT+'.exit',String(code));process.exit(code)}); child.once('error',error=>{require('node:fs').writeFileSync(request.env.EISLAND_TEST_OUTPUT+'.exit',error.stack);process.exit(1)});";
+      // 独立 helper 在应用退出后仍持有 NSIS 句柄，必须为失败路径设置自身的退出边界。
+      const bridgeScript = `const request=JSON.parse(process.argv[1]); const child=require('node:child_process').spawn(request.executable,request.args,{env:{...process.env,...request.env},detached:true,windowsHide:true,windowsVerbatimArguments:request.rawArguments,stdio:'ignore'}); const timeout=setTimeout(()=>child.kill(),${PROBE_TIMEOUT_MS}); child.once('exit',code=>{clearTimeout(timeout);require('node:fs').writeFileSync(request.env.EISLAND_TEST_OUTPUT+'.exit',String(code));process.exit(code ?? 1)}); child.once('error',error=>{clearTimeout(timeout);require('node:fs').writeFileSync(request.env.EISLAND_TEST_OUTPUT+'.exit',error.stack);process.exit(1)});`;
       script = `process.on('message', request => { const fs=require('node:fs'); const log=${JSON.stringify(join(directory, 'launch-log'))}; fs.writeFileSync(log,'received\\n'); const bridge=require('node:child_process').spawn(${JSON.stringify(fixture)}, ['-e', ${JSON.stringify(bridgeScript)}, JSON.stringify(request)], {detached:true,windowsHide:true,stdio:['ignore','ignore','pipe']}); fs.appendFileSync(log,'spawned '+bridge.pid+'\\n'); bridge.stderr.on('data', data=>fs.appendFileSync(log,data)); bridge.once('error',error=>fs.appendFileSync(log,error.stack)); bridge.once('exit',(code,signal)=>fs.appendFileSync(log,'exit '+code+' '+signal)); }); process.stdout.write('ready'); setInterval(()=>{},1000);`;
     }
     const child = spawn(executable, ['-e', script, join(directory, 'exit-signal')], {
@@ -315,10 +320,8 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
     // 探针本身就在安装目录内，确保安装器/卸载器不会被误判为运行中的应用。
     const executable = join(directory, `${mode}-probe.exe`);
     if (!existsSync(executable)) copyFileSync(join(root, variant, `${mode}-probe.exe`), executable);
-    const output = join(root, 'probe-result.txt');
-    if (existsSync(output)) rmSync(output);
-    if (existsSync(`${output}.trace`)) rmSync(`${output}.trace`);
-    if (existsSync(`${output}.exit`)) rmSync(`${output}.exit`);
+    // 迟到的结果或 trace 不能污染后续探针，也不能被下一个查询误认为成功。
+    const output = join(directory, `probe-result-${probeSequence++}.txt`);
     const args = ['/S', ...(updated ? ['--updated'] : []), ...(mode === 'uninstaller' ? [`_?=${directory}`] : [])];
     // NSIS 的 _?= 会读取命令行余下全部字符，目录含空格时也不能额外加引号。
     const env = {
@@ -335,12 +338,13 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
       const overrides = Object.fromEntries(Object.entries(env).filter(([key]) => key.startsWith('EISLAND_TEST_') || key === 'PATH'));
       options.viaApp.send({ executable, args, env: overrides, rawArguments: mode === 'uninstaller' });
       try {
-        await expect.poll(() => existsSync(output) || existsSync(`${output}.exit`), { timeout: 15_000 }).toBe(true);
+        await expect.poll(() => existsSync(`${output}.exit`), { timeout: PROBE_TIMEOUT_MS + 5000 }).toBe(true);
       } catch (error) {
         const log = join(directory, 'launch-log');
         throw new Error(`App-launched probe timed out (app exit=${options.viaApp.exitCode}, signal=${options.viaApp.signalCode}): ${existsSync(log) ? readFileSync(log, 'utf8') : 'no IPC message received'}`, { cause: error });
       }
-      if (!existsSync(output)) throw new Error(`App-launched probe failed: ${readFileSync(`${output}.exit`, 'utf8')}`);
+      const exitResult = readFileSync(`${output}.exit`, 'utf8').trim();
+      if (exitResult !== '0' || !existsSync(output)) throw new Error(`App-launched probe failed: ${exitResult}`);
     } else {
       await runExecutable(executable, args, env, mode === 'uninstaller');
     }
@@ -357,6 +361,10 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
    * @param mode - 安装或卸载探针。
    * @param directory - 本次场景目录。
    * @param options - 探针操作和双向握手文件。
+   * @param options.action - 运行检查或文件变更交接检查。
+   * @param options.variant - 注入的探针场景，默认为 normal。
+   * @param options.marker - 探针到达屏障后写入的文件名。
+   * @param options.ready - 准备完成后释放探针的文件名。
    * @param setup - 在探针暂停期间启动需要检查的进程。
    * @returns 已准备的测试进程及数据。
    */
@@ -365,7 +373,10 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
   }, setup: () => Promise<T>): Promise<T> {
     const pending = probe(mode, directory, options);
     // 立即订阅拒绝；稍后仍通过 pending 抛出探针失败，避免等待标记期间产生未处理拒绝。
-    const settled = pending.then(() => undefined, () => undefined);
+    const settled = (async () => {
+      try { await pending; }
+      catch { /* 原始失败由后续的 pending 断言传播。 */ }
+    })();
     let result: T;
     try {
       await expect.poll(() => existsSync(join(directory, options.marker)), { timeout: 10_000 }).toBe(true);
