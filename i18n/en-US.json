@@ -780,6 +780,9 @@
       "previewSecondCity": "New York",
       "empty": "Choose up to two timezones in the full World Clock"
     },
+    "performanceMonitor": {
+      "title": "Performance Monitor"
+    },
     "breakReminder": {
       "title": "Break Reminder",
       "count": "{{count}} items",
@@ -3085,7 +3088,8 @@
           "mokugyo": "Mokugyo",
           "breakReminder": "Break Reminder",
           "alarm": "Alarms",
-          "worldClock": "World Clock"
+          "worldClock": "World Clock",
+          "performanceMonitor": "Performance Monitor"
         },
         "previewMock": {
           "previewTag": "Preview",

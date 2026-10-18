@@ -698,6 +698,93 @@
   text-align: center;
 }
 
+/** 性能监控控件 */
+.ov-dash-performance-grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  min-height: 0;
+
+}
+
+.ov-dash-performance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: center;
+  min-width: 0;
+  padding: 6px 8px;
+  background: rgb(var(--color-text-rgb), .035);
+  border-radius: 7px;
+
+}
+
+.ov-dash-performance-head {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  min-width: 0;
+
+}
+
+.ov-dash-performance-label {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .62);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.ov-dash-performance-temp {
+  flex-shrink: 0;
+  font-size: 9px;
+  color: rgb(var(--color-text-rgb), .4);
+  font-variant-numeric: tabular-nums;
+
+}
+
+.ov-dash-performance-value {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 14px;
+  line-height: 1.2;
+  color: rgb(var(--color-text-rgb), .9);
+  font-variant-numeric: tabular-nums;
+
+}
+
+.ov-dash-performance-track {
+  height: 3px;
+  overflow: hidden;
+  background: rgb(var(--color-text-rgb), .08);
+  border-radius: 2px;
+
+}
+
+.ov-dash-performance-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  transition: transform .6s ease;
+  transform-origin: left center;
+
+}
+
+.ov-dash-performance-empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: rgb(var(--color-text-rgb), .24);
+  text-align: center;
+
+}
+
 /** 相册轮播控件 */
 .ov-dash-album-count {
   position: absolute;

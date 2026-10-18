@@ -28,7 +28,9 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/components/OverviewTab';
+import { PerformanceMetricGrid, type PerformanceWidgetMetrics } from '../../../../../../expand/components/OverviewTab/components/PerformanceMetricGrid';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
+import { DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS } from '../../../../../../../../utils/performanceMonitorColors';
 import { WorldClockFlag } from '../../../../../components/worldClock/components/WorldClockFlag';
 
 interface PreviewCountdownItem {
@@ -41,6 +43,14 @@ interface PreviewCountdownItem {
   backgroundImage?: string;
   backgroundOpacity?: number;
 }
+
+/** 性能监控预览使用固定示例值，不调用原生性能采集。 */
+const PREVIEW_PERFORMANCE_METRICS: PerformanceWidgetMetrics = {
+  cpu: { percent: 32, temperature: 54 },
+  gpu: { percent: 18, temperature: 47 },
+  memory: { percent: 61, temperature: null },
+  disk: { percent: 45, temperature: 38 },
+};
 
 function previewDiffDays(targetStr: string): number {
   const today = new Date();
@@ -400,6 +410,15 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
                 </div>
               ))}
             </div>
+          </div>
+        );
+      case 'performanceMonitor':
+        return (
+          <div className="ov-dash-widget ov-dash-performance-widget">
+            <div className="ov-dash-widget-header">
+              <span className="ov-dash-widget-title">{t('overview.performanceMonitor.title')}</span>
+            </div>
+            <PerformanceMetricGrid metrics={PREVIEW_PERFORMANCE_METRICS} colors={DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS} />
           </div>
         );
       default:

@@ -780,6 +780,9 @@
       "previewSecondCity": "纽约",
       "empty": "在全展开世界时钟中选择最多两个时区"
     },
+    "performanceMonitor": {
+      "title": "性能监控"
+    },
     "breakReminder": {
       "title": "休息提醒",
       "count": "{{count}} 项",
@@ -3085,7 +3088,8 @@
           "mokugyo": "电子木鱼",
           "breakReminder": "休息提醒",
           "alarm": "闹钟",
-          "worldClock": "世界时钟"
+          "worldClock": "世界时钟",
+          "performanceMonitor": "性能监控"
         },
         "previewMock": {
           "previewTag": "预览",
