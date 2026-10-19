@@ -24,8 +24,9 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useState, type KeyboardEvent, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import useIslandStore from '../../../../../../../store/slices';
 import {
   DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS,
   DEFAULT_PERFORMANCE_MONITOR_HARDWARE_SELECTION,
@@ -77,11 +78,12 @@ function isSameMetrics(previous: PerformanceWidgetMetrics, next: PerformanceWidg
 
 /**
  * 渲染 Overview 性能监控小组件。
- * @description 复用主进程原生性能插件快照，仅在小组件挂载且窗口可见时轮询。
+ * @description 复用主进程原生性能插件快照，仅在小组件挂载且窗口可见时轮询；点击标题切换到 Expand 性能监控页。
  * @returns 性能监控小组件
  */
 export function PerformanceMonitorWidget(): ReactElement {
   const { t } = useTranslation();
+  const setExpandTab = useIslandStore((store) => store.setExpandTab);
   const [metrics, setMetrics] = useState<PerformanceWidgetMetrics | null>(() => cachedMetrics);
   const [failed, setFailed] = useState(false);
   const [chartColors, setChartColors] = useState<PerformanceMonitorChartColors>(DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS);
@@ -171,6 +173,16 @@ export function PerformanceMonitorWidget(): ReactElement {
     };
   }, [hardwareSelection]);
 
+  const openPerformanceMonitorTab = useCallback((): void => {
+    setExpandTab('performanceMonitor');
+  }, [setExpandTab]);
+
+  const handleTitleKeyDown = useCallback((event: KeyboardEvent<HTMLSpanElement>): void => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    openPerformanceMonitorTab();
+  }, [openPerformanceMonitorTab]);
+
   const renderBody = (): ReactElement => {
     if (metrics) return <PerformanceMetricGrid metrics={metrics} colors={chartColors} />;
     if (failed) return <div className="ov-dash-performance-empty">{t('expanded.performanceMonitor.error')}</div>;
@@ -180,7 +192,14 @@ export function PerformanceMonitorWidget(): ReactElement {
   return (
     <div className="ov-dash-widget ov-dash-performance-widget">
       <div className="ov-dash-widget-header">
-        <span className="ov-dash-widget-title">{t('overview.performanceMonitor.title')}</span>
+        <span className="ov-dash-widget-title ov-dash-widget-title--link"
+          role="button"
+          tabIndex={0}
+          onClick={openPerformanceMonitorTab}
+          onKeyDown={handleTitleKeyDown}
+        >
+          {t('overview.performanceMonitor.title')}
+        </span>
       </div>
       {renderBody()}
     </div>

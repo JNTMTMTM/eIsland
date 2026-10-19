@@ -26,7 +26,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
-import { elements, text } from '../../../../../../test/tree';
+import { byClass, elements, invoke, text } from '../../../../../../test/tree';
 import { PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY, PERFORMANCE_MONITOR_HARDWARE_SELECTION_STORE_KEY } from '../../../../../../../../utils/performanceMonitorColors';
 import type { ReactElement } from 'react';
 import type { PerformanceWidgetMetrics } from '../../PerformanceMetricGrid';
@@ -36,6 +36,10 @@ const leaves = vi.hoisted(() => ({
   read: vi.fn<(key: string) => Promise<unknown>>(),
   subscribe: vi.fn<(callback: (channel: string, value: unknown) => void) => () => void>(),
   off: vi.fn(),
+  setExpandTab: vi.fn<(tab: string) => void>(),
+}));
+vi.mock('../../../../../../../../store/slices', () => ({
+  default: (selector: (store: { setExpandTab: (tab: string) => void }) => unknown) => selector({ setExpandTab: leaves.setExpandTab }),
 }));
 let Widget: typeof import('../PerformanceMonitorWidget').PerformanceMonitorWidget;
 let documentTarget: EventTarget & { hidden: boolean };
@@ -220,6 +224,19 @@ describe('PerformanceMonitorWidget', () => {
     unmountHook();
     resetHook();
     expect(grid()?.metrics.cpu.percent).toBe(32);
+  });
+
+  it('opens the expand performance monitor tab from the title by click or keyboard', async () => {
+    await mount();
+    const title = byClass(run(), 'ov-dash-widget-title--link');
+    expect(title.props).toMatchObject({ role: 'button', tabIndex: 0 });
+    invoke(title, 'onClick');
+    const preventDefault = vi.fn();
+    invoke(title, 'onKeyDown', { preventDefault, key: 'Tab' });
+    invoke(title, 'onKeyDown', { preventDefault, key: 'Enter' });
+    invoke(title, 'onKeyDown', { preventDefault, key: ' ' });
+    expect(leaves.setExpandTab.mock.calls).toEqual([['performanceMonitor'], ['performanceMonitor'], ['performanceMonitor']]);
+    expect(preventDefault).toHaveBeenCalledTimes(2);
   });
 
   it('renders a four-cell loading skeleton that announces loading', async () => {
