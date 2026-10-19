@@ -20,7 +20,7 @@
 
 /**
  * @file PerformanceMetricGrid.tsx
- * @description Overview 性能监控指标网格，供实时小组件与设置页静态预览共用。
+ * @description Overview 性能监控指标网格与加载骨架屏，网格供实时小组件与设置页静态预览共用。
  * @author 鸡哥
  */
 
@@ -80,6 +80,28 @@ export function PerformanceMetricGrid({ metrics, colors }: PerformanceMetricGrid
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * 渲染性能指标加载骨架屏。
+ * @description 沿用指标网格的 2×2 布局，数据到达后切换不会产生位移。
+ * @returns 性能指标骨架屏
+ */
+export function PerformanceMetricSkeleton(): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <div className="ov-dash-performance-grid" role="status" aria-busy="true" aria-label={t('expanded.performanceMonitor.loading')}>
+      {PERFORMANCE_MONITOR_METRIC_KEYS.map((key) => (
+        <div key={key} className="ov-dash-performance-item ov-dash-performance-skeleton">
+          <div className="ov-dash-performance-head">
+            <span className="ov-dash-performance-skeleton-block ov-dash-performance-skeleton-label" />
+            <span className="ov-dash-performance-skeleton-block ov-dash-performance-skeleton-value" />
+          </div>
+          <div className="ov-dash-performance-track" />
+        </div>
+      ))}
     </div>
   );
 }

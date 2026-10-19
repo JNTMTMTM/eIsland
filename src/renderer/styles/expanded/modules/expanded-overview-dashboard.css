@@ -785,6 +785,67 @@
 
 }
 
+.ov-dash-performance-skeleton {
+  position: relative;
+  overflow: hidden;
+
+}
+
+.ov-dash-performance-skeleton .ov-dash-performance-head {
+  align-items: center;
+  height: 17px;
+
+}
+
+.ov-dash-performance-skeleton-block {
+  display: block;
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 3px;
+
+}
+
+.ov-dash-performance-skeleton-label {
+  width: 26px;
+  height: 8px;
+
+}
+
+.ov-dash-performance-skeleton-value {
+  width: 30px;
+  height: 12px;
+  margin-left: auto;
+
+}
+
+/* 扫光只做 transform 位移，交给合成层执行，不触发重绘。 */
+.ov-dash-performance-skeleton::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-text-rgb), .07), transparent);
+  animation: ov-performance-skeleton-shimmer 1.4s ease-in-out infinite;
+  transform: translateX(-100%);
+  content: "";
+
+}
+
+@keyframes ov-performance-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-dash-performance-skeleton::after {
+    display: none;
+    animation: none;
+
+  }
+
+}
+
 /** 相册轮播控件 */
 .ov-dash-album-count {
   position: absolute;

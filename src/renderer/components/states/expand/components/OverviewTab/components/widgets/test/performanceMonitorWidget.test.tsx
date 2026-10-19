@@ -92,6 +92,15 @@ function grid(): { metrics: PerformanceWidgetMetrics; colors: Record<string, str
   return node?.props as { metrics: PerformanceWidgetMetrics; colors: Record<string, string> } | undefined;
 }
 
+/**
+ * 判断当前渲染树是否包含指定子组件。
+ * @param name - 子组件函数名
+ * @returns 是否包含
+ */
+function renders(name: string): boolean {
+  return elements(run()).some((item) => typeof item.type === 'function' && item.type.name === name);
+}
+
 beforeEach(async () => {
   unmountHook();
   resetHook();
@@ -130,7 +139,7 @@ afterEach(() => {
 describe('PerformanceMonitorWidget', () => {
   it('waits for the expand delay, then polls without hardware options and rounds metrics', async () => {
     await mount();
-    expect(text(run())).toContain('expanded.performanceMonitor.loading');
+    expect(renders('PerformanceMetricSkeleton')).toBe(true);
     expect(leaves.snapshot).not.toHaveBeenCalled();
     await advance(200);
     expect(leaves.snapshot).toHaveBeenCalledWith({ cpu: 'all', gpu: 'auto', disk: 'all' }, false);
@@ -179,6 +188,7 @@ describe('PerformanceMonitorWidget', () => {
     await mount();
     await advance(200);
     expect(text(run())).toContain('expanded.performanceMonitor.error');
+    expect(renders('PerformanceMetricSkeleton')).toBe(false);
     unmountHook();
     documentTarget.dispatchEvent(new Event('visibilitychange'));
     await vi.advanceTimersByTimeAsync(6000);
@@ -210,6 +220,14 @@ describe('PerformanceMonitorWidget', () => {
     unmountHook();
     resetHook();
     expect(grid()?.metrics.cpu.percent).toBe(32);
+  });
+
+  it('renders a four-cell loading skeleton that announces loading', async () => {
+    const { PerformanceMetricSkeleton } = await import('../../PerformanceMetricGrid');
+    const tree = PerformanceMetricSkeleton();
+    expect(tree.props).toMatchObject({ role: 'status', 'aria-busy': 'true', 'aria-label': 'expanded.performanceMonitor.loading' });
+    expect(elements(tree).filter((node) => node.props.className === 'ov-dash-performance-item ov-dash-performance-skeleton')).toHaveLength(4);
+    expect(text(tree)).toBe('');
   });
 
   it('renders labels, percentages, available temperatures and scaled bars', async () => {

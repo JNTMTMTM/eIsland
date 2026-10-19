@@ -37,7 +37,7 @@ import {
   type PerformanceMonitorChartColors,
   type PerformanceMonitorHardwareSelection,
 } from '../../../../../../../utils/performanceMonitorColors';
-import { PerformanceMetricGrid, type PerformanceWidgetMetrics } from '../PerformanceMetricGrid';
+import { PerformanceMetricGrid, PerformanceMetricSkeleton, type PerformanceWidgetMetrics } from '../PerformanceMetricGrid';
 
 /* eslint @typescript-eslint/no-floating-promises: ["error", { "ignoreVoid": true }] -- effect 和计时器显式启动内部已处理失败的异步采集。 */
 
@@ -171,18 +171,18 @@ export function PerformanceMonitorWidget(): ReactElement {
     };
   }, [hardwareSelection]);
 
+  const renderBody = (): ReactElement => {
+    if (metrics) return <PerformanceMetricGrid metrics={metrics} colors={chartColors} />;
+    if (failed) return <div className="ov-dash-performance-empty">{t('expanded.performanceMonitor.error')}</div>;
+    return <PerformanceMetricSkeleton />;
+  };
+
   return (
     <div className="ov-dash-widget ov-dash-performance-widget">
       <div className="ov-dash-widget-header">
         <span className="ov-dash-widget-title">{t('overview.performanceMonitor.title')}</span>
       </div>
-      {metrics ? (
-        <PerformanceMetricGrid metrics={metrics} colors={chartColors} />
-      ) : (
-        <div className="ov-dash-performance-empty">
-          {failed ? t('expanded.performanceMonitor.error') : t('expanded.performanceMonitor.loading')}
-        </div>
-      )}
+      {renderBody()}
     </div>
   );
 }
