@@ -30,12 +30,13 @@ Windows x64 安装 .NET 10 SDK、Native AOT 所需的 Visual Studio C++ 工具�
 npm run test:e2e:windows
 ```
 
-此命令先编译真实插件，再以 `--mode e2e-windows` 构建隔离的 Electron 应用，运行全部 31 个用例。
+此命令先编译真实插件，再以 `--mode e2e-windows` 构建隔离的 Electron 应用，运行全部 37 个用例。
 
 | 文件 | 覆盖 |
 |------|------|
 | `desktop.spec.ts` | 5 个跨平台业务 UI 用例：启动、待办生命周期、跨窗口同步、独立窗口重开、倒数日生命周期 |
 | `island-scale.spec.ts` | 大小缩放滑条、恢复默认、各状态窗口几何、独立窗口缩放隔离与重启恢复 |
+| `mail.spec.ts` | 本地 IMAP 服务与真实邮件库、preload、主进程 IPC 联调，验证摘要顺序、UID 代次及不下载正文的边界 |
 | `calculator.spec.ts` | 12 个计算器 UI 用例：四则运算按键对齐、角度/弧度切换、嵌套公式点击编辑与长公式滚动、绘图尺寸与模式切换、历史分页和重启恢复、矩阵可视编辑、定义域/值域及切线分析 |
 | `clipboard.spec.ts` | 真实 Electron 异步剪贴板：文本 IPC、Agent 文本/图片读取与文本写入、截图 PNG 复制、URL 轮询与通知；结束后恢复原剪贴板全部 MIME 数据 |
 | `windows.spec.ts` | 原生 HWND 裁剪区域在 75%/100%/150% 缩放下随展开/收缩变化、pill 连续移动后的外框尺寸与岛体居中对齐、真实桌面光标触发 hover/离开、全局快捷键隐藏/恢复与注销 |

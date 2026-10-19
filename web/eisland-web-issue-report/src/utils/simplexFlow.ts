@@ -25,8 +25,8 @@
  * @author 鸡哥
  */
 
-import type { RgbColor } from '../types/simplexFlow'
 import { SIMPLEX_SKEW, SIMPLEX_UNSKEW, GRADIENTS, PALETTE, PERMUTATION, POINTER_RADIUS } from '../config/simplexFlow'
+import type { RgbColor } from '../types/simplexFlow'
 
 // ── Math helpers ───────────────────────────────────────
 
@@ -48,6 +48,12 @@ const smoothstep = (edge0: number, edge1: number, value: number) => {
 
 const dot = (gradient: readonly [number, number], x: number, y: number) => gradient[0] * x + gradient[1] * y
 
+/**
+ * 计算二维 Simplex 噪声。
+ * @param x - 横向采样坐标。
+ * @param y - 纵向采样坐标。
+ * @returns 连续噪声值。
+ */
 export const simplexNoise = (x: number, y: number): number => {
   const skew = (x + y) * SIMPLEX_SKEW
   const i = Math.floor(x + skew)
@@ -99,6 +105,11 @@ const mixColor = (from: RgbColor, to: RgbColor, progress: number): RgbColor => [
   from[2] + (to[2] - from[2]) * progress,
 ]
 
+/**
+ * 在调色板相邻颜色间平滑插值。
+ * @param value - 归一化采样值，自动限制到调色板范围。
+ * @returns 插值后的 RGB 颜色。
+ */
 export const samplePalette = (value: number): RgbColor => {
   const scaled = clamp(value, 0, 0.999) * (PALETTE.length - 1)
   const index = Math.floor(scaled)
@@ -108,6 +119,13 @@ export const samplePalette = (value: number): RgbColor => {
 
 // ── FBM ────────────────────────────────────────────────
 
+/**
+ * 叠加三层随时间流动的噪声。
+ * @param x - 横向采样坐标。
+ * @param y - 纵向采样坐标。
+ * @param time - 动画时间。
+ * @returns 叠加后的噪声值。
+ */
 export const fbm = (x: number, y: number, time: number): number => {
   const first = simplexNoise(x + time * 0.34, y - time * 0.22)
   const second = simplexNoise(x * 1.92 - time * 0.18, y * 1.92 + time * 0.3) * 0.46
@@ -117,6 +135,16 @@ export const fbm = (x: number, y: number, time: number): number => {
 
 // ── Pointer caustics ───────────────────────────────────
 
+/**
+ * 在鼠标附近绘制光晕，结束后恢复画布状态。
+ * @param context - 当前画布的二维绘图上下文。
+ * @param pointer - 鼠标位置和影响强度。
+ * @param pointer.x - 鼠标横坐标。
+ * @param pointer.y - 鼠标纵坐标。
+ * @param pointer.influence - 光晕影响强度。
+ * @param time - 动画时间。
+ * @returns 无返回值。
+ */
 export const drawPointerCaustics = (
   context: CanvasRenderingContext2D,
   pointer: { x: number; y: number; influence: number },
@@ -129,20 +157,18 @@ export const drawPointerCaustics = (
   const TAU = Math.PI * 2
 
   context.save()
-  context.globalCompositeOperation = 'soft-light'
+  Object.assign(context, { globalCompositeOperation: 'soft-light' })
 
   const shadow = context.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, POINTER_RADIUS * 0.78)
   shadow.addColorStop(0, `rgba(86, 142, 232, ${0.14 * pointer.influence})`)
   shadow.addColorStop(0.32, `rgba(52, 104, 190, ${0.07 * pointer.influence})`)
   shadow.addColorStop(1, 'rgba(255, 255, 255, 0)')
-  context.fillStyle = shadow
+  Object.assign(context, { fillStyle: shadow })
   context.beginPath()
   context.arc(pointer.x, pointer.y, POINTER_RADIUS * 0.78, 0, TAU)
   context.fill()
 
-  context.globalCompositeOperation = 'screen'
-  context.lineCap = 'round'
-  context.lineJoin = 'round'
+  Object.assign(context, { globalCompositeOperation: 'screen', lineCap: 'round', lineJoin: 'round' })
 
   for (let ring = 0; ring < 3; ring += 1) {
     const radius = 72 + ring * 68 + Math.sin(time * 1.2 + ring) * 10
@@ -164,8 +190,7 @@ export const drawPointerCaustics = (
       }
     }
 
-    context.strokeStyle = `rgba(255, 255, 255, ${alpha})`
-    context.lineWidth = 1.1 + ring * 0.25
+    Object.assign(context, { strokeStyle: `rgba(255, 255, 255, ${alpha})`, lineWidth: 1.1 + ring * 0.25 })
     context.stroke()
   }
 

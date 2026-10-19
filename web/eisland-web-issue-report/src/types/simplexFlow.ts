@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-export type PointerState = {
+export interface PointerState {
   x: number
   y: number
   active: boolean
