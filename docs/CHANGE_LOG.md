@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-16T05:01:46.802Z
+> 生成时间：2026-10-19T19:57:16.123Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,11 @@
 
 ## Unreleased
 
+- 2026-10-19 | 4f23f6ab | JNTMTMTM | Merge pull request #266 from JNTMTMTM/dependabot/npm_and_yarn/electron-vite-6.0.0
+- 2026-10-19 | fd72321e | JNTMTMTM | Merge pull request #263 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-06917ca2d8
+- 2026-10-19 | 618e346f | dependabot[bot] | chore(deps): bump electron-vite from 6.0.0-beta.8 to 6.0.0
+- 2026-10-19 | 48156b5d | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
+- 2026-10-16 | f2a8b8e2 | eislandBot | docs: auto update CHANGE_LOG.md for #261 by @JNTMTMTM [skip ci]
 - 2026-10-15 | 1d2d6345 | JNTMTMTM | Merge pull request #261 from JNTMTMTM/dev
 - 2026-10-15 | 4a22d2ac | 鸡哥 | feat: enhance installer process handling with ancestry cycle and slow snapshot variants in tests
 - 2026-10-15 | 15f04212 | 鸡哥 | refactor: replace for loops with forEach for improved readability in various test files
