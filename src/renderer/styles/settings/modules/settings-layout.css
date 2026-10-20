@@ -6122,10 +6122,12 @@ button.settings-user-image-translation-image-wrap:hover {
   gap: 8px;
 }
 
-/* 用户中心骨架宿主：承载共享扫光，并屏蔽复用卡片类名带来的悬停反馈。 */
+/* 用户中心骨架宿主：承载共享扫光，并屏蔽复用卡片类名带来的悬停反馈。
+   用 clip 而非 hidden：hidden 会让宿主成为滚动容器、flex 最小高度降为 0，
+   在 min-height: 100% 的页面面板里被压扁裁掉内容；clip 只裁绘制，保持内容高度。 */
 .settings-user-skeleton {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   pointer-events: none;
 
 }
