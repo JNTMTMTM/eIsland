@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-19T19:57:16.123Z
+> 生成时间：2026-10-20T00:04:17.871Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,10 @@
 
 ## Unreleased
 
+- 2026-10-19 | 41248f3f | JNTMTMTM | Merge pull request #273 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b086c4afa2
+- 2026-10-19 | 45620089 | 鸡哥 | test: verify dependency upgrades through real IMAP and desktop integration
+- 2026-10-19 | f497d1f0 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 19 updates
+- 2026-10-19 | 6fe60585 | eislandBot | docs: auto update CHANGE_LOG.md for #263 by @dependabot[bot] [skip ci]
 - 2026-10-19 | 4f23f6ab | JNTMTMTM | Merge pull request #266 from JNTMTMTM/dependabot/npm_and_yarn/electron-vite-6.0.0
 - 2026-10-19 | fd72321e | JNTMTMTM | Merge pull request #263 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-06917ca2d8
 - 2026-10-19 | 618e346f | dependabot[bot] | chore(deps): bump electron-vite from 6.0.0-beta.8 to 6.0.0
