@@ -12,6 +12,7 @@ on:
       - 'tsconfig*.json'
       - 'eslint.config.mjs'
       - 'scripts/lint/**'
+      - 'scripts/test/**'
       - 'web/eisland-web-issue-report/eslint.config.js'
       - 'web/eisland-web-issue-report/package*.json'
       - '.github/workflows/test.yml'
@@ -63,7 +64,8 @@ jobs:
 
   vitest:
     name: Vitest (${{ matrix.project }})
-    runs-on: windows-latest
+    # node-gyp 11 与 Native AOT 使用 VS2022 工具链。
+    runs-on: windows-2022
     permissions:
       contents: read
     strategy:
@@ -94,6 +96,20 @@ jobs:
       - name: Install Electron binary
         run: node node_modules/electron/install.js
 
+      - name: Setup .NET SDK for native plugin tests
+        if: matrix.project == 'plugins'
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build native plugin test dependencies
+        if: matrix.project == 'plugins'
+        run: npm run test:plugins:build
+
+      - name: Verify complete Vitest discovery
+        if: matrix.project == 'plugins'
+        run: npm run test:discovery
+
       - name: Run project tests
         run: |
           START=$(date +%s)
@@ -101,6 +117,9 @@ jobs:
           PROJECT_ARGS=(--project "$VITEST_PROJECT")
           if [ "$VITEST_PROJECT" = main ]; then
             PROJECT_ARGS+=(--project main-integration)
+          fi
+          if [ "$VITEST_PROJECT" = plugins ]; then
+            PROJECT_ARGS+=(--project plugins-integration)
           fi
           FORCE_COLOR=0 NO_COLOR=1 npm test -- "${PROJECT_ARGS[@]}" --reporter=default --reporter=json --outputFile=vitest-results.json > vitest.log 2>&1 || EXIT_CODE=$?
           END=$(date +%s)
