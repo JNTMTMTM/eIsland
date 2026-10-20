@@ -174,7 +174,8 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
     copyFileSync(process.execPath, fixture);
     const include = resolve('resources/installer.nsh');
     // 对测试副本注入不存在的模块快照 PID，验证原生 API 失败不会被当作未运行。
-    const installerSource = readFileSync(include, 'utf8');
+    // 注入模板使用 LF；统一检出时的换行，避免 Windows 的 CRLF 使竞态探针未被注入。
+    const installerSource = readFileSync(include, 'utf8').replaceAll('\r\n', '\n');
     const failureSource = installerSource.replaceAll('CreateToolhelp32Snapshot(i 2, i 0)', 'CreateToolhelp32Snapshot(i 8, i -1)');
     expect(failureSource).not.toBe(installerSource);
     const queryCall = installerSource.split(/\r?\n/).find((line) => line.includes('kernel32::QueryFullProcessImageNameW'));
@@ -222,6 +223,7 @@ describe.skipIf(!compiler)('NSIS native process integration (Windows and cached 
         ].join('\n'),
       ),
     };
+    expect(sources['late-start']).not.toBe(installerSource);
     const builds = Object.entries(sources).map(([variant, contents]) => {
       const directory = join(root, variant);
       mkdirSync(directory);

@@ -48,6 +48,9 @@ jobs:
       - name: Install web lint dependencies
         run: npm ci --prefix web/eisland-web-issue-report --ignore-scripts
 
+      - name: Lint issue report site
+        run: npm --prefix web/eisland-web-issue-report run lint
+
       - name: Test lint configuration and PR reporting
         run: npm run lint:config:test
 

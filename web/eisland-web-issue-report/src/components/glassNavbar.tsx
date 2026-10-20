@@ -19,25 +19,23 @@
  */
 
 /**
- * @file SimplexFlowBackground.tsx
- * @description 全屏 Simplex 噪声流动背景组件
+ * @file glassNavbar.tsx
+ * @description 顶部毛玻璃导航栏组件
  * @author 鸡哥
  */
 
-import { useRef } from 'react'
-import { useSimplexFlow } from '../hooks/useSimplexFlow'
-import '../styles/SimplexFlowBackground.css'
+import '../styles/GlassNavbar.css'
 
-function SimplexFlowBackground() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  useSimplexFlow(canvasRef)
-
+/**
+ * 渲染品牌导航栏。
+ * @returns 品牌导航栏。
+ */
+function GlassNavbar() {
   return (
-    <div className="simplex-flow-background" aria-hidden="true">
-      <canvas ref={canvasRef} className="simplex-flow-background__canvas" />
-      <div className="simplex-flow-background__glass" />
-    </div>
+    <header className="glass-navbar">
+      <img className="glass-navbar__brand" src="/eisland-logo-white-script-black.png" alt="eIsland" height="24" />
+    </header>
   )
 }
 
-export default SimplexFlowBackground
+export default GlassNavbar
