@@ -172,5 +172,27 @@
     "ts-api-utils": {
       "typescript": "~6.0.3"
     }
+  },
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.28.2": true,
+    "ffmpeg-static": true,
+    "get-windows": true,
+    "koffi@2.16.2": true,
+    "tesseract.js@7.0.0": true,
+    "unrs-resolver@1.12.2": true,
+    "@alicloud/openapi-core@1.0.8": true,
+    "file:../../plugins/windows/eisland-windows-brightness-helper": true,
+    "file:../../plugins/windows/eisland-windows-smtc-helper": true,
+    "file:../../plugins/windows/eisland-windows-application-icon-helper": true,
+    "file:../../plugins/windows/eisland-windows-bluetooth-helper": true,
+    "file:../../plugins/windows/eisland-windows-toast-listener": true,
+    "file:../../plugins/windows/eisland-windows-fullscreen-detector": true,
+    "file:../../plugins/windows/eisland-windows-screenshot-helper": true,
+    "file:../../plugins/windows/eisland-windows-performance-monitor": true,
+    "file:../../plugins/windows/eisland-windows-volume-helper": true,
+    "file:../../plugins/windows/eisland-windows-processes-attacker": true,
+    "file:../../plugins/windows/eisland-windows-wifi-helper": true,
+    "file:../../plugins/windows/eisland-windows-power-helper": true
   }
 }
