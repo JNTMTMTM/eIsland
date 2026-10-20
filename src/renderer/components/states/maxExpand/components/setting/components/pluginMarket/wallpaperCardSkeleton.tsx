@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+/* eslint-disable better-tailwindcss/no-unknown-classes -- 骨架复用壁纸卡片真实的语义类名，尺寸才能与数据到达后保持一致。 */
+
 import { useCallback, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -58,12 +60,12 @@ export function WallpaperCardSkeletonList({ count, metaRows }: WallpaperCardSkel
   return (
     <div className="settings-plugin-market-skeleton-list" role="status" aria-busy="true" aria-label={loadingLabel}>
       {cardKeys.map((cardKey) => (
-        <div key={cardKey} className="settings-plugin-market-card settings-plugin-market-card-skeleton" aria-hidden="true">
+        <div key={cardKey} className="settings-plugin-market-card settings-plugin-market-card-skeleton settings-skeleton-sweep" aria-hidden="true">
           <div className="settings-plugin-market-card-media" />
           <div className="settings-plugin-market-card-body">
-            <span className="settings-plugin-market-skeleton-block settings-plugin-market-skeleton-title" />
+            <span className="settings-skeleton-block settings-plugin-market-skeleton-title" />
             {metaKeys.map((metaKey) => (
-              <span key={metaKey} className="settings-plugin-market-skeleton-block settings-plugin-market-skeleton-meta" />
+              <span key={metaKey} className="settings-skeleton-block settings-plugin-market-skeleton-meta" />
             ))}
           </div>
         </div>
@@ -86,7 +88,7 @@ export function WallpaperCardThumb({ src, alt }: WallpaperCardThumbProps): React
   const handleSettled = useCallback((): void => setSettledSrc(src), [src]);
   return (
     <>
-      {loading && <span className="settings-plugin-market-card-shimmer" aria-hidden="true" />}
+      {loading && <span className="settings-plugin-market-card-shimmer settings-skeleton-sweep" aria-hidden="true" />}
       <img className={`settings-plugin-market-card-img${loading ? ' is-loading' : ''}`}
         src={src}
         alt={alt}
@@ -96,3 +98,5 @@ export function WallpaperCardThumb({ src, alt }: WallpaperCardThumbProps): React
     </>
   );
 }
+
+/* eslint-enable better-tailwindcss/no-unknown-classes -- 例外仅适用于上面的骨架组件。 */

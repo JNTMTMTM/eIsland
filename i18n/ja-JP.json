@@ -4405,6 +4405,7 @@
         "paymentSubtitle": "支払い方法を選択してお支払いください。残高は自動で反映されます。",
         "rechargeAmountLabel": "チャージ金額",
         "currentBalance": "現在の残高",
+        "balanceLoading": "残高を読み込み中…",
         "customPlaceholder": "金額を指定",
         "selectAmount": "金額を選択してください",
         "confirm": "¥{{amount}}のチャージを確定",

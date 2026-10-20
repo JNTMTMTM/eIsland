@@ -450,13 +450,6 @@
 
 }
 
-.settings-plugin-market-skeleton-block {
-  display: block;
-  background: rgb(var(--color-text-rgb), .1);
-  border-radius: 4px;
-
-}
-
 /* 块高加上下外边距等于真实文字行高，骨架切换为内容时卡片不跳动。 */
 .settings-plugin-market-skeleton-title {
   width: 72%;
@@ -469,37 +462,6 @@
   width: 48%;
   height: 10px;
   margin: 7px 0 2.5px;
-
-}
-
-/* 扫光只做 transform 位移，交给合成层执行，不触发重绘。 */
-.settings-plugin-market-card-skeleton::after,
-.settings-plugin-market-card-shimmer::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgb(var(--color-text-rgb), .07), transparent);
-  animation: settings-plugin-market-skeleton-shimmer 1.4s ease-in-out infinite;
-  transform: translateX(-100%);
-  content: "";
-
-}
-
-@keyframes settings-plugin-market-skeleton-shimmer {
-  to {
-    transform: translateX(100%);
-
-  }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .settings-plugin-market-card-skeleton::after,
-  .settings-plugin-market-card-shimmer::after {
-    display: none;
-    animation: none;
-
-  }
 
 }
 

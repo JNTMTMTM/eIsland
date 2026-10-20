@@ -27,7 +27,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { elementProps, elements, findElement, textContent } from '../../../../../../../test/elementHarness';
 import { runEffects } from '../../app/components/test/themeHookHarness';
-import { bootUser, cleanupUser, clickUser, mocks, navigateUser, renderUser, settleUser, setupUser, transport } from './userSettingsFixture';
+import { bootUser, cleanupUser, clickUser, mocks, navigateUser, renderUser, settleUser, setupUser, skeletonLabels, transport } from './userSettingsFixture';
 const order = {
   outTradeNo: 'order-1',
   productCode: 'PRO_MONTH',
@@ -137,7 +137,7 @@ describe('分页历史读取失败和渲染', () => {
       }));
       const pending = bootUser(page);
       await settleUser();
-      expect(textContent(renderUser())).toContain(`settings.user.${prefix}.loading`);
+      expect(skeletonLabels(renderUser())).toEqual([`settings.user.${prefix}.loading`]);
       resolve?.({
         ok: true,
         data: {

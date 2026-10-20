@@ -79,6 +79,7 @@ import { QuestionnaireBanner, useAnnouncementQuestionnaire } from '../../../../.
 import '../../../../../../../styles/announcement/announcement.css';
 import { readLoginDays, recordLoginDay } from './utils/loginHeatmapStorage';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
+import { UserPlanDetailSkeleton, UserProfileSkeleton, UserRecordSkeletonList, UserValueSkeleton } from './components/userSettingsSkeleton';
 import '../../../../../../../styles/settings/modules/cli.css';
 import '../../../../../../../styles/questionnaire/questionnaire.css';
 
@@ -267,6 +268,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
   const [rechargeCustomValue, setRechargeCustomValue] = useState('');
   const [rechargeFeedback, setRechargeFeedback] = useState<Feedback | null>(null);
   const [userBalance, setUserBalance] = useState<string | null>(null);
+  const [userBalanceLoading, setUserBalanceLoading] = useState(false);
 
   /** 第三方应用绑定列表 */
   const [oauthBindings, setOauthBindings] = useState<OAuthBindingItem[]>([]);
@@ -641,8 +643,10 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     if (!token || userProfilePage !== 'recharge') return;
     let cancelled = false;
     const loadBalance = async (): Promise<void> => {
+      setUserBalanceLoading(true);
       const result = await fetchAgentBalance(token);
       if (cancelled) return;
+      setUserBalanceLoading(false);
       if (result.ok && result.data) {
         setUserBalance(result.data.balanceYuan);
       }
@@ -1459,12 +1463,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
         {ordersFeedback ? renderFeedback(ordersFeedback) : null}
 
         {loadingUserOrders && userOrders.length === 0 ? (
-          <div className="settings-user-card settings-user-orders-empty">
-            <div className="settings-user-orders-loading-wrap">
-              <span className="settings-user-orders-spinner" aria-hidden="true" />
-              <span>{t('settings.user.orders.loading', { defaultValue: '订单加载中…' })}</span>
-            </div>
-          </div>
+          <UserRecordSkeletonList label={t('settings.user.orders.loading', { defaultValue: '订单加载中…' })} rows={3} />
         ) : null}
 
         {!loadingUserOrders && userOrders.length === 0 ? (
@@ -2158,14 +2157,18 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               <div className="settings-user-pro-plan-price">{t('settings.user.pro.free.price', { defaultValue: '¥0 / 月' })}</div>
             </div>
             <div className="settings-user-pro-plan-scroll">
-              <div className="settings-user-pro-plan-desc">
-                {freeDescText}
-              </div>
-              <ul className="settings-user-pro-plan-features">
-                {freeFeatures.map((feature, index) => (
-                  <li key={`free-feature-${index}`}>{feature}</li>
-                ))}
-              </ul>
+              {proMonthPricingLoading ? <UserPlanDetailSkeleton /> : (
+                <>
+                  <div className="settings-user-pro-plan-desc">
+                    {freeDescText}
+                  </div>
+                  <ul className="settings-user-pro-plan-features">
+                    {freeFeatures.map((feature, index) => (
+                      <li key={`free-feature-${index}`}>{feature}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
             <button
               type="button"
@@ -2184,19 +2187,23 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
               </div>
               <div className="settings-user-pro-plan-price">
                 {proMonthPricingLoading
-                  ? t('settings.user.pro.pro.priceLoading', { defaultValue: '价格加载中…' })
+                  ? <UserValueSkeleton label={t('settings.user.pro.pro.priceLoading', { defaultValue: '价格加载中…' })} />
                   : (proMonthPriceLabel || t('settings.user.pro.pro.priceUnavailable', { defaultValue: '价格待定' }))}
               </div>
             </div>
             <div className="settings-user-pro-plan-scroll">
-              <div className="settings-user-pro-plan-desc">
-                {proDescText}
-              </div>
-              <ul className="settings-user-pro-plan-features">
-                {proFeatures.map((feature, index) => (
-                  <li key={`pro-feature-${index}`}>{feature}</li>
-                ))}
-              </ul>
+              {proMonthPricingLoading ? <UserPlanDetailSkeleton /> : (
+                <>
+                  <div className="settings-user-pro-plan-desc">
+                    {proDescText}
+                  </div>
+                  <ul className="settings-user-pro-plan-features">
+                    {proFeatures.map((feature, index) => (
+                      <li key={`pro-feature-${index}`}>{feature}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
             <button
               type="button"
@@ -2251,10 +2258,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
         </div>
 
         {loadingOAuthBindings && oauthBindings.length === 0 ? (
-          <div className="settings-user-card settings-user-oauth-empty">
-            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
-            <span>{t('settings.user.oauth.loading', { defaultValue: '加载中…' })}</span>
-          </div>
+          <UserRecordSkeletonList label={t('settings.user.oauth.loading', { defaultValue: '加载中…' })} rows={3} />
         ) : null}
 
         {!loadingOAuthBindings && oauthBindings.length === 0 ? (
@@ -2319,10 +2323,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
         </div>
 
         {loadingImageTranslationHistory && imageTranslationHistory.length === 0 ? (
-          <div className="settings-user-card settings-user-image-translation-state">
-            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
-            <span>{t('settings.user.imageTranslation.loading', { defaultValue: '加载图片翻译记录中…' })}</span>
-          </div>
+          <UserRecordSkeletonList label={t('settings.user.imageTranslation.loading', { defaultValue: '加载图片翻译记录中…' })} rows={0} media />
         ) : null}
 
         {imageTranslationHistoryError ? (
@@ -2552,10 +2553,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
         </div>
 
         {loadingOcrHistory && ocrHistory.length === 0 ? (
-          <div className="settings-user-card settings-user-image-translation-state">
-            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
-            <span>{t('settings.user.ocrHistory.loading', { defaultValue: '加载 OCR 历史记录中…' })}</span>
-          </div>
+          <UserRecordSkeletonList label={t('settings.user.ocrHistory.loading', { defaultValue: '加载 OCR 历史记录中…' })} rows={0} media />
         ) : null}
 
         {ocrHistoryError ? (
@@ -2695,10 +2693,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
         )}
 
         {loadingQuestionnaireHistory && questionnaireHistory.length === 0 ? (
-          <div className="settings-user-card settings-user-questionnaire-empty">
-            <span className="settings-user-orders-inline-spinner" aria-hidden="true" />
-            <span>{t('settings.user.questionnaire.loading')}</span>
-          </div>
+          <UserRecordSkeletonList label={t('settings.user.questionnaire.loading')} rows={1} />
         ) : null}
 
         {questionnaireHistoryError ? (
@@ -2828,12 +2823,14 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           <div className="settings-user-card-title-hint">
             {t('settings.user.recharge.subtitle', { defaultValue: '充值后可用于 AI 助手对话消耗' })}
           </div>
-          {userBalance !== null && userBalance !== undefined && (
+          {(userBalance !== null && userBalance !== undefined) || userBalanceLoading ? (
             <div className="settings-user-recharge-balance">
               {t('settings.user.recharge.currentBalance', { defaultValue: '当前余额' })}：
-              <span className="settings-user-recharge-balance-value">¥{userBalance}</span>
+              {userBalance !== null && userBalance !== undefined
+                ? <span className="settings-user-recharge-balance-value">¥{userBalance}</span>
+                : <UserValueSkeleton label={t('settings.user.recharge.balanceLoading', { defaultValue: '余额加载中…' })} />}
             </div>
-          )}
+          ) : null}
         </div>
 
         <div className="settings-user-recharge-grid">
@@ -2917,6 +2914,35 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     );
   };
 
+  const renderSessionContent = (): ReactElement => {
+    if (!token) return renderAuthEntry();
+    if (profile) return renderProfileEditor();
+    // 本地无缓存资料时才进入首屏骨架；已有缓存时后台刷新期间保持展示缓存内容。
+    if (loadingProfile) return <UserProfileSkeleton />;
+    return (
+      <div className="settings-user-loading">
+        {t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' })}
+        {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
+        <div className="settings-user-actions-row settings-user-actions-row--adaptive">
+          <button
+            type="button"
+            className="settings-user-primary-btn"
+            onClick={() => void handleRefreshProfile()}
+          >
+            {t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}
+          </button>
+          <button
+            type="button"
+            className="settings-user-secondary-btn"
+            onClick={resetToLoggedOut}
+          >
+            {t('settings.user.actions.logout', { defaultValue: '退出登录' })}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-expand-settings-section settings-user">
       <div className="max-expand-settings-title settings-app-title-line">
@@ -2930,32 +2956,7 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
           />
         )}
       </div>
-      {token && profile ? renderProfileEditor() : token ? (
-        <div className="settings-user-loading">
-          {loadingProfile
-            ? t('settings.user.feedback.loadingProfile', { defaultValue: '加载账号资料中…' })
-            : t('settings.user.feedback.loadFailed', { defaultValue: '加载资料失败' })}
-          {profileError && <div className="settings-user-feedback settings-user-feedback--error">{profileError}</div>}
-          {!loadingProfile && (
-            <div className="settings-user-actions-row settings-user-actions-row--adaptive">
-              <button
-                type="button"
-                className="settings-user-primary-btn"
-                onClick={() => void handleRefreshProfile()}
-              >
-                {t('settings.user.actions.refresh', { defaultValue: '刷新资料' })}
-              </button>
-              <button
-                type="button"
-                className="settings-user-secondary-btn"
-                onClick={resetToLoggedOut}
-              >
-                {t('settings.user.actions.logout', { defaultValue: '退出登录' })}
-              </button>
-            </div>
-          )}
-        </div>
-      ) : renderAuthEntry()}
+      {renderSessionContent()}
     </div>
   );
 }

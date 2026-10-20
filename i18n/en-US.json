@@ -4405,6 +4405,7 @@
         "paymentSubtitle": "Select a payment method to complete payment. Balance will be credited automatically.",
         "rechargeAmountLabel": "Recharge Amount",
         "currentBalance": "Current Balance",
+        "balanceLoading": "Loading balance…",
         "customPlaceholder": "Custom",
         "selectAmount": "Select an amount",
         "confirm": "Confirm Recharge ¥{{amount}}",

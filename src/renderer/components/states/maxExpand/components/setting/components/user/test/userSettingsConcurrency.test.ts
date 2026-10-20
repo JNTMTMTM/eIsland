@@ -26,7 +26,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { elementProps, elements, findElement, invoke, textContent } from '../../../../../../../test/elementHarness';
-import { bootUser, cleanupUser, clickUser, fillInputs, mocks, navigateUser, profile, renderUser, settleUser, setupUser, transport } from './userSettingsFixture';
+import { bootUser, cleanupUser, clickUser, fillInputs, mocks, navigateUser, profile, renderUser, settleUser, setupUser, skeletonLabels, transport } from './userSettingsFixture';
 const order = {
   outTradeNo: 'order-1',
   productCode: 'PRO_MONTH',
@@ -333,7 +333,7 @@ describe('异步并发和guard', () => {
     const loading = deferred();
     mocks.api.fetchOAuthBindings.mockReturnValue(loading.promise);
     await navigateUser('oauth');
-    expect(textContent(renderUser())).toContain('settings.user.oauth.loading');
+    expect(skeletonLabels(renderUser())).toEqual(['settings.user.oauth.loading']);
     await navigateUser('info');
     loading.resolve({
       ok: true,
@@ -370,7 +370,7 @@ describe('异步并发和guard', () => {
     const load = deferred();
     mocks.api.fetchQuestionnaireHistory.mockReturnValue(load.promise);
     await bootUser('questionnaire');
-    expect(textContent(renderUser())).toContain('settings.user.questionnaire.loading');
+    expect(skeletonLabels(renderUser())).toEqual(['settings.user.questionnaire.loading']);
     load.resolve({
       ok: true,
       data: [question, {

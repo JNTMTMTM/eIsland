@@ -53,14 +53,14 @@ describe('wallpaper card skeleton list', () => {
       'aria-busy': 'true',
       'aria-label': 'settings.pluginMarket.wallpaper.feedback.loading'
     });
-    const cards = byClass(tree, 'settings-plugin-market-card settings-plugin-market-card-skeleton');
+    const cards = byClass(tree, 'settings-plugin-market-card settings-plugin-market-card-skeleton settings-skeleton-sweep');
     expect(cards).toHaveLength(count);
     expect(new Set(cards.map((card) => card.key)).size).toBe(count);
     cards.forEach((card) => {
       expect(card.props['aria-hidden']).toBe('true');
       expect(byClass(card, 'settings-plugin-market-card-media')).toHaveLength(1);
-      expect(byClass(card, 'settings-plugin-market-skeleton-block settings-plugin-market-skeleton-title')).toHaveLength(1);
-      expect(byClass(card, 'settings-plugin-market-skeleton-block settings-plugin-market-skeleton-meta')).toHaveLength(metaRows);
+      expect(byClass(card, 'settings-skeleton-block settings-plugin-market-skeleton-title')).toHaveLength(1);
+      expect(byClass(card, 'settings-skeleton-block settings-plugin-market-skeleton-meta')).toHaveLength(metaRows);
     });
   });
 });
@@ -83,7 +83,7 @@ describe('wallpaper card thumb', () => {
 
   it.each(['onLoad', 'onError'])('shows the shimmer until %s, then reveals the image', (event) => {
     let tree = thumb('https://asset/320');
-    expect(byClass(tree, 'settings-plugin-market-card-shimmer')).toHaveLength(1);
+    expect(byClass(tree, 'settings-plugin-market-card-shimmer settings-skeleton-sweep')).toHaveLength(1);
     expect(img(tree).props).toMatchObject({
       className: 'settings-plugin-market-card-img is-loading',
       src: 'https://asset/320',
@@ -91,15 +91,15 @@ describe('wallpaper card thumb', () => {
     });
     trigger(img(tree), event);
     tree = thumb('https://asset/320');
-    expect(byClass(tree, 'settings-plugin-market-card-shimmer')).toHaveLength(0);
+    expect(byClass(tree, 'settings-plugin-market-card-shimmer settings-skeleton-sweep')).toHaveLength(0);
     expect(img(tree).props.className).toBe('settings-plugin-market-card-img');
   });
 
   it('returns to the loading state when the thumbnail source changes', () => {
     trigger(img(thumb('https://asset/a')), 'onLoad');
-    expect(byClass(thumb('https://asset/a'), 'settings-plugin-market-card-shimmer')).toHaveLength(0);
+    expect(byClass(thumb('https://asset/a'), 'settings-plugin-market-card-shimmer settings-skeleton-sweep')).toHaveLength(0);
     const tree = thumb('https://asset/b');
-    expect(byClass(tree, 'settings-plugin-market-card-shimmer')).toHaveLength(1);
+    expect(byClass(tree, 'settings-plugin-market-card-shimmer settings-skeleton-sweep')).toHaveLength(1);
     expect(img(tree).props.className).toBe('settings-plugin-market-card-img is-loading');
   });
 });
