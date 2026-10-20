@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-20T00:04:17.871Z
+> 生成时间：2026-10-20T00:39:00.481Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,9 @@
 
 ## Unreleased
 
+- 2026-10-19 | 04e10086 | JNTMTMTM | Merge pull request #265 from JNTMTMTM/dependabot/npm_and_yarn/vitejs/plugin-react-6.1.2
+- 2026-10-20 | 0b63c230 | dependabot[bot] | chore(deps): bump @vitejs/plugin-react from 5.2.0 to 6.1.2
+- 2026-10-20 | ede3dc61 | eislandBot | docs: auto update CHANGE_LOG.md for #273 by @dependabot[bot] [skip ci]
 - 2026-10-19 | 41248f3f | JNTMTMTM | Merge pull request #273 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b086c4afa2
 - 2026-10-19 | 45620089 | 鸡哥 | test: verify dependency upgrades through real IMAP and desktop integration
 - 2026-10-19 | f497d1f0 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 19 updates
