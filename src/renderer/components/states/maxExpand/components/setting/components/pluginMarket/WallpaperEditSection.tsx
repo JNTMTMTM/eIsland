@@ -37,6 +37,7 @@ import {
 import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
 import { TagInput } from './TagInput';
+import { WallpaperCardSkeletonList, WallpaperCardThumb } from './wallpaperCardSkeleton';
 
 function formatDuration(durationMs: number | undefined): string {
   if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) return '--:--';
@@ -243,7 +244,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
         <div className="settings-plugin-market-list-panel">
           <div className="settings-plugin-market-list">
             {loading ? (
-              <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
+              <WallpaperCardSkeletonList count={MARKET_PAGE_SIZE} metaRows={1} />
             ) : list.length === 0 ? (
               <div className="settings-plugin-market-empty">{t('settings.pluginMarket.edit.feedback.emptyMine', { defaultValue: '你还没有上传过壁纸' })}</div>
             ) : (
@@ -258,7 +259,7 @@ export function WallpaperEditSection({ onGoWallpaper }: WallpaperEditSectionProp
                     onClick={() => { loadDetail(item.id).catch(() => {}); }}
                   >
                     <div className="settings-plugin-market-card-media">
-                      {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {preview ? <WallpaperCardThumb src={preview} alt={item.title} /> : null}
                       {isVideoCard && (
                         <span className="settings-plugin-market-card-badge">
                           {t('settings.pluginMarket.wallpaper.badges.video', { defaultValue: '视频' })}

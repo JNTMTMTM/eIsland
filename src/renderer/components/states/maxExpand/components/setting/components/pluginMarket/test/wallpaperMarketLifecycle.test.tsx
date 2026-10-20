@@ -31,6 +31,9 @@ import type * as UserApi from '../../../../../../../../api/user/userAccountApi';
 const {
   WallpaperMarketSection
 } = await import('../WallpaperMarketSection');
+const {
+  WallpaperCardSkeletonList
+} = await import('../wallpaperCardSkeleton');
 const io = vi.hoisted(() => ({
   token: ((): string | null => 'token')(),
   list: vi.fn<typeof UserApi.listUserWallpapers>(),
@@ -268,7 +271,10 @@ describe('Wallpaper market requests, search and pagination', () => {
     io.list.mockReturnValueOnce(task.promise);
     view();
     flushEffects();
-    expect(text(view())).toContain('.feedback.loading');
+    expect(find(view(), (node) => node.type === WallpaperCardSkeletonList).props).toEqual({
+      count: 8,
+      metaRows: 2
+    });
     task.resolve({
       ok: true,
       code: 200,
@@ -364,7 +370,7 @@ describe('Wallpaper market requests, search and pagination', () => {
       }
     });
     await settle();
-    expect(text(view())).toContain('.feedback.loading');
+    expect(elements(view()).some((node) => node.type === WallpaperCardSkeletonList)).toBe(true);
     second.resolve({
       ok: true,
       code: 200,

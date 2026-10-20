@@ -37,6 +37,7 @@ import {
 } from '../../../../../../../api/user/userAccountApi';
 import { readLocalToken } from '../../../../../../../utils/userAccount';
 import { SvgIcon } from '../../../../../../../utils/SvgIcon';
+import { WallpaperCardSkeletonList, WallpaperCardThumb } from './wallpaperCardSkeleton';
 
 interface WallpaperMarketSectionProps {
   onApplyBackground: (imageUrl: string, options?: { type?: 'image' | 'video' }) => void;
@@ -394,7 +395,7 @@ export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSe
           </div>
           <div className="settings-plugin-market-list">
             {loading ? (
-              <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.loading', { defaultValue: '加载中…' })}</div>
+              <WallpaperCardSkeletonList count={marketPageSize} metaRows={2} />
             ) : list.length === 0 ? (
               <div className="settings-plugin-market-empty">{t('settings.pluginMarket.wallpaper.feedback.empty', { defaultValue: '暂无壁纸' })}</div>
             ) : (
@@ -421,7 +422,7 @@ export function WallpaperMarketSection({ onApplyBackground, searchExpanded, onSe
                     onBlur={handleLeaveCard}
                   >
                     <div className="settings-plugin-market-card-media">
-                      {preview ? <img src={preview} alt={item.title} className="settings-plugin-market-card-img" /> : null}
+                      {preview ? <WallpaperCardThumb src={preview} alt={item.title} /> : null}
                       {hoverVideoLoading && (
                         <div className="settings-plugin-market-card-loading" aria-hidden="true">
                           <span className="settings-plugin-market-card-loading-spinner" />

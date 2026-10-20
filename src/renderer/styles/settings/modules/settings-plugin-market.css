@@ -329,6 +329,7 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: opacity 180ms ease;
 }
 
 .settings-plugin-market-card-video {
@@ -409,6 +410,97 @@
   color: rgba(var(--color-text-rgb), 0.62);
   font-size: 12px;
   line-height: 1.3;
+}
+
+.settings-plugin-market-card-img.is-loading {
+  opacity: 0;
+
+}
+
+/* 包裹层只承载 status 语义，骨架卡片仍直接作为列表网格项排布。 */
+.settings-plugin-market-skeleton-list {
+  display: contents;
+
+}
+
+.settings-plugin-market-card-skeleton {
+  position: relative;
+  cursor: default;
+
+}
+
+.settings-plugin-market-card-skeleton .settings-plugin-market-card-media {
+  background: rgb(var(--color-text-rgb), .08);
+
+}
+
+/* 弹性布局下相邻占位条的外边距不折叠，行高才能与真实卡片对齐。 */
+.settings-plugin-market-card-skeleton .settings-plugin-market-card-body {
+  display: flex;
+  flex-direction: column;
+
+}
+
+.settings-plugin-market-card-shimmer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgb(var(--color-text-rgb), .08);
+
+}
+
+.settings-plugin-market-skeleton-block {
+  display: block;
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 4px;
+
+}
+
+/* 块高加上下外边距等于真实文字行高，骨架切换为内容时卡片不跳动。 */
+.settings-plugin-market-skeleton-title {
+  width: 72%;
+  height: 12px;
+  margin: 2px 0 3px;
+
+}
+
+.settings-plugin-market-skeleton-meta {
+  width: 48%;
+  height: 10px;
+  margin: 7px 0 2.5px;
+
+}
+
+/* 扫光只做 transform 位移，交给合成层执行，不触发重绘。 */
+.settings-plugin-market-card-skeleton::after,
+.settings-plugin-market-card-shimmer::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-text-rgb), .07), transparent);
+  animation: settings-plugin-market-skeleton-shimmer 1.4s ease-in-out infinite;
+  transform: translateX(-100%);
+  content: "";
+
+}
+
+@keyframes settings-plugin-market-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-plugin-market-card-skeleton::after,
+  .settings-plugin-market-card-shimmer::after {
+    display: none;
+    animation: none;
+
+  }
+
 }
 
 .settings-plugin-market-detail {
