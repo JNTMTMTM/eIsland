@@ -44,6 +44,8 @@ Function eIslandPrepareUninstallTemp
   ${endIf}
 
   eIslandUninstallTempReady:
+  # 临时路径优化失败只回退原环境，不能向旧卸载器泄漏错误标志。
+  ClearErrors
   Pop $2
   Pop $1
   Pop $0

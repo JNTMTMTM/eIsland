@@ -26,7 +26,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { bootstrapAuthSession, refreshAuthSession, updateSessionToken } from '../index';
-import { USER_ACCOUNT_PROFILE_STORAGE_KEY, USER_ACCOUNT_TOKEN_STORAGE_KEY } from '../../userAccount';
+import { USER_ACCOUNT_LOGOUT_MARKER_KEY, USER_ACCOUNT_PROFILE_STORAGE_KEY, USER_ACCOUNT_TOKEN_STORAGE_KEY } from '../../userAccount';
 
 const service = vi.hoisted(() => vi.fn());
 vi.mock('../../../api/user/userAccountApi', () => ({ fetchUserProfile: service }));
@@ -90,7 +90,11 @@ describe('session recovery boundary failures', () => {
     const values = new Map<string, string>();
     get.mockImplementation((key: string) => values.get(key) ?? null);
     set.mockImplementation((key: string, value: string) => values.set(key, value));
-    read.mockResolvedValueOnce(null).mockResolvedValueOnce('persisted-token').mockResolvedValueOnce(profile);
+    read.mockImplementation((key: string) => {
+      if (key === USER_ACCOUNT_TOKEN_STORAGE_KEY) return Promise.resolve('persisted-token');
+      if (key === USER_ACCOUNT_PROFILE_STORAGE_KEY) return Promise.resolve(profile);
+      return Promise.resolve(false);
+    });
     const pending = Promise.withResolvers<{ ok: boolean; code: number; data: typeof profile }>();
     service.mockReturnValue(pending.promise);
 
@@ -105,5 +109,73 @@ describe('session recovery boundary failures', () => {
     pending.resolve({ ok: true, code: 200, data: freshProfile });
     await refresh;
     expect(values.get(USER_ACCOUNT_PROFILE_STORAGE_KEY)).toBe(JSON.stringify(freshProfile));
+  });
+
+  it('does not revive persisted credentials after another window logs out during the token read', async () => {
+    const pending = Promise.withResolvers<string>();
+    let loggedOut = false;
+    read.mockImplementation((key: string) => key === USER_ACCOUNT_TOKEN_STORAGE_KEY
+      ? pending.promise : Promise.resolve(key === USER_ACCOUNT_LOGOUT_MARKER_KEY && loggedOut));
+    const bootstrap = bootstrapAuthSession();
+    await vi.waitFor(() => expect(read).toHaveBeenCalledWith(USER_ACCOUNT_TOKEN_STORAGE_KEY));
+    loggedOut = true;
+    pending.resolve('old-token');
+    await expect(bootstrap).resolves.toBeNull();
+    expect(set).not.toHaveBeenCalled();
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it.each(['new-token', null])('preserves a newer local session update to %s while bootstrap awaits the marker', async (nextToken) => {
+    const values = new Map<string, string>();
+    get.mockImplementation((key: string) => values.get(key) ?? null);
+    set.mockImplementation((key: string, value: string) => values.set(key, value));
+    remove.mockImplementation((key: string) => values.delete(key));
+    const marker = Promise.withResolvers<boolean>();
+    read.mockReturnValueOnce(marker.promise);
+    const bootstrap = bootstrapAuthSession();
+    updateSessionToken(nextToken);
+    set.mockClear();
+    marker.resolve(false);
+    await expect(bootstrap).resolves.toBe(nextToken);
+    expect(set).not.toHaveBeenCalled();
+  });
+
+  it('restores only the local token cache without clearing the shared logout marker', async () => {
+    const values = new Map<string, string>([[USER_ACCOUNT_PROFILE_STORAGE_KEY, '{}']]);
+    get.mockImplementation((key: string) => values.get(key) ?? null);
+    set.mockImplementation((key: string, value: string) => values.set(key, value));
+    read.mockImplementation((key: string) => Promise.resolve(key === USER_ACCOUNT_TOKEN_STORAGE_KEY ? 'persisted-token' : false));
+    await expect(bootstrapAuthSession()).resolves.toBe('persisted-token');
+    expect(write).not.toHaveBeenCalled();
+    expect(set).not.toHaveBeenCalledWith(USER_ACCOUNT_LOGOUT_MARKER_KEY, false);
+  });
+
+  it.each(['token', 'marker', 'profile'])('keeps newer credentials when the persisted %s read resolves late', async (phase) => {
+    const values = new Map<string, string>();
+    get.mockImplementation((key: string) => values.get(key) ?? null);
+    set.mockImplementation((key: string, value: string) => values.set(key, value));
+    const pending = Promise.withResolvers<unknown>();
+    let markerReads = 0;
+    let waiting = false;
+    read.mockImplementation((key: string) => {
+      if (key === USER_ACCOUNT_LOGOUT_MARKER_KEY) markerReads += 1;
+      if ((phase === 'token' && key === USER_ACCOUNT_TOKEN_STORAGE_KEY)
+        || (phase === 'marker' && key === USER_ACCOUNT_LOGOUT_MARKER_KEY && markerReads === 2)
+        || (phase === 'profile' && key === USER_ACCOUNT_PROFILE_STORAGE_KEY)) {
+        waiting = true;
+        return pending.promise;
+      }
+      return Promise.resolve(key === USER_ACCOUNT_TOKEN_STORAGE_KEY ? 'old-token' : false);
+    });
+    const bootstrap = bootstrapAuthSession();
+    await vi.waitFor(() => expect(waiting).toBe(true));
+    updateSessionToken('new-token');
+    set.mockClear();
+    write.mockClear();
+    pending.resolve(phase === 'token' ? 'old-token' : { username: 'old-user' });
+    await expect(bootstrap).resolves.toBe('new-token');
+    expect(values.get(USER_ACCOUNT_TOKEN_STORAGE_KEY)).toBe('new-token');
+    expect(set).not.toHaveBeenCalled();
+    expect(write).not.toHaveBeenCalled();
   });
 });

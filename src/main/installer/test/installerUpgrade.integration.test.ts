@@ -114,7 +114,7 @@ SectionEnd
 `;
 }
 
-function installerSource(output: string): string {
+function installerSource(output: string, installUtil = resolve('resources/nsis/installUtil.nsh')): string {
   return `
 Unicode true
 RequestExecutionLevel user
@@ -139,7 +139,7 @@ Var TestExit
 Var TestErrors
 Var TestTemp
 Var TestTmp
-!include "${nsisString(resolve('resources/nsis/installUtil.nsh'))}"
+!include "${nsisString(installUtil)}"
 LangString uninstallFailed 1033 "Fixture uninstall failed"
 LangString appCannotBeClosed 1033 "Fixture uninstall could not finish"
 Section
@@ -180,12 +180,18 @@ SectionEnd
 describe.skipIf(process.platform !== 'win32' || !compiler || !plugins)('NSIS upgrade integration (Windows and cached NSIS required)', () => {
   let root: string;
   let installer: string;
+  let fallbackInstaller: string;
 
   beforeAll(() => {
     root = mkdtempSync(join(tmpdir(), 'eisland-upgrade-'));
+    // 保留生产控制流，只让临时文件创建指向不存在的目录以触发真实 NSIS 错误标志。
+    const failingTempInclude = join(root, 'installUtil-temp-failure.nsh');
+    const installUtil = readFileSync(resolve('resources/nsis/installUtil.nsh'), 'utf8');
+    writeFileSync(failingTempInclude, installUtil.replace('GetTempFileName $1 "$0"', `GetTempFileName $1 "${nsisString(join(root, 'missing'))}"`));
     [
       ['old-builder', oldUninstallerSource(join(root, 'old-builder.exe'))],
       ['installer', installerSource(join(root, 'installer.exe'))],
+      ['fallback-installer', installerSource(join(root, 'fallback-installer.exe'), failingTempInclude)],
     ].forEach(([name, source]) => {
       const path = join(root, `${name}.nsi`);
       writeFileSync(path, source);
@@ -193,6 +199,7 @@ describe.skipIf(process.platform !== 'win32' || !compiler || !plugins)('NSIS upg
     });
     execute(join(root, 'old-builder.exe'));
     installer = join(root, 'installer.exe');
+    fallbackInstaller = join(root, 'fallback-installer.exe');
   }, 30_000);
 
   afterAll(() => {
@@ -263,6 +270,15 @@ describe.skipIf(process.platform !== 'win32' || !compiler || !plugins)('NSIS upg
     expect(readFileSync(join(installed, 'a-short.txt'), 'utf8')).toBe('rollback sentinel');
     expect(readFileSync(join(installed, longName), 'utf8')).toBe('deep file preserved');
     expect(readFileSync(join(installed, 'z-locked.txt'), 'utf8')).toBe('locked file preserved');
+  }, 20_000);
+
+  it('does not report a successful old uninstall as failed when temporary path preparation fails', () => {
+    const { installed, longName, env } = scenario('temp-fallback');
+    // 只保留短文件，使旧卸载器在原临时路径中仍能完成文件迁移。
+    rmSync(join(installed, longName));
+    execute(fallbackInstaller, [], { ...env, EISLAND_TEST_MODE: 'fixed' });
+    expect(readValues(env.EISLAND_TEST_OLD_LOG!)).toMatchObject({ result: 'success' });
+    expect(readValues(env.EISLAND_TEST_LOG!)).toMatchObject({ exit: '0', errors: '0', temp: env.TEMP, tmp: env.TMP });
   }, 20_000);
 
   it.each([false, true])('preserves launch errors and the original environment (TEMP absent: %s)', (absentTemp) => {

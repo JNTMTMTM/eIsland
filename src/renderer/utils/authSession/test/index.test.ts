@@ -47,6 +47,7 @@ vi.mock('../../userAccount', () => ({
   USER_ACCOUNT_PROFILE_STORAGE_KEY: 'user-account-profile',
   USER_ACCOUNT_TOKEN_STORAGE_KEY: 'user-account-token',
   readLocalToken: readLocalTokenMock,
+  readLocalSessionRevision: () => null,
   writeLocalToken: writeLocalTokenMock,
   writeLocalProfile: writeLocalProfileMock,
 }));
@@ -101,11 +102,12 @@ describe('authSession', () => {
       readLocalTokenMock.mockReturnValue(null);
       localStorageGetItemMock.mockReturnValue(null);
       storeReadMock.mockResolvedValue(null); // profile storeRead
+      writeLocalTokenMock.mockImplementationOnce(() => readLocalTokenMock.mockReturnValue('persisted-token'));
       fetchUserProfileMock.mockResolvedValue({ ok: true, code: 200, message: '', data: null });
 
       await expect(bootstrapAuthSession()).resolves.toBe('persisted-token');
 
-      expect(writeLocalTokenMock).toHaveBeenCalledWith('persisted-token');
+      expect(writeLocalTokenMock).toHaveBeenCalledWith('persisted-token', false);
       expect(fetchUserProfileMock).not.toHaveBeenCalled();
     });
 

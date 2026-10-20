@@ -91,10 +91,11 @@ export function PerformanceMonitorWidget(): ReactElement {
 
   useEffect(() => {
     let cancelled = false;
+    const updatedSettings = new Set<string>();
     const readSetting = async (key: string, apply: (value: unknown) => void): Promise<void> => {
       try {
         const value = await window.api.storeRead(key);
-        if (!cancelled) apply(value);
+        if (!cancelled && !updatedSettings.has(key)) apply(value);
       } catch {
         // 读取失败时保留默认配置。
       }
@@ -108,9 +109,11 @@ export function PerformanceMonitorWidget(): ReactElement {
     const unsubscribe = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (cancelled) return;
       if (channel === `store:${PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY}`) {
+        updatedSettings.add(PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY);
         setChartColors(normalizePerformanceMonitorChartColors(value));
       }
       if (channel === `store:${PERFORMANCE_MONITOR_HARDWARE_SELECTION_STORE_KEY}`) {
+        updatedSettings.add(PERFORMANCE_MONITOR_HARDWARE_SELECTION_STORE_KEY);
         setHardwareSelection(normalizePerformanceMonitorHardwareSelection(value));
       }
     });
@@ -137,7 +140,11 @@ export function PerformanceMonitorWidget(): ReactElement {
         setMetrics((previous) => (previous && isSameMetrics(previous, next) ? previous : next));
         setFailed(false);
       } catch {
-        if (!cancelled) setFailed(true);
+        if (!cancelled) {
+          cachedMetrics = null;
+          setMetrics(null);
+          setFailed(true);
+        }
       } finally {
         inFlight = false;
       }

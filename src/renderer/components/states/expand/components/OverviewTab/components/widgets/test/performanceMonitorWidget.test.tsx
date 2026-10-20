@@ -226,6 +226,46 @@ describe('PerformanceMonitorWidget', () => {
     expect(grid()?.metrics.cpu.percent).toBe(32);
   });
 
+  it('replaces cached readings with an error after a failed refresh, then recovers', async () => {
+    await mount();
+    await advance(200);
+    expect(grid()).toBeDefined();
+    leaves.snapshot.mockRejectedValueOnce(new Error('refresh failed'));
+    await advance(2000);
+    expect(grid()).toBeUndefined();
+    expect(text(run())).toContain('expanded.performanceMonitor.error');
+    await advance(2000);
+    expect(grid()).toBeDefined();
+    expect(text(run())).not.toContain('expanded.performanceMonitor.error');
+  });
+
+  it('ignores persisted values overtaken by settings events independently for each key', async () => {
+    const colors = deferred<unknown>();
+    const hardware = deferred<unknown>();
+    leaves.read.mockImplementation((key) => key === PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY ? colors.promise : hardware.promise);
+    await mount();
+    settings?.(`store:${PERFORMANCE_MONITOR_HARDWARE_SELECTION_STORE_KEY}`, { cpu: 'cpu:2' });
+    settings?.(`store:${PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY}`, { cpu: '#222222' });
+    colors.resolve({ cpu: '#111111' });
+    hardware.resolve({ cpu: 'cpu:1' });
+    await advance(200);
+    await advance(200);
+    expect(leaves.snapshot).toHaveBeenLastCalledWith({ cpu: 'cpu:2', gpu: 'auto', disk: 'all' }, false);
+    expect(grid()?.colors.cpu).toBe('#222222');
+  });
+
+  it('still applies a persisted setting when only the other key has received an event', async () => {
+    const colors = deferred<unknown>();
+    leaves.read.mockImplementation((key) => key === PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY ? colors.promise : Promise.resolve(null));
+    await mount();
+    settings?.(`store:${PERFORMANCE_MONITOR_HARDWARE_SELECTION_STORE_KEY}`, { disk: 'fs:1' });
+    colors.resolve({ cpu: '#123456' });
+    await advance(200);
+    await advance(200);
+    expect(grid()?.colors.cpu).toBe('#123456');
+    expect(leaves.snapshot).toHaveBeenLastCalledWith({ cpu: 'all', gpu: 'auto', disk: 'fs:1' }, false);
+  });
+
   it('opens the expand performance monitor tab from the title by click or keyboard', async () => {
     await mount();
     const title = byClass(run(), 'ov-dash-widget-title--link');

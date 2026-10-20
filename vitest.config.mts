@@ -86,6 +86,7 @@ export default defineConfig({
           include: [
             'plugins/**/test/ffiLoader.test.ts',
             'plugins/**/test/*Runtime.test.{ts,tsx,js,mjs}',
+            'plugins/windows/eisland-windows-performance-monitor/test/performance-monitor.test.ts',
           ],
         },
       },

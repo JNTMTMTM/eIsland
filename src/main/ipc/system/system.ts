@@ -335,7 +335,7 @@ async function collectPerformanceSnapshot(
     totalBytes: acc.totalBytes + Math.max(0, item.size || 0),
     usedBytes: acc.usedBytes + Math.max(0, item.used || 0),
   }), { totalBytes: 0, usedBytes: 0 });
-  const selectedDiskTemperature = selectedFsIndex === null ? null : positiveNumber(diskLayouts[selectedFsIndex]?.temperature);
+  // 文件系统与物理磁盘不存在可靠的索引映射，单分区选择不展示其他磁盘的温度。
   const diskTemperature = diskLayouts
     .map((item) => positiveNumber(item.temperature))
     .find((value): value is number => value !== null) ?? null;
@@ -381,7 +381,7 @@ async function collectPerformanceSnapshot(
       totalBytes: diskTotals.totalBytes,
       usedBytes: diskTotals.usedBytes,
       usagePercent: diskTotals.totalBytes > 0 ? clampPercent((diskTotals.usedBytes / diskTotals.totalBytes) * 100) : 0,
-      temperatureCelsius: selectedDiskTemperature ?? diskTemperature,
+      temperatureCelsius: selectedFsIndex === null ? diskTemperature : null,
     },
     hardwareOptions: {
       cpu: cpuOptions,

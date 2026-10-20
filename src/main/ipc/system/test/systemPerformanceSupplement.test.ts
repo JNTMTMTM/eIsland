@@ -186,7 +186,7 @@ describe('性能缓存、硬件选择和缺失值', () => {
     io.disks.mockResolvedValue([{ temperature: 0 }, { temperature: 55 }]);
     await expect(invoke('performance-snapshot:get', { cpu: 'cpu:1', gpu: 'gpu:1', disk: 'fs:1' })).resolves.toMatchObject({
       cpu: { loadPercent: 100, temperatureCelsius: 50 }, gpu: { model: '', vendor: 'Only vendor', loadPercent: 100, vramTotalMb: null },
-      disk: { totalBytes: 300, usedBytes: 400, usagePercent: 100, temperatureCelsius: 55 },
+      disk: { totalBytes: 300, usedBytes: 400, usagePercent: 100, temperatureCelsius: null },
       hardwareOptions: {
         cpu: [{ id: 'all', label: 'All CPU' }, { id: 'cpu:0', label: 'CPU 1 · Unknown CPU' }, { id: 'cpu:1', label: 'CPU 2 · Named CPU' }],
         gpu: [{ id: 'auto', label: 'Auto GPU' }, { id: 'gpu:0', label: 'Only model' }, { id: 'gpu:1', label: 'Only vendor' }],
@@ -195,7 +195,7 @@ describe('性能缓存、硬件选择和缺失值', () => {
     });
     await expect(invoke('performance-snapshot:get', { cpu: 'cpu:0', gpu: 'gpu:0', disk: 'fs:0' }, false)).resolves.toMatchObject({
       cpu: { loadPercent: 0, temperatureCelsius: 70 }, gpu: { vendor: '', model: 'Only model', vramTotalMb: 200, loadPercent: null },
-      disk: { totalBytes: 100, usedBytes: 0, temperatureCelsius: 55 }, hardwareOptions: { cpu: [], gpu: [], disk: [] },
+      disk: { totalBytes: 100, usedBytes: 0, temperatureCelsius: null }, hardwareOptions: { cpu: [], gpu: [], disk: [] },
     });
   });
   it.each(['wrong', 'cpu:-1', 'cpu:999', `cpu:${  '9'.repeat(400)}`])('非法索引 %s 使用聚合 CPU', async (value) => {

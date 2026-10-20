@@ -25,7 +25,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearLocalAccount, emitUserAccountSessionChanged, getRoleFromToken, readLocalProfile, readLocalToken, subscribeUserAccountSessionChanged, USER_ACCOUNT_PROFILE_STORAGE_KEY, USER_ACCOUNT_SESSION_CHANGED_EVENT, USER_ACCOUNT_TOKEN_STORAGE_KEY, writeLocalProfile, writeLocalToken } from '../index';
+import { clearLocalAccount, emitUserAccountSessionChanged, getRoleFromToken, readLocalProfile, readLocalToken, subscribeUserAccountSessionChanged, USER_ACCOUNT_LOGOUT_MARKER_KEY, USER_ACCOUNT_PROFILE_STORAGE_KEY, USER_ACCOUNT_SESSION_CHANGED_EVENT, USER_ACCOUNT_TOKEN_STORAGE_KEY, writeLocalProfile, writeLocalToken } from '../index';
 import type { UserAccountProfile } from '../index';
 
 const get = vi.fn();
@@ -44,6 +44,23 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('user session leaf failures', () => {
+  it('keeps a logout authoritative even if a concurrent restore writes the old token afterwards', () => {
+    const values = new Map<string, string>();
+    get.mockImplementation((key: string) => values.get(key) ?? null);
+    set.mockImplementation((key: string, value: string) => values.set(key, value));
+    remove.mockImplementation((key: string) => values.delete(key));
+    writeLocalToken('old-token');
+    writeLocalToken(null);
+    values.set(USER_ACCOUNT_TOKEN_STORAGE_KEY, 'old-token');
+    expect(readLocalToken()).toBeNull();
+    persist.mockClear();
+    writeLocalToken('old-token', false);
+    expect(values.get(USER_ACCOUNT_LOGOUT_MARKER_KEY)).toBe('true');
+    expect(readLocalToken()).toBeNull();
+    expect(persist).not.toHaveBeenCalled();
+    writeLocalToken('new-token');
+    expect(readLocalToken()).toBe('new-token');
+  });
   it('subscribes and unsubscribes a real event listener without stale notifications', () => {
     const listener = vi.fn();
     const off = subscribeUserAccountSessionChanged(listener);

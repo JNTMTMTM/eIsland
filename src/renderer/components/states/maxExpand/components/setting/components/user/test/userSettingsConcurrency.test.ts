@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { elementProps, elements, findElement, invoke, textContent } from '../../../../../../../test/elementHarness';
 import { bootUser, cleanupUser, clickUser, fillInputs, mocks, navigateUser, profile, renderUser, settleUser, setupUser, skeletonLabels, transport } from './userSettingsFixture';
 const order = {
@@ -88,6 +88,24 @@ function button(key: string) {
 beforeEach(setupUser);
 afterEach(cleanupUser);
 describe('异步并发和guard', () => {
+  it('余额请求拒绝后清除充值页加载状态，并允许重新进入后加载', async () => {
+    const pending = Promise.withResolvers<unknown>();
+    mocks.api.fetchAgentBalance.mockReturnValueOnce(pending.promise);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await bootUser('recharge');
+      expect(skeletonLabels(renderUser())).toHaveLength(1);
+      pending.reject(new Error('offline'));
+      await settleUser();
+      expect(skeletonLabels(renderUser())).toHaveLength(0);
+      expect(warn).toHaveBeenCalledOnce();
+      await navigateUser('info');
+      await navigateUser('recharge');
+      expect(textContent(renderUser())).toContain('12.34');
+    } finally {
+      warn.mockRestore();
+    }
+  });
   it('刷新资料等待期间抑制第二次令牌刷新', async () => {
     await bootUser();
     const pending = deferred();

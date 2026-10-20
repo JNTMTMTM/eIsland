@@ -644,11 +644,15 @@ export function UserSettingsSection({ initialProfilePage = 'info' }: UserSetting
     let cancelled = false;
     const loadBalance = async (): Promise<void> => {
       setUserBalanceLoading(true);
-      const result = await fetchAgentBalance(token);
-      if (cancelled) return;
-      setUserBalanceLoading(false);
-      if (result.ok && result.data) {
-        setUserBalance(result.data.balanceYuan);
+      try {
+        const result = await fetchAgentBalance(token);
+        if (!cancelled && result.ok && result.data) {
+          setUserBalance(result.data.balanceYuan);
+        }
+      } catch (error) {
+        console.warn('[User] Balance request failed:', error);
+      } finally {
+        if (!cancelled) setUserBalanceLoading(false);
       }
     };
     void loadBalance();

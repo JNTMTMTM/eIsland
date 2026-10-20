@@ -51,26 +51,31 @@ it('已就绪的阻塞截图进程被硬杀，取消与字节超限后仍能恢�
   `);
   const runner = createScreenshotRunner(entry, 1000);
   const readiness = watch(directory);
-  const ready = new Promise<void>((resolve, reject) => {
+  const waitForReady = (): Promise<void> => new Promise((resolve, reject) => {
     readiness.on('change', (event, filename) => {
       if ((event === 'rename' || event === 'change') && filename === 'pid') resolve();
     });
     readiness.once('error', reject);
   });
   try {
+    const ready = waitForReady();
     const pending = runner.run('primary');
     // 原子重命名就绪文件后再触发截止时间，不把系统调度慢误判为已运行的任务超时。
     await ready;
-    readiness.close();
     const pid = Number(readFileSync(pidFile, 'utf8'));
     await vi.advanceTimersByTimeAsync(1000);
     expect(await pending).toBeNull();
     expect(() => process.kill(pid, 0)).toThrow();
     expect(await runner.run('all')).toEqual(Buffer.from([0, 255, 1, 2]));
     const controller = new AbortController();
+    const cancelledReady = waitForReady();
     const cancelled = runner.run('primary', controller.signal);
+    await cancelledReady;
+    const cancelledPid = Number(readFileSync(pidFile, 'utf8'));
+    expect(cancelledPid).not.toBe(pid);
     controller.abort();
     expect(await cancelled).toBeNull();
+    expect(() => process.kill(cancelledPid, 0)).toThrow();
     expect(await runner.run('windows')).toBeNull();
     expect(await runner.run('all')).toEqual(Buffer.from([0, 255, 1, 2]));
   } finally { readiness.close(); runner.dispose(); rmSync(directory, { recursive: true, force: true }); }

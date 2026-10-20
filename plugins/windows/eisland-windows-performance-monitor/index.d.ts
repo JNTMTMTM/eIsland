@@ -40,31 +40,31 @@ export interface MemorySnapshot {
 export type TemperatureCategory = 'cpu' | 'gpu' | 'motherboard' | 'storage' | 'unknown';
 
 export interface TemperatureReading {
-  id: string;
-  label: string;
-  category: TemperatureCategory;
-  temperatureCelsius: number;
-  source: 'libre-hardware-monitor';
+  readonly id: string;
+  readonly label: string;
+  readonly category: TemperatureCategory;
+  readonly temperatureCelsius: number;
+  readonly source: 'libre-hardware-monitor';
 }
 
 export interface TemperatureSnapshot {
-  isAvailable: boolean;
-  readings: TemperatureReading[];
-  maxTemperatureCelsius: number | null;
+  readonly isAvailable: boolean;
+  readonly readings: readonly TemperatureReading[];
+  readonly maxTemperatureCelsius: number | null;
 }
 
 export interface HardwareDevice {
-  id: string;
-  name: string;
-  category: 'cpu' | 'gpu';
-  hardwareType: string;
-  source: 'libre-hardware-monitor';
+  readonly id: string;
+  readonly name: string;
+  readonly category: 'cpu' | 'gpu';
+  readonly hardwareType: string;
+  readonly source: 'libre-hardware-monitor';
 }
 
 export interface HardwareListSnapshot {
-  isAvailable: boolean;
-  cpus: HardwareDevice[];
-  gpus: HardwareDevice[];
+  readonly isAvailable: boolean;
+  readonly cpus: readonly HardwareDevice[];
+  readonly gpus: readonly HardwareDevice[];
 }
 
 export function getCpu(): CpuSnapshot;

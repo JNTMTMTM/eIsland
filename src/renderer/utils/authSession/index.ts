@@ -31,6 +31,7 @@ import {
   USER_ACCOUNT_TOKEN_STORAGE_KEY,
   type UserAccountProfile,
   readLocalToken,
+  readLocalSessionRevision,
   writeLocalProfile,
   writeLocalToken,
 } from '../userAccount';
@@ -47,7 +48,9 @@ export function updateSessionToken(token: string | null): void {
  * @returns 恢复的 token；未登录或存在退出标记时返回 null，供挂载后后台刷新。
  */
 export async function bootstrapAuthSession(): Promise<string | null> {
+  const sessionRevision = readLocalSessionRevision();
   const logoutMarker = await window.api?.storeRead?.(USER_ACCOUNT_LOGOUT_MARKER_KEY).catch(() => null);
+  if (readLocalSessionRevision() !== sessionRevision) return readLocalToken();
   if (logoutMarker === true) {
     return null;
   }
@@ -57,8 +60,13 @@ export async function bootstrapAuthSession(): Promise<string | null> {
   if (!token) {
     const persistedToken = await window.api?.storeRead?.(USER_ACCOUNT_TOKEN_STORAGE_KEY).catch(() => null);
     if (typeof persistedToken === 'string' && persistedToken.length > 0) {
+      const latestLogoutMarker = await window.api?.storeRead?.(USER_ACCOUNT_LOGOUT_MARKER_KEY).catch(() => null);
+      if (readLocalSessionRevision() !== sessionRevision || readLocalToken() !== token) return readLocalToken();
+      if (latestLogoutMarker === true) return null;
       token = persistedToken;
-      writeLocalToken(persistedToken);
+      // 恢复不能重写共享 store 或清除退出标记，避免反向覆盖其他窗口的退出操作。
+      writeLocalToken(persistedToken, false);
+      if (readLocalToken() !== token) return readLocalToken();
     }
   }
 
@@ -70,6 +78,7 @@ export async function bootstrapAuthSession(): Promise<string | null> {
   }
   if (!localProfileRaw) {
     const persistedProfile = await window.api?.storeRead?.(USER_ACCOUNT_PROFILE_STORAGE_KEY).catch(() => null);
+    if (readLocalSessionRevision() !== sessionRevision || readLocalToken() !== token) return readLocalToken();
     if (persistedProfile && typeof persistedProfile === 'object') {
       writeLocalProfile(persistedProfile as UserAccountProfile);
     }
