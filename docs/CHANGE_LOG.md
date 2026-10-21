@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-20T00:39:00.481Z
+> 生成时间：2026-10-21T03:40:51.317Z
 
 ## 27.0.0
 
@@ -3872,7 +3872,27 @@
 
 ## Unreleased
 
+- 2026-10-20 | d533b3a1 | JNTMTMTM | Merge pull request #274 from JNTMTMTM/dev
+- 2026-10-20 | 4831d535 | 鸡哥 | feat(notification): update Windows toast listener version and enhance notification snapshot handling
+- 2026-10-20 | 24841659 | 鸡哥 | feat(tests): enhance Windows plugin integration testing and update dependencies
+- 2026-10-20 | 122e5e2b | 鸡哥 | feat(userAccount): enhance session management and token handling
+- 2026-10-20 | 51616309 | 鸡哥 | feat: enhance light theme drawer styles with backdrop and shadow adjustments
+- 2026-10-20 | 7f89d3ec | 鸡哥 | feat: update settings user skeleton to use clip for overflow handling
+- 2026-10-19 | a923b033 | 鸡哥 | feat: implement user settings skeleton components and improve loading states
+- 2026-10-19 | 4f3b107c | 鸡哥 | feat: add wallpaper card skeleton components for improved loading states in the plugin market
+- 2026-10-20 | deb15632 | eislandBot | docs: auto update CHANGE_LOG.md for #265 by @dependabot[bot] [skip ci]
 - 2026-10-19 | 04e10086 | JNTMTMTM | Merge pull request #265 from JNTMTMTM/dependabot/npm_and_yarn/vitejs/plugin-react-6.1.2
+- 2026-10-19 | 091b3cc8 | 鸡哥 | feat: add allowScripts configuration for enhanced script execution control
+- 2026-10-18 | 571950b6 | 鸡哥 | feat: enhance PerformanceMonitorWidget with keyboard accessibility and expand tab functionality
+- 2026-10-18 | 6fd55037 | 鸡哥 | feat: add PerformanceMetricSkeleton component and integrate it into PerformanceMonitorWidget for improved loading state
+- 2026-10-18 | 796ed51c | 鸡哥 | feat: add Performance Monitor widget and related functionality
+- 2026-10-18 | a5b04ea4 | 鸡哥 | feat: enhance NSIS integration tests with improved timeout handling and snapshot counting
+- 2026-10-18 | f11304ac | 鸡哥 | feat: add refreshAuthSession function and integrate it into bootstrap process for improved session handling
+- 2026-10-17 | b136512b | 鸡哥 | feat: enhance testing framework with native integration tests and improve timeout handling
+- 2026-10-17 | e1219ab4 | 鸡哥 | feat: add Windows performance monitoring capabilities
+- 2026-10-16 | 5b8ff597 | 鸡哥 | feat: implement asynchronous pipeline compilation in WebGPU initialization and enhance related tests
+- 2026-10-16 | 27de2409 | 鸡哥 | feat: implement uninstall temp handling and add integration tests for upgrade scenarios
+- 2026-10-16 | 49e2a06f | 鸡哥 | feat: enhance CI workflow with project-specific test reporting and error handling
 - 2026-10-20 | 0b63c230 | dependabot[bot] | chore(deps): bump @vitejs/plugin-react from 5.2.0 to 6.1.2
 - 2026-10-20 | ede3dc61 | eislandBot | docs: auto update CHANGE_LOG.md for #273 by @dependabot[bot] [skip ci]
 - 2026-10-19 | 41248f3f | JNTMTMTM | Merge pull request #273 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b086c4afa2
