@@ -25,4 +25,6 @@ CI 的 `plugins` 矩阵任务安装 .NET SDK、构建原生依赖、检查收集
 
 真实插件测试会查询设备、截图和调用系统媒体控制；亮度测试会在结束时恢复初始亮度。设备相关断言由各测试负责处理。
 
+通知测试每次读取前都会检查访问权限。未授权时，原生 API 的 `Failed to get Windows notifications.` 错误记为不可读取（通知数量为 `null`），测试仍会验证权限和监听状态。已授权时的读取失败、其他异常及无效返回结构仍会使测试失败；CI 不弹出授权对话框。
+
 Playwright E2E 测试通过 `npm run test:e2e:run` 执行。`scripts/lint` 中的 `node:test` 测试通过 `npm run lint:config:test` 执行；它们使用独立运行器。

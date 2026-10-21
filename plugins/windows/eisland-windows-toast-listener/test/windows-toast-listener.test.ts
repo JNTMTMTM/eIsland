@@ -26,6 +26,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import readPassiveNotificationSnapshot from './passiveNotificationSnapshot';
 
 const listener = require('../') as {
   requestAccess: () => 'unspecified' | 'allowed' | 'denied' | 'unknown';
@@ -63,10 +64,13 @@ describe('windows-toast-listener', () => {
   });
 
   it('returns access status and passive notification snapshot shapes', () => {
-    const status = listener.getAccessStatus();
-    const notifications = listener.getNotifications();
+    const { accessStatus: status, notifications } = readPassiveNotificationSnapshot(listener);
 
     expect(accessStatuses).toContain(status);
+    if (notifications === null) {
+      expect(status).not.toBe('allowed');
+      return;
+    }
     expect(Array.isArray(notifications)).toBe(true);
 
     for (const notification of notifications) {

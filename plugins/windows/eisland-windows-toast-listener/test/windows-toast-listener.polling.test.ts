@@ -26,6 +26,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import readPassiveNotificationSnapshot from './passiveNotificationSnapshot';
 
 const listener = require('../') as {
   getAccessStatus: () => 'unspecified' | 'allowed' | 'denied' | 'unknown';
@@ -52,19 +53,18 @@ type ToastPollingSnapshot = {
   index: number;
   accessStatus: string;
   isListening: boolean;
-  notificationCount: number;
+  notificationCount: number | null;
 };
 
 function takeSnapshot(index: number): ToastPollingSnapshot {
-  const accessStatus = listener.getAccessStatus();
-  const notifications = listener.getNotifications();
+  const { accessStatus, notifications } = readPassiveNotificationSnapshot(listener);
   const isListening = listener.isListening();
 
   expect(accessStatuses).toContain(accessStatus);
-  expect(Array.isArray(notifications)).toBe(true);
+  if (notifications !== null) expect(Array.isArray(notifications)).toBe(true);
   expect(isListening).toBeTypeOf('boolean');
 
-  for (const notification of notifications) {
+  for (const notification of notifications ?? []) {
     expect(notification.id).toBeTypeOf('number');
     expect(notification.appUserModelId).toBeTypeOf('string');
     expect(notification.appDisplayName).toBeTypeOf('string');
@@ -78,7 +78,7 @@ function takeSnapshot(index: number): ToastPollingSnapshot {
     index,
     accessStatus,
     isListening,
-    notificationCount: notifications.length,
+    notificationCount: notifications?.length ?? null,
   };
 }
 
@@ -99,6 +99,7 @@ describe('windows-toast-listener polling', () => {
     expect(snapshots).toHaveLength(POLL_TIMES);
     expect(snapshots.every((snapshot) => snapshot.index >= 0)).toBe(true);
     expect(snapshots.every((snapshot) => accessStatuses.includes(snapshot.accessStatus))).toBe(true);
-    expect(snapshots.every((snapshot) => typeof snapshot.notificationCount === 'number')).toBe(true);
+    expect(snapshots.every((snapshot) => typeof snapshot.notificationCount === 'number'
+      || (snapshot.accessStatus !== 'allowed' && snapshot.notificationCount === null))).toBe(true);
   });
 });
