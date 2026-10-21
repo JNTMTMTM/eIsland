@@ -780,6 +780,9 @@
       "previewSecondCity": "ニューヨーク",
       "empty": "世界時計の全画面表示で最大二つのタイムゾーンを選択してください"
     },
+    "performanceMonitor": {
+      "title": "パフォーマンスモニター"
+    },
     "breakReminder": {
       "title": "休憩リマインダー",
       "count": "{{count}} 件",
@@ -3085,7 +3088,8 @@
           "mokugyo": "木魚",
           "breakReminder": "休憩リマインダー",
           "alarm": "アラーム",
-          "worldClock": "世界時計"
+          "worldClock": "世界時計",
+          "performanceMonitor": "パフォーマンスモニター"
         },
         "previewMock": {
           "previewTag": "プレビュー",
@@ -4401,6 +4405,7 @@
         "paymentSubtitle": "支払い方法を選択してお支払いください。残高は自動で反映されます。",
         "rechargeAmountLabel": "チャージ金額",
         "currentBalance": "現在の残高",
+        "balanceLoading": "残高を読み込み中…",
         "customPlaceholder": "金額を指定",
         "selectAmount": "金額を選択してください",
         "confirm": "¥{{amount}}のチャージを確定",

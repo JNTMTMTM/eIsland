@@ -38,6 +38,7 @@ export const OVERVIEW_WIDGET_LABEL_KEYS: Record<OverviewWidgetType, string> = {
   breakReminder: 'settings.app.layout.widgetNames.breakReminder',
   worldClock: 'settings.app.layout.widgetNames.worldClock',
   alarm: 'settings.app.layout.widgetNames.alarm',
+  performanceMonitor: 'settings.app.layout.widgetNames.performanceMonitor',
 };
 
 export const OVERVIEW_CLOCK_STYLE_LABEL_KEYS: Record<OverviewClockStyle, string> = {

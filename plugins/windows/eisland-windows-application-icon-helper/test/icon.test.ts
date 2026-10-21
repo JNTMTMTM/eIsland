@@ -75,7 +75,7 @@ describe.skipIf(!isWindows)('@eisland/windows-application-icon-helper', () => {
 
   describe('getIconByProcessName', () => {
     it('returns Buffer for running process', () => {
-      const result = mod.getIconByProcessName('explorer');
+      const result = mod.getIconByProcessName(path.basename(process.execPath, '.exe'));
       expect(result).not.toBeNull();
       if (result) expectValidIconResult(result);
     });
@@ -91,7 +91,7 @@ describe.skipIf(!isWindows)('@eisland/windows-application-icon-helper', () => {
     });
 
     it('never throws', () => {
-      expect(() => mod.getIconByProcessName('explorer')).not.toThrow();
+      expect(() => mod.getIconByProcessName(path.basename(process.execPath, '.exe'))).not.toThrow();
       expect(() => mod.getIconByProcessName('nonexistent')).not.toThrow();
       expect(() => mod.getIconByProcessName('')).not.toThrow();
     });

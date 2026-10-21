@@ -13,12 +13,16 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "test": "vitest run",
-    "test:node": "vitest run --project main --project preload --project shared --project plugins",
-    "test:main": "vitest run --project main",
+    "test:node": "vitest run --project main --project main-integration --project preload --project shared --project plugins --project plugins-integration",
+    "test:main": "vitest run --project main --project main-integration",
     "test:renderer": "vitest run --project renderer",
     "test:preload": "vitest run --project preload",
     "test:shared": "vitest run --project shared",
-    "test:plugins": "vitest run --project plugins",
+    "test:plugins": "vitest run --project plugins --project plugins-integration",
+    "test:plugins:unit": "vitest run --project plugins",
+    "test:plugins:integration": "vitest run --project plugins-integration",
+    "test:plugins:build": "node scripts/test/build-windows-plugins.mjs",
+    "test:discovery": "node --test scripts/test/vitest-discovery.test.mjs",
     "test:coverage": "vitest run --coverage",
     "postinstall": "electron-builder install-app-deps",
     "package": "electron-vite build && electron-builder",
@@ -172,5 +176,27 @@
     "ts-api-utils": {
       "typescript": "~6.0.3"
     }
+  },
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.28.2": true,
+    "ffmpeg-static": true,
+    "get-windows": true,
+    "koffi@2.16.2": true,
+    "tesseract.js@7.0.0": true,
+    "unrs-resolver@1.12.2": true,
+    "@alicloud/openapi-core@1.0.8": true,
+    "file:../../plugins/windows/eisland-windows-brightness-helper": true,
+    "file:../../plugins/windows/eisland-windows-smtc-helper": true,
+    "file:../../plugins/windows/eisland-windows-application-icon-helper": true,
+    "file:../../plugins/windows/eisland-windows-bluetooth-helper": true,
+    "file:../../plugins/windows/eisland-windows-toast-listener": true,
+    "file:../../plugins/windows/eisland-windows-fullscreen-detector": true,
+    "file:../../plugins/windows/eisland-windows-screenshot-helper": true,
+    "file:../../plugins/windows/eisland-windows-performance-monitor": true,
+    "file:../../plugins/windows/eisland-windows-volume-helper": true,
+    "file:../../plugins/windows/eisland-windows-processes-attacker": true,
+    "file:../../plugins/windows/eisland-windows-wifi-helper": true,
+    "file:../../plugins/windows/eisland-windows-power-helper": true
   }
 }

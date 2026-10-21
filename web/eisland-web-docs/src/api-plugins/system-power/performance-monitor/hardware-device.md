@@ -7,12 +7,12 @@ icon: fa6-solid:table
 # HardwareDevice
 
 :::info Introduction
-`HardwareDevice` is an interface representing a detected hardware device (CPU or GPU) on the system. It is returned as part of the [HardwareListSnapshot](hardware-list-snapshot.md) when you call [`getHardwareList()`](get-hardware-list.md), providing identification and classification of each discovered piece of hardware.
+`HardwareDevice` is an interface representing a detected hardware device (CPU or GPU) on the system. It is returned as part of the [HardwareListSnapshot](hardware-list-snapshot.md) when you call [`getHardwareListAsync()`](get-hardware-list.md), providing identification and classification of each discovered piece of hardware.
 :::
 
 ## Interface Introduction
 
-The `HardwareDevice` interface describes a single hardware component discovered by LibreHardwareMonitor. You will encounter these objects inside the `cpus` and `gpus` arrays of the [HardwareListSnapshot](hardware-list-snapshot.md) returned by [`getHardwareList()`](get-hardware-list.md). Each device carries a unique identifier, a human-readable name, and metadata indicating whether it is a CPU or GPU along with its hardware type string from the underlying monitoring library.
+The `HardwareDevice` interface describes a single hardware component discovered by LibreHardwareMonitor. You will encounter these objects inside the `cpus` and `gpus` arrays of the [HardwareListSnapshot](hardware-list-snapshot.md) returned by [`getHardwareListAsync()`](get-hardware-list.md). Each device carries a unique identifier, a human-readable name, and metadata indicating whether it is a CPU or GPU along with its hardware type string from the underlying monitoring library.
 
 :::tip Use IDs for Correlation
 The `id` field is a stable identifier for a hardware device. Use it as a key when tracking device state across multiple polling cycles or when correlating hardware entries with temperature readings from [`getTemperature()`](get-temperature.md).
@@ -38,9 +38,11 @@ The `hardwareType` value comes directly from LibreHardwareMonitor's internal typ
 
 ## Usage
 
+`getHardwareListAsync()` waits for initial discovery, then reuses the frozen hardware-list cache. The synchronous `getHardwareList()` returns the cache immediately and starts discovery while no available list is cached; its initial `isAvailable: false` does not establish that hardware is unsupported. Discovery shares requests with temperature refreshes, including their two-second cache and ten-second failure backoff. Call `dispose()` when finished to stop the helper and clear both caches.
+
 The typical workflow for working with `HardwareDevice` is:
 
-1. Call [`getHardwareList()`](get-hardware-list.md) to retrieve the current hardware snapshot.
+1. Await [`getHardwareListAsync()`](get-hardware-list.md) to retrieve the current hardware snapshot.
 2. Check the `isAvailable` flag on the returned snapshot to confirm LibreHardwareMonitor is running.
 3. Iterate over `cpus` and `gpus` arrays to access individual `HardwareDevice` objects.
 4. Use the `id` to correlate devices with temperature readings or to build a device registry.
@@ -56,60 +58,68 @@ Most consumer systems have exactly one CPU and one GPU in the hardware list. If 
 @tab TypeScript
 
 ```ts
-import { getHardwareList } from '@eisland/windows-performance-monitor';
+import { getHardwareListAsync } from '@eisland/windows-performance-monitor';
 import type { HardwareDevice, HardwareListSnapshot } from '@eisland/windows-performance-monitor';
 
-// Retrieve the current hardware list snapshot
-const hw: HardwareListSnapshot = getHardwareList();
+async function main() {
+  // Retrieve the current hardware list snapshot
+  const hw: HardwareListSnapshot = await getHardwareListAsync();
 
-// Check if LibreHardwareMonitor is available
-if (hw.isAvailable) {
-  // Iterate over detected CPU devices
-  hw.cpus.forEach((cpu: HardwareDevice) => {
-    console.log(`CPU: ${cpu.name}`);           // Log the device name
-    console.log(`  ID: ${cpu.id}`);            // Log the unique identifier
-    console.log(`  Type: ${cpu.hardwareType}`); // Log the hardware type string
-  });
+  // Check if LibreHardwareMonitor is available
+  if (hw.isAvailable) {
+    // Iterate over detected CPU devices
+    hw.cpus.forEach((cpu: HardwareDevice) => {
+      console.log(`CPU: ${cpu.name}`);           // Log the device name
+      console.log(`  ID: ${cpu.id}`);            // Log the unique identifier
+      console.log(`  Type: ${cpu.hardwareType}`); // Log the hardware type string
+    });
 
-  // Iterate over detected GPU devices
-  hw.gpus.forEach((gpu: HardwareDevice) => {
-    console.log(`GPU: ${gpu.name}`);           // Log the device name
-    console.log(`  ID: ${gpu.id}`);            // Log the unique identifier
-    console.log(`  Type: ${gpu.hardwareType}`); // Log the hardware type string
-  });
-} else {
-  // LibreHardwareMonitor is not running — hardware list is unavailable
-  console.warn('Hardware list is not available.');
+    // Iterate over detected GPU devices
+    hw.gpus.forEach((gpu: HardwareDevice) => {
+      console.log(`GPU: ${gpu.name}`);           // Log the device name
+      console.log(`  ID: ${gpu.id}`);            // Log the unique identifier
+      console.log(`  Type: ${gpu.hardwareType}`); // Log the hardware type string
+    });
+  } else {
+    // Discovery completed without available hardware
+    console.warn('Hardware list is not available.');
+  }
 }
+
+main().catch(console.error);
 ```
 
 @tab JavaScript
 
 ```js
-const { getHardwareList } = require('@eisland/windows-performance-monitor');
+const { getHardwareListAsync } = require('@eisland/windows-performance-monitor');
 
-// Retrieve the current hardware list snapshot
-const hw = getHardwareList();
+async function main() {
+  // Retrieve the current hardware list snapshot
+  const hw = await getHardwareListAsync();
 
-// Check if LibreHardwareMonitor is available
-if (hw.isAvailable) {
-  // Iterate over detected CPU devices
-  hw.cpus.forEach(cpu => {
-    console.log(`CPU: ${cpu.name}`);           // Log the device name
-    console.log(`  ID: ${cpu.id}`);            // Log the unique identifier
-    console.log(`  Type: ${cpu.hardwareType}`); // Log the hardware type string
-  });
+  // Check if LibreHardwareMonitor is available
+  if (hw.isAvailable) {
+    // Iterate over detected CPU devices
+    hw.cpus.forEach(cpu => {
+      console.log(`CPU: ${cpu.name}`);           // Log the device name
+      console.log(`  ID: ${cpu.id}`);            // Log the unique identifier
+      console.log(`  Type: ${cpu.hardwareType}`); // Log the hardware type string
+    });
 
-  // Iterate over detected GPU devices
-  hw.gpus.forEach(gpu => {
-    console.log(`GPU: ${gpu.name}`);           // Log the device name
-    console.log(`  ID: ${gpu.id}`);            // Log the unique identifier
-    console.log(`  Type: ${gpu.hardwareType}`); // Log the hardware type string
-  });
-} else {
-  // LibreHardwareMonitor is not running — hardware list is unavailable
-  console.warn('Hardware list is not available.');
+    // Iterate over detected GPU devices
+    hw.gpus.forEach(gpu => {
+      console.log(`GPU: ${gpu.name}`);           // Log the device name
+      console.log(`  ID: ${gpu.id}`);            // Log the unique identifier
+      console.log(`  Type: ${gpu.hardwareType}`); // Log the hardware type string
+    });
+  } else {
+    // Discovery completed without available hardware
+    console.warn('Hardware list is not available.');
+  }
 }
+
+main().catch(console.error);
 ```
 
 :::
@@ -117,7 +127,7 @@ if (hw.isAvailable) {
 ## Notes
 
 :::note Snapshot vs. Live Data
-`HardwareDevice` objects represent a snapshot of detected hardware at the time of the `getHardwareList()` call. The hardware list is typically stable across calls since physical devices do not change at runtime, but the snapshot may differ if LibreHardwareMonitor is started or stopped between calls.
+`HardwareDevice` objects represent a snapshot of detected hardware at the time of the `getHardwareListAsync()` call. The discovered list remains cached until `dispose()` clears it; stopping the helper does not refresh or invalidate that list.
 :::
 
 :::tip Combining with Temperature Data
@@ -131,7 +141,7 @@ If no CPU or GPU devices are detected (for example, when LibreHardwareMonitor la
 ## Danger Avoidance
 
 :::danger Do Not Use Without Checking Availability
-Calling `getHardwareList()` and immediately accessing `cpus` or `gpus` without checking `isAvailable` may result in empty arrays if LibreHardwareMonitor is not running. Always guard your code with an `isAvailable` check to avoid runtime errors from iterating over or indexing into empty arrays.
+Calling `getHardwareListAsync()` and immediately accessing `cpus` or `gpus` without checking `isAvailable` may result in empty arrays if LibreHardwareMonitor is not running. Always guard your code with an `isAvailable` check to avoid runtime errors from iterating over or indexing into empty arrays.
 :::
 
 :::danger Do Not Assume Fixed Hardware Count

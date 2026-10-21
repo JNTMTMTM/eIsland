@@ -896,6 +896,17 @@
 
 }
 
+/* 亮色下减轻遮罩与边缘投影，避免叠加成大面积灰色暗带。 */
+[data-theme="light"] .cd-drawer-backdrop {
+  background: rgb(0 0 0 / 8%);
+
+}
+
+[data-theme="light"] .cd-drawer {
+  box-shadow: -4px 0 16px rgb(0 0 0 / 6%);
+
+}
+
 .cd-drawer-layer.is-open .cd-drawer {
   transform: translateX(0);
 

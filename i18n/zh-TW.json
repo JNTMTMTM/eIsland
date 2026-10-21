@@ -780,6 +780,9 @@
       "previewSecondCity": "紐約",
       "empty": "在全展開世界時鐘中選擇最多兩個時區"
     },
+    "performanceMonitor": {
+      "title": "性能監控"
+    },
     "breakReminder": {
       "title": "休息提醒",
       "count": "{{count}} 項",
@@ -3085,7 +3088,8 @@
           "mokugyo": "電子木魚",
           "breakReminder": "休息提醒",
           "alarm": "鬧鐘",
-          "worldClock": "世界時鐘"
+          "worldClock": "世界時鐘",
+          "performanceMonitor": "性能監控"
         },
         "previewMock": {
           "previewTag": "預覽",
@@ -4401,6 +4405,7 @@
         "paymentSubtitle": "選擇支付方式後完成支付，餘額將自動到賬。",
         "rechargeAmountLabel": "充值金額",
         "currentBalance": "當前餘額",
+        "balanceLoading": "餘額加載中…",
         "customPlaceholder": "自定義",
         "selectAmount": "請選擇充值金額",
         "confirm": "確認充值 ¥{{amount}}",

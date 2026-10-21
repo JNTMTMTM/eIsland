@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { describe, it, expect } from 'vitest';
+import { afterAll, beforeAll, describe, it, expect } from 'vitest';
 import type { BrightnessInfo } from '../index';
 
 const bright = require('../') as {
@@ -55,6 +55,14 @@ function expectValidBrightnessShape(info: BrightnessInfo) {
 }
 
 describe('@eisland/windows-brightness-helper', () => {
+  let originalBrightness: number | undefined;
+  beforeAll(() => {
+    originalBrightness = bright.getBrightness()?.currentBrightness;
+  });
+  afterAll(() => {
+    if (originalBrightness !== undefined) bright.setBrightness(originalBrightness);
+  });
+
   it('exports all expected functions', () => {
     expect(typeof bright.getBrightness).toBe('function');
     expect(typeof bright.setBrightness).toBe('function');

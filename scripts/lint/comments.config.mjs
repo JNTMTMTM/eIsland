@@ -26,8 +26,33 @@
 
 import config from './eslint.config.mjs';
 
+/** 注释检查实际执行规则的插件。 */
+const COMMENT_PLUGINS = new Set(['jsdoc', 'project']);
+const stubbedPlugins = new WeakMap();
+
+/**
+ * 将插件规则替换为保留 schema 的空实现。
+ * @description 源码可用行内配置启用类型感知规则，而注释检查关闭了类型信息，空实现避免这类规则加载时崩溃。
+ * @param {import('eslint').ESLint.Plugin} plugin - 原插件
+ * @returns {import('eslint').ESLint.Plugin} 规则均为空实现的插件，同一插件复用同一实例以免重复注册
+ */
+function stubRules(plugin) {
+  if (!stubbedPlugins.has(plugin)) {
+    const emptyRules = Object.fromEntries(Object.entries(plugin.rules ?? {}).map(([name, rule]) => [
+      name, { meta: rule.meta, create: () => ({}) },
+    ]));
+    stubbedPlugins.set(plugin, { ...plugin, rules: emptyRules });
+  }
+  return stubbedPlugins.get(plugin);
+}
+
 export default config.map((entry) => ({
   ...entry,
+  ...(entry.plugins && {
+    plugins: Object.fromEntries(Object.entries(entry.plugins).map(([name, plugin]) => [
+      name, COMMENT_PLUGINS.has(name) ? plugin : stubRules(plugin),
+    ])),
+  }),
   // 只启用注释规则时，不将针对其他规则的合法禁用误报为“未使用”。
   ...(entry.linterOptions && {
     linterOptions: { reportUnusedDisableDirectives: 'off', reportUnusedInlineConfigs: 'off' },

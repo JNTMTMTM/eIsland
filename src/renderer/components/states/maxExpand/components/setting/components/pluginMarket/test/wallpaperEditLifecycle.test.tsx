@@ -27,6 +27,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WallpaperEditSection } from '../WallpaperEditSection';
 import { TagInput } from '../TagInput';
+import { WallpaperCardSkeletonList } from '../wallpaperCardSkeleton';
 import { elementProps, elements, findElement, invoke, textContent } from '../../../../../../../test/elementHarness';
 import { renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../../hooks/test/settingsCoverageHarness';
 import type * as UserApi from '../../../../../../../../api/user/userAccountApi';
@@ -141,7 +142,7 @@ describe('real personal wallpaper loading and navigation', () => {
     const pending = deferred<Awaited<ReturnType<typeof io.list>>>();
     io.list.mockReturnValue(pending.promise);
     view();
-    expect(textContent(view())).toContain('settings.pluginMarket.wallpaper.feedback.loading');
+    expect(elementProps(findElement(view(), (node) => node.type === WallpaperCardSkeletonList))).toEqual({ count: 6, metaRows: 1 });
     click('prevPage'); click('nextPage');
     expect(io.list).toHaveBeenCalledOnce();
     pending.resolve({ ok: true, code: 200, message: '', data: [] });
@@ -157,14 +158,14 @@ describe('real personal wallpaper loading and navigation', () => {
   it('consumes list request rejection on initial load, search and pagination callbacks', async () => {
     io.list.mockRejectedValue(new Error('list'));
     view(); await settle();
-    expect(textContent(view())).not.toContain('settings.pluginMarket.wallpaper.feedback.loading');
+    expect(elements(view()).some((node) => node.type === WallpaperCardSkeletonList)).toBe(false);
     click('expandSearch'); click('search'); await settle();
     expect(io.list).toHaveBeenCalledTimes(2);
     await mount(Array.from({ length: 6 }, (value, index) => { void value; return { ...wallpaper, id: index + 1 }; }));
     click('search'); await settle();
     io.list.mockRejectedValue(new Error('next'));
     click('nextPage'); await settle();
-    expect(textContent(view())).not.toContain('settings.pluginMarket.wallpaper.feedback.loading');
+    expect(elements(view()).some((node) => node.type === WallpaperCardSkeletonList)).toBe(false);
   });
   it('toggles search, trims its actual input, navigates known totals and returns to the market', async () => {
     await mount([wallpaper], 13);

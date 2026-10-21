@@ -45,7 +45,7 @@ describe('OverviewPreview', () => {
     ['pomodoro', 'overview.pomodoro'], ['urlFavorites', 'overview.urlFavorites'],
     ['album', 'overview.album'], ['mokugyo', 'overview.mokugyo'],
     ['breakReminder', 'overview.breakReminder'], ['worldClock', 'overview.worldClock'],
-    ['alarm', 'overview.alarm'],
+    ['alarm', 'overview.alarm'], ['performanceMonitor', 'overview.performanceMonitor'],
   ] as const)('renders %s widget with a real branch', (widget, label) => {
     const config: ComponentProps<typeof OverviewPreview>['layoutConfig'] = { left: widget, right: 'todo', clockStyle: 'classic', gradientColors: { start: '#000000', middle: '#888888', end: '#ffffff' } };
     const tree = OverviewPreview({ layoutConfig: config });

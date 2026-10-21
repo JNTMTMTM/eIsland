@@ -47,11 +47,12 @@ vi.mock('../../userAccount', () => ({
   USER_ACCOUNT_PROFILE_STORAGE_KEY: 'user-account-profile',
   USER_ACCOUNT_TOKEN_STORAGE_KEY: 'user-account-token',
   readLocalToken: readLocalTokenMock,
+  readLocalSessionRevision: () => null,
   writeLocalToken: writeLocalTokenMock,
   writeLocalProfile: writeLocalProfileMock,
 }));
 
-import { updateSessionToken, bootstrapAuthSession } from '../index';
+import { updateSessionToken, bootstrapAuthSession, refreshAuthSession } from '../index';
 
 describe('authSession', () => {
   let storeReadMock: ReturnType<typeof vi.fn>;
@@ -88,7 +89,7 @@ describe('authSession', () => {
     it('returns early when logout marker is true', async () => {
       storeReadMock.mockResolvedValueOnce(true);
 
-      await bootstrapAuthSession();
+      await expect(bootstrapAuthSession()).resolves.toBeNull();
 
       expect(readLocalTokenMock).not.toHaveBeenCalled();
       expect(fetchUserProfileMock).not.toHaveBeenCalled();
@@ -101,14 +102,27 @@ describe('authSession', () => {
       readLocalTokenMock.mockReturnValue(null);
       localStorageGetItemMock.mockReturnValue(null);
       storeReadMock.mockResolvedValue(null); // profile storeRead
+      writeLocalTokenMock.mockImplementationOnce(() => readLocalTokenMock.mockReturnValue('persisted-token'));
       fetchUserProfileMock.mockResolvedValue({ ok: true, code: 200, message: '', data: null });
 
-      await bootstrapAuthSession();
+      await expect(bootstrapAuthSession()).resolves.toBe('persisted-token');
 
-      expect(writeLocalTokenMock).toHaveBeenCalledWith('persisted-token');
-      expect(fetchUserProfileMock).toHaveBeenCalledWith('persisted-token');
+      expect(writeLocalTokenMock).toHaveBeenCalledWith('persisted-token', false);
+      expect(fetchUserProfileMock).not.toHaveBeenCalled();
     });
 
+    it('returns without fetching when no token is available at all', async () => {
+      storeReadMock.mockResolvedValue(null);
+      readLocalTokenMock.mockReturnValue(null);
+      localStorageGetItemMock.mockReturnValue(null);
+
+      await expect(bootstrapAuthSession()).resolves.toBeNull();
+
+      expect(fetchUserProfileMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('refreshAuthSession', () => {
     it('writes profile when fetchUserProfile succeeds', async () => {
       const profile = { username: 'test', email: 'test@example.com' };
       storeReadMock.mockResolvedValue(null);
@@ -116,7 +130,7 @@ describe('authSession', () => {
       localStorageGetItemMock.mockReturnValue('cached-profile');
       fetchUserProfileMock.mockResolvedValue({ ok: true, code: 200, message: '', data: profile });
 
-      await bootstrapAuthSession();
+      await refreshAuthSession('my-token');
 
       expect(fetchUserProfileMock).toHaveBeenCalledWith('my-token');
       expect(writeLocalProfileMock).toHaveBeenCalledWith(profile);
@@ -128,7 +142,7 @@ describe('authSession', () => {
       localStorageGetItemMock.mockReturnValue('cached');
       fetchUserProfileMock.mockResolvedValue({ ok: false, code: 401, message: 'Unauthorized' });
 
-      await bootstrapAuthSession();
+      await refreshAuthSession('expired-token');
 
       expect(writeLocalTokenMock).toHaveBeenCalledWith(null);
       expect(writeLocalProfileMock).toHaveBeenCalledWith(null);
@@ -140,20 +154,41 @@ describe('authSession', () => {
       localStorageGetItemMock.mockReturnValue('cached');
       fetchUserProfileMock.mockResolvedValue({ ok: false, code: 500, message: 'Server Error' });
 
-      await bootstrapAuthSession();
+      await refreshAuthSession('valid-token');
 
       expect(writeLocalTokenMock).not.toHaveBeenCalledWith(null);
       expect(writeLocalProfileMock).not.toHaveBeenCalledWith(null);
     });
 
-    it('returns without fetching when no token is available at all', async () => {
-      storeReadMock.mockResolvedValue(null);
-      readLocalTokenMock.mockReturnValue(null);
-      localStorageGetItemMock.mockReturnValue(null);
-
-      await bootstrapAuthSession();
-
+    it.each([null, 'old-token'])('skips fetching for a missing or replaced token: %s', async (token) => {
+      readLocalTokenMock.mockReturnValue('current-token');
+      await refreshAuthSession(token);
       expect(fetchUserProfileMock).not.toHaveBeenCalled();
+    });
+    it('contains network rejection and preserves cached credentials', async () => {
+      readLocalTokenMock.mockReturnValue('cached-token');
+      fetchUserProfileMock.mockRejectedValueOnce(new Error('offline'));
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await expect(refreshAuthSession('cached-token')).resolves.toBeUndefined();
+      expect(writeLocalTokenMock).not.toHaveBeenCalled();
+      expect(writeLocalProfileMock).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledOnce();
+    });
+    it.each([
+      { nextToken: null, result: { ok: true, code: 200, data: { username: 'old-user' } } },
+      { nextToken: 'new-token', result: { ok: true, code: 200, data: { username: 'old-user' } } },
+      { nextToken: 'new-token', result: { ok: false, code: 401 } },
+      { nextToken: 'new-token', result: { ok: false, code: 4011 } },
+    ])('ignores a late $result.code response after token changes to $nextToken', async ({ nextToken, result }) => {
+      const pending = Promise.withResolvers<typeof result>();
+      readLocalTokenMock.mockReturnValue('old-token');
+      fetchUserProfileMock.mockReturnValueOnce(pending.promise);
+      const refresh = refreshAuthSession('old-token');
+      readLocalTokenMock.mockReturnValue(nextToken);
+      pending.resolve(result);
+      await refresh;
+      expect(writeLocalTokenMock).not.toHaveBeenCalled();
+      expect(writeLocalProfileMock).not.toHaveBeenCalled();
     });
   });
 });

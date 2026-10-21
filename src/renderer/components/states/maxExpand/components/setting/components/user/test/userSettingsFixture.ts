@@ -26,6 +26,7 @@
 
 import { vi } from 'vitest';
 import { UserSettingsSection } from '../UserSettingsSection';
+import { UserRecordSkeletonList, UserValueSkeleton } from '../components/userSettingsSkeleton';
 import { elements, findElement, invoke, textContent } from '../../../../../../../test/elementHarness';
 import { renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../app/components/test/themeHookHarness';
 import type { UserAccountProfile } from '../../../../../../../../utils/userAccount';
@@ -308,6 +309,16 @@ export function fillInputs(values: string[]): void {
       }
     });
   });
+}
+/**
+ * 收集元素树中记录列表与行内数值骨架的读屏加载文案。
+ * @param tree - 实际元素树。
+ * @returns 骨架加载文案列表。
+ */
+export function skeletonLabels(tree: ReturnType<typeof UserSettingsSection>): string[] {
+  return elements(tree)
+    .filter((node) => node.type === UserRecordSkeletonList || node.type === UserValueSkeleton)
+    .map((node) => String(node.props.label));
 }
 /**
  * 清理实际组件生命周期及浏览器桩。

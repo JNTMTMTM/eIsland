@@ -35,3 +35,4 @@ export * from './TodoWidget';
 export * from './BreakReminderWidget';
 export * from './WorldClockWidget';
 export * from './AlarmWidget';
+export * from './PerformanceMonitorWidget';

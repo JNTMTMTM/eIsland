@@ -31,6 +31,39 @@ import os from 'os';
 import * as si from 'systeminformation';
 import { getBrightnessAsync as getBrightness, setBrightnessAsync as setBrightness } from '@eisland/windows-brightness-helper';
 import { getVolumeAsync as getVolume, setVolumeAsync as setVolume } from '@eisland/windows-volume-helper';
+import type * as WindowsPerformanceMonitor from '@eisland/windows-performance-monitor';
+
+let performanceMonitorPromise: Promise<typeof WindowsPerformanceMonitor | null> | null = null;
+
+/**
+ * Windows 按需加载采集插件；未安装或跨平台时保留系统采集回退。
+ * @returns 可用的原生采集插件
+ */
+function loadPerformanceMonitor(): Promise<typeof WindowsPerformanceMonitor | null> {
+  if (process.platform !== 'win32' || process.env.EISLAND_E2E === '1') return Promise.resolve(null);
+  performanceMonitorPromise ??= (async () => {
+    try {
+      const module = await import('@eisland/windows-performance-monitor');
+      return module.default ?? module;
+    } catch {
+      return null;
+    }
+  })();
+  return performanceMonitorPromise;
+}
+
+/**
+ * 单项原生采集失败时独立回退，避免拖累其他指标。
+ * @param collect - 原生采集函数
+ * @returns 采集结果，失败时返回 null
+ */
+function readNativeMetric<T>(collect: () => T): T | null {
+  try {
+    return collect();
+  } catch {
+    return null;
+  }
+}
 
 interface PerformanceSnapshot {
   timestamp: number;
@@ -201,12 +234,19 @@ const graphicsCache = createThrottledCache<si.Systeminformation.GraphicsData | n
 const cpuTemperatureCache = createThrottledCache<si.Systeminformation.CpuTemperatureData | null>(() => si.cpuTemperature().catch(() => null), CPU_TEMPERATURE_TTL_MS);
 const fsSizeCache = createThrottledCache<si.Systeminformation.FsSizeData[]>(() => si.fsSize().catch(() => []), FS_SIZE_TTL_MS);
 const diskLayoutCache = createThrottledCache<si.Systeminformation.DiskLayoutData[]>(() => si.diskLayout().catch(() => []), DISK_LAYOUT_TTL_MS);
+// 多个窗口紧邻请求时共享 CPU 增量，避免第二个请求用极短采样窗口覆盖基线。
+const nativeCpuCache = createThrottledCache(async () => {
+  const monitor = await loadPerformanceMonitor();
+  return monitor ? readNativeMetric(() => monitor.getCpu()) : null;
+}, 250);
 
 /**
  * 重置性能快照缓存
  * @description 仅供测试代码在每个用例前隔离状态，业务代码不应调用
  */
 export function resetPerformanceCachesForTesting(): void {
+  performanceMonitorPromise = null;
+  nativeCpuCache.reset();
   cpuStaticCache.reset();
   graphicsCache.reset();
   cpuTemperatureCache.reset();
@@ -218,6 +258,17 @@ async function collectPerformanceSnapshot(
   selection: PerformanceHardwareSelection = {},
   includeHardwareOptions = true,
 ): Promise<PerformanceSnapshot> {
+  const monitor = await loadPerformanceMonitor();
+  const osCpus = os.cpus();
+  const requestsCore = parseIndexedId(selection.cpu, 'cpu', osCpus.length) !== null;
+  const nativeCpu = monitor && !requestsCore ? await nativeCpuCache.get() : null;
+  const nativeMemory = monitor ? readNativeMetric(() => monitor.getMemory()) : null;
+  // 同步入口只读取缓存并触发异步刷新，首次打开面板不等待硬件驱动初始化。
+  const nativeTemperature = monitor ? readNativeMetric(() => monitor.getTemperature()) : null;
+  const nativeCpuTemperatures = nativeTemperature?.isAvailable
+    ? nativeTemperature.readings.filter((item) => item.category === 'cpu').map((item) => item.temperatureCelsius)
+    : [];
+  const nativeCpuTemperature = nativeCpuTemperatures.length ? Math.max(...nativeCpuTemperatures) : null;
   const [
     cpu,
     load,
@@ -228,16 +279,18 @@ async function collectPerformanceSnapshot(
     diskLayouts,
   ] = await Promise.all([
     cpuStaticCache.get(),
-    si.currentLoad().catch(() => null),
-    cpuTemperatureCache.get(),
-    si.mem().catch(() => null),
+    nativeCpu?.hasBaseline ? Promise.resolve(null) : si.currentLoad().catch(() => null),
+    !requestsCore && nativeCpuTemperature !== null ? Promise.resolve(null) : cpuTemperatureCache.get(),
+    nativeMemory
+      ? Promise.resolve({ total: nativeMemory.totalBytes, available: nativeMemory.availableBytes, used: nativeMemory.usedBytes })
+      : si.mem().catch(() => null),
     graphicsCache.get(),
     fsSizeCache.get(),
     diskLayoutCache.get(),
   ]);
 
-  const osCpus = os.cpus();
-  const cpuLoadItems = Array.isArray(load?.cpus) ? load.cpus : [];
+  const fallbackCpuLoadItems = nativeCpu ? osCpus.map(() => ({ load: 0 })) : [];
+  const cpuLoadItems = Array.isArray(load?.cpus) ? load.cpus : fallbackCpuLoadItems;
   const selectedCpuIndex = parseIndexedId(selection.cpu, 'cpu', cpuLoadItems.length);
   const cpuOptions: PerformanceHardwareOption[] = includeHardwareOptions
     ? [
@@ -248,7 +301,8 @@ async function collectPerformanceSnapshot(
       })),
     ]
     : [];
-  const selectedCpuLoad = selectedCpuIndex === null ? load?.currentLoad : cpuLoadItems[selectedCpuIndex]?.load;
+  const aggregateCpuLoad = nativeCpu?.hasBaseline ? nativeCpu.usagePercent : load?.currentLoad;
+  const selectedCpuLoad = selectedCpuIndex === null ? aggregateCpuLoad : cpuLoadItems[selectedCpuIndex]?.load;
   const cpuTemperatureCores = Array.isArray(cpuTemperature?.cores) ? cpuTemperature.cores : [];
   const selectedCpuTemperature = selectedCpuIndex === null ? null : positiveNumber(cpuTemperatureCores[selectedCpuIndex]);
 
@@ -281,7 +335,7 @@ async function collectPerformanceSnapshot(
     totalBytes: acc.totalBytes + Math.max(0, item.size || 0),
     usedBytes: acc.usedBytes + Math.max(0, item.used || 0),
   }), { totalBytes: 0, usedBytes: 0 });
-  const selectedDiskTemperature = selectedFsIndex === null ? null : positiveNumber(diskLayouts[selectedFsIndex]?.temperature);
+  // 文件系统与物理磁盘不存在可靠的索引映射，单分区选择不展示其他磁盘的温度。
   const diskTemperature = diskLayouts
     .map((item) => positiveNumber(item.temperature))
     .find((value): value is number => value !== null) ?? null;
@@ -306,7 +360,7 @@ async function collectPerformanceSnapshot(
       speedGhz: positiveNumber(cpu?.speed),
       speedMaxGhz: positiveNumber(cpu?.speedMax),
       loadPercent: clampPercent(selectedCpuLoad),
-      temperatureCelsius: selectedCpuTemperature ?? positiveNumber(cpuTemperature?.main) ?? positiveNumber(cpuTemperature?.max),
+      temperatureCelsius: selectedCpuTemperature ?? positiveNumber(nativeCpuTemperature) ?? positiveNumber(cpuTemperature?.main) ?? positiveNumber(cpuTemperature?.max),
     },
     memory: {
       totalBytes: memoryTotal,
@@ -327,7 +381,7 @@ async function collectPerformanceSnapshot(
       totalBytes: diskTotals.totalBytes,
       usedBytes: diskTotals.usedBytes,
       usagePercent: diskTotals.totalBytes > 0 ? clampPercent((diskTotals.usedBytes / diskTotals.totalBytes) * 100) : 0,
-      temperatureCelsius: selectedDiskTemperature ?? diskTemperature,
+      temperatureCelsius: selectedFsIndex === null ? diskTemperature : null,
     },
     hardwareOptions: {
       cpu: cpuOptions,

@@ -23,6 +23,7 @@
  * @description Settings 状态下内容项样式模块入口
  */
 
+@import "./modules/settings-skeleton.css";
 @import "./modules/settings-layout.css";
 @import "./modules/settings-chat.css";
 @import "./modules/settings-nav-dots.css";

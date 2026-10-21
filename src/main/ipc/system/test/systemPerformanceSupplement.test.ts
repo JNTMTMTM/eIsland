@@ -37,6 +37,7 @@ const io = vi.hoisted(() => ({
   cpus: vi.fn<() => { model: string }[]>(), totalmem: vi.fn<() => number>(), freemem: vi.fn<() => number>(),
   brightness: vi.fn<() => { currentBrightness: number } | null>(), setBrightness: vi.fn<(value: number) => boolean>(),
   volume: vi.fn<() => number | null>(), setVolume: vi.fn<(value: number) => boolean>(),
+  nativeCpu: vi.fn(), nativeMemory: vi.fn(), nativeTemperature: vi.fn(),
 }));
 vi.mock('electron', () => ({ ipcMain: { on: vi.fn(), handle: (channel: string, handler: HandlerFixture) => io.handlers.set(channel, handler) } }));
 vi.mock('child_process', () => ({ exec: vi.fn() }));
@@ -44,6 +45,9 @@ vi.mock('systeminformation', () => ({ cpu: io.cpu, currentLoad: io.load, cpuTemp
 vi.mock('os', () => ({ default: { cpus: io.cpus, totalmem: io.totalmem, freemem: io.freemem, hostname: () => 'fixture-host', platform: () => 'fixture-platform', release: () => 'fixture-release', arch: () => 'fixture-arch', uptime: () => 120 } }));
 vi.mock('@eisland/windows-brightness-helper', () => ({ getBrightnessAsync: io.brightness, setBrightnessAsync: io.setBrightness }));
 vi.mock('@eisland/windows-volume-helper', () => ({ getVolumeAsync: io.volume, setVolumeAsync: io.setVolume }));
+vi.mock('@eisland/windows-performance-monitor', () => ({ default: {
+  getCpu: io.nativeCpu, getMemory: io.nativeMemory, getTemperature: io.nativeTemperature,
+} }));
 const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
 /**
  * 调用真实系统 IPC 并保留未知参数输入边界。
@@ -74,6 +78,9 @@ beforeEach(() => {
   io.cpus.mockReturnValue([{ model: 'OS first' }, { model: 'OS second' }]); io.totalmem.mockReturnValue(2000); io.freemem.mockReturnValue(1500);
   io.brightness.mockReturnValue({ currentBrightness: 25 }); io.volume.mockReturnValue(75);
   io.setBrightness.mockReturnValue(true); io.setVolume.mockReturnValue(true);
+  io.nativeCpu.mockImplementation(() => { throw new Error('native unavailable'); });
+  io.nativeMemory.mockImplementation(() => { throw new Error('native unavailable'); });
+  io.nativeTemperature.mockReturnValue({ isAvailable: false, readings: [], maxTemperatureCelsius: null });
   resetPerformanceCachesForTesting();
   registerSystemIpcHandlers({ queryRunningNonSystemProcessNames: () => Promise.resolve([]), queryRunningNonSystemProcessesWithIcons: () => Promise.resolve([]), queryOpenWindowsWithIcons: () => Promise.resolve([]), queryFocusedWindow: () => Promise.resolve(null) });
 });
@@ -106,10 +113,36 @@ describe('系统原生控制边界', async () => {
   });
 });
 describe('性能缓存、硬件选择和缺失值', () => {
+  it('原生 CPU 和内存成功时跳过通用查询，CPU 温度读取缓存', async () => {
+    io.nativeCpu.mockReturnValue({ usagePercent: 12.5, hasBaseline: true });
+    io.nativeMemory.mockReturnValue({ totalBytes: 2000, usedBytes: 500, availableBytes: 1500, usagePercent: 25 });
+    io.nativeTemperature.mockReturnValue({ isAvailable: true, readings: [
+      { category: 'gpu', temperatureCelsius: 90 }, { category: 'cpu', temperatureCelsius: 55 },
+      { category: 'cpu', temperatureCelsius: 65 },
+    ] });
+    await expect(invoke('performance-snapshot:get')).resolves.toMatchObject({
+      cpu: { loadPercent: 12.5, temperatureCelsius: 65 },
+      memory: { totalBytes: 2000, usedBytes: 500, availableBytes: 1500, usagePercent: 25 },
+      hardwareOptions: { cpu: [{ id: 'all', label: 'All CPU' }, { id: 'cpu:0', label: 'CPU 1 · OS first' }, { id: 'cpu:1', label: 'CPU 2 · OS second' }] },
+    });
+    expect(io.load).not.toHaveBeenCalled(); expect(io.memory).not.toHaveBeenCalled(); expect(io.temperature).not.toHaveBeenCalled();
+    await Promise.all([invoke('performance-snapshot:get'), invoke('performance-snapshot:get')]);
+    expect(io.nativeCpu).toHaveBeenCalledOnce();
+    await expect(invoke('performance-snapshot:get', { cpu: 'cpu:1' })).resolves.toMatchObject({ cpu: { loadPercent: 90, temperatureCelsius: 50 } });
+    expect(io.load).toHaveBeenCalledOnce(); expect(io.temperature).toHaveBeenCalledOnce();
+  });
+  it('原生 CPU 基线尚未准备好时回退，非 Windows 不调用插件', async () => {
+    io.nativeCpu.mockReturnValue({ usagePercent: 0, hasBaseline: false });
+    await expect(invoke('performance-snapshot:get')).resolves.toMatchObject({ cpu: { loadPercent: 45 } });
+    Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' });
+    io.nativeCpu.mockClear(); io.nativeMemory.mockClear(); io.nativeTemperature.mockClear();
+    await invoke('performance-snapshot:get');
+    expect(io.nativeCpu).not.toHaveBeenCalled(); expect(io.nativeMemory).not.toHaveBeenCalled(); expect(io.nativeTemperature).not.toHaveBeenCalled();
+  });
   it('并发快照复用进行中的查询，随后命中缓存', async () => {
     const pending = deferred(); io.cpu.mockReturnValue(pending.promise);
     const first = invoke('performance-snapshot:get'); const second = invoke('performance-snapshot:get');
-    expect(io.cpu).toHaveBeenCalledOnce(); pending.resolve({ manufacturer: 'Concurrent', brand: 'Chip', cores: 2 });
+    await vi.waitFor(() => expect(io.cpu).toHaveBeenCalledOnce()); pending.resolve({ manufacturer: 'Concurrent', brand: 'Chip', cores: 2 });
     await expect(first).resolves.toMatchObject({ cpu: { manufacturer: 'Concurrent' } });
     await expect(second).resolves.toMatchObject({ cpu: { manufacturer: 'Concurrent' } });
     await invoke('performance-snapshot:get');
@@ -153,7 +186,7 @@ describe('性能缓存、硬件选择和缺失值', () => {
     io.disks.mockResolvedValue([{ temperature: 0 }, { temperature: 55 }]);
     await expect(invoke('performance-snapshot:get', { cpu: 'cpu:1', gpu: 'gpu:1', disk: 'fs:1' })).resolves.toMatchObject({
       cpu: { loadPercent: 100, temperatureCelsius: 50 }, gpu: { model: '', vendor: 'Only vendor', loadPercent: 100, vramTotalMb: null },
-      disk: { totalBytes: 300, usedBytes: 400, usagePercent: 100, temperatureCelsius: 55 },
+      disk: { totalBytes: 300, usedBytes: 400, usagePercent: 100, temperatureCelsius: null },
       hardwareOptions: {
         cpu: [{ id: 'all', label: 'All CPU' }, { id: 'cpu:0', label: 'CPU 1 · Unknown CPU' }, { id: 'cpu:1', label: 'CPU 2 · Named CPU' }],
         gpu: [{ id: 'auto', label: 'Auto GPU' }, { id: 'gpu:0', label: 'Only model' }, { id: 'gpu:1', label: 'Only vendor' }],
@@ -162,7 +195,7 @@ describe('性能缓存、硬件选择和缺失值', () => {
     });
     await expect(invoke('performance-snapshot:get', { cpu: 'cpu:0', gpu: 'gpu:0', disk: 'fs:0' }, false)).resolves.toMatchObject({
       cpu: { loadPercent: 0, temperatureCelsius: 70 }, gpu: { vendor: '', model: 'Only model', vramTotalMb: 200, loadPercent: null },
-      disk: { totalBytes: 100, usedBytes: 0, temperatureCelsius: 55 }, hardwareOptions: { cpu: [], gpu: [], disk: [] },
+      disk: { totalBytes: 100, usedBytes: 0, temperatureCelsius: null }, hardwareOptions: { cpu: [], gpu: [], disk: [] },
     });
   });
   it.each(['wrong', 'cpu:-1', 'cpu:999', `cpu:${  '9'.repeat(400)}`])('非法索引 %s 使用聚合 CPU', async (value) => {

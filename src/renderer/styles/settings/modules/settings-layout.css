@@ -5358,21 +5358,6 @@
   animation: settings-user-orders-spin 0.85s linear infinite;
 }
 
-.settings-user-orders-loading-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.settings-user-orders-spinner {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1.8px solid rgba(var(--color-text-rgb), 0.2);
-  border-top-color: rgba(var(--color-text-rgb), 0.85);
-  animation: settings-user-orders-spin 0.85s linear infinite;
-}
-
 @keyframes settings-user-orders-spin {
   from {
     transform: rotate(0deg);
@@ -6135,6 +6120,131 @@ button.settings-user-image-translation-image-wrap:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* 用户中心骨架宿主：承载共享扫光，并屏蔽复用卡片类名带来的悬停反馈。
+   用 clip 而非 hidden：hidden 会让宿主成为滚动容器、flex 最小高度降为 0，
+   在 min-height: 100% 的页面面板里被压扁裁掉内容；clip 只裁绘制，保持内容高度。 */
+.settings-user-skeleton {
+  position: relative;
+  overflow: clip;
+  pointer-events: none;
+
+}
+
+/* 包裹层只承载 status 语义，骨架卡片仍按所在面板的间距排布。 */
+.settings-user-skeleton-list {
+  display: contents;
+
+}
+
+.settings-user-skeleton-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 18px;
+
+}
+
+.settings-user-skeleton-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgb(var(--color-text-rgb), .04);
+  border-radius: 8px;
+
+}
+
+.settings-user-skeleton-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 14px;
+
+}
+
+.settings-user-skeleton-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+}
+
+.settings-user-skeleton-name {
+  width: 96px;
+  height: 12px;
+
+}
+
+.settings-user-skeleton-email {
+  width: 140px;
+  max-width: 100%;
+  height: 9px;
+  margin-top: 4px;
+
+}
+
+.settings-user-skeleton-label {
+  width: 44px;
+  height: 8px;
+
+}
+
+.settings-user-skeleton-value {
+  width: 72px;
+  max-width: 45%;
+  height: 9px;
+
+}
+
+.settings-user-skeleton-figure {
+  width: 48px;
+  height: 14px;
+
+}
+
+.settings-user-skeleton-toggle {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+
+}
+
+.settings-user-skeleton-title {
+  width: 45%;
+  max-width: 160px;
+  height: 12px;
+
+}
+
+.settings-user-skeleton-desc {
+  width: 80%;
+  height: 9px;
+
+}
+
+.settings-user-skeleton-desc-short {
+  width: 55%;
+  height: 9px;
+
+}
+
+/* 与权益列表 16px 的左缩进对齐。 */
+.settings-user-skeleton-feature {
+  width: 45%;
+  height: 9px;
+  margin-left: 16px;
+
+}
+
+.settings-user-skeleton-tag {
+  width: 48px;
+  height: 16px;
+  border-radius: 999px;
+
 }
 
 /** ========== 格式工厂 - 图片预览 + 元数据 ========== */

@@ -41,6 +41,7 @@ import {
   UrlFavoritesWidget,
   WorldClockWidget,
   AlarmWidget,
+  PerformanceMonitorWidget,
 } from './OverviewTab/components/OverviewWidgets';
 import {
   APPS_STORE_KEY,
@@ -53,7 +54,7 @@ import {
 } from './OverviewTab/utils/overviewUtils';
 
 /** 总览控件类型 */
-export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album' | 'mokugyo' | 'breakReminder' | 'worldClock' | 'alarm';
+export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album' | 'mokugyo' | 'breakReminder' | 'worldClock' | 'alarm' | 'performanceMonitor';
 
 /** 中间时钟样式类型 */
 export type OverviewClockStyle = 'classic' | 'gradient' | 'minimal';
@@ -71,6 +72,7 @@ export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType }[] = [
   { value: 'breakReminder' },
   { value: 'worldClock' },
   { value: 'alarm' },
+  { value: 'performanceMonitor' },
 ];
 
 /** 时钟样式选项 */
@@ -403,6 +405,8 @@ export function OverviewTab(): React.ReactElement {
         return <WorldClockWidget onOpenWorldClockPage={openWorldClockPage} />;
       case 'alarm':
         return <AlarmWidget onOpenAlarmPage={() => openTargetPage('alarm')} />;
+      case 'performanceMonitor':
+        return <PerformanceMonitorWidget />;
       default:
         return null;
     }

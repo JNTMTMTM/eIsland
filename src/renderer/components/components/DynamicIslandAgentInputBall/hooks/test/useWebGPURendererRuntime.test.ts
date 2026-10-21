@@ -83,9 +83,9 @@ function nativeGpu() {
         messages: []
       })
     }),
-    createRenderPipeline: vi.fn<(options: unknown) => {
+    createRenderPipelineAsync: vi.fn<(options: unknown) => Promise<{
       getBindGroupLayout: (index: number) => object;
-    }>().mockReturnValue({
+    }>>().mockResolvedValue({
       getBindGroupLayout: () => ({})
     }),
     createBuffer: vi.fn<(options: unknown) => { destroy: ReturnType<typeof vi.fn> }>().mockReturnValue({ destroy: vi.fn() }),
@@ -201,6 +201,49 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('useWebGPURenderer runtime', () => {
+  it('keeps frames and canvas configuration pending until asynchronous pipeline compilation completes', async () => {
+    const pending = deferred<Awaited<ReturnType<typeof gpu.device.createRenderPipelineAsync>>>();
+    gpu.device.createRenderPipelineAsync.mockReturnValueOnce(pending.promise);
+    run();
+    await settleHook();
+    expect(gpu.device.createRenderPipelineAsync).toHaveBeenCalledTimes(1);
+    expect(gpu.context.configure).not.toHaveBeenCalled();
+    expect(gpu.device.createBuffer).not.toHaveBeenCalled();
+    expect(frames.size).toBe(0);
+    expect(ready).not.toHaveBeenCalled();
+    pending.resolve({ getBindGroupLayout: () => ({}) });
+    await settleHook();
+    tick();
+    expect(ready).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['pause', 'unmount'] as const)('cancellation during pipeline compilation releases the device after %s', async (action) => {
+    const pending = deferred<Awaited<ReturnType<typeof gpu.device.createRenderPipelineAsync>>>();
+    gpu.device.createRenderPipelineAsync.mockReturnValueOnce(pending.promise);
+    run();
+    await settleHook();
+    if (action === 'pause') run(false);
+    else unmountHook();
+    pending.resolve({ getBindGroupLayout: () => ({}) });
+    await settleHook();
+    expect(gpu.context.configure).not.toHaveBeenCalled();
+    expect(gpu.context.unconfigure).not.toHaveBeenCalled();
+    expect(gpu.device.createBuffer).not.toHaveBeenCalled();
+    expect(gpu.device.destroy).toHaveBeenCalledTimes(1);
+    expect(frames.size).toBe(0);
+    expect(ready).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it('pipeline compilation rejection releases the device and reports the error', async () => {
+    gpu.device.createRenderPipelineAsync.mockRejectedValueOnce(new Error('pipeline compilation'));
+    await mount();
+    expect(error.mock.calls[0]?.[0].message).toBe('pipeline compilation');
+    expect(gpu.device.destroy).toHaveBeenCalledTimes(1);
+    expect(gpu.context.configure).not.toHaveBeenCalled();
+    expect(frames.size).toBe(0);
+  });
+
   it('missing canvas and inactive state do not allocate native GPU', async () => {
     canvasRef.current = null;
     run();
