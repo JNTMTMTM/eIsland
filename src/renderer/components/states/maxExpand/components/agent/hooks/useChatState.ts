@@ -217,7 +217,7 @@ export function useChatState(): ChatState {
   const [agentMode, setAgentModeState] = useState<AgentMode>(loadAgentMode);
   const [showAgentModeDropdown, setShowAgentModeDropdown] = useState(false);
   const [agentModeDropdownPos, setAgentModeDropdownPos] = useState<{ left: number; bottom: number } | null>(null);
-  const [showModelCard, setShowModelCard] = useState(false);
+  const [modelCardRequested, setModelCardRequested] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showContextDropdown, setShowContextDropdown] = useState(false);
   const [skillDragOver, setSkillDragOver] = useState(false);
@@ -254,6 +254,19 @@ export function useChatState(): ChatState {
     aiWebAccessResolveError: store.aiWebAccessResolveError, setAiWebAccessResolveError: store.setAiWebAccessResolveError,
     setLogin: store.setLogin, setRegister: store.setRegister, dominantColor: store.dominantColor,
   })));
+
+  // 授权优先：渲染时立即屏蔽模型卡片，再清除打开状态，避免同帧到达的请求与点击互相覆盖。
+  const hasActiveAuthorization = aiWebAccessPrompt?.sessionId === activeAiChatSessionId
+    || aiLocalToolAccessPrompt?.sessionId === activeAiChatSessionId;
+  const showModelCard = modelCardRequested && !hasActiveAuthorization;
+  const setShowModelCard = useCallback<React.Dispatch<React.SetStateAction<boolean>>>((next) => {
+    setModelCardRequested(hasActiveAuthorization ? false : next);
+  }, [hasActiveAuthorization]);
+  useEffect(() => {
+    setModelCardRequested(false);
+    setShowModelDropdown(false);
+    setShowContextDropdown(false);
+  }, [activeAiChatSessionId, hasActiveAuthorization]);
 
   // ── 用户会话同步 ──
   useEffect(() => {

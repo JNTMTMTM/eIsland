@@ -74,6 +74,8 @@ interface ChatInputBarProps {
   selectedContextLabel: string;
   /** 模型选择下拉 */
   showModelCard: boolean;
+  /** 当前会话等待授权时，模型卡片入口让位给授权浮层。 */
+  modelCardDisabled?: boolean;
   setShowModelCard: (v: boolean | ((prev: boolean) => boolean)) => void;
   showModelDropdown: boolean;
   setShowModelDropdown: (v: boolean | ((prev: boolean) => boolean)) => void;
@@ -144,7 +146,7 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
     contextUsageLevelClass,
     contextUsageInlineText,
     selectedContextLabel,
-    showModelCard, setShowModelCard,
+    showModelCard, setShowModelCard, modelCardDisabled = false,
     showModelDropdown, setShowModelDropdown,
     modelDropdownRef,
     showContextDropdown, setShowContextDropdown,
@@ -175,6 +177,7 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
       {/* 模型选择卡片 */}
       <div id="ai-chat-model-card"
         className={`max-expand-chat-model-card-wrap ${showModelCard ? 'max-expand-chat-model-card-wrap--open' : ''}`}
+        hidden={modelCardDisabled}
         aria-hidden={!showModelCard}
         inert={!showModelCard}
       >
@@ -605,6 +608,7 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
             className="max-expand-chat-send"
             type="button"
             onClick={() => { setShowModelCard((prev) => !prev); }}
+            disabled={modelCardDisabled}
             title={t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
             aria-expanded={showModelCard}
             aria-controls="ai-chat-model-card"

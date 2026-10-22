@@ -198,6 +198,54 @@ describe('useChatState model and user runtime', () => {
   });
 });
 describe('useChatState messages and lifecycle', () => {
+  it.each(['web', 'local'] as const)('%s authorization wins a simultaneous model-card toggle and clears nested dropdowns', (kind) => {
+    let result = mount();
+    result.setShowModelCard(true);
+    result.setShowModelDropdown(true);
+    result.setShowContextDropdown(true);
+    result = run();
+    expect(result.showModelCard).toBe(true);
+    const toggleModel = result.setShowModelCard;
+    if (kind === 'local') {
+      result.setAiLocalToolAccessPrompt({
+        sessionId: result.activeAiChatSessionId, requestId: 'local', tool: 'file.delete',
+        argumentsPayload: {}, purpose: 'remove', message: 'ask', riskLevel: 'high',
+      });
+    } else {
+      result.setAiWebAccessPrompt({
+        sessionId: result.activeAiChatSessionId, requestId: 'web', url: 'https://example.invalid',
+        hostname: 'example.invalid', siteName: 'Example', iconUrl: '', message: 'ask', domainPolicy: 'ask',
+      });
+    }
+    toggleModel(true);
+    result = run();
+    expect(result.showModelCard).toBe(false); // 无需等待 effect，首帧即互斥。
+    flushHookEffects();
+    result = run();
+    expect(result.showModelDropdown).toBe(false);
+    expect(result.showContextDropdown).toBe(false);
+    result.setShowModelCard((previous) => !previous);
+    expect(run().showModelCard).toBe(false);
+    result.setAiWebAccessPrompt(null);
+    result.setAiLocalToolAccessPrompt(null);
+    result = run();
+    expect(result.showModelCard).toBe(false);
+    flushHookEffects();
+    run().setShowModelCard(true);
+    expect(run().showModelCard).toBe(true);
+  });
+  it('keeps background-session authorization from taking over the current model card', () => {
+    let result = mount();
+    result.setShowModelCard(true);
+    result.setAiLocalToolAccessPrompt({
+      sessionId: 'background', requestId: 'local', tool: 'file.delete', argumentsPayload: {},
+      purpose: 'remove', message: 'ask', riskLevel: 'high',
+    });
+    run();
+    flushHookEffects();
+    result = run();
+    expect(result.showModelCard).toBe(true);
+  });
   it('native textarea selection delays auto-scroll and queued update until it collapses', async () => {
     let result = run();
     const scroll = vi.fn();

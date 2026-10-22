@@ -101,6 +101,8 @@ describe('AiChatTab', () => {
     expect(nodes(tree, WebAccessPanel)).toHaveLength(0); expect(nodes(tree, LocalToolAccessPanel)).toHaveLength(1);
     expect(value(tree, LocalToolAccessPanel, 'onResolve')).toBe(send.handleResolveLocalToolAccess);
     state.aiWebAccessPrompt.sessionId = 'active';
+    expect(nodes(render(Component), WebAccessPanel)).toHaveLength(0);
+    state.aiLocalToolAccessPrompt = null;
     expect(value(render(Component), WebAccessPanel, 'onResolve')).toBe(send.handleResolveWebAccess);
   });
   it('keeps avatar navigation and session deletion accessible from the keyboard', () => {

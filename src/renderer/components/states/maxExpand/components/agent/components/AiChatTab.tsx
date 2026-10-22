@@ -101,6 +101,10 @@ export function AiChatContent(): React.ReactElement {
     inputRef.current?.focus();
   }, [inputRef, setPendingQuote]);
 
+  const activeWebAccessPrompt = aiWebAccessPrompt?.sessionId === activeAiChatSessionId ? aiWebAccessPrompt : null;
+  const activeLocalToolAccessPrompt = aiLocalToolAccessPrompt?.sessionId === activeAiChatSessionId ? aiLocalToolAccessPrompt : null;
+  const hasActiveAuthorization = Boolean(activeWebAccessPrompt || activeLocalToolAccessPrompt);
+
   /** 回车发送 */
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -232,32 +236,38 @@ export function AiChatContent(): React.ReactElement {
             )}
             <div ref={chatEndRef} />
           </div>
-          {/* 网页访问授权面板 */}
-          {aiWebAccessPrompt?.sessionId === activeAiChatSessionId && (
+
+        </div>
+      </div>
+      {hasActiveAuthorization && (
+        <div className="max-expand-chat-access-drawer" role="dialog"
+          aria-label={t(activeLocalToolAccessPrompt ? 'aiChat.localToolAccess.title' : 'aiChat.webAccess.title')}
+          onWheelCapture={(event) => { event.stopPropagation(); }}
+          onWheel={(event) => { event.stopPropagation(); }}
+        >
+          {activeLocalToolAccessPrompt ? (
+            <LocalToolAccessPanel
+              prompt={activeLocalToolAccessPrompt}
+              resolving={state.resolvingLocalToolAccessDecision}
+              resolveError={state.aiLocalToolAccessResolveError}
+              onResolve={handleResolveLocalToolAccess}
+            />
+          ) : activeWebAccessPrompt && (
             <WebAccessPanel
-              iconUrl={aiWebAccessPrompt.iconUrl}
-              siteName={aiWebAccessPrompt.siteName}
-              hostname={aiWebAccessPrompt.hostname}
-              url={aiWebAccessPrompt.url}
-              message={aiWebAccessPrompt.message}
-              domainPolicy={aiWebAccessPrompt.domainPolicy}
+              iconUrl={activeWebAccessPrompt.iconUrl}
+              siteName={activeWebAccessPrompt.siteName}
+              hostname={activeWebAccessPrompt.hostname}
+              url={activeWebAccessPrompt.url}
+              message={activeWebAccessPrompt.message}
+              domainPolicy={activeWebAccessPrompt.domainPolicy}
               resolving={state.resolvingWebAccessDecision}
               resolveError={state.aiWebAccessResolveError}
               onResolve={handleResolveWebAccess}
               onPolicyChange={handleDomainPolicyChange}
             />
           )}
-          {/* 本地工具访问授权面板 */}
-          {aiLocalToolAccessPrompt?.sessionId === activeAiChatSessionId && (
-            <LocalToolAccessPanel
-              prompt={aiLocalToolAccessPrompt}
-              resolving={state.resolvingLocalToolAccessDecision}
-              resolveError={state.aiLocalToolAccessResolveError}
-              onResolve={handleResolveLocalToolAccess}
-            />
-          )}
         </div>
-      </div>
+      )}
       {/* 输入栏 */}
       <ChatInputBar
         input={state.input}
@@ -282,7 +292,8 @@ export function AiChatContent(): React.ReactElement {
         contextUsageLevelClass={state.contextUsageLevelClass}
         contextUsageInlineText={state.contextUsageInlineText}
         selectedContextLabel={state.selectedContextLabel}
-        showModelCard={state.showModelCard}
+        showModelCard={state.showModelCard && !hasActiveAuthorization}
+        modelCardDisabled={hasActiveAuthorization}
         setShowModelCard={state.setShowModelCard}
         showModelDropdown={state.showModelDropdown}
         setShowModelDropdown={state.setShowModelDropdown}

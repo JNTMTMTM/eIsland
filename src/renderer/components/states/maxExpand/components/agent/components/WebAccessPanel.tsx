@@ -61,35 +61,37 @@ export function WebAccessPanel({
   return (
     <div className="max-expand-chat-web-access-panel">
       <div className="max-expand-chat-web-access-card">
-        <div className="max-expand-chat-web-access-site">
-          {iconUrl ? (
-            <img
-              className="max-expand-chat-web-access-site-icon"
-              src={iconUrl}
-              alt=""
-              loading="lazy"
-            />
-          ) : (
-            <div className="max-expand-chat-web-access-site-fallback">
-              {(siteName || hostname || '?').slice(0, 1).toUpperCase()}
-            </div>
-          )}
-          <div className="max-expand-chat-web-access-site-meta">
-            <div className="max-expand-chat-web-access-site-name">
-              {siteName || hostname || url}
-            </div>
-            {hostname && (
-              <div className="max-expand-chat-web-access-site-host">{hostname}</div>
+        <div className="max-expand-chat-web-access-scroll">
+          <div className="max-expand-chat-web-access-site">
+            {iconUrl ? (
+              <img
+                className="max-expand-chat-web-access-site-icon"
+                src={iconUrl}
+                alt=""
+                loading="lazy"
+              />
+            ) : (
+              <div className="max-expand-chat-web-access-site-fallback">
+                {(siteName || hostname || '?').slice(0, 1).toUpperCase()}
+              </div>
             )}
+            <div className="max-expand-chat-web-access-site-meta">
+              <div className="max-expand-chat-web-access-site-name">
+                {siteName || hostname || url}
+              </div>
+              {hostname && (
+                <div className="max-expand-chat-web-access-site-host">{hostname}</div>
+              )}
+            </div>
           </div>
+          <div className="max-expand-chat-web-access-title">
+            {t('aiChat.webAccess.title', { defaultValue: '网页访问授权' })}
+          </div>
+          <div className="max-expand-chat-web-access-desc">
+            {message || t('aiChat.webAccess.requestHint', { defaultValue: 'Agent 需要访问以下 URL，是否允许？' })}
+          </div>
+          <div className="max-expand-chat-web-access-url">{url}</div>
         </div>
-        <div className="max-expand-chat-web-access-title">
-          {t('aiChat.webAccess.title', { defaultValue: '网页访问授权' })}
-        </div>
-        <div className="max-expand-chat-web-access-desc">
-          {message || t('aiChat.webAccess.requestHint', { defaultValue: 'Agent 需要访问以下 URL，是否允许？' })}
-        </div>
-        <div className="max-expand-chat-web-access-url">{url}</div>
         <div className="max-expand-chat-web-access-actions">
           <button
             type="button"
@@ -205,28 +207,28 @@ export function LocalToolAccessPanel({
             <div className="max-expand-chat-tool-result-title">{t('aiChat.localToolAccess.argumentsTitle', { defaultValue: '参数' })}</div>
             <pre>{toPrettyJson(prompt.argumentsPayload)}</pre>
           </div>
-          <div className="max-expand-chat-web-access-actions">
-            <button
-              type="button"
-              className="max-expand-chat-web-access-btn deny"
-              onClick={() => { onResolve(false); }}
-              disabled={resolving}
-            >
-              {t('aiChat.localToolAccess.deny', { defaultValue: '拒绝执行' })}
-            </button>
-            <button
-              type="button"
-              className="max-expand-chat-web-access-btn allow"
-              onClick={() => { onResolve(true); }}
-              disabled={resolving}
-            >
-              {t('aiChat.localToolAccess.allow', { defaultValue: '允许执行' })}
-            </button>
-          </div>
-          {resolveError && (
-            <div className="max-expand-chat-web-access-error">{resolveError}</div>
-          )}
         </div>
+        <div className="max-expand-chat-web-access-actions">
+          <button
+            type="button"
+            className="max-expand-chat-web-access-btn deny"
+            onClick={() => { onResolve(false); }}
+            disabled={resolving}
+          >
+            {t('aiChat.localToolAccess.deny', { defaultValue: '拒绝执行' })}
+          </button>
+          <button
+            type="button"
+            className="max-expand-chat-web-access-btn allow"
+            onClick={() => { onResolve(true); }}
+            disabled={resolving}
+          >
+            {t('aiChat.localToolAccess.allow', { defaultValue: '允许执行' })}
+          </button>
+        </div>
+        {resolveError && (
+          <div className="max-expand-chat-web-access-error">{resolveError}</div>
+        )}
       </div>
     </div>
   );

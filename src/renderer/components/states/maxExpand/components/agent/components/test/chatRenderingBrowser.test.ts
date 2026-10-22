@@ -20,11 +20,11 @@
 
 /**
  * @file chatRenderingBrowser.test.ts
- * @description 在真实 Electron/React 中验证流式片段即时显示且不重复解析历史消息和格式化会话时间。
+ * @description 在真实 Electron/React 中验证聊天渲染复用、授权侧拉布局与模型卡片互斥。
  * @author 鸡哥
  */
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -32,7 +32,7 @@ import { promisify } from 'node:util';
 import { build } from 'esbuild';
 import { expect, it } from 'vitest';
 
-it('renders each chunk immediately while reusing historical rows in both agent modes', async () => {
+it('reuses historical rows and keeps authorization drawers above the chat without model-card overlap', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'eisland-chat-render-'));
   try {
     const entry = `import React from 'react';
@@ -79,8 +79,9 @@ it('renders each chunk immediately while reusing historical rows in both agent m
       } }],
     });
     await writeFile(join(directory, 'chat.js'), bundle.outputFiles[0].text);
-    await writeFile(join(directory, 'index.html'), '<div id="root"></div><script src="chat.js"></script>');
-    const checks = `(()=>{
+    const css = await readFile('src/renderer/styles/settings/modules/settings-chat.css', 'utf8');
+    await writeFile(join(directory, 'index.html'), `<style>*{box-sizing:border-box}body{margin:0;--color-text-rgb:255,255,255;--color-island-bg:#0a0a0a}#root{display:flex;width:800px;height:380px}${css}</style><div id="root"></div><script src="chat.js"></script>`);
+    const checks = `(async()=>{
       const assert=(condition,message)=>{if(!condition)throw Error(message)};
       const text=()=>document.querySelector('.max-expand-chat-messages').textContent;
       for(const mode of ['mihtnelis','r1pxc']){
@@ -110,6 +111,44 @@ it('renders each chunk immediately while reusing historical rows in both agent m
       assert(document.querySelector('.max-expand-chat-session-item-title').textContent==='Renamed','Session title stayed stale');
       window.chatState={...window.chatState,userAvatarUrl:'data:image/png;base64,avatar'};window.draw();
       assert(document.querySelector('.max-expand-chat-user-avatar').getAttribute('src')==='data:image/png;base64,avatar','Avatar stayed stale');
+      const bounds=()=>document.querySelector('.max-expand-chat-messages').getBoundingClientRect();
+      const original=bounds();
+      window.chatState={...window.chatState,showModelCard:true};window.draw();
+      window.chatState={...window.chatState,aiLocalToolAccessPrompt:{
+        sessionId:'0',requestId:'local',tool:'island.theme.set',riskLevel:'medium',
+        purpose:'Switch to light theme',message:'Allow?',argumentsPayload:{mode:'light',details:'long\\n'.repeat(100)}
+      }};window.draw();
+      document.querySelector('.max-expand-chat-access-drawer').getAnimations().forEach(animation=>animation.finish());
+      const model=document.querySelector('#ai-chat-model-card');
+      assert(model.inert&&model.getAttribute('aria-hidden')==='true','Authorization did not suppress the model card');
+      assert(model.hidden,'Model closing animation must not overlap authorization');
+      assert(document.querySelector('[aria-controls="ai-chat-model-card"]').disabled,'Model toggle was not locked');
+      const after=bounds();
+      assert(after.height===original.height&&after.width===original.width,'Authorization consumed message layout space');
+      for(const [width,height] of [[800,380],[360,280]]){
+        const root=document.getElementById('root');root.style.width=width+'px';root.style.height=height+'px';
+        const drawer=document.querySelector('.max-expand-chat-access-drawer');
+        const rect=drawer.getBoundingClientRect();
+        const actions=drawer.querySelector('.max-expand-chat-web-access-actions');
+        const buttons=actions.getBoundingClientRect();
+        const scroll=drawer.querySelector('.max-expand-chat-local-tool-access-scroll');
+        assert(rect.left===8&&rect.right<=width&&rect.bottom<=height,'Left drawer escaped the chat bounds '+JSON.stringify({width,height,rect:rect.toJSON()}));
+        assert(buttons.bottom<=rect.bottom&&buttons.top>=rect.top,'Authorization actions are clipped');
+        assert(scroll.scrollHeight>scroll.clientHeight,'Long arguments should scroll inside the drawer');
+        assert(!scroll.contains(actions),'Action buttons must remain outside scrolling details');
+      }
+      const card=document.querySelector('.max-expand-chat-web-access-card');
+      assert(getComputedStyle(card).backgroundColor==='rgb(10, 10, 10)','Dark drawer is transparent');
+      document.body.style.setProperty('--color-island-bg','#ffffff');
+      document.body.style.setProperty('--color-text-rgb','20,20,20');
+      document.documentElement.dataset.theme='light';
+      assert(getComputedStyle(card).backgroundColor==='rgb(255, 255, 255)','Light drawer is transparent');
+      window.chatState={...window.chatState,aiLocalToolAccessPrompt:null,aiWebAccessPrompt:{
+        sessionId:'0',requestId:'web',url:'https://example.invalid',message:'Allow?',siteName:'Example'
+      }};window.draw();
+      assert(document.querySelectorAll('[role="dialog"]').length===1,'Authorization drawers overlap');
+      const webActions=document.querySelector('.max-expand-chat-web-access-actions').getBoundingClientRect();
+      assert(webActions.bottom<=280,'Web authorization actions are clipped');
       return 'CHAT_RENDER_PASS: 40 chunks, 0 historical reads, 0 unchanged session date formats';
     })()`;
     const script = `const {app,BrowserWindow}=require('electron');

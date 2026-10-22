@@ -469,14 +469,19 @@ describe('AiChatTab real state and send integration', () => {
     })  }\n\n`));
     await settleHook();
     const tree = run();
-    const web = find(tree, (n) => typeof n.props.onPolicyChange === 'function');
+    expect(elements(tree).some((n) => typeof n.props.onPolicyChange === 'function')).toBe(false);
+    expect(byClass(tree, 'max-expand-chat-access-drawer').props.role).toBe('dialog');
+    expect(input().props.modelCardDisabled).toBe(true);
     const local = find(tree, (n) => typeof n.props.prompt === 'object' && typeof n.props.onResolve === 'function');
-    expect(web.props.hostname).toBe('native.invalid');
     expect(local.props.prompt).toMatchObject({
       sessionId: runtime.store.getState().activeAiChatSessionId,
       requestId: 'local',
       tool: 'file.delete'
     });
+    fetchLeaf.mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    await invoke(local, 'onResolve', false);
+    const web = find(run(), (n) => typeof n.props.onPolicyChange === 'function');
+    expect(web.props.hostname).toBe('native.invalid');
     runtime.store.getState().createNewAiChatSession();
     expect(elements(run()).some((n) => typeof n.props.onPolicyChange === 'function')).toBe(false);
     expect(elements(run()).some((n) => typeof n.props.prompt === 'object' && typeof n.props.onResolve === 'function')).toBe(false);
