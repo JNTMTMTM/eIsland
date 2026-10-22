@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "~5.0.5",
-    "node-gyp": "^11.2.0",
+    "node-gyp": "^13.1.0",
     "vitest": "~5.0.5"
   },
   "files": [
