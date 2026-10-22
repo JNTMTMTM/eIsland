@@ -161,6 +161,25 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('useChatSend real stream lifecycle', () => {
+  it('cloud matches out-of-order results by request id and ignores completed request redelivery', async () => {
+    select('cloud');
+    drive((request) => {
+      const call = { tool: 'file.read', arguments: {}, authorizationRequired: false };
+      emit(request, 'tool_call_request', { ...call, requestId: 'first', turn: 1 });
+      emit(request, 'tool_call_request', { ...call, requestId: 'second', turn: 2 });
+      emit(request, 'tool_call_result', { tool: 'file.read', requestId: 'first', turn: 1, success: true, result: { value: 'first' } });
+      emit(request, 'tool_call_request', { ...call, requestId: 'first', turn: 1 });
+      emit(request, 'tool_call_result', { tool: 'file.read', requestId: 'second', turn: 2, success: false, result: {}, error: 'denied' });
+      emit(request, 'final', { done: true });
+      return Promise.resolve();
+    });
+    await run().send.handleSend();
+    expect(last()?.toolCalls).toEqual([
+      expect.objectContaining({ requestId: 'first', pending: false, success: true, result: { value: 'first' } }),
+      expect.objectContaining({ requestId: 'second', pending: false, success: false, error: 'denied' }),
+    ]);
+    expect(leaves.execute).toHaveBeenCalledTimes(2);
+  });
   it.each(['ollama', 'direct', 'cloud'] as const)('%s tool results without previous calls and tool defaults use real empty metadata', async (provider) => {
     select(provider);
     drive(async (request) => {

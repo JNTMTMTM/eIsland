@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { AgentToolCallGuard } from '../../../shared/agentToolCallGuard';
 import { streamOpenAIChat } from './openaiCompatClient';
 import type { OpenAIChatMessage, OpenAIStreamChunk } from './openaiCompatClient';
 import type { AgentLocalToolResult } from './localToolIpc';
@@ -163,6 +164,7 @@ export async function orchestrateCustomDirectChat(
     payload: { phase: 'orchestrating', message: '正在处理中…' },
   });
 
+  const toolCallGuard = new AgentToolCallGuard<AgentLocalToolResult>();
   let scratchpad = '';
   let turn = 0;
   let totalInputTokens = 0;
@@ -262,36 +264,41 @@ export async function orchestrateCustomDirectChat(
         callbacks.onEvent({ type: 'stream_rollback', payload: {} });
       }
 
-      callbacks.onEvent({
-        type: 'tool_call_request',
-        payload: {
-          turn,
-          tool,
-          purpose,
-          arguments: toolArgs,
-          riskLevel: 'local',
-        },
-      });
+      const toolResult = await toolCallGuard.run(tool, toolArgs, async () => {
+        callbacks.onEvent({
+          type: 'tool_call_request',
+          payload: {
+            turn,
+            tool,
+            purpose,
+            arguments: toolArgs,
+            riskLevel: 'local',
+          },
+        });
 
-      let toolResult: AgentLocalToolResult;
-      try {
-        toolResult = await callbacks.executeLocalTool({ tool, arguments: toolArgs });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        toolResult = { success: false, result: {}, error: msg, durationMs: 0 };
-      }
+        let toolResult: AgentLocalToolResult;
+        try {
+          toolResult = await callbacks.executeLocalTool({ tool, arguments: toolArgs });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          toolResult = { success: false, result: {}, error: msg, durationMs: 0 };
+        }
 
-      callbacks.onEvent({
-        type: 'tool_call_result',
-        payload: {
-          turn,
-          tool,
-          success: toolResult.success,
-          result: toolResult.result,
-          error: toolResult.error,
-          durationMs: toolResult.durationMs,
-        },
+        callbacks.onEvent({
+          type: 'tool_call_result',
+          payload: {
+            turn,
+            tool,
+            success: toolResult.success,
+            result: toolResult.result,
+            error: toolResult.error,
+            durationMs: toolResult.durationMs,
+          },
+        });
+
+        return toolResult;
       });
+      if (toolCallGuard.stopped) break;
 
       let obsJson: string;
       try {

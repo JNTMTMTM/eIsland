@@ -69,7 +69,7 @@ test('agent theme tools apply immediately to the invoking window and other open 
   expect(desktop.rendererErrors).toEqual([]);
 });
 
-(['normal', 'missed-broadcast', 'apply-failed'] as const).forEach((scenario) => {
+(['normal', 'missed-broadcast', 'apply-failed', 'result-retry'] as const).forEach((scenario) => {
   test(`agent authorization confirms the theme before submitting results (${scenario})`, async ({ desktop }) => {
     const page = desktop.main;
     if (scenario === 'missed-broadcast') {
@@ -83,12 +83,13 @@ test('agent theme tools apply immediately to the invoking window and other open 
         };
       });
     }
-    await page.evaluate(async () => {
+    await page.evaluate(async (scenario) => {
       localStorage.setItem('user-account-token', `header.${btoa(JSON.stringify({ role: 'pro' }))}.signature`);
       window.dispatchEvent(new Event('user-account-session-changed'));
       await window.api.maxexpandMouseleaveIdleSet(false);
       const originalFetch = window.fetch.bind(window);
       let stream: ReadableStreamDefaultController<Uint8Array>;
+      let resultSubmissions = 0;
       const emit = (type: string, payload: unknown): void => {
         stream.enqueue(new TextEncoder().encode(`event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`));
       };
@@ -107,7 +108,9 @@ test('agent theme tools apply immediately to the invoking window and other open 
         if (url.endsWith('/ai/agent/tool-result')) {
           if (typeof init?.body !== 'string') throw new Error('Expected a JSON local-tool submission');
           const submission = JSON.parse(init.body) as Record<string, unknown>;
-          Object.assign(window, { agentThemeSubmission: submission });
+          resultSubmissions += 1;
+          Object.assign(window, { agentThemeSubmission: submission, agentThemeSubmissionCount: resultSubmissions });
+          if (scenario === 'result-retry' && resultSubmissions === 1) return new Response('temporary failure', { status: 503 });
           emit('tool_call_result', { ...submission, turn: 1, tool: 'island.theme.set' });
           emit('chunk', { text: 'Theme changed' });
           emit('final', { done: true, traceId: 'theme-test' });
@@ -116,7 +119,7 @@ test('agent theme tools apply immediately to the invoking window and other open 
         }
         return originalFetch(input, init);
       };
-    });
+    }, scenario);
     if (scenario === 'apply-failed') {
       await page.evaluate(() => {
         const root = document.documentElement;
@@ -139,9 +142,35 @@ test('agent theme tools apply immediately to the invoking window and other open 
     await expect.poll(() => page.evaluate(() => (window as typeof window & { agentThemeSubmission?: unknown }).agentThemeSubmission))
       .toMatchObject({ success: scenario !== 'apply-failed', result: { mode: 'light', applied: scenario !== 'apply-failed' } });
     expect(await page.evaluate(() => window.api.themeModeGet())).toBe('light');
+    if (scenario === 'result-retry') {
+      expect(await page.evaluate(() => (window as typeof window & { agentThemeSubmissionCount?: number }).agentThemeSubmissionCount)).toBe(2);
+    }
     await expect(page.locator('.max-expand-chat-access-drawer')).toHaveCount(0);
     expect(desktop.rendererErrors).toEqual([]);
   });
+});
+
+test('duplicate local tool deliveries execute once across concurrent windows and later retries', async ({ desktop }) => {
+  const standalone = await desktop.openStandalone();
+  const request = { requestId: 'create-once', tool: 'todolist.create', arguments: { text: 'one persisted task' } };
+  const results = await Promise.all([desktop.main, standalone].map((page) =>
+    page.evaluate((request) => window.api.executeAgentLocalTool(request), request)));
+  expect(results[0]).toEqual(results[1]);
+  expect(results[0].success).toBe(true);
+  await standalone.evaluate((request) => window.api.executeAgentLocalTool(request), request);
+  await expect.poll(() => readTodos(desktop.userData)).toEqual([
+    expect.objectContaining({ text: 'one persisted task' }),
+  ]);
+  const conflict = await desktop.main.evaluate((request) => window.api.executeAgentLocalTool({
+    ...request, arguments: { text: 'unexpected duplicate' },
+  }), request);
+  expect(conflict).toMatchObject({ success: false, error: 'TOOL_REQUEST_ID_CONFLICT' });
+  const next = await desktop.main.evaluate((request) => window.api.executeAgentLocalTool({
+    ...request, requestId: 'new-user-request',
+  }), request);
+  expect(next.success).toBe(true);
+  await expect.poll(() => readTodos(desktop.userData)).toHaveLength(2);
+  expect(desktop.rendererErrors).toEqual([]);
 });
 
 test('adds, edits and completes a todo, restores it after restart, then deletes it', async ({ desktop }) => {

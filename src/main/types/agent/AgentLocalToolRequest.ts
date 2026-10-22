@@ -26,6 +26,8 @@
 
 /** Agent 本地工具请求 */
 export interface AgentLocalToolRequest {
+  /** 云端调用 ID，用于重复投递时复用同一次执行结果。 */
+  requestId?: unknown;
   /** 工具名称 */
   tool?: unknown;
   /** 工具参数 */

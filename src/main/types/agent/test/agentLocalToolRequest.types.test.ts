@@ -29,6 +29,7 @@ import type { AgentLocalToolRequest } from "../AgentLocalToolRequest";
 
 /** 固定 AgentLocalToolRequest 的完整公开形状，独立于源类型展开。 */
 interface ExpectedAgentLocalToolRequest {
+  requestId?: unknown;
   tool?: unknown;
   arguments?: unknown;
   workspaces?: unknown;

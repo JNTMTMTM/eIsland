@@ -26,6 +26,7 @@
 
 /** Agent 本地工具执行请求 */
 export interface ExecuteAgentLocalToolRequest {
+  requestId?: string;
   tool: string;
   arguments?: Record<string, unknown>;
   workspaces?: string[];

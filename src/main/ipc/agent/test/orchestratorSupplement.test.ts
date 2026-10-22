@@ -97,6 +97,24 @@ describe.each([
   ['ollama', orchestrateOllamaChat],
 ] as const)('%s real orchestrator parser and lifecycle', (provider, orchestrate) => {
   const callbacks = { onEvent: (event: Event): void => { events.push(event); }, executeLocalTool: execute };
+  it.each([true, false])('reuses tool results and stops a repeated decision loop (success=%s)', async (success) => {
+    execute.mockResolvedValue({ success, result: { id: 'once' }, error: success ? '' : 'denied', durationMs: 1 });
+    turns.push(...Array.from({ length: 3 }, () => ({ chunks: ['{"type":"tool_call","tool":"todolist.create","arguments":{"text":"once"}}'] })));
+    await orchestrate(request, callbacks);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(events.filter((event) => event.type === 'tool_call_request')).toHaveLength(1);
+    expect(events.filter((event) => event.type === 'tool_call_result')).toHaveLength(1);
+    expect(events.at(-1)?.type).toBe('final');
+    expect(turns).toHaveLength(0);
+  });
+  it('can finish normally after one repeated tool decision without adding a ghost card', async () => {
+    const chunks = ['{"type":"tool_call","tool":"island.theme.get","arguments":{}}'];
+    turns.push({ chunks }, { chunks }, { chunks: ['{"type":"final","answer":"done"}'] });
+    await orchestrate(request, callbacks);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(visibleText()).toBe('done');
+    expect(events.filter((event) => event.type === 'tool_call_request')).toHaveLength(1);
+  });
   it.each(['plain answer', '{', '}{', '{}', '{"type":"other","answer":""}', '{"type":"other","answer":3}'])('finalizes unknown output %s without running tools', async (text) => {
     turns.push({ chunks: [text] });
     await orchestrate(request, callbacks);

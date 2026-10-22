@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   resolveMihtnelisLocalToolAccess,
@@ -105,6 +105,10 @@ interface UseChatSendResult {
 /** AI 对话消息发送 Hook */
 export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
   const { t } = useTranslation();
+  const localToolSubmissions = useRef(new Map<string, { promise: Promise<void>; finished: boolean }>());
+  const localToolDecisions = useRef(new Set<string>());
+  const latestLocalToolPrompt = useRef(state.aiLocalToolAccessPrompt);
+  latestLocalToolPrompt.current = state.aiLocalToolAccessPrompt;
 
   const {
     input, setInput,
@@ -141,78 +145,96 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
     tool: string;
     argumentsPayload: Record<string, unknown>;
   }): Promise<void> => {
-    const executor = window.api?.executeAgentLocalTool;
-    if (typeof executor !== 'function') {
+    const previous = localToolSubmissions.current.get(params.requestId);
+    if (previous) return previous.promise;
+    const submission = (async (): Promise<void> => {
+      const executor = window.api?.executeAgentLocalTool;
+      if (typeof executor !== 'function') {
+        await resolveMihtnelisLocalToolResult({
+          token: params.token,
+          requestId: params.requestId,
+          success: false,
+          result: {},
+          error: 'LOCAL_RUNTIME_UNAVAILABLE',
+          durationMs: 0,
+        });
+        return;
+      }
+      let execution: {
+        success?: boolean;
+        result?: unknown;
+        error?: string;
+        durationMs?: number;
+      };
+      try {
+        execution = await executor({
+          requestId: params.requestId,
+          tool: params.tool,
+          arguments: params.argumentsPayload,
+          workspaces: aiConfig.workspaces,
+        });
+      } catch (error: unknown) {
+        execution = {
+          success: false,
+          result: {},
+          error: error instanceof Error
+            ? error.message
+            : t('aiChat.messages.localToolExecuteFailed', { defaultValue: '本地工具执行失败' }),
+          durationMs: 0,
+        };
+      }
+      if (execution?.success && params.tool.trim().toLowerCase() === 'island.theme.set') {
+        const result = execution.result && typeof execution.result === 'object'
+          ? execution.result as Record<string, unknown>
+          : {};
+        const { mode } = result;
+        try {
+          if (mode !== 'dark' && mode !== 'light' && mode !== 'system') {
+            throw new Error(t('aiChat.messages.localToolExecuteFailed'));
+          }
+          const { getThemeMode, setThemeMode } = await import('../../../../../../utils/theme');
+          // 写入成功不代表当前窗口已应用；开发热更新或广播未送达时，复用手动切换的入口补应用。
+          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          const visualTheme = mode === 'system' ? systemTheme : mode;
+          if (getThemeMode() !== mode || document.documentElement.getAttribute('data-theme') !== visualTheme) {
+            await setThemeMode(mode);
+          }
+          const currentSystemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          const expectedTheme = mode === 'system' ? currentSystemTheme : mode;
+          if (document.documentElement.getAttribute('data-theme') !== expectedTheme) {
+            throw new Error(t('aiChat.messages.localToolExecuteFailed'));
+          }
+        } catch (error: unknown) {
+          execution = {
+            ...execution,
+            success: false,
+            result: { ...result, applied: false },
+            error: error instanceof Error ? error.message : t('aiChat.messages.localToolExecuteFailed'),
+          };
+        }
+      }
       await resolveMihtnelisLocalToolResult({
         token: params.token,
         requestId: params.requestId,
-        success: false,
-        result: {},
-        error: 'LOCAL_RUNTIME_UNAVAILABLE',
-        durationMs: 0,
+        success: Boolean(execution?.success),
+        result: execution?.result,
+        error: typeof execution?.error === 'string' ? execution.error : '',
+        durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
       });
-      return;
-    }
-    let execution: {
-      success?: boolean;
-      result?: unknown;
-      error?: string;
-      durationMs?: number;
-    } = {};
+    })();
+    const entry = { promise: submission, finished: false };
+    localToolSubmissions.current.set(params.requestId, entry);
     try {
-      execution = await executor({
-        tool: params.tool,
-        arguments: params.argumentsPayload,
-        workspaces: aiConfig.workspaces,
-      });
+      await submission;
     } catch (error: unknown) {
-      execution = {
-        success: false,
-        result: {},
-        error: error instanceof Error
-          ? error.message
-          : t('aiChat.messages.localToolExecuteFailed', { defaultValue: '本地工具执行失败' }),
-        durationMs: 0,
-      };
+      localToolSubmissions.current.delete(params.requestId);
+      throw error;
+    } finally {
+      entry.finished = true;
+      localToolSubmissions.current.forEach((cached, requestId) => {
+        if (localToolSubmissions.current.size > 256 && cached.finished) localToolSubmissions.current.delete(requestId);
+      });
     }
-    if (execution?.success && params.tool.trim().toLowerCase() === 'island.theme.set') {
-      const result = execution.result && typeof execution.result === 'object'
-        ? execution.result as Record<string, unknown>
-        : {};
-      const { mode } = result;
-      try {
-        if (mode !== 'dark' && mode !== 'light' && mode !== 'system') {
-          throw new Error(t('aiChat.messages.localToolExecuteFailed'));
-        }
-        const { getThemeMode, setThemeMode } = await import('../../../../../../utils/theme');
-        // 写入成功不代表当前窗口已应用；开发热更新或广播未送达时，复用手动切换的入口补应用。
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        const visualTheme = mode === 'system' ? systemTheme : mode;
-        if (getThemeMode() !== mode || document.documentElement.getAttribute('data-theme') !== visualTheme) {
-          await setThemeMode(mode);
-        }
-        const currentSystemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        const expectedTheme = mode === 'system' ? currentSystemTheme : mode;
-        if (document.documentElement.getAttribute('data-theme') !== expectedTheme) {
-          throw new Error(t('aiChat.messages.localToolExecuteFailed'));
-        }
-      } catch (error: unknown) {
-        execution = {
-          ...execution,
-          success: false,
-          result: { ...result, applied: false },
-          error: error instanceof Error ? error.message : t('aiChat.messages.localToolExecuteFailed'),
-        };
-      }
-    }
-    await resolveMihtnelisLocalToolResult({
-      token: params.token,
-      requestId: params.requestId,
-      success: Boolean(execution?.success),
-      result: execution?.result,
-      error: typeof execution?.error === 'string' ? execution.error : '',
-      durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
-    });
   }, [aiConfig.workspaces, t]);
 
   /** 发送消息并调用 API */
@@ -732,10 +754,11 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
                 for (let i = oldCalls.length - 1; i >= 0; i--) {
                   const current = oldCalls[i];
                   if (!current) continue;
-                  const requestMatched = Boolean(requestId) && Boolean(current.requestId) && current.requestId === requestId;
-                  const turnMatched = turn > 0 && current.turn === turn && current.tool === tool;
-                  const pendingMatched = current.pending && current.tool === tool;
-                  if (requestMatched || turnMatched || pendingMatched) {
+                  // 有请求标识时严格匹配，不能把旧结果写进同名的新调用。
+                  let matches = current.pending && current.tool === tool;
+                  if (turn > 0) matches = current.turn === turn && current.tool === tool;
+                  if (requestId && current.requestId) matches = current.requestId === requestId;
+                  if (matches) {
                     oldCalls[i] = { ...current, tool, pending: false, success, error, result, durationMs };
                     matched = true;
                     break;
@@ -814,6 +837,9 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
                 ? payload.arguments as Record<string, unknown>
                 : {};
               if (!tool) return;
+              const existingCall = useIslandStore.getState().aiChatSessions.find((session) => session.id === targetSessionId)
+                ?.messages.at(-1)?.toolCalls?.find((call) => requestId && call.requestId === requestId);
+              if (existingCall && !existingCall.pending) return;
               updateTargetMessages(prev => {
                 const copy = [...prev];
                 const last = copy[copy.length - 1];
@@ -821,7 +847,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
                 const oldCalls = Array.isArray(last.toolCalls) ? [...last.toolCalls] : [];
                 const alreadyExists = oldCalls.some((c) => {
                   if (!c) return false;
-                  if (requestId && c.requestId === requestId) return true;
+                  if (requestId && c.requestId) return c.requestId === requestId;
                   if (turn > 0 && c.turn === turn && c.tool === tool) return true;
                   return false;
                 });
@@ -839,6 +865,10 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
               if (!isClientLocalTool || !requestId) return;
               const needsAuthorization = authorizationRequired || isHighRiskLocalToolName(tool);
               if (needsAuthorization) {
+                if (localToolDecisions.current.has(requestId)
+                  || localToolSubmissions.current.get(requestId)?.finished
+                  || latestLocalToolPrompt.current?.requestId === requestId) return;
+                setResolvingLocalToolAccessDecision(false);
                 setAiLocalToolAccessPrompt({
                   sessionId: targetSessionId,
                   requestId, tool, purpose,
@@ -902,13 +932,13 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
                   const current = oldCalls[i];
                   if (!current) continue;
                   const turnMatched = toolTurn > 0 && current.turn === toolTurn && current.tool === toolName;
-                  const pendingMatched = current.pending && current.tool === toolName;
+                  const pendingMatched = toolTurn <= 0 && current.pending && current.tool === toolName;
                   if (turnMatched || pendingMatched) {
                     oldCalls[i] = { ...current, pending: false, success: toolSuccess, error: toolError, result: toolResult, arguments: toolArgs };
                     matched = true;
                     break;
                   }
-                  if (!current.pending && current.tool === toolName) {
+                  if (toolTurn <= 0 && !current.pending && current.tool === toolName) {
                     matched = true;
                     break;
                   }
@@ -1075,7 +1105,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
     selectedProvider, hasCustomApiCredentials, contextUsageTokens, selectedContextLimit,
     pendingAttachments, state.pendingQuote,
     setAiChatStreaming, setAiChatSessionMessages, markAiChatSessionReplyFinished, setAiChatMessages,
-    setAiWebAccessPrompt, setAiWebAccessResolveError, setAiLocalToolAccessPrompt, setAiLocalToolAccessResolveError,
+    setAiWebAccessPrompt, setAiWebAccessResolveError, setAiLocalToolAccessPrompt, setAiLocalToolAccessResolveError, setResolvingLocalToolAccessDecision,
     setResolvingWebAccessDecision, setResolvingLocalToolAccessDecision,
     setMaxExpandTab, setVisibleWindowStart, setInput,
     setPendingAttachments, setPendingQuote,
@@ -1259,6 +1289,9 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
   const handleResolveLocalToolAccess = useCallback(async (allow: boolean): Promise<void> => {
     const localToken = readLocalToken();
     if (!localToken || !aiLocalToolAccessPrompt?.requestId) return;
+    const { requestId } = aiLocalToolAccessPrompt;
+    if (localToolDecisions.current.has(requestId)) return;
+    localToolDecisions.current.add(requestId);
     setResolvingLocalToolAccessDecision(true);
     setAiLocalToolAccessResolveError('');
     try {
@@ -1268,7 +1301,11 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
         allow,
       });
       if (!allow) {
-        setAiLocalToolAccessPrompt(null);
+        localToolSubmissions.current.set(requestId, { promise: Promise.resolve(), finished: true });
+        localToolSubmissions.current.forEach((entry, id) => {
+          if (localToolSubmissions.current.size > 256 && entry.finished) localToolSubmissions.current.delete(id);
+        });
+        setAiLocalToolAccessPrompt((current) => current?.requestId === requestId ? null : current);
         return;
       }
       await executeAndSubmitLocalToolResult({
@@ -1277,12 +1314,12 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
         tool: aiLocalToolAccessPrompt.tool,
         argumentsPayload: aiLocalToolAccessPrompt.argumentsPayload,
       });
-      setAiLocalToolAccessPrompt(null);
+      setAiLocalToolAccessPrompt((current) => current?.requestId === requestId ? null : current);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : t('aiChat.messages.unknownError', { defaultValue: '未知错误' });
       if (errMsg.toLowerCase().includes('pending local tool request not found')) {
-        setAiLocalToolAccessPrompt(null);
-        updateMessages(prev => ([
+        setAiLocalToolAccessPrompt((current) => current?.requestId === requestId ? null : current);
+        updateMessages((prev) => ([
           ...prev,
           {
             role: 'assistant',
@@ -1293,9 +1330,11 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
         ]));
         return;
       }
-      setAiLocalToolAccessResolveError(errMsg);
+      if (latestLocalToolPrompt.current?.requestId === requestId) setAiLocalToolAccessResolveError(errMsg);
     } finally {
-      setResolvingLocalToolAccessDecision(false);
+      localToolDecisions.current.delete(requestId);
+      const currentPrompt = latestLocalToolPrompt.current;
+      if (!currentPrompt || currentPrompt.requestId === requestId) setResolvingLocalToolAccessDecision(false);
     }
   }, [t, aiLocalToolAccessPrompt, executeAndSubmitLocalToolResult, updateMessages, setAiLocalToolAccessPrompt, setAiLocalToolAccessResolveError, setResolvingLocalToolAccessDecision]);
 

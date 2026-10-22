@@ -223,20 +223,31 @@ export async function resolveMihtnelisLocalToolResult(request: ResolveMihtnelisL
     headers['X-Client-Version'] = version;
   }
 
-  const response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/tool-result`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      requestId,
-      success: Boolean(request.success),
-      result: request.result ?? {},
-      error: request.error ?? '',
-      durationMs: Number.isFinite(request.durationMs) ? Math.max(0, Number(request.durationMs)) : 0,
-    }),
+  const body = JSON.stringify({
+    requestId,
+    success: Boolean(request.success),
+    result: request.result ?? {},
+    error: request.error ?? '',
+    durationMs: Number.isFinite(request.durationMs) ? Math.max(0, Number(request.durationMs)) : 0,
   });
-  if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    throw new Error(`本地工具结果提交失败 (${response.status}): ${body || response.statusText}`);
+  // 只重传结果，不重新执行工具；每次重传使用独立防重放签名。
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let response: Response;
+    try {
+      // 按顺序提交同一结果，避免并行重试造成结果竞争。
+      // eslint-disable-next-line no-await-in-loop -- 同一结果必须串行回传以保证请求幂等
+      response = await fetch(`${USER_ACCOUNT_API_BASE}/v1/user/ai/agent/tool-result`, {
+        body, method: 'POST', headers: { ...headers, ...buildReplayHeaders() },
+      });
+    } catch (error: unknown) {
+      if (attempt < 2) continue;
+      throw error;
+    }
+    if (response.ok) return;
+    // eslint-disable-next-line no-await-in-loop -- 同一结果必须串行回传以保证请求幂等
+    const message = await response.text().catch(() => '');
+    if (response.status >= 500 && attempt < 2) continue;
+    throw new Error(`本地工具结果提交失败 (${response.status}): ${message || response.statusText}`);
   }
 }
 

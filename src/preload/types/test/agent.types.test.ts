@@ -30,6 +30,7 @@ describe('agent contracts', () => {
   it('fixes ExecuteAgentLocalToolRequest fields and accepts its explicit legal fixture', () => {
     expectTypeOf<ExecuteAgentLocalToolRequest>().toEqualTypeOf<{
       tool: string;
+      requestId?: string;
       arguments?: Record<string, unknown>;
       workspaces?: string[];
     }>();
