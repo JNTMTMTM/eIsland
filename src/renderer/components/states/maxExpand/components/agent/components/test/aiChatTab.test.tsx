@@ -36,14 +36,14 @@ import { AssistantMarkdown } from '../AssistantMarkdown';
 import { WebAccessPanel, LocalToolAccessPanel } from '../WebAccessPanel';
 interface MessageFixture { role: string; content: string; attachments?: { name: string }[]; }
 interface PromptFixture { sessionId: string; url?: string; message?: string; tool?: string; }
-const state = vi.hoisted(() => ({ hasLoginSession: true, agentMode: 'mihtnelis', currentAgentModeConfig: { label: 'Island' }, dominantColor: [0, 200, 0], orderedSessions: [] as { id: string; title: string; updatedAt: number }[], aiChatMessages: [] as MessageFixture[], visibleMessages: [] as MessageFixture[], aiChatStreaming: false, aiWebAccessPrompt: null as PromptFixture | null, aiLocalToolAccessPrompt: null as PromptFixture | null, emptyGreeting: 'Welcome', aiConfig: {}, activeAiChatSessionId: 'active', visibleStartIndex: 0, VISIBLE_CHAT_WINDOW_SIZE: 20, VISIBLE_CHAT_WINDOW_STEP: 10, inputRef: { current: { focus: vi.fn() } }, setLogin: vi.fn(), setRegister: vi.fn(), handleCreateNewChat: vi.fn(), getSessionCardState: () => 'idle', switchAiChatSession: vi.fn().mockResolvedValue(undefined), setAiChatStreaming: vi.fn(), setVisibleWindowStart: vi.fn(), setResolvingWebAccessDecision: vi.fn(), setResolvingLocalToolAccessDecision: vi.fn(), setPendingQuote: vi.fn(), deleteAiChatSession: vi.fn().mockResolvedValue(undefined) }));
+const state = vi.hoisted(() => ({ hasLoginSession: true, agentMode: 'mihtnelis', currentAgentModeConfig: { label: 'Island' }, dominantColor: [0, 200, 0], orderedSessions: [] as { id: string; title: string; updatedAt: number }[], aiChatMessages: [] as MessageFixture[], aiChatStreaming: false, aiWebAccessPrompt: null as PromptFixture | null, aiLocalToolAccessPrompt: null as PromptFixture | null, emptyGreeting: 'Welcome', aiConfig: {}, activeAiChatSessionId: 'active', inputRef: { current: { focus: vi.fn() } }, setLogin: vi.fn(), setRegister: vi.fn(), handleCreateNewChat: vi.fn(), getSessionCardState: () => 'idle', switchAiChatSession: vi.fn().mockResolvedValue(undefined), setAiChatStreaming: vi.fn(), setResolvingWebAccessDecision: vi.fn(), setResolvingLocalToolAccessDecision: vi.fn(), setPendingQuote: vi.fn(), deleteAiChatSession: vi.fn().mockResolvedValue(undefined) }));
 const send = vi.hoisted(() => ({ handleSend: vi.fn(), navigateToSettingsTab: vi.fn(), handleResolveWebAccess: vi.fn(), handleResolveLocalToolAccess: vi.fn() }));
 vi.mock('../../../../../../../store/slices', () => ({ default: vi.fn() }));
 vi.mock('../../hooks/useChatState', () => ({ useChatState: () => state, SESSION_STREAMING_IDS: new Set(['other']) }));
 vi.mock('../../hooks/useChatSend', () => ({ useChatSend: () => send }));
 vi.mock('../MessageTimeline', () => ({ MessageTimeline: () => null }));
 describe('AiChatTab', () => {
-  beforeEach(() => { state.hasLoginSession = true; state.agentMode = 'mihtnelis'; state.orderedSessions = []; state.aiChatMessages = []; state.visibleMessages = []; state.aiChatStreaming = false; state.aiWebAccessPrompt = null; state.aiLocalToolAccessPrompt = null; });
+  beforeEach(() => { state.hasLoginSession = true; state.agentMode = 'mihtnelis'; state.orderedSessions = []; state.aiChatMessages = []; state.aiChatStreaming = false; state.aiWebAccessPrompt = null; state.aiLocalToolAccessPrompt = null; });
   afterEach(() => { vi.unstubAllGlobals(); });
   it('offers login and registration before rendering the authenticated chat', () => {
     state.hasLoginSession = false;
@@ -74,8 +74,7 @@ describe('AiChatTab', () => {
     expect(state.deleteAiChatSession).toHaveBeenCalledWith('active'); expect(event.stopPropagation).toHaveBeenCalledOnce();
   });
   it('skips empty assistants and renders user attachments and real timeline boundaries', () => {
-    state.visibleMessages = [{ role: 'assistant', content: '' }, { role: 'user', content: '<attachment name="note.txt">\nsecret\n</attachment>\nHello', attachments: [{ name: 'note.txt' }] }, { role: 'assistant', content: 'answer' }];
-    state.aiChatMessages = state.visibleMessages;
+    state.aiChatMessages = [{ role: 'assistant', content: '' }, { role: 'user', content: '<attachment name="note.txt">\nsecret\n</attachment>\nHello', attachments: [{ name: 'note.txt' }] }, { role: 'assistant', content: 'answer' }];
     const tree = render(Component);
     expect(nodes(tree, MessageTimeline)).toHaveLength(1);
     expect(text(tree)).toContain('note.txtHello'); expect(text(tree)).not.toContain('secret');
@@ -84,7 +83,7 @@ describe('AiChatTab', () => {
   });
   it('renders r1pxc segments, quotation actions and streaming feedback', () => {
     state.agentMode = 'r1pxc'; state.aiChatStreaming = true;
-    state.visibleMessages = [{ role: 'assistant', content: '> 引用: original\n\nanswer\n\nnext' }]; state.aiChatMessages = state.visibleMessages;
+    state.aiChatMessages = [{ role: 'assistant', content: '> 引用: original\n\nanswer\n\nnext' }];
     const writeText = vi.fn().mockResolvedValue(undefined); vi.stubGlobal('navigator', { clipboard: { writeText } });
     const tree = render(Component);
     expect(nodes(tree, AssistantMarkdown)).toHaveLength(2);
@@ -106,8 +105,7 @@ describe('AiChatTab', () => {
     expect(value(render(Component), WebAccessPanel, 'onResolve')).toBe(send.handleResolveWebAccess);
   });
   it('keeps avatar navigation and session deletion accessible from the keyboard', () => {
-    state.visibleMessages = [{ role: 'user', content: 'question' }];
-    state.aiChatMessages = state.visibleMessages;
+    state.aiChatMessages = [{ role: 'user', content: 'question' }];
     state.orderedSessions = [{ id: 'active', title: 'Current', updatedAt: 1 }];
     const tree = render(Component);
     const event = { key: 'Enter', preventDefault: vi.fn(), stopPropagation: vi.fn() };

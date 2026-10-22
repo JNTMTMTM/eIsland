@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { SESSION_STREAMING_IDS } from '../hooks/useChatState';
 import { useChatState } from '../hooks/useChatState';
 import { useChatSend } from '../hooks/useChatSend';
-import ChatMessage from './chatMessage';
+import { VirtualChatMessages } from './virtualChatMessages';
 import ChatSessionItem from './chatSessionItem';
 import { WebAccessPanel, LocalToolAccessPanel } from './WebAccessPanel';
 import { ChatInputBar } from './ChatInputBar';
@@ -47,14 +47,12 @@ export function AiChatContent(): React.ReactElement {
 
   const {
     isProUser,
-    chatRootRef, chatEndRef, inputRef,
+    chatRootRef, inputRef,
     agentMode,
     showSessionSidebar,
     hasLoginSession, userAvatarUrl,
     currentAgentModeConfig,
-    setVisibleWindowStart,
-    hasUpperHiddenMessages, hasLowerHiddenMessages,
-    emptyGreeting, visibleMessages, visibleStartIndex,
+    emptyGreeting, hasActiveTextSelection,
     orderedSessions, getSessionCardState,
     aiChatMessages, aiChatStreaming, activeAiChatSessionId,
     aiWebAccessPrompt, aiLocalToolAccessPrompt,
@@ -64,7 +62,6 @@ export function AiChatContent(): React.ReactElement {
     deleteAiChatSession,
     setLogin, setRegister,
     dominantColor,
-    VISIBLE_CHAT_WINDOW_SIZE, VISIBLE_CHAT_WINDOW_STEP,
   } = state;
 
   const {
@@ -86,11 +83,10 @@ export function AiChatContent(): React.ReactElement {
     if (id === activeAiChatSessionId) return;
     void switchAiChatSession(id).catch(() => {});
     setAiChatStreaming(SESSION_STREAMING_IDS.has(id));
-    setVisibleWindowStart(0);
     setResolvingWebAccessDecision(false);
     setResolvingLocalToolAccessDecision(false);
     setPendingQuote(null);
-  }, [activeAiChatSessionId, switchAiChatSession, setAiChatStreaming, setVisibleWindowStart,
+  }, [activeAiChatSessionId, switchAiChatSession, setAiChatStreaming,
     setResolvingWebAccessDecision, setResolvingLocalToolAccessDecision, setPendingQuote]);
   const handleDeleteSession = useCallback((id: string): void => {
     void deleteAiChatSession(id).catch(() => {});
@@ -178,21 +174,19 @@ export function AiChatContent(): React.ReactElement {
         </aside>
         <div className="max-expand-chat-content">
           {/* 消息列表 */}
-          <div className="max-expand-chat-messages">
-            {hasUpperHiddenMessages && (
-              <div className="max-expand-chat-history-tip">
-                <button
-                  type="button"
-                  className="max-expand-chat-history-load-more"
-                  onClick={() => {
-                    setVisibleWindowStart(prev => Math.max(0, prev - VISIBLE_CHAT_WINDOW_STEP));
-                  }}
-                >
-                  {t('aiChat.actions.loadMoreHistory', { defaultValue: '加载更多对话' })}
-                </button>
-              </div>
-            )}
-            {aiChatMessages.length === 0 && (
+          <VirtualChatMessages
+            key={activeAiChatSessionId}
+            messages={aiChatMessages}
+            isStreaming={aiChatStreaming}
+            agentMode={agentMode}
+            r1pxcAvatar={aiConfig.r1pxcAvatar}
+            userAvatarUrl={userAvatarUrl}
+            showThinking={Boolean(aiConfig.deepseekThinking)}
+            onQuote={handleQuote}
+            onReportIssue={handleReportIssueFromFinalAnswer}
+            navigateToSettingsTab={navigateToSettingsTab}
+            hasActiveTextSelection={hasActiveTextSelection}
+            emptyContent={(
               <div className="max-expand-chat-empty">
                 <div>{emptyGreeting}</div>
                 <div className="max-expand-chat-empty-disclaimer">
@@ -200,42 +194,7 @@ export function AiChatContent(): React.ReactElement {
                 </div>
               </div>
             )}
-            {visibleMessages.map((msg, i) => {
-              const absoluteIndex = visibleStartIndex + i;
-              const isLatest = absoluteIndex === aiChatMessages.length - 1;
-              return (
-                <ChatMessage
-                  key={absoluteIndex}
-                  msg={msg}
-                  absoluteIndex={absoluteIndex}
-                  isLatest={isLatest}
-                  isStreaming={aiChatStreaming && isLatest}
-                  agentMode={agentMode}
-                  r1pxcAvatar={aiConfig.r1pxcAvatar}
-                  userAvatarUrl={userAvatarUrl}
-                  showThinking={Boolean(aiConfig.deepseekThinking)}
-                  onQuote={handleQuote}
-                  onReportIssue={handleReportIssueFromFinalAnswer}
-                  navigateToSettingsTab={navigateToSettingsTab}
-                />
-              );
-            })}
-            {hasLowerHiddenMessages && (
-              <div className="max-expand-chat-history-tip">
-                <button
-                  type="button"
-                  className="max-expand-chat-history-load-more"
-                  onClick={() => {
-                    const maxStart = Math.max(0, aiChatMessages.length - VISIBLE_CHAT_WINDOW_SIZE);
-                    setVisibleWindowStart(prev => Math.min(maxStart, prev + VISIBLE_CHAT_WINDOW_STEP));
-                  }}
-                >
-                  {t('aiChat.actions.loadMoreHistory', { defaultValue: '加载更多对话' })}
-                </button>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
+          />
 
         </div>
       </div>

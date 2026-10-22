@@ -112,7 +112,6 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
 
   const {
     input, setInput,
-    setVisibleWindowStart,
     agentMode,
     pendingAttachments, setPendingAttachments,
     attachmentDragDepthRef, attachmentInvalidTimerRef,
@@ -313,7 +312,6 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
     updateTargetMessages(prev => [...prev, userMsg]);
     const latestSession = useIslandStore.getState().aiChatSessions.find((s) => s.id === targetSessionId);
     const nextMessages: AiChatMessage[] = latestSession?.messages ?? [...aiChatMessages, userMsg];
-    setVisibleWindowStart(0);
     setInput('');
     setPendingAttachments([]);
     setPendingQuote(null);
@@ -1107,7 +1105,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
     setAiChatStreaming, setAiChatSessionMessages, markAiChatSessionReplyFinished, setAiChatMessages,
     setAiWebAccessPrompt, setAiWebAccessResolveError, setAiLocalToolAccessPrompt, setAiLocalToolAccessResolveError, setResolvingLocalToolAccessDecision,
     setResolvingWebAccessDecision, setResolvingLocalToolAccessDecision,
-    setMaxExpandTab, setVisibleWindowStart, setInput,
+    setMaxExpandTab, setInput,
     setPendingAttachments, setPendingQuote,
     updateMessages, flushPendingAssistantUpdates,
     scheduleAssistantUpdateFlush, refreshActiveSessionStreaming,

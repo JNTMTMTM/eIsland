@@ -460,11 +460,27 @@
 /** 消息列表 */
 .max-expand-chat-messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-anchor: none;
   padding: 12px 16px;
+}
+
+.max-expand-chat-messages:has(> .max-expand-chat-empty) {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+}
+
+/* 间距计入行的实测高度，离屏占位维持完整的连续滚动范围。 */
+.max-expand-chat-virtual-row {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 8px;
+}
+
+.max-expand-chat-spacer {
+  pointer-events: none;
 }
 
 .max-expand-chat-messages::-webkit-scrollbar {
@@ -476,26 +492,7 @@
   border-radius: 2px;
 }
 
-.max-expand-chat-history-tip {
-  display: block;
-  width: 100%;
-  margin-bottom: 4px;
-}
 
-.max-expand-chat-history-load-more {
-  width: 100%;
-  border: 1px solid rgba(var(--color-text-rgb), 0.2);
-  background: rgba(var(--color-text-rgb), 0.04);
-  color: rgba(var(--color-text-rgb), 0.75);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.max-expand-chat-history-load-more:hover {
-  background: rgba(var(--color-text-rgb), 0.1);
-}
 
 /** 空态提示 */
 .max-expand-chat-empty {

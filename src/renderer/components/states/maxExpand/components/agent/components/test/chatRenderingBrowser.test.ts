@@ -51,13 +51,13 @@ it('reuses historical rows and keeps authorization drawers above the chat withou
         hasLoginSession:true,isProUser:true,agentMode:'mihtnelis',currentAgentModeConfig:{label:'Agent'},
         aiConfig:{deepseekThinking:false,skills:[]},dominantColor:[140,140,140],
         activeAiChatSessionId:'0',orderedSessions:sessions,getSessionCardState:()=> 'running',
-        visibleMessages:messages,aiChatMessages:messages,visibleStartIndex:0,aiChatStreaming:true,
-        input:'',inputRef:ref(),chatRootRef:ref(),chatEndRef:ref(),fileInputRef:ref(),
+        aiChatMessages:messages,aiChatStreaming:true,
+        input:'',inputRef:ref(),chatRootRef:ref(),fileInputRef:ref(),
         agentModeDropdownRef:ref(),agentModeTriggerRef:ref(),modelDropdownRef:ref(),contextDropdownRef:ref(),
         skillDragDepthRef:{current:0},pendingAttachments:[],contextUsageTokens:0,selectedContextLimit:200000,
         contextUsagePercent:0,contextUsagePercentText:'0%',selectedModel:'deepseek-v4-flash',
         setPendingQuote:noop,setResolvingWebAccessDecision:noop,setResolvingLocalToolAccessDecision:noop,
-        setAiChatStreaming:noop,setVisibleWindowStart:noop,switchAiChatSession:()=>Promise.resolve(),
+        setAiChatStreaming:noop,switchAiChatSession:()=>Promise.resolve(),
         deleteAiChatSession:()=>Promise.resolve()
       };
       window.chatSend={handleReportIssueFromFinalAnswer:noop,navigateToSettingsTab:noop};
@@ -84,22 +84,31 @@ it('reuses historical rows and keeps authorization drawers above the chat withou
     const checks = `(async()=>{
       const assert=(condition,message)=>{if(!condition)throw Error(message)};
       const text=()=>document.querySelector('.max-expand-chat-messages').textContent;
+      const settle=async()=>{for(let i=0;i<4;i++)await new Promise(resolve=>{const timer=setTimeout(resolve,50);requestAnimationFrame(()=>{clearTimeout(timer);resolve()})})};
+      await settle();
       for(const mode of ['mihtnelis','r1pxc']){
-        window.chatState={...window.chatState,agentMode:mode};window.draw();
-        const historic=document.querySelector('.max-expand-chat-user-row');
+        window.chatState={...window.chatState,agentMode:mode};window.draw();await settle();
+        const mounted=document.querySelectorAll('[data-chat-index]');
+        assert(mounted.length<window.chatState.aiChatMessages.length,'History was fully mounted in '+mode);
+        assert(Number(mounted[0].dataset.chatIndex)>0,'Virtual list did not start at the latest messages in '+mode);
+        const historic=Array.from(document.querySelectorAll('.max-expand-chat-user-row')).at(-1);
+        const historicIndex=historic?.closest('[data-chat-index]').dataset.chatIndex;
+        assert(historic,'Expected a mounted historical user row in '+mode);
         window.historicalReads=0;window.dateFormats=0;
         for(let i=0;i<20;i++){
           const messages=window.chatState.aiChatMessages;
           const content=messages.at(-1).content+' '+mode+'-chunk-'+i;
           const updated=[...messages.slice(0,-1),{role:'assistant',content}];
-          window.chatState={...window.chatState,aiChatMessages:updated,visibleMessages:updated,input:'typing '+i,
+          window.chatState={...window.chatState,aiChatMessages:updated,input:'typing '+i,
             orderedSessions:window.chatState.orderedSessions.map(s=>({...s}))};
-          window.draw();
+          window.draw();await settle();
           assert(text().includes(content),'Chunk did not render immediately in '+mode);
+          const list=document.querySelector('.max-expand-chat-messages');
+          assert(list.scrollHeight-list.clientHeight-list.scrollTop<=2,'Streaming did not follow the bottom in '+mode);
         }
         assert(window.historicalReads===0,'Reparsed history in '+mode+': '+window.historicalReads);
         assert(window.dateFormats===0,'Reformatted unchanged sessions in '+mode+': '+window.dateFormats);
-        assert(document.querySelector('.max-expand-chat-user-row')===historic,'History DOM was replaced');
+        assert(document.querySelector('[data-chat-index="'+historicIndex+'"] .max-expand-chat-user-row')===historic,'History DOM was replaced');
         window.chatState={...window.chatState,aiChatStreaming:false};window.draw();
         assert(!document.querySelector('.max-expand-chat-generating-dots'),'Streaming indicator did not stop');
         window.chatState={...window.chatState,aiChatStreaming:true};
@@ -149,7 +158,7 @@ it('reuses historical rows and keeps authorization drawers above the chat withou
       assert(document.querySelectorAll('[role="dialog"]').length===1,'Authorization drawers overlap');
       const webActions=document.querySelector('.max-expand-chat-web-access-actions').getBoundingClientRect();
       assert(webActions.bottom<=280,'Web authorization actions are clipped');
-      return 'CHAT_RENDER_PASS: 40 chunks, 0 historical reads, 0 unchanged session date formats';
+      return 'CHAT_RENDER_PASS: 40 chunks, mounted history reused, bottom followed, 0 unchanged session date formats';
     })()`;
     const script = `const {app,BrowserWindow}=require('electron');
       app.setPath('userData',${JSON.stringify(join(directory, 'profile'))});app.disableHardwareAcceleration();
@@ -164,6 +173,9 @@ it('reuses historical rows and keeps authorization drawers above the chat withou
     const electron = createRequire(import.meta.url)('electron') as string;
     const result = await promisify(execFile)(electron, [join(directory, 'main.cjs')], {
       env: environment, windowsHide: true, timeout: 20000,
+    }).catch((error: unknown) => {
+      const failure = error as { stdout?: string; stderr?: string; killed?: boolean };
+      throw new Error(`Chat browser check failed (killed=${String(failure.killed)}): ${failure.stdout ?? ''} ${failure.stderr ?? ''}`, { cause: error });
     });
     expect(result.stdout).toContain('CHAT_RENDER_PASS');
   } finally {

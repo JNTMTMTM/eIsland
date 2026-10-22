@@ -201,23 +201,18 @@ describe('AiChatTab real state and send integration', () => {
     await settleHook();
     expect(runtime.store.getState().aiChatSessions).toHaveLength(count - 1);
   });
-  it('history buttons navigate real bounded message windows', () => {
+  it('passes complete history to the continuous message list without paging controls', () => {
     login();
-    messages(Array.from({
-      length: 350
-    }, (...[, i]) => ({
+    messages(Array.from({ length: 350 }, (...[, i]) => ({
       role: 'user',
-      content: String(i)
+      content: `history-${i}`
     })));
     const tree = mount();
-    const first = text(tree);
-    invoke(byClass(tree, 'max-expand-chat-history-load-more'), 'onClick');
-    const older = text(run());
-    expect(older).not.toBe(first);
-    const buttons = elements(run()).filter((n) => n.props.className === 'max-expand-chat-history-load-more');
-    expect(buttons).toHaveLength(2);
-    invoke(buttons[1], 'onClick');
-    expect(text(run())).toBe(first);
+    const rows = elements(tree).filter((node) => node.props.className === 'max-expand-chat-user-row');
+    expect(rows).toHaveLength(350);
+    expect(text(rows[0])).toContain('history-0');
+    expect(text(rows[349])).toContain('history-349');
+    expect(elements(tree).some((node) => String(node.props.className).includes('max-expand-chat-history-load-more'))).toBe(false);
   });
   it('ordinary user attachment wrappers are stripped, icons selected and actual settings navigation triggered', async () => {
     login();
