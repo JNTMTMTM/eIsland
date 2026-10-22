@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-toast-listener",
-  "version": "26.0.2",
+  "version": "26.0.3",
   "description": "Windows N-API addon for listening to notification center toast changes.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -27,7 +27,7 @@
     "cli:suppression": "node --experimental-strip-types test/windows-toast-listener.suppression.cli.ts"
   },
   "dependencies": {
-    "node-gyp": "^11.2.0"
+    "node-gyp": "^13.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.19.2"
