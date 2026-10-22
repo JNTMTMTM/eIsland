@@ -4678,7 +4678,7 @@
       },
       "sound": {
         "label": "Sound Settings",
-        "desc": "Sound effects, notification sounds, and audio output configuration."
+        "desc": "Sound effects and output."
       },
       "notification": {
         "label": "Notification Settings",
