@@ -27,7 +27,7 @@
     "cli:suppression": "node --experimental-strip-types test/windows-toast-listener.suppression.cli.ts"
   },
   "dependencies": {
-    "node-gyp": "^11.2.0"
+    "node-gyp": "^13.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.19.2"
