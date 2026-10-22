@@ -175,6 +175,36 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
         durationMs: 0,
       };
     }
+    if (execution?.success && params.tool.trim().toLowerCase() === 'island.theme.set') {
+      const result = execution.result && typeof execution.result === 'object'
+        ? execution.result as Record<string, unknown>
+        : {};
+      const { mode } = result;
+      try {
+        if (mode !== 'dark' && mode !== 'light' && mode !== 'system') {
+          throw new Error(t('aiChat.messages.localToolExecuteFailed'));
+        }
+        const { getThemeMode, setThemeMode } = await import('../../../../../../utils/theme');
+        // 写入成功不代表当前窗口已应用；开发热更新或广播未送达时，复用手动切换的入口补应用。
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const visualTheme = mode === 'system' ? systemTheme : mode;
+        if (getThemeMode() !== mode || document.documentElement.getAttribute('data-theme') !== visualTheme) {
+          await setThemeMode(mode);
+        }
+        const currentSystemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const expectedTheme = mode === 'system' ? currentSystemTheme : mode;
+        if (document.documentElement.getAttribute('data-theme') !== expectedTheme) {
+          throw new Error(t('aiChat.messages.localToolExecuteFailed'));
+        }
+      } catch (error: unknown) {
+        execution = {
+          ...execution,
+          success: false,
+          result: { ...result, applied: false },
+          error: error instanceof Error ? error.message : t('aiChat.messages.localToolExecuteFailed'),
+        };
+      }
+    }
     await resolveMihtnelisLocalToolResult({
       token: params.token,
       requestId: params.requestId,
