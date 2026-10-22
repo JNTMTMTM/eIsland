@@ -31,6 +31,7 @@ import {
   USER_ACCOUNT_TOKEN_STORAGE_KEY,
   type UserAccountProfile,
   readLocalToken,
+  readLocalSessionRevision,
   writeLocalProfile,
   writeLocalToken,
 } from '../userAccount';
@@ -43,15 +44,15 @@ export function updateSessionToken(token: string | null): void {
 }
 
 /**
- * 启动时尝试恢复登录态：
- * - 从 localStorage 与持久化 store 恢复 token/资料；
- * - 有 token 时请求最新用户资料并刷新本地缓存；
- * - 网络失败或会话失败均不主动清空本地会话（由退出登录/注销显式清理）。
+ * 启动时仅从 localStorage 与持久化 store 恢复 token/资料，避免网络请求阻塞首屏。
+ * @returns 恢复的 token；未登录或存在退出标记时返回 null，供挂载后后台刷新。
  */
-export async function bootstrapAuthSession(): Promise<void> {
+export async function bootstrapAuthSession(): Promise<string | null> {
+  const sessionRevision = readLocalSessionRevision();
   const logoutMarker = await window.api?.storeRead?.(USER_ACCOUNT_LOGOUT_MARKER_KEY).catch(() => null);
+  if (readLocalSessionRevision() !== sessionRevision) return readLocalToken();
   if (logoutMarker === true) {
-    return;
+    return null;
   }
 
   let token = readLocalToken();
@@ -59,8 +60,13 @@ export async function bootstrapAuthSession(): Promise<void> {
   if (!token) {
     const persistedToken = await window.api?.storeRead?.(USER_ACCOUNT_TOKEN_STORAGE_KEY).catch(() => null);
     if (typeof persistedToken === 'string' && persistedToken.length > 0) {
+      const latestLogoutMarker = await window.api?.storeRead?.(USER_ACCOUNT_LOGOUT_MARKER_KEY).catch(() => null);
+      if (readLocalSessionRevision() !== sessionRevision || readLocalToken() !== token) return readLocalToken();
+      if (latestLogoutMarker === true) return null;
       token = persistedToken;
-      writeLocalToken(persistedToken);
+      // 恢复不能重写共享 store 或清除退出标记，避免反向覆盖其他窗口的退出操作。
+      writeLocalToken(persistedToken, false);
+      if (readLocalToken() !== token) return readLocalToken();
     }
   }
 
@@ -72,20 +78,35 @@ export async function bootstrapAuthSession(): Promise<void> {
   }
   if (!localProfileRaw) {
     const persistedProfile = await window.api?.storeRead?.(USER_ACCOUNT_PROFILE_STORAGE_KEY).catch(() => null);
+    if (readLocalSessionRevision() !== sessionRevision || readLocalToken() !== token) return readLocalToken();
     if (persistedProfile && typeof persistedProfile === 'object') {
       writeLocalProfile(persistedProfile as UserAccountProfile);
     }
   }
 
-  if (!token) return;
+  return token;
+}
 
-  const profileResult = await fetchUserProfile(token);
-  if (profileResult.ok && profileResult.data) {
-    writeLocalProfile(profileResult.data);
-    return;
-  }
-  if (profileResult.code === 401 || profileResult.code === 4011) {
-    writeLocalToken(null);
-    writeLocalProfile(null);
+/**
+ * 挂载后后台刷新资料；网络失败保留本地会话，明确失效时清理。
+ * @param token - 启动时恢复的 token；null 时跳过请求。
+ * @returns 刷新完成的 Promise，失败时保留缓存并记录日志。
+ */
+export async function refreshAuthSession(token: string | null): Promise<void> {
+  if (!token || readLocalToken() !== token) return;
+  try {
+    const profileResult = await fetchUserProfile(token);
+    // 用户可在请求期间退出或切换账号，旧响应不能覆盖新会话。
+    if (readLocalToken() !== token) return;
+    if (profileResult.ok && profileResult.data) {
+      writeLocalProfile(profileResult.data);
+      return;
+    }
+    if (profileResult.code === 401 || profileResult.code === 4011) {
+      writeLocalToken(null);
+      writeLocalProfile(null);
+    }
+  } catch (error) {
+    console.warn('[Auth] Background profile refresh failed:', error);
   }
 }

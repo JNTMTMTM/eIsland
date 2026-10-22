@@ -27,6 +27,12 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as si from 'systeminformation';
 
+vi.mock('@eisland/windows-performance-monitor', () => ({ default: {
+  getCpu: () => { throw new Error('native unavailable'); },
+  getMemory: () => { throw new Error('native unavailable'); },
+  getTemperature: () => ({ isAvailable: false, readings: [], maxTemperatureCelsius: null }),
+} }));
+
 const { handleMock, onMock } = vi.hoisted(() => ({
   handleMock: vi.fn(),
   onMock: vi.fn(),

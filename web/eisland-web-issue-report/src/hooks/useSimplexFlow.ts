@@ -24,12 +24,17 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef } from 'react'
-import type { PointerState } from '../types/simplexFlow'
+import { useEffect, useRef, type RefObject } from 'react'
 import { clamp, simplexNoise, fbm, samplePalette, drawPointerCaustics } from '../utils/simplexFlow'
 import { FIELD_SCALE, SAMPLE_RATIO, POINTER_RADIUS } from '../config/simplexFlow'
+import type { PointerState } from '../types/simplexFlow'
 
-export const useSimplexFlow = (canvasRef: React.RefObject<HTMLCanvasElement | null>): void => {
+/**
+ * 维护画布动画及鼠标、尺寸变化的订阅。
+ * @param canvasRef - 背景画布引用。
+ * @returns 无返回值。
+ */
+export default function useSimplexFlow(canvasRef: RefObject<HTMLCanvasElement | null>): void {
   const pointerRef = useRef<PointerState>({ x: 0, y: 0, active: false, influence: 0 })
 
   useEffect(() => {
@@ -90,8 +95,8 @@ export const useSimplexFlow = (canvasRef: React.RefObject<HTMLCanvasElement | nu
 
     const render = (time: number) => {
       const flowTime = (time - originTime) * 0.00016
-      const pointer = pointerRef.current
-      const data = imageData.data
+      const { current: pointer } = pointerRef
+      const { data } = imageData
       pointer.influence += ((pointer.active ? 1 : 0) - pointer.influence) * 0.055
 
       for (let y = 0; y < bufferHeight; y += 1) {

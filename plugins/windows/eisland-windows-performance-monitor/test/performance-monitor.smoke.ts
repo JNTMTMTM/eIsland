@@ -25,13 +25,18 @@
  * @author 鸡哥
  */
 
-const monitor = require('../');
+// eslint-disable-next-line import-x/extensions -- Node 直接执行冒烟脚本时必须保留入口扩展名。
+import monitor from '../index.js';
 
-const snapshot = {
-  cpu: monitor.getCpu(),
-  memory: monitor.getMemory(),
-  temperature: monitor.getTemperature(),
-  hardwareList: monitor.getHardwareList(),
-};
+async function main() {
+  try {
+    const [temperature, hardwareList] = await Promise.all([
+      monitor.getTemperatureAsync(), monitor.getHardwareListAsync(),
+    ]);
+    console.log(JSON.stringify({ temperature, hardwareList, cpu: monitor.getCpu(), memory: monitor.getMemory() }, null, 2));
+  } finally {
+    monitor.dispose();
+  }
+}
 
-console.log(JSON.stringify(snapshot, null, 2));
+void main().catch((error: unknown) => { console.error(error); process.exitCode = 1; });

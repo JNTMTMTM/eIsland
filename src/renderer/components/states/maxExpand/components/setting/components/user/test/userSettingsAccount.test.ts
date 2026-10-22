@@ -27,6 +27,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { elementProps, elements, findElement, invoke, textContent } from '../../../../../../../test/elementHarness';
 import { runEffects, unmountHooks } from '../../app/components/test/themeHookHarness';
+import { UserProfileSkeleton } from '../components/userSettingsSkeleton';
 import { bootUser, cleanupUser, clickUser, fillInputs, inputUser, mocks, profile, renderUser, settleUser, setupUser } from './userSettingsFixture';
 beforeEach(setupUser);
 afterEach(cleanupUser);
@@ -67,7 +68,7 @@ describe('登录资料生命周期', () => {
     }));
     renderUser();
     runEffects();
-    expect(textContent(renderUser())).toContain('settings.user.feedback.loadingProfile');
+    expect(elements(renderUser()).some((node) => node.type === UserProfileSkeleton)).toBe(true);
     resolve?.({
       ok: true,
       data: profile

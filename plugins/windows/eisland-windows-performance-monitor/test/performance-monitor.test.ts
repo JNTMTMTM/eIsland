@@ -21,52 +21,35 @@
 /**
  * @file performance-monitor.test.ts
  * @description Windows 性能采集插件单元测试
- * @description 验证 CPU 与内存原生采集方法的导出与返回结构
+ * @description 隔离原生采集边界，验证真实入口的导出、返回结构与不可变快照类型
  * @author 鸡哥
  */
 
-import { describe, expect, it } from 'vitest';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { afterAll, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { createNativeRuntimeFixture } from '../../../test/nativeRuntimeHarness';
+import type * as PerformanceApi from '../index';
 
-const monitor = require('../') as {
-  getCpu: () => {
-    usagePercent: number;
-    hasBaseline: boolean;
-  };
-  getMemory: () => {
-    totalBytes: number;
-    usedBytes: number;
-    availableBytes: number;
-    usagePercent: number;
-  };
-  getTemperature: () => {
-    isAvailable: boolean;
-    readings: Array<{
-      id: string;
-      label: string;
-      category: string;
-      temperatureCelsius: number;
-      source: string;
-    }>;
-    maxTemperatureCelsius: number | null;
-  };
-  getHardwareList: () => {
-    isAvailable: boolean;
-    cpus: Array<{
-      id: string;
-      name: string;
-      category: string;
-      hardwareType: string;
-      source: string;
-    }>;
-    gpus: Array<{
-      id: string;
-      name: string;
-      category: string;
-      hardwareType: string;
-      source: string;
-    }>;
-  };
-};
+// 执行真实 JS 入口，仅隔离原生采集边界；干净 CI 不依赖已编译的 .node 或 helper。
+const entry = fileURLToPath(new URL('../index.js', import.meta.url));
+const platform = Object.getOwnPropertyDescriptor(process, 'platform');
+Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' });
+const fixture = createNativeRuntimeFixture(entry, new Map<string, unknown>([
+  [join(dirname(entry), 'build', 'Release', 'windows_performance_monitor.node'), {
+    getCpu: () => ({ usagePercent: 25, hasBaseline: true }),
+    getMemory: () => ({ totalBytes: 1000, usedBytes: 250, availableBytes: 750, usagePercent: 25 }),
+  }],
+  ['node:fs', { existsSync: () => false }],
+]));
+const monitor = fixture.read<typeof PerformanceApi>();
+
+afterAll(() => {
+  monitor.dispose();
+  fixture.dispose();
+  vi.restoreAllMocks();
+  if (platform) Object.defineProperty(process, 'platform', platform);
+});
 
 describe('windows-performance-monitor', () => {
   it('exports CPU, memory, temperature, and hardware list snapshot methods', () => {
@@ -74,6 +57,15 @@ describe('windows-performance-monitor', () => {
     expect(typeof monitor.getMemory).toBe('function');
     expect(typeof monitor.getTemperature).toBe('function');
     expect(typeof monitor.getHardwareList).toBe('function');
+    expect(typeof monitor.dispose).toBe('function');
+    expectTypeOf(monitor.dispose).toEqualTypeOf<() => void>();
+    expectTypeOf<PerformanceApi.TemperatureSnapshot['readings']>().toEqualTypeOf<readonly PerformanceApi.TemperatureReading[]>();
+    expectTypeOf<PerformanceApi.HardwareListSnapshot['cpus']>().toEqualTypeOf<readonly PerformanceApi.HardwareDevice[]>();
+    expectTypeOf<PerformanceApi.HardwareListSnapshot['gpus']>().toEqualTypeOf<readonly PerformanceApi.HardwareDevice[]>();
+    expectTypeOf<PerformanceApi.TemperatureSnapshot>().toEqualTypeOf<Readonly<PerformanceApi.TemperatureSnapshot>>();
+    expectTypeOf<PerformanceApi.TemperatureReading>().toEqualTypeOf<Readonly<PerformanceApi.TemperatureReading>>();
+    expectTypeOf<PerformanceApi.HardwareListSnapshot>().toEqualTypeOf<Readonly<PerformanceApi.HardwareListSnapshot>>();
+    expectTypeOf<PerformanceApi.HardwareDevice>().toEqualTypeOf<Readonly<PerformanceApi.HardwareDevice>>();
   });
 
   it('returns CPU snapshot shape after baseline warmup', () => {
@@ -100,8 +92,12 @@ describe('windows-performance-monitor', () => {
     expect(memory.usagePercent).toBeLessThanOrEqual(100);
   });
 
-  it('returns temperature snapshot shape', () => {
-    const temperature = monitor.getTemperature();
+  it('returns temperature snapshot shape without blocking the event loop', async () => {
+    let heartbeat = false;
+    const timer = setTimeout(() => { heartbeat = true; }, 0);
+    const temperature = await monitor.getTemperatureAsync();
+    clearTimeout(timer);
+    if (temperature.isAvailable) expect(heartbeat).toBe(true);
 
     expect(temperature.isAvailable).toBeTypeOf('boolean');
     expect(Array.isArray(temperature.readings)).toBe(true);
@@ -109,28 +105,28 @@ describe('windows-performance-monitor', () => {
       typeof temperature.maxTemperatureCelsius === 'number' || temperature.maxTemperatureCelsius === null,
     ).toBe(true);
 
-    for (const reading of temperature.readings) {
+    temperature.readings.forEach((reading) => {
       expect(reading.id).toBeTypeOf('string');
       expect(reading.label).toBeTypeOf('string');
       expect(reading.category).toBeTypeOf('string');
       expect(reading.temperatureCelsius).toBeTypeOf('number');
       expect(reading.source).toBeTypeOf('string');
-    }
+    });
   });
 
-  it('returns hardware list snapshot shape', () => {
-    const hardwareList = monitor.getHardwareList();
+  it('returns hardware list snapshot shape', async () => {
+    const hardwareList = await monitor.getHardwareListAsync();
 
     expect(hardwareList.isAvailable).toBeTypeOf('boolean');
     expect(Array.isArray(hardwareList.cpus)).toBe(true);
     expect(Array.isArray(hardwareList.gpus)).toBe(true);
 
-    for (const device of [...hardwareList.cpus, ...hardwareList.gpus]) {
+    [...hardwareList.cpus, ...hardwareList.gpus].forEach((device) => {
       expect(device.id).toBeTypeOf('string');
       expect(device.name).toBeTypeOf('string');
       expect(device.category === 'cpu' || device.category === 'gpu').toBe(true);
       expect(device.hardwareType).toBeTypeOf('string');
       expect(device.source).toBeTypeOf('string');
-    }
+    });
   });
 });

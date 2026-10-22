@@ -51,7 +51,7 @@ describe('packaged brightness helper path', () => {
     const vmModule = { exports: {} as BrightnessModule };
 
     vm.runInNewContext(
-      readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8'),
+      readFileSync(new URL('../index.js', import.meta.url), 'utf8'),
       {
         module: vmModule,
         exports: vmModule.exports,
@@ -87,7 +87,7 @@ describe('packaged brightness helper path', () => {
     const vmModule = { exports: {} as BrightnessModule };
 
     vm.runInNewContext(
-      readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8'),
+      readFileSync(new URL('../index.js', import.meta.url), 'utf8'),
       {
         module: vmModule,
         exports: vmModule.exports,

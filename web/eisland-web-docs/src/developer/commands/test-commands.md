@@ -17,30 +17,44 @@ npm run <script>
 
 ## `npm run test`
 
-Runs both the `node` and `renderer` test projects once.
+Runs all configured test projects once, including the serial native integration stage.
 
 ```bash
 npm run test
 ```
 
-**Configuration:** Vitest 4.1.10 with:
+**Configuration:** Vitest with:
 
 - `environment: 'node'`
 - `clearMocks: true` — mocks are cleared between tests
 - `restoreMocks: true` — mocks are restored to their original implementation
-- Two named projects, both inheriting the root configuration with `extends: true`
+- Six named projects, each inheriting the root configuration with `extends: true`
 - Support for both `.test.ts` and `.test.tsx` files
 
 | Project | Test File Pattern | Exclusion | CLI Label Color |
 |---------|-------------------|-----------|-----------------|
-| `node` | `src/**/*.test.{ts,tsx}` | `src/renderer/**` | Yellow |
+| `main` | `src/main/**/*.test.{ts,tsx}` | Native integration files below | Yellow |
+| `main-integration` | Installer `.integration.test.ts` files and `screenshotProcess.test.ts` | None configured | Yellow |
+| `preload` | `src/preload/**/*.test.{ts,tsx}` | None configured | Cyan |
+| `shared` | `src/shared/**/*.test.{ts,tsx}` | None configured | Green |
+| `plugins` | Native plugin runtime and loader tests | None configured | Blue |
 | `renderer` | `src/renderer/**/*.test.{ts,tsx}` | None configured | Magenta |
 
 :::important
-The `node` and `renderer` labels identify test projects. Both currently run in the Node.js environment; naming a project `renderer` does not provide a DOM or launch Electron. Tests that require DOM interaction need a configured environment such as `jsdom` or `happy-dom` and its dependency.
+These labels identify test projects. They run in the Node.js environment; naming a project `renderer` does not provide a DOM or launch Electron. Tests that require DOM interaction need a configured environment such as `jsdom` or `happy-dom` and its dependency.
 :::
 
-### Latest Verified Test Run
+### Native integration scheduling
+
+`main-integration` uses `sequence.groupOrder: 1` and `fileParallelism: false`. It runs after the other projects have finished and executes its files serially. Real Windows installers enumerate and terminate operating-system processes; running these probes alongside hundreds of unit-test workers can exhaust their deadlines. The native cases remain part of `npm test`, `test:coverage`, `test:node`, `test:main`, and the CI main job. Windows/NSIS availability checks still apply.
+
+To run only this stage:
+
+```bash
+npx vitest run --project main-integration
+```
+
+### Historical Verified Test Run
 
 The full suite passed on **2026-10-05**:
 
@@ -64,13 +78,21 @@ For iterative development, use `npx vitest` (without `run`) to start Vitest in *
 
 ## `npm run test:node`
 
-Runs only the `node` project, which collects tests under `src/` outside `src/renderer/`, including main process and preload tests.
+Runs `main`, `main-integration`, `preload`, `shared`, and `plugins`. The native integration stage runs last.
 
 ```bash
 npm run test:node
 ```
 
-**Under the hood:** `vitest run --project node`
+**Under the hood:** `vitest run --project main --project main-integration --project preload --project shared --project plugins`
+
+## `npm run test:main`
+
+Runs the main process unit tests followed by the serial native integration stage. A direct `vitest run --project main` selects only the unit-test project; use the npm script to include native integration tests.
+
+```bash
+npm run test:main
+```
 
 ## `npm run test:renderer`
 
@@ -92,13 +114,13 @@ npm run test:renderer -- src/renderer/components/states/questionnaire/components
 
 ## `npm run test:preload`
 
-Runs only the preload bridge test file.
+Runs the preload bridge and type tests.
 
 ```bash
 npm run test:preload
 ```
 
-**Under the hood:** `vitest run src/preload/index.test.ts`
+**Under the hood:** `vitest run --project preload`
 
 :::note
 This is a subset of `npm run test`. Use it when modifying preload code for faster feedback — it skips all other test files.
@@ -106,7 +128,7 @@ This is a subset of `npm run test`. Use it when modifying preload code for faste
 
 ## `npm run test:coverage`
 
-Runs both test projects with the V8 coverage provider (`@vitest/coverage-v8`).
+Runs all configured test projects with the V8 coverage provider (`@vitest/coverage-v8`).
 
 ```bash
 npm run test:coverage

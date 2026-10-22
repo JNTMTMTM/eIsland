@@ -27,7 +27,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { elementProps, elements, findElement, invoke, textContent } from '../../../../../../../test/elementHarness';
 import { runEffects, unmountHooks } from '../../app/components/test/themeHookHarness';
-import { bootUser, cleanupUser, clickUser, mocks, navigateUser, profile, renderUser, settleUser, setupUser } from './userSettingsFixture';
+import { bootUser, cleanupUser, clickUser, mocks, navigateUser, profile, renderUser, settleUser, setupUser, skeletonLabels } from './userSettingsFixture';
 const image = {
   id: 1,
   taskId: 'abcdef12345',
@@ -123,7 +123,7 @@ describe('订阅价格、充值余额和金额输入', () => {
       resolve = done;
     }));
     await bootUser('pro');
-    expect(textContent(renderUser())).toContain('settings.user.pro.pro.priceLoading');
+    expect(skeletonLabels(renderUser())).toEqual(['settings.user.pro.pro.priceLoading']);
     unmountHooks();
     resolve?.({
       ok: true,
@@ -144,6 +144,7 @@ describe('订阅价格、充值余额和金额输入', () => {
     });
     await bootUser('recharge');
     expect(textContent(renderUser()).includes('¥19.99')).toBe(ok);
+    expect(skeletonLabels(renderUser())).toEqual([]);
     const input = findElement(renderUser(), (node) => node.type === 'input');
     ['', '-1', 'not-a-number', '0', '12.345'].forEach((value) => {
       invoke(input, 'onChange', {
@@ -178,6 +179,7 @@ describe('订阅价格、充值余额和金额输入', () => {
       resolve = done;
     }));
     await bootUser('recharge');
+    expect(skeletonLabels(renderUser())).toEqual(['settings.user.recharge.balanceLoading']);
     unmountHooks();
     resolve?.({
       ok: true,

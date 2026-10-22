@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-16T05:01:46.802Z
+> 生成时间：2026-10-21T23:09:58.114Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,41 @@
 
 ## Unreleased
 
+- 2026-10-21 | 8317f3e3 | JNTMTMTM | Merge pull request #267 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-brightness-helper/node-gyp-13.1.0
+- 2026-10-21 | 91104a74 | eislandBot | docs: auto update CHANGE_LOG.md for #274 by @JNTMTMTM [skip ci]
+- 2026-10-20 | d533b3a1 | JNTMTMTM | Merge pull request #274 from JNTMTMTM/dev
+- 2026-10-20 | 4831d535 | 鸡哥 | feat(notification): update Windows toast listener version and enhance notification snapshot handling
+- 2026-10-20 | 24841659 | 鸡哥 | feat(tests): enhance Windows plugin integration testing and update dependencies
+- 2026-10-20 | 122e5e2b | 鸡哥 | feat(userAccount): enhance session management and token handling
+- 2026-10-20 | 51616309 | 鸡哥 | feat: enhance light theme drawer styles with backdrop and shadow adjustments
+- 2026-10-20 | 7f89d3ec | 鸡哥 | feat: update settings user skeleton to use clip for overflow handling
+- 2026-10-19 | a923b033 | 鸡哥 | feat: implement user settings skeleton components and improve loading states
+- 2026-10-19 | 4f3b107c | 鸡哥 | feat: add wallpaper card skeleton components for improved loading states in the plugin market
+- 2026-10-20 | deb15632 | eislandBot | docs: auto update CHANGE_LOG.md for #265 by @dependabot[bot] [skip ci]
+- 2026-10-19 | 04e10086 | JNTMTMTM | Merge pull request #265 from JNTMTMTM/dependabot/npm_and_yarn/vitejs/plugin-react-6.1.2
+- 2026-10-19 | 091b3cc8 | 鸡哥 | feat: add allowScripts configuration for enhanced script execution control
+- 2026-10-18 | 571950b6 | 鸡哥 | feat: enhance PerformanceMonitorWidget with keyboard accessibility and expand tab functionality
+- 2026-10-18 | 6fd55037 | 鸡哥 | feat: add PerformanceMetricSkeleton component and integrate it into PerformanceMonitorWidget for improved loading state
+- 2026-10-18 | 796ed51c | 鸡哥 | feat: add Performance Monitor widget and related functionality
+- 2026-10-18 | a5b04ea4 | 鸡哥 | feat: enhance NSIS integration tests with improved timeout handling and snapshot counting
+- 2026-10-18 | f11304ac | 鸡哥 | feat: add refreshAuthSession function and integrate it into bootstrap process for improved session handling
+- 2026-10-17 | b136512b | 鸡哥 | feat: enhance testing framework with native integration tests and improve timeout handling
+- 2026-10-17 | e1219ab4 | 鸡哥 | feat: add Windows performance monitoring capabilities
+- 2026-10-16 | 5b8ff597 | 鸡哥 | feat: implement asynchronous pipeline compilation in WebGPU initialization and enhance related tests
+- 2026-10-16 | 27de2409 | 鸡哥 | feat: implement uninstall temp handling and add integration tests for upgrade scenarios
+- 2026-10-16 | 49e2a06f | 鸡哥 | feat: enhance CI workflow with project-specific test reporting and error handling
+- 2026-10-20 | 0b63c230 | dependabot[bot] | chore(deps): bump @vitejs/plugin-react from 5.2.0 to 6.1.2
+- 2026-10-20 | ede3dc61 | eislandBot | docs: auto update CHANGE_LOG.md for #273 by @dependabot[bot] [skip ci]
+- 2026-10-19 | 41248f3f | JNTMTMTM | Merge pull request #273 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b086c4afa2
+- 2026-10-19 | 45620089 | 鸡哥 | test: verify dependency upgrades through real IMAP and desktop integration
+- 2026-10-19 | f497d1f0 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 19 updates
+- 2026-10-19 | 6fe60585 | eislandBot | docs: auto update CHANGE_LOG.md for #263 by @dependabot[bot] [skip ci]
+- 2026-10-19 | 4f23f6ab | JNTMTMTM | Merge pull request #266 from JNTMTMTM/dependabot/npm_and_yarn/electron-vite-6.0.0
+- 2026-10-19 | fd72321e | JNTMTMTM | Merge pull request #263 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-06917ca2d8
+- 2026-10-19 | f0d76805 | dependabot[bot] | chore(deps): bump node-gyp
+- 2026-10-19 | 618e346f | dependabot[bot] | chore(deps): bump electron-vite from 6.0.0-beta.8 to 6.0.0
+- 2026-10-19 | 48156b5d | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
+- 2026-10-16 | f2a8b8e2 | eislandBot | docs: auto update CHANGE_LOG.md for #261 by @JNTMTMTM [skip ci]
 - 2026-10-15 | 1d2d6345 | JNTMTMTM | Merge pull request #261 from JNTMTMTM/dev
 - 2026-10-15 | 4a22d2ac | 鸡哥 | feat: enhance installer process handling with ancestry cycle and slow snapshot variants in tests
 - 2026-10-15 | 15f04212 | 鸡哥 | refactor: replace for loops with forEach for improved readability in various test files

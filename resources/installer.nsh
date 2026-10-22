@@ -76,7 +76,6 @@ Function ${EISLAND_CHILD_FUNCTION}
     Goto eIslandChildFree
   ${endIf}
 
-  eIslandChildAncestry:
   System::Call 'kernel32::GetCurrentProcessId() i.r7'
   StrCpy $R1 $R0
   eIslandChildParent:

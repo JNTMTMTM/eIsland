@@ -24,8 +24,6 @@ static class HardwareListCollector
 
     private static void CollectHardwareDevice(IHardware hardware, List<HardwareDevice> cpus, List<HardwareDevice> gpus)
     {
-        hardware.Update();
-
         var category = HardwareCategoryMapper.Map(hardware.HardwareType);
         if (category == "cpu")
         {

@@ -26,6 +26,20 @@
 
 import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 
+const nativeIntegrationTests = [
+  'src/main/installer/test/*.integration.test.ts',
+  'src/main/window/test/screenshotProcess.test.ts',
+];
+
+/** 真实 Windows 插件测试会读取设备或发送系统命令，独立串行执行。 */
+const pluginIntegrationTests = [
+  'plugins/windows/**/test/{icon,bluetooth,brightness,fullscreen-detector,hardware-info,power,screenshot,smtc-helper,volume-analyzer,volume,wifi}.test.ts',
+  'plugins/windows/**/test/{bluetooth,brightness,power,volume,wifi}.monitor.test.ts',
+  'plugins/windows/**/test/{performance-monitor,windows-toast-listener}.polling.test.ts',
+  'plugins/windows/**/test/windows-toast-listener.test.ts',
+  'plugins/windows/**/test/smtc-helper.{play,pause,next,previous,timestamp}.test.ts',
+];
+
 export default defineConfig({
   test: {
     environment: 'node',
@@ -47,6 +61,17 @@ export default defineConfig({
         test: {
           name: { label: 'main', color: 'yellow' },
           include: ['src/main/**/*.test.{ts,tsx}'],
+          exclude: nativeIntegrationTests,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'main-integration', color: 'yellow' },
+          include: nativeIntegrationTests,
+          // 真实进程扫描、安装和终止在单元测试释放负载后独占执行阶段。
+          sequence: { groupOrder: 1 },
+          fileParallelism: false,
         },
       },
       {
@@ -67,10 +92,19 @@ export default defineConfig({
         extends: true,
         test: {
           name: { label: 'plugins', color: 'blue' },
-          include: [
-            'plugins/**/test/ffiLoader.test.ts',
-            'plugins/**/test/*Runtime.test.{ts,tsx,js,mjs}',
-          ],
+          include: ['plugins/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}'],
+          exclude: pluginIntegrationTests,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: { label: 'plugins-integration', color: 'blue' },
+          // 其他平台仍执行插件单元测试；真实 Windows 测试由 Windows CI 执行。
+          include: process.platform === 'win32' ? pluginIntegrationTests : [],
+          sequence: { groupOrder: 1 },
+          fileParallelism: false,
+          testTimeout: 15000,
         },
       },
       {

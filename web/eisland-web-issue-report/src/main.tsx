@@ -26,8 +26,8 @@
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import GlassNavbar from './components/GlassNavbar'
-import SimplexFlowBackground from './components/SimplexFlowBackground'
+import GlassNavbar from './components/glassNavbar'
+import SimplexFlowBackground from './components/simplexFlowBackground'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -38,6 +38,131 @@ const workflows = [
   'test.yml',
 ];
 
+/**
+ * 执行工作流实际的报告生成代码，模拟五个矩阵任务的 JSON 附件。
+ * @param overrides - 按 project 替换附件；null 模拟整个任务未能上传附件。
+ * @param outcome - GitHub 聚合矩阵结果，包含报告之外的安装或上传失败。
+ * @returns 实际生成的 PR 评论文本。
+ */
+async function renderMatrixReport(overrides = {}, outcome = 'success') {
+  const workflow = readFileSync(new URL('../../.github/workflows/test.yml', import.meta.url), 'utf8');
+  const [, block] = workflow.split(/^ {10}script: \|\r?\n/mu);
+  const script = block.split('// ==================== Post Comment')[0].split(/\r?\n/u)
+    .map((line) => line.replace(/^ {12}/u, '')).join('\n');
+  const artifacts = new Map();
+  ['main', 'preload', 'shared', 'plugins', 'renderer'].forEach((project) => {
+    const files = Object.hasOwn(overrides, project) ? overrides[project] : {
+      'test-metadata.json': { exit_code: 0, duration_seconds: 5 },
+      'vitest-results.json': {
+        success: true, numTotalTests: 2, numPassedTests: 2, numFailedTests: 0,
+        numPendingTests: 0, numTodoTests: 0,
+        testResults: [{
+          name: `C:\\work\\src\\${project}\\test\\fixture.test.ts`, status: 'passed',
+          assertionResults: [{ status: 'passed' }, { status: 'passed' }],
+        }],
+      },
+    };
+    Object.entries(files ?? {}).forEach(([name, content]) => {
+      artifacts.set(`test-reports/test-logs-${project}/${name}`, typeof content === 'string' ? content : JSON.stringify(content));
+    });
+  });
+  return runInNewContext(`(async () => {${script}\nreturn body;})()`, {
+    process: { env: { VITEST_RESULT: outcome } },
+    context: {
+      serverUrl: 'https://github.com', repo: { owner: 'fixture', repo: 'fixture' }, runId: 1,
+      payload: { pull_request: { head: { sha: 'current-commit' } } },
+    },
+    require: (name) => {
+      assert.equal(name, 'node:fs');
+      return { readFileSync: (file) => {
+        assert.ok(artifacts.has(file), `Missing fixture: ${file}`);
+        return artifacts.get(file);
+      } };
+    },
+  });
+}
+
+test('矩阵报告汇总五个 project 的真实测试数量和独立耗时', async () => {
+  const body = await renderMatrixReport();
+  assert.match(body, /\*\*PASS\*\*/u);
+  assert.match(body, /10 passed, 0 failed, 0 skipped\/todo/u);
+  ['main', 'preload', 'shared', 'plugins', 'renderer'].forEach((project) => {
+    assert.ok(body.includes(`| ${project} | PASS | 2 | 0 | 0 | 5s |`));
+    assert.ok(body.includes(`| src/${project}/test | 2 | 0 | 0 |`));
+  });
+});
+
+test('测试失败与文件加载失败均在矩阵报告中保留失败状态和详情', async () => {
+  const body = await renderMatrixReport({ main: {
+    'test-metadata.json': { exit_code: 1, duration_seconds: 8 },
+    'vitest-results.json': {
+      success: false, numTotalTests: 3, numPassedTests: 0, numFailedTests: 1,
+      numPendingTests: 1, numTodoTests: 1,
+      testResults: [{
+        name: 'src/main/test/failed.test.ts', status: 'failed', message: 'Cannot load dependency',
+        assertionResults: [{ status: 'failed', fullName: 'failed assertion', failureMessages: ['Expected true'] }],
+      }],
+    },
+  } });
+  assert.match(body, /\*\*FAIL\*\*/u);
+  assert.ok(body.includes('| main | FAIL | 0 | 1 | 2 | 8s |'));
+  assert.ok(body.includes('Cannot load dependency'));
+  assert.ok(body.includes('Expected true'));
+});
+
+test('矩阵任务没有附件或 JSON 损坏时明确显示 ERROR', async () => {
+  const body = await renderMatrixReport({
+    main: null,
+    renderer: {
+      'test-metadata.json': { exit_code: 1, duration_seconds: 2 },
+      'vitest-results.json': '{broken',
+      'vitest.log': 'Renderer worker crashed',
+    },
+  }, 'failure');
+  assert.match(body, /\*\*FAIL\*\*/u);
+  assert.ok(body.includes('| main | ERROR |'));
+  assert.ok(body.includes('| renderer | ERROR |'));
+  assert.ok(body.includes('Renderer worker crashed'));
+  assert.ok(body.includes('Check job setup and dependency installation'));
+});
+
+test('JSON 测试结果通过但进程异常退出时报告仍失败', async () => {
+  const body = await renderMatrixReport({ main: {
+    'test-metadata.json': { exit_code: 1, duration_seconds: 3 },
+    'vitest-results.json': {
+      success: true, numTotalTests: 1, numPassedTests: 1, numFailedTests: 0,
+      numPendingTests: 0, numTodoTests: 0, testResults: [],
+    },
+    'vitest.log': 'Unhandled rejection after tests',
+  } });
+  assert.match(body, /\*\*FAIL\*\*/u);
+  assert.ok(body.includes('| main | FAIL |'));
+  assert.ok(body.includes('Unhandled rejection after tests'));
+});
+
+test('附件上传等矩阵任务失败不能被全部通过的 JSON 覆盖', async () => {
+  const body = await renderMatrixReport({}, 'failure');
+  assert.match(body, /\*\*FAIL\*\*/u);
+  assert.ok(body.includes('| main | PASS |'));
+});
+
+test('失败日志转义 HTML 和提及符号并限制评论长度', async () => {
+  const body = await renderMatrixReport({ main: {
+    'test-metadata.json': { exit_code: 1, duration_seconds: 1 },
+    'vitest.log': `${'x'.repeat(70_000)}<script>@someone|broken</script>`,
+  } }, 'failure');
+  assert.ok(!body.includes('<script>'));
+  assert.ok(!body.includes('@someone'));
+  assert.ok(body.includes('&#60;script&#62;&#64;someone&#124;broken'));
+  assert.ok(body.length < 10_000);
+  const expanded = await renderMatrixReport(Object.fromEntries(
+    ['main', 'preload', 'shared', 'plugins', 'renderer'].map((project) => [project, {
+      'vitest.log': '@'.repeat(70_000),
+    }]),
+  ), 'failure');
+  assert.ok(expanded.length < 65_536);
+});
+
 workflows.forEach((file) => {
   const workflow = readFileSync(new URL(`../../.github/workflows/${file}`, import.meta.url), 'utf8');
   const sections = workflow.split(/^ {10}script: \|\r?\n/mu).slice(1);

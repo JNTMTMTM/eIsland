@@ -26,7 +26,9 @@ Categories are determined automatically by the underlying LibreHardwareMonitor l
 
 ## Usage
 
-You will encounter `TemperatureCategory` when working with temperature data returned by the [getTemperature()](get-temperature.md) function. Each element in the `readings` array of the returned [TemperatureSnapshot](temperature-snapshot.md) carries a `category` field of this type.
+Use `await getTemperatureAsync()` for initial discovery. The synchronous `getTemperature()` returns a frozen cache immediately, starts refreshes in the background when the two-second cache expires, and initially reports `isAvailable: false` while discovery is pending.
+
+You will encounter `TemperatureCategory` when working with temperature data returned by the [getTemperatureAsync()](get-temperature.md) function. Each element in the `readings` array of the returned [TemperatureSnapshot](temperature-snapshot.md) carries a `category` field of this type.
 
 Typical use cases include:
 
@@ -40,76 +42,86 @@ When building UI components, use `TemperatureCategory` to create grouped display
 
 ## Example
 
+Await `getTemperatureAsync()` for initial discovery. The synchronous `getTemperature()` returns a frozen cache immediately and starts refreshes in the background when the two-second cache expires. Its initial `isAvailable: false` means discovery is still pending.
+
 ::: code-tabs
 
 @tab TypeScript
 
 ```ts
-import { getTemperature } from '@eisland/windows-performance-monitor';
+import { getTemperatureAsync } from '@eisland/windows-performance-monitor';
 import type { TemperatureCategory, TemperatureReading } from '@eisland/windows-performance-monitor';
 
-// Fetch the current temperature snapshot from all sensors
-const snapshot = getTemperature();
+async function main() {
+  // Fetch the current temperature snapshot from all sensors
+  const snapshot = await getTemperatureAsync();
 
-// Check if temperature monitoring is available on this system
-if (snapshot.isAvailable) {
-  // Define a helper to filter readings by a specific category
-  const filterByCategory = (
-    readings: TemperatureReading[],
-    category: TemperatureCategory
-  ): TemperatureReading[] => {
-    return readings.filter((r) => r.category === category);
-  };
+  // Check if temperature monitoring is available on this system
+  if (snapshot.isAvailable) {
+    // Define a helper to filter readings by a specific category
+    const filterByCategory = (
+      readings: readonly TemperatureReading[],
+      category: TemperatureCategory
+    ): TemperatureReading[] => {
+      return readings.filter((r) => r.category === category);
+    };
 
-  // Get only CPU-related temperature readings
-  const cpuReadings = filterByCategory(snapshot.readings, 'cpu');
+    // Get only CPU-related temperature readings
+    const cpuReadings = filterByCategory(snapshot.readings, 'cpu');
 
-  // Print each CPU sensor's label and current temperature
-  cpuReadings.forEach((r) => {
-    console.log(`${r.label}: ${r.temperatureCelsius}°C`);
-  });
+    // Print each CPU sensor's label and current temperature
+    cpuReadings.forEach((r) => {
+      console.log(`${r.label}: ${r.temperatureCelsius}°C`);
+    });
 
-  // Get only GPU-related temperature readings
-  const gpuReadings = filterByCategory(snapshot.readings, 'gpu');
+    // Get only GPU-related temperature readings
+    const gpuReadings = filterByCategory(snapshot.readings, 'gpu');
 
-  // Print each GPU sensor's label and current temperature
-  gpuReadings.forEach((r) => {
-    console.log(`${r.label}: ${r.temperatureCelsius}°C`);
-  });
+    // Print each GPU sensor's label and current temperature
+    gpuReadings.forEach((r) => {
+      console.log(`${r.label}: ${r.temperatureCelsius}°C`);
+    });
+  }
 }
+
+main().catch(console.error);
 ```
 
 @tab JavaScript
 
 ```js
-const { getTemperature } = require('@eisland/windows-performance-monitor');
+const { getTemperatureAsync } = require('@eisland/windows-performance-monitor');
 
-// Fetch the current temperature snapshot from all sensors
-const snapshot = getTemperature();
+async function main() {
+  // Fetch the current temperature snapshot from all sensors
+  const snapshot = await getTemperatureAsync();
 
-// Check if temperature monitoring is available on this system
-if (snapshot.isAvailable) {
-  // Define a helper to filter readings by a specific category
-  const filterByCategory = (readings, category) => {
-    return readings.filter((r) => r.category === category);
-  };
+  // Check if temperature monitoring is available on this system
+  if (snapshot.isAvailable) {
+    // Define a helper to filter readings by a specific category
+    const filterByCategory = (readings, category) => {
+      return readings.filter((r) => r.category === category);
+    };
 
-  // Get only CPU-related temperature readings
-  const cpuReadings = filterByCategory(snapshot.readings, 'cpu');
+    // Get only CPU-related temperature readings
+    const cpuReadings = filterByCategory(snapshot.readings, 'cpu');
 
-  // Print each CPU sensor's label and current temperature
-  cpuReadings.forEach((r) => {
-    console.log(`${r.label}: ${r.temperatureCelsius}°C`);
-  });
+    // Print each CPU sensor's label and current temperature
+    cpuReadings.forEach((r) => {
+      console.log(`${r.label}: ${r.temperatureCelsius}°C`);
+    });
 
-  // Get only GPU-related temperature readings
-  const gpuReadings = filterByCategory(snapshot.readings, 'gpu');
+    // Get only GPU-related temperature readings
+    const gpuReadings = filterByCategory(snapshot.readings, 'gpu');
 
-  // Print each GPU sensor's label and current temperature
-  gpuReadings.forEach((r) => {
-    console.log(`${r.label}: ${r.temperatureCelsius}°C`);
-  });
+    // Print each GPU sensor's label and current temperature
+    gpuReadings.forEach((r) => {
+      console.log(`${r.label}: ${r.temperatureCelsius}°C`);
+    });
+  }
 }
+
+main().catch(console.error);
 ```
 
 :::

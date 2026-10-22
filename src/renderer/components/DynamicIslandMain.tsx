@@ -31,7 +31,7 @@ import useIslandStore from '../store/slices';
 import { hydrateWeatherLocationConfigFromStore } from '../store/utils/storage';
 import { initTheme } from '../utils/theme';
 import { initFonts } from '../utils/font';
-import { bootstrapAuthSession } from '../utils/authSession';
+import { bootstrapAuthSession, refreshAuthSession } from '../utils/authSession';
 import i18n from '../i18n';
 import DynamicIsland from './DynamicIsland';
 
@@ -50,7 +50,7 @@ const rootEl = root;
 async function bootstrap(): Promise<void> {
   await initTheme();
   await initFonts();
-  await bootstrapAuthSession();
+  const token = await bootstrapAuthSession();
   await hydrateWeatherLocationConfigFromStore();
 
   /** 启动时初始化灵动岛透明度（在 React 挂载前设置，避免首次渲染闪烁） */
@@ -73,6 +73,8 @@ async function bootstrap(): Promise<void> {
     </StrictMode>
   );
 
+  // eslint-disable-next-line promise/prefer-await-to-then -- 首屏不等待在线刷新，catch 仅兜底后台任务异常。
+  refreshAuthSession(token).catch(console.error);
 }
 
 void bootstrap();

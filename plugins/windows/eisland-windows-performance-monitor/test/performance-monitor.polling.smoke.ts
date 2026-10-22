@@ -25,25 +25,30 @@
  * @author 鸡哥
  */
 
-const monitor = require('../');
+// eslint-disable-next-line import-x/extensions -- Node 直接执行冒烟脚本时必须保留入口扩展名。
+import monitor from '../index.js';
 const wait = (delayMs: number) => new Promise((resolve) => setTimeout(resolve, delayMs));
 
 const main = async () => {
   monitor.getCpu();
 
   for (let index = 0; index < 5; index += 1) {
+    // 连续轮询必须按顺序等待每个采样间隔。
+    // eslint-disable-next-line no-await-in-loop -- 保持真实轮询的先后顺序。
     await wait(100);
 
     const snapshot = {
       index,
       cpu: monitor.getCpu(),
       memory: monitor.getMemory(),
-      temperature: monitor.getTemperature(),
-      hardwareList: monitor.getHardwareList(),
+      // eslint-disable-next-line no-await-in-loop -- 保持真实轮询的先后顺序。
+      temperature: await monitor.getTemperatureAsync(),
+      // eslint-disable-next-line no-await-in-loop -- 保持真实轮询的先后顺序。
+      hardwareList: await monitor.getHardwareListAsync(),
     };
 
     console.log(JSON.stringify(snapshot, null, 2));
   }
 };
 
-void main();
+void main().finally(() => monitor.dispose()).catch((error: unknown) => { console.error(error); process.exitCode = 1; });

@@ -33,6 +33,8 @@ export const USER_ACCOUNT_PROFILE_STORAGE_KEY = 'user-account-profile';
 export const USER_ACCOUNT_LOGOUT_MARKER_KEY = 'user-account-logout-marker';
 /** 登录态变更事件 */
 export const USER_ACCOUNT_SESSION_CHANGED_EVENT = 'user-account-session-changed';
+/** 跨窗口检测显式登录/退出，包含 token 值未变化的会话操作。 */
+const USER_ACCOUNT_SESSION_REVISION_KEY = 'user-account-session-revision';
 
 /** 账号性别枚举 */
 export type UserAccountGender = 'male' | 'female' | 'custom' | 'undisclosed';
@@ -79,6 +81,11 @@ export function subscribeUserAccountSessionChanged(listener: () => void): () => 
  */
 export function readLocalToken(): string | null {
   try {
+    if (localStorage.getItem(USER_ACCOUNT_LOGOUT_MARKER_KEY) === 'true') return null;
+  } catch {
+    // 标记不可读时仍尝试读取 token，兼容部分存储键不可用的环境。
+  }
+  try {
     const raw = localStorage.getItem(USER_ACCOUNT_TOKEN_STORAGE_KEY);
     return raw && raw.length > 0 ? raw : null;
   } catch {
@@ -87,18 +94,43 @@ export function readLocalToken(): string | null {
 }
 
 /**
- * 将 token 写入本地存储。
- * @param token 新 token；传入 null 表示清除登录态。
+ * 读取跨窗口共享的会话修订标记，防止异步恢复覆盖更新的登录态。
+ * @returns 最近一次显式 token 更新的标记；无记录或存储不可用时返回 null。
  */
-export function writeLocalToken(token: string | null): void {
+export function readLocalSessionRevision(): string | null {
   try {
+    return localStorage.getItem(USER_ACCOUNT_SESSION_REVISION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 将 token 写入本地存储。
+ * @param token - 新 token；传入 null 表示清除登录态。
+ * @param persist - 显式登录/退出时同步持久化；启动恢复只填充本地缓存。
+ */
+export function writeLocalToken(token: string | null, persist = true): void {
+  try {
+    if (persist) {
+      // 先发布退出标记，即使另一窗口随后写入旧 token，读取方也不会将其视为已登录。
+      if (!token) localStorage.setItem(USER_ACCOUNT_LOGOUT_MARKER_KEY, 'true');
+      localStorage.setItem(USER_ACCOUNT_SESSION_REVISION_KEY, `${Date.now()}:${Math.random()}`);
+    } else if (localStorage.getItem(USER_ACCOUNT_LOGOUT_MARKER_KEY) === 'true') {
+      return;
+    }
     if (token && token.length > 0) {
       localStorage.setItem(USER_ACCOUNT_TOKEN_STORAGE_KEY, token);
+      if (persist) localStorage.setItem(USER_ACCOUNT_LOGOUT_MARKER_KEY, 'false');
     } else {
       localStorage.removeItem(USER_ACCOUNT_TOKEN_STORAGE_KEY);
     }
   } catch {
     // ignore storage errors
+  }
+  if (!persist) {
+    emitUserAccountSessionChanged();
+    return;
   }
   if (token && token.length > 0) {
     window.api?.storeWrite?.(USER_ACCOUNT_TOKEN_STORAGE_KEY, token).catch(() => {});

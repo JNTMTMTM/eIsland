@@ -7,7 +7,7 @@ icon: fa6-solid:table
 # TemperatureReading
 
 :::info
-`TemperatureReading` is an interface representing a single temperature sensor reading from the host machine. Each reading corresponds to one physical sensor (CPU die, GPU hotspot, motherboard chipset, storage device, etc.) and is returned as part of a [TemperatureSnapshot](temperature-snapshot.md) from the `getTemperature()` function.
+`TemperatureReading` is an interface representing a single temperature sensor reading from the host machine. Each reading corresponds to one physical sensor (CPU die, GPU hotspot, motherboard chipset, storage device, etc.) and is returned as part of a [TemperatureSnapshot](temperature-snapshot.md) from the `getTemperatureAsync()` function.
 :::
 
 ## Interface Introduction
@@ -34,11 +34,13 @@ Use the `category` property to group readings by hardware type rather than parsi
 
 ## Usage
 
-`TemperatureReading` objects are read-only snapshots. You do not create them yourself; instead, call `getTemperature()` and iterate over the `readings` array of the returned [TemperatureSnapshot](temperature-snapshot.md).
+`getTemperatureAsync()` waits for initial discovery or an expired temperature refresh. Requests share a two-second cache. The synchronous `getTemperature()` returns the frozen cache immediately and starts a refresh when expired; its initial `isAvailable: false` means discovery has not completed. Polling is caller-driven, and helper failures retry after ten seconds.
+
+`TemperatureReading` objects are read-only snapshots. You do not create them yourself; instead, call `getTemperatureAsync()` and iterate over the `readings` array of the returned [TemperatureSnapshot](temperature-snapshot.md).
 
 A typical workflow:
 
-1. Call `getTemperature()` to obtain the current [TemperatureSnapshot](temperature-snapshot.md).
+1. Await `getTemperatureAsync()` to obtain the current [TemperatureSnapshot](temperature-snapshot.md).
 2. Check `snapshot.isAvailable` to confirm LibreHardwareMonitor is running.
 3. Access `snapshot.readings` to get the array of `TemperatureReading` objects.
 4. Filter or display readings by `category`, `label`, or `temperatureCelsius`.
@@ -58,63 +60,71 @@ When `isAvailable` is `false` on the parent [TemperatureSnapshot](temperature-sn
 @tab TypeScript
 
 ```ts
-import { getTemperature, TemperatureReading } from '@eisland/windows-performance-monitor';
+import { getTemperatureAsync, type TemperatureReading } from '@eisland/windows-performance-monitor';
 
-// Query the current temperature snapshot
-const snapshot = getTemperature();
+async function main() {
+  // Query the current temperature snapshot
+  const snapshot = await getTemperatureAsync();
 
-// Check if temperature data is available (requires LibreHardwareMonitor)
-if (!snapshot.isAvailable) {
-  console.log('Temperature data unavailable — is the helper EXE running?');
-} else {
-  // Iterate over all sensor readings
-  snapshot.readings.forEach((r: TemperatureReading) => {
-    // Pick a display icon based on the sensor category
-    const icon = r.category === 'cpu' ? '[CPU]'
-               : r.category === 'gpu' ? '[GPU]'
-               : r.category === 'storage' ? '[STO]'
-               : '[HW]';
-    // Print the sensor label and current temperature
-    console.log(`${icon} ${r.label}: ${r.temperatureCelsius}°C`);
-  });
+  // Check if temperature data is available (requires LibreHardwareMonitor)
+  if (!snapshot.isAvailable) {
+    console.log('Temperature data unavailable — check sensor support and helper permissions.');
+  } else {
+    // Iterate over all sensor readings
+    snapshot.readings.forEach((r: TemperatureReading) => {
+      // Pick a display icon based on the sensor category
+      const icon = r.category === 'cpu' ? '[CPU]'
+                 : r.category === 'gpu' ? '[GPU]'
+                 : r.category === 'storage' ? '[STO]'
+                 : '[HW]';
+      // Print the sensor label and current temperature
+      console.log(`${icon} ${r.label}: ${r.temperatureCelsius}°C`);
+    });
 
-  // Filter readings to CPU sensors only
-  const cpuReadings: TemperatureReading[] = snapshot.readings.filter(
-    (r: TemperatureReading) => r.category === 'cpu'
-  );
-  console.log(`CPU sensors: ${cpuReadings.length}`);
+    // Filter readings to CPU sensors only
+    const cpuReadings: TemperatureReading[] = snapshot.readings.filter(
+      (r: TemperatureReading) => r.category === 'cpu'
+    );
+    console.log(`CPU sensors: ${cpuReadings.length}`);
+  }
 }
+
+main().catch(console.error);
 ```
 
 @tab JavaScript
 
 ```js
-const { getTemperature } = require('@eisland/windows-performance-monitor');
+const { getTemperatureAsync } = require('@eisland/windows-performance-monitor');
 
-// Query the current temperature snapshot
-const snapshot = getTemperature();
+async function main() {
+  // Query the current temperature snapshot
+  const snapshot = await getTemperatureAsync();
 
-// Check if temperature data is available (requires LibreHardwareMonitor)
-if (!snapshot.isAvailable) {
-  console.log('Temperature data unavailable — is the helper EXE running?');
-} else {
-  // Iterate over all sensor readings
-  snapshot.readings.forEach((r) => {
-    // Pick a display icon based on the sensor category
-    const icon = r.category === 'cpu' ? '[CPU]'
-               : r.category === 'gpu' ? '[GPU]'
-               : r.category === 'storage' ? '[STO]'
-               : '[HW]';
-    // Print the sensor label and current temperature
-    console.log(`${icon} ${r.label}: ${r.temperatureCelsius}°C`);
-  });
+  // Check if temperature data is available (requires LibreHardwareMonitor)
+  if (!snapshot.isAvailable) {
+    console.log('Temperature data unavailable — check sensor support and helper permissions.');
+  } else {
+    // Iterate over all sensor readings
+    snapshot.readings.forEach((r) => {
+      // Pick a display icon based on the sensor category
+      const icon = r.category === 'cpu' ? '[CPU]'
+                 : r.category === 'gpu' ? '[GPU]'
+                 : r.category === 'storage' ? '[STO]'
+                 : '[HW]';
+      // Print the sensor label and current temperature
+      console.log(`${icon} ${r.label}: ${r.temperatureCelsius}°C`);
+    });
 
-  // Filter readings to CPU sensors only
-  const cpuReadings = snapshot.readings.filter(
-    (r) => r.category === 'cpu'
-  );
-  console.log(`CPU sensors: ${cpuReadings.length}`);
+    // Filter readings to CPU sensors only
+    const cpuReadings = snapshot.readings.filter(
+      (r) => r.category === 'cpu'
+    );
+    console.log(`CPU sensors: ${cpuReadings.length}`);
+  }
 }
+
+main().catch(console.error);
 ```
 
 :::
@@ -126,7 +136,7 @@ The `source` field is currently always `"libre-hardware-monitor"`. Future versio
 :::
 
 :::note
-Temperature readings are collected at the moment `getTemperature()` is called. There is no built-in polling or event-based update mechanism. To track temperature changes over time, call `getTemperature()` on your own interval.
+Temperature queries share a two-second cache; `getTemperatureAsync()` waits for a refresh only when needed. There is no built-in polling or event-based update mechanism. To track temperature changes over time, call `getTemperatureAsync()` on your own interval.
 :::
 
 :::tip
@@ -140,5 +150,5 @@ Do not assume `temperatureCelsius` is always a reasonable value. LibreHardwareMo
 :::
 
 :::danger
-Calling `getTemperature()` in a tight loop (e.g. inside `requestAnimationFrame` or a zero-delay `setInterval`) will trigger repeated hardware polling via the LibreHardwareMonitor helper process. This wastes CPU cycles and can cause the helper EXE to become unresponsive. Poll at intervals of 1 second or longer.
+Calling `getTemperatureAsync()` in a tight loop (e.g. inside `requestAnimationFrame` or a zero-delay `setInterval`) still shares the two-second refresh cache but causes unnecessary JavaScript calls. Use an interval that matches the two-second cache and avoid overlapping asynchronous callbacks. Poll at intervals of 1 second or longer.
 :::

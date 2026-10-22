@@ -1,0 +1,63 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file settings-skeleton.css
+ * @description Settings 各页面共用的骨架占位条与扫光动画
+ * @description 需在各模块样式之前引入，模块内同优先级的尺寸、圆角规则才能覆盖这里的通用值
+ */
+
+.settings-skeleton-block {
+  display: block;
+  flex-shrink: 0;
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 4px;
+
+}
+
+/* 扫光宿主需自行声明定位与 overflow: hidden，这里不覆盖，避免与宿主原有的定位方式冲突。 */
+.settings-skeleton-sweep::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-text-rgb), .07), transparent);
+  animation: settings-skeleton-sweep 1.4s ease-in-out infinite;
+  transform: translateX(-100%);
+  content: "";
+
+}
+
+/* 扫光只做 transform 位移，交给合成层执行，不触发重绘。 */
+@keyframes settings-skeleton-sweep {
+  to {
+    transform: translateX(100%);
+
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-skeleton-sweep::after {
+    display: none;
+    animation: none;
+
+  }
+
+}

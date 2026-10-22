@@ -24,58 +24,148 @@
  * @author 鸡哥
  */
 
+import { EventEmitter } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createNativeRuntimeFixture } from '../../../test/nativeRuntimeHarness';
 import type { NativeRuntimeFixture } from '../../../test/nativeRuntimeHarness';
 import type * as PerformanceApi from '../index';
+
 const file = fileURLToPath(new URL('../index.js', import.meta.url));
 const leaves = new Map<string, unknown>();
-const binding: Record<string, unknown> = {};
 const exists = vi.fn<(candidate: string) => boolean>();
-const sync = vi.fn<(file: string, args: string[], options: unknown) => { status: number; stdout: string; error?: Error }>();
 const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
-let fixture: NativeRuntimeFixture; let api: typeof PerformanceApi;
-beforeEach(() => { vi.resetAllMocks(); leaves.clear(); Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' }); fixture = createNativeRuntimeFixture(file, leaves);
+const reading = { id: '/cpu/0/temperature/0', label: 'CPU package', category: 'cpu', temperatureCelsius: 65, source: 'libre-hardware-monitor' };
+const device = { id: '/cpu/0', name: 'CPU', category: 'cpu', hardwareType: 'Cpu', source: 'libre-hardware-monitor' };
+const payload = {
+  temperature: { isAvailable: true, readings: [reading], maxTemperatureCelsius: 65 },
+  hardwareList: { isAvailable: true, cpus: [device], gpus: [] },
+};
+/**
+ * 构造可控制分包、写入和退出事件的 helper 进程。
+ * @returns 可控制的进程边界
+ */
+function createChild() {
+  return Object.assign(new EventEmitter(), {
+    stdout: Object.assign(new EventEmitter(), { setEncoding: vi.fn(), ref: vi.fn(), unref: vi.fn() }),
+    stdin: Object.assign(new EventEmitter(), { write: vi.fn(), end: vi.fn(), ref: vi.fn(), unref: vi.fn() }),
+    kill: vi.fn(), ref: vi.fn(), unref: vi.fn(),
+  });
+}
+let child: ReturnType<typeof createChild>;
+const spawn = vi.fn();
+let fixture: NativeRuntimeFixture;
+let api: typeof PerformanceApi;
+let binding: Record<string, unknown>;
+beforeEach(() => {
+  vi.resetAllMocks(); vi.useFakeTimers(); vi.setSystemTime(100000); leaves.clear();
+  Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' });
+  binding = {}; child = createChild(); spawn.mockReturnValue(child);
+  fixture = createNativeRuntimeFixture(file, leaves);
   leaves.set(join(dirname(file), 'build', 'Release', 'windows_performance_monitor.node'), binding);
-  leaves.set('node:fs', { existsSync: exists }); leaves.set('node:child_process', { spawnSync: sync });
-  exists.mockReturnValue(true); sync.mockReturnValue({ status: 0, stdout: '{}' }); api = fixture.read<typeof PerformanceApi>();
+  leaves.set('node:fs', { existsSync: exists }); leaves.set('node:child_process', { spawn });
+  exists.mockReturnValue(true); api = fixture.read<typeof PerformanceApi>();
 });
-afterEach(() => { fixture.dispose(); vi.restoreAllMocks(); if (originalPlatform) Object.defineProperty(process, 'platform', originalPlatform); });
-describe('性能插件原生加载与温度 helper 协议', () => {
+afterEach(() => {
+  api.dispose(); fixture.dispose(); vi.useRealTimers(); vi.restoreAllMocks();
+  if (originalPlatform) Object.defineProperty(process, 'platform', originalPlatform);
+});
+/**
+ * 将一条完整响应送入真实插件入口。
+ * @param value - helper 的响应载荷
+ */
+function respond(value: unknown = payload) { child.stdout.emit('data', `${JSON.stringify(value)}\n`); }
+
+describe('性能插件异步采集与生命周期', () => {
   it('非 Windows 拒绝加载，Release 失败可回退 Debug，双失败透传最后错误', () => {
     leaves.set(join(dirname(file), 'build', 'Release', 'windows_performance_monitor.node'), new Error('release absent'));
     leaves.set(join(dirname(file), 'build', 'Debug', 'windows_performance_monitor.node'), binding);
     expect(fixture.read()).toBe(binding);
-    const failure = new Error('debug absent'); leaves.set(join(dirname(file), 'build', 'Debug', 'windows_performance_monitor.node'), failure); expect(fixture.read).toThrow(failure);
-    Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' }); expect(fixture.read).toThrow('only supports Windows');
+    const failure = new Error('debug absent');
+    leaves.set(join(dirname(file), 'build', 'Debug', 'windows_performance_monitor.node'), failure);
+    expect(fixture.read).toThrow(failure);
+    Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' });
+    expect(fixture.read).toThrow('only supports Windows');
   });
-  it('helper 缺失返回空温度与硬件快照，不启动进程', () => {
-    exists.mockReturnValue(false);
+  it('导入不启动 helper，同步查询立即返回缓存并合并后台刷新', () => {
+    expect(spawn).not.toHaveBeenCalled();
     expect(api.getTemperature()).toEqual({ isAvailable: false, readings: [], maxTemperatureCelsius: null });
-    expect(api.getHardwareList()).toEqual({ isAvailable: false, cpus: [], gpus: [] }); expect(sync).not.toHaveBeenCalled();
+    expect(api.getHardwareList().isAvailable).toBe(false);
+    expect(spawn).toHaveBeenCalledExactlyOnceWith(expect.any(String), ['server'], { windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'] });
+    expect(child.stdin.write).toHaveBeenCalledExactlyOnceWith('snapshot\n');
+    respond();
+    expect(api.getTemperature()).toEqual(payload.temperature);
+    expect(api.getHardwareList()).toEqual(payload.hardwareList);
   });
-  it.each([{ status: 1, stdout: '{}' }, { status: 0, stdout: '{}', error: new Error('spawn') }, { status: 0, stdout: '' }, { status: 0, stdout: '{invalid' }])('helper 错误 $status/$stdout 返回默认快照', (result) => {
-    sync.mockReturnValue(result); expect(api.getTemperature().isAvailable).toBe(false); expect(api.getHardwareList().isAvailable).toBe(false);
+  it('并发查询共用请求、支持分包，缓存过期后复用进程', async () => {
+    const temperatures = Array.from({ length: 100 }, () => api.getTemperatureAsync());
+    const hardware = api.getHardwareListAsync();
+    const line = JSON.stringify(payload);
+    child.stdout.emit('data', line.slice(0, 20));
+    expect(api.getTemperature().isAvailable).toBe(false);
+    child.stdout.emit('data', `${line.slice(20)}\n`);
+    expect(await Promise.all(temperatures)).toEqual(Array(100).fill(payload.temperature));
+    expect(await hardware).toEqual(payload.hardwareList);
+    await api.getTemperatureAsync();
+    expect(child.stdin.write).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(2000);
+    const next = api.getTemperatureAsync(); respond(); await next;
+    expect(spawn).toHaveBeenCalledOnce(); expect(child.stdin.write).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(2000);
+    await api.getHardwareListAsync();
+    expect(child.stdin.write).toHaveBeenCalledTimes(2);
   });
-  it.each([
-    { isAvailable: true, readings: [1], maxTemperatureCelsius: 77, expected: true },
-    { isAvailable: false, readings: [1], maxTemperatureCelsius: 'bad', expected: false },
-    { isAvailable: true, readings: [], maxTemperatureCelsius: null, expected: false },
-    { isAvailable: true, readings: 'bad', expected: false }
-  ])('温度 isAvailable=$isAvailable readings=$readings 保留合法数组与数值', ({ expected, ...snapshot }) => {
-    sync.mockReturnValue({ status: 0, stdout: JSON.stringify(snapshot) });
-    expect(api.getTemperature()).toEqual({ isAvailable: expected, readings: Array.isArray(snapshot.readings) ? snapshot.readings : [], maxTemperatureCelsius: typeof snapshot.maxTemperatureCelsius === 'number' ? snapshot.maxTemperatureCelsius : null });
+  it('helper 缺失和启动抛错都退避，不循环检查文件或启动进程', async () => {
+    exists.mockReturnValue(false);
+    await api.getTemperatureAsync(); await api.getHardwareListAsync();
+    expect(spawn).not.toHaveBeenCalled(); expect(exists).toHaveBeenCalledTimes(4);
+    await vi.advanceTimersByTimeAsync(10000); exists.mockReturnValue(true);
+    spawn.mockImplementation(() => { throw new Error('spawn failed'); });
+    await api.getTemperatureAsync(); await api.getTemperatureAsync();
+    expect(spawn).toHaveBeenCalledOnce();
   });
-  it.each([
-    { isAvailable: true, cpus: [1], gpus: [], expected: true },
-    { isAvailable: true, cpus: [], gpus: [2], expected: true },
-    { isAvailable: true, cpus: [], gpus: [], expected: false },
-    { isAvailable: false, cpus: [1], gpus: [2], expected: false },
-    { isAvailable: true, cpus: 'bad', gpus: null, expected: false }
-  ])('硬件列表 availability=$expected 由有效CPU/GPU数量决定', ({ expected, ...snapshot }) => {
-    sync.mockReturnValue({ status: 0, stdout: JSON.stringify(snapshot) }); expect(api.getHardwareList().isAvailable).toBe(expected);
-    expect(sync).toHaveBeenLastCalledWith(expect.any(String), ['hardware-list'], { encoding: 'utf8', windowsHide: true, timeout: 5000 });
+  it.each(['error', 'exit', 'stdin-error', 'stdout-error', 'timeout', 'invalid', 'null', 'oversize'])('%s 完成等待者、清除过期温度，退避后恢复', async (failure) => {
+    const initial = api.getTemperatureAsync(); respond(); await initial;
+    await vi.advanceTimersByTimeAsync(2000);
+    const pending = api.getTemperatureAsync();
+    if (failure === 'timeout') await vi.advanceTimersByTimeAsync(5000);
+    else if (failure === 'invalid') child.stdout.emit('data', '{invalid}\n');
+    else if (failure === 'null') respond(null);
+    else if (failure === 'oversize') child.stdout.emit('data', 'x'.repeat(1024 * 1024 + 1));
+    else if (failure === 'stdin-error') child.stdin.emit('error', new Error('pipe'));
+    else if (failure === 'stdout-error') child.stdout.emit('error', new Error('pipe'));
+    else child.emit(failure, failure === 'error' ? new Error('spawn') : 1);
+    expect((await pending).isAvailable).toBe(false); expect(child.kill).toHaveBeenCalledOnce();
+    await api.getTemperatureAsync(); expect(spawn).toHaveBeenCalledOnce();
+    const oldChild = child; child = createChild(); spawn.mockReturnValue(child);
+    await vi.advanceTimersByTimeAsync(10000);
+    const retry = api.getTemperatureAsync();
+    oldChild.emit('exit', 1); oldChild.stdout.emit('data', '{}\n');
+    respond(); expect(await retry).toEqual(payload.temperature); expect(spawn).toHaveBeenCalledTimes(2);
+  });
+  it('过滤非法传感器和设备，缓存不能被调用方改写', async () => {
+    const pending = api.getTemperatureAsync();
+    respond({
+      temperature: { isAvailable: true, readings: [null, 1, {}, { ...reading, temperatureCelsius: '65' }, reading], maxTemperatureCelsius: 999 },
+      hardwareList: { isAvailable: true, cpus: [null, {}, device], gpus: [device] },
+    });
+    const snapshot = await pending;
+    expect(snapshot).toEqual(payload.temperature); expect(api.getHardwareList()).toEqual(payload.hardwareList);
+    expect(() => { snapshot.readings[0].temperatureCelsius = 999; }).toThrow();
+  });
+  it('空闲结束 stdin 且无后台轮询，下次温度请求重新启动', async () => {
+    const pending = api.getTemperatureAsync(); respond(); await pending;
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(child.stdin.end).toHaveBeenCalledOnce(); expect(child.stdin.write).toHaveBeenCalledOnce();
+    const next = api.getTemperatureAsync(); respond(); await next;
+    expect(spawn).toHaveBeenCalledTimes(2);
+  });
+  it('dispose 完成请求、清空缓存并移除退出钩子，可以重新采集', async () => {
+    const listeners = process.listenerCount('exit');
+    const pending = api.getTemperatureAsync(); expect(process.listenerCount('exit')).toBe(listeners + 1);
+    api.dispose(); expect((await pending).isAvailable).toBe(false);
+    expect(process.listenerCount('exit')).toBe(listeners);
+    const next = api.getTemperatureAsync(); respond(); expect(await next).toEqual(payload.temperature);
   });
 });

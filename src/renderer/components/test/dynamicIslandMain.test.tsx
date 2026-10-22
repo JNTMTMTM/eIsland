@@ -30,7 +30,8 @@ import { Children, StrictMode, type ReactElement } from 'react';
 const mocks = vi.hoisted(() => ({
   root: {}, get: vi.fn<() => object | null>(), render: vi.fn(), mount: vi.fn(), css: vi.fn(),
   theme: vi.fn<() => Promise<void>>(), fonts: vi.fn<() => Promise<void>>(),
-  auth: vi.fn<() => Promise<void>>(), weatherConfig: vi.fn<() => Promise<void>>(), weather: vi.fn(),
+  auth: vi.fn<() => Promise<string | null>>(), refreshAuth: vi.fn<(token: string | null) => Promise<void>>(),
+  weatherConfig: vi.fn<() => Promise<void>>(), weather: vi.fn(),
   opacity: vi.fn<() => Promise<unknown>>(), current: vi.fn<() => Promise<unknown>>(),
   update: vi.fn(), subscribe: vi.fn(), unsubscribe: vi.fn(), view: () => null,
 }));
@@ -38,7 +39,7 @@ vi.mock('react-dom/client', () => ({ createRoot: mocks.mount }));
 vi.mock('../../i18n', () => ({ default: { t: (key: string) => key } }));
 vi.mock('../../utils/theme', () => ({ initTheme: mocks.theme }));
 vi.mock('../../utils/font', () => ({ initFonts: mocks.fonts }));
-vi.mock('../../utils/authSession', () => ({ bootstrapAuthSession: mocks.auth }));
+vi.mock('../../utils/authSession', () => ({ bootstrapAuthSession: mocks.auth, refreshAuthSession: mocks.refreshAuth }));
 vi.mock('../../store/utils/storage', () => ({ hydrateWeatherLocationConfigFromStore: mocks.weatherConfig }));
 vi.mock('../../store/slices', () => ({ default: { getState: () => ({ fetchWeatherData: mocks.weather, handleNowPlayingUpdate: mocks.update }) } }));
 vi.mock('../DynamicIsland', () => ({ default: mocks.view }));
@@ -47,12 +48,27 @@ describe('DynamicIslandMain', () => {
     vi.resetModules();
     mocks.get.mockReturnValue(mocks.root);
     mocks.mount.mockReturnValue({ render: mocks.render });
-    mocks.theme.mockResolvedValue(); mocks.fonts.mockResolvedValue(); mocks.auth.mockResolvedValue();
+    mocks.theme.mockResolvedValue(); mocks.fonts.mockResolvedValue(); mocks.auth.mockResolvedValue('cached-token');
+    mocks.refreshAuth.mockResolvedValue();
     mocks.weatherConfig.mockResolvedValue(); mocks.opacity.mockResolvedValue(75);
     mocks.current.mockResolvedValue(null); mocks.subscribe.mockReturnValue(mocks.unsubscribe);
     vi.stubGlobal('document', { getElementById: mocks.get, documentElement: { style: { setProperty: mocks.css } } });
     vi.stubGlobal('window', Object.assign(new EventTarget(), { api: { islandOpacityGet: mocks.opacity,
       mediaCurrentInfoGet: mocks.current, onNowPlayingInfo: mocks.subscribe } }));
+  });
+  it('资料请求和天气请求未完成时仍挂载，资料刷新在挂载提交后启动', async () => {
+    const pending = Promise.withResolvers<void>();
+    mocks.refreshAuth.mockReturnValue(pending.promise);
+    mocks.weather.mockReturnValue(pending.promise);
+    try {
+      await import('../DynamicIslandMain');
+      await vi.waitFor(() => { expect(mocks.render).toHaveBeenCalledOnce(); });
+      expect(mocks.refreshAuth).toHaveBeenCalledExactlyOnceWith('cached-token');
+      expect(mocks.render.mock.invocationCallOrder[0]).toBeLessThan(mocks.refreshAuth.mock.invocationCallOrder[0]);
+      expect(mocks.weather).toHaveBeenCalledOnce();
+    } finally {
+      pending.resolve();
+    }
   });
   afterEach(() => { vi.unstubAllGlobals(); });
 
