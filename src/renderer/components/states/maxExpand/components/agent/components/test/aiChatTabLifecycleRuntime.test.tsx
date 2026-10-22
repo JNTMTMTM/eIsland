@@ -27,6 +27,7 @@ import { byClass, elements, find, invoke, text } from '../../../../../test/tree'
 import { createHookReactMock, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 import { installChatRuntime, roleToken } from '../../hooks/test/chatRuntimeFixture';
 import type { RefObject } from 'react';
+let expandChatRows: typeof import('./chatRowsFixture').default;
 import type { AiChatMessage } from '../../../../../../../store/types';
 let Component: typeof import('../AiChatTab').AiChatContent;
 let hooks: typeof import('../../hooks/useChatState');
@@ -37,7 +38,7 @@ const fetchLeaf = vi.fn<typeof fetch>();
  * @returns 元素树
  */
 function run() {
-  return renderHook(Component);
+  return expandChatRows(renderHook(Component));
 }
 /** 提交实际生命周期。
  * @returns 更新后元素树
@@ -95,6 +96,7 @@ beforeEach(async () => {
   fetchLeaf.mockRejectedValue(new Error('native offline'));
   vi.stubGlobal('fetch', fetchLeaf);
   vi.doMock('react', async (original) => createHookReactMock(await original<typeof import('react')>()));
+  ({ default: expandChatRows } = await import('./chatRowsFixture'));
   hooks = await import('../../hooks/useChatState');
   ({
     AiChatContent: Component

@@ -38,7 +38,8 @@ import { TodoList } from '../../../../../components/DynamicIslandAgentProcessCom
 interface MessageTimelineProps {
   msg: AiChatMessage;
   absoluteIndex: number;
-  totalMessages: number;
+  /** 只传递是否为末条消息，避免新增消息使全部历史行的属性变化。 */
+  isLatestMessage: boolean;
   isStreaming: boolean;
   showThinking: boolean;
   onReportIssue: (traceId: string, finalAnswer: string) => void;
@@ -48,13 +49,13 @@ interface MessageTimelineProps {
 export function MessageTimeline({
   msg,
   absoluteIndex,
-  totalMessages,
+  isLatestMessage,
   isStreaming,
   showThinking,
   onReportIssue,
 }: MessageTimelineProps): ReactElement {
   const { t } = useTranslation();
-  const isLatestAssistantMsg = absoluteIndex === totalMessages - 1;
+  const isLatestAssistantMsg = isLatestMessage;
 
   const thinkBlocks = showThinking && Array.isArray(msg.thinkBlocks)
     ? msg.thinkBlocks

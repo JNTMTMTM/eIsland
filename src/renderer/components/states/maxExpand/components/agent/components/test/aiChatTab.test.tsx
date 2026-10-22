@@ -25,8 +25,11 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, nodes, value, trigger, text } from '../../../../test/componentHarness';
+import { render as renderComponent, nodes, value, trigger, text } from '../../../../test/componentHarness';
 import { AiChatContent as Component } from '../AiChatTab';
+import expandChatRows from './chatRowsFixture';
+/** 展开行组件后检查页面交互。 */
+const render = (component: unknown) => expandChatRows(renderComponent(component));
 import { ChatInputBar } from '../ChatInputBar';
 import { MessageTimeline } from '../MessageTimeline';
 import { AssistantMarkdown } from '../AssistantMarkdown';
@@ -99,6 +102,18 @@ describe('AiChatTab', () => {
     expect(value(tree, LocalToolAccessPanel, 'onResolve')).toBe(send.handleResolveLocalToolAccess);
     state.aiWebAccessPrompt.sessionId = 'active';
     expect(value(render(Component), WebAccessPanel, 'onResolve')).toBe(send.handleResolveWebAccess);
+  });
+  it('keeps avatar navigation and session deletion accessible from the keyboard', () => {
+    state.visibleMessages = [{ role: 'user', content: 'question' }];
+    state.aiChatMessages = state.visibleMessages;
+    state.orderedSessions = [{ id: 'active', title: 'Current', updatedAt: 1 }];
+    const tree = render(Component);
+    const event = { key: 'Enter', preventDefault: vi.fn(), stopPropagation: vi.fn() };
+    trigger(tree, '.max-expand-chat-user-avatar', 'onKeyDown', event);
+    expect(send.navigateToSettingsTab).toHaveBeenCalledWith('user-info');
+    trigger(tree, '.max-expand-chat-session-delete', 'onKeyDown', { ...event, key: ' ' });
+    expect(state.deleteAiChatSession).toHaveBeenCalledWith('active');
+    expect(event.stopPropagation).toHaveBeenCalledOnce();
   });
 });
 

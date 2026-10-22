@@ -60,7 +60,7 @@ function run(msg: AiChatMessage, patch: Partial<Parameters<typeof Component>[0]>
   return renderHook(Component, {
     msg,
     absoluteIndex: 1,
-    totalMessages: 2,
+    isLatestMessage: true,
     isStreaming: false,
     showThinking: true,
     onReportIssue: report,
@@ -149,7 +149,7 @@ describe('MessageTimeline real helpers and state actions', () => {
     expect(liveThinking[1].props.isThinking).toBe(false);
     const older = run(msg, {
       isStreaming: true,
-      totalMessages: 3
+      isLatestMessage: false
     });
     expect(elements(older).filter((node) => typeof node.props.onDurationComputed === 'function').every((node) => node.props.isThinking === false)).toBe(true);
   });
@@ -207,7 +207,7 @@ describe('MessageTimeline real helpers and state actions', () => {
     }, {
       showThinking: flags.thinking,
       isStreaming: flags.streaming,
-      totalMessages: flags.latest ? 2 : 3
+      isLatestMessage: flags.latest
     });
     expect(elements(tree).some((node) => node.props.className === 'max-expand-chat-think-live-dots')).toBe(flags.thinking && flags.streaming && flags.latest);
     expect(elements(tree).some((node) => node.props.className === 'max-expand-chat-generating-dots')).toBe(!flags.thinking && flags.streaming && flags.latest);

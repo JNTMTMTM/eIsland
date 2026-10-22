@@ -341,15 +341,17 @@ export function useChatState(): ChatState {
   ), [aiChatSessions]);
 
   // ── 会话卡片状态 ──
+  // 卡片逐项查找整个会话数组会退化为 O(n²)，为每次列表更新建立一次索引。
+  const sessionsById = useMemo(() => new Map(aiChatSessions.map((session) => [session.id, session])), [aiChatSessions]);
   const getSessionCardState = useCallback((sessionId: string): 'idle' | 'running' | 'awaiting' | 'success' | 'failed' => {
     return resolveSessionCardState({
       sessionId,
       streamingSessionIds: SESSION_STREAMING_IDS,
       webAccessPrompt: aiWebAccessPrompt,
       localToolAccessPrompt: aiLocalToolAccessPrompt,
-      sessions: aiChatSessions,
+      session: sessionsById.get(sessionId),
     });
-  }, [aiChatSessions, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
+  }, [sessionsById, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
 
   // ── 上下文 token 统计 ──
   const contextTokenUsage = useMemo(() => {

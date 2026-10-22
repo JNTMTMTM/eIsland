@@ -37,7 +37,7 @@ function params(patch: Partial<Params> = {}): Params {
     streamingSessionIds: new Set<string>(),
     webAccessPrompt: null,
     localToolAccessPrompt: null,
-    sessions: [],
+    session: undefined,
     ...patch
   };
 }
@@ -91,7 +91,7 @@ describe('session status real public data', () => {
   });
   it.each([['❌ failed', 'failed'], ['answer', 'success'], ['  ', 'idle']] as const)('latest assistant %s produces %s', (content, status) => {
     expect(resolveSessionCardState(params({
-      sessions: [session([{
+      session: session([{
         role: 'assistant',
         content: '❌ previous'
       }, {
@@ -100,25 +100,25 @@ describe('session status real public data', () => {
       }, {
         content,
         role: 'assistant'
-      }])]
+      }])
     }))).toBe(status);
   });
   it('finished empty assistant is successful while user-only and empty conversations idle', () => {
     expect(resolveSessionCardState(params({
-      sessions: [session([{
+      session: session([{
         role: 'assistant',
         content: '',
         finalized: true
-      }])]
+      }])
     }))).toBe('success');
     expect(resolveSessionCardState(params({
-      sessions: [session([{
+      session: session([{
         role: 'user',
         content: 'query'
-      }])]
+      }])
     }))).toBe('idle');
     expect(resolveSessionCardState(params({
-      sessions: [session([])]
+      session: session([])
     }))).toBe('idle');
   });
 });

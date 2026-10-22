@@ -33,7 +33,7 @@ import { TodoList } from '../../../../../../components/DynamicIslandAgentProcess
 const persist = vi.hoisted(() => vi.fn());
 vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (store: { setAiChatMessageThinkDuration: typeof persist }) => unknown) => selector({ setAiChatMessageThinkDuration: persist }) }));
 describe('MessageTimeline', () => {
-  const props = { absoluteIndex: 0, totalMessages: 1, isStreaming: false, showThinking: true, onReportIssue: vi.fn() };
+  const props = { absoluteIndex: 0, isLatestMessage: true, isStreaming: false, showThinking: true, onReportIssue: vi.fn() };
   it('sorts tools by turn, hides todo-write calls and persists reasoning durations', () => {
     const tree = render(Component, { ...props, msg: { content: 'answer', thinkBlocks: ['first', 'next', 'last'], thinkDurations: [2], toolCalls: [{ tool: 'tail', pending: true }, { tool: 'second', turn: 2, success: false }, { tool: 'agent.todo.write', turn: 1 }, { tool: 'first', turn: 1, success: true, result: { ok: true } }], todoSnapshots: [{ turn: 0, items: [] }, { turn: 1, items: [] }] } });
     expect(nodes(tree, '.max-expand-chat-tool-name').map((node) => text(node))).toEqual(['first', 'second', 'tail']);
@@ -66,7 +66,7 @@ describe('MessageTimeline', () => {
     expect(nodes(render(Component, {
       msg,
       ...props,
-      totalMessages: 2,
+      isLatestMessage: false,
       isStreaming: true
     }), '.max-expand-chat-loading-row')).toHaveLength(0);
   });
