@@ -268,6 +268,38 @@ test('streams while reading history without jumping and follows new output after
   }));
   await expect(page.locator(`${ROWS}[data-chat-index="${HISTORY_SIZE + 1}"]`)).toContainText('Following stream paragraph 14.');
   await expectBottom(page, HISTORY_SIZE + 1);
+  const motion = await page.evaluate(async () => {
+    const list = document.querySelector<HTMLElement>('.max-expand-chat-messages');
+    const paragraph = list?.querySelector('[data-chat-index="301"] p');
+    if (!list || !paragraph) throw new Error('Missing streamed paragraph');
+    const origin = paragraph.getBoundingClientRect().top + list.scrollTop;
+    let previous = list.scrollTop;
+    let largestStep = 0;
+    let smallestStep = 0;
+    let drift = 0;
+    let watching = true;
+    const sample = (): void => {
+      const delta = list.scrollTop - previous;
+      largestStep = Math.max(largestStep, delta);
+      smallestStep = Math.min(smallestStep, delta);
+      previous = list.scrollTop;
+      drift = Math.max(drift, Math.abs(paragraph.getBoundingClientRect().top + list.scrollTop - origin));
+      if (watching) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+    for (let index = 0; index < 6; index++) {
+      window.agentScrollEmit?.('chunk', { text: `\n\nNew output line ${index}: additional streamed paragraph.` });
+      // eslint-disable-next-line no-await-in-loop -- 按实际分片间隔逐次输出，检验跨帧连续跟随。
+      await new Promise<void>((resolve) => setTimeout(resolve, 70));
+    }
+    await new Promise<void>((resolve) => setTimeout(resolve, 400));
+    watching = false;
+    return { largestStep, smallestStep, drift };
+  });
+  expect(motion.largestStep).toBeGreaterThan(0);
+  expect(motion.largestStep).toBeLessThan(30);
+  expect(motion.smallestStep).toBeGreaterThanOrEqual(-1);
+  expect(motion.drift).toBeLessThan(1);
   await page.evaluate(() => window.agentScrollFinish?.());
   await expect(page.locator('.max-expand-chat-send').filter({ hasText: en.aiChat.actions.stop })).toHaveCount(0);
   await expectBottom(page, HISTORY_SIZE + 1);

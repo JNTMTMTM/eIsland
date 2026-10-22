@@ -29,7 +29,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import ChatMessage from './chatMessage';
-import type { ComponentProps, ReactElement, ReactNode } from 'react';
+import type { ComponentProps, ReactElement, ReactNode, WheelEvent } from 'react';
 import type { AiChatMessage } from '../../../../../../store/types';
 
 const ESTIMATED_ROW_HEIGHT = 120;
@@ -93,6 +93,9 @@ export function VirtualChatMessages(props: VirtualChatMessagesProps): ReactEleme
   const observer = useRef<ResizeObserver | null>(null);
   const frame = useRef<number | null>(null);
   const measureFrame = useRef<number | null>(null);
+  const followFrame = useRef<number | null>(null);
+  const writtenScrollTop = useRef<number | null>(null);
+  const previousMessageCount = useRef(-1);
   const containerSize = useRef({ width: 0, height: 0 });
   const followBottom = useRef(true);
   const selection = useRef(hasActiveTextSelection);
@@ -139,19 +142,60 @@ export function VirtualChatMessages(props: VirtualChatMessagesProps): ReactEleme
     }
   }, []);
 
+  const stopFollowing = useCallback((): void => {
+    followBottom.current = false;
+    if (followFrame.current !== null) window.cancelAnimationFrame(followFrame.current);
+    followFrame.current = null;
+    writtenScrollTop.current = null;
+  }, []);
+
+  const handleWheel = useCallback((event: WheelEvent<HTMLDivElement>): void => {
+    if (event.deltaY < 0) stopFollowing();
+  }, [stopFollowing]);
+
+  const followLatest = useCallback((): void => {
+    if (followFrame.current !== null) return;
+    let previousTime: number | null = null;
+    const advance = (time: number): void => {
+      const element = container.current;
+      if (!element || !followBottom.current || selection.current?.()) {
+        followFrame.current = null;
+        return;
+      }
+      const target = Math.max(0, element.scrollHeight - element.clientHeight);
+      const remaining = target - element.scrollTop;
+      const elapsed = previousTime === null ? 16 : Math.min(32, time - previousTime);
+      previousTime = time;
+      const next = remaining <= 0.5 ? target
+        : element.scrollTop + Math.min(remaining, Math.max(1, remaining * (1 - Math.exp(-elapsed / 65))));
+      writtenScrollTop.current = next;
+      element.scrollTop = next;
+      // 使用浏览器取整后的真实位置识别自动滚动事件。
+      writtenScrollTop.current = element.scrollTop;
+      syncViewport();
+      followFrame.current = remaining <= 0.5 ? null : window.requestAnimationFrame(advance);
+    };
+    followFrame.current = window.requestAnimationFrame(advance);
+  }, [syncViewport]);
+
   const handleScroll = useCallback((): void => {
     const element = container.current;
     if (!element) return;
-    followBottom.current = element.scrollHeight - element.clientHeight - element.scrollTop <= BOTTOM_THRESHOLD;
-    // 用户滚动优先于尚未提交的尺寸补偿。
-    anchor.current = null;
+    const automatic = writtenScrollTop.current !== null && Math.abs(element.scrollTop - writtenScrollTop.current) < 1;
+    if (!automatic) {
+      const distance = element.scrollHeight - element.clientHeight - element.scrollTop;
+      followBottom.current = distance <= 2 || (followBottom.current && distance <= BOTTOM_THRESHOLD);
+      if (!followBottom.current) stopFollowing();
+      // 用户滚动优先于尚未提交的尺寸补偿。
+      anchor.current = null;
+    }
     if (frame.current !== null) return;
     frame.current = window.requestAnimationFrame(() => {
       frame.current = null;
       // 一帧只提交一次可见区更新，避免高速滚动时先绘制离屏占位。
       flushSync(syncViewport);
     });
-  }, [syncViewport]);
+  }, [stopFollowing, syncViewport]);
 
   const measureRows = useCallback((): void => {
     const element = container.current;
@@ -219,6 +263,8 @@ export function VirtualChatMessages(props: VirtualChatMessagesProps): ReactEleme
       observer.current = null;
       if (frame.current !== null) window.cancelAnimationFrame(frame.current);
       if (measureFrame.current !== null) window.cancelAnimationFrame(measureFrame.current);
+      if (followFrame.current !== null) window.cancelAnimationFrame(followFrame.current);
+      followFrame.current = null;
       document.removeEventListener('selectionchange', selectionChanged);
     };
   }, [measureRows, syncViewport]);
@@ -228,22 +274,33 @@ export function VirtualChatMessages(props: VirtualChatMessagesProps): ReactEleme
     if (!element) return;
     layout.current = offsets;
     if (!selection.current?.()) {
-      if (followBottom.current) element.scrollTop = element.scrollHeight;
-      else if (anchor.current) {
+      if (followBottom.current) {
+        const newMessages = previousMessageCount.current !== messages.length;
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!newMessages && !reducedMotion && (rowProps.isStreaming || followFrame.current !== null)) followLatest();
+        else {
+          if (followFrame.current !== null) window.cancelAnimationFrame(followFrame.current);
+          followFrame.current = null;
+          element.scrollTop = element.scrollHeight;
+          writtenScrollTop.current = element.scrollTop;
+        }
+      } else if (anchor.current) {
         const { index, offset } = anchor.current;
         element.scrollTop = (offsets[Math.min(index, messages.length)] ?? 0) + offset;
       }
     }
+    previousMessageCount.current = messages.length;
     anchor.current = null;
     syncViewport();
-  }, [offsets, messages, rowProps.isStreaming, syncViewport]);
+  }, [offsets, messages, rowProps.isStreaming, followLatest, syncViewport]);
 
   const total = offsets[messages.length];
   const projectedTop = anchor.current
     ? (offsets[Math.min(anchor.current.index, messages.length)] ?? 0) + anchor.current.offset
     : viewport.top;
   let top = Number.isFinite(projectedTop) ? projectedTop : 0;
-  if (followBottom.current && !selection.current?.()) top = Math.max(0, total - viewport.height);
+  const animatedFollow = rowProps.isStreaming && previousMessageCount.current === messages.length || followFrame.current !== null;
+  if (followBottom.current && !animatedFollow && !selection.current?.()) top = Math.max(0, total - viewport.height);
   let start = findIndex(offsets, Math.max(0, top - OVERSCAN));
   let end = messages.length === 0 ? 0 : Math.min(messages.length, findIndex(offsets, top + viewport.height + OVERSCAN) + 1);
   if ((selecting || selection.current?.()) && previousRange.current.end > 0) {
@@ -257,7 +314,8 @@ export function VirtualChatMessages(props: VirtualChatMessagesProps): ReactEleme
   useLayoutEffect(() => { measureRows(); }, [start, end, messages, measureRows]);
 
   return (
-    <div className="max-expand-chat-messages" ref={container} onScroll={handleScroll}>
+    <div className="max-expand-chat-messages" ref={container} onScroll={handleScroll}
+      onWheel={handleWheel}>
       {messages.length === 0 ? emptyContent : (
         <>
           <div className="max-expand-chat-spacer" aria-hidden="true" style={{ height: offsets[start] }} />

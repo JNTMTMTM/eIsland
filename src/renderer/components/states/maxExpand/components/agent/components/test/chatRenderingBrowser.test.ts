@@ -104,6 +104,7 @@ it('reuses historical rows and keeps authorization drawers above the chat withou
           window.draw();await settle();
           assert(text().includes(content),'Chunk did not render immediately in '+mode);
           const list=document.querySelector('.max-expand-chat-messages');
+          for(let attempt=0;attempt<6&&list.scrollHeight-list.clientHeight-list.scrollTop>2;attempt++) await settle();
           assert(list.scrollHeight-list.clientHeight-list.scrollTop<=2,'Streaming did not follow the bottom in '+mode);
         }
         assert(window.historicalReads===0,'Reparsed history in '+mode+': '+window.historicalReads);
@@ -163,7 +164,7 @@ it('reuses historical rows and keeps authorization drawers above the chat withou
     const script = `const {app,BrowserWindow}=require('electron');
       app.setPath('userData',${JSON.stringify(join(directory, 'profile'))});app.disableHardwareAcceleration();
       app.whenReady().then(async()=>{try{
-        const win=new BrowserWindow({show:false,webPreferences:{sandbox:true,backgroundThrottling:false}});
+        const win=new BrowserWindow({show:false,webPreferences:{sandbox:true,backgroundThrottling:false,offscreen:true}});
         await win.loadFile(${JSON.stringify(join(directory, 'index.html'))});
         console.log(await win.webContents.executeJavaScript(${JSON.stringify(checks)}));win.destroy();app.exit(0);
       }catch(error){console.error(error);app.exit(1);}});`;
