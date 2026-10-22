@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-22T00:38:58.182Z
+> 生成时间：2026-10-22T00:40:30.348Z
 
 ## 27.0.0
 
@@ -3872,11 +3872,15 @@
 
 ## Unreleased
 
+- 2026-10-21 | 9a7fb2c3 | JNTMTMTM | Merge pull request #272 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/node-gyp-13.1.0
+- 2026-10-22 | a148e0cd | eislandBot | docs: auto update CHANGE_LOG.md for #271 by @dependabot[bot] [skip ci]
 - 2026-10-22 | cad01cd5 | eislandBot | docs: auto update CHANGE_LOG.md for #270 by @dependabot[bot] [skip ci]
 - 2026-10-21 | 5ba41c6c | JNTMTMTM | Merge pull request #271 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0
 - 2026-10-21 | e4e03c28 | JNTMTMTM | Merge pull request #270 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0
 - 2026-10-21 | 85a00ae2 | JNTMTMTM | Merge pull request #269 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/node-gyp-13.1.0
+- 2026-10-21 | 95d89877 | 鸡哥 | fix(plugins): sync toast gyp lock and release version
 - 2026-10-21 | ed109adf | 鸡哥 | fix(plugins): sync processes gyp lock and release version
+- 2026-10-21 | adb83dde | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/node-gyp-13.1.0
 - 2026-10-21 | 2e5cd8bc | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0
 - 2026-10-21 | d0dbe44c | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0
 - 2026-10-21 | a6cbc756 | 鸡哥 | fix(deps): retain native install metadata in root lock
@@ -3886,6 +3890,7 @@
 - 2026-10-22 | f60e4f89 | dependabot[bot] | chore(deps): bump node-gyp
 - 2026-10-22 | b44ae405 | dependabot[bot] | chore(deps): bump node-gyp
 - 2026-10-22 | dc8f0fb0 | dependabot[bot] | chore(deps): bump node-gyp
+- 2026-10-22 | 9ca494fd | dependabot[bot] | chore(deps): bump node-gyp
 - 2026-10-22 | 96e23ac9 | eislandBot | docs: auto update CHANGE_LOG.md for #262 by @dependabot[bot] [skip ci]
 - 2026-10-21 | 6885dba7 | JNTMTMTM | Merge pull request #262 from JNTMTMTM/dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-859a937aa3
 - 2026-10-21 | fbd06f97 | 鸡哥 | fix(plugins): bump WMI helper versions for dependency update
