@@ -20,7 +20,7 @@
 
 /**
  * @file index.ts
- * @description 用户会话恢复工具：启动时恢复本地 token/资料并尝试刷新资料。
+ * @description 用户会话工具：启动时恢复本地会话，登录成功后后台刷新资料。
  * @author 鸡哥
  */
 
@@ -35,13 +35,6 @@ import {
   writeLocalProfile,
   writeLocalToken,
 } from '../userAccount';
-
-/**
- * 在登录/注册成功后写入本地 token。
- */
-export function updateSessionToken(token: string | null): void {
-  writeLocalToken(token);
-}
 
 /**
  * 启动时仅从 localStorage 与持久化 store 恢复 token/资料，避免网络请求阻塞首屏。
@@ -89,7 +82,7 @@ export async function bootstrapAuthSession(): Promise<string | null> {
 
 /**
  * 挂载后后台刷新资料；网络失败保留本地会话，明确失效时清理。
- * @param token - 启动时恢复的 token；null 时跳过请求。
+ * @param token - 启动恢复或登录成功后的 token；null 时跳过请求。
  * @returns 刷新完成的 Promise，失败时保留缓存并记录日志。
  */
 export async function refreshAuthSession(token: string | null): Promise<void> {
@@ -109,4 +102,14 @@ export async function refreshAuthSession(token: string | null): Promise<void> {
   } catch (error) {
     console.warn('[Auth] Background profile refresh failed:', error);
   }
+}
+
+/**
+ * 在登录/注册成功后写入本地 token，并后台刷新资料以通知头像等会话订阅者。
+ * @param token - 新会话 token；null 时仅清除 token，不请求资料。
+ */
+export function updateSessionToken(token: string | null): void {
+  writeLocalToken(token);
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 资料刷新内部处理异常，登录导航不等待网络请求。
+  void refreshAuthSession(token);
 }
