@@ -24,7 +24,7 @@
     "smoke:polling": "node --experimental-strip-types test/performance-monitor.polling.smoke.ts"
   },
   "dependencies": {
-    "node-gyp": "^11.2.0"
+    "node-gyp": "^13.1.0"
   },
   "overrides": {
     "glob": "10.5.0"
