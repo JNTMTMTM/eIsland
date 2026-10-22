@@ -108,6 +108,27 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('AiChatTab real state and send integration', () => {
+  it('keeps the chat mounted under a bounded loading overlay while switching sessions', async () => {
+    ({ AiChatTab: Component } = await import('../AiChatTab'));
+    const { default: ChatLoadingSkeleton } = await import('../chatLoadingSkeleton');
+    runtime.store.setState({ aiChatReady: true, aiChatLoading: false });
+    const idle = run();
+    const content = find(idle, (node) => node.props.inert === false);
+    runtime.store.setState({ aiChatLoading: true });
+    const loading = run();
+    expect(elements(loading).some((node) => node.props['aria-busy'] === true)).toBe(true);
+    const status = find(loading, (node) => node.props.role === 'status');
+    expect(text(status)).toContain('aiChat.storageLoading');
+    expect(elements(status).some((node) => node.type === ChatLoadingSkeleton)).toBe(true);
+    expect(String(status.props.className).split(' ')).toContain('absolute');
+    expect(String(status.props.className).split(' ')).toContain('inset-0');
+    expect(find(loading, (node) => node.props.inert === true).type).toBe(content.type);
+    runtime.store.setState({ aiChatLoading: false });
+    const settled = run();
+    expect(elements(settled).some((node) => node.props['aria-busy'] === false)).toBe(true);
+    expect(elements(settled).some((node) => node.props.role === 'status')).toBe(false);
+    expect(find(settled, (node) => node.props.inert === false).type).toBe(content.type);
+  });
   it('loads only when the chat shell mounts, exposes retry and releases bodies on unmount', async () => {
     ({ AiChatTab: Component } = await import('../AiChatTab'));
     messages([{ role: 'user', content: 'persisted' }]);

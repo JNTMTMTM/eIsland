@@ -35,6 +35,7 @@ import { AssistantMarkdown } from './AssistantMarkdown';
 import { MessageTimeline } from './MessageTimeline';
 import { WebAccessPanel, LocalToolAccessPanel } from './WebAccessPanel';
 import { ChatInputBar } from './ChatInputBar';
+import ChatLoadingSkeleton from './chatLoadingSkeleton';
 import { normalizeMarkdownCodeFences } from '../utils/chatUtils';
 
 /**
@@ -456,9 +457,16 @@ export function AiChatTab(): React.ReactElement {
   const ensure = useIslandStore((state) => state.ensureAiChatReady);
   const release = useIslandStore((state) => state.releaseAiChatBodies);
   useEffect(() => { void ensure().catch(() => {}); return release; }, [ensure, release]);
-  return <div className="flex h-full min-h-0 w-full flex-col">
-    {failed && <button type="button" onClick={() => { void ensure().catch(() => {}); }}>{t('aiChat.storageRetry')}</button>}
-    {loading && <div role="status">{t('aiChat.storageLoading')}</div>}
-    {ready && <div className="flex min-h-0 flex-1 flex-col" inert={loading || failed}><AiChatContent /></div>}
-  </div>;
+  return (
+    <div className="relative isolate flex size-full min-h-0 flex-col overflow-hidden" aria-busy={loading}>
+      {ready && <div className="flex min-h-0 flex-1 flex-col" inert={loading || failed}><AiChatContent /></div>}
+      {(loading || failed) && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[var(--color-island-bg)] text-center text-sm text-[rgb(var(--color-text-rgb))]" role="status">
+          {failed
+            ? <button className="m-4" type="button" disabled={loading} onClick={() => { void ensure().catch(() => {}); }}>{t('aiChat.storageRetry')}</button>
+            : <><span className="sr-only">{t('aiChat.storageLoading')}</span><ChatLoadingSkeleton /></>}
+        </div>
+      )}
+    </div>
+  );
 }

@@ -25,7 +25,9 @@
 
 /** AI 对话窗口容器 */
 .max-expand-chat {
+  position: relative;
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -54,6 +56,8 @@
 .max-expand-chat-session-sidebar {
   width: var(--session-sidebar-open-width);
   min-width: 0;
+  min-height: 0;
+  flex-shrink: 0;
   border-right: 1px solid rgba(var(--color-text-rgb), 0.08);
   padding: 10px 8px;
   display: flex;
@@ -86,6 +90,8 @@
 .max-expand-chat-session-sidebar-inner {
   width: calc(var(--session-sidebar-open-width) - 16px);
   min-width: 0;
+  min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -105,6 +111,7 @@
 }
 
 .max-expand-chat-session-sidebar-title {
+  flex-shrink: 0;
   font-size: 12px;
   color: rgba(var(--color-text-rgb), 0.62);
   padding: 0 4px;
@@ -129,6 +136,7 @@
 }
 
 .max-expand-chat-session-item {
+  flex-shrink: 0;
   width: 100%;
   border: 1px solid rgba(var(--color-text-rgb), 0.12);
   background: rgba(var(--color-text-rgb), 0.03);
@@ -1875,40 +1883,60 @@
 
 /** 模型选择卡片容器 */
 .max-expand-chat-model-card-wrap {
-  max-height: 0;
-  margin-bottom: 0;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 30;
+  width: min(420px, calc(100% - 16px));
   opacity: 0;
+  visibility: hidden;
   overflow: hidden;
   pointer-events: none;
-  transform: translateY(8px) scale(0.98);
-  transform-origin: bottom center;
-  transition: max-height 0.26s ease, margin-bottom 0.22s ease, opacity 0.18s ease, transform 0.26s ease;
+  transform: translateX(calc(100% + 8px));
+  transition: opacity 0.18s ease, transform 0.26s ease, visibility 0s linear 0.26s;
 }
 
 .max-expand-chat-model-card-wrap--open {
-  max-height: 260px;
-  margin-bottom: 8px;
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
-  transform: translateY(0) scale(1);
+  transform: translateX(0);
+  transition-delay: 0s;
 }
 
 .max-expand-chat-model-card {
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  height: 100%;
+  min-height: 0;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(var(--color-text-rgb), 0.14);
+  background: var(--color-island-bg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
   overflow: hidden;
 }
 
 .max-expand-chat-model-card-scroll {
+  flex: 1;
+  min-height: 0;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 220px;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+.max-expand-chat-model-card .max-expand-chat-model-dropdown-trigger {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .max-expand-chat-model-card-wrap {
+    transition: none;
+  }
 }
 
 .max-expand-chat-model-card-scroll::-webkit-scrollbar {
