@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-22T00:40:30.348Z
+> 生成时间：2026-10-22T00:52:58.007Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,9 @@
 
 ## Unreleased
 
+- 2026-10-21 | 9fb76665 | JNTMTMTM | Merge pull request #268 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-media-helper/node-gyp-13.1.0
+- 2026-10-22 | 398061d5 | dependabot[bot] | chore(deps): bump node-gyp in /plugins/macos/eisland-macos-media-helper
+- 2026-10-22 | 132bda64 | eislandBot | docs: auto update CHANGE_LOG.md for #272 by @dependabot[bot] [skip ci]
 - 2026-10-21 | 9a7fb2c3 | JNTMTMTM | Merge pull request #272 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/node-gyp-13.1.0
 - 2026-10-22 | a148e0cd | eislandBot | docs: auto update CHANGE_LOG.md for #271 by @dependabot[bot] [skip ci]
 - 2026-10-22 | cad01cd5 | eislandBot | docs: auto update CHANGE_LOG.md for #270 by @dependabot[bot] [skip ci]
