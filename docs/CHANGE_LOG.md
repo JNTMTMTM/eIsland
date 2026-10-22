@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-21T23:09:58.114Z
+> 生成时间：2026-10-22T00:19:46.508Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,10 @@
 
 ## Unreleased
 
+- 2026-10-21 | 6885dba7 | JNTMTMTM | Merge pull request #262 from JNTMTMTM/dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-859a937aa3
+- 2026-10-21 | fbd06f97 | 鸡哥 | fix(plugins): bump WMI helper versions for dependency update
+- 2026-10-21 | e675d5d0 | 鸡哥 | Merge remote-tracking branch 'origin/main' into dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-859a937aa3
+- 2026-10-21 | 3baae0c2 | eislandBot | docs: auto update CHANGE_LOG.md for #267 by @dependabot[bot] [skip ci]
 - 2026-10-21 | 8317f3e3 | JNTMTMTM | Merge pull request #267 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-brightness-helper/node-gyp-13.1.0
 - 2026-10-21 | 91104a74 | eislandBot | docs: auto update CHANGE_LOG.md for #274 by @JNTMTMTM [skip ci]
 - 2026-10-20 | d533b3a1 | JNTMTMTM | Merge pull request #274 from JNTMTMTM/dev
@@ -3906,6 +3910,7 @@
 - 2026-10-19 | f0d76805 | dependabot[bot] | chore(deps): bump node-gyp
 - 2026-10-19 | 618e346f | dependabot[bot] | chore(deps): bump electron-vite from 6.0.0-beta.8 to 6.0.0
 - 2026-10-19 | 48156b5d | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
+- 2026-10-19 | d524f580 | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update
 - 2026-10-16 | f2a8b8e2 | eislandBot | docs: auto update CHANGE_LOG.md for #261 by @JNTMTMTM [skip ci]
 - 2026-10-15 | 1d2d6345 | JNTMTMTM | Merge pull request #261 from JNTMTMTM/dev
 - 2026-10-15 | 4a22d2ac | 鸡哥 | feat: enhance installer process handling with ancestry cycle and slow snapshot variants in tests
