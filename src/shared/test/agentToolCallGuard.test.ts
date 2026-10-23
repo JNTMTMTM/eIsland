@@ -58,4 +58,12 @@ describe('request scoped tool execution', () => {
     await new AgentToolCallGuard().run('file.append', { text: 'once' }, execute);
     expect(execute).toHaveBeenCalledTimes(7);
   });
+  it('never replays a whole-file write over later changes', async () => {
+    const guard = new AgentToolCallGuard();
+    const execute = vi.fn(() => Promise.resolve({ success: true }));
+    await guard.run('file.write', { path: 'a', content: 'old' }, execute);
+    await guard.run('file.append', { path: 'a', text: 'new' }, execute);
+    await guard.run('file.write', { path: 'a', content: 'old' }, execute);
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
 });

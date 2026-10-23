@@ -951,6 +951,7 @@
       "noModelOutputCustomDirect": "⚠️ モデルの出力を受信できませんでした。カスタムAPIのエンドポイントとキーを確認してください。",
       "localToolExecuteFailed": "ローカルツールの実行に失敗しました",
       "localToolSubmitFailed": "ローカルツールの結果の送信に失敗しました",
+      "localToolRequestConflict": "ローカルツールのリクエスト ID が別の呼び出しと競合しています",
       "apiRequestFailed": "APIリクエストに失敗しました ({{status}}): {{detail}}",
       "cannotReadResponseStream": "レスポンスストリームを読み取れません"
     },

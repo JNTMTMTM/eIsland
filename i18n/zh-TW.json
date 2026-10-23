@@ -951,6 +951,7 @@
       "noModelOutputCustomDirect": "⚠️ 未收到模型輸出，請檢查自定義 API 端點和密鑰是否正確。",
       "localToolExecuteFailed": "本地工具執行失敗",
       "localToolSubmitFailed": "本地工具結果提交失敗",
+      "localToolRequestConflict": "本地工具請求 ID 與另一調用衝突",
       "apiRequestFailed": "API 請求失敗 ({{status}}): {{detail}}",
       "cannotReadResponseStream": "無法讀取響應流"
     },

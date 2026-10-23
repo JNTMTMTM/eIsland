@@ -185,6 +185,18 @@ describe('useChatSend native tool and authorization', () => {
     await send.executeAndSubmitLocalToolResult({ token: 'token', requestId: 'local', tool: 'file.read', argumentsPayload: { path: 'virtual' } });
     expect(leaves.execute).toHaveBeenCalledTimes(1);
   });
+  it('rejects a redelivered request id that carries a different call', async () => {
+    const { send } = mount();
+    let finish: ((value: unknown) => void) | undefined;
+    leaves.execute.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    const first = send.executeAndSubmitLocalToolResult({ token: 'token', requestId: 'same', tool: 'file.read', argumentsPayload: { path: 'a' } });
+    await expect(send.executeAndSubmitLocalToolResult({ token: 'token', requestId: 'same', tool: 'file.read', argumentsPayload: { path: 'b' } }))
+      .rejects.toThrow('aiChat.messages.localToolRequestConflict');
+    finish?.({ success: true, result: {}, durationMs: 1, error: '' });
+    await first;
+    expect(leaves.execute).toHaveBeenCalledTimes(1);
+    expect(leaves.result).toHaveBeenCalledTimes(1);
+  });
   it('an old authorization completion cannot clear a newer prompt', async () => {
     mount();
     localPrompt();

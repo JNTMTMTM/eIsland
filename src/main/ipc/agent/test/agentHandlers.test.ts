@@ -108,6 +108,8 @@ describe('agent ipc handlers', () => {
     await expect(callbacks.executeLocalTool({ tool: 'web.search', arguments: { query: 'test' } }))
       .resolves.toMatchObject({ success: true, result: { provider: 'searxng' } });
     expect(searchMock).toHaveBeenCalledWith('login-token', { query: 'test' }, modelRequest.signal);
+    await callbacks.executeLocalTool({ tool: ' Web.Search ', arguments: { query: 'variant' } });
+    expect(searchMock).toHaveBeenLastCalledWith('login-token', { query: 'variant' }, modelRequest.signal);
     expect(localTool).not.toHaveBeenCalled();
     await callbacks.executeLocalTool({ tool: 'sys.info', arguments: {} });
     expect(localTool).toHaveBeenCalledWith({ tool: 'sys.info', arguments: {} });

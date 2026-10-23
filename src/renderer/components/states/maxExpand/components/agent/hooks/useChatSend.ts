@@ -34,6 +34,7 @@ import {
 } from '../../../../../../api/ai/mihtnelisAgentStream';
 import { streamOllamaLocalAgent } from '../../../../../../api/ai/ollamaLocalAgent';
 import { streamCustomDirectAgent } from '../../../../../../api/ai/customDirectAgent';
+import { toolCallSignature } from '../../../../../../../shared/agentToolCallGuard';
 import {
   fetchWebsiteTitle,
   getWebsiteAuthorizationPolicy,
@@ -105,7 +106,7 @@ interface UseChatSendResult {
 /** AI 对话消息发送 Hook */
 export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
   const { t } = useTranslation();
-  const localToolSubmissions = useRef(new Map<string, { promise: Promise<void>; finished: boolean }>());
+  const localToolSubmissions = useRef(new Map<string, { signature: string; promise: Promise<void>; finished: boolean }>());
   const localToolDecisions = useRef(new Set<string>());
   const latestLocalToolPrompt = useRef(state.aiLocalToolAccessPrompt);
   latestLocalToolPrompt.current = state.aiLocalToolAccessPrompt;
@@ -144,8 +145,13 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
     tool: string;
     argumentsPayload: Record<string, unknown>;
   }): Promise<void> => {
+    const signature = toolCallSignature(params.tool, params.argumentsPayload);
     const previous = localToolSubmissions.current.get(params.requestId);
-    if (previous) return previous.promise;
+    if (previous) {
+      // 同一请求 ID 换了调用内容时不能沿用旧结果，否则结果会提交给错误的操作。
+      if (previous.signature !== signature) throw new Error(t('aiChat.messages.localToolRequestConflict'));
+      return previous.promise;
+    }
     const submission = (async (): Promise<void> => {
       const executor = window.api?.executeAgentLocalTool;
       if (typeof executor !== 'function') {
@@ -221,7 +227,7 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
         durationMs: typeof execution?.durationMs === 'number' ? execution.durationMs : 0,
       });
     })();
-    const entry = { promise: submission, finished: false };
+    const entry = { signature, promise: submission, finished: false };
     localToolSubmissions.current.set(params.requestId, entry);
     try {
       await submission;
@@ -1299,7 +1305,11 @@ export function useChatSend({ state }: UseChatSendParams): UseChatSendResult {
         allow,
       });
       if (!allow) {
-        localToolSubmissions.current.set(requestId, { promise: Promise.resolve(), finished: true });
+        localToolSubmissions.current.set(requestId, {
+          signature: toolCallSignature(aiLocalToolAccessPrompt.tool, aiLocalToolAccessPrompt.argumentsPayload),
+          promise: Promise.resolve(),
+          finished: true,
+        });
         localToolSubmissions.current.forEach((entry, id) => {
           if (localToolSubmissions.current.size > 256 && entry.finished) localToolSubmissions.current.delete(id);
         });

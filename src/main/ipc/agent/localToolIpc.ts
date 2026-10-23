@@ -35,6 +35,12 @@ interface RegisterAgentLocalToolIpcHandlersOptions {
   executeAgentLocalTool: (request: AgentLocalToolRequest) => Promise<AgentLocalToolResult>;
 }
 
+/** 请求标识缓存上限。 */
+const MAX_CACHED_EXECUTIONS = 500;
+
+/** 单次执行时长上限，远超服务端 120 秒的结果等待，超时后的结果已无人接收。 */
+const LOCAL_TOOL_EXECUTION_TIMEOUT_MS = 10 * 60_000;
+
 /** 注册 Agent 本地工具执行的 IPC handler（agent:local-tool:execute）。 */
 export function registerAgentLocalToolIpcHandlers(options: RegisterAgentLocalToolIpcHandlersOptions): void {
   const executions = new Map<string, { signature: string; result: Promise<AgentLocalToolResult>; expiresAt: number }>();
@@ -51,11 +57,28 @@ export function registerAgentLocalToolIpcHandlers(options: RegisterAgentLocalToo
       };
     }
   };
+  /**
+   * 悬挂的执行按超时失败结束，使缓存项能够过期或被淘汰；底层操作不会被重做。
+   * @param request - 本地工具请求。
+   * @returns 执行结果或超时失败结果。
+   */
+  const executeWithTimeout = async (request: AgentLocalToolRequest): Promise<AgentLocalToolResult> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<AgentLocalToolResult>((resolve) => {
+      timer = setTimeout(() => resolve({
+        success: false, result: {}, error: 'TOOL_EXECUTION_TIMEOUT', durationMs: LOCAL_TOOL_EXECUTION_TIMEOUT_MS,
+      }), LOCAL_TOOL_EXECUTION_TIMEOUT_MS);
+    });
+    const result = await Promise.race([execute(request), timeout]);
+    clearTimeout(timer);
+    return result;
+  };
   ipcMain.handle('agent:local-tool:execute', async (event, request: AgentLocalToolRequest) => {
     void event;
     const requestId = typeof request?.requestId === 'string' ? request.requestId.trim() : '';
     if (!requestId) return execute(request);
     // 缓存覆盖执行中和已完成请求；提交结果失败后的重投只能复用结果，不能重做副作用。
+    // requestId 由服务端为每次调用生成 UUID，跨会话和账号唯一，可直接作为缓存键。
     executions.forEach((entry, id) => { if (entry.expiresAt <= Date.now()) executions.delete(id); });
     const signature = toolCallSignature(typeof request.tool === 'string' ? request.tool : '', { arguments: request.arguments, workspaces: request.workspaces });
     const previous = executions.get(requestId);
@@ -65,12 +88,16 @@ export function registerAgentLocalToolIpcHandlers(options: RegisterAgentLocalToo
       }
       return previous.result;
     }
-    if (executions.size >= 500) {
+    // 容量满时淘汰最早登记的已完成结果；执行中的请求必须保留，否则重投会重复副作用。
+    executions.forEach((cached, id) => {
+      if (executions.size >= MAX_CACHED_EXECUTIONS && Number.isFinite(cached.expiresAt)) executions.delete(id);
+    });
+    if (executions.size >= MAX_CACHED_EXECUTIONS) {
       return { success: false, result: {}, error: 'TOOL_REQUEST_CACHE_FULL', durationMs: 0 };
     }
     // 先登记再执行，防止两个窗口在同一任务中投递相同请求。
     // eslint-disable-next-line promise/prefer-await-to-then -- 先登记待执行的 Promise，合并并发请求
-    const entry = { signature, result: Promise.resolve().then(() => execute(request)), expiresAt: Number.POSITIVE_INFINITY };
+    const entry = { signature, result: Promise.resolve().then(() => executeWithTimeout(request)), expiresAt: Number.POSITIVE_INFINITY };
     executions.set(requestId, entry);
     const result = await entry.result;
     entry.expiresAt = Date.now() + 10 * 60_000;

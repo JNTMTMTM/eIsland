@@ -54,7 +54,7 @@ export function toolCallSignature(tool: string, args: unknown): string {
  * @returns 是否为本轮仅执行一次的操作。
  */
 function isOneShot(tool: string): boolean {
-  return tool.startsWith('cmd.') || /\.(create|delete|trash|toggle|rename|restart|shutdown|sleep|send|close|append|add|move|copy|install|uninstall|start|stop)$/.test(tool);
+  return tool.startsWith('cmd.') || /\.(create|delete|trash|toggle|rename|restart|shutdown|sleep|send|close|append|add|move|copy|install|uninstall|start|stop|write)$/.test(tool);
 }
 
 /**

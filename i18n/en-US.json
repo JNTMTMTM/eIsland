@@ -953,6 +953,7 @@
       "noModelOutputCustomDirect": "⚠️ No model output received. Please check your custom API endpoint and key.",
       "localToolExecuteFailed": "Local tool execution failed",
       "localToolSubmitFailed": "Local tool result submission failed",
+      "localToolRequestConflict": "Local tool request ID conflicts with a different call",
       "apiRequestFailed": "API request failed ({{status}}): {{detail}}",
       "cannotReadResponseStream": "Unable to read response stream"
     },
