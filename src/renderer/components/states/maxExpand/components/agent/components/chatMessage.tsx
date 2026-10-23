@@ -135,7 +135,8 @@ function ChatMessage(props: ChatMessageProps): ReactElement | null {
             const quoteText = quoteMatch ? quoteMatch[1].trim() : null;
             const bodyText = quoteMatch ? seg.replace(/^>\s*引用:\s*.*\n?/, '').trim() : seg;
             return (
-              <div key={`${absoluteIndex}-${si}`} // eslint-disable-line react/no-array-index-key -- 流式分段没有独立 ID，索引在追加时保持稳定。
+              // eslint-disable-next-line react/no-array-index-key -- 流式分段没有独立 ID，索引在追加时保持稳定。
+              <div key={`${absoluteIndex}-${si}`}
                 className="max-expand-chat-bubble ai r1pxc-chat max-expand-chat-bubble--hoverable"
               >
                 {quoteText && (
