@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-22T00:52:58.007Z
+> 生成时间：2026-10-23T03:57:35.977Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,21 @@
 
 ## Unreleased
 
+- 2026-10-22 | c55e1503 | JNTMTMTM | Merge pull request #275 from JNTMTMTM/dev
+- 2026-10-22 | 7ef41a5a | 鸡哥 | feat(localTool): add conflict handling for duplicate request IDs and enhance caching mechanism
+- 2026-10-22 | b617f770 | 鸡哥 | fix(virtualChatMessages): adjust eslint-disable comments for import-x rule
+- 2026-10-22 | 5461bf4a | 鸡哥 | fix(chat): adjust eslint-disable comment for array index key in ChatMessage component
+- 2026-10-22 | cc92de56 | 鸡哥 | refactor: remove Bing search functionality and implement SearXNG integration for web search
+- 2026-10-22 | e4cd4196 | 鸡哥 | feat(chat): enhance scrolling behavior and performance in virtual chat messages
+- 2026-10-22 | 6ba1ff9c | 鸡哥 | feat(chat): implement virtual chat messages with dynamic height and scrolling
+- 2026-10-22 | d3091df0 | 鸡哥 | feat: update sound settings description for clarity
+- 2026-10-22 | 61053807 | 鸡哥 | feat: implement requestId for local tool execution to enable idempotency and result caching
+- 2026-10-22 | 59cf0e79 | 鸡哥 | feat: enhance theme setting execution in useChatSend to ensure proper application across windows
+- 2026-10-22 | 220081bd | 鸡哥 | feat: enhance authorization handling in AiChatTab and related components to prevent model card overlap
+- 2026-10-22 | 47de8501 | 鸡哥 | feat: Refactor MessageTimeline and related components for improved performance and stability
+- 2026-10-22 | 4a74df82 | 鸡哥 | feat: implement loading skeleton for chat and enhance AiChatTab layout
+- 2026-10-22 | 6c83ffde | 鸡哥 | refactor(authSession): update session token handling to refresh user profile after login
+- 2026-10-22 | ad039458 | eislandBot | docs: auto update CHANGE_LOG.md for #268 by @dependabot[bot] [skip ci]
 - 2026-10-21 | 9fb76665 | JNTMTMTM | Merge pull request #268 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-media-helper/node-gyp-13.1.0
 - 2026-10-22 | 398061d5 | dependabot[bot] | chore(deps): bump node-gyp in /plugins/macos/eisland-macos-media-helper
 - 2026-10-22 | 132bda64 | eislandBot | docs: auto update CHANGE_LOG.md for #272 by @dependabot[bot] [skip ci]
