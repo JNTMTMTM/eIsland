@@ -25,12 +25,14 @@
  */
 
 import { ipcMain, type WebContents } from 'electron';
+import executeAgentWebSearch from '../../services/agentWebSearchService';
 import { pingOllama, listOllamaModels, detectOllamaBaseUrl } from './ollamaClient';
 import { orchestrateOllamaChat } from './ollamaOrchestrator';
 import { orchestrateCustomDirectChat } from './customDirectOrchestrator';
 import type { AgentLocalToolRequest, AgentLocalToolResult } from './localToolIpc';
 
 interface OllamaChatIpcRequest {
+  token?: string;
   model: string;
   systemPrompt: string;
   userMessage: string;
@@ -40,6 +42,7 @@ interface OllamaChatIpcRequest {
 }
 
 interface CustomDirectChatIpcRequest {
+  token?: string;
   model: string;
   systemPrompt: string;
   userMessage: string;
@@ -130,7 +133,9 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
             // sender 可能已销毁
           }
         },
-        executeLocalTool: options.executeAgentLocalTool,
+        executeLocalTool: (toolRequest) => toolRequest.tool === 'web.search'
+          ? executeAgentWebSearch(request.token, toolRequest.arguments, abortController.signal)
+          : options.executeAgentLocalTool(toolRequest),
       },
     )
       .catch((err) => {
@@ -190,7 +195,9 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
             // sender 可能已销毁
           }
         },
-        executeLocalTool: options.executeAgentLocalTool,
+        executeLocalTool: (toolRequest) => toolRequest.tool === 'web.search'
+          ? executeAgentWebSearch(request.token, toolRequest.arguments, abortController.signal)
+          : options.executeAgentLocalTool(toolRequest),
       },
     )
       .catch((err) => {

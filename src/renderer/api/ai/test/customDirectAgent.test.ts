@@ -193,6 +193,7 @@ describe('customDirectAgent', () => {
       expect(mockCustomDirectChatStart).toHaveBeenCalledWith(
         expect.stringContaining('custom-direct-'),
         {
+          token: 'test-token',
           model: 'gpt-4',
           systemPrompt: 'You are a helpful assistant.',
           userMessage: 'hello',

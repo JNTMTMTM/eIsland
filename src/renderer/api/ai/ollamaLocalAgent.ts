@@ -235,6 +235,7 @@ export async function streamOllamaLocalAgent(request: OllamaLocalAgentRequest): 
   // 6. 启动编排
   try {
     await window.api.ollamaChatStart(sessionId, {
+      token,
       model: request.model,
       systemPrompt,
       userMessage: message,

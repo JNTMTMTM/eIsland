@@ -42,6 +42,8 @@ export interface ExecuteAgentLocalToolResult {
 
 /** Ollama 聊天请求 */
 export interface OllamaChatRequest {
+  /** eIsland 登录凭据，仅供主进程访问搜索接口。 */
+  token?: string;
   model: string;
   systemPrompt: string;
   userMessage: string;
@@ -52,6 +54,8 @@ export interface OllamaChatRequest {
 
 /** 自定义直连聊天请求 */
 export interface CustomDirectChatRequest {
+  /** eIsland 登录凭据，与模型供应商的 apiKey 分开。 */
+  token?: string;
   model: string;
   systemPrompt: string;
   userMessage: string;

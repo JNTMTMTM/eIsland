@@ -180,6 +180,7 @@ export async function streamCustomDirectAgent(request: CustomDirectAgentRequest)
   // 6. 启动编排
   try {
     await window.api.customDirectChatStart(sessionId, {
+      token,
       model: request.model,
       systemPrompt,
       userMessage: message,

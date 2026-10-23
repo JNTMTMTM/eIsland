@@ -30,8 +30,6 @@ const CLIENT_LOCAL_TOOL_PREFIXES = [
   'registry.', 'service.', 'schedule.', 'firewall.', 'defender.', 'island.', 'alarm.', 'todolist.',
 ] as const;
 
-const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
-
 const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'file.delete', 'file.rename', 'file.trash', 'cmd.exec', 'cmd.powershell',
   'win.close', 'win.minimize', 'win.maximize', 'win.restore', 'power.',
@@ -42,17 +40,17 @@ const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
 ] as const;
 
 /**
- * @description 判断工具名是否属于客户端本地工具。
+ * 判断工具名是否属于客户端本地工具。
  * @param tool - 工具名称。
  * @returns 命中本地工具策略返回 true。
  */
 export function isClientLocalToolName(tool: string): boolean {
   const n = tool.trim().toLowerCase();
-  return CLIENT_LOCAL_TOOL_EXACT_NAMES.has(n) || CLIENT_LOCAL_TOOL_PREFIXES.some((p) => n.startsWith(p));
+  return CLIENT_LOCAL_TOOL_PREFIXES.some((p) => n.startsWith(p));
 }
 
 /**
- * @description 判断本地工具是否属于高风险操作。
+ * 判断本地工具是否属于高风险操作。
  * @param tool - 工具名称。
  * @returns 命中高风险策略返回 true。
  */

@@ -55,6 +55,7 @@ describe('agent contracts', () => {
   });
   it('fixes OllamaChatRequest fields and accepts its explicit legal fixture', () => {
     expectTypeOf<OllamaChatRequest>().toEqualTypeOf<{
+      token?: string;
       model: string;
       systemPrompt: string;
       userMessage: string;
@@ -70,6 +71,7 @@ describe('agent contracts', () => {
   });
   it('fixes CustomDirectChatRequest fields and accepts its explicit legal fixture', () => {
     expectTypeOf<CustomDirectChatRequest>().toEqualTypeOf<{
+      token?: string;
       model: string;
       systemPrompt: string;
       userMessage: string;

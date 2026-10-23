@@ -67,8 +67,6 @@ const CLIENT_LOCAL_TOOL_PREFIXES = [
   'todolist.',
 ] as const;
 
-const CLIENT_LOCAL_TOOL_EXACT_NAMES = new Set(['web.search']);
-
 const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'file.delete',
   'file.rename',
@@ -97,11 +95,14 @@ const HIGH_RISK_LOCAL_TOOL_PREFIXES = [
   'todolist.delete',
 ] as const;
 
-/** 判断工具名是否属于客户端本地工具。 */
+/**
+ * 判断工具名是否属于客户端本地工具，搜索由服务端执行。
+ * @param tool - 工具名称。
+ * @returns 属于客户端本地工具时返回 true。
+ */
 export function isClientLocalToolName(tool: string): boolean {
   const normalized = tool.trim().toLowerCase();
-  return CLIENT_LOCAL_TOOL_EXACT_NAMES.has(normalized)
-    || CLIENT_LOCAL_TOOL_PREFIXES.some(prefix => normalized.startsWith(prefix));
+  return CLIENT_LOCAL_TOOL_PREFIXES.some((prefix) => normalized.startsWith(prefix));
 }
 
 /** 判断工具名是否属于高风险本地工具。 */

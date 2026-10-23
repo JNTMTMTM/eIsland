@@ -9,6 +9,8 @@ icon: robot
 The AI & Agent API provides the eIsland AI assistant capabilities, including cloud-hosted agent chat, local Ollama integration, custom API direct chat, Claude Code monitoring, and Codex integration. All methods are exposed on `window.api` via the Electron preload bridge.
 :::
 
+`web.search` uses server-hosted SearXNG for cloud agents, Ollama, and custom API sessions. It is not an OS tool handled by `executeAgentLocalTool`. Local and custom sessions pass the eIsland login `token` in their chat-start request; the main process uses it only for the authenticated search endpoint and does not send it to the model provider or SearXNG. Search results contain titles, URLs, and snippets; reading a full page remains a separate operation. A failed search returns a tool error without falling back to client-side HTML scraping.
+
 ## Agent Local Tools
 
 ### executeAgentLocalTool
