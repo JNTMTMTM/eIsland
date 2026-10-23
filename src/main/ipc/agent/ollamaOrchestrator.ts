@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { AgentToolCallGuard } from '../../../shared/agentToolCallGuard';
 import { streamOllamaChat } from './ollamaClient';
 import type { OllamaChatMessage, OllamaStreamChunk } from './ollamaClient';
 import type { AgentLocalToolResult } from './localToolIpc';
@@ -186,6 +187,7 @@ export async function orchestrateOllamaChat(
     payload: { phase: 'orchestrating', message: '正在处理中…' },
   });
 
+  const toolCallGuard = new AgentToolCallGuard<AgentLocalToolResult>();
   let scratchpad = '';
   let turn = 0;
   let totalInputTokens = 0;
@@ -288,40 +290,45 @@ export async function orchestrateOllamaChat(
         callbacks.onEvent({ type: 'stream_rollback', payload: {} });
       }
 
-      callbacks.onEvent({
-        type: 'tool_call_request',
-        payload: {
-          turn,
-          tool,
-          purpose,
-          arguments: toolArgs,
-          riskLevel: 'local',
-        },
-      });
-
-      // 执行本地工具
-      let toolResult: AgentLocalToolResult;
-      try {
-        toolResult = await callbacks.executeLocalTool({
-          tool,
-          arguments: toolArgs,
+      const toolResult = await toolCallGuard.run(tool, toolArgs, async () => {
+        callbacks.onEvent({
+          type: 'tool_call_request',
+          payload: {
+            turn,
+            tool,
+            purpose,
+            arguments: toolArgs,
+            riskLevel: 'local',
+          },
         });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        toolResult = { success: false, result: {}, error: msg, durationMs: 0 };
-      }
 
-      callbacks.onEvent({
-        type: 'tool_call_result',
-        payload: {
-          turn,
-          tool,
-          success: toolResult.success,
-          result: toolResult.result,
-          error: toolResult.error,
-          durationMs: toolResult.durationMs,
-        },
+        // 执行本地工具
+        let toolResult: AgentLocalToolResult;
+        try {
+          toolResult = await callbacks.executeLocalTool({
+            tool,
+            arguments: toolArgs,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          toolResult = { success: false, result: {}, error: msg, durationMs: 0 };
+        }
+
+        callbacks.onEvent({
+          type: 'tool_call_result',
+          payload: {
+            turn,
+            tool,
+            success: toolResult.success,
+            result: toolResult.result,
+            error: toolResult.error,
+            durationMs: toolResult.durationMs,
+          },
+        });
+
+        return toolResult;
       });
+      if (toolCallGuard.stopped) break;
 
       // 构建观察结果追加到 scratchpad
       let obsJson: string;

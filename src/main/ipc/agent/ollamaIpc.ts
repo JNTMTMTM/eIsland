@@ -25,12 +25,14 @@
  */
 
 import { ipcMain, type WebContents } from 'electron';
+import executeAgentWebSearch from '../../services/agentWebSearchService';
 import { pingOllama, listOllamaModels, detectOllamaBaseUrl } from './ollamaClient';
 import { orchestrateOllamaChat } from './ollamaOrchestrator';
 import { orchestrateCustomDirectChat } from './customDirectOrchestrator';
 import type { AgentLocalToolRequest, AgentLocalToolResult } from './localToolIpc';
 
 interface OllamaChatIpcRequest {
+  token?: string;
   model: string;
   systemPrompt: string;
   userMessage: string;
@@ -40,6 +42,7 @@ interface OllamaChatIpcRequest {
 }
 
 interface CustomDirectChatIpcRequest {
+  token?: string;
   model: string;
   systemPrompt: string;
   userMessage: string;
@@ -71,6 +74,15 @@ function trackChatRequest(sender: WebContents, sessionId: string): { controller:
   sender.once('destroyed', abort);
   controller.signal.addEventListener('abort', release, { once: true });
   return { controller, release };
+}
+
+/**
+ * 模型输出的工具名可能带大小写或空白差异，按规范化名称识别联网搜索。
+ * @param tool - 模型请求的工具名。
+ * @returns 是否应交给后端联网搜索。
+ */
+function isWebSearchTool(tool: unknown): boolean {
+  return typeof tool === 'string' && tool.trim().toLowerCase() === 'web.search';
 }
 
 interface RegisterOllamaIpcHandlersOptions {
@@ -130,7 +142,9 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
             // sender 可能已销毁
           }
         },
-        executeLocalTool: options.executeAgentLocalTool,
+        executeLocalTool: (toolRequest) => isWebSearchTool(toolRequest.tool)
+          ? executeAgentWebSearch(request.token, toolRequest.arguments, abortController.signal)
+          : options.executeAgentLocalTool(toolRequest),
       },
     )
       .catch((err) => {
@@ -190,7 +204,9 @@ export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOpti
             // sender 可能已销毁
           }
         },
-        executeLocalTool: options.executeAgentLocalTool,
+        executeLocalTool: (toolRequest) => isWebSearchTool(toolRequest.tool)
+          ? executeAgentWebSearch(request.token, toolRequest.arguments, abortController.signal)
+          : options.executeAgentLocalTool(toolRequest),
       },
     )
       .catch((err) => {

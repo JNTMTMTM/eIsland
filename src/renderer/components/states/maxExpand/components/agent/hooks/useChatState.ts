@@ -38,10 +38,6 @@ import {
   CONTEXT_LIMIT_OPTIONS,
   EMPTY_GREETING_DEFAULTS,
   STREAM_UI_FLUSH_INTERVAL_MS,
-  VISIBLE_CHAT_WINDOW_SIZE_DEFAULT,
-  VISIBLE_CHAT_WINDOW_SIZE_R1PXC,
-  VISIBLE_CHAT_WINDOW_STEP_DEFAULT,
-  VISIBLE_CHAT_WINDOW_STEP_R1PXC,
   type AgentMode,
 } from '../config/chatConstants';
 import {
@@ -64,7 +60,6 @@ let cachedAiLocalToolAccessResolveError = '';
 export interface ChatState {
   /** refs */
   chatRootRef: React.RefObject<HTMLDivElement | null>;
-  chatEndRef: React.RefObject<HTMLDivElement | null>;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
   pendingAssistantChunkRef: React.MutableRefObject<string>;
   pendingThinkChunksRef: React.MutableRefObject<Map<number, string>>;
@@ -73,7 +68,6 @@ export interface ChatState {
   attachmentDragDepthRef: React.MutableRefObject<number>;
   skillDragDepthRef: React.MutableRefObject<number>;
   lastAssistantFlushAtRef: React.MutableRefObject<number>;
-  hasInitializedAutoScrollRef: React.MutableRefObject<boolean>;
   agentModeDropdownRef: React.RefObject<HTMLDivElement | null>;
   agentModeTriggerRef: React.RefObject<HTMLButtonElement | null>;
   modelDropdownRef: React.RefObject<HTMLDivElement | null>;
@@ -82,8 +76,6 @@ export interface ChatState {
   /** state */
   input: string;
   setInput: React.Dispatch<React.SetStateAction<string>>;
-  visibleWindowStart: number;
-  setVisibleWindowStart: React.Dispatch<React.SetStateAction<number>>;
   showSessionSidebar: boolean;
   setShowSessionSidebar: React.Dispatch<React.SetStateAction<boolean>>;
   agentMode: AgentMode;
@@ -130,14 +122,7 @@ export interface ChatState {
   hasCustomApiCredentials: boolean;
   currentAgentModeConfig: (typeof AGENT_MODES)[number];
   toggleAgentModeDropdown: () => void;
-  VISIBLE_CHAT_WINDOW_SIZE: number;
-  VISIBLE_CHAT_WINDOW_STEP: number;
-  visibleWindowEnd: number;
-  hasUpperHiddenMessages: boolean;
-  hasLowerHiddenMessages: boolean;
   emptyGreeting: string;
-  visibleMessages: AiChatMessage[];
-  visibleStartIndex: number;
   orderedSessions: ReturnType<typeof useIslandStore.getState>['aiChatSessions'];
   getSessionCardState: (sessionId: string) => 'idle' | 'running' | 'awaiting' | 'success' | 'failed';
   contextTokenUsage: { inputTokens: number; outputTokens: number; reasoningTokens: number; totalTokens: number; source: string };
@@ -153,6 +138,7 @@ export interface ChatState {
   flushPendingAssistantUpdates: () => void;
   scheduleAssistantUpdateFlush: () => void;
   refreshActiveSessionStreaming: () => void;
+  hasActiveTextSelection: () => boolean;
   syncInputHeight: () => void;
   handleStop: () => void;
   handleCreateNewChat: () => void;
@@ -194,7 +180,6 @@ export function useChatState(): ChatState {
 
   // ── refs ──
   const chatRootRef = useRef<HTMLDivElement>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pendingAssistantChunkRef = useRef('');
   const pendingThinkChunksRef = useRef<Map<number, string>>(new Map());
@@ -203,7 +188,6 @@ export function useChatState(): ChatState {
   const attachmentDragDepthRef = useRef(0);
   const skillDragDepthRef = useRef(0);
   const lastAssistantFlushAtRef = useRef(0);
-  const hasInitializedAutoScrollRef = useRef(false);
   const agentModeDropdownRef = useRef<HTMLDivElement>(null);
   const agentModeTriggerRef = useRef<HTMLButtonElement>(null);
   const modelDropdownRef = useRef<HTMLDivElement>(null);
@@ -212,12 +196,11 @@ export function useChatState(): ChatState {
 
   // ── state ──
   const [input, setInput] = useState('');
-  const [visibleWindowStart, setVisibleWindowStart] = useState(0);
   const [showSessionSidebar, setShowSessionSidebar] = useState(false);
   const [agentMode, setAgentModeState] = useState<AgentMode>(loadAgentMode);
   const [showAgentModeDropdown, setShowAgentModeDropdown] = useState(false);
   const [agentModeDropdownPos, setAgentModeDropdownPos] = useState<{ left: number; bottom: number } | null>(null);
-  const [showModelCard, setShowModelCard] = useState(false);
+  const [modelCardRequested, setModelCardRequested] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showContextDropdown, setShowContextDropdown] = useState(false);
   const [skillDragOver, setSkillDragOver] = useState(false);
@@ -254,6 +237,19 @@ export function useChatState(): ChatState {
     aiWebAccessResolveError: store.aiWebAccessResolveError, setAiWebAccessResolveError: store.setAiWebAccessResolveError,
     setLogin: store.setLogin, setRegister: store.setRegister, dominantColor: store.dominantColor,
   })));
+
+  // 授权优先：渲染时立即屏蔽模型卡片，再清除打开状态，避免同帧到达的请求与点击互相覆盖。
+  const hasActiveAuthorization = aiWebAccessPrompt?.sessionId === activeAiChatSessionId
+    || aiLocalToolAccessPrompt?.sessionId === activeAiChatSessionId;
+  const showModelCard = modelCardRequested && !hasActiveAuthorization;
+  const setShowModelCard = useCallback<React.Dispatch<React.SetStateAction<boolean>>>((next) => {
+    setModelCardRequested(hasActiveAuthorization ? false : next);
+  }, [hasActiveAuthorization]);
+  useEffect(() => {
+    setModelCardRequested(false);
+    setShowModelDropdown(false);
+    setShowContextDropdown(false);
+  }, [activeAiChatSessionId, hasActiveAuthorization]);
 
   // ── 用户会话同步 ──
   useEffect(() => {
@@ -316,24 +312,11 @@ export function useChatState(): ChatState {
     setShowAgentModeDropdown(false);
   }, []);
 
-  // ── 可见窗口 ──
-  const VISIBLE_CHAT_WINDOW_SIZE = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_SIZE_R1PXC : VISIBLE_CHAT_WINDOW_SIZE_DEFAULT;
-  const VISIBLE_CHAT_WINDOW_STEP = agentMode === 'r1pxc' ? VISIBLE_CHAT_WINDOW_STEP_R1PXC : VISIBLE_CHAT_WINDOW_STEP_DEFAULT;
-  const visibleWindowEnd = Math.min(aiChatMessages.length, visibleWindowStart + VISIBLE_CHAT_WINDOW_SIZE);
-  const hasUpperHiddenMessages = visibleWindowStart > 0;
-  const hasLowerHiddenMessages = visibleWindowEnd < aiChatMessages.length;
-
   // ── 空白问候语 ──
   const [emptyGreetingVariantIndex] = useState(() => Math.floor(Math.random() * EMPTY_GREETING_DEFAULTS.length));
   const emptyGreeting = t(`aiChat.messages.emptyGreetingVariants.${emptyGreetingVariantIndex}`, {
     defaultValue: EMPTY_GREETING_DEFAULTS[emptyGreetingVariantIndex] || EMPTY_GREETING_DEFAULTS[0],
   });
-
-  // ── 可见消息 ──
-  const visibleMessages = useMemo(() => {
-    return aiChatMessages.slice(visibleWindowStart, visibleWindowEnd);
-  }, [aiChatMessages, visibleWindowStart, visibleWindowEnd]);
-  const visibleStartIndex = visibleWindowStart;
 
   // ── 会话排序 ──
   const orderedSessions = useMemo(() => (
@@ -341,15 +324,17 @@ export function useChatState(): ChatState {
   ), [aiChatSessions]);
 
   // ── 会话卡片状态 ──
+  // 卡片逐项查找整个会话数组会退化为 O(n²)，为每次列表更新建立一次索引。
+  const sessionsById = useMemo(() => new Map(aiChatSessions.map((session) => [session.id, session])), [aiChatSessions]);
   const getSessionCardState = useCallback((sessionId: string): 'idle' | 'running' | 'awaiting' | 'success' | 'failed' => {
     return resolveSessionCardState({
       sessionId,
       streamingSessionIds: SESSION_STREAMING_IDS,
       webAccessPrompt: aiWebAccessPrompt,
       localToolAccessPrompt: aiLocalToolAccessPrompt,
-      sessions: aiChatSessions,
+      session: sessionsById.get(sessionId),
     });
-  }, [aiChatSessions, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
+  }, [sessionsById, aiLocalToolAccessPrompt, aiWebAccessPrompt]);
 
   // ── 上下文 token 统计 ──
   const contextTokenUsage = useMemo(() => {
@@ -512,34 +497,6 @@ export function useChatState(): ChatState {
     pendingMessageFlushRafRef.current = window.requestAnimationFrame(flushWhenSelectable);
   }, [flushPendingAssistantUpdates, hasActiveTextSelection]);
 
-  // ── 窗口自动滚动 ──
-  useEffect(() => {
-    const maxStart = Math.max(0, aiChatMessages.length - VISIBLE_CHAT_WINDOW_SIZE);
-    setVisibleWindowStart(prev => {
-      if (prev === 0 && aiChatMessages.length > VISIBLE_CHAT_WINDOW_SIZE) {
-        return maxStart;
-      }
-      if (aiChatStreaming) {
-        return maxStart;
-      }
-      return Math.min(prev, maxStart);
-    });
-  }, [aiChatMessages.length, aiChatStreaming]);
-
-  useEffect(() => {
-    const waitingForLatestWindowAlignment = aiChatMessages.length > VISIBLE_CHAT_WINDOW_SIZE
-      && visibleWindowStart === 0;
-    if (waitingForLatestWindowAlignment) {
-      return;
-    }
-    if (hasActiveTextSelection()) {
-      return;
-    }
-    const isFirstAutoScroll = !hasInitializedAutoScrollRef.current;
-    hasInitializedAutoScrollRef.current = true;
-    chatEndRef.current?.scrollIntoView({ behavior: (aiChatStreaming || isFirstAutoScroll) ? 'auto' : 'smooth' });
-  }, [aiChatMessages, aiChatStreaming, hasActiveTextSelection, visibleWindowStart]);
-
   // ── 输入框高度同步 ──
   const syncInputHeight = useCallback((): void => {
     const el = inputRef.current;
@@ -596,7 +553,6 @@ export function useChatState(): ChatState {
     pendingAssistantChunkRef.current = '';
     pendingThinkChunksRef.current.clear();
     void createNewAiChatSession().catch(() => {});
-    setVisibleWindowStart(0);
     setPendingQuote(null);
     setResolvingWebAccessDecision(false);
     setAiWebAccessPrompt(null);
@@ -609,14 +565,13 @@ export function useChatState(): ChatState {
   return {
     availableModels,
     isProUser,
-    chatRootRef, chatEndRef, inputRef,
+    chatRootRef, inputRef,
     pendingAssistantChunkRef, pendingThinkChunksRef, pendingMessageFlushRafRef,
     attachmentInvalidTimerRef, attachmentDragDepthRef, skillDragDepthRef,
-    lastAssistantFlushAtRef, hasInitializedAutoScrollRef,
+    lastAssistantFlushAtRef,
     agentModeDropdownRef, agentModeTriggerRef,
     modelDropdownRef, contextDropdownRef, fileInputRef,
     input, setInput,
-    visibleWindowStart, setVisibleWindowStart,
     showSessionSidebar, setShowSessionSidebar,
     agentMode, setAgentMode,
     showAgentModeDropdown, setShowAgentModeDropdown,
@@ -639,16 +594,14 @@ export function useChatState(): ChatState {
     selectedProvider, modelToggleIcon,
     hasCustomApiCredentials,
     currentAgentModeConfig, toggleAgentModeDropdown,
-    VISIBLE_CHAT_WINDOW_SIZE, VISIBLE_CHAT_WINDOW_STEP,
-    visibleWindowEnd, hasUpperHiddenMessages, hasLowerHiddenMessages,
-    emptyGreeting, visibleMessages, visibleStartIndex,
+    emptyGreeting,
     orderedSessions, getSessionCardState,
     contextTokenUsage, contextUsageTokens, selectedContextLimit,
     contextUsagePercent, contextUsagePercentText,
     contextUsageLevelClass, contextUsageInlineText, selectedContextLabel,
     updateMessages, flushPendingAssistantUpdates,
     scheduleAssistantUpdateFlush, refreshActiveSessionStreaming,
-    syncInputHeight,
+    hasActiveTextSelection, syncInputHeight,
     handleStop, handleCreateNewChat,
     aiConfig, setAiConfig,
     aiChatMessages, aiChatSessions, activeAiChatSessionId, aiChatStreaming,

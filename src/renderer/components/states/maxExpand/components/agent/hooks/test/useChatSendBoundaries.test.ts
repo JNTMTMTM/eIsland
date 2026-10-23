@@ -173,6 +173,43 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('useChatSend native tool and authorization', () => {
+  it('coalesces concurrent submissions and repeated authorization clicks', async () => {
+    mount();
+    localPrompt();
+    const { send } = run();
+    await Promise.all([send.handleResolveLocalToolAccess(true), send.handleResolveLocalToolAccess(true)]);
+    expect(leaves.access).toHaveBeenCalledTimes(1);
+    expect(leaves.execute).toHaveBeenCalledTimes(1);
+    expect(leaves.execute).toHaveBeenCalledWith(expect.objectContaining({ requestId: 'local' }));
+    expect(leaves.result).toHaveBeenCalledTimes(1);
+    await send.executeAndSubmitLocalToolResult({ token: 'token', requestId: 'local', tool: 'file.read', argumentsPayload: { path: 'virtual' } });
+    expect(leaves.execute).toHaveBeenCalledTimes(1);
+  });
+  it('rejects a redelivered request id that carries a different call', async () => {
+    const { send } = mount();
+    let finish: ((value: unknown) => void) | undefined;
+    leaves.execute.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    const first = send.executeAndSubmitLocalToolResult({ token: 'token', requestId: 'same', tool: 'file.read', argumentsPayload: { path: 'a' } });
+    await expect(send.executeAndSubmitLocalToolResult({ token: 'token', requestId: 'same', tool: 'file.read', argumentsPayload: { path: 'b' } }))
+      .rejects.toThrow('aiChat.messages.localToolRequestConflict');
+    finish?.({ success: true, result: {}, durationMs: 1, error: '' });
+    await first;
+    expect(leaves.execute).toHaveBeenCalledTimes(1);
+    expect(leaves.result).toHaveBeenCalledTimes(1);
+  });
+  it('an old authorization completion cannot clear a newer prompt', async () => {
+    mount();
+    localPrompt();
+    let complete: (() => void) | undefined;
+    leaves.access.mockImplementation(() => new Promise<void>((resolve) => { complete = resolve; }));
+    const old = run().send.handleResolveLocalToolAccess(false);
+    const { state } = run();
+    state.setAiLocalToolAccessPrompt({ ...state.aiLocalToolAccessPrompt!, requestId: 'newer' });
+    run();
+    complete?.();
+    await old;
+    expect(run().state.aiLocalToolAccessPrompt?.requestId).toBe('newer');
+  });
   it('missing runtime submits explicit failed result', async () => {
     Reflect.deleteProperty(runtime.api, 'executeAgentLocalTool');
     const {

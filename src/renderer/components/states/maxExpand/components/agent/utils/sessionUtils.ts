@@ -29,20 +29,24 @@ import type { AiLocalToolAccessPrompt, SessionCardState } from '../types/chatTyp
 
 export type { SessionCardState } from '../types/chatTypes';
 
-/** 根据会话、流状态、工具授权等信息推断会话卡片的显示状态。 */
+/**
+ * 根据已定位的会话、流状态和工具授权推断卡片状态，避免逐卡扫描会话列表。
+ * @param params - 会话及运行、授权状态。
+ * @returns 卡片显示状态。
+ */
 export function resolveSessionCardState(params: {
   sessionId: string;
   streamingSessionIds: ReadonlySet<string>;
   webAccessPrompt: AiWebAccessPrompt | null;
   localToolAccessPrompt: AiLocalToolAccessPrompt | null;
-  sessions: AiChatSession[];
+  session: AiChatSession | undefined;
 }): SessionCardState {
   const {
     sessionId,
     streamingSessionIds,
     webAccessPrompt,
     localToolAccessPrompt,
-    sessions,
+    session,
   } = params;
 
   if (streamingSessionIds.has(sessionId)) {
@@ -52,13 +56,19 @@ export function resolveSessionCardState(params: {
     return 'awaiting';
   }
 
-  const session = sessions.find((item) => item.id === sessionId);
   if (session?.messagesLoaded === false) return session.replyStatus ?? 'idle';
   if (!session || !Array.isArray(session.messages) || session.messages.length === 0) {
     return 'idle';
   }
 
-  const lastAssistant = [...session.messages].reverse().find((message) => message.role === 'assistant');
+  // 通常最后一条就是助手消息；从尾部查找，避免复制整段长历史。
+  let lastAssistant: AiChatSession['messages'][number] | undefined;
+  for (let index = session.messages.length - 1; index >= 0; index--) {
+    if (session.messages[index].role === 'assistant') {
+      lastAssistant = session.messages[index];
+      break;
+    }
+  }
   if (!lastAssistant) {
     return 'idle';
   }

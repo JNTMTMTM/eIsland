@@ -34,10 +34,6 @@ export const CONTEXT_LIMIT_OPTIONS = [
 ] as const;
 
 export const STREAM_UI_FLUSH_INTERVAL_MS = 90;
-export const VISIBLE_CHAT_WINDOW_SIZE_DEFAULT = 4;
-export const VISIBLE_CHAT_WINDOW_SIZE_R1PXC = 25;
-export const VISIBLE_CHAT_WINDOW_STEP_DEFAULT = 4;
-export const VISIBLE_CHAT_WINDOW_STEP_R1PXC = 25;
 
 export const SETTINGS_OPEN_TAB_STORE_KEY = 'settings-open-tab';
 export const SETTINGS_ABOUT_FEEDBACK_PREFILL_STORE_KEY = 'settings-about-feedback-prefill';

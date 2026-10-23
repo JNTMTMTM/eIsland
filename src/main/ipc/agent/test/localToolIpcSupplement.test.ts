@@ -52,3 +52,64 @@ describe('本地工具 IPC 非 Error 拒绝值', () => {
     expect(executeAgentLocalTool).toHaveBeenCalledWith({ tool: 'fixture' });
   });
 });
+
+describe('本地工具请求标识幂等性', () => {
+  it('shares concurrent and completed executions across windows', async () => {
+    boundary.handle.mockClear();
+    const executeAgentLocalTool = vi.fn(() => Promise.resolve({ success: true, result: { id: 1 }, error: '', durationMs: 1 }));
+    registerAgentLocalToolIpcHandlers({ executeAgentLocalTool });
+    const [[, handler]] = boundary.handle.mock.calls;
+    const request = { requestId: 'same', tool: 'todolist.create', arguments: { text: 'once' } };
+    const results = await Promise.all([handler({}, request), handler({}, request)]);
+    expect(results[0]).toBe(results[1]);
+    await handler({}, request);
+    expect(executeAgentLocalTool).toHaveBeenCalledTimes(1);
+    await handler({}, { ...request, requestId: 'new-request' });
+    expect(executeAgentLocalTool).toHaveBeenCalledTimes(2);
+    await expect(handler({}, { ...request, arguments: { text: 'different' } })).resolves
+      .toMatchObject({ success: false, error: 'TOOL_REQUEST_ID_CONFLICT' });
+    expect(executeAgentLocalTool).toHaveBeenCalledTimes(2);
+  });
+  it('caches failed and partially applied operations too', async () => {
+    boundary.handle.mockClear();
+    const executeAgentLocalTool = vi.fn((): Promise<AgentLocalToolResult> => Promise.reject(new Error('partially applied')));
+    registerAgentLocalToolIpcHandlers({ executeAgentLocalTool });
+    const [[, handler]] = boundary.handle.mock.calls;
+    const request = { requestId: 'failed', tool: 'file.append', arguments: {} };
+    await handler({}, request);
+    await expect(handler({}, request)).resolves.toMatchObject({ success: false, error: 'partially applied' });
+    expect(executeAgentLocalTool).toHaveBeenCalledTimes(1);
+  });
+  it('evicts the oldest completed result when the cache is full', async () => {
+    boundary.handle.mockClear();
+    const executeAgentLocalTool = vi.fn(() => Promise.resolve({ success: true, result: {}, error: '', durationMs: 1 }));
+    registerAgentLocalToolIpcHandlers({ executeAgentLocalTool });
+    const [[, handler]] = boundary.handle.mock.calls;
+    const request = (requestId: string): AgentLocalToolRequest => ({ requestId, tool: 'file.read', arguments: {} });
+    await Promise.all(Array.from(Array(500).keys(), (index) => handler({}, request(`done-${index}`))));
+    await expect(handler({}, request('next'))).resolves.toMatchObject({ success: true });
+    await handler({}, request('done-1'));
+    expect(executeAgentLocalTool).toHaveBeenCalledTimes(501);
+    await handler({}, request('done-0'));
+    expect(executeAgentLocalTool).toHaveBeenCalledTimes(502);
+  });
+  it('times out hung executions so they cannot pin the cache', async () => {
+    vi.useFakeTimers();
+    try {
+      boundary.handle.mockClear();
+      const executeAgentLocalTool = vi.fn((): Promise<AgentLocalToolResult> => new Promise(() => undefined));
+      registerAgentLocalToolIpcHandlers({ executeAgentLocalTool });
+      const [[, handler]] = boundary.handle.mock.calls;
+      const request = (requestId: string): AgentLocalToolRequest => ({ requestId, tool: 'file.read', arguments: {} });
+      const hung = Array.from(Array(500).keys(), (index) => handler({}, request(`hung-${index}`)));
+      await expect(handler({}, request('blocked'))).resolves.toMatchObject({ success: false, error: 'TOOL_REQUEST_CACHE_FULL' });
+      await vi.advanceTimersByTimeAsync(10 * 60_000);
+      await expect(Promise.all(hung)).resolves.toContainEqual(expect.objectContaining({ success: false, error: 'TOOL_EXECUTION_TIMEOUT' }));
+      executeAgentLocalTool.mockResolvedValue({ success: true, result: {}, error: '', durationMs: 1 });
+      await expect(handler({}, request('next'))).resolves.toMatchObject({ success: true });
+      await expect(handler({}, request('hung-499'))).resolves.toMatchObject({ error: 'TOOL_EXECUTION_TIMEOUT' });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

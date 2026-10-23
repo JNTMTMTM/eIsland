@@ -74,6 +74,8 @@ interface ChatInputBarProps {
   selectedContextLabel: string;
   /** 模型选择下拉 */
   showModelCard: boolean;
+  /** 当前会话等待授权时，模型卡片入口让位给授权浮层。 */
+  modelCardDisabled?: boolean;
   setShowModelCard: (v: boolean | ((prev: boolean) => boolean)) => void;
   showModelDropdown: boolean;
   setShowModelDropdown: (v: boolean | ((prev: boolean) => boolean)) => void;
@@ -144,7 +146,7 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
     contextUsageLevelClass,
     contextUsageInlineText,
     selectedContextLabel,
-    showModelCard, setShowModelCard,
+    showModelCard, setShowModelCard, modelCardDisabled = false,
     showModelDropdown, setShowModelDropdown,
     modelDropdownRef,
     showContextDropdown, setShowContextDropdown,
@@ -164,20 +166,36 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
     selectedProvider,
   } = props;
 
+  const closeModelCard = (): void => {
+    setShowModelCard(false);
+    setShowModelDropdown(false);
+    setShowContextDropdown(false);
+  };
+
   return (
     <div>
       {/* 模型选择卡片 */}
-      <div className={`max-expand-chat-model-card-wrap ${showModelCard ? 'max-expand-chat-model-card-wrap--open' : ''}`} aria-hidden={!showModelCard}>
+      <div id="ai-chat-model-card"
+        className={`max-expand-chat-model-card-wrap ${showModelCard ? 'max-expand-chat-model-card-wrap--open' : ''}`}
+        hidden={modelCardDisabled}
+        aria-hidden={!showModelCard}
+        inert={!showModelCard}
+      >
         <div className="max-expand-chat-model-card">
           <div
             className="max-expand-chat-model-card-scroll"
             onWheelCapture={(e) => { e.stopPropagation(); }}
             onWheel={(e) => { e.stopPropagation(); }}
           >
-            <div style={{ fontSize: 12, opacity: 0.72 }}>
-              {t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
+            <div className="flex shrink-0 items-center justify-between gap-3 text-xs">
+              <span className="opacity-70">{t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}</span>
+              <button className="flex size-7 shrink-0 items-center justify-center rounded-md hover:bg-[rgba(var(--color-text-rgb),0.08)]"
+                type="button"
+                onClick={closeModelCard}
+                aria-label={t('agent.actions.close')}
+              >×</button>
             </div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
+            <div className="grid grid-cols-2 gap-3">
               {/* 模型选择 */}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, opacity: 0.8 }}>{t('settings.ai.model', { defaultValue: '模型' })}</span>
@@ -590,7 +608,10 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
             className="max-expand-chat-send"
             type="button"
             onClick={() => { setShowModelCard((prev) => !prev); }}
+            disabled={modelCardDisabled}
             title={t('aiChat.modelCard.title', { defaultValue: '模型选择卡片' })}
+            aria-expanded={showModelCard}
+            aria-controls="ai-chat-model-card"
           >
             {modelToggleIcon ? (
               <span className="max-expand-chat-model-toggle-with-icon">

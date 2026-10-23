@@ -30,6 +30,7 @@ import { hookMocks } from '../../../../test/elementHarness';
 import { api, browser, builtinCaptcha, modal, modalRoot, renderWithHooks, resetBrowser, responses, runEffects, settle, storage, unmountHooks } from '../../../register/hooks/test/authHookHarness';
 import useIslandStore from '../../../../../store/slices';
 import { useLogin } from '../useLogin';
+import { readLocalProfile, subscribeUserAccountSessionChanged } from '../../../../../utils/userAccount';
 // 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
 vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
@@ -91,12 +92,40 @@ describe('useLogin 真实认证状态', () => {
   it.each(['person', ' Person@Example.com '])('使用真实登录接口与归一化请求字段：%s', async (account) => {
     const result = validForm(account); responses.push({ code: 200, data: { token: 'session-token' } });
     const pending = result.handleSubmit(); await renderWithHooks(useLogin).handleSubmit(); await pending;
-    expect(api.netFetch).toHaveBeenCalledTimes(1);
+    expect(api.netFetch).toHaveBeenCalledTimes(2);
     const body: unknown = JSON.parse(api.netFetch.mock.calls[0][1]?.body ?? '{}');
     expect(body).toEqual(account.includes('@') ? { email: 'person@example.com', password: 'password123', emailCode: '123456' } : { username: 'person', password: 'password123' });
     expect(storage.get('user-account-token')).toBe('session-token');
     expect(useIslandStore.getState().state).toBe('maxExpand'); expect(useIslandStore.getState().maxExpandTab).toBe('settings');
     expect(renderWithHooks(useLogin).submitting).toBe(false);
+  });
+  it.each(['person', 'person@example.com'])('从 Agent 使用 %s 重新登录后后台加载头像并通知订阅者', async (account) => {
+    useIslandStore.setState({ authReturnState: 'agent' });
+    Object.assign(api, { expandWindowNotification: vi.fn() });
+    const profile = { username: 'person', email: 'person@example.com', avatar: 'https://example.com/avatar.png', gender: 'undisclosed', genderCustom: null, birthday: null, createdAt: 'date' };
+    const pendingProfile = Promise.withResolvers<{ ok: boolean; status: number; body: string }>();
+    responses.push({ code: 200, data: { token: 'new-token' } });
+    const netFetch = api.netFetch.getMockImplementation()!;
+    api.netFetch.mockImplementation((url, init) => url.endsWith('/v1/user/profile') ? pendingProfile.promise : netFetch(url, init));
+    const avatars: Array<string | null> = [];
+    const unsubscribe = subscribeUserAccountSessionChanged(() => avatars.push(readLocalProfile()?.avatar ?? null));
+    try {
+      await validForm(account).handleSubmit();
+      await settle();
+      expect(useIslandStore.getState().state).toBe('agent');
+      expect(readLocalProfile()).toBeNull();
+      expect(api.netFetch).toHaveBeenCalledTimes(2);
+      expect(api.netFetch.mock.calls[1][0]).toContain('/user/profile');
+
+      pendingProfile.resolve({ ok: true, status: 200, body: JSON.stringify({ code: 200, data: profile }) });
+      await settle();
+      expect(readLocalProfile()).toEqual(profile);
+      expect(avatars.at(-1)).toBe(profile.avatar);
+      expect(api.storeWrite).toHaveBeenCalledWith('user-account-profile', profile);
+    } finally {
+      unsubscribe();
+      api.netFetch.mockImplementation(netFetch);
+    }
   });
   it.each([
     { verificationEmail: ' Person@Example.com ', maskedEmail: ' p***@example.com ' },

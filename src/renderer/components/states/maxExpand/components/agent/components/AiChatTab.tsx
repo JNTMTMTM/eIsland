@@ -27,15 +27,14 @@
 import React, { useCallback, useEffect } from 'react';
 import useIslandStore from '../../../../../../store/slices';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon, resolveDevIconByFileName } from '../../../../../../utils/SvgIcon';
 import { SESSION_STREAMING_IDS } from '../hooks/useChatState';
 import { useChatState } from '../hooks/useChatState';
 import { useChatSend } from '../hooks/useChatSend';
-import { AssistantMarkdown } from './AssistantMarkdown';
-import { MessageTimeline } from './MessageTimeline';
+import { VirtualChatMessages } from './virtualChatMessages';
+import ChatSessionItem from './chatSessionItem';
 import { WebAccessPanel, LocalToolAccessPanel } from './WebAccessPanel';
 import { ChatInputBar } from './ChatInputBar';
-import { normalizeMarkdownCodeFences } from '../utils/chatUtils';
+import ChatLoadingSkeleton from './chatLoadingSkeleton';
 
 /**
  * AI 对话 Tab
@@ -48,14 +47,12 @@ export function AiChatContent(): React.ReactElement {
 
   const {
     isProUser,
-    chatRootRef, chatEndRef, inputRef,
+    chatRootRef, inputRef,
     agentMode,
     showSessionSidebar,
     hasLoginSession, userAvatarUrl,
     currentAgentModeConfig,
-    setVisibleWindowStart,
-    hasUpperHiddenMessages, hasLowerHiddenMessages,
-    emptyGreeting, visibleMessages, visibleStartIndex,
+    emptyGreeting, hasActiveTextSelection,
     orderedSessions, getSessionCardState,
     aiChatMessages, aiChatStreaming, activeAiChatSessionId,
     aiWebAccessPrompt, aiLocalToolAccessPrompt,
@@ -65,7 +62,6 @@ export function AiChatContent(): React.ReactElement {
     deleteAiChatSession,
     setLogin, setRegister,
     dominantColor,
-    VISIBLE_CHAT_WINDOW_SIZE, VISIBLE_CHAT_WINDOW_STEP,
   } = state;
 
   const {
@@ -81,6 +77,29 @@ export function AiChatContent(): React.ReactElement {
     handleReportIssueFromFinalAnswer,
     navigateToSettingsTab,
   } = send;
+
+  const { setPendingQuote, setResolvingWebAccessDecision, setResolvingLocalToolAccessDecision } = state;
+  const handleSelectSession = useCallback((id: string): void => {
+    if (id === activeAiChatSessionId) return;
+    void switchAiChatSession(id).catch(() => {});
+    setAiChatStreaming(SESSION_STREAMING_IDS.has(id));
+    setResolvingWebAccessDecision(false);
+    setResolvingLocalToolAccessDecision(false);
+    setPendingQuote(null);
+  }, [activeAiChatSessionId, switchAiChatSession, setAiChatStreaming,
+    setResolvingWebAccessDecision, setResolvingLocalToolAccessDecision, setPendingQuote]);
+  const handleDeleteSession = useCallback((id: string): void => {
+    void deleteAiChatSession(id).catch(() => {});
+  }, [deleteAiChatSession]);
+  /** 保持引用回调稳定，使输入和流式更新不会使历史消息失效。 */
+  const handleQuote = useCallback((text: string): void => {
+    setPendingQuote(text);
+    inputRef.current?.focus();
+  }, [inputRef, setPendingQuote]);
+
+  const activeWebAccessPrompt = aiWebAccessPrompt?.sessionId === activeAiChatSessionId ? aiWebAccessPrompt : null;
+  const activeLocalToolAccessPrompt = aiLocalToolAccessPrompt?.sessionId === activeAiChatSessionId ? aiLocalToolAccessPrompt : null;
+  const hasActiveAuthorization = Boolean(activeWebAccessPrompt || activeLocalToolAccessPrompt);
 
   /** 回车发送 */
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
@@ -139,61 +158,35 @@ export function AiChatContent(): React.ReactElement {
             </div>
             <div className="max-expand-chat-session-list">
               {orderedSessions.map((session) => (
-                <button
+                <ChatSessionItem
                   key={session.id}
-                  type="button"
-                  className={`max-expand-chat-session-item ${session.id === activeAiChatSessionId ? 'active' : ''} status-${getSessionCardState(session.id)}`}
-                  onClick={() => {
-                    if (session.id === activeAiChatSessionId) return;
-                    void switchAiChatSession(session.id).catch(() => {});
-                    setAiChatStreaming(SESSION_STREAMING_IDS.has(session.id));
-                    setVisibleWindowStart(0);
-                    state.setResolvingWebAccessDecision(false);
-                    state.setResolvingLocalToolAccessDecision(false);
-                    state.setPendingQuote(null);
-                  }}
-                >
-                  <span className="max-expand-chat-session-item-main">
-                    <span className="max-expand-chat-session-item-title">{session.title || t('aiChat.session.untitled', { defaultValue: '新对话' })}</span>
-                    <span className="max-expand-chat-session-item-time">{new Date(session.updatedAt).toLocaleString()}</span>
-                  </span>
-                  <span className="max-expand-chat-session-item-actions">
-                    <span
-                      className="max-expand-chat-session-delete"
-                      role="button"
-                      aria-label={t('aiChat.actions.deleteSession', { defaultValue: '删除会话' })}
-                      title={t('aiChat.actions.deleteSession', { defaultValue: '删除会话' })}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        void deleteAiChatSession(session.id).catch(() => {});
-                      }}
-                    >
-                      <img src={SvgIcon.DELETE} alt="" />
-                    </span>
-                  </span>
-                </button>
+                  id={session.id}
+                  title={session.title}
+                  updatedAt={session.updatedAt}
+                  active={session.id === activeAiChatSessionId}
+                  status={getSessionCardState(session.id)}
+                  onSelect={handleSelectSession}
+                  onDelete={handleDeleteSession}
+                />
               ))}
             </div>
           </div>
         </aside>
         <div className="max-expand-chat-content">
           {/* 消息列表 */}
-          <div className="max-expand-chat-messages">
-            {hasUpperHiddenMessages && (
-              <div className="max-expand-chat-history-tip">
-                <button
-                  type="button"
-                  className="max-expand-chat-history-load-more"
-                  onClick={() => {
-                    setVisibleWindowStart(prev => Math.max(0, prev - VISIBLE_CHAT_WINDOW_STEP));
-                  }}
-                >
-                  {t('aiChat.actions.loadMoreHistory', { defaultValue: '加载更多对话' })}
-                </button>
-              </div>
-            )}
-            {aiChatMessages.length === 0 && (
+          <VirtualChatMessages
+            key={activeAiChatSessionId}
+            messages={aiChatMessages}
+            isStreaming={aiChatStreaming}
+            agentMode={agentMode}
+            r1pxcAvatar={aiConfig.r1pxcAvatar}
+            userAvatarUrl={userAvatarUrl}
+            showThinking={Boolean(aiConfig.deepseekThinking)}
+            onQuote={handleQuote}
+            onReportIssue={handleReportIssueFromFinalAnswer}
+            navigateToSettingsTab={navigateToSettingsTab}
+            hasActiveTextSelection={hasActiveTextSelection}
+            emptyContent={(
               <div className="max-expand-chat-empty">
                 <div>{emptyGreeting}</div>
                 <div className="max-expand-chat-empty-disclaimer">
@@ -201,184 +194,39 @@ export function AiChatContent(): React.ReactElement {
                 </div>
               </div>
             )}
-            {visibleMessages.map((msg, i) => {
-              const absoluteIndex = visibleStartIndex + i;
-              const isEmptyAssistant = msg.role === 'assistant' && !msg.content
-                && (!Array.isArray(msg.todoSnapshots) || msg.todoSnapshots.length === 0)
-                && (!Array.isArray(msg.thinkBlocks) || msg.thinkBlocks.length === 0)
-                && (!Array.isArray(msg.toolCalls) || msg.toolCalls.filter(tc => tc.tool !== 'agent.todo.write').length === 0)
-                && !(aiChatStreaming && absoluteIndex === aiChatMessages.length - 1);
-              if (isEmptyAssistant) return null;
+          />
 
-              {/* r1pxc 模式助手消息 */}
-              if (agentMode === 'r1pxc' && msg.role === 'assistant') {
-                const isLatest = absoluteIndex === aiChatMessages.length - 1;
-                const r1pxcAvatarRaw = typeof aiConfig.r1pxcAvatar === 'string' ? aiConfig.r1pxcAvatar.trim() : '';
-                const r1pxcAvatarUrl = r1pxcAvatarRaw.startsWith('data:image/') ? r1pxcAvatarRaw : '';
-                const rawSegments = msg.content
-                  ? msg.content.split(/\n\n+/).filter((s) => s.trim().length > 0)
-                  : [];
-                const segments: string[] = [];
-                for (let si = 0; si < rawSegments.length; si++) {
-                  if (/^>\s*引用:/.test(rawSegments[si]) && si + 1 < rawSegments.length) {
-                    segments.push(rawSegments[si] + '\n' + rawSegments[si + 1]);
-                    si++;
-                  } else {
-                    segments.push(rawSegments[si]);
-                  }
-                }
-                if (segments.length === 0 && aiChatStreaming && isLatest) {
-                  return (
-                    <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
-                      {r1pxcAvatarUrl ? (
-                        <img className="max-expand-chat-agent-avatar max-expand-chat-avatar--clickable" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onClick={() => navigateToSettingsTab('ai')} />
-                      ) : (
-                        <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder max-expand-chat-avatar--clickable" src={SvgIcon.USER} alt="" onClick={() => navigateToSettingsTab('ai')} />
-                      )}
-                      <div className="max-expand-chat-bubble ai r1pxc-chat">
-                        <div className="max-expand-chat-loading-row">
-                          <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                return (
-                  <div key={absoluteIndex} className="max-expand-chat-agent-row r1pxc-chat">
-                    {r1pxcAvatarUrl ? (
-                      <img className="max-expand-chat-agent-avatar max-expand-chat-avatar--clickable" src={r1pxcAvatarUrl} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onClick={() => navigateToSettingsTab('ai')} />
-                    ) : (
-                      <img className="max-expand-chat-agent-avatar max-expand-chat-agent-avatar--placeholder max-expand-chat-avatar--clickable" src={SvgIcon.USER} alt="" onClick={() => navigateToSettingsTab('ai')} />
-                    )}
-                    <div className="max-expand-chat-agent-bubbles">
-                      {segments.map((seg, si) => {
-                        const quoteMatch = seg.match(/^>\s*引用:\s*(.*)/);
-                        const quoteText = quoteMatch ? quoteMatch[1].trim() : null;
-                        const bodyText = quoteMatch ? seg.replace(/^>\s*引用:\s*.*\n?/, '').trim() : seg;
-                        return (
-                          <div
-                            key={`${absoluteIndex}-${si}`}
-                            className="max-expand-chat-bubble ai r1pxc-chat max-expand-chat-bubble--hoverable"
-                          >
-                            {quoteText && (
-                              <div className="max-expand-chat-quote-block">
-                                <span className="max-expand-chat-quote-block-text">{quoteText.length > 80 ? quoteText.slice(0, 80) + '…' : quoteText}</span>
-                              </div>
-                            )}
-                            {bodyText && <AssistantMarkdown content={normalizeMarkdownCodeFences(bodyText)} />}
-                            <span className="max-expand-chat-bubble-actions">
-                              <button type="button" onClick={() => { state.setPendingQuote(seg.trim()); inputRef.current?.focus(); }}>{t('aiChat.actions.quote', { defaultValue: '引用' })}</button>
-                              <button type="button" onClick={() => { navigator.clipboard.writeText(seg.trim()).catch(() => {}); }}>{t('aiChat.actions.copy', { defaultValue: '复制' })}</button>
-                            </span>
-                          </div>
-                        );
-                      })}
-                      {aiChatStreaming && isLatest && (
-                        <div key={`${absoluteIndex}-dots`} className="max-expand-chat-bubble ai r1pxc-chat">
-                          <div className="max-expand-chat-loading-row">
-                            <span className="max-expand-chat-generating-dots"><i /><i /><i /></span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              {/* 用户消息 */}
-              if (msg.role === 'user') {
-                return (
-                  <div key={absoluteIndex} className={`max-expand-chat-user-row${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
-                    <div className={`max-expand-chat-bubble user${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}>
-                      {msg.quote && agentMode === 'r1pxc' && (
-                        <div className="max-expand-chat-quote-block">
-                          <span className="max-expand-chat-quote-block-text">{msg.quote.length > 80 ? msg.quote.slice(0, 80) + '…' : msg.quote}</span>
-                        </div>
-                      )}
-                      {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                        <div className="max-expand-chat-bubble-attachments">
-                          {msg.attachments.map((a) => (
-                            <span key={a.name} className="max-expand-chat-bubble-attachment-tag">
-                              {resolveDevIconByFileName(a.name) ? (
-                                <img className="max-expand-chat-bubble-attachment-icon" src={resolveDevIconByFileName(a.name)} alt="" aria-hidden="true" />
-                              ) : (
-                                <span className="max-expand-chat-bubble-attachment-icon-fallback" aria-hidden="true" />
-                              )}
-                              <span>{a.name}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {msg.content.replace(/^(?:<attachment name="[^"]*">\n[\s\S]*?\n<\/attachment>\n*)+/, '').replace(/^> 引用: [\s\S]*?\n\n/, '').trim()}
-                    </div>
-                    {userAvatarUrl ? (
-                      <img className="max-expand-chat-user-avatar max-expand-chat-avatar--clickable" src={userAvatarUrl} alt="" onClick={() => navigateToSettingsTab('user-info')} />
-                    ) : (
-                      <span className="max-expand-chat-user-avatar max-expand-chat-user-avatar--placeholder max-expand-chat-avatar--clickable" onClick={() => navigateToSettingsTab('user-info')} />
-                    )}
-                  </div>
-                );
-              }
-
-              {/* 普通助手消息（非 r1pxc） */}
-              return (
-                <div
-                  key={absoluteIndex}
-                  className={`max-expand-chat-bubble ai${agentMode === 'r1pxc' ? ' r1pxc-chat' : ''}`}
-                >
-                  <MessageTimeline
-                    msg={msg}
-                    absoluteIndex={absoluteIndex}
-                    totalMessages={aiChatMessages.length}
-                    isStreaming={aiChatStreaming}
-                    showThinking={Boolean(aiConfig.deepseekThinking)}
-                    onReportIssue={handleReportIssueFromFinalAnswer}
-                  />
-                </div>
-              );
-            })}
-            {hasLowerHiddenMessages && (
-              <div className="max-expand-chat-history-tip">
-                <button
-                  type="button"
-                  className="max-expand-chat-history-load-more"
-                  onClick={() => {
-                    const maxStart = Math.max(0, aiChatMessages.length - VISIBLE_CHAT_WINDOW_SIZE);
-                    setVisibleWindowStart(prev => Math.min(maxStart, prev + VISIBLE_CHAT_WINDOW_STEP));
-                  }}
-                >
-                  {t('aiChat.actions.loadMoreHistory', { defaultValue: '加载更多对话' })}
-                </button>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-          {/* 网页访问授权面板 */}
-          {aiWebAccessPrompt?.sessionId === activeAiChatSessionId && (
+        </div>
+      </div>
+      {hasActiveAuthorization && (
+        <div className="max-expand-chat-access-drawer" role="dialog"
+          aria-label={t(activeLocalToolAccessPrompt ? 'aiChat.localToolAccess.title' : 'aiChat.webAccess.title')}
+          onWheelCapture={(event) => { event.stopPropagation(); }}
+          onWheel={(event) => { event.stopPropagation(); }}
+        >
+          {activeLocalToolAccessPrompt ? (
+            <LocalToolAccessPanel
+              prompt={activeLocalToolAccessPrompt}
+              resolving={state.resolvingLocalToolAccessDecision}
+              resolveError={state.aiLocalToolAccessResolveError}
+              onResolve={handleResolveLocalToolAccess}
+            />
+          ) : activeWebAccessPrompt && (
             <WebAccessPanel
-              iconUrl={aiWebAccessPrompt.iconUrl}
-              siteName={aiWebAccessPrompt.siteName}
-              hostname={aiWebAccessPrompt.hostname}
-              url={aiWebAccessPrompt.url}
-              message={aiWebAccessPrompt.message}
-              domainPolicy={aiWebAccessPrompt.domainPolicy}
+              iconUrl={activeWebAccessPrompt.iconUrl}
+              siteName={activeWebAccessPrompt.siteName}
+              hostname={activeWebAccessPrompt.hostname}
+              url={activeWebAccessPrompt.url}
+              message={activeWebAccessPrompt.message}
+              domainPolicy={activeWebAccessPrompt.domainPolicy}
               resolving={state.resolvingWebAccessDecision}
               resolveError={state.aiWebAccessResolveError}
               onResolve={handleResolveWebAccess}
               onPolicyChange={handleDomainPolicyChange}
             />
           )}
-          {/* 本地工具访问授权面板 */}
-          {aiLocalToolAccessPrompt?.sessionId === activeAiChatSessionId && (
-            <LocalToolAccessPanel
-              prompt={aiLocalToolAccessPrompt}
-              resolving={state.resolvingLocalToolAccessDecision}
-              resolveError={state.aiLocalToolAccessResolveError}
-              onResolve={handleResolveLocalToolAccess}
-            />
-          )}
         </div>
-      </div>
+      )}
       {/* 输入栏 */}
       <ChatInputBar
         input={state.input}
@@ -403,7 +251,8 @@ export function AiChatContent(): React.ReactElement {
         contextUsageLevelClass={state.contextUsageLevelClass}
         contextUsageInlineText={state.contextUsageInlineText}
         selectedContextLabel={state.selectedContextLabel}
-        showModelCard={state.showModelCard}
+        showModelCard={state.showModelCard && !hasActiveAuthorization}
+        modelCardDisabled={hasActiveAuthorization}
         setShowModelCard={state.setShowModelCard}
         showModelDropdown={state.showModelDropdown}
         setShowModelDropdown={state.setShowModelDropdown}
@@ -456,9 +305,16 @@ export function AiChatTab(): React.ReactElement {
   const ensure = useIslandStore((state) => state.ensureAiChatReady);
   const release = useIslandStore((state) => state.releaseAiChatBodies);
   useEffect(() => { void ensure().catch(() => {}); return release; }, [ensure, release]);
-  return <div className="flex h-full min-h-0 w-full flex-col">
-    {failed && <button type="button" onClick={() => { void ensure().catch(() => {}); }}>{t('aiChat.storageRetry')}</button>}
-    {loading && <div role="status">{t('aiChat.storageLoading')}</div>}
-    {ready && <div className="flex min-h-0 flex-1 flex-col" inert={loading || failed}><AiChatContent /></div>}
-  </div>;
+  return (
+    <div className="relative isolate flex size-full min-h-0 flex-col overflow-hidden" aria-busy={loading}>
+      {ready && <div className="flex min-h-0 flex-1 flex-col" inert={loading || failed}><AiChatContent /></div>}
+      {(loading || failed) && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[var(--color-island-bg)] text-center text-sm text-[rgb(var(--color-text-rgb))]" role="status">
+          {failed
+            ? <button className="m-4" type="button" disabled={loading} onClick={() => { void ensure().catch(() => {}); }}>{t('aiChat.storageRetry')}</button>
+            : <><span className="sr-only">{t('aiChat.storageLoading')}</span><ChatLoadingSkeleton /></>}
+        </div>
+      )}
+    </div>
+  );
 }

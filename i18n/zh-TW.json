@@ -895,7 +895,6 @@
       "clear": "清空",
       "newChat": "新建對話",
       "deleteSession": "刪除會話",
-      "loadMoreHistory": "加載更多對話",
       "reportIssue": "報告問題",
       "stop": "停止",
       "send": "發送",
@@ -952,6 +951,7 @@
       "noModelOutputCustomDirect": "⚠️ 未收到模型輸出，請檢查自定義 API 端點和密鑰是否正確。",
       "localToolExecuteFailed": "本地工具執行失敗",
       "localToolSubmitFailed": "本地工具結果提交失敗",
+      "localToolRequestConflict": "本地工具請求 ID 與另一調用衝突",
       "apiRequestFailed": "API 請求失敗 ({{status}}): {{detail}}",
       "cannotReadResponseStream": "無法讀取響應流"
     },

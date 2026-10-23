@@ -180,6 +180,7 @@ describe('ollamaLocalAgent', () => {
 
       const startArgs = mockOllamaChatStart.mock.calls[0];
       expect(startArgs[1]).toMatchObject({
+        token: PRO_TOKEN,
         model: 'llama3',
         systemPrompt: 'system prompt',
         userMessage: 'hello',

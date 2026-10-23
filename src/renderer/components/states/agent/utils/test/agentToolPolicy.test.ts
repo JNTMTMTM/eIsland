@@ -25,24 +25,29 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { isClientLocalToolName as isChatClientLocalToolName } from '../../../maxExpand/components/agent/utils/chatHelpers';
 import { isClientLocalToolName, isHighRiskLocalToolName } from '../agentToolPolicy';
 
 // ---------------------------------------------------------------------------
 // isClientLocalToolName
 // ---------------------------------------------------------------------------
 describe('isClientLocalToolName', () => {
+  it.each(['web.search', 'WEB.SEARCH', '  web.search  '])('both Agent interfaces route %s to the server', (tool) => {
+    expect(isClientLocalToolName(tool)).toBe(false);
+    expect(isChatClientLocalToolName(tool)).toBe(false);
+  });
   describe('exact name match', () => {
-    it('returns true for "web.search"', () => {
-      expect(isClientLocalToolName('web.search')).toBe(true);
+    it('routes web.search to the server', () => {
+      expect(isClientLocalToolName('web.search')).toBe(false);
     });
 
     it('is case-insensitive for exact name', () => {
-      expect(isClientLocalToolName('WEB.SEARCH')).toBe(true);
-      expect(isClientLocalToolName('Web.Search')).toBe(true);
+      expect(isClientLocalToolName('WEB.SEARCH')).toBe(false);
+      expect(isClientLocalToolName('Web.Search')).toBe(false);
     });
 
     it('trims whitespace before matching exact name', () => {
-      expect(isClientLocalToolName('  web.search  ')).toBe(true);
+      expect(isClientLocalToolName('  web.search  ')).toBe(false);
     });
   });
 
@@ -110,8 +115,7 @@ describe('isClientLocalToolName', () => {
 
   describe('boundary: partial prefix not matched', () => {
     it('does not match "web.searching" (not in exact names, not a prefix)', () => {
-      // "web.searching" starts with "web.search" but "web.search" is an exact name, not a prefix
-      // No prefix starts with "web." so this should be false
+      // 搜索属于服务端工具，不匹配任何客户端本地前缀。
       expect(isClientLocalToolName('web.searching')).toBe(false);
     });
   });

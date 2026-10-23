@@ -43,12 +43,6 @@ import type { LocalFileSearchItem, LocalFileSearchOptions, AgentLocalToolRequest
 import {
   MAX_LOCAL_FILE_READ_BYTES,
   MAX_LOCAL_CMD_OUTPUT_BYTES,
-  BING_SEARCH_URL_TEMPLATE,
-  BING_SEARCH_FALLBACK_URL_TEMPLATE,
-  BING_RESULT_BLOCK_PATTERN,
-  BING_TITLE_LINK_PATTERN,
-  BING_SNIPPET_PATTERN,
-  BING_USER_AGENT,
   ISLAND_SETTINGS_REGISTRY,
   ISLAND_SETTING_BROADCAST_CHANNELS,
 } from './config/app';
@@ -189,179 +183,6 @@ function normalizeLocalPath(input: string): string {
     return '';
   }
   return resolve(safe);
-}
-
-function normalizeWebUrl(input: string): string {
-  const safe = input.trim();
-  if (!safe) {
-    return '';
-  }
-  const normalized = safe.startsWith('http://') || safe.startsWith('https://')
-    ? safe
-    : `https://${safe}`;
-  try {
-    const url = new URL(normalized);
-    const protocol = url.protocol.toLowerCase();
-    if (protocol !== 'http:' && protocol !== 'https:') {
-      return '';
-    }
-    if (!url.hostname.trim()) {
-      return '';
-    }
-    url.hash = '';
-    return url.toString();
-  } catch {
-    return '';
-  }
-}
-
-function decodeHtmlText(input: string): string {
-  return input
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function stripHtmlText(input: string): string {
-  if (!input.trim()) {
-    return '';
-  }
-  const noTag = input.replace(/<[^>]+>/g, ' ');
-  return decodeHtmlText(noTag);
-}
-
-function normalizeBingResultUrl(rawHref: string): string {
-  const href = rawHref.trim();
-  if (!href) {
-    return '';
-  }
-  try {
-    const url = new URL(href, 'https://www.bing.com');
-    if (url.hostname.endsWith('bing.com') && url.pathname.startsWith('/ck/a')) {
-      const encoded = url.searchParams.get('u');
-      if (encoded) {
-        const candidate = encoded.startsWith('a1') ? encoded.slice(2) : encoded;
-        try {
-          const decoded = Buffer.from(candidate, 'base64').toString('utf8');
-          const normalized = normalizeWebUrl(decoded);
-          if (normalized) {
-            return normalized;
-          }
-        } catch {
-          // ignore decode failure
-        }
-      }
-    }
-    return normalizeWebUrl(url.toString());
-  } catch {
-    return normalizeWebUrl(href);
-  }
-}
-
-function parseBingResultBlock(block: string): { title: string; url: string; snippet: string } | null {
-  const titleMatch = BING_TITLE_LINK_PATTERN.exec(block);
-  if (!titleMatch) {
-    return null;
-  }
-  const rawHref = String(titleMatch[1] ?? '').trim();
-  const titleHtml = String(titleMatch[2] ?? '').trim();
-  const resolvedUrl = normalizeBingResultUrl(rawHref);
-  if (!resolvedUrl) {
-    return null;
-  }
-  const title = stripHtmlText(titleHtml);
-  const snippetMatch = BING_SNIPPET_PATTERN.exec(block);
-  const snippet = snippetMatch ? stripHtmlText(String(snippetMatch[1] ?? '')) : '';
-  return {
-    title: title || resolvedUrl,
-    url: resolvedUrl,
-    snippet,
-  };
-}
-
-async function fetchBingSearchHtml(query: string, urlTemplate: string): Promise<string> {
-  const encodedQuery = encodeURIComponent(query.trim());
-  const url = urlTemplate.replace('%s', encodedQuery);
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-      'User-Agent': BING_USER_AGENT,
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`Bing search failed: HTTP ${response.status}`);
-  }
-  const html = await response.text();
-  return html ?? '';
-}
-
-async function collectBingHtmlResults(query: string, collector: Array<{ title: string; url: string; snippet: string }>, limit: number, urlTemplate: string): Promise<void> {
-  if (collector.length >= limit) {
-    return;
-  }
-  let html = '';
-  try {
-    html = await fetchBingSearchHtml(query, urlTemplate);
-  } catch {
-    return;
-  }
-  if (!html.trim()) {
-    return;
-  }
-  BING_RESULT_BLOCK_PATTERN.lastIndex = 0;
-  let match: RegExpExecArray | null = BING_RESULT_BLOCK_PATTERN.exec(html);
-  while (match && collector.length < limit) {
-    const block = String(match[1] ?? '');
-    if (block.trim()) {
-      const item = parseBingResultBlock(block);
-      if (item && !collector.some((existing) => existing.url === item.url)) {
-        collector.push(item);
-      }
-    }
-    match = BING_RESULT_BLOCK_PATTERN.exec(html);
-  }
-}
-
-async function executeLocalWebSearch(args: Record<string, unknown>): Promise<{
-  query: string;
-  provider: string;
-  count: number;
-  results: Array<{ title: string; url: string; snippet: string }>;
-}> {
-  const query = getStringArg(args, 'query') || getStringArg(args, 'q');
-  if (!query) {
-    throw new Error('web.search 需要 query');
-  }
-  const limitRaw = getNumberArg(args, 'limit');
-  const limit = Math.max(1, Math.min(10, Math.floor(limitRaw ?? 5)));
-  const results: Array<{ title: string; url: string; snippet: string }> = [];
-  let lastError = '';
-  const searchTemplates = [BING_SEARCH_URL_TEMPLATE, BING_SEARCH_FALLBACK_URL_TEMPLATE];
-  await searchTemplates.reduce(async (prev, template) => {
-    await prev;
-    if (results.length >= limit) return;
-    try {
-      await collectBingHtmlResults(query, results, limit, template);
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
-    }
-  }, Promise.resolve());
-  if (results.length === 0) {
-    const suffix = lastError ? ` (${lastError})` : '';
-    throw new Error(`web.search 无结果: ${query}${suffix}`);
-  }
-  return {
-    query,
-    provider: 'bing-local',
-    count: results.length,
-    results,
-  };
 }
 
 async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
@@ -1108,16 +929,6 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       return {
         success: true,
         result: { path: pathArg, maxDepth, itemCount, tree },
-        error: '',
-        durationMs: Date.now() - startedAt,
-      };
-    }
-
-    if (tool === 'web.search') {
-      const result = await executeLocalWebSearch(args);
-      return {
-        success: true,
-        result,
         error: '',
         durationMs: Date.now() - startedAt,
       };

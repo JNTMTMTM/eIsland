@@ -191,19 +191,62 @@ describe('useChatState model and user runtime', () => {
     result = run();
     expect(result).toMatchObject({
       agentMode: 'r1pxc',
-      showAgentModeDropdown: false,
-      VISIBLE_CHAT_WINDOW_SIZE: 25
+      showAgentModeDropdown: false
     });
     expect([...runtime.storage.values()]).toContain('r1pxc');
   });
 });
 describe('useChatState messages and lifecycle', () => {
-  it('native textarea selection delays auto-scroll and queued update until it collapses', async () => {
-    let result = run();
-    const scroll = vi.fn();
-    result.chatEndRef.current = {
-      scrollIntoView: scroll
-    } as unknown as HTMLDivElement;
+  it.each(['web', 'local'] as const)('%s authorization wins a simultaneous model-card toggle and clears nested dropdowns', (kind) => {
+    let result = mount();
+    result.setShowModelCard(true);
+    result.setShowModelDropdown(true);
+    result.setShowContextDropdown(true);
+    result = run();
+    expect(result.showModelCard).toBe(true);
+    const toggleModel = result.setShowModelCard;
+    if (kind === 'local') {
+      result.setAiLocalToolAccessPrompt({
+        sessionId: result.activeAiChatSessionId, requestId: 'local', tool: 'file.delete',
+        argumentsPayload: {}, purpose: 'remove', message: 'ask', riskLevel: 'high',
+      });
+    } else {
+      result.setAiWebAccessPrompt({
+        sessionId: result.activeAiChatSessionId, requestId: 'web', url: 'https://example.invalid',
+        hostname: 'example.invalid', siteName: 'Example', iconUrl: '', message: 'ask', domainPolicy: 'ask',
+      });
+    }
+    toggleModel(true);
+    result = run();
+    expect(result.showModelCard).toBe(false); // 无需等待 effect，首帧即互斥。
+    flushHookEffects();
+    result = run();
+    expect(result.showModelDropdown).toBe(false);
+    expect(result.showContextDropdown).toBe(false);
+    result.setShowModelCard((previous) => !previous);
+    expect(run().showModelCard).toBe(false);
+    result.setAiWebAccessPrompt(null);
+    result.setAiLocalToolAccessPrompt(null);
+    result = run();
+    expect(result.showModelCard).toBe(false);
+    flushHookEffects();
+    run().setShowModelCard(true);
+    expect(run().showModelCard).toBe(true);
+  });
+  it('keeps background-session authorization from taking over the current model card', () => {
+    let result = mount();
+    result.setShowModelCard(true);
+    result.setAiLocalToolAccessPrompt({
+      sessionId: 'background', requestId: 'local', tool: 'file.delete', argumentsPayload: {},
+      purpose: 'remove', message: 'ask', riskLevel: 'high',
+    });
+    run();
+    flushHookEffects();
+    result = run();
+    expect(result.showModelCard).toBe(true);
+  });
+  it('exposes textarea selection protection and delays queued updates until it collapses', async () => {
+    const result = run();
     const input = {
       selectionStart: 0,
       selectionEnd: 2,
@@ -216,7 +259,7 @@ describe('useChatState messages and lifecycle', () => {
     result.inputRef.current = input as unknown as HTMLTextAreaElement;
     runtime.documentTarget.activeElement = input;
     flushHookEffects();
-    expect(scroll).not.toHaveBeenCalled();
+    expect(result.hasActiveTextSelection()).toBe(true);
     result.updateMessages(() => [{
       role: 'assistant',
       content: 'A'
@@ -226,32 +269,11 @@ describe('useChatState messages and lifecycle', () => {
     await vi.advanceTimersByTimeAsync(32);
     expect(runtime.store.getState().aiChatMessages[0].content).toBe('A');
     input.selectionEnd = 0;
+    expect(result.hasActiveTextSelection()).toBe(false);
     await vi.advanceTimersByTimeAsync(16);
     expect(runtime.store.getState().aiChatMessages[0].content).toBe('AB');
-    result = run();
-    flushHookEffects();
-    expect(scroll).toHaveBeenLastCalledWith({
-      behavior: 'auto'
-    });
-    result.updateMessages((prev) => [...prev, {
-      role: 'user',
-      content: 'next'
-    }]);
-    run();
-    flushHookEffects();
-    expect(scroll).toHaveBeenLastCalledWith({
-      behavior: 'smooth'
-    });
     runtime.documentTarget.activeElement = {};
-    result.updateMessages((prev) => [...prev, {
-      role: 'user',
-      content: 'other'
-    }]);
-    run();
-    flushHookEffects();
-    expect(scroll).toHaveBeenLastCalledWith({
-      behavior: 'smooth'
-    });
+    expect(result.hasActiveTextSelection()).toBe(false);
   });
   it('native range must stay wholly inside selectable bubbles or input before it delays RAF', async () => {
     class NativeElement {
@@ -366,9 +388,9 @@ describe('useChatState messages and lifecycle', () => {
     await vi.advanceTimersByTimeAsync(96);
     expect(result.pendingAssistantChunkRef.current).toBe('');
   });
-  it('sorts real sessions, returns card status and changes window alignment during streaming', () => {
+  it('keeps the complete message history while sorting sessions and refreshing stream status', () => {
     const messages: AiChatMessage[] = Array.from({
-      length: 8
+      length: 80
     }, (...[, index]) => ({
       role: 'user',
       content: String(index)
@@ -385,21 +407,16 @@ describe('useChatState messages and lifecycle', () => {
         updatedAt: 3
       }]
     });
-    let result = mount();
-    expect(result.visibleWindowStart).toBe(4);
+    const result = mount();
+    expect(result.aiChatMessages).toBe(messages);
     expect(result.orderedSessions[0].id).toBe('b');
     expect(result.getSessionCardState('missing')).toBe('idle');
-    result.setVisibleWindowStart(1);
-    run();
-    flushHookEffects();
-    result = run();
-    expect(result.hasLowerHiddenMessages).toBe(true);
-    expect(result.hasUpperHiddenMessages).toBe(true);
     target.SESSION_STREAMING_IDS.add(result.activeAiChatSessionId);
     result.refreshActiveSessionStreaming();
     run();
     flushHookEffects();
-    expect(run().visibleWindowStart).toBe(4);
+    expect(run().aiChatStreaming).toBe(true);
+    expect(run().aiChatMessages).toBe(messages);
   });
   it('message updates read latest store and pending assistant/thinking chunks append and clear', () => {
     const result = mount();

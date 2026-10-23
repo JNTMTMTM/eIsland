@@ -27,6 +27,7 @@ import { byClass, elements, find, invoke, text } from '../../../../../test/tree'
 import { createHookReactMock, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 import { installChatRuntime, roleToken } from '../../hooks/test/chatRuntimeFixture';
 import type { RefObject } from 'react';
+let expandChatRows: typeof import('./chatRowsFixture').default;
 import type { AiChatMessage } from '../../../../../../../store/types';
 let Component: typeof import('../AiChatTab').AiChatContent;
 let hooks: typeof import('../../hooks/useChatState');
@@ -37,7 +38,7 @@ const fetchLeaf = vi.fn<typeof fetch>();
  * @returns 元素树
  */
 function run() {
-  return renderHook(Component);
+  return expandChatRows(renderHook(Component));
 }
 /** 提交实际生命周期。
  * @returns 更新后元素树
@@ -95,6 +96,7 @@ beforeEach(async () => {
   fetchLeaf.mockRejectedValue(new Error('native offline'));
   vi.stubGlobal('fetch', fetchLeaf);
   vi.doMock('react', async (original) => createHookReactMock(await original<typeof import('react')>()));
+  ({ default: expandChatRows } = await import('./chatRowsFixture'));
   hooks = await import('../../hooks/useChatState');
   ({
     AiChatContent: Component
@@ -108,6 +110,27 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('AiChatTab real state and send integration', () => {
+  it('keeps the chat mounted under a bounded loading overlay while switching sessions', async () => {
+    ({ AiChatTab: Component } = await import('../AiChatTab'));
+    const { default: ChatLoadingSkeleton } = await import('../chatLoadingSkeleton');
+    runtime.store.setState({ aiChatReady: true, aiChatLoading: false });
+    const idle = run();
+    const content = find(idle, (node) => node.props.inert === false);
+    runtime.store.setState({ aiChatLoading: true });
+    const loading = run();
+    expect(elements(loading).some((node) => node.props['aria-busy'] === true)).toBe(true);
+    const status = find(loading, (node) => node.props.role === 'status');
+    expect(text(status)).toContain('aiChat.storageLoading');
+    expect(elements(status).some((node) => node.type === ChatLoadingSkeleton)).toBe(true);
+    expect(String(status.props.className).split(' ')).toContain('absolute');
+    expect(String(status.props.className).split(' ')).toContain('inset-0');
+    expect(find(loading, (node) => node.props.inert === true).type).toBe(content.type);
+    runtime.store.setState({ aiChatLoading: false });
+    const settled = run();
+    expect(elements(settled).some((node) => node.props['aria-busy'] === false)).toBe(true);
+    expect(elements(settled).some((node) => node.props.role === 'status')).toBe(false);
+    expect(find(settled, (node) => node.props.inert === false).type).toBe(content.type);
+  });
   it('loads only when the chat shell mounts, exposes retry and releases bodies on unmount', async () => {
     ({ AiChatTab: Component } = await import('../AiChatTab'));
     messages([{ role: 'user', content: 'persisted' }]);
@@ -178,23 +201,18 @@ describe('AiChatTab real state and send integration', () => {
     await settleHook();
     expect(runtime.store.getState().aiChatSessions).toHaveLength(count - 1);
   });
-  it('history buttons navigate real bounded message windows', () => {
+  it('passes complete history to the continuous message list without paging controls', () => {
     login();
-    messages(Array.from({
-      length: 350
-    }, (...[, i]) => ({
+    messages(Array.from({ length: 350 }, (...[, i]) => ({
       role: 'user',
-      content: String(i)
+      content: `history-${i}`
     })));
     const tree = mount();
-    const first = text(tree);
-    invoke(byClass(tree, 'max-expand-chat-history-load-more'), 'onClick');
-    const older = text(run());
-    expect(older).not.toBe(first);
-    const buttons = elements(run()).filter((n) => n.props.className === 'max-expand-chat-history-load-more');
-    expect(buttons).toHaveLength(2);
-    invoke(buttons[1], 'onClick');
-    expect(text(run())).toBe(first);
+    const rows = elements(tree).filter((node) => node.props.className === 'max-expand-chat-user-row');
+    expect(rows).toHaveLength(350);
+    expect(text(rows[0])).toContain('history-0');
+    expect(text(rows[349])).toContain('history-349');
+    expect(elements(tree).some((node) => String(node.props.className).includes('max-expand-chat-history-load-more'))).toBe(false);
   });
   it('ordinary user attachment wrappers are stripped, icons selected and actual settings navigation triggered', async () => {
     login();
@@ -446,14 +464,19 @@ describe('AiChatTab real state and send integration', () => {
     })  }\n\n`));
     await settleHook();
     const tree = run();
-    const web = find(tree, (n) => typeof n.props.onPolicyChange === 'function');
+    expect(elements(tree).some((n) => typeof n.props.onPolicyChange === 'function')).toBe(false);
+    expect(byClass(tree, 'max-expand-chat-access-drawer').props.role).toBe('dialog');
+    expect(input().props.modelCardDisabled).toBe(true);
     const local = find(tree, (n) => typeof n.props.prompt === 'object' && typeof n.props.onResolve === 'function');
-    expect(web.props.hostname).toBe('native.invalid');
     expect(local.props.prompt).toMatchObject({
       sessionId: runtime.store.getState().activeAiChatSessionId,
       requestId: 'local',
       tool: 'file.delete'
     });
+    fetchLeaf.mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    await invoke(local, 'onResolve', false);
+    const web = find(run(), (n) => typeof n.props.onPolicyChange === 'function');
+    expect(web.props.hostname).toBe('native.invalid');
     runtime.store.getState().createNewAiChatSession();
     expect(elements(run()).some((n) => typeof n.props.onPolicyChange === 'function')).toBe(false);
     expect(elements(run()).some((n) => typeof n.props.prompt === 'object' && typeof n.props.onResolve === 'function')).toBe(false);

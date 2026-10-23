@@ -64,6 +64,20 @@ function unreadableResponse(): Response {
 }
 
 describe('real agent error response body boundaries', () => {
+  it('retries only the identical result submission after network and server failures', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('connection reset'))
+      .mockResolvedValueOnce(new Response('busy', { status: 503 }))
+      .mockResolvedValueOnce(Response.json({ success: true }));
+    await api.resolveMihtnelisLocalToolResult({ ...auth, result: { id: 'created-once' } });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const bodies = fetchMock.mock.calls.map(([, init]) => init?.body);
+    expect(new Set(bodies).size).toBe(1);
+  });
+  it('never retries an unauthorized or conflicting result submission', async () => {
+    fetchMock.mockResolvedValue(new Response('conflict', { status: 409 }));
+    await expect(send('result')).rejects.toThrow('409');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
   it.each(['web', 'local', 'result', 'prompt'] as const)('omits unavailable version headers for %s', async (kind) => {
     vi.stubGlobal('window', { location: { hostname: 'eisland.local' }, api: { updaterVersion: vi.fn().mockResolvedValue(null) } });
     fetchMock.mockResolvedValue(Response.json({ success: true, systemPrompt: 'Prompt' }));

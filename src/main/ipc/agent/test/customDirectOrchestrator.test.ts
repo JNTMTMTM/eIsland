@@ -258,9 +258,10 @@ describe('orchestrateCustomDirectChat', () => {
   });
 
   it('emits max-turns message after exceeding MAX_REACT_TURNS', async () => {
-    const toolCallText = '{"type":"tool_call","tool":"noop","purpose":"loop","arguments":{}}';
-
-    streamOpenAIChatMock.mockImplementation(makeStreamResponse(toolCallText));
+    let index = 0;
+    streamOpenAIChatMock.mockImplementation((request: unknown, streamCallbacks: OpenAIStreamCallbacks) => makeStreamResponse(JSON.stringify({
+      type: 'tool_call', tool: 'noop', purpose: 'loop', arguments: { index: index++ },
+    }))(request, streamCallbacks));
 
     await orchestrateCustomDirectChat(
       { ...baseRequest, userMessage: 'loop forever' },

@@ -30,24 +30,6 @@ export const MAX_LOCAL_FILE_READ_BYTES = 1024 * 1024;
 /** 本地命令输出上限（字节） */
 export const MAX_LOCAL_CMD_OUTPUT_BYTES = 1024 * 1024;
 
-/** Bing 搜索 URL 模板 */
-export const BING_SEARCH_URL_TEMPLATE = 'https://www.bing.com/search?q=%s&form=QBLH&setmkt=zh-CN';
-
-/** Bing 搜索备用 URL 模板 */
-export const BING_SEARCH_FALLBACK_URL_TEMPLATE = 'https://cn.bing.com/search?q=%s&form=QBLH';
-
-/** Bing 搜索结果块正则 */
-export const BING_RESULT_BLOCK_PATTERN = /<li[^>]*class="[^"]*b_algo[^"]*"[^>]*>([\s\S]*?)<\/li>/gi;
-
-/** Bing 标题链接正则 */
-export const BING_TITLE_LINK_PATTERN = /<h2[^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i;
-
-/** Bing 摘要正则 */
-export const BING_SNIPPET_PATTERN = /<(?:p|div)[^>]*class="[^"]*(?:b_lineclamp\d|b_paractl|b_algoSlug|b_caption)[^"]*"[^>]*>([\s\S]*?)<\/(?:p|div)>/i;
-
-/** Bing 请求 User-Agent */
-export const BING_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-
 /** 灵动岛设置项注册表 */
 export const ISLAND_SETTINGS_REGISTRY: Array<{ key: string; description: string; type: string }> = [
   { key: 'theme-mode', description: '主题模式 (dark/light/system)', type: 'string' },
