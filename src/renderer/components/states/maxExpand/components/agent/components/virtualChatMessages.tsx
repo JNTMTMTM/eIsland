@@ -25,6 +25,7 @@
  */
 
 /* eslint-disable better-tailwindcss/no-unknown-classes -- 聊天页面使用共享语义 CSS 类。 */
+/* eslint-disable import-x/prefer-default-export -- 页面与测试共用同一个命名组件入口。 */
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -83,7 +84,6 @@ function findIndex(offsets: number[], position: number): number {
  * @param props - 完整消息与稳定的消息交互回调。
  * @returns 具有完整滚动范围的消息列表。
  */
-// eslint-disable-next-line import-x/prefer-default-export -- 页面与测试共用同一个命名组件入口。
 export function VirtualChatMessages(props: VirtualChatMessagesProps): ReactElement {
   const { messages, emptyContent, hasActiveTextSelection, ...rowProps } = props;
   const container = useRef<HTMLDivElement>(null);
@@ -339,4 +339,5 @@ export function VirtualChatMessages(props: VirtualChatMessagesProps): ReactEleme
   );
 }
 
+/* eslint-enable import-x/prefer-default-export -- 结束命名组件入口的局部配置。 */
 /* eslint-enable better-tailwindcss/no-unknown-classes -- 结束聊天共享语义类的局部配置。 */
