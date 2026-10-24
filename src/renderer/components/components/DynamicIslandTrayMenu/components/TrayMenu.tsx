@@ -43,7 +43,7 @@ import '../styles/tray-menu.css';
 export function TrayMenu(): ReactElement {
   const { t } = useTranslation();
   const { menuState, user, openCount } = useTrayMenuState();
-  const { nowPlaying, loading, togglePlayback, playPrevious, playNext } = useTrayNowPlaying(openCount);
+  const { nowPlaying, loading, togglePlayback, playPrevious, playNext, seekTo } = useTrayNowPlaying(openCount);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // 每次打开都在绘制前测量；等两帧确保新内容已绘制，主进程再把透明窗口显现，避免闪出旧画面。
@@ -75,7 +75,7 @@ export function TrayMenu(): ReactElement {
   return (
     <div ref={rootRef} className="tray-menu" role="menu" aria-label={t('tray.menuLabel')}>
       <TrayUserCard user={user} />
-      <TrayMusicCard nowPlaying={nowPlaying} loading={loading} onTogglePlayback={togglePlayback} onPrevious={playPrevious} onNext={playNext} />
+      <TrayMusicCard nowPlaying={nowPlaying} loading={loading} openCount={openCount} onTogglePlayback={togglePlayback} onPrevious={playPrevious} onNext={playNext} onSeek={seekTo} />
       <div className="tray-menu-list">
         {visibleItems.map((item) => {
           if (item.kind === 'separator') {

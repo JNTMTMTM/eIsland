@@ -20,11 +20,12 @@
 
 /**
  * @file useTrayNowPlaying.ts
- * @description 跟踪当前播放的媒体信息，并提供托盘音乐卡片的播放控制
+ * @description 跟踪当前播放的媒体信息，并提供托盘音乐卡片的播放控制与进度跳转
  * @author 鸡哥
  */
 
 import { useEffect, useState } from 'react';
+import { estimatePlaybackPosition } from '../utils/trayPlayback';
 import type { NowPlayingInfo } from '../../../../../preload/types/media';
 import type { TrayNowPlaying } from '../types';
 
@@ -39,11 +40,23 @@ interface TrayNowPlayingControls {
   playPrevious: () => void;
   /** 下一首 */
   playNext: () => void;
+  /** 跳转到指定进度（毫秒） */
+  seekTo: (positionMs: number) => void;
+}
+
+/**
+ * 读取非负有限数，主进程字段缺失或异常时使用兜底值
+ * @param value - 原始值
+ * @param fallback - 兜底值
+ * @returns 非负有限数
+ */
+function nonNegative(value: number | undefined, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
 /**
  * 将主进程媒体信息转为卡片展示数据
- * @description 进度类广播不携带封面，同一首歌沿用上一次的封面，换歌后再等待新封面
+ * @description 进度类广播不携带封面，同一首歌沿用上一次的封面，换歌后再等待新封面；缺少采样时刻时以收到时刻为准
  * @param info - 主进程下发的媒体信息
  * @param previous - 上一次的展示数据
  * @returns 展示数据，无标题时视为无媒体
@@ -52,7 +65,16 @@ export function toTrayNowPlaying(info: NowPlayingInfo | null, previous: TrayNowP
   if (!info?.title) return null;
   const sameTrack = previous?.title === info.title && previous.artist === info.artist;
   const thumbnail = info.thumbnail === undefined ? (sameTrack ? previous.thumbnail : null) : info.thumbnail;
-  return { title: info.title, artist: info.artist ?? '', isPlaying: Boolean(info.isPlaying), thumbnail: thumbnail || null };
+  return {
+    title: info.title,
+    artist: info.artist ?? '',
+    isPlaying: Boolean(info.isPlaying),
+    thumbnail: thumbnail || null,
+    durationMs: nonNegative(info.duration_ms, 0),
+    positionMs: nonNegative(info.position_ms, 0),
+    positionTimestampMs: nonNegative(info.positionTimestampMs, Date.now()),
+    playbackRate: nonNegative(info.playbackRate, 1),
+  };
 }
 
 /**
@@ -89,9 +111,16 @@ export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   }, [openCount]);
 
   // 主进程按当前状态切换播放/暂停，这里先乐观更新图标，随后的媒体广播会校正真实状态。
+  // 进度同时锚定到当前时刻，否则暂停后进度条会退回上次采样的位置。
   const togglePlayback = (): void => {
     if (!nowPlaying) return;
-    setNowPlaying({ ...nowPlaying, isPlaying: !nowPlaying.isPlaying });
+    const now = Date.now();
+    setNowPlaying({
+      ...nowPlaying,
+      isPlaying: !nowPlaying.isPlaying,
+      positionMs: estimatePlaybackPosition(nowPlaying, now),
+      positionTimestampMs: now,
+    });
     window.api.mediaPlayPause().catch(() => undefined);
   };
   const playPrevious = (): void => {
@@ -100,6 +129,12 @@ export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   const playNext = (): void => {
     if (nowPlaying) window.api.mediaNext().catch(() => undefined);
   };
+  // 先把进度移到目标位置，松手后滑块不会跳回旧进度；随后的媒体广播会校正真实进度。
+  const seekTo = (targetMs: number): void => {
+    if (!nowPlaying) return;
+    setNowPlaying({ ...nowPlaying, positionMs: targetMs, positionTimestampMs: Date.now() });
+    window.api.mediaSeek(targetMs).catch(() => undefined);
+  };
 
-  return { nowPlaying, loading, togglePlayback, playPrevious, playNext };
+  return { nowPlaying, loading, togglePlayback, playPrevious, playNext, seekTo };
 }

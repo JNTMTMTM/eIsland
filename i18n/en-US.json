@@ -4827,7 +4827,9 @@
       "play": "Play",
       "pause": "Pause",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "seek": "Playback position",
+      "seekValue": "{{position}} of {{duration}}"
     }
   }
 }

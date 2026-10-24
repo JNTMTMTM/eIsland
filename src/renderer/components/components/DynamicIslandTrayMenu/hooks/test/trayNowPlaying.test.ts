@@ -20,7 +20,7 @@
 
 /**
  * @file trayNowPlaying.test.ts
- * @description 托盘音乐卡片播放信息转换、加载态、广播订阅、打开时刷新与播放控制测试。
+ * @description 托盘音乐卡片播放信息转换、加载态、广播订阅、打开时刷新、播放控制与进度跳转测试。
  * @author 鸡哥
  */
 
@@ -44,13 +44,16 @@ vi.mock('react', async (load) => ({
  */
 function info(overrides: Partial<NowPlayingInfo> = {}): NowPlayingInfo {
   return {
-    title: 'Song', artist: 'Singer', album: 'Album', duration_ms: 1000, position_ms: 0, isPlaying: true,
+    title: 'Song', artist: 'Singer', album: 'Album', duration_ms: 1000, position_ms: 0, positionTimestampMs: 5000, playbackRate: 1, isPlaying: true,
     thumbnail: 'data:image/png;base64,AAA', canFastForward: false, canSkip: false, canLike: false, canChangeVolume: false, canSetOutput: false,
     ...overrides,
   };
 }
 
-const PLAYING: TrayNowPlaying = { title: 'Song', artist: 'Singer', isPlaying: true, thumbnail: 'data:image/png;base64,AAA' };
+const PLAYING: TrayNowPlaying = {
+  title: 'Song', artist: 'Singer', isPlaying: true, thumbnail: 'data:image/png;base64,AAA',
+  durationMs: 1000, positionMs: 0, positionTimestampMs: 5000, playbackRate: 1,
+};
 
 let broadcast: ((value: NowPlayingInfo | null) => void) | null = null;
 const unsubscribe = vi.fn();
@@ -63,6 +66,7 @@ const api = {
   mediaPlayPause: vi.fn<() => Promise<void>>(async () => undefined),
   mediaPrev: vi.fn<() => Promise<void>>(async () => undefined),
   mediaNext: vi.fn<() => Promise<void>>(async () => undefined),
+  mediaSeek: vi.fn<(positionMs: number) => Promise<void>>(async () => undefined),
 };
 
 beforeEach(() => {
@@ -76,6 +80,7 @@ beforeEach(() => {
 afterEach(() => {
   unmountHooks();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 /** 等待打开时的异步刷新完成。 */
@@ -103,7 +108,18 @@ describe('toTrayNowPlaying', () => {
   it('maps the display fields and normalizes empty values', () => {
     expect(toTrayNowPlaying(info(), null)).toEqual(PLAYING);
     expect(toTrayNowPlaying(info({ artist: undefined as unknown as string, isPlaying: false, thumbnail: '' }), null))
-      .toEqual({ title: 'Song', artist: '', isPlaying: false, thumbnail: null });
+      .toEqual({ ...PLAYING, artist: '', isPlaying: false, thumbnail: null });
+  });
+
+  it('maps the playback timeline and falls back for missing or invalid values', () => {
+    expect(toTrayNowPlaying(info({ duration_ms: 225500, position_ms: 42000, positionTimestampMs: 7000, playbackRate: 1.5 }), null))
+      .toMatchObject({ durationMs: 225500, positionMs: 42000, positionTimestampMs: 7000, playbackRate: 1.5 });
+    vi.useFakeTimers({ toFake: ['Date'], now: 9000 });
+    expect(toTrayNowPlaying(info({ duration_ms: Number.NaN, position_ms: -1, positionTimestampMs: undefined, playbackRate: -2 }), null))
+      .toMatchObject({ durationMs: 0, positionMs: 0, positionTimestampMs: 9000, playbackRate: 1 });
+    expect(toTrayNowPlaying(info({ positionTimestampMs: Number.POSITIVE_INFINITY, playbackRate: undefined }), null))
+      .toMatchObject({ positionTimestampMs: 9000, playbackRate: 1 });
+    expect(toTrayNowPlaying(info({ playbackRate: 0 }), null)?.playbackRate).toBe(0);
   });
 
   it('keeps the cover for progress broadcasts of the same track and drops it after a track change', () => {
@@ -196,9 +212,32 @@ describe('useTrayNowPlaying', () => {
     controls.togglePlayback();
     controls.playPrevious();
     controls.playNext();
+    controls.seekTo(1000);
     expect(api.mediaPlayPause).not.toHaveBeenCalled();
     expect(api.mediaPrev).not.toHaveBeenCalled();
     expect(api.mediaNext).not.toHaveBeenCalled();
+    expect(api.mediaSeek).not.toHaveBeenCalled();
+    expect(render(0).nowPlaying).toBeNull();
+  });
+
+  it('anchors the progress at the toggle moment so pausing does not rewind the bar', () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: 5400 });
+    render(0);
+    broadcast?.(info());
+    render(0).togglePlayback();
+    expect(render(0).nowPlaying).toMatchObject({ isPlaying: false, positionMs: 400, positionTimestampMs: 5400 });
+    vi.setSystemTime(9000);
+    render(0).togglePlayback();
+    expect(render(0).nowPlaying).toMatchObject({ isPlaying: true, positionMs: 400, positionTimestampMs: 9000 });
+  });
+
+  it('moves the progress to the seek target before forwarding the seek', () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: 8000 });
+    render(0);
+    broadcast?.(info({ duration_ms: 200000 }));
+    render(0).seekTo(120000);
+    expect(api.mediaSeek).toHaveBeenCalledExactlyOnceWith(120000);
+    expect(render(0).nowPlaying).toMatchObject({ isPlaying: true, durationMs: 200000, positionMs: 120000, positionTimestampMs: 8000 });
   });
 
   it('flips the play state optimistically and forwards the controls', () => {
@@ -221,12 +260,14 @@ describe('useTrayNowPlaying', () => {
     api.mediaPlayPause.mockRejectedValueOnce(new Error('no session'));
     api.mediaPrev.mockRejectedValueOnce(new Error('not whitelisted'));
     api.mediaNext.mockRejectedValueOnce(new Error('not whitelisted'));
+    api.mediaSeek.mockRejectedValueOnce(new Error('not whitelisted'));
     render(0);
     broadcast?.(info());
     const controls = render(0);
     controls.togglePlayback();
     controls.playPrevious();
     controls.playNext();
+    controls.seekTo(500);
     await settle();
     unmountHooks();
     expect(unsubscribe).toHaveBeenCalledOnce();

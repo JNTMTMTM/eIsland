@@ -4827,7 +4827,9 @@
       "play": "再生",
       "pause": "一時停止",
       "previous": "前の曲",
-      "next": "次の曲"
+      "next": "次の曲",
+      "seek": "再生位置",
+      "seekValue": "{{position}} / {{duration}}"
     }
   }
 }
