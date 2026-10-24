@@ -30,6 +30,7 @@ import { broadcastSettingChange } from '../../utils/broadcast';
 import { readIslandScaleConfig, writeIslandScaleConfig } from '../../config/islandScaleConfig';
 import { normalizeIslandScale } from '../../../shared/islandScale';
 import { readMainWindowBounds, setMainWindowBounds } from '../../window/mainWindowBounds';
+import { hideIsland } from '../../window/islandVisibility';
 import {
   readIslandShapeModeConfig,
   PILL_ISLAND_HEIGHT,
@@ -418,7 +419,7 @@ export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOpti
   ipcMain.on('window:hide', () => {
     withWindow((win) => {
       options.setManualVisibility(false);
-      win.hide();
+      hideIsland(win);
     });
   });
 

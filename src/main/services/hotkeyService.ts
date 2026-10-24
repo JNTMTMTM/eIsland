@@ -27,6 +27,7 @@
 
 import { app, BrowserWindow, globalShortcut } from 'electron';
 import { restoreIslandAlwaysOnTop } from '../window/islandAlwaysOnTop';
+import { hideIsland, isIslandShown, showIsland } from '../window/islandVisibility';
 
 interface CreateHotkeyServiceOptions {
   getMainWindow: () => BrowserWindow | null;
@@ -131,11 +132,12 @@ export function createHotkeyService(options: CreateHotkeyServiceOptions): Hotkey
         // 截图流程临时隐藏主窗口，此时的不可见不代表手动隐藏，忽略切换。
         if (options.isCapturing?.()) return;
 
-        options.setManualVisibility(!mainWindow.isVisible());
-        if (mainWindow.isVisible()) {
-          mainWindow.hide();
+        const shown = isIslandShown(mainWindow);
+        options.setManualVisibility(!shown);
+        if (shown) {
+          hideIsland(mainWindow);
         } else {
-          mainWindow.show();
+          showIsland(mainWindow);
           restoreIslandAlwaysOnTop(mainWindow);
         }
       });
