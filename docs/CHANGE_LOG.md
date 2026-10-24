@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-23T03:57:35.977Z
+> 生成时间：2026-10-24T21:02:09.135Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,19 @@
 
 ## Unreleased
 
+- 2026-10-24 | 29ad182e | JNTMTMTM | Merge pull request #276 from JNTMTMTM/dev
+- 2026-10-24 | d4988581 | 鸡哥 | feat: implement pending seek functionality for media playback
+- 2026-10-24 | 85988a9e | 鸡哥 | feat: add tests for island visibility transitions and mock functionality
+- 2026-10-24 | c101e69d | 鸡哥 | feat: implement island visibility management with fade transitions for show/hide functionality
+- 2026-10-24 | 4e86c9ed | 鸡哥 | feat: enhance LyricsProgress component with current lyric display and update time formatting
+- 2026-10-23 | a289704e | 鸡哥 | feat: update localization for playback controls and enhance LyricsTab interaction
+- 2026-10-23 | b7d70319 | 鸡哥 | feat: enhance LyricsTab with progress bar transitions and timer management
+- 2026-10-23 | 453d8f0e | 鸡哥 | feat: add playback progress slider and update localization for seek functionality
+- 2026-10-23 | 1baf54d1 | 鸡哥 | feat: add PROCESS_BAR SVG icon and update SvgIcon utility
+- 2026-10-23 | 051c46bd | 鸡哥 | feat: implement initial session handling and enhance current session retrieval in SMTC service
+- 2026-10-23 | 764b7d67 | 鸡哥 | feat: add playback timeline handling and enhance music card functionality
+- 2026-10-23 | e3c5bae5 | 鸡哥 | feat: enhance tray music card with playback control and seek functionality
+- 2026-10-23 | 5539aad1 | eislandBot | docs: auto update CHANGE_LOG.md for #275 by @JNTMTMTM [skip ci]
 - 2026-10-22 | c55e1503 | JNTMTMTM | Merge pull request #275 from JNTMTMTM/dev
 - 2026-10-22 | 7ef41a5a | 鸡哥 | feat(localTool): add conflict handling for duplicate request IDs and enhance caching mechanism
 - 2026-10-22 | b617f770 | 鸡哥 | fix(virtualChatMessages): adjust eslint-disable comments for import-x rule
