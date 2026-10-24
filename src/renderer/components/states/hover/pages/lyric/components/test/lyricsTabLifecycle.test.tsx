@@ -32,8 +32,10 @@ import { deferredBackground, settleBackground } from '../../../../../../hooks/te
 import { HOVER_MUSIC_BG_STYLE_STORE_KEY } from '../../../../../maxExpand/components/setting/config/settingsTabConfig';
 import { MusicBgWavePreview } from '../../../../../maxExpand/components/setting/components/app/preview/MusicBgWavePreview';
 import { SilkyWave } from '../SilkyWave';
+import { LyricsProgress } from '../LyricsProgress';
 import { LyricsTab } from '../LyricsTab';
 import type { ReactElement, RefObject } from 'react';
+import type { TestElement } from '../../../../../../test/elementHarness';
 
 vi.hoisted(() => {
   vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } }));
@@ -61,15 +63,17 @@ const cancelFrame = vi.fn((id: number) => { frames.delete(id); });
 beforeEach(() => {
   resetLifecycle(); vi.clearAllMocks(); frames.clear(); frameId = 0;
   api.storeRead.mockReset().mockResolvedValue('silky');
-  vi.stubGlobal('window', Object.assign(new EventTarget(), { api, devicePixelRatio: 1, location: { hostname: 'localhost' } }));
+  vi.stubGlobal('window', Object.assign(new EventTarget(), { api, devicePixelRatio: 1, location: { hostname: 'localhost' },
+    setTimeout: (callback: () => void, ms: number) => setTimeout(callback, ms),
+    clearTimeout: (id: ReturnType<typeof setTimeout>) => clearTimeout(id) }));
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
     const id = ++frameId; frames.set(id, callback); return id;
   });
   vi.stubGlobal('cancelAnimationFrame', cancelFrame);
   useIslandStore.setState({ isMusicPlaying: true, isPlaying: true, coverImage: 'cover://track',
-    dominantColor: [10, 20, 30], mediaInfo: { title: 'Track', artist: 'Artist', album: '', duration_ms: 1000 } });
+    dominantColor: [10, 20, 30], mediaInfo: { title: 'Track', artist: 'Artist', album: '', duration_ms: 1000 }, currentDurationMs: 0 });
 });
-afterEach(() => { unmountHooks(); vi.unstubAllGlobals(); });
+afterEach(() => { unmountHooks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 interface BackgroundProps { color: [number, number, number]; playing: boolean }
 /**
@@ -103,7 +107,79 @@ function commitBackground(element: ReactElement<BackgroundProps>) {
   Object.assign(ref, { current: canvas as unknown as HTMLCanvasElement });
   runEffects(); frame(); return context;
 }
+/**
+ * 定位歌曲信息区域，悬停该区域满延迟后切换为进度条。
+ * @param root - 歌词页面渲染结果。
+ * @returns 歌曲信息区域元素。
+ */
+function infoSection(root: ReactElement): TestElement {
+  return findElement(root, (element) => element.props.className === 'lrc-info-section');
+}
+/**
+ * 重新渲染歌词页并判断歌曲信息区域当前显示的是否为进度条。
+ * @returns 进度条已替换歌曲信息时为 true。
+ */
+function showsProgress(): boolean {
+  const section = infoSection(renderWithHooks(LyricsTab));
+  const progress = elements(section).some((element) => element.type === LyricsProgress);
+  expect(textContent(section)).toBe(progress ? '' : 'TrackArtist');
+  return progress;
+}
+/**
+ * 对最新渲染的歌曲信息区域派发悬停进入或离开。
+ * @param eventName - 鼠标进入或离开回调名。
+ */
+function hoverInfo(eventName: 'onMouseEnter' | 'onMouseLeave'): void {
+  invoke(infoSection(renderWithHooks(LyricsTab)), eventName);
+}
 describe('歌词页真实状态与背景生命周期', () => {
+  it('悬停歌曲信息满延迟才切换为进度条，提前离开不切换，离开后立即恢复', () => {
+    vi.useFakeTimers();
+    useIslandStore.setState({ currentDurationMs: 180000 });
+    renderWithHooks(LyricsTab); runEffects();
+    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(299);
+    expect(showsProgress()).toBe(false);
+    hoverInfo('onMouseLeave'); vi.advanceTimersByTime(1000);
+    expect(showsProgress()).toBe(false);
+    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
+    expect(showsProgress()).toBe(true);
+    hoverInfo('onMouseLeave');
+    expect(showsProgress()).toBe(false);
+  });
+  it('重复进入只按最后一次进入重新计时', () => {
+    vi.useFakeTimers();
+    useIslandStore.setState({ currentDurationMs: 180000 });
+    renderWithHooks(LyricsTab); runEffects();
+    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(200);
+    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(200);
+    expect(showsProgress()).toBe(false);
+    expect(vi.getTimerCount()).toBe(1);
+    vi.advanceTimersByTime(100);
+    expect(showsProgress()).toBe(true);
+  });
+  it.each([
+    { name: '时长为0', state: { currentDurationMs: 0 } },
+    { name: '时长无效', state: { currentDurationMs: Number.NaN } },
+    { name: '无媒体', state: { isMusicPlaying: false, currentDurationMs: 180000 } },
+  ])('播放源$name时悬停满延迟仍显示歌曲信息', ({ state }) => {
+    vi.useFakeTimers();
+    useIslandStore.setState(state);
+    renderWithHooks(LyricsTab); runEffects();
+    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
+    const section = infoSection(renderWithHooks(LyricsTab));
+    expect(elements(section).some((element) => element.type === LyricsProgress)).toBe(false);
+    expect(textContent(section)).toBe('TrackArtist');
+  });
+  it('卸载时取消尚未到期的悬停计时', () => {
+    vi.useFakeTimers();
+    useIslandStore.setState({ currentDurationMs: 180000 });
+    renderWithHooks(LyricsTab); runEffects();
+    hoverInfo('onMouseEnter');
+    expect(vi.getTimerCount()).toBe(1);
+    unmountHooks();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('初次绘制采用丝滑背景，effect读真实设置键，仅挂载请求一次', async () => {
     const initial = renderWithHooks(LyricsTab); expect(background(initial).type).toBe(SilkyWave);
     expect(textContent(initial)).toContain('TrackArtist');

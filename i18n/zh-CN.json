@@ -490,7 +490,9 @@
       "prev": "上一曲",
       "pause": "暂停",
       "play": "播放",
-      "next": "下一曲"
+      "next": "下一曲",
+      "seek": "播放进度",
+      "seekValue": "{{position}} / {{duration}}"
     },
     "time": {
       "lunarPrefix": "农历"

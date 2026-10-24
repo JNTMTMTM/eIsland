@@ -490,7 +490,9 @@
       "prev": "Previous",
       "pause": "Pause",
       "play": "Play",
-      "next": "Next"
+      "next": "Next",
+      "seek": "Playback position",
+      "seekValue": "{{position}} of {{duration}}"
     },
     "time": {
       "lunarPrefix": "Lunar"

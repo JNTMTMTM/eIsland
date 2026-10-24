@@ -129,6 +129,62 @@
   min-width: 0;
 }
 
+/* --- 播放进度（悬停歌曲信息片刻后替换歌曲信息） --- */
+.lrc-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lrc-progress-slider {
+  width: 100%;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+.lrc-progress-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  background: linear-gradient(to right, rgba(var(--color-text-rgb), 0.85) var(--lrc-progress), rgba(var(--color-text-rgb), 0.16) var(--lrc-progress));
+  border-radius: 999px;
+}
+
+/** 滑块默认隐藏，悬停、键盘聚焦或拖动时出现，平时保持细线外观 */
+.lrc-progress-slider::-webkit-slider-thumb {
+  width: 9px;
+  height: 9px;
+  margin-top: -3px;
+  appearance: none;
+  background: rgb(var(--color-text-rgb));
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.lrc-progress-slider:hover::-webkit-slider-thumb,
+.lrc-progress-slider:focus-visible::-webkit-slider-thumb,
+.lrc-progress-slider:active::-webkit-slider-thumb {
+  opacity: 1;
+}
+
+.lrc-progress-slider:focus-visible {
+  outline: none;
+}
+
+.lrc-progress-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  line-height: 1.2;
+  color: rgba(var(--color-text-rgb), 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
 .lrc-o3ic-text {
   font-size: 11px;
   color: rgba(var(--color-text-rgb), 0.7);

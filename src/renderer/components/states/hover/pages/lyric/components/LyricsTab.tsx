@@ -25,7 +25,7 @@
  */
 
 import type { ReactElement } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../../../../../../store/slices';
@@ -34,12 +34,16 @@ import { truncateByVisualWidth } from '../utils/lyricUtils';
 import { SilkyWave } from './SilkyWave';
 import { MusicBgWavePreview } from '../../../../maxExpand/components/setting/components/app/preview/MusicBgWavePreview';
 import { HOVER_MUSIC_BG_STYLE_STORE_KEY } from '../../../../maxExpand/components/setting/config/settingsTabConfig';
+import { LyricsProgress } from './LyricsProgress';
 
 type HoverMusicBgStyle = 'silky' | 'wave';
 
+/** 悬停歌曲信息满该时长才切换为进度条，指针只是划过时保持歌曲信息，避免误触 */
+const SEEK_HOVER_DELAY_MS = 300;
+
 /**
  * 歌词 Tab 内容
- * @description 显示当前播放歌词、唱片封面和播放控制
+ * @description 显示当前播放歌词、唱片封面和播放控制，悬停歌曲信息片刻后切换为播放进度条
  * @returns 歌词 Tab 元素
  */
 export function LyricsTab(): ReactElement {
@@ -50,15 +54,19 @@ export function LyricsTab(): ReactElement {
     mediaInfo,
     coverImage,
     dominantColor,
+    currentDurationMs,
   } = useIslandStore(useShallow((store) => ({
     isMusicPlaying: store.isMusicPlaying,
     isPlaying: store.isPlaying,
     mediaInfo: store.mediaInfo,
     coverImage: store.coverImage,
     dominantColor: store.dominantColor,
+    currentDurationMs: store.currentDurationMs,
   })));
 
   const [bgStyle, setBgStyle] = useState<HoverMusicBgStyle>('silky');
+  const [seekHovered, setSeekHovered] = useState(false);
+  const seekHoverTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     window.api.storeRead(HOVER_MUSIC_BG_STYLE_STORE_KEY).then((v) => {
@@ -66,9 +74,35 @@ export function LyricsTab(): ReactElement {
     }).catch(() => {});
   }, []);
 
+  const cancelSeekHover = useCallback((): void => {
+    if (seekHoverTimerRef.current === null) return;
+    window.clearTimeout(seekHoverTimerRef.current);
+    seekHoverTimerRef.current = null;
+  }, []);
+
+  useEffect(() => cancelSeekHover, [cancelSeekHover]);
+
+  // 拖动滑块时 Chromium 捕获鼠标，指针移出区域也不会触发离开；在区域外松手时先提交跳转再触发离开，卸载进度条不会丢失跳转。
+  const handleInfoEnter = useCallback((): void => {
+    cancelSeekHover();
+    seekHoverTimerRef.current = window.setTimeout(() => {
+      seekHoverTimerRef.current = null;
+      setSeekHovered(true);
+    }, SEEK_HOVER_DELAY_MS);
+  }, [cancelSeekHover]);
+
+  const handleInfoLeave = useCallback((): void => {
+    cancelSeekHover();
+    setSeekHovered(false);
+  }, [cancelSeekHover]);
+
   const handlePlayPause = () => window.api?.mediaPlayPause();
   const handlePrev = () => window.api?.mediaPrev();
   const handleNext = () => window.api?.mediaNext();
+
+  // 播放源未提供有效时长时无法定位进度，此时不渲染进度条，悬停也保持显示歌曲信息。
+  const hasTimeline = isMusicPlaying && Number.isFinite(currentDurationMs) && currentDurationMs > 0;
+  const seekVisible = hasTimeline && seekHovered;
 
   const artistText = truncateByVisualWidth(mediaInfo.artist || t('hover.music.unknownArtist', { defaultValue: '未知艺术家' }), 50);
   const albumText = truncateByVisualWidth(mediaInfo.title || t('hover.music.unknownTitle', { defaultValue: '未知歌曲' }), 45);
@@ -85,12 +119,18 @@ export function LyricsTab(): ReactElement {
         />
       </div>
 
-      <div className="lrc-info-section">
-        <div className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}>
-          {albumText}
-        </div>
+      <div className="lrc-info-section" onMouseEnter={handleInfoEnter} onMouseLeave={handleInfoLeave}>
+        {seekVisible ? (
+          <LyricsProgress />
+        ) : (
+          <>
+            <div className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}>
+              {albumText}
+            </div>
 
-        <div className="lrc-artist">{artistText}</div>
+            <div className="lrc-artist">{artistText}</div>
+          </>
+        )}
       </div>
 
       <div className="lrc-media-controls">
