@@ -20,13 +20,14 @@
 
 /**
  * @file TrayMusicCard.tsx
- * @description 托盘音乐控制卡片：展示当前播放歌曲，支持暂停、恢复、上一首、下一首，下方进度条可调整播放进度；读取中显示骨架屏
+ * @description 托盘音乐控制卡片：展示当前播放歌曲，支持暂停、恢复、上一首、下一首；播放源提供时间线时下方显示进度条可调整播放进度；读取中显示骨架屏
  * @author 鸡哥
  */
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../utils/SvgIcon';
+import { hasPlaybackTimeline } from '../utils/trayPlayback';
 import { TrayMusicSeekBar } from './TrayMusicSeekBar';
 import type { TrayNowPlaying } from '../types';
 import '../styles/tray-menu-skeleton.css';
@@ -50,7 +51,7 @@ interface TrayMusicCardProps {
 
 /**
  * 托盘音乐控制卡片
- * @description 无媒体时保留卡片并禁用按钮与进度条，保持菜单高度稳定
+ * @description 无媒体时保留卡片并禁用按钮；播放源未提供有效时间线（含无媒体）时隐藏进度条，卡片恢复单行高度
  * @param props - 组件属性
  * @param props.nowPlaying - 当前播放信息
  * @param props.loading - 播放信息读取中
@@ -66,7 +67,7 @@ export function TrayMusicCard({ nowPlaying, loading, openCount, onTogglePlayback
 
   if (loading) {
     return (
-      <div className="tray-music-card" aria-busy="true" aria-label={t('tray.music.label')}>
+      <div className="tray-music-card tray-music-card-with-seek" aria-busy="true" aria-label={t('tray.music.label')}>
         <div className="tray-music-card-main">
           <span className="tray-skeleton-block tray-skeleton-cover" />
           <span className="tray-skeleton-lines">
@@ -85,10 +86,11 @@ export function TrayMusicCard({ nowPlaying, loading, openCount, onTogglePlayback
   }
 
   const idle = !nowPlaying;
+  const seekable = hasPlaybackTimeline(nowPlaying);
   const playLabel = nowPlaying?.isPlaying ? t('tray.music.pause') : t('tray.music.play');
 
   return (
-    <div className={`tray-music-card${idle ? ' tray-music-card-idle' : ''}`} aria-label={t('tray.music.label')}>
+    <div className={`tray-music-card${idle ? ' tray-music-card-idle' : ''}${seekable ? ' tray-music-card-with-seek' : ''}`} aria-label={t('tray.music.label')}>
       <div className="tray-music-card-main">
         <div className="tray-music-card-cover">
           {nowPlaying?.thumbnail
@@ -113,7 +115,7 @@ export function TrayMusicCard({ nowPlaying, loading, openCount, onTogglePlayback
           </button>
         </div>
       </div>
-      <TrayMusicSeekBar key={openCount} nowPlaying={nowPlaying} onSeek={onSeek} />
+      {seekable && <TrayMusicSeekBar key={openCount} nowPlaying={nowPlaying} onSeek={onSeek} />}
     </div>
   );
 }

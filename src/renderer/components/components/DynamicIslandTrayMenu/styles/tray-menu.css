@@ -161,18 +161,24 @@
 
 }
 
-/** ===== 音乐控制卡片（固定高度，播放信息变化时菜单高度不变；需与骨架屏 .tray-skeleton-music 一致） ===== */
+/** ===== 音乐控制卡片（固定高度，仅在进度条显隐时变化；高度变化后由菜单重新上报） ===== */
 .tray-music-card {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 6px;
   justify-content: center;
-  height: 76px;
+  height: 58px;
   padding: 8px 10px;
   background: rgb(var(--color-text-rgb), .05);
   border: 1px solid rgb(var(--color-text-rgb), .08);
   border-radius: 10px;
+
+}
+
+/** 播放源提供有效时间线时显示进度条，高度需与骨架屏 .tray-skeleton-music 一致 */
+.tray-music-card-with-seek {
+  height: 76px;
 
 }
 
@@ -364,26 +370,15 @@
 
 }
 
-.tray-music-seek-slider:hover:not(:disabled)::-webkit-slider-thumb,
+.tray-music-seek-slider:hover::-webkit-slider-thumb,
 .tray-music-seek-slider:focus-visible::-webkit-slider-thumb,
-.tray-music-seek-slider:active:not(:disabled)::-webkit-slider-thumb {
+.tray-music-seek-slider:active::-webkit-slider-thumb {
   opacity: 1;
 
 }
 
 .tray-music-seek-slider:focus-visible {
   outline: none;
-
-}
-
-/** 无媒体或时长未知时整行变暗，与禁用的控制按钮保持一致 */
-.tray-music-seek-disabled {
-  opacity: .35;
-
-}
-
-.tray-music-seek-slider:disabled {
-  cursor: default;
 
 }
 

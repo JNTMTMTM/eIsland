@@ -76,7 +76,7 @@ body {
 
 }
 
-/** 音乐卡片骨架：上方信息行 + 下方进度条，高度需与 .tray-music-card 一致 */
+/** 音乐卡片骨架：上方信息行 + 下方进度条，按常见的有时间线状态占位，高度需与 .tray-music-card-with-seek 一致 */
 .tray-skeleton-music {
   flex-direction: column;
   gap: 6px;

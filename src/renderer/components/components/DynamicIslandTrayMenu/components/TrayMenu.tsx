@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { TRAY_MENU_ITEMS } from '../config/trayMenuItems';
 import { useTrayMenuState } from '../hooks/useTrayMenuState';
 import { useTrayNowPlaying } from '../hooks/useTrayNowPlaying';
+import { hasPlaybackTimeline } from '../utils/trayPlayback';
 import { TrayMenuItem } from './TrayMenuItem';
 import { TrayMenuSkeleton } from './TrayMenuSkeleton';
 import { TrayMusicCard } from './TrayMusicCard';
@@ -45,8 +46,11 @@ export function TrayMenu(): ReactElement {
   const { menuState, user, openCount } = useTrayMenuState();
   const { nowPlaying, loading, togglePlayback, playPrevious, playNext, seekTo } = useTrayNowPlaying(openCount);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  // 骨架屏与有时间线的卡片带进度条行，二者之间切换会改变菜单高度。
+  const musicCardWithSeek = loading || hasPlaybackTimeline(nowPlaying);
 
   // 每次打开都在绘制前测量；等两帧确保新内容已绘制，主进程再把透明窗口显现，避免闪出旧画面。
+  // 菜单打开期间进度条显隐（如播放源时间线失效）同样重新上报，主进程按新高度调整窗口。
   useLayoutEffect(() => {
     if (!menuState || !rootRef.current) return undefined;
     const height = rootRef.current.offsetHeight;
@@ -58,7 +62,7 @@ export function TrayMenu(): ReactElement {
       cancelAnimationFrame(firstFrame);
       cancelAnimationFrame(secondFrame);
     };
-  }, [menuState, openCount]);
+  }, [menuState, openCount, musicCardWithSeek]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {

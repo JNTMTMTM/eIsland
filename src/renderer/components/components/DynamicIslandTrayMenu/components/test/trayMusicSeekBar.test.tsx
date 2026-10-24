@@ -20,7 +20,7 @@
 
 /**
  * @file trayMusicSeekBar.test.tsx
- * @description 托盘音乐进度条的禁用态、连续推进、挂载即计时与失焦停止、拖动预览与松手跳转测试。
+ * @description 托盘音乐进度条的连续推进、挂载即计时与失焦停止、拖动预览与松手跳转测试。
  * @author 鸡哥
  */
 
@@ -75,7 +75,7 @@ afterEach(() => {
  * @param nowPlaying - 当前播放信息。
  * @returns 进度条元素。
  */
-function render(nowPlaying: TrayNowPlaying | null = SONG): TestElement {
+function render(nowPlaying: TrayNowPlaying = SONG): TestElement {
   const view = renderWithHooks(() => TrayMusicSeekBar({ nowPlaying, onSeek })) as TestElement;
   const ref = findElement(view, (node) => node.type === 'input').props.ref as { current: unknown };
   ref.current = slider;
@@ -102,24 +102,13 @@ function times(view: TestElement): string[] {
 }
 
 describe('TrayMusicSeekBar', () => {
-  it.each([
-    { name: 'nothing is playing', nowPlaying: null },
-    { name: 'the duration is unknown', nowPlaying: { ...SONG, durationMs: 0 } },
-  ])('is disabled at 0:00 when $name', ({ nowPlaying }) => {
-    const view = render(nowPlaying);
-    expect(view.props.className).toBe('tray-music-seek tray-music-seek-disabled');
-    expect(input(view).props).toMatchObject({ type: 'range', min: 0, max: 0, value: 0, disabled: true, 'aria-label': 'tray.music.seek' });
-    expect(times(view)).toEqual(['0:00', '0:00']);
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
   it('shows the estimated position, the duration and the filled share of the track', () => {
     vi.setSystemTime(12500);
     const view = render();
     expect(view.props.className).toBe('tray-music-seek');
     expect(input(view).props).toMatchObject({
-      className: 'tray-music-seek-slider', max: 180000, step: 'any', value: 62500, disabled: false,
-      'aria-valuetext': 'tray.music.seekValue:1:02/3:00',
+      className: 'tray-music-seek-slider', type: 'range', min: 0, max: 180000, step: 'any', value: 62500,
+      'aria-label': 'tray.music.seek', 'aria-valuetext': 'tray.music.seekValue:1:02/3:00',
     });
     expect(input(view).props.style).toEqual({ '--tray-seek-progress': `${(62500 / 180000) * 100}%` });
     expect(times(view)).toEqual(['1:02', '3:00']);

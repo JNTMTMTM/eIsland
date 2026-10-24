@@ -20,18 +20,27 @@
 
 /**
  * @file trayPlayback.test.ts
- * @description 托盘音乐进度推算与播放时间格式化测试。
+ * @description 托盘音乐时间线判断、进度推算与播放时间格式化测试。
  * @author 鸡哥
  */
 
 import { describe, expect, it } from 'vitest';
-import { estimatePlaybackPosition, formatPlaybackTime } from '../trayPlayback';
+import { estimatePlaybackPosition, formatPlaybackTime, hasPlaybackTimeline } from '../trayPlayback';
 import type { TrayNowPlaying } from '../../types';
 
 const SONG: TrayNowPlaying = {
   title: 'Song', artist: 'Singer', isPlaying: true, thumbnail: null,
   durationMs: 180000, positionMs: 60000, positionTimestampMs: 10000, playbackRate: 1,
 };
+
+describe('hasPlaybackTimeline', () => {
+  it('requires media with a positive duration', () => {
+    expect(hasPlaybackTimeline(SONG)).toBe(true);
+    expect(hasPlaybackTimeline({ ...SONG, durationMs: 1 })).toBe(true);
+    expect(hasPlaybackTimeline({ ...SONG, durationMs: 0 })).toBe(false);
+    expect(hasPlaybackTimeline(null)).toBe(false);
+  });
+});
 
 describe('estimatePlaybackPosition', () => {
   it('advances from the sample by the elapsed time and playback rate while playing', () => {

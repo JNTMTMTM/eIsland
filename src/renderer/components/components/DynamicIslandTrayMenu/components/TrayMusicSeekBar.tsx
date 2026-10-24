@@ -34,15 +34,15 @@ import type { TrayNowPlaying } from '../types';
 const TICK_INTERVAL_MS = 250;
 
 interface TrayMusicSeekBarProps {
-  /** 当前播放信息，无媒体时为 null */
-  nowPlaying: TrayNowPlaying | null;
+  /** 当前播放信息，仅在播放源提供有效时间线（总时长大于 0）时渲染进度条 */
+  nowPlaying: TrayNowPlaying;
   /** 跳转到目标进度（毫秒） */
   onSeek: (positionMs: number) => void;
 }
 
 /**
  * 托盘音乐进度条
- * @description 无媒体或时长未知时禁用；组件随每次打开菜单重建，挂载即开始推进进度，菜单失焦收起后停止计时
+ * @description 组件随每次打开菜单重建，挂载即开始推进进度，菜单失焦收起后停止计时
  * @param props - 组件属性
  * @param props.nowPlaying - 当前播放信息
  * @param props.onSeek - 跳转到目标进度（毫秒）
@@ -68,9 +68,7 @@ export function TrayMusicSeekBar({ nowPlaying, onSeek }: TrayMusicSeekBarProps):
     };
   }, []);
 
-  const durationMs = nowPlaying?.durationMs ?? 0;
-  const disabled = !nowPlaying || durationMs <= 0;
-  const ticking = active && !disabled && nowPlaying.isPlaying && nowPlaying.playbackRate > 0;
+  const ticking = active && nowPlaying.isPlaying && nowPlaying.playbackRate > 0;
   useEffect(() => {
     if (!ticking) return undefined;
     const tick = (): void => setNow(Date.now());
@@ -95,18 +93,18 @@ export function TrayMusicSeekBar({ nowPlaying, onSeek }: TrayMusicSeekBarProps):
     setDragPositionMs(Number(event.currentTarget.value));
   }, []);
 
-  const positionMs = disabled ? 0 : dragPositionMs ?? estimatePlaybackPosition(nowPlaying, now);
-  const progress = durationMs > 0 ? positionMs / durationMs : 0;
+  const { durationMs } = nowPlaying;
+  const positionMs = dragPositionMs ?? estimatePlaybackPosition(nowPlaying, now);
   const positionText = formatPlaybackTime(positionMs);
   const durationText = formatPlaybackTime(durationMs);
 
   // step="any" 让滑块随时间连续移动；键盘方向键按浏览器默认每次调整总时长的 1%。
   return (
-    <div className={`tray-music-seek${disabled ? ' tray-music-seek-disabled' : ''}`}>
+    <div className="tray-music-seek">
       <span className="tray-music-seek-time">{positionText}</span>
       <input ref={sliderRef} className="tray-music-seek-slider" type="range" min={0} max={durationMs} step="any" value={positionMs}
-        disabled={disabled} aria-label={t('tray.music.seek')} aria-valuetext={t('tray.music.seekValue', { position: positionText, duration: durationText })}
-        style={{ '--tray-seek-progress': `${progress * 100}%` } as CSSProperties} onChange={handleDrag} />
+        aria-label={t('tray.music.seek')} aria-valuetext={t('tray.music.seekValue', { position: positionText, duration: durationText })}
+        style={{ '--tray-seek-progress': `${(positionMs / durationMs) * 100}%` } as CSSProperties} onChange={handleDrag} />
       <span className="tray-music-seek-time tray-music-seek-time-total">{durationText}</span>
     </div>
   );

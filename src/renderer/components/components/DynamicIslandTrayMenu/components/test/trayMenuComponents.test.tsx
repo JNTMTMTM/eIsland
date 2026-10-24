@@ -224,13 +224,13 @@ describe('TrayMusicCard', () => {
     expect(findElement(view, (node) => node.props.className === 'tray-music-card-cover-icon').props.src).toBe('../svg/app/MUSIC.svg');
     expect(buttons(view).map((button) => button.props.disabled)).toEqual([true, true, true]);
     expect(buttons(view)[1].props['aria-label']).toBe('tray.music.play');
-    expect(seekBar(view).props.nowPlaying).toBeNull();
+    expect(elements(view).some((node) => node.type === TrayMusicSeekBar)).toBe(false);
   });
 
   it('shows the cover, title, artist and a pause button while playing', () => {
     const props = handlers();
     const view = TrayMusicCard({ nowPlaying: SONG, loading: false, ...props }) as TestElement;
-    expect(view.props.className).toBe('tray-music-card');
+    expect(view.props.className).toBe('tray-music-card tray-music-card-with-seek');
     expect(findElement(view, (node) => node.type === 'img' && node.props.src === SONG.thumbnail).props.alt).toBe('Song');
     expect(textContent(view)).toBe('SongSinger');
     const [previous, play, next] = buttons(view);
@@ -256,6 +256,14 @@ describe('TrayMusicCard', () => {
     expect(seekBar(view).props).toEqual({ nowPlaying: SONG, onSeek: props.onSeek });
   });
 
+  it('hides the seek bar and drops back to the single-row height when the source has no valid timeline', () => {
+    const view = TrayMusicCard({ nowPlaying: { ...SONG, durationMs: 0 }, loading: false, ...handlers() }) as TestElement;
+    expect(view.props.className).toBe('tray-music-card');
+    expect(elements(view).some((node) => node.type === TrayMusicSeekBar)).toBe(false);
+    expect(buttons(view).map((button) => button.props.disabled)).toEqual([false, false, false]);
+    expect(textContent(view)).toBe('SongSinger');
+  });
+
   it('shows a resume button, the music icon without a cover, and an unknown-artist fallback when paused', () => {
     const view = TrayMusicCard({ nowPlaying: { ...SONG, isPlaying: false, artist: '', thumbnail: null }, loading: false, ...handlers() }) as TestElement;
     const play = buttons(view)[1];
@@ -267,7 +275,7 @@ describe('TrayMusicCard', () => {
 
   it('shows a shimmer skeleton without controls while the first playback info loads', () => {
     const view = TrayMusicCard({ nowPlaying: SONG, loading: true, ...handlers() }) as TestElement;
-    expect(view.props).toMatchObject({ className: 'tray-music-card', 'aria-busy': 'true', 'aria-label': 'tray.music.label' });
+    expect(view.props).toMatchObject({ className: 'tray-music-card tray-music-card-with-seek', 'aria-busy': 'true', 'aria-label': 'tray.music.label' });
     expect(elements(view).some((node) => node.type === 'button')).toBe(false);
     expect(textContent(view)).toBe('');
     expect(elements(view).filter((node) => String(node.props.className).includes('tray-skeleton-block'))).toHaveLength(7);
@@ -342,6 +350,32 @@ describe('TrayMenu', () => {
       .toEqual({ ...SONG, isPlaying: false, positionMs: 300, positionTimestampMs: 5300 });
     invoke(findElement(renderMenu() as TestElement, (node) => node.type === TrayMusicCard), 'onSeek', 600);
     expect(api.mediaSeek).toHaveBeenCalledExactlyOnceWith(600);
+  });
+
+  it('re-reports the height only when the seek bar appears or disappears while open', async () => {
+    api.mediaCurrentInfoGet.mockResolvedValue(SONG_INFO);
+    await openWith(STATE);
+    await settle();
+    renderMenu();
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenCalledExactlyOnceWith(233);
+    nowPlayingHandler?.({ ...SONG_INFO, duration_ms: 0 });
+    renderMenu(215);
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenLastCalledWith(215);
+    nowPlayingHandler?.({ ...SONG_INFO, duration_ms: 0, position_ms: 500 });
+    renderMenu(215);
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenCalledTimes(2);
+    nowPlayingHandler?.(SONG_INFO);
+    renderMenu();
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenLastCalledWith(233);
+    expect(api.trayMenuReady).toHaveBeenCalledTimes(3);
   });
 
   it('shows the music skeleton until the first playback read finishes', async () => {

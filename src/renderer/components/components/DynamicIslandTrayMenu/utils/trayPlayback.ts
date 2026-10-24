@@ -20,11 +20,21 @@
 
 /**
  * @file trayPlayback.ts
- * @description 托盘音乐进度条的进度推算与时间格式化
+ * @description 托盘音乐进度条的时间线判断、进度推算与时间格式化
  * @author 鸡哥
  */
 
 import type { TrayNowPlaying } from '../types';
+
+/**
+ * 判断当前播放源是否提供了可用于进度条的时间线
+ * @description SMTC 源缺少时间线或时长异常时，主进程与 toTrayNowPlaying 都会把时长归一为 0
+ * @param nowPlaying - 当前播放信息，无媒体时为 null
+ * @returns 有媒体且总时长大于 0 时为 true
+ */
+export function hasPlaybackTimeline(nowPlaying: TrayNowPlaying | null): nowPlaying is TrayNowPlaying {
+  return nowPlaying !== null && nowPlaying.durationMs > 0;
+}
 
 /**
  * 按采样进度与播放速率推算指定时刻的播放进度
