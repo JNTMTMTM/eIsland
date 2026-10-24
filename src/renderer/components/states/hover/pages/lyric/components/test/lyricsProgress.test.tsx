@@ -55,6 +55,7 @@ type SliderStub = EventTarget & { value: string };
 
 let slider: SliderStub;
 const mediaSeek = vi.fn<(positionMs: number) => Promise<void>>();
+const onShowInfo = vi.fn<() => void>();
 
 beforeEach(() => {
   resetLifecycle();
@@ -91,7 +92,7 @@ function input(view: TestElement): TestElement {
  * @returns 进度条元素。
  */
 function render(): TestElement {
-  const view = renderWithHooks(LyricsProgress) as TestElement;
+  const view = renderWithHooks(() => LyricsProgress({ onShowInfo })) as TestElement;
   const ref = input(view).props.ref as { current: unknown };
   ref.current = slider;
   runEffects();
@@ -128,6 +129,15 @@ describe('LyricsProgress', () => {
     });
     expect(input(view).props.style).toEqual({ '--lrc-progress': `${(62500 / 180000) * 100}%` });
     expect(times(view)).toEqual(['1:02', '3:00']);
+  });
+
+  it('switches back to the song info only from the time row button', () => {
+    const view = render();
+    const timesButton = findElement(view, (node) => node.type === 'button');
+    expect(timesButton.props).toMatchObject({ type: 'button', className: 'lrc-progress-times', 'aria-label': 'hover.music.showInfo', title: 'hover.music.showInfo' });
+    expect(input(view).props.onClick).toBeUndefined();
+    invoke(timesButton, 'onClick');
+    expect(onShowInfo).toHaveBeenCalledOnce();
   });
 
   it('follows the playback clock in the store and never passes the duration', () => {

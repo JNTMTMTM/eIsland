@@ -20,7 +20,7 @@
 
 /**
  * @file LyricsProgress.tsx
- * @description 歌词 Tab 播放进度条：悬停歌曲信息片刻后替换歌曲信息显示当前进度与总时长，拖动时只预览，松手或键盘调整完成后才跳转
+ * @description 歌词 Tab 播放进度条：点击歌曲信息后替换歌曲信息显示当前进度与总时长，拖动时只预览，松手或键盘调整完成后才跳转
  * @author 鸡哥
  */
 
@@ -37,12 +37,19 @@ const SEEK_SETTLE_TIMEOUT_MS = 1000;
 /** 真实进度与跳转目标相差在此范围内，即视为播放器已跳转到位 */
 const SEEK_SETTLE_TOLERANCE_MS = 1500;
 
+interface LyricsProgressProps {
+  /** 点击时间行时切换回歌曲信息 */
+  onShowInfo: () => void;
+}
+
 /**
  * 歌词 Tab 播放进度条
- * @description 播放源提供有效时长且悬停歌曲信息满延迟后由歌词 Tab 挂载；进度订阅放在本组件内，避免整个歌词 Tab 随进度高频重渲染
+ * @description 播放源提供有效时长且点击歌曲信息后由歌词 Tab 挂载；进度订阅放在本组件内，避免整个歌词 Tab 随进度高频重渲染
+ * @param props - 组件属性
+ * @param props.onShowInfo - 点击时间行时切换回歌曲信息
  * @returns 进度条元素
  */
-export function LyricsProgress(): ReactElement {
+export function LyricsProgress({ onShowInfo }: LyricsProgressProps): ReactElement {
   const { t } = useTranslation();
   const { currentPositionMs, currentDurationMs } = useIslandStore(useShallow((store) => ({
     currentPositionMs: store.currentPositionMs,
@@ -81,6 +88,7 @@ export function LyricsProgress(): ReactElement {
   const positionMs = Math.min(currentDurationMs, dragPositionMs ?? (awaitingSeek ? seekTargetMs : currentPositionMs));
   const positionText = formatPlaybackTime(positionMs);
   const durationText = formatPlaybackTime(currentDurationMs);
+  const showInfoLabel = t('hover.music.showInfo', { defaultValue: '显示歌曲信息' });
 
   // step="any" 让滑块随时间连续移动；键盘方向键按浏览器默认每次调整总时长的 1%。
   return (
@@ -89,10 +97,11 @@ export function LyricsProgress(): ReactElement {
         aria-label={t('hover.music.seek', { defaultValue: '播放进度' })}
         aria-valuetext={t('hover.music.seekValue', { defaultValue: '{{position}} / {{duration}}', position: positionText, duration: durationText })}
         style={{ '--lrc-progress': `${(positionMs / currentDurationMs) * 100}%` } as CSSProperties} onChange={handleDrag} />
-      <div className="lrc-progress-times">
+      {/* 滑块只负责跳转；时间行作为切换按钮与滑块并列，拖动或点击滑块不会切换回歌曲信息。 */}
+      <button type="button" className="lrc-progress-times" onClick={onShowInfo} aria-label={showInfoLabel} title={showInfoLabel}>
         <span>{positionText}</span>
         <span>{durationText}</span>
-      </div>
+      </button>
     </div>
   );
 }

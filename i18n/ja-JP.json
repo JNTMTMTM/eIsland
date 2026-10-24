@@ -492,7 +492,9 @@
       "play": "再生",
       "next": "次の曲",
       "seek": "再生位置",
-      "seekValue": "{{position}} / {{duration}}"
+      "seekValue": "{{position}} / {{duration}}",
+      "showProgress": "再生位置を表示",
+      "showInfo": "曲情報を表示"
     },
     "time": {
       "lunarPrefix": "旧暦"

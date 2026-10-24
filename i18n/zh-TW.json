@@ -492,7 +492,9 @@
       "play": "播放",
       "next": "下一曲",
       "seek": "播放進度",
-      "seekValue": "{{position}} / {{duration}}"
+      "seekValue": "{{position}} / {{duration}}",
+      "showProgress": "顯示播放進度",
+      "showInfo": "顯示歌曲資訊"
     },
     "time": {
       "lunarPrefix": "農曆"

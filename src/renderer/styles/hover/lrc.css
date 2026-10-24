@@ -132,14 +132,35 @@
   min-width: 0;
 }
 
-/* --- 播放进度（悬停歌曲信息片刻后替换歌曲信息） --- */
+/* --- 播放进度（点击歌曲信息后替换歌曲信息） --- */
 
-/** 歌曲信息与进度条交叉过渡：歌曲信息上移淡出，进度条自下方淡入，离开时反向 */
-.lrc-info-section > :is(.lrc-title, .lrc-artist) {
+/** 歌曲信息与时间行作为切换按钮：去掉按钮默认外观，沿用原有排版 */
+.lrc-info-toggle,
+.lrc-progress-times {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/** 歌曲信息与进度条交叉过渡：歌曲信息上移淡出，进度条自下方淡入，切换回来时反向 */
+.lrc-info-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
   transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.lrc-info-section.seeking > :is(.lrc-title, .lrc-artist) {
+.lrc-info-toggle:disabled {
+  cursor: default;
+}
+
+.lrc-info-section.seeking > .lrc-info-toggle {
   opacity: 0;
   transform: translate3d(0, -4px, 0);
 }
@@ -156,7 +177,7 @@
   transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/** 离开过渡：移除 seeking 后淡出下移，播完由歌词 Tab 卸载；淡出期间不响应指针 */
+/** 离开过渡：切换回歌曲信息后淡出下移，播完由歌词 Tab 卸载；淡出期间不响应指针 */
 .lrc-info-section:not(.seeking) > .lrc-progress {
   opacity: 0;
   transform: translate3d(0, 4px, 0);
@@ -172,7 +193,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lrc-info-section > :is(.lrc-title, .lrc-artist),
+  .lrc-info-toggle,
   .lrc-progress {
     transition: none;
   }

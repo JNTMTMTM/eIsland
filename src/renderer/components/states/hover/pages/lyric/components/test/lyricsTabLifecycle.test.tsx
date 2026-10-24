@@ -108,12 +108,20 @@ function commitBackground(element: ReactElement<BackgroundProps>) {
   runEffects(); frame(); return context;
 }
 /**
- * 定位歌曲信息区域，悬停该区域满延迟后切换为进度条。
+ * 定位歌曲信息区域，点击其中的歌曲信息后切换为进度条。
  * @param root - 歌词页面渲染结果。
  * @returns 歌曲信息区域元素。
  */
 function infoSection(root: ReactElement): TestElement {
   return findElement(root, (element) => String(element.props.className).startsWith('lrc-info-section'));
+}
+/**
+ * 定位切换为进度条的歌曲信息按钮。
+ * @param root - 歌词页面渲染结果。
+ * @returns 歌曲信息按钮元素。
+ */
+function infoToggle(root: ReactElement): TestElement {
+  return findElement(root, (element) => element.props.className === 'lrc-info-toggle');
 }
 /**
  * 重新渲染歌词页，读取歌曲信息区域的过渡状态；歌曲信息始终保留供交叉过渡。
@@ -127,96 +135,77 @@ function seekState(): { seeking: boolean; mounted: boolean } {
     mounted: elements(section).some((element) => element.type === LyricsProgress),
   };
 }
-/**
- * 对最新渲染的歌曲信息区域派发悬停进入或离开。
- * @param eventName - 鼠标进入或离开回调名。
- */
-function hoverInfo(eventName: 'onMouseEnter' | 'onMouseLeave'): void {
-  invoke(infoSection(renderWithHooks(LyricsTab)), eventName);
+/** 点击最新渲染的歌曲信息按钮。 */
+function clickInfo(): void {
+  invoke(infoToggle(renderWithHooks(LyricsTab)), 'onClick');
+}
+/** 点击最新渲染的进度条时间行，由进度条回调切换回歌曲信息。 */
+function clickTimes(): void {
+  invoke(findElement(renderWithHooks(LyricsTab), (element) => element.type === LyricsProgress), 'onShowInfo');
 }
 const HIDDEN = { seeking: false, mounted: false };
 const SHOWN = { seeking: true, mounted: true };
 const EXITING = { seeking: false, mounted: true };
 describe('歌词页真实状态与背景生命周期', () => {
-  it('悬停歌曲信息满延迟才切换为进度条，提前离开不切换', () => {
-    vi.useFakeTimers();
+  it('点击歌曲信息切换为进度条，被遮住的歌曲信息不可再交互', () => {
     useIslandStore.setState({ currentDurationMs: 180000 });
     renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(299);
+    expect(infoToggle(renderWithHooks(LyricsTab)).props).toMatchObject({ type: 'button', disabled: false, inert: false, title: '显示播放进度' });
     expect(seekState()).toEqual(HIDDEN);
-    hoverInfo('onMouseLeave'); vi.advanceTimersByTime(1000);
-    expect(seekState()).toEqual(HIDDEN);
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
+    clickInfo();
     expect(seekState()).toEqual(SHOWN);
+    expect(infoToggle(renderWithHooks(LyricsTab)).props.inert).toBe(true);
   });
-  it('离开后立即开始离开过渡，进度条保留到过渡播完再卸载', () => {
+  it('点击时间行切换回歌曲信息，进度条保留到离开过渡播完再卸载', () => {
     vi.useFakeTimers();
     useIslandStore.setState({ currentDurationMs: 180000 });
     renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
-    hoverInfo('onMouseLeave');
+    clickInfo(); clickTimes();
     expect(seekState()).toEqual(EXITING);
+    expect(infoToggle(renderWithHooks(LyricsTab)).props.inert).toBe(false);
     vi.advanceTimersByTime(199);
     expect(seekState()).toEqual(EXITING);
     vi.advanceTimersByTime(1);
     expect(seekState()).toEqual(HIDDEN);
   });
-  it('离开过渡中再次进入仍需满延迟才重新出现，期间按时卸载', () => {
+  it('离开过渡中再次点击歌曲信息，取消卸载并直接过渡回进度条', () => {
     vi.useFakeTimers();
     useIslandStore.setState({ currentDurationMs: 180000 });
     renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
-    hoverInfo('onMouseLeave'); vi.advanceTimersByTime(100);
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(100);
-    expect(seekState()).toEqual(HIDDEN);
+    clickInfo(); clickTimes(); vi.advanceTimersByTime(100);
+    clickInfo();
+    expect(seekState()).toEqual(SHOWN);
+    expect(vi.getTimerCount()).toBe(0);
     vi.advanceTimersByTime(200);
     expect(seekState()).toEqual(SHOWN);
   });
-  it('重复进入只按最后一次进入重新计时', () => {
-    vi.useFakeTimers();
+  it('进度条显示期间时间线失效立即恢复歌曲信息，时间线恢复后回到进度条', () => {
     useIslandStore.setState({ currentDurationMs: 180000 });
     renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(200);
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(200);
-    expect(seekState()).toEqual(HIDDEN);
-    expect(vi.getTimerCount()).toBe(1);
-    vi.advanceTimersByTime(100);
-    expect(seekState()).toEqual(SHOWN);
-  });
-  it('未切换为进度条时离开不启动离开过渡', () => {
-    vi.useFakeTimers();
-    useIslandStore.setState({ currentDurationMs: 180000 });
-    renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); hoverInfo('onMouseLeave');
-    expect(vi.getTimerCount()).toBe(0);
-    expect(seekState()).toEqual(HIDDEN);
-  });
-  it('进度条显示期间时间线失效，立即卸载并恢复歌曲信息', () => {
-    vi.useFakeTimers();
-    useIslandStore.setState({ currentDurationMs: 180000 });
-    renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
+    clickInfo();
     useIslandStore.setState({ currentDurationMs: 0 });
     expect(seekState()).toEqual(HIDDEN);
+    expect(infoToggle(renderWithHooks(LyricsTab)).props.disabled).toBe(true);
+    useIslandStore.setState({ currentDurationMs: 200000 });
+    expect(seekState()).toEqual(SHOWN);
   });
   it.each([
     { name: '时长为0', state: { currentDurationMs: 0 } },
     { name: '时长无效', state: { currentDurationMs: Number.NaN } },
     { name: '无媒体', state: { isMusicPlaying: false, currentDurationMs: 180000 } },
-  ])('播放源$name时悬停满延迟仍显示歌曲信息', ({ state }) => {
-    vi.useFakeTimers();
+  ])('播放源$name时歌曲信息不可点击切换', ({ state }) => {
     useIslandStore.setState(state);
     renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
+    expect(infoToggle(renderWithHooks(LyricsTab)).props).toMatchObject({ disabled: true, title: undefined });
+    clickInfo();
     expect(seekState()).toEqual(HIDDEN);
   });
-  it('卸载时取消尚未到期的悬停与离开过渡计时', () => {
+  it('卸载时取消尚未到期的离开过渡计时', () => {
     vi.useFakeTimers();
     useIslandStore.setState({ currentDurationMs: 180000 });
     renderWithHooks(LyricsTab); runEffects();
-    hoverInfo('onMouseEnter'); vi.advanceTimersByTime(300);
-    hoverInfo('onMouseLeave'); hoverInfo('onMouseEnter');
-    expect(vi.getTimerCount()).toBe(2);
+    clickInfo(); clickTimes();
+    expect(vi.getTimerCount()).toBe(1);
     unmountHooks();
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -277,7 +266,7 @@ describe('歌词页真实状态与背景生命周期', () => {
   it.each([true, false])('播放状态%s的可用按钮阻止冒泡并分别发送原生媒体指令', (isPlaying) => {
     useIslandStore.setState({ isPlaying });
     const root = renderWithHooks(LyricsTab); const stopPropagation = vi.fn();
-    const buttons = elements(root).filter((element) => element.type === 'button');
+    const buttons = elements(root).filter((element) => element.type === 'button' && String(element.props.className).startsWith('lrc-media-btn'));
     buttons.forEach((button) => { expect(button.props.disabled).toBe(false); invoke(button, 'onClick', { stopPropagation }); });
     expect(stopPropagation).toHaveBeenCalledTimes(3);
     expect(api.mediaPrev).toHaveBeenCalledOnce(); expect(api.mediaPlayPause).toHaveBeenCalledOnce(); expect(api.mediaNext).toHaveBeenCalledOnce();

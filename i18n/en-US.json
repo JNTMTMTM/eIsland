@@ -492,7 +492,9 @@
       "play": "Play",
       "next": "Next",
       "seek": "Playback position",
-      "seekValue": "{{position}} of {{duration}}"
+      "seekValue": "{{position}} of {{duration}}",
+      "showProgress": "Show playback progress",
+      "showInfo": "Show song info"
     },
     "time": {
       "lunarPrefix": "Lunar"
