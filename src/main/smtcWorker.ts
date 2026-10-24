@@ -77,7 +77,8 @@ let initialSessionsPending = true;
 
 /**
  * 首批新增会话推送完后通知主进程，使其在没有正在播放的源时也能选中暂停的源
- * @description 同一次增量合并的事件同步派发，微任务在整批会话推送完成后才执行
+ * @description 原生监控在一次会话锁内发布全部启动会话，增量摘取拿不到锁时整批延到下次轮询，因此启动会话必在同一批增量中；
+ * 同批事件同步派发，微任务在整批会话推送完成后才执行
  */
 function markInitialSessions(): void {
   if (!initialSessionsPending) return;

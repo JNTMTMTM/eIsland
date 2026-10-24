@@ -20,7 +20,7 @@
 
 /**
  * @file trayMusicSeekBar.test.tsx
- * @description 托盘音乐进度条的连续推进、挂载即计时与失焦停止、拖动预览与松手跳转测试。
+ * @description 托盘音乐进度条的连续推进、仅在菜单显示时计时、拖动预览与松手跳转测试。
  * @author 鸡哥
  */
 
@@ -73,10 +73,11 @@ afterEach(() => {
 /**
  * 渲染进度条，并把滑块 ref 绑定到 DOM 替身后执行待处理 effect。
  * @param nowPlaying - 当前播放信息。
+ * @param active - 菜单是否正在显示。
  * @returns 进度条元素。
  */
-function render(nowPlaying: TrayNowPlaying = SONG): TestElement {
-  const view = renderWithHooks(() => TrayMusicSeekBar({ nowPlaying, onSeek })) as TestElement;
+function render(nowPlaying: TrayNowPlaying = SONG, active = true): TestElement {
+  const view = renderWithHooks(() => TrayMusicSeekBar({ nowPlaying, active, onSeek })) as TestElement;
   const ref = findElement(view, (node) => node.type === 'input').props.ref as { current: unknown };
   ref.current = slider;
   runEffects();
@@ -125,19 +126,20 @@ describe('TrayMusicSeekBar', () => {
     expect(times(render())).toEqual(['3:00', '3:00']);
   });
 
-  it('starts moving on mount without waiting for a focus event, stops on blur and resumes on focus', () => {
-    render();
-    vi.advanceTimersByTime(1000);
-    expect(input(render()).props.value).toBe(61000);
-    window.dispatchEvent(new Event('blur'));
-    render();
+  it('stays still when mounted behind a hidden menu and ticks only while the menu is showing', () => {
+    render(SONG, false);
     expect(vi.getTimerCount()).toBe(0);
     vi.advanceTimersByTime(5000);
-    expect(input(render()).props.value).toBe(61000);
-    window.dispatchEvent(new Event('focus'));
-    render();
-    expect(input(render()).props.value).toBe(66000);
+    expect(input(render(SONG, false)).props.value).toBe(60000);
+    render(SONG, true);
+    expect(input(render(SONG, true)).props.value).toBe(65000);
     expect(vi.getTimerCount()).toBe(1);
+    vi.advanceTimersByTime(1000);
+    expect(input(render(SONG, true)).props.value).toBe(66000);
+    render(SONG, false);
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(5000);
+    expect(input(render(SONG, false)).props.value).toBe(66000);
   });
 
   it.each([
@@ -164,14 +166,13 @@ describe('TrayMusicSeekBar', () => {
     expect(input(render()).props.value).toBe(63000);
   });
 
-  it('releases the window, slider and timer listeners on unmount', () => {
+  it('leaves window focus to the menu state and releases the slider and timer listeners on unmount', () => {
+    const addWindowListener = vi.spyOn(window, 'addEventListener');
     render();
+    expect(addWindowListener).not.toHaveBeenCalled();
     unmountHooks();
     expect(vi.getTimerCount()).toBe(0);
     slider.dispatchEvent(new Event('change'));
     expect(onSeek).not.toHaveBeenCalled();
-    window.dispatchEvent(new Event('blur'));
-    window.dispatchEvent(new Event('focus'));
-    expect(vi.getTimerCount()).toBe(0);
   });
 });

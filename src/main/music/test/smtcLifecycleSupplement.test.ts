@@ -118,16 +118,19 @@ describe('SMTC 标题、缩略图和源请求边界', () => {
     expect(service.getSmtcSessionRuntime()?.get('spotify')).toMatchObject({ payload: { title: '', artist: '', duration_ms: 0, position_ms: 0 } });
     service.cleanupWorker();
   });
-  it.each(['missing', 'destroyed'])('%s 主窗口忽略普通消息与源请求', (state) => {
+  it.each(['missing', 'destroyed'])('%s 主窗口时仍记录会话并广播给其他窗口', (state) => {
     const service = create(); service.initWorker();
     if (state === 'missing') getWindow.mockReturnValue(null); else win.isDestroyed.mockReturnValue(true);
-    update('spotify'); expect(win.webContents.send).not.toHaveBeenCalled();
-    expect(service.getSmtcSessionRuntime()?.size).toBe(0); service.cleanupWorker();
+    const tray = { isDestroyed: () => false, webContents: { send: vi.fn() } };
+    io.windows.mockReturnValue([win, tray]);
+    update('spotify');
+    expect(service.getSmtcSessionRuntime()?.get('spotify')).toMatchObject({ hasTitle: true, isPlaying: true });
+    expect(tray.webContents.send).toHaveBeenCalledExactlyOnceWith('nowplaying:info', expect.objectContaining({ deviceId: 'spotify' }));
+    service.cleanupWorker();
   });
-  it.each(['missing', 'destroyed'])('源切换通知前 %s 窗口时不发送通知', (state) => {
+  it.each(['missing', 'destroyed'])('源切换通知时 %s 主窗口不发送通知', (state) => {
     const service = create(); service.initWorker(); update('spotify'); win.webContents.send.mockClear();
-    if (state === 'missing') getWindow.mockReturnValueOnce(win as unknown as BrowserWindow).mockReturnValueOnce(null);
-    else win.isDestroyed.mockReturnValueOnce(false).mockReturnValueOnce(true);
+    if (state === 'missing') getWindow.mockReturnValue(null); else win.isDestroyed.mockReturnValue(true);
     update('foobar');
     expect(service.getPendingSourceSwitchId()).toBe('foobar'); expect(win.webContents.send).not.toHaveBeenCalled();
     service.cleanupWorker();

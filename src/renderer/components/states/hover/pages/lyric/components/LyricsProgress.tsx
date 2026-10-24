@@ -24,19 +24,14 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../../../../../../store/slices';
+import { usePendingSeek } from '../../../../../hooks/usePendingSeek';
 import { useCurrentLyric } from '../../../../lyrics/hooks/useCurrentLyric';
 import { formatProgressTime } from '../utils/lyricUtils';
 import type { ChangeEvent, CSSProperties, ReactElement } from 'react';
-
-/** 松手后等待播放器回报新进度的最长时间，超时仍未回报视为跳转未生效，回到真实进度 */
-const SEEK_SETTLE_TIMEOUT_MS = 1000;
-
-/** 真实进度与跳转目标相差在此范围内，即视为播放器已跳转到位 */
-const SEEK_SETTLE_TOLERANCE_MS = 1500;
 
 interface LyricsProgressProps {
   /** 点击时间行时切换回歌曲信息 */
@@ -52,43 +47,43 @@ interface LyricsProgressProps {
  */
 export function LyricsProgress({ onShowInfo }: LyricsProgressProps): ReactElement {
   const { t } = useTranslation();
-  const { currentPositionMs, currentDurationMs, syncedLyrics, lyricsLoading } = useIslandStore(useShallow((store) => ({
+  const { currentPositionMs, currentDurationMs, syncedLyrics, lyricsLoading, title, artist } = useIslandStore(useShallow((store) => ({
     currentPositionMs: store.currentPositionMs,
     currentDurationMs: store.currentDurationMs,
     syncedLyrics: store.syncedLyrics,
     lyricsLoading: store.lyricsLoading,
+    title: store.mediaInfo.title,
+    artist: store.mediaInfo.artist,
   })));
+  const trackKey = `${title}\n${artist}`;
+  const { pendingSeek, commitSeek } = usePendingSeek(trackKey);
   const [dragPositionMs, setDragPositionMs] = useState<number | null>(null);
-  const [seekTargetMs, setSeekTargetMs] = useState<number | null>(null);
   const sliderRef = useRef<HTMLInputElement | null>(null);
 
+  // 换歌时滑块随 key 重建，未松手的拖动随之结束；绘制前丢弃上一首的拖动预览，切回该歌曲时也不会重现。
+  useLayoutEffect(() => {
+    setDragPositionMs(null);
+  }, [trackKey]);
+
   // React 的 onChange 对应拖动过程中的 input 事件；原生 change 只在松手或键盘调整完成时触发，此时才真正跳转。
+  // 换歌重建滑块后 commitSeek 随之变化，监听重新绑定到新滑块。
   useEffect(() => {
     const slider = sliderRef.current;
     if (!slider) return undefined;
     const handleCommit = (): void => {
-      const targetMs = Math.round(Number(slider.value));
-      setSeekTargetMs(targetMs);
+      commitSeek(Math.round(Number(slider.value)));
       setDragPositionMs(null);
-      window.api?.mediaSeek(targetMs).catch(() => undefined);
     };
     slider.addEventListener('change', handleCommit);
     return () => slider.removeEventListener('change', handleCommit);
-  }, []);
-
-  useEffect(() => {
-    if (seekTargetMs === null) return undefined;
-    const timer = window.setTimeout(() => setSeekTargetMs(null), SEEK_SETTLE_TIMEOUT_MS);
-    return () => window.clearTimeout(timer);
-  }, [seekTargetMs]);
+  }, [commitSeek]);
 
   const handleDrag = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
     setDragPositionMs(Number(event.currentTarget.value));
   }, []);
 
-  // 本地播放时钟要等播放器推送新时间线后才会改变，期间先停在跳转目标，避免松手后滑块跳回旧进度。
-  const awaitingSeek = seekTargetMs !== null && Math.abs(currentPositionMs - seekTargetMs) > SEEK_SETTLE_TOLERANCE_MS;
-  const positionMs = Math.min(currentDurationMs, dragPositionMs ?? (awaitingSeek ? seekTargetMs : currentPositionMs));
+  // 本地播放时钟要等播放器推送新时间线后才会改变，跳转待确认期间先停在目标位置，避免松手后滑块跳回旧进度。
+  const positionMs = Math.min(currentDurationMs, dragPositionMs ?? pendingSeek?.targetMs ?? currentPositionMs);
   const positionText = formatProgressTime(positionMs);
   const durationText = formatProgressTime(currentDurationMs);
   // 歌词与左侧时间同步取显示进度，拖动预览时一并显示目标位置的歌词；前奏、加载中或无歌词时为空。
@@ -96,9 +91,10 @@ export function LyricsProgress({ onShowInfo }: LyricsProgressProps): ReactElemen
   const showInfoLabel = t('hover.music.showInfo', { defaultValue: '显示歌曲信息' });
 
   // step="any" 让滑块随时间连续移动；键盘方向键按浏览器默认每次调整总时长的 1%。
+  // 换歌时只重建滑块（重建整个进度条会重播出现过渡），避免松手后把新歌跳到上一首的拖动位置。
   return (
     <div className="lrc-progress">
-      <input ref={sliderRef} className="lrc-progress-slider" type="range" min={0} max={currentDurationMs} step="any" value={positionMs}
+      <input key={trackKey} ref={sliderRef} className="lrc-progress-slider" type="range" min={0} max={currentDurationMs} step="any" value={positionMs}
         aria-label={t('hover.music.seek', { defaultValue: '播放进度' })}
         aria-valuetext={t('hover.music.seekValue', { defaultValue: '{{position}} / {{duration}}', position: positionText, duration: durationText })}
         style={{ '--lrc-progress': `${(positionMs / currentDurationMs) * 100}%` } as CSSProperties} onChange={handleDrag} />

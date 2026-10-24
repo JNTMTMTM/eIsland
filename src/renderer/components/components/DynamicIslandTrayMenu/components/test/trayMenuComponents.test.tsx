@@ -211,8 +211,8 @@ describe('TrayUserCard', () => {
 });
 
 describe('TrayMusicCard', () => {
-  const handlers = (): { openCount: number; onTogglePlayback: () => void; onPrevious: () => void; onNext: () => void; onSeek: (positionMs: number) => void } => ({
-    openCount: 3, onTogglePlayback: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onSeek: vi.fn(),
+  const handlers = (): { openCount: number; menuVisible: boolean; onTogglePlayback: () => void; onPrevious: () => void; onNext: () => void; onSeek: (positionMs: number) => void } => ({
+    openCount: 3, menuVisible: true, onTogglePlayback: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onSeek: vi.fn(),
   });
   const seekBar = (view: TestElement): TestElement => findElement(view, (node) => node.type === TrayMusicSeekBar);
   const buttons = (view: TestElement): TestElement[] => elements(view).filter((node) => node.type === 'button');
@@ -247,13 +247,17 @@ describe('TrayMusicCard', () => {
     expect(props.onNext).toHaveBeenCalledOnce();
   });
 
-  it('places the seek bar under the controls and rebuilds it on every menu open', () => {
+  it('places the seek bar under the controls and rebuilds it on every menu open and track change', () => {
     const props = handlers();
     const view = TrayMusicCard({ nowPlaying: SONG, loading: false, ...props }) as TestElement;
     const children = view.props.children as TestElement[];
     expect(children.map((child) => child.type === TrayMusicSeekBar || child.props.className)).toEqual(['tray-music-card-main', true]);
-    expect(seekBar(view).key).toBe('3');
-    expect(seekBar(view).props).toEqual({ nowPlaying: SONG, onSeek: props.onSeek });
+    expect(seekBar(view).key).toBe('3\nSong\nSinger');
+    expect(seekBar(view).props).toEqual({ nowPlaying: SONG, active: true, onSeek: props.onSeek });
+    const keyFor = (track: TrayNowPlaying, opens = 3): string | null => seekBar(TrayMusicCard({ ...props, nowPlaying: track, openCount: opens, loading: false }) as TestElement).key;
+    expect(keyFor({ ...SONG, positionMs: 500, isPlaying: false })).toBe('3\nSong\nSinger');
+    expect(new Set([keyFor(SONG, 4), keyFor({ ...SONG, title: 'Next' }), keyFor({ ...SONG, artist: 'Other' })]).size).toBe(3);
+    expect(seekBar(TrayMusicCard({ ...props, nowPlaying: SONG, loading: false, menuVisible: false }) as TestElement).props.active).toBe(false);
   });
 
   it('hides the seek bar and drops back to the single-row height when the source has no valid timeline', () => {
@@ -437,6 +441,28 @@ describe('TrayMenu', () => {
     expect(findElement(view, (node) => node.type === TrayUserCard).props.user).toBe(SIGNED_OUT);
     expect(api.trayMenuReady).toHaveBeenLastCalledWith(180);
     expect(api.trayMenuReady).toHaveBeenCalledTimes(2);
+  });
+
+  it('marks the menu shown on open and focus, hidden on blur, and removes those window listeners on unmount', async () => {
+    const addListener = vi.spyOn(window, 'addEventListener');
+    const removeListener = vi.spyOn(window, 'removeEventListener');
+    const menuVisible = (): unknown => findElement(renderMenu() as TestElement, (node) => node.type === TrayMusicCard).props.menuVisible;
+    await openWith(STATE);
+    expect(menuVisible()).toBe(true);
+    window.dispatchEvent(new Event('blur'));
+    expect(menuVisible()).toBe(false);
+    window.dispatchEvent(new Event('focus'));
+    expect(menuVisible()).toBe(true);
+    window.dispatchEvent(new Event('blur'));
+    openHandler?.(STATE);
+    await settle();
+    expect(menuVisible()).toBe(true);
+    const registered = (type: string): unknown[] => addListener.mock.calls.filter(([name]) => name === type).map(([, listener]) => listener);
+    unmountHooks();
+    ['focus', 'blur'].forEach((type) => {
+      expect(registered(type)).toHaveLength(1);
+      expect(removeListener).toHaveBeenCalledWith(type, registered(type)[0]);
+    });
   });
 
   it('closes on Escape only and releases listeners and pending frames on unmount', async () => {

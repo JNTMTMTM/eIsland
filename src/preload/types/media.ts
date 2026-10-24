@@ -60,6 +60,12 @@ export interface NowPlayingInfo {
   deviceId?: string;
 }
 
+/** SMTC 播放控制命令结果 */
+export interface MediaCommandResult {
+  success: boolean;
+  error: string | null;
+}
+
 /** SMTC 播放源信息 */
 export interface SmtcSourceInfo {
   sourceAppId: string;

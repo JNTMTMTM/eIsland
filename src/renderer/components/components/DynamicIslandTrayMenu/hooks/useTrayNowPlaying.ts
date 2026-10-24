@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { usePendingSeek } from '../../../hooks/usePendingSeek';
 import { estimatePlaybackPosition } from '../utils/trayPlayback';
 import type { NowPlayingInfo } from '../../../../../preload/types/media';
 import type { TrayNowPlaying } from '../types';
@@ -86,6 +87,7 @@ export function toTrayNowPlaying(info: NowPlayingInfo | null, previous: TrayNowP
 export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   const [nowPlaying, setNowPlaying] = useState<TrayNowPlaying | null>(null);
   const [loading, setLoading] = useState(true);
+  const { pendingSeek, commitSeek } = usePendingSeek(nowPlaying ? `${nowPlaying.title}\n${nowPlaying.artist}` : '');
 
   useEffect(() => window.api.onNowPlayingInfo((info) => {
     setNowPlaying((previous) => toTrayNowPlaying(info, previous));
@@ -129,12 +131,15 @@ export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   const playNext = (): void => {
     if (nowPlaying) window.api.mediaNext().catch(() => undefined);
   };
-  // 先把进度移到目标位置，松手后滑块不会跳回旧进度；随后的媒体广播会校正真实进度。
   const seekTo = (targetMs: number): void => {
-    if (!nowPlaying) return;
-    setNowPlaying({ ...nowPlaying, positionMs: targetMs, positionTimestampMs: Date.now() });
-    window.api.mediaSeek(targetMs).catch(() => undefined);
+    if (nowPlaying) commitSeek(targetMs);
   };
 
-  return { nowPlaying, loading, togglePlayback, playPrevious, playNext, seekTo };
+  // 跳转待确认期间进度停在目标位置，跳转前采样的广播或打开时的刷新不会让滑块跳回旧进度；
+  // 真实进度单独保留，跳转失败或超时后直接回到它，不会留下未生效的进度。
+  const displayed = nowPlaying && pendingSeek
+    ? { ...nowPlaying, positionMs: pendingSeek.targetMs, positionTimestampMs: pendingSeek.committedAt }
+    : nowPlaying;
+
+  return { loading, togglePlayback, playPrevious, playNext, seekTo, nowPlaying: displayed };
 }

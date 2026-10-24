@@ -287,9 +287,7 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
           return;
         }
 
-        const mainWindow = options.getMainWindow();
-        if (!mainWindow || mainWindow.isDestroyed()) return;
-
+        // 会话记录不依赖主窗口：启动快照可能早于主窗口推送，各广播函数自行判断窗口是否可用。
         if (msg.type !== 'session-update') return;
 
         const { sourceAppId = '', session } = msg;

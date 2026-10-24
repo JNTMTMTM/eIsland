@@ -31,7 +31,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import type {} from '../index.d.ts';
 import type { ElectronAPI } from '@electron-toolkit/preload';
 import type { TrayMenuAction, TrayMenuState } from '../../shared/trayMenu';
-import type { Point, Bounds, IslandDisplayInfo, SearchLocalFilesOptions, SearchLocalFileResult, SaveTextFilePayload, SaveTextFileResult, ComputeFileHashResult, ExecuteAgentLocalToolRequest, ExecuteAgentLocalToolResult, OllamaChatRequest, ChatEvent, ChatStartResult, ChatAbortResult, CustomDirectChatRequest, NowPlayingInfo, SmtcTimestampResult, DetectSourceAppIdResult, ImageCompressionStartPayload, ImageCompressionStartResult, ImageCompressionTask, SaveImageAsResult, ResolveShortcutResult, ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult, NetFetchOptions, NetFetchResult, MailInboxResult, NavOrderPayload, SetWallpaperPayload, DownloadStartPayload, DownloadStartResult, DownloadTask, UpdaterCheckResult, UpdaterProgress, UpdaterDownloadedData, UpdaterAvailableData, UpdaterNotAvailableData, UpdaterStartupAutoCheckRequestData, ClipboardUrlsDetectedData, MusicProviderAuthStatus, MusicProviderId, MusicProviderQrCodeResult, QishuiBusinessRequestOptions, QishuiBusinessStatus, QishuiLyricsResult, QishuiSongsResult, QishuiSongUrlResult, ExternalAgentData, RunningProcessInfo, RunningWindowInfo, PerformanceHardwareSelection, PerformanceSnapshot, ClaudeCodeStatusSnapshot, ClaudeCodeHookMutationResult, CodexStatusSnapshot, CodexMonitorMutationResult, } from '../types';
+import type { Point, Bounds, IslandDisplayInfo, SearchLocalFilesOptions, SearchLocalFileResult, SaveTextFilePayload, SaveTextFileResult, ComputeFileHashResult, ExecuteAgentLocalToolRequest, ExecuteAgentLocalToolResult, OllamaChatRequest, ChatEvent, ChatStartResult, ChatAbortResult, CustomDirectChatRequest, NowPlayingInfo, MediaCommandResult, SmtcTimestampResult, DetectSourceAppIdResult, ImageCompressionStartPayload, ImageCompressionStartResult, ImageCompressionTask, SaveImageAsResult, ResolveShortcutResult, ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult, NetFetchOptions, NetFetchResult, MailInboxResult, NavOrderPayload, SetWallpaperPayload, DownloadStartPayload, DownloadStartResult, DownloadTask, UpdaterCheckResult, UpdaterProgress, UpdaterDownloadedData, UpdaterAvailableData, UpdaterNotAvailableData, UpdaterStartupAutoCheckRequestData, ClipboardUrlsDetectedData, MusicProviderAuthStatus, MusicProviderId, MusicProviderQrCodeResult, QishuiBusinessRequestOptions, QishuiBusinessStatus, QishuiLyricsResult, QishuiSongsResult, QishuiSongUrlResult, ExternalAgentData, RunningProcessInfo, RunningWindowInfo, PerformanceHardwareSelection, PerformanceSnapshot, ClaudeCodeStatusSnapshot, ClaudeCodeHookMutationResult, CodexStatusSnapshot, CodexMonitorMutationResult, } from '../types';
 interface ExpectedApi {
   enableMousePassthrough: () => void;
   disableMousePassthrough: () => void;
@@ -90,7 +90,7 @@ interface ExpectedApi {
   mediaPlayPause: () => Promise<void>;
   mediaNext: () => Promise<void>;
   mediaPrev: () => Promise<void>;
-  mediaSeek: (positionMs: number) => Promise<void>;
+  mediaSeek: (positionMs: number) => Promise<MediaCommandResult | undefined>;
   mediaGetVolume: () => Promise<number>;
   mediaSetVolume: (volume: number) => Promise<void>;
   mediaGetMuted: () => Promise<boolean | null>;

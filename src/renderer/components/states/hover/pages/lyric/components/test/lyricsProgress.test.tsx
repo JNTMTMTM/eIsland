@@ -20,7 +20,7 @@
 
 /**
  * @file lyricsProgress.test.tsx
- * @description 歌词页进度条跟随真实 store 播放时钟、时间行合并时间与当前歌词、拖动预览与松手跳转、等待播放器回报与超时回退测试。
+ * @description 歌词页进度条跟随真实 store 播放时钟、时间行合并时间与当前歌词、拖动预览与松手跳转、等待播放器确认、失败与超时回退及换歌作废测试。
  * @author 鸡哥
  */
 
@@ -30,6 +30,7 @@ import { elements, findElement, hookMocks, invoke, textContent } from '../../../
 import useIslandStore from '../../../../../../../store/slices';
 import { LyricsProgress } from '../LyricsProgress';
 import type { TestElement } from '../../../../../../test/elementHarness';
+import type { MediaCommandResult, NowPlayingInfo } from '../../../../../../../../preload/types/media';
 
 vi.hoisted(() => {
   vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } }));
@@ -37,7 +38,7 @@ vi.hoisted(() => {
 });
 // Zustand 外部包的 React 订阅适配不参与局部调度；保留真实 selector 和原始 store。
 vi.mock('zustand/react/shallow', () => ({ useShallow: <T,>(selector: T): T => selector }));
-vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
+vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks, useLayoutEffect: lifecycleHooks.useEffect }));
 vi.mock('react-i18next', async (load) => ({
   ...(await load<typeof import('react-i18next')>()),
   useTranslation: () => ({
@@ -54,22 +55,32 @@ vi.mock('../../../../../../../store/slices', async (load) => {
 type SliderStub = EventTarget & { value: string };
 
 let slider: SliderStub;
-const mediaSeek = vi.fn<(positionMs: number) => Promise<void>>();
+const mediaSeek = vi.fn<(positionMs: number) => Promise<MediaCommandResult | undefined>>();
 const onShowInfo = vi.fn<() => void>();
+/** 当前订阅媒体广播的回调。 */
+const listeners = new Set<(info: NowPlayingInfo | null) => void>();
+const SONG_INFO = { title: 'Song', artist: 'Singer', album: '', duration_ms: 180000 };
 
 beforeEach(() => {
   resetLifecycle();
   vi.clearAllMocks();
-  vi.useFakeTimers();
-  mediaSeek.mockResolvedValue(undefined);
+  vi.useFakeTimers({ now: 10000 });
+  listeners.clear();
+  mediaSeek.mockResolvedValue({ success: true, error: null });
   slider = Object.assign(new EventTarget(), { value: '0' });
   vi.stubGlobal('window', Object.assign(new EventTarget(), {
-    api: { mediaSeek },
+    api: {
+      mediaSeek,
+      onNowPlayingInfo: (callback: (info: NowPlayingInfo | null) => void) => {
+        listeners.add(callback);
+        return () => listeners.delete(callback);
+      },
+    },
     location: { hostname: 'localhost' },
     setTimeout: (callback: () => void, ms: number) => setTimeout(callback, ms),
     clearTimeout: (id: ReturnType<typeof setTimeout>) => clearTimeout(id),
   }));
-  useIslandStore.setState({ currentPositionMs: 60000, currentDurationMs: 180000, syncedLyrics: null, lyricsLoading: false });
+  useIslandStore.setState({ currentPositionMs: 60000, currentDurationMs: 180000, syncedLyrics: null, lyricsLoading: false, mediaInfo: SONG_INFO });
 });
 
 afterEach(() => {
@@ -97,6 +108,19 @@ function render(): TestElement {
   ref.current = slider;
   runEffects();
   return view;
+}
+
+/**
+ * 派发主进程媒体广播。
+ * @param positionMs - 播放进度（毫秒）。
+ * @param sampledAt - 进度的采样时刻（Unix 毫秒）。
+ */
+function broadcast(positionMs: number, sampledAt: number): void {
+  const info: NowPlayingInfo = {
+    ...SONG_INFO, position_ms: positionMs, positionTimestampMs: sampledAt, playbackRate: 1, isPlaying: true,
+    canFastForward: false, canSkip: false, canLike: false, canChangeVolume: false, canSetOutput: false,
+  };
+  [...listeners].forEach((listener) => listener(info));
 }
 
 /**
@@ -184,14 +208,27 @@ describe('LyricsProgress', () => {
     expect(mediaSeek).toHaveBeenCalledExactlyOnceWith(120000);
   });
 
-  it('holds the seek target until the player reports the new position, then follows the store', () => {
+  it('holds the seek target until a broadcast sampled after the seek reports it, then follows the store', () => {
     commit('120000');
     expect(input(render()).props.value).toBe(120000);
+    useIslandStore.setState({ currentPositionMs: 60400 });
+    expect(input(render()).props.value).toBe(120000);
     useIslandStore.setState({ currentPositionMs: 120400 });
+    broadcast(120400, 10400);
     expect(input(render()).props.value).toBe(120400);
     vi.advanceTimersByTime(1000);
     useIslandStore.setState({ currentPositionMs: 125000 });
     expect(input(render()).props.value).toBe(125000);
+  });
+
+  it('keeps a short seek at its target instead of snapping back to the nearby old position', () => {
+    commit('61000');
+    expect(input(render()).props.value).toBe(61000);
+    broadcast(60000, 9900);
+    expect(input(render()).props.value).toBe(61000);
+    useIslandStore.setState({ currentPositionMs: 61050 });
+    broadcast(61050, 10050);
+    expect(input(render()).props.value).toBe(61050);
   });
 
   it('returns to the real position when the player never reports the seek', () => {
@@ -203,19 +240,63 @@ describe('LyricsProgress', () => {
     expect(input(render()).props.value).toBe(60000);
   });
 
-  it('ignores a rejected seek request', async () => {
-    mediaSeek.mockRejectedValueOnce(new Error('seek unavailable'));
+  it.each([
+    { name: 'rejected', respond: () => mediaSeek.mockRejectedValueOnce(new Error('seek unavailable')) },
+    { name: 'failed', respond: () => mediaSeek.mockResolvedValueOnce({ success: false, error: 'seek rejected' }) },
+  ])('returns to the real position at once after a $name seek request', async ({ respond }) => {
+    respond();
     commit('120000');
-    await Promise.resolve();
+    expect(input(render()).props.value).toBe(120000);
+    await vi.advanceTimersByTimeAsync(0);
     expect(mediaSeek).toHaveBeenCalledExactlyOnceWith(120000);
+    expect(input(render()).props.value).toBe(60000);
   });
 
-  it('releases the slider listener and the settle timer on unmount', () => {
+  it('drops the drag preview and the pending seek of the previous track, even after switching back to it', () => {
+    /**
+     * 切换歌曲后渲染两次：布局 effect 在绘制前清理状态并同步重渲染。
+     * @param mediaInfo - 新的歌曲信息。
+     * @param currentPositionMs - 新的播放进度（毫秒）。
+     * @returns 清理后的滑块值。
+     */
+    const switchTo = (mediaInfo: typeof SONG_INFO, currentPositionMs: number): unknown => {
+      useIslandStore.setState({ mediaInfo, currentPositionMs });
+      render();
+      return input(render()).props.value;
+    };
+    invoke(input(render()), 'onChange', { currentTarget: { value: '120000' } });
+    expect(input(render()).props.value).toBe(120000);
+    expect(switchTo({ ...SONG_INFO, title: 'Next' }, 3000)).toBe(3000);
+    expect(switchTo(SONG_INFO, 60000)).toBe(60000);
+    commit('90000');
+    expect(input(render()).props.value).toBe(90000);
+    expect(switchTo({ ...SONG_INFO, artist: 'Other' }, 3000)).toBe(3000);
+  });
+
+  it('rebuilds the slider for a new track, so releasing a drag begun on the old track never seeks the new one', () => {
+    const oldSlider = slider;
+    const view = render();
+    expect(input(view).key).toBe('Song\nSinger');
+    invoke(input(view), 'onChange', { currentTarget: { value: '120000' } });
+    useIslandStore.setState({ mediaInfo: { ...SONG_INFO, title: 'Next' } });
+    slider = Object.assign(new EventTarget(), { value: '0' });
+    expect(input(render()).key).toBe('Next\nSinger');
+    oldSlider.value = '120000';
+    oldSlider.dispatchEvent(new Event('change'));
+    expect(mediaSeek).not.toHaveBeenCalled();
+    slider.value = '45000';
+    slider.dispatchEvent(new Event('change'));
+    expect(mediaSeek).toHaveBeenCalledExactlyOnceWith(45000);
+  });
+
+  it('releases the slider listener, the settle timer and the broadcast listener on unmount', () => {
     commit('120000');
     render();
     expect(vi.getTimerCount()).toBe(1);
+    expect(listeners.size).toBe(1);
     unmountHooks();
     expect(vi.getTimerCount()).toBe(0);
+    expect(listeners.size).toBe(0);
     slider.dispatchEvent(new Event('change'));
     expect(mediaSeek).toHaveBeenCalledOnce();
   });

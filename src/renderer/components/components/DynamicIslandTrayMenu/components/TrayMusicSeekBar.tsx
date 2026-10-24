@@ -36,37 +36,26 @@ const TICK_INTERVAL_MS = 250;
 interface TrayMusicSeekBarProps {
   /** 当前播放信息，仅在播放源提供有效时间线（总时长大于 0）时渲染进度条 */
   nowPlaying: TrayNowPlaying;
+  /** 菜单是否正在显示；菜单窗口关闭了后台节流，收起后须停止计时 */
+  active: boolean;
   /** 跳转到目标进度（毫秒） */
   onSeek: (positionMs: number) => void;
 }
 
 /**
  * 托盘音乐进度条
- * @description 组件随每次打开菜单重建，挂载即开始推进进度，菜单失焦收起后停止计时
+ * @description 组件随每次打开菜单及换歌重建，菜单显示期间推进进度，收起后停止计时
  * @param props - 组件属性
  * @param props.nowPlaying - 当前播放信息
+ * @param props.active - 菜单是否正在显示
  * @param props.onSeek - 跳转到目标进度（毫秒）
  * @returns 进度条元素
  */
-export function TrayMusicSeekBar({ nowPlaying, onSeek }: TrayMusicSeekBarProps): ReactElement {
+export function TrayMusicSeekBar({ nowPlaying, active, onSeek }: TrayMusicSeekBarProps): ReactElement {
   const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
-  const [active, setActive] = useState(true);
   const [dragPositionMs, setDragPositionMs] = useState<number | null>(null);
   const sliderRef = useRef<HTMLInputElement | null>(null);
-
-  // 菜单窗口关闭了后台节流，收起后计时器仍会运行，失焦（菜单收起）时停止计时。
-  // 挂载即视为可见而不等待 focus 事件：托盘点击后窗口未必能立刻获得焦点，等待会让进度条停住。
-  useEffect(() => {
-    const handleFocus = (): void => setActive(true);
-    const handleBlur = (): void => setActive(false);
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('blur', handleBlur);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('blur', handleBlur);
-    };
-  }, []);
 
   const ticking = active && nowPlaying.isPlaying && nowPlaying.playbackRate > 0;
   useEffect(() => {

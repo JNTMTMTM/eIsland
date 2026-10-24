@@ -39,6 +39,8 @@ interface TrayMusicCardProps {
   loading: boolean;
   /** 菜单打开次数，变化时重建进度条，使其从打开时刻的进度开始显示并丢弃上次未完成的拖动 */
   openCount: number;
+  /** 菜单是否正在显示，收起后进度条停止计时 */
+  menuVisible: boolean;
   /** 暂停或恢复播放 */
   onTogglePlayback: () => void;
   /** 上一首 */
@@ -56,13 +58,14 @@ interface TrayMusicCardProps {
  * @param props.nowPlaying - 当前播放信息
  * @param props.loading - 播放信息读取中
  * @param props.openCount - 菜单打开次数
+ * @param props.menuVisible - 菜单是否正在显示
  * @param props.onTogglePlayback - 暂停或恢复播放
  * @param props.onPrevious - 上一首
  * @param props.onNext - 下一首
  * @param props.onSeek - 跳转到指定进度（毫秒）
  * @returns 卡片元素
  */
-export function TrayMusicCard({ nowPlaying, loading, openCount, onTogglePlayback, onPrevious, onNext, onSeek }: TrayMusicCardProps): ReactElement {
+export function TrayMusicCard({ nowPlaying, loading, openCount, menuVisible, onTogglePlayback, onPrevious, onNext, onSeek }: TrayMusicCardProps): ReactElement {
   const { t } = useTranslation();
 
   if (loading) {
@@ -115,7 +118,8 @@ export function TrayMusicCard({ nowPlaying, loading, openCount, onTogglePlayback
           </button>
         </div>
       </div>
-      {seekable && <TrayMusicSeekBar key={openCount} nowPlaying={nowPlaying} onSeek={onSeek} />}
+      {/* 换歌时同样重建：丢弃上一首的拖动预览，并结束未松手的拖动，避免松手后把新歌跳到旧位置。 */}
+      {seekable && <TrayMusicSeekBar key={`${openCount}\n${nowPlaying.title}\n${nowPlaying.artist}`} nowPlaying={nowPlaying} active={menuVisible} onSeek={onSeek} />}
     </div>
   );
 }

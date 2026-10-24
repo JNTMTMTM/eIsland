@@ -43,7 +43,7 @@ import '../styles/tray-menu.css';
  */
 export function TrayMenu(): ReactElement {
   const { t } = useTranslation();
-  const { menuState, user, openCount } = useTrayMenuState();
+  const { menuState, user, openCount, visible } = useTrayMenuState();
   const { nowPlaying, loading, togglePlayback, playPrevious, playNext, seekTo } = useTrayNowPlaying(openCount);
   const rootRef = useRef<HTMLDivElement | null>(null);
   // 骨架屏与有时间线的卡片带进度条行，二者之间切换会改变菜单高度。
@@ -79,7 +79,7 @@ export function TrayMenu(): ReactElement {
   return (
     <div ref={rootRef} className="tray-menu" role="menu" aria-label={t('tray.menuLabel')}>
       <TrayUserCard user={user} />
-      <TrayMusicCard nowPlaying={nowPlaying} loading={loading} openCount={openCount} onTogglePlayback={togglePlayback} onPrevious={playPrevious} onNext={playNext} onSeek={seekTo} />
+      <TrayMusicCard nowPlaying={nowPlaying} loading={loading} openCount={openCount} menuVisible={visible} onTogglePlayback={togglePlayback} onPrevious={playPrevious} onNext={playNext} onSeek={seekTo} />
       <div className="tray-menu-list">
         {visibleItems.map((item) => {
           if (item.kind === 'separator') {

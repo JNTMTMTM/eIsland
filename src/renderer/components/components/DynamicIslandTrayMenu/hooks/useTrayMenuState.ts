@@ -20,7 +20,7 @@
 
 /**
  * @file useTrayMenuState.ts
- * @description 订阅托盘菜单打开事件，同步菜单状态、界面语言与用户摘要
+ * @description 订阅托盘菜单打开事件与窗口焦点，同步菜单状态、界面语言、用户摘要与显示状态
  * @author 鸡哥
  */
 
@@ -37,18 +37,34 @@ interface TrayMenuSnapshot {
   user: TrayUserSummary;
   /** 打开次数，每次打开递增，用于触发重新测量 */
   openCount: number;
+  /** 菜单是否正在显示：打开或获得焦点时为 true，失焦（主进程随即收起菜单）后为 false */
+  visible: boolean;
 }
 
 /**
  * 跟踪托盘菜单每次打开时的状态
- * @returns 菜单状态、用户摘要与打开次数
+ * @returns 菜单状态、用户摘要、打开次数与是否正在显示
  */
 export function useTrayMenuState(): TrayMenuSnapshot {
   const [snapshot, setSnapshot] = useState<TrayMenuSnapshot>(() => ({
     menuState: null,
     user: readTrayUserSummary(),
     openCount: 0,
+    visible: false,
   }));
+
+  // 菜单窗口常驻且关闭了后台节流，页面可见性始终为可见，只能按焦点判断菜单是否收起。
+  // 托盘点击后窗口未必能立刻获得焦点，因此打开事件本身也视为显示。
+  useEffect(() => {
+    const handleFocus = (): void => setSnapshot((previous) => (previous.visible ? previous : { ...previous, visible: true }));
+    const handleBlur = (): void => setSnapshot((previous) => (previous.visible ? { ...previous, visible: false } : previous));
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, []);
 
   useEffect(() => {
     // 菜单窗口常驻后台，语言以主进程读取的存储为准，先切换再渲染避免测量到旧文案。
@@ -64,6 +80,7 @@ export function useTrayMenuState(): TrayMenuSnapshot {
         menuState,
         user: readTrayUserSummary(),
         openCount: previous.openCount + 1,
+        visible: true,
       }));
     };
     const unsubscribe = window.api.onTrayMenuOpen((menuState) => {
