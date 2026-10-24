@@ -264,7 +264,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       else logCalibrationStatus(calibrationEnabled ? 'waiting-lyrics' : 'disabled', calibrationEnabled ? '校准已启用，等待歌词加载' : '校准已关闭，已取消待执行校准');
     });
 
-    const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
+    const applyNowPlaying = (info: NowPlayingInfo | null): void => {
       if (disposed) return;
       timelineVersion += 1;
       handleNowPlayingUpdateRef.current(info);
@@ -438,7 +438,24 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       }
       if (hasPosition && (!playing || progressTimerRef.current !== null || progressBaseRef.current.playbackRate === 0)) tick();
       reconcileProgress();
+    };
+
+    let receivedBroadcast = false;
+    const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
+      receivedBroadcast = true;
+      applyNowPlaying(info);
     });
+
+    // 启动时主进程常在本窗口订阅前就推送了当前会话，订阅后主动拉取一次；拉取期间已收到推送则以推送为准。
+    const pullCurrentInfo = async (): Promise<void> => {
+      try {
+        const info = await window.api?.mediaCurrentInfoGet?.();
+        if (info && !receivedBroadcast) applyNowPlaying(info);
+      } catch {
+        // 拉取失败时等待后续推送
+      }
+    };
+    void pullCurrentInfo();
 
     return () => {
       disposed = true;

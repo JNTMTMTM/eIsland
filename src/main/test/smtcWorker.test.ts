@@ -191,6 +191,25 @@ describe('SMTC Worker', () => {
     expect(mocks.execute).toHaveBeenCalledWith(request, expect.any(Function));
   });
 
+  it('首批新增会话全部推送后只通知一次启动快照完成', async () => {
+    await import('../smtcWorker');
+    mocks.sessions.mockReturnValue([
+      { media, playback, timeline, sourceAppId: 'a' },
+      { media, timeline, playback: { playbackStatus: 5 }, sourceAppId: 'b' },
+    ]);
+    emit('session-added', 'a', media);
+    emit('session-added', 'b', media);
+    expect(mocks.post).not.toHaveBeenCalledWith({ type: 'initial-sessions-ready' });
+    await Promise.resolve();
+    const posted = (): Array<{ type: string; sourceAppId?: string }> => mocks.post.mock.calls.map(([message]) => message as { type: string; sourceAppId?: string });
+    expect(posted().map((message) => [message.type, message.sourceAppId])).toEqual([
+      ['session-update', 'a'], ['session-update', 'b'], ['initial-sessions-ready', undefined],
+    ]);
+    emit('session-added', 'c', media);
+    await Promise.resolve();
+    expect(posted().filter((message) => message.type === 'initial-sessions-ready')).toHaveLength(1);
+  });
+
   it('非Worker环境拒绝启动，不创建原生监听', async () => {
     mocks.active = false;
     await expect(import('../smtcWorker')).rejects.toThrow('must be run as a Worker');
