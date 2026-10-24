@@ -743,46 +743,31 @@ describe('createSmtcService', () => {
       expect(svc.getCurrentDeviceId()).toBe('Spotify.exe');
     });
 
-    it('skips when main window is null', async () => {
+    it.each([
+      { name: 'null', getMainWindow: () => null },
+      { name: 'destroyed', getMainWindow: () => mockDestroyedWindow as unknown as import('electron').BrowserWindow },
+    ])('records sessions and adopts the startup source while the main window is $name', async ({ getMainWindow }) => {
       const { createSmtcService } = await import('../smtcService');
-      const svc = createSmtcService(defaultOptions({
-        getWhitelist: () => ['spotify'],
-        getMainWindow: () => null,
-      }));
+      const svc = createSmtcService(defaultOptions({ getMainWindow, getWhitelist: () => ['spotify'] }));
       svc.initWorker();
+      svc.setCurrentDeviceId('');
 
       emitWorkerMessage({
         type: 'session-update',
         sourceAppId: 'Spotify.exe',
         session: {
           media: { title: 'Song', artist: 'A', albumTitle: '', thumbnail: null },
-          playback: { playbackStatus: 4, playbackType: 1 },
+          playback: { playbackStatus: 5, playbackType: 1 },
           timeline: null,
         },
       });
+      expect(svc.getSmtcSessionRuntime()!.get('Spotify.exe')).toMatchObject({ hasTitle: true, isPlaying: false });
+      expect(svc.getCurrentDeviceId()).toBe('');
 
-      expect(svc.getSmtcSessionRuntime()!.size).toBe(0);
-    });
-
-    it('skips when main window is destroyed', async () => {
-      const { createSmtcService } = await import('../smtcService');
-      const svc = createSmtcService(defaultOptions({
-        getWhitelist: () => ['spotify'],
-        getMainWindow: () => mockDestroyedWindow as unknown as import('electron').BrowserWindow,
-      }));
-      svc.initWorker();
-
-      emitWorkerMessage({
-        type: 'session-update',
-        sourceAppId: 'Spotify.exe',
-        session: {
-          media: { title: 'Song', artist: 'A', albumTitle: '', thumbnail: null },
-          playback: { playbackStatus: 4, playbackType: 1 },
-          timeline: null,
-        },
-      });
-
-      expect(svc.getSmtcSessionRuntime()!.size).toBe(0);
+      emitWorkerMessage({ type: 'initial-sessions-ready' });
+      expect(svc.getCurrentDeviceId()).toBe('Spotify.exe');
+      expect(mockWindow.webContents.send).toHaveBeenLastCalledWith('nowplaying:info', expect.objectContaining({ title: 'Song', deviceId: 'Spotify.exe' }));
+      svc.cleanupWorker();
     });
 
     it('ignores unknown message types', async () => {
@@ -801,6 +786,83 @@ describe('createSmtcService', () => {
   /* -------------------------------------------------------------- */
   /*  Worker message: session-removed                               */
   /* -------------------------------------------------------------- */
+
+  describe('worker message: initial-sessions-ready', () => {
+    /**
+     * 构造工作线程推送的会话更新。
+     * @param sourceAppId - 播放源标识。
+     * @param playbackStatus - SMTC 播放状态，4 为播放、5 为暂停。
+     * @param title - 曲目标题，空字符串表示无标题会话。
+     * @returns 会话更新消息。
+     */
+    const update = (sourceAppId: string, playbackStatus: number, title = 'Song') => ({
+      sourceAppId,
+      type: 'session-update',
+      session: {
+        media: { title, artist: 'Artist', albumTitle: 'Album', thumbnail: 'cover' },
+        playback: { playbackStatus, playbackType: 1 },
+        timeline: { position: 30, duration: 180, sampledAtMs: 1000 },
+      },
+    });
+
+    it('adopts a paused source from the startup snapshot that regular updates leave unselected', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const svc = createSmtcService(defaultOptions());
+      svc.initWorker();
+      mockWindow.webContents.send.mockClear();
+      emitWorkerMessage(update('Foobar.exe', 5));
+      expect(svc.getCurrentDeviceId()).toBe('spotify');
+      expect(mockWindow.webContents.send).not.toHaveBeenCalled();
+      emitWorkerMessage({ type: 'initial-sessions-ready' });
+      expect(svc.getCurrentDeviceId()).toBe('Foobar.exe');
+      expect(mockWindow.webContents.send).toHaveBeenCalledExactlyOnceWith('nowplaying:info', expect.objectContaining({
+        title: 'Song', isPlaying: false, thumbnail: 'cover', position_ms: 30000, duration_ms: 180000, deviceId: 'Foobar.exe',
+      }));
+      svc.cleanupWorker();
+    });
+
+    it('prefers a playing source over an earlier paused one when no valid source is current', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const svc = createSmtcService(defaultOptions());
+      svc.initWorker();
+      svc.setCurrentDeviceId('Spotify.exe');
+      emitWorkerMessage(update('Spotify.exe', 4));
+      emitWorkerMessage(update('Foobar2.exe', 5));
+      emitWorkerMessage(update('Foobar.exe', 4));
+      emitWorkerMessage({ type: 'session-removed', sourceAppId: 'Spotify.exe' });
+      emitWorkerMessage({ type: 'initial-sessions-ready' });
+      expect(svc.getCurrentDeviceId()).toBe('Foobar.exe');
+      expect(mockWindow.webContents.send).toHaveBeenLastCalledWith('nowplaying:info', expect.objectContaining({ deviceId: 'Foobar.exe', isPlaying: true }));
+      svc.cleanupWorker();
+    });
+
+    it('keeps a current source that already has a title', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const svc = createSmtcService(defaultOptions());
+      svc.initWorker();
+      svc.setCurrentDeviceId('Spotify.exe');
+      emitWorkerMessage(update('Spotify.exe', 5));
+      emitWorkerMessage(update('Foobar.exe', 5));
+      mockWindow.webContents.send.mockClear();
+      emitWorkerMessage({ type: 'initial-sessions-ready' });
+      expect(svc.getCurrentDeviceId()).toBe('Spotify.exe');
+      expect(mockWindow.webContents.send).not.toHaveBeenCalled();
+      svc.cleanupWorker();
+    });
+
+    it('selects nothing when no whitelisted startup session has a title', async () => {
+      const { createSmtcService } = await import('../smtcService');
+      const svc = createSmtcService(defaultOptions());
+      svc.initWorker();
+      emitWorkerMessage(update('Foobar.exe', 5, ''));
+      emitWorkerMessage(update('Chrome.exe', 5));
+      mockWindow.webContents.send.mockClear();
+      emitWorkerMessage({ type: 'initial-sessions-ready' });
+      expect(svc.getCurrentDeviceId()).toBe('spotify');
+      expect(mockWindow.webContents.send).not.toHaveBeenCalled();
+      svc.cleanupWorker();
+    });
+  });
 
   describe('worker message: session-removed', () => {
     it('removes session and detected source for the given app', async () => {

@@ -490,7 +490,11 @@
       "prev": "Previous",
       "pause": "Pause",
       "play": "Play",
-      "next": "Next"
+      "next": "Next",
+      "seek": "Playback position",
+      "seekValue": "{{position}} of {{duration}}",
+      "showProgress": "Show playback progress",
+      "showInfo": "Show song info"
     },
     "time": {
       "lunarPrefix": "Lunar"
@@ -4827,7 +4831,9 @@
       "play": "Play",
       "pause": "Pause",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "seek": "Playback position",
+      "seekValue": "{{position}} of {{duration}}"
     }
   }
 }

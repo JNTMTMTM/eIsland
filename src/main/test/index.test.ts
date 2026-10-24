@@ -82,6 +82,12 @@ const electron = {
   ipcMain: { handle: (name: string, callback: Callback) => { mocks.handlers.set(name, callback); } },
   screen: { getDisplayMatching: leaf('screen.getDisplayMatching'), getPrimaryDisplay: leaf('screen.getPrimaryDisplay') },
 };
+// 淡入淡出过渡由 islandVisibility 单测覆盖，此处直接切换以验证显示/隐藏的调用路由。
+vi.mock('../window/islandVisibility', () => ({
+  isIslandShown: (window: { isVisible: () => boolean }) => window.isVisible(),
+  showIsland: (window: { show: () => void }) => { window.show(); },
+  hideIsland: (window: { hide: () => void }) => { window.hide(); },
+}));
 vi.mock('electron', () => electron);
 vi.mock('fs', () => ({ existsSync: leaf('existsSync'), mkdirSync: leaf('mkdirSync'), readFileSync: leaf('readFileSync'), writeFileSync: leaf('writeFileSync') }));
 vi.mock('@electron-toolkit/utils', () => ({ electronApp: { setAppUserModelId: leaf('setAppUserModelId') }, optimizer: { watchWindowShortcuts: leaf('watchWindowShortcuts') } }));

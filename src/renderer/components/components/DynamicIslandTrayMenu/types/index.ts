@@ -52,6 +52,14 @@ export interface TrayNowPlaying {
   isPlaying: boolean;
   /** 封面 data URI，未获取到时为 null */
   thumbnail: string | null;
+  /** 歌曲总时长（毫秒），未知时为 0 */
+  durationMs: number;
+  /** 最近一次采样的播放进度（毫秒） */
+  positionMs: number;
+  /** positionMs 的采样时刻（Unix 毫秒），用于推算当前进度 */
+  positionTimestampMs: number;
+  /** 播放速率，1 为正常速度 */
+  playbackRate: number;
 }
 
 /** 托盘菜单项配置 */

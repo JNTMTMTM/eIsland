@@ -490,7 +490,11 @@
       "prev": "上一曲",
       "pause": "暂停",
       "play": "播放",
-      "next": "下一曲"
+      "next": "下一曲",
+      "seek": "播放进度",
+      "seekValue": "{{position}} / {{duration}}",
+      "showProgress": "显示播放进度",
+      "showInfo": "显示歌曲信息"
     },
     "time": {
       "lunarPrefix": "农历"
@@ -4827,7 +4831,9 @@
       "play": "播放",
       "pause": "暂停",
       "previous": "上一首",
-      "next": "下一首"
+      "next": "下一首",
+      "seek": "播放进度",
+      "seekValue": "{{position}} / {{duration}}"
     }
   }
 }

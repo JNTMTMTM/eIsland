@@ -45,6 +45,7 @@ import type {
   ChatAbortResult,
   CustomDirectChatRequest,
   NowPlayingInfo,
+  MediaCommandResult,
   SmtcTimestampResult,
   DetectSourceAppIdResult,
   ImageCompressionStartPayload,
@@ -468,8 +469,9 @@ const api = {
   /**
    * 跳转到指定位置
    * @param positionMs - 目标位置（毫秒）
+   * @returns 跳转结果；当前播放源不在白名单或位置无效时主进程不执行跳转，返回 undefined
    */
-  mediaSeek: (positionMs: number): Promise<void> => {
+  mediaSeek: (positionMs: number): Promise<MediaCommandResult | undefined> => {
     return ipcRenderer.invoke('media:seek', positionMs);
   },
   /**

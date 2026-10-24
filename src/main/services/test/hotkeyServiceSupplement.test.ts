@@ -38,6 +38,12 @@ const mocks = vi.hoisted(() => ({
   visible: vi.fn<() => boolean>(),
   alwaysOnTop: vi.fn<(enabled: boolean, level: string) => void>(),
 }));
+// 淡入淡出过渡由 islandVisibility 单测覆盖，此处直接切换以验证显示/隐藏的调用路由。
+vi.mock('../../window/islandVisibility', () => ({
+  isIslandShown: (window: { isVisible: () => boolean }) => window.isVisible(),
+  showIsland: (window: { show: () => void }) => { window.show(); },
+  hideIsland: (window: { hide: () => void }) => { window.hide(); },
+}));
 vi.mock('electron', () => ({ app: { quit: mocks.quit }, globalShortcut: { register: mocks.register, unregister: mocks.unregister } }));
 const names = ["Hide","Quit","Screenshot","NextSong","PlayPauseSong","ResetPosition","ToggleTray","ShowSettingsWindow","OpenClipboardHistory","TogglePassthrough","ToggleUiLock","AgentVoiceInput","ToggleShapeMode"] as const;
 const rows = [["Hide","registerHideHotkey","getCurrentHideHotkey",0],["Quit","registerQuitHotkey","getCurrentQuitHotkey",1],["Screenshot","registerScreenshotHotkey","getCurrentScreenshotHotkey",2],["NextSong","registerNextSongHotkey","getCurrentNextSongHotkey",3],["PlayPauseSong","registerPlayPauseSongHotkey","getCurrentPlayPauseSongHotkey",4],["ResetPosition","registerResetPositionHotkey","getCurrentResetPositionHotkey",5],["ToggleTray","registerToggleTrayHotkey","getCurrentToggleTrayHotkey",6],["ShowSettingsWindow","registerShowSettingsWindowHotkey","getCurrentShowSettingsWindowHotkey",7],["OpenClipboardHistory","registerOpenClipboardHistoryHotkey","getCurrentOpenClipboardHistoryHotkey",8],["TogglePassthrough","registerTogglePassthroughHotkey","getCurrentTogglePassthroughHotkey",9],["ToggleUiLock","registerToggleUiLockHotkey","getCurrentToggleUiLockHotkey",10],["AgentVoiceInput","registerAgentVoiceInputHotkey","getCurrentAgentVoiceInputHotkey",11],["ToggleShapeMode","registerToggleShapeModeHotkey","getCurrentToggleShapeModeHotkey",12]] as const;

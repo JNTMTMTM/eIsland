@@ -46,16 +46,19 @@ export function TrayMenuSkeleton(): ReactElement {
         </span>
       </div>
       <div className="tray-skeleton-card tray-skeleton-music">
-        <span className="tray-skeleton-block tray-skeleton-cover" />
-        <span className="tray-skeleton-lines">
-          <span className="tray-skeleton-block tray-skeleton-line" />
-          <span className="tray-skeleton-block tray-skeleton-line tray-skeleton-line-short" />
-        </span>
-        <span className="tray-skeleton-controls">
-          <span className="tray-skeleton-block tray-skeleton-button" />
-          <span className="tray-skeleton-block tray-skeleton-button" />
-          <span className="tray-skeleton-block tray-skeleton-button" />
-        </span>
+        <div className="tray-skeleton-music-main">
+          <span className="tray-skeleton-block tray-skeleton-cover" />
+          <span className="tray-skeleton-lines">
+            <span className="tray-skeleton-block tray-skeleton-line" />
+            <span className="tray-skeleton-block tray-skeleton-line tray-skeleton-line-short" />
+          </span>
+          <span className="tray-skeleton-controls">
+            <span className="tray-skeleton-block tray-skeleton-button" />
+            <span className="tray-skeleton-block tray-skeleton-button" />
+            <span className="tray-skeleton-block tray-skeleton-button" />
+          </span>
+        </div>
+        <span className="tray-skeleton-block tray-skeleton-seek" />
       </div>
       <div className="tray-skeleton-list">
         {ROW_GROUPS.flatMap((group, index) => [

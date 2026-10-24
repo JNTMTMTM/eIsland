@@ -27,6 +27,7 @@
 
 import { BrowserWindow } from 'electron';
 import { restoreIslandAlwaysOnTop } from '../window/islandAlwaysOnTop';
+import { hideIsland, isIslandShown, showIsland } from '../window/islandVisibility';
 import { hasAnyFocusedWindowTitle } from './runningProcesses';
 
 interface CreateAutoHideWatcherOptions {
@@ -109,16 +110,16 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
       }
 
       if (shouldHide) {
-        if (mainWindow.isVisible()) {
-          mainWindow.hide();
+        if (isIslandShown(mainWindow)) {
+          hideIsland(mainWindow);
         }
         hiddenByAutoHideProcess = true;
         return;
       }
 
       if (hiddenByAutoHideProcess) {
-        if (!mainWindow.isVisible()) {
-          mainWindow.show();
+        if (!isIslandShown(mainWindow)) {
+          showIsland(mainWindow);
           restoreIslandAlwaysOnTop(mainWindow);
         }
         hiddenByAutoHideProcess = false;

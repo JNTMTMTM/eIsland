@@ -42,6 +42,7 @@ import type {
   ChatAbortResult,
   CustomDirectChatRequest,
   NowPlayingInfo,
+  MediaCommandResult,
   SmtcTimestampResult,
   DetectSourceAppIdResult,
   ImageCompressionStartPayload,
@@ -161,7 +162,7 @@ declare global {
       mediaPlayPause: () => Promise<void>;
       mediaNext: () => Promise<void>;
       mediaPrev: () => Promise<void>;
-      mediaSeek: (positionMs: number) => Promise<void>;
+      mediaSeek: (positionMs: number) => Promise<MediaCommandResult | undefined>;
       mediaGetVolume: () => Promise<number>;
       mediaSetVolume: (volume: number) => Promise<void>;
       mediaGetMuted: () => Promise<boolean | null>;

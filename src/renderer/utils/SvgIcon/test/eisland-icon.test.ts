@@ -142,6 +142,7 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('APP');
     expect(SvgIcon).toHaveProperty('CALCULATOR', '../svg/app/CALCULATOR.svg');
     expect(SvgIcon).toHaveProperty('EQUATION', '../svg/app/EQUATION.svg');
+    expect(SvgIcon).toHaveProperty('PROCESS_BAR', '../svg/app/PROCESS_BAR.svg');
   });
 
   it('all values should be strings starting with ../svg/ and ending with .svg', () => {

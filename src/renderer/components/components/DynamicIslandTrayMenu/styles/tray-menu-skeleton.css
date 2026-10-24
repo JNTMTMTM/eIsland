@@ -45,7 +45,7 @@ body {
 
 }
 
-/** ===== 骨架屏容器（总高度 355px，需与主进程 TRAY_MENU_INITIAL_HEIGHT 一致） ===== */
+/** ===== 骨架屏容器（总高度 373px，需与主进程 TRAY_MENU_INITIAL_HEIGHT 一致） ===== */
 .tray-skeleton {
   box-sizing: border-box;
   display: flex;
@@ -76,8 +76,20 @@ body {
 
 }
 
+/** 音乐卡片骨架：上方信息行 + 下方进度条，按常见的有时间线状态占位，高度需与 .tray-music-card-with-seek 一致 */
 .tray-skeleton-music {
-  height: 58px;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  justify-content: center;
+  height: 76px;
+
+}
+
+.tray-skeleton-music-main {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 
 }
 
@@ -130,6 +142,13 @@ body {
   width: 22px;
   height: 22px;
   border-radius: 50%;
+
+}
+
+/** 进度条骨架：4px 轨道加上下 5px 留白，与真实进度条行高 14px 一致 */
+.tray-skeleton-seek {
+  height: 4px;
+  margin: 5px 0;
 
 }
 

@@ -223,6 +223,16 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
         mainWindow.webContents.send('media:source-switch-request', payload);
       };
 
+      // 常规更新只在没有当前源时接管正在播放的源；启动时已存在的暂停源若不在此选中，要等用户切换一次才会显示。
+      const adoptInitialSession = (): void => {
+        if (sessionRuntime.get(currentDeviceId)?.hasTitle) return;
+        const titled = [...sessionRuntime].filter(([, entry]) => entry.hasTitle);
+        const candidate = titled.find(([, entry]) => entry.isPlaying) ?? titled[0];
+        if (!candidate) return;
+        [currentDeviceId] = candidate;
+        emitCurrentSession(true);
+      };
+
       const workerPath = join(__dirname, 'smtcWorker.js');
       const worker = new Worker(workerPath);
       smtcWorker = worker;
@@ -272,9 +282,12 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
           return;
         }
 
-        const mainWindow = options.getMainWindow();
-        if (!mainWindow || mainWindow.isDestroyed()) return;
+        if (msg.type === 'initial-sessions-ready') {
+          adoptInitialSession();
+          return;
+        }
 
+        // 会话记录不依赖主窗口：启动快照可能早于主窗口推送，各广播函数自行判断窗口是否可用。
         if (msg.type !== 'session-update') return;
 
         const { sourceAppId = '', session } = msg;

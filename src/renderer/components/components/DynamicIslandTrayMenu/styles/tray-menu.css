@@ -161,17 +161,31 @@
 
 }
 
-/** ===== 音乐控制卡片（固定高度，播放信息变化时菜单高度不变） ===== */
+/** ===== 音乐控制卡片（固定高度，仅在进度条显隐时变化；高度变化后由菜单重新上报） ===== */
 .tray-music-card {
   box-sizing: border-box;
   display: flex;
-  gap: 10px;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
   height: 58px;
   padding: 8px 10px;
   background: rgb(var(--color-text-rgb), .05);
   border: 1px solid rgb(var(--color-text-rgb), .08);
   border-radius: 10px;
+
+}
+
+/** 播放源提供有效时间线时显示进度条，高度需与骨架屏 .tray-skeleton-music 一致 */
+.tray-music-card-with-seek {
+  height: 76px;
+
+}
+
+.tray-music-card-main {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 
 }
 
@@ -296,6 +310,75 @@
 .tray-music-card-btn-icon-sm {
   width: 11px;
   height: 11px;
+
+}
+
+/** ===== 音乐进度条（行高 14px，与骨架屏 .tray-skeleton-seek 占位一致） ===== */
+.tray-music-seek {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 14px;
+
+}
+
+.tray-music-seek-time {
+  flex-shrink: 0;
+  min-width: 28px;
+  font-size: 10px;
+  line-height: 14px;
+  color: rgb(var(--color-text-rgb), .5);
+  font-variant-numeric: tabular-nums;
+
+}
+
+.tray-music-seek-time-total {
+  text-align: right;
+
+}
+
+.tray-music-seek-slider {
+  flex: 1;
+  min-width: 0;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+
+}
+
+.tray-music-seek-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  background: linear-gradient(to right, rgb(var(--color-text-rgb), .85) var(--tray-seek-progress), rgb(var(--color-text-rgb), .16) var(--tray-seek-progress));
+  border-radius: 999px;
+
+}
+
+/** 滑块默认隐藏，悬停、键盘聚焦或拖动时出现，平时保持细线外观 */
+.tray-music-seek-slider::-webkit-slider-thumb {
+  width: 9px;
+  height: 9px;
+  margin-top: -3px;
+  appearance: none;
+  background: rgb(var(--color-text-rgb));
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity .12s ease;
+
+}
+
+.tray-music-seek-slider:hover::-webkit-slider-thumb,
+.tray-music-seek-slider:focus-visible::-webkit-slider-thumb,
+.tray-music-seek-slider:active::-webkit-slider-thumb {
+  opacity: 1;
+
+}
+
+.tray-music-seek-slider:focus-visible {
+  outline: none;
 
 }
 

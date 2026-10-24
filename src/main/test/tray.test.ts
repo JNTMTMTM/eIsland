@@ -77,6 +77,12 @@ function MockTray(): {
   };
 }
 
+// 淡入淡出过渡由 islandVisibility 单测覆盖，此处直接切换以验证显示/隐藏的调用路由。
+vi.mock('../window/islandVisibility', () => ({
+  isIslandShown: (window: { isVisible: () => boolean }) => window.isVisible(),
+  showIsland: (window: { show: () => void }) => { window.show(); },
+  hideIsland: (window: { hide: () => void }) => { window.hide(); },
+}));
 vi.mock('electron', () => ({
   Tray: MockTray,
   Menu: {

@@ -139,7 +139,7 @@ describe('trayMenuWindow', () => {
     expect(win.webContents.send).not.toHaveBeenCalled();
     emit('tray-menu:mounted', win.webContents);
     expect(win.setOpacity).toHaveBeenCalledWith(0);
-    expect(win.setBounds).toHaveBeenCalledWith({ height: 355, x: 100, y: 100, width: service.TRAY_MENU_WIDTH });
+    expect(win.setBounds).toHaveBeenCalledWith({ height: 373, x: 100, y: 100, width: service.TRAY_MENU_WIDTH });
     expect(win.showInactive).toHaveBeenCalledOnce();
     expect(win.show).not.toHaveBeenCalled();
     expect(win.focus).not.toHaveBeenCalled();
@@ -164,7 +164,7 @@ describe('trayMenuWindow', () => {
     const { win, service } = await setup();
     service.showTrayMenuWindow(STATE, vi.fn());
     win.emit('ready-to-show');
-    expect(win.setBounds).toHaveBeenLastCalledWith({ height: 355, x: 1900 - service.TRAY_MENU_WIDTH, y: 675, width: service.TRAY_MENU_WIDTH });
+    expect(win.setBounds).toHaveBeenLastCalledWith({ height: 373, x: 1900 - service.TRAY_MENU_WIDTH, y: 657, width: service.TRAY_MENU_WIDTH });
     expect(win.setOpacity).toHaveBeenCalledWith(1);
     expect(win.showInactive).toHaveBeenCalledOnce();
     expect(win.focus).toHaveBeenCalledOnce();

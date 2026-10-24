@@ -33,6 +33,7 @@ import { tray as zhTWLabels } from '../../i18n/zh-TW.json';
 import { tray as jaJPLabels } from '../../i18n/ja-JP.json';
 import { openStandaloneWindow } from './window/standaloneWindow';
 import { restoreIslandAlwaysOnTop, setIslandAlwaysOnTop } from './window/islandAlwaysOnTop';
+import { hideIsland, showIsland } from './window/islandVisibility';
 import { readAppLanguageConfig, readStandaloneWindowModeEnabledConfig } from './config/storeConfig';
 import { destroyTrayMenuWindow, hideTrayMenuWindow, scheduleTrayMenuPreload, showTrayMenuWindow } from './window/trayMenuWindow';
 import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
@@ -99,10 +100,10 @@ function createTray(getMainWindow: () => BrowserWindow | null, options: TrayOpti
     options.onVisibilityChange?.(visible);
     if (visible) {
       if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.show();
+      showIsland(mainWindow);
       restoreIslandAlwaysOnTop(mainWindow);
     } else {
-      mainWindow.hide();
+      hideIsland(mainWindow);
     }
   };
 

@@ -72,6 +72,20 @@ function postSessionUpdate(sourceAppId: string, includeThumbnail = true): void {
 const smtc = new SmtcMonitor();
 const commands = createSmtcCommandBroker(join(__dirname, 'smtcCommandWorker.js'));
 
+/** 原生监控启动后在后台线程枚举现有会话，首批新增会话即启动时已存在的播放源 */
+let initialSessionsPending = true;
+
+/**
+ * 首批新增会话推送完后通知主进程，使其在没有正在播放的源时也能选中暂停的源
+ * @description 原生监控在一次会话锁内发布全部启动会话，增量摘取拿不到锁时整批延到下次轮询，因此启动会话必在同一批增量中；
+ * 同批事件同步派发，微任务在整批会话推送完成后才执行
+ */
+function markInitialSessions(): void {
+  if (!initialSessionsPending) return;
+  initialSessionsPending = false;
+  queueMicrotask(() => parentPort!.postMessage({ type: 'initial-sessions-ready' }));
+}
+
 
 smtc.on('session-added', (sourceAppId: string, mediaProps: MediaProps) => {
   const entry: CacheEntry = { media: mediaProps, playback: null, timeline: null };
@@ -89,6 +103,7 @@ smtc.on('session-added', (sourceAppId: string, mediaProps: MediaProps) => {
   } catch { /* 忽略 */ }
   sessionCache.set(sourceAppId, entry);
   postSessionUpdate(sourceAppId);
+  markInitialSessions();
 });
 
 smtc.on('session-removed', (sourceAppId: string) => {

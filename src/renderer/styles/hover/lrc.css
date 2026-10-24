@@ -101,6 +101,9 @@
   gap: 2px;
   z-index: 2;
   font-family: var(--island-lyrics-font);
+
+  /* 进度条以绝对定位叠放在歌曲信息上方 */
+  position: relative;
 }
 
 .lrc-title {
@@ -127,6 +130,136 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+}
+
+/* --- 播放进度（点击歌曲信息后替换歌曲信息） --- */
+
+/** 歌曲信息与时间行作为切换按钮：去掉按钮默认外观，沿用原有排版 */
+.lrc-info-toggle,
+.lrc-progress-times {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/** 歌曲信息与进度条交叉过渡：歌曲信息上移淡出，进度条自下方淡入，切换回来时反向 */
+.lrc-info-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+  transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.lrc-info-toggle:disabled {
+  cursor: default;
+}
+
+.lrc-info-section.seeking > .lrc-info-toggle {
+  opacity: 0;
+  transform: translate3d(0, -4px, 0);
+}
+
+/** 叠放在歌曲信息上方，歌曲信息仍占位，切换前后区域高度不变 */
+.lrc-progress {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/** 离开过渡：切换回歌曲信息后淡出下移，播完由歌词 Tab 卸载；淡出期间不响应指针 */
+.lrc-info-section:not(.seeking) > .lrc-progress {
+  opacity: 0;
+  transform: translate3d(0, 4px, 0);
+  pointer-events: none;
+}
+
+/** 出现过渡：进度条挂载时从淡出状态开始过渡 */
+@starting-style {
+  .lrc-info-section.seeking > .lrc-progress {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lrc-info-toggle,
+  .lrc-progress {
+    transition: none;
+  }
+}
+
+.lrc-progress-slider {
+  width: 100%;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+.lrc-progress-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  background: linear-gradient(to right, rgba(var(--color-text-rgb), 0.85) var(--lrc-progress), rgba(var(--color-text-rgb), 0.16) var(--lrc-progress));
+  border-radius: 999px;
+}
+
+/** 滑块默认隐藏，悬停、键盘聚焦或拖动时出现，平时保持细线外观 */
+.lrc-progress-slider::-webkit-slider-thumb {
+  width: 9px;
+  height: 9px;
+  margin-top: -3px;
+  appearance: none;
+  background: rgb(var(--color-text-rgb));
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.lrc-progress-slider:hover::-webkit-slider-thumb,
+.lrc-progress-slider:focus-visible::-webkit-slider-thumb,
+.lrc-progress-slider:active::-webkit-slider-thumb {
+  opacity: 1;
+}
+
+.lrc-progress-slider:focus-visible {
+  outline: none;
+}
+
+.lrc-progress-times {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: rgba(var(--color-text-rgb), 0.65);
+}
+
+/** 当前进度与总时长并排在左侧，等宽数字避免随进度跳动 */
+.lrc-progress-time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/** 当前歌词占据剩余宽度并靠右，过长时省略 */
+.lrc-progress-lyric {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: right;
 }
 
 .lrc-o3ic-text {

@@ -137,6 +137,7 @@ import {
   STANDALONE_WINDOW_MODE_STORE_KEY, LEGACY_STANDALONE_WINDOW_MODE_STORE_KEY, APP_LANGUAGE_STORE_KEY,
 } from './config/storeConfig';
 import { isIslandAlwaysOnTop, restoreIslandAlwaysOnTop } from './window/islandAlwaysOnTop';
+import { isIslandShown, showIsland } from './window/islandVisibility';
 import type { IslandPositionOffset } from './config/storeConfig';
 
 // 由构建配置固定；正式构建不能通过环境变量启用测试分支。
@@ -521,9 +522,9 @@ const hotkeyService = createHotkeyService({
     const target = mainWindow;
     if (!target || target.isDestroyed()) return;
     // 截图期间主窗口由截图流程临时隐藏，此时不抢先显示以免进入截图画面。
-    if (!target.isVisible() && !captureWindowService.isCapturing()) {
+    if (!isIslandShown(target) && !captureWindowService.isCapturing()) {
       autoHideWatcher.setManualVisibility(true);
-      target.show();
+      showIsland(target);
       restoreIslandAlwaysOnTop(target);
     }
     broadcastSettingChange(-1, 'shortcut:open-clipboard-history', Date.now());

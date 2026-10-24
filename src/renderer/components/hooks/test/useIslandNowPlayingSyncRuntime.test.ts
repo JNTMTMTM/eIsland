@@ -20,7 +20,7 @@
 
 /**
  * @file useIslandNowPlayingSyncRuntime.test.ts
- * @description 音乐同步逐字歌词回退、播放时钟校准、状态版本和原生监听清理边界测试。
+ * @description 音乐同步逐字歌词回退、播放时钟校准、状态版本、启动拉取当前会话和原生监听清理边界测试。
  * @author 鸡哥
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -62,6 +62,7 @@ const timestamp = vi.fn<() => Promise<{
     sampledAtMs?: number;
   };
 }>>();
+const currentInfo = vi.fn<() => Promise<NowPlayingInfo | null>>();
 const unsubscribe = vi.fn();
 const unsubscribeSettings = vi.fn();
 let nowPlaying: ((info: NowPlayingInfo | null) => void) | undefined;
@@ -159,6 +160,7 @@ beforeEach(() => {
   });
   leaves.normal.mockResolvedValue(lyrics());
   leaves.karaoke.mockResolvedValue(null);
+  currentInfo.mockResolvedValue(null);
   vi.stubGlobal('window', {
     api: {
       onNowPlayingInfo: (listener: typeof nowPlaying) => {
@@ -174,7 +176,8 @@ beforeEach(() => {
       musicLyricsKaraokeGet: karaokeEnabled,
       musicLyricsCalibrateEnabledGet: calibrate,
       musicLyricsCalibrateDelayGet: delay,
-      smtcGetTimestamp: timestamp
+      smtcGetTimestamp: timestamp,
+      mediaCurrentInfoGet: currentInfo
     }
   });
 });
@@ -753,6 +756,42 @@ describe('useIslandNowPlayingSync runtime', () => {
     pending.reject(new Error('late timestamp failure'));
     await settleHook();
     expect(calibrationLogs()).toEqual([]);
+  });
+  it('pulls the current session once after subscribing so a startup broadcast sent before mount is not lost', async () => {
+    currentInfo.mockResolvedValue(song({ isPlaying: false }));
+    mount();
+    await settleHook();
+    await settleHook();
+    expect(currentInfo).toHaveBeenCalledOnce();
+    expect(options.handleNowPlayingUpdate).toHaveBeenCalledExactlyOnceWith(song({ isPlaying: false }));
+    expect(leaves.normal).toHaveBeenCalledExactlyOnceWith('Song', 'Singer', 'player');
+  });
+  it('keeps a broadcast that arrives before the pull resolves instead of the older pulled session', async () => {
+    const pending = deferred<NowPlayingInfo | null>();
+    currentInfo.mockReturnValue(pending.promise);
+    mount();
+    await emit(song({ title: 'Live' }));
+    pending.resolve(song({ title: 'Stale' }));
+    await settleHook();
+    expect(options.handleNowPlayingUpdate.mock.calls).toEqual([[song({ title: 'Live' })]]);
+  });
+  it.each(['empty', 'rejected'] as const)('ignores an %s pull and keeps following broadcasts', async (stage) => {
+    if (stage === 'empty') currentInfo.mockResolvedValue(null);
+    else currentInfo.mockRejectedValue(new Error('ipc'));
+    mount();
+    await settleHook();
+    expect(options.handleNowPlayingUpdate).not.toHaveBeenCalled();
+    await emit(song());
+    expect(options.handleNowPlayingUpdate).toHaveBeenCalledExactlyOnceWith(song());
+  });
+  it('does not apply a pull that resolves after unmount', async () => {
+    const pending = deferred<NowPlayingInfo | null>();
+    currentInfo.mockReturnValue(pending.promise);
+    mount();
+    unmountHook();
+    pending.resolve(song());
+    await settleHook();
+    expect(options.handleNowPlayingUpdate).not.toHaveBeenCalled();
   });
   it('missing optional bridge registers nothing and cleans up safely', () => {
     vi.stubGlobal('window', {});

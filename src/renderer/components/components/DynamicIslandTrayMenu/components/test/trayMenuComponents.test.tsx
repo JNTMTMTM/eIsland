@@ -20,7 +20,7 @@
 
 /**
  * @file trayMenuComponents.test.tsx
- * @description 托盘菜单根组件、骨架屏、用户卡片、音乐卡片与菜单项的渲染分支、打开流程、高度上报与交互测试。
+ * @description 托盘菜单根组件、骨架屏、用户卡片、音乐卡片（含进度条接入）与菜单项的渲染分支、打开流程、高度上报与交互测试。
  * @author 鸡哥
  */
 
@@ -31,6 +31,7 @@ import { TrayMenu } from '../TrayMenu';
 import { TrayMenuItem } from '../TrayMenuItem';
 import { TrayMenuSkeleton } from '../TrayMenuSkeleton';
 import { TrayMusicCard } from '../TrayMusicCard';
+import { TrayMusicSeekBar } from '../TrayMusicSeekBar';
 import { TrayUserCard } from '../TrayUserCard';
 import { TRAY_MENU_ITEMS } from '../../config/trayMenuItems';
 import type { TestElement } from '../../../../test/elementHarness';
@@ -61,9 +62,13 @@ const SIGNED_OUT: TrayUserSummary = { loggedIn: false, name: '', avatar: null, e
 const REGULAR: TrayUserSummary = { loggedIn: true, name: 'island', avatar: 'https://cdn.example.com/a.png', email: 'island@example.com', isPro: false, proExpireDate: null };
 const PRO: TrayUserSummary = { ...REGULAR, isPro: true, proExpireDate: '2026-12-01' };
 const STATE: TrayMenuState = { windowAvailable: true, alwaysOnTop: true, standaloneMode: false, language: 'zh-CN' };
-const SONG: TrayNowPlaying = { title: 'Song', artist: 'Singer', isPlaying: true, thumbnail: 'data:image/png;base64,AAA' };
+const SONG: TrayNowPlaying = {
+  title: 'Song', artist: 'Singer', isPlaying: true, thumbnail: 'data:image/png;base64,AAA',
+  durationMs: 1000, positionMs: 0, positionTimestampMs: 5000, playbackRate: 1,
+};
 const SONG_INFO: NowPlayingInfo = {
-  title: 'Song', artist: 'Singer', album: 'Album', duration_ms: 1000, position_ms: 0, isPlaying: true, thumbnail: SONG.thumbnail,
+  title: 'Song', artist: 'Singer', album: 'Album', duration_ms: 1000, position_ms: 0, positionTimestampMs: 5000, playbackRate: 1,
+  isPlaying: true, thumbnail: SONG.thumbnail,
   canFastForward: false, canSkip: false, canLike: false, canChangeVolume: false, canSetOutput: false,
 };
 
@@ -87,6 +92,7 @@ const api = {
   mediaPlayPause: vi.fn<() => Promise<void>>(async () => undefined),
   mediaPrev: vi.fn<() => Promise<void>>(async () => undefined),
   mediaNext: vi.fn<() => Promise<void>>(async () => undefined),
+  mediaSeek: vi.fn<(positionMs: number) => Promise<void>>(async () => undefined),
 };
 const unsubscribe = vi.fn();
 const unsubscribeNowPlaying = vi.fn();
@@ -115,6 +121,7 @@ beforeEach(() => {
 afterEach(() => {
   unmountHooks();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 /** 等待打开事件中的异步语言切换完成。 */
@@ -204,9 +211,10 @@ describe('TrayUserCard', () => {
 });
 
 describe('TrayMusicCard', () => {
-  const handlers = (): { onTogglePlayback: () => void; onPrevious: () => void; onNext: () => void } => ({
-    onTogglePlayback: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(),
+  const handlers = (): { openCount: number; menuVisible: boolean; onTogglePlayback: () => void; onPrevious: () => void; onNext: () => void; onSeek: (positionMs: number) => void } => ({
+    openCount: 3, menuVisible: true, onTogglePlayback: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onSeek: vi.fn(),
   });
+  const seekBar = (view: TestElement): TestElement => findElement(view, (node) => node.type === TrayMusicSeekBar);
   const buttons = (view: TestElement): TestElement[] => elements(view).filter((node) => node.type === 'button');
 
   it('keeps the card with disabled controls and an idle hint when nothing is playing', () => {
@@ -216,12 +224,13 @@ describe('TrayMusicCard', () => {
     expect(findElement(view, (node) => node.props.className === 'tray-music-card-cover-icon').props.src).toBe('../svg/app/MUSIC.svg');
     expect(buttons(view).map((button) => button.props.disabled)).toEqual([true, true, true]);
     expect(buttons(view)[1].props['aria-label']).toBe('tray.music.play');
+    expect(elements(view).some((node) => node.type === TrayMusicSeekBar)).toBe(false);
   });
 
   it('shows the cover, title, artist and a pause button while playing', () => {
     const props = handlers();
     const view = TrayMusicCard({ nowPlaying: SONG, loading: false, ...props }) as TestElement;
-    expect(view.props.className).toBe('tray-music-card');
+    expect(view.props.className).toBe('tray-music-card tray-music-card-with-seek');
     expect(findElement(view, (node) => node.type === 'img' && node.props.src === SONG.thumbnail).props.alt).toBe('Song');
     expect(textContent(view)).toBe('SongSinger');
     const [previous, play, next] = buttons(view);
@@ -238,6 +247,27 @@ describe('TrayMusicCard', () => {
     expect(props.onNext).toHaveBeenCalledOnce();
   });
 
+  it('places the seek bar under the controls and rebuilds it on every menu open and track change', () => {
+    const props = handlers();
+    const view = TrayMusicCard({ nowPlaying: SONG, loading: false, ...props }) as TestElement;
+    const children = view.props.children as TestElement[];
+    expect(children.map((child) => child.type === TrayMusicSeekBar || child.props.className)).toEqual(['tray-music-card-main', true]);
+    expect(seekBar(view).key).toBe('3\nSong\nSinger');
+    expect(seekBar(view).props).toEqual({ nowPlaying: SONG, active: true, onSeek: props.onSeek });
+    const keyFor = (track: TrayNowPlaying, opens = 3): string | null => seekBar(TrayMusicCard({ ...props, nowPlaying: track, openCount: opens, loading: false }) as TestElement).key;
+    expect(keyFor({ ...SONG, positionMs: 500, isPlaying: false })).toBe('3\nSong\nSinger');
+    expect(new Set([keyFor(SONG, 4), keyFor({ ...SONG, title: 'Next' }), keyFor({ ...SONG, artist: 'Other' })]).size).toBe(3);
+    expect(seekBar(TrayMusicCard({ ...props, nowPlaying: SONG, loading: false, menuVisible: false }) as TestElement).props.active).toBe(false);
+  });
+
+  it('hides the seek bar and drops back to the single-row height when the source has no valid timeline', () => {
+    const view = TrayMusicCard({ nowPlaying: { ...SONG, durationMs: 0 }, loading: false, ...handlers() }) as TestElement;
+    expect(view.props.className).toBe('tray-music-card');
+    expect(elements(view).some((node) => node.type === TrayMusicSeekBar)).toBe(false);
+    expect(buttons(view).map((button) => button.props.disabled)).toEqual([false, false, false]);
+    expect(textContent(view)).toBe('SongSinger');
+  });
+
   it('shows a resume button, the music icon without a cover, and an unknown-artist fallback when paused', () => {
     const view = TrayMusicCard({ nowPlaying: { ...SONG, isPlaying: false, artist: '', thumbnail: null }, loading: false, ...handlers() }) as TestElement;
     const play = buttons(view)[1];
@@ -249,10 +279,11 @@ describe('TrayMusicCard', () => {
 
   it('shows a shimmer skeleton without controls while the first playback info loads', () => {
     const view = TrayMusicCard({ nowPlaying: SONG, loading: true, ...handlers() }) as TestElement;
-    expect(view.props).toMatchObject({ className: 'tray-music-card', 'aria-busy': 'true', 'aria-label': 'tray.music.label' });
+    expect(view.props).toMatchObject({ className: 'tray-music-card tray-music-card-with-seek', 'aria-busy': 'true', 'aria-label': 'tray.music.label' });
     expect(elements(view).some((node) => node.type === 'button')).toBe(false);
     expect(textContent(view)).toBe('');
-    expect(elements(view).filter((node) => String(node.props.className).includes('tray-skeleton-block'))).toHaveLength(6);
+    expect(elements(view).filter((node) => String(node.props.className).includes('tray-skeleton-block'))).toHaveLength(7);
+    expect(elements(view).some((node) => node.props.className === 'tray-skeleton-block tray-skeleton-seek')).toBe(true);
   });
 });
 
@@ -304,6 +335,7 @@ describe('TrayMenu', () => {
   });
 
   it('places the music card under the user card and wires it to the playback controls', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: 5300 });
     api.mediaCurrentInfoGet.mockResolvedValue(SONG_INFO);
     await openWith(STATE);
     await settle();
@@ -311,14 +343,43 @@ describe('TrayMenu', () => {
     const children = view.props.children as TestElement[];
     expect(children[0].type).toBe(TrayUserCard);
     expect(children[1].type).toBe(TrayMusicCard);
-    expect(children[1].props.nowPlaying).toEqual(SONG);
+    expect(children[1].props).toMatchObject({ nowPlaying: SONG, openCount: 1 });
     invoke(children[1], 'onPrevious');
     invoke(children[1], 'onNext');
     invoke(children[1], 'onTogglePlayback');
     expect(api.mediaPrev).toHaveBeenCalledOnce();
     expect(api.mediaNext).toHaveBeenCalledOnce();
     expect(api.mediaPlayPause).toHaveBeenCalledOnce();
-    expect(findElement(renderMenu() as TestElement, (node) => node.type === TrayMusicCard).props.nowPlaying).toEqual({ ...SONG, isPlaying: false });
+    expect(findElement(renderMenu() as TestElement, (node) => node.type === TrayMusicCard).props.nowPlaying)
+      .toEqual({ ...SONG, isPlaying: false, positionMs: 300, positionTimestampMs: 5300 });
+    invoke(findElement(renderMenu() as TestElement, (node) => node.type === TrayMusicCard), 'onSeek', 600);
+    expect(api.mediaSeek).toHaveBeenCalledExactlyOnceWith(600);
+  });
+
+  it('re-reports the height only when the seek bar appears or disappears while open', async () => {
+    api.mediaCurrentInfoGet.mockResolvedValue(SONG_INFO);
+    await openWith(STATE);
+    await settle();
+    renderMenu();
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenCalledExactlyOnceWith(233);
+    nowPlayingHandler?.({ ...SONG_INFO, duration_ms: 0 });
+    renderMenu(215);
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenLastCalledWith(215);
+    nowPlayingHandler?.({ ...SONG_INFO, duration_ms: 0, position_ms: 500 });
+    renderMenu(215);
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenCalledTimes(2);
+    nowPlayingHandler?.(SONG_INFO);
+    renderMenu();
+    runEffects();
+    flushFrames();
+    expect(api.trayMenuReady).toHaveBeenLastCalledWith(233);
+    expect(api.trayMenuReady).toHaveBeenCalledTimes(3);
   });
 
   it('shows the music skeleton until the first playback read finishes', async () => {
@@ -380,6 +441,28 @@ describe('TrayMenu', () => {
     expect(findElement(view, (node) => node.type === TrayUserCard).props.user).toBe(SIGNED_OUT);
     expect(api.trayMenuReady).toHaveBeenLastCalledWith(180);
     expect(api.trayMenuReady).toHaveBeenCalledTimes(2);
+  });
+
+  it('marks the menu shown on open and focus, hidden on blur, and removes those window listeners on unmount', async () => {
+    const addListener = vi.spyOn(window, 'addEventListener');
+    const removeListener = vi.spyOn(window, 'removeEventListener');
+    const menuVisible = (): unknown => findElement(renderMenu() as TestElement, (node) => node.type === TrayMusicCard).props.menuVisible;
+    await openWith(STATE);
+    expect(menuVisible()).toBe(true);
+    window.dispatchEvent(new Event('blur'));
+    expect(menuVisible()).toBe(false);
+    window.dispatchEvent(new Event('focus'));
+    expect(menuVisible()).toBe(true);
+    window.dispatchEvent(new Event('blur'));
+    openHandler?.(STATE);
+    await settle();
+    expect(menuVisible()).toBe(true);
+    const registered = (type: string): unknown[] => addListener.mock.calls.filter(([name]) => name === type).map(([, listener]) => listener);
+    unmountHooks();
+    ['focus', 'blur'].forEach((type) => {
+      expect(registered(type)).toHaveLength(1);
+      expect(removeListener).toHaveBeenCalledWith(type, registered(type)[0]);
+    });
   });
 
   it('closes on Escape only and releases listeners and pending frames on unmount', async () => {

@@ -38,7 +38,7 @@ export const TRAY_MENU_WIDTH = 272;
 const TRAY_MENU_PRELOAD_DELAY_MS = 3000;
 
 /** 首次打开时的窗口高度，需与渲染层骨架屏 .tray-skeleton 高度一致，真实高度由渲染层上报 */
-const TRAY_MENU_INITIAL_HEIGHT = 355;
+const TRAY_MENU_INITIAL_HEIGHT = 373;
 
 let menuWindow: BrowserWindow | null = null;
 let menuMounted = false;
