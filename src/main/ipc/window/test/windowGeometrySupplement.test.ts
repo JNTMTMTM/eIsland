@@ -34,6 +34,12 @@ const io = vi.hoisted(() => ({
   bounds: { x: 100, y: 200, width: 1000, height: 600 },
   selection: 'primary', offset: { x: 1, y: 2 }, main: vi.fn<() => BrowserWindow | null>(),
 }));
+// 淡入淡出过渡由 islandVisibility 单测覆盖，此处直接切换以验证显示/隐藏的调用路由。
+vi.mock('../../../window/islandVisibility', () => ({
+  isIslandShown: (window: { isVisible: () => boolean }) => window.isVisible(),
+  showIsland: (window: { show: () => void }) => { window.show(); },
+  hideIsland: (window: { hide: () => void }) => { window.hide(); },
+}));
 vi.mock('electron', () => ({
   ipcMain: { on: (channel: string, fn: HandlerFixture) => io.events.set(channel, fn), handle: (channel: string, fn: HandlerFixture) => io.handles.set(channel, fn) },
   screen: {
