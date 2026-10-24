@@ -45,6 +45,7 @@ import { CliTab } from './components/cli';
 import { CalculatorTab } from './components/calculator';
 import { WorldClockTab } from './components/worldClock';
 import { CalendarTab } from './components/calendar';
+import { SongTab } from './components/song';
 
 function renderEagerActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElement, contentReady: boolean): ReactElement | null {
   if (!contentReady) return loadingFallback;
@@ -65,6 +66,7 @@ function renderEagerActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactEle
   if (activeTab === 'calculator') return <CalculatorTab />;
   if (activeTab === 'worldClock') return <WorldClockTab />;
   if (activeTab === 'calendar') return <CalendarTab />;
+  if (activeTab === 'song') return <SongTab />;
   if (activeTab === 'settings') return <SettingsTab />;
   return null;
 }

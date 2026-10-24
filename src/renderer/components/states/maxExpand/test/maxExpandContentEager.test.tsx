@@ -45,6 +45,7 @@ import { CliTab } from '../components/cli';
 import { CalculatorTab } from '../components/calculator';
 import { WorldClockTab } from '../components/worldClock';
 import { CalendarTab } from '../components/calendar';
+import { SongTab } from '../components/song';
 import { SettingsTab } from '../components/setting';
 import { render, value } from './componentHarness';
 vi.mock('../components/agent/components/AiChatTab', () => ({ AiChatTab: () => null }));
@@ -64,9 +65,10 @@ vi.mock('../components/cli', () => ({ CliTab: () => null }));
 vi.mock('../components/calculator', () => ({ CalculatorTab: () => null }));
 vi.mock('../components/worldClock', () => ({ WorldClockTab: () => null }));
 vi.mock('../components/calendar', () => ({ CalendarTab: () => null }));
+vi.mock('../components/song', () => ({ SongTab: () => null }));
 vi.mock('../components/setting', () => ({ SettingsTab: () => null }));
 describe('MaxExpandContentEager', () => {
-  const cases = [['aiChat', AiChatTab], ['todo', TodoTab], ['urlFavorites', UrlFavoritesTab], ['localFileSearch', LocalFileSearchTab], ['clipboardHistory', ClipboardHistoryTab], ['album', AlbumTab], ['mail', MailTab], ['memo', MemoTab], ['countdown', CountdownTab], ['alarm', AlarmTab], ['toolbox', ToolboxTab], ['miniGame', MiniGameTab], ['stock', StockTab], ['cli', CliTab], ['calculator', CalculatorTab], ['worldClock', WorldClockTab], ['calendar', CalendarTab], ['settings', SettingsTab]] as const;
+  const cases = [['aiChat', AiChatTab], ['todo', TodoTab], ['urlFavorites', UrlFavoritesTab], ['localFileSearch', LocalFileSearchTab], ['clipboardHistory', ClipboardHistoryTab], ['album', AlbumTab], ['mail', MailTab], ['memo', MemoTab], ['countdown', CountdownTab], ['alarm', AlarmTab], ['toolbox', ToolboxTab], ['miniGame', MiniGameTab], ['stock', StockTab], ['cli', CliTab], ['calculator', CalculatorTab], ['worldClock', WorldClockTab], ['calendar', CalendarTab], ['song', SongTab], ['settings', SettingsTab]] as const;
   it.each(cases)('renders the real routing branch for %s', (tab, child) => {
     const tree = render(Component);
     const renderActiveTab = value(tree, MaxExpandContentShell, 'renderActiveTab') as (tab: string, fallback: ReactElement, ready: boolean) => ReactElement | null;

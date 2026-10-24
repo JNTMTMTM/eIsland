@@ -1581,6 +1581,7 @@
       "calculator": "電卓と入力欄を準備しています。",
       "worldClock": "各都市の時計とタイムゾーンの表示を準備しています。",
       "calendar": "カレンダーと日付の詳細を準備しています。",
+      "song": "曲の情報と再生コントロールを準備しています。",
       "settings": "設定カテゴリと設定画面を準備しています。"
     },
     "nav": {
@@ -1602,6 +1603,7 @@
       "calculator": "電卓",
       "worldClock": "世界時計",
       "calendar": "カレンダー",
+      "song": "音楽",
       "settings": "設定",
       "switchTo": "{{label}} に切り替え"
     },
@@ -3171,7 +3173,8 @@
           "cli": "CLI コンソール",
           "calculator": "電卓",
           "worldClock": "世界時計",
-          "calendar": "カレンダー"
+          "calendar": "カレンダー",
+          "song": "音楽"
         }
       },
       "hideProcess": {

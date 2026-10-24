@@ -1581,6 +1581,7 @@
       "calculator": "准备计算面板与输入控件。",
       "worldClock": "准备城市时钟与时区视图。",
       "calendar": "准备日历与日期详情。",
+      "song": "准备歌曲信息与播放控制。",
       "settings": "准备设置分类与配置面板。"
     },
     "nav": {
@@ -1602,6 +1603,7 @@
       "calculator": "计算器",
       "worldClock": "世界时钟",
       "calendar": "日历",
+      "song": "歌曲",
       "settings": "设置",
       "switchTo": "切换到{{label}}"
     },
@@ -3171,7 +3173,8 @@
           "cli": "CLI 控制台",
           "calculator": "计算器",
           "worldClock": "世界时钟",
-          "calendar": "日历"
+          "calendar": "日历",
+          "song": "歌曲"
         }
       },
       "hideProcess": {
