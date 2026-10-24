@@ -20,7 +20,7 @@
 
 /**
  * @file lyricsProgress.test.tsx
- * @description 歌词页进度条跟随真实 store 播放时钟、拖动预览与松手跳转、等待播放器回报与超时回退测试。
+ * @description 歌词页进度条跟随真实 store 播放时钟、时间行合并时间与当前歌词、拖动预览与松手跳转、等待播放器回报与超时回退测试。
  * @author 鸡哥
  */
 
@@ -69,7 +69,7 @@ beforeEach(() => {
     setTimeout: (callback: () => void, ms: number) => setTimeout(callback, ms),
     clearTimeout: (id: ReturnType<typeof setTimeout>) => clearTimeout(id),
   }));
-  useIslandStore.setState({ currentPositionMs: 60000, currentDurationMs: 180000 });
+  useIslandStore.setState({ currentPositionMs: 60000, currentDurationMs: 180000, syncedLyrics: null, lyricsLoading: false });
 });
 
 afterEach(() => {
@@ -100,13 +100,19 @@ function render(): TestElement {
 }
 
 /**
- * 读取进度条下方的时间文本。
+ * 读取进度条下方时间行的文本。
  * @param view - 进度条元素。
- * @returns [当前进度, 总时长]。
+ * @returns [「当前进度 - 总时长」, 当前歌词]。
  */
 function times(view: TestElement): string[] {
   return elements(view).filter((node) => node.type === 'span').map((node) => textContent(node));
 }
+
+const LYRICS = [
+  { time_ms: 10000, text: 'First line' },
+  { time_ms: 60000, text: 'Second line' },
+  { time_ms: 90000, text: 'Third line' },
+];
 
 /**
  * 拖动到目标位置后松手，派发原生 change 事件提交跳转。
@@ -125,10 +131,27 @@ describe('LyricsProgress', () => {
     expect(view.props.className).toBe('lrc-progress');
     expect(input(view).props).toMatchObject({
       className: 'lrc-progress-slider', type: 'range', min: 0, max: 180000, step: 'any', value: 62500,
-      'aria-label': 'hover.music.seek', 'aria-valuetext': 'hover.music.seekValue:1:02/3:00',
+      'aria-label': 'hover.music.seek', 'aria-valuetext': 'hover.music.seekValue:01:02/03:00',
     });
     expect(input(view).props.style).toEqual({ '--lrc-progress': `${(62500 / 180000) * 100}%` });
-    expect(times(view)).toEqual(['1:02', '3:00']);
+    expect(times(view)).toEqual(['01:02 - 03:00', '']);
+    expect(findElement(view, (node) => node.props.className === 'lrc-progress-lyric').type).toBe('span');
+  });
+
+  it('shows the lyric line at the displayed position on the right, previewing the drag target', () => {
+    useIslandStore.setState({ currentPositionMs: 62500, syncedLyrics: LYRICS });
+    expect(times(render())).toEqual(['01:02 - 03:00', 'Second line']);
+    invoke(input(render()), 'onChange', { currentTarget: { value: '95000' } });
+    expect(times(render())).toEqual(['01:35 - 03:00', 'Third line']);
+  });
+
+  it.each([
+    { name: 'during the intro', state: { currentPositionMs: 5000, syncedLyrics: LYRICS } },
+    { name: 'while lyrics load', state: { syncedLyrics: LYRICS, lyricsLoading: true } },
+    { name: 'without lyrics', state: { syncedLyrics: [] } },
+  ])('leaves the lyric slot empty $name', ({ state }) => {
+    useIslandStore.setState(state);
+    expect(times(render())[1]).toBe('');
   });
 
   it('switches back to the song info only from the time row button', () => {
@@ -147,14 +170,14 @@ describe('LyricsProgress', () => {
     useIslandStore.setState({ currentPositionMs: 200000 });
     const ended = render();
     expect(input(ended).props.value).toBe(180000);
-    expect(times(ended)).toEqual(['3:00', '3:00']);
+    expect(times(ended)).toEqual(['03:00 - 03:00', '']);
   });
 
   it('previews while dragging and seeks only when the native change commits', () => {
     invoke(input(render()), 'onChange', { currentTarget: { value: '120000' } });
     const dragging = render();
     expect(input(dragging).props.value).toBe(120000);
-    expect(times(dragging)).toEqual(['2:00', '3:00']);
+    expect(times(dragging)).toEqual(['02:00 - 03:00', '']);
     expect(mediaSeek).not.toHaveBeenCalled();
     slider.value = '120000.4';
     slider.dispatchEvent(new Event('change'));

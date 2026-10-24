@@ -47,3 +47,15 @@ export function truncateByVisualWidth(text: string, maxWidth: number): string {
   if (finalEnd === characters.length) return text;
   return characters.slice(0, finalEnd).join('') + '…';
 }
+
+/**
+ * 将毫秒格式化为进度条使用的 mm:ss 时间
+ * @param ms - 时间（毫秒），负数或非有限值按 0 处理
+ * @returns 分与秒均补足两位；超过一小时分钟继续累加（如 75:03），不进位为小时
+ */
+export function formatProgressTime(ms: number): string {
+  const totalSeconds = Number.isFinite(ms) ? Math.max(0, Math.floor(ms / 1000)) : 0;
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  const seconds = String(totalSeconds % 60).padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}

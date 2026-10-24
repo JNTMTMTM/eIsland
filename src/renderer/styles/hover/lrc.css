@@ -240,11 +240,26 @@
 
 .lrc-progress-times {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
   font-size: 10px;
   line-height: 1.2;
   color: rgba(var(--color-text-rgb), 0.65);
+}
+
+/** 当前进度与总时长并排在左侧，等宽数字避免随进度跳动 */
+.lrc-progress-time {
+  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
+}
+
+/** 当前歌词占据剩余宽度并靠右，过长时省略 */
+.lrc-progress-lyric {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: right;
 }
 
 .lrc-o3ic-text {

@@ -20,7 +20,7 @@
 
 /**
  * @file LyricsProgress.tsx
- * @description 歌词 Tab 播放进度条：点击歌曲信息后替换歌曲信息显示当前进度与总时长，拖动时只预览，松手或键盘调整完成后才跳转
+ * @description 歌词 Tab 播放进度条：点击歌曲信息后替换歌曲信息，显示当前进度、总时长与当前歌词，拖动时只预览，松手或键盘调整完成后才跳转
  * @author 鸡哥
  */
 
@@ -28,7 +28,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import useIslandStore from '../../../../../../store/slices';
-import { formatPlaybackTime } from '../../../../../components/DynamicIslandTrayMenu/utils/trayPlayback';
+import { useCurrentLyric } from '../../../../lyrics/hooks/useCurrentLyric';
+import { formatProgressTime } from '../utils/lyricUtils';
 import type { ChangeEvent, CSSProperties, ReactElement } from 'react';
 
 /** 松手后等待播放器回报新进度的最长时间，超时仍未回报视为跳转未生效，回到真实进度 */
@@ -51,9 +52,11 @@ interface LyricsProgressProps {
  */
 export function LyricsProgress({ onShowInfo }: LyricsProgressProps): ReactElement {
   const { t } = useTranslation();
-  const { currentPositionMs, currentDurationMs } = useIslandStore(useShallow((store) => ({
+  const { currentPositionMs, currentDurationMs, syncedLyrics, lyricsLoading } = useIslandStore(useShallow((store) => ({
     currentPositionMs: store.currentPositionMs,
     currentDurationMs: store.currentDurationMs,
+    syncedLyrics: store.syncedLyrics,
+    lyricsLoading: store.lyricsLoading,
   })));
   const [dragPositionMs, setDragPositionMs] = useState<number | null>(null);
   const [seekTargetMs, setSeekTargetMs] = useState<number | null>(null);
@@ -86,8 +89,10 @@ export function LyricsProgress({ onShowInfo }: LyricsProgressProps): ReactElemen
   // 本地播放时钟要等播放器推送新时间线后才会改变，期间先停在跳转目标，避免松手后滑块跳回旧进度。
   const awaitingSeek = seekTargetMs !== null && Math.abs(currentPositionMs - seekTargetMs) > SEEK_SETTLE_TOLERANCE_MS;
   const positionMs = Math.min(currentDurationMs, dragPositionMs ?? (awaitingSeek ? seekTargetMs : currentPositionMs));
-  const positionText = formatPlaybackTime(positionMs);
-  const durationText = formatPlaybackTime(currentDurationMs);
+  const positionText = formatProgressTime(positionMs);
+  const durationText = formatProgressTime(currentDurationMs);
+  // 歌词与左侧时间同步取显示进度，拖动预览时一并显示目标位置的歌词；前奏、加载中或无歌词时为空。
+  const { currentText: lyricText } = useCurrentLyric(syncedLyrics, lyricsLoading, positionMs);
   const showInfoLabel = t('hover.music.showInfo', { defaultValue: '显示歌曲信息' });
 
   // step="any" 让滑块随时间连续移动；键盘方向键按浏览器默认每次调整总时长的 1%。
@@ -99,8 +104,8 @@ export function LyricsProgress({ onShowInfo }: LyricsProgressProps): ReactElemen
         style={{ '--lrc-progress': `${(positionMs / currentDurationMs) * 100}%` } as CSSProperties} onChange={handleDrag} />
       {/* 滑块只负责跳转；时间行作为切换按钮与滑块并列，拖动或点击滑块不会切换回歌曲信息。 */}
       <button type="button" className="lrc-progress-times" onClick={onShowInfo} aria-label={showInfoLabel} title={showInfoLabel}>
-        <span>{positionText}</span>
-        <span>{durationText}</span>
+        <span className="lrc-progress-time">{`${positionText} - ${durationText}`}</span>
+        <span className="lrc-progress-lyric">{lyricText}</span>
       </button>
     </div>
   );
