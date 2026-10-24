@@ -41,6 +41,19 @@ type HoverMusicBgStyle = 'silky' | 'wave';
 /** 悬停歌曲信息满该时长才切换为进度条，指针只是划过时保持歌曲信息，避免误触 */
 const SEEK_HOVER_DELAY_MS = 300;
 
+/** 进度条离开过渡时长，与 lrc.css 中 .lrc-progress 的过渡时长一致，过渡播完后再卸载 */
+const SEEK_EXIT_MS = 200;
+
+/**
+ * 取消尚未执行的计时
+ * @param timerId - 计时 ID，为 null 时表示没有待执行的计时
+ * @returns 始终为 null，供调用方清空保存的计时 ID
+ */
+function cancelTimer(timerId: number | null): null {
+  if (timerId !== null) window.clearTimeout(timerId);
+  return null;
+}
+
 /**
  * 歌词 Tab 内容
  * @description 显示当前播放歌词、唱片封面和播放控制，悬停歌曲信息片刻后切换为播放进度条
@@ -66,7 +79,9 @@ export function LyricsTab(): ReactElement {
 
   const [bgStyle, setBgStyle] = useState<HoverMusicBgStyle>('silky');
   const [seekHovered, setSeekHovered] = useState(false);
+  const [progressExiting, setProgressExiting] = useState(false);
   const seekHoverTimerRef = useRef<number | null>(null);
+  const progressExitTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     window.api.storeRead(HOVER_MUSIC_BG_STYLE_STORE_KEY).then((v) => {
@@ -74,27 +89,32 @@ export function LyricsTab(): ReactElement {
     }).catch(() => {});
   }, []);
 
-  const cancelSeekHover = useCallback((): void => {
-    if (seekHoverTimerRef.current === null) return;
-    window.clearTimeout(seekHoverTimerRef.current);
-    seekHoverTimerRef.current = null;
+  useEffect(() => () => {
+    seekHoverTimerRef.current = cancelTimer(seekHoverTimerRef.current);
+    progressExitTimerRef.current = cancelTimer(progressExitTimerRef.current);
   }, []);
 
-  useEffect(() => cancelSeekHover, [cancelSeekHover]);
-
-  // 拖动滑块时 Chromium 捕获鼠标，指针移出区域也不会触发离开；在区域外松手时先提交跳转再触发离开，卸载进度条不会丢失跳转。
+  // 拖动滑块时 Chromium 捕获鼠标，指针移出区域也不会触发离开，松手后才离开并恢复歌曲信息。
   const handleInfoEnter = useCallback((): void => {
-    cancelSeekHover();
+    cancelTimer(seekHoverTimerRef.current);
     seekHoverTimerRef.current = window.setTimeout(() => {
       seekHoverTimerRef.current = null;
+      progressExitTimerRef.current = cancelTimer(progressExitTimerRef.current);
+      setProgressExiting(false);
       setSeekHovered(true);
     }, SEEK_HOVER_DELAY_MS);
-  }, [cancelSeekHover]);
+  }, []);
 
   const handleInfoLeave = useCallback((): void => {
-    cancelSeekHover();
+    seekHoverTimerRef.current = cancelTimer(seekHoverTimerRef.current);
+    if (!seekHovered) return;
     setSeekHovered(false);
-  }, [cancelSeekHover]);
+    setProgressExiting(true);
+    progressExitTimerRef.current = window.setTimeout(() => {
+      progressExitTimerRef.current = null;
+      setProgressExiting(false);
+    }, SEEK_EXIT_MS);
+  }, [seekHovered]);
 
   const handlePlayPause = () => window.api?.mediaPlayPause();
   const handlePrev = () => window.api?.mediaPrev();
@@ -103,6 +123,7 @@ export function LyricsTab(): ReactElement {
   // 播放源未提供有效时长时无法定位进度，此时不渲染进度条，悬停也保持显示歌曲信息。
   const hasTimeline = isMusicPlaying && Number.isFinite(currentDurationMs) && currentDurationMs > 0;
   const seekVisible = hasTimeline && seekHovered;
+  const progressMounted = hasTimeline && (seekHovered || progressExiting);
 
   const artistText = truncateByVisualWidth(mediaInfo.artist || t('hover.music.unknownArtist', { defaultValue: '未知艺术家' }), 50);
   const albumText = truncateByVisualWidth(mediaInfo.title || t('hover.music.unknownTitle', { defaultValue: '未知歌曲' }), 45);
@@ -119,18 +140,15 @@ export function LyricsTab(): ReactElement {
         />
       </div>
 
-      <div className="lrc-info-section" onMouseEnter={handleInfoEnter} onMouseLeave={handleInfoLeave}>
-        {seekVisible ? (
-          <LyricsProgress />
-        ) : (
-          <>
-            <div className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}>
-              {albumText}
-            </div>
+      {/* 进度条叠放在歌曲信息上方，由 seeking 驱动两者交叉过渡；离开后进度条保留到淡出播完再卸载。 */}
+      <div className={`lrc-info-section ${seekVisible ? 'seeking' : ''}`} onMouseEnter={handleInfoEnter} onMouseLeave={handleInfoLeave}>
+        <div className={`lrc-title ${!isMusicPlaying ? 'inactive' : ''}`}>
+          {albumText}
+        </div>
 
-            <div className="lrc-artist">{artistText}</div>
-          </>
-        )}
+        <div className="lrc-artist">{artistText}</div>
+
+        {progressMounted && <LyricsProgress />}
       </div>
 
       <div className="lrc-media-controls">

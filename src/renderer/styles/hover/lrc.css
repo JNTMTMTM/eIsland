@@ -101,6 +101,9 @@
   gap: 2px;
   z-index: 2;
   font-family: var(--island-lyrics-font);
+
+  /* 进度条以绝对定位叠放在歌曲信息上方 */
+  position: relative;
 }
 
 .lrc-title {
@@ -130,11 +133,49 @@
 }
 
 /* --- 播放进度（悬停歌曲信息片刻后替换歌曲信息） --- */
+
+/** 歌曲信息与进度条交叉过渡：歌曲信息上移淡出，进度条自下方淡入，离开时反向 */
+.lrc-info-section > :is(.lrc-title, .lrc-artist) {
+  transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.lrc-info-section.seeking > :is(.lrc-title, .lrc-artist) {
+  opacity: 0;
+  transform: translate3d(0, -4px, 0);
+}
+
+/** 叠放在歌曲信息上方，歌曲信息仍占位，切换前后区域高度不变 */
 .lrc-progress {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
   min-width: 0;
+  transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/** 离开过渡：移除 seeking 后淡出下移，播完由歌词 Tab 卸载；淡出期间不响应指针 */
+.lrc-info-section:not(.seeking) > .lrc-progress {
+  opacity: 0;
+  transform: translate3d(0, 4px, 0);
+  pointer-events: none;
+}
+
+/** 出现过渡：进度条挂载时从淡出状态开始过渡 */
+@starting-style {
+  .lrc-info-section.seeking > .lrc-progress {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lrc-info-section > :is(.lrc-title, .lrc-artist),
+  .lrc-progress {
+    transition: none;
+  }
 }
 
 .lrc-progress-slider {
