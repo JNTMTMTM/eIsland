@@ -28,8 +28,14 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render as renderComponent, nodes, value, trigger, text } from '../../../../test/componentHarness';
 import { AiChatContent as Component } from '../AiChatTab';
 import expandChatRows from './chatRowsFixture';
-/** 展开行组件后检查页面交互。 */
-const render = (component: unknown) => expandChatRows(renderComponent(component));
+import { ChatMessagesSkeleton, ChatSessionListSkeleton } from '../chatLoadingSkeleton';
+/**
+ * 展开行组件后检查页面交互。
+ * @param component - 被测组件
+ * @param props - 组件属性
+ * @returns 展开行组件后的元素树
+ */
+const render = (component: unknown, props?: object) => expandChatRows(renderComponent(component, props));
 import { ChatInputBar } from '../ChatInputBar';
 import { MessageTimeline } from '../MessageTimeline';
 import { AssistantMarkdown } from '../AssistantMarkdown';
@@ -72,6 +78,31 @@ describe('AiChatTab', () => {
     const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() };
     trigger(tree, '.max-expand-chat-session-delete', 'onClick', event);
     expect(state.deleteAiChatSession).toHaveBeenCalledWith('active'); expect(event.stopPropagation).toHaveBeenCalledOnce();
+  });
+  it('replaces only the history sidebar and the message list with skeletons while the session loads', () => {
+    state.orderedSessions = [{ id: 'active', title: 'Current', updatedAt: 1 }];
+    state.aiChatMessages = [{ role: 'user', content: 'question' }];
+    const tree = render(Component, { loading: true });
+    expect(nodes(nodes(tree, '.max-expand-chat-session-sidebar')[0], ChatSessionListSkeleton)).toHaveLength(1);
+    expect(nodes(tree, '.max-expand-chat-session-item')).toHaveLength(0);
+    expect(nodes(nodes(tree, '.max-expand-chat-content')[0], ChatMessagesSkeleton)).toHaveLength(1);
+    expect(text(tree)).not.toContain('question');
+    expect(nodes(tree, ChatSessionListSkeleton)).toHaveLength(1);
+    expect(nodes(tree, ChatMessagesSkeleton)).toHaveLength(1);
+    expect(text(nodes(tree, '.max-expand-chat-header')[0])).toContain('Island Agent');
+    expect(nodes(tree, '.max-expand-chat-clear')).toHaveLength(1);
+    expect(nodes(tree, ChatInputBar)).toHaveLength(1);
+    const loaded = render(Component);
+    expect(nodes(loaded, ChatSessionListSkeleton)).toHaveLength(0);
+    expect(nodes(loaded, ChatMessagesSkeleton)).toHaveLength(0);
+    expect(nodes(loaded, '.max-expand-chat-session-item')).toHaveLength(1);
+    expect(text(loaded)).toContain('question');
+  });
+  it('keeps the message skeleton inside the message list container and hides both skeletons from assistive technology', () => {
+    const messages = renderComponent(ChatMessagesSkeleton);
+    expect(nodes(messages, '.max-expand-chat-messages')[0]).toBe(messages);
+    expect(value(messages, '.max-expand-chat-messages', 'aria-hidden')).toBe('true');
+    expect(value(renderComponent(ChatSessionListSkeleton), '.settings-skeleton-sweep', 'aria-hidden')).toBe('true');
   });
   it('skips empty assistants and renders user attachments and real timeline boundaries', () => {
     state.aiChatMessages = [{ role: 'assistant', content: '' }, { role: 'user', content: '<attachment name="note.txt">\nsecret\n</attachment>\nHello', attachments: [{ name: 'note.txt' }] }, { role: 'assistant', content: 'answer' }];

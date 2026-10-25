@@ -38,7 +38,7 @@ const fetchLeaf = vi.fn<typeof fetch>();
  * @returns 元素树
  */
 function run() {
-  return expandChatRows(renderHook(Component));
+  return expandChatRows(renderHook(Component, {}));
 }
 /** 提交实际生命周期。
  * @returns 更新后元素树
@@ -110,26 +110,36 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('AiChatTab real state and send integration', () => {
-  it('keeps the chat mounted under a bounded loading overlay while switching sessions', async () => {
-    ({ AiChatTab: Component } = await import('../AiChatTab'));
-    const { default: ChatLoadingSkeleton } = await import('../chatLoadingSkeleton');
-    runtime.store.setState({ aiChatReady: true, aiChatLoading: false });
-    const idle = run();
-    const content = find(idle, (node) => node.props.inert === false);
+  it('keeps the chat usable without a page overlay and lets it show skeletons until the session body is ready', async () => {
+    let AiChatContent: typeof Component;
+    ({ AiChatTab: Component, AiChatContent } = await import('../AiChatTab'));
+    const chat = (tree: ReturnType<typeof run>) => find(tree, (node) => node.type === AiChatContent);
+    const usable = (tree: ReturnType<typeof run>) => elements(tree).every((node) => node.props.inert !== true);
+    runtime.store.setState({ aiChatReady: false, aiChatLoading: false });
+    expect(chat(run()).props.loading).toBe(true);
     runtime.store.setState({ aiChatLoading: true });
-    const loading = run();
-    expect(elements(loading).some((node) => node.props['aria-busy'] === true)).toBe(true);
-    const status = find(loading, (node) => node.props.role === 'status');
-    expect(text(status)).toContain('aiChat.storageLoading');
-    expect(elements(status).some((node) => node.type === ChatLoadingSkeleton)).toBe(true);
-    expect(String(status.props.className).split(' ')).toContain('absolute');
-    expect(String(status.props.className).split(' ')).toContain('inset-0');
-    expect(find(loading, (node) => node.props.inert === true).type).toBe(content.type);
+    const firstLoad = run();
+    expect(chat(firstLoad).props.loading).toBe(true);
+    expect(usable(firstLoad)).toBe(true);
+    runtime.store.setState({ aiChatReady: true, aiChatLoading: false });
+    expect(chat(run()).props.loading).toBe(false);
+    runtime.store.setState({ aiChatLoading: true });
+    const switching = run();
+    expect(elements(switching).some((node) => node.props['aria-busy'] === true)).toBe(true);
+    const status = find(switching, (node) => node.props.role === 'status');
+    expect(text(status)).toBe('aiChat.storageLoading');
+    expect(status.props.className).toBe('sr-only');
+    expect(chat(switching).props.loading).toBe(true);
+    expect(usable(switching)).toBe(true);
     runtime.store.setState({ aiChatLoading: false });
     const settled = run();
     expect(elements(settled).some((node) => node.props['aria-busy'] === false)).toBe(true);
     expect(elements(settled).some((node) => node.props.role === 'status')).toBe(false);
-    expect(find(settled, (node) => node.props.inert === false).type).toBe(content.type);
+    expect(chat(settled).props.loading).toBe(false);
+    runtime.store.setState({ aiChatReady: false, aiChatStorageError: true });
+    const failed = run();
+    expect(text(find(failed, (node) => node.props.role === 'status'))).toBe('aiChat.storageRetry');
+    expect(usable(failed)).toBe(false);
   });
   it('loads only when the chat shell mounts, exposes retry and releases bodies on unmount', async () => {
     ({ AiChatTab: Component } = await import('../AiChatTab'));
