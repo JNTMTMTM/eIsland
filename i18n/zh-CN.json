@@ -861,6 +861,7 @@
       "next": "下一曲"
     },
     "lyrics": {
+      "all": "全部歌词",
       "loading": "正在加载歌词",
       "empty": "暂无歌词",
       "enjoyMusic": "享受音乐"

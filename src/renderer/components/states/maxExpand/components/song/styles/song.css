@@ -1,0 +1,321 @@
+/*
+ * eIsland - https://github.com/JNTMTMTM/eIsland
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ * Licensed under the GNU General Public License, version 3 or later.
+ */
+
+/**
+ * @file song.css
+ * @description 最大展开歌曲页的封面与双语歌词布局，随窗口容器及深浅主题适配。
+ * @author 鸡哥
+ */
+
+.song-panel {
+  container-type: size;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--color-island-text);
+  background: radial-gradient(ellipse at 18% 35%, rgb(var(--song-accent), .16), transparent 75%);
+
+}
+
+.song-layout {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 6cqw, 64px);
+  align-items: center;
+  height: 100%;
+  padding: clamp(20px, 5cqh, 44px) clamp(24px, 6cqw, 64px);
+
+}
+
+.song-artwork-column {
+  display: flex;
+  flex-direction: column;
+  justify-self: center;
+  width: 100%;
+  min-width: 0;
+  max-width: min(360px, 55cqh);
+
+}
+
+.song-cover {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: rgb(var(--color-text-rgb), .06);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 14%);
+
+}
+
+.song-cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+}
+
+.song-cover > .song-placeholder-icon-img {
+  width: 30%;
+  height: 30%;
+  opacity: .25;
+
+}
+
+.song-meta {
+  min-width: 0;
+  margin-top: clamp(16px, 4cqh, 28px);
+
+}
+
+.song-title,
+.song-artist,
+.song-album {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.song-title {
+  font-size: clamp(18px, 2.6cqw, 24px);
+  font-weight: 600;
+  line-height: 1.4;
+
+}
+
+.song-artist,
+.song-album {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(var(--color-text-rgb), .55);
+
+}
+
+.song-album {
+  font-size: 12px;
+
+}
+
+.song-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 18px;
+
+}
+
+.song-controls > button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 9px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  transition: background-color .2s;
+
+}
+
+.song-controls > .song-play {
+  width: 42px;
+  height: 42px;
+  padding: 12px;
+  background: rgb(var(--color-text-rgb), .08);
+
+}
+
+.song-controls > button:hover:enabled {
+  background: rgb(var(--color-text-rgb), .14);
+
+}
+
+.song-controls > button:disabled {
+  cursor: default;
+  opacity: .3;
+
+}
+
+.song-control-icon-img,
+.song-placeholder-icon-img {
+  width: 100%;
+  height: 100%;
+  filter: brightness(0) invert(1);
+
+}
+
+[data-theme="light"] .song-control-icon-img,
+[data-theme="light"] .song-placeholder-icon-img {
+  filter: brightness(0) invert(0);
+
+}
+
+.song-lyrics-viewport {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+
+}
+
+.song-lyrics {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding-block: 38cqh;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+
+}
+
+.song-lyric-block {
+  flex-shrink: 0;
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  color: rgb(var(--color-text-rgb), .4);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  transition: color .25s, background-color .25s;
+
+}
+
+.song-lyric-block:disabled {
+  cursor: default;
+
+}
+
+.song-lyric-block:hover:enabled {
+  color: rgb(var(--color-text-rgb), .8);
+  background: rgb(var(--color-text-rgb), .06);
+
+}
+
+.song-lyric-block[aria-current="true"] {
+  color: var(--color-island-text);
+  background: rgb(var(--color-text-rgb), .1);
+
+}
+
+.song-lyric-original,
+.song-lyric-translation {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+
+}
+
+.song-lyric-original {
+  font-size: clamp(19px, 3.1cqw, 30px);
+  font-weight: 600;
+  line-height: 1.45;
+
+}
+
+.song-lyric-translation {
+  margin-top: 5px;
+  font-size: clamp(13px, 2.1cqw, 19px);
+  font-weight: 500;
+  line-height: 1.5;
+  opacity: .7;
+
+}
+
+.song-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+  color: rgb(var(--color-text-rgb), .5);
+  text-align: center;
+
+}
+
+.song-empty > img {
+  width: 40px;
+  height: 40px;
+  opacity: .2;
+
+}
+
+.song-controls > button:focus-visible,
+.song-lyric-block:focus-visible,
+.song-lyrics:focus-visible {
+  outline: 2px solid rgb(var(--color-text-rgb), .65);
+  outline-offset: -2px;
+
+}
+
+@container (width < 520px) {
+  .song-layout {
+    grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr);
+    gap: 16px;
+    padding: 16px;
+
+  }
+
+  .song-controls {
+    gap: 4px;
+
+  }
+
+  .song-lyric-block {
+    padding: 10px;
+
+  }
+
+}
+
+@container (height < 350px) {
+  .song-artwork-column {
+    max-width: 40cqh;
+
+  }
+
+  .song-meta {
+    margin-top: 10px;
+
+  }
+
+  .song-album {
+    display: none;
+
+  }
+
+  .song-controls {
+    margin-top: 8px;
+
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .song-controls > button,
+  .song-lyric-block {
+    transition: none;
+
+  }
+
+}

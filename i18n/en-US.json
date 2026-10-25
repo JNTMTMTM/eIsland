@@ -861,6 +861,7 @@
       "next": "Next"
     },
     "lyrics": {
+      "all": "All lyrics",
       "loading": "Loading lyrics",
       "empty": "No lyrics",
       "enjoyMusic": "Enjoy the music"

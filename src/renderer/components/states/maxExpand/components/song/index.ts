@@ -24,4 +24,5 @@
  * @author 鸡哥
  */
 
-export { SongTab } from './components/SongTab';
+// eslint-disable-next-line import-x/prefer-default-export -- 保留歌曲模块已有的具名公共入口。
+export { default as SongTab } from './components/SongTab';
