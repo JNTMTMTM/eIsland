@@ -31,6 +31,7 @@ import useSongLyricsScroll from '../hooks/useSongLyricsScroll';
 import useSongMediaControls from '../hooks/useSongMediaControls';
 import SongArtwork from './SongArtwork';
 import SongLyricsPanel from './SongLyricsPanel';
+import SongPlayerBar from './SongPlayerBar';
 import type { CSSProperties, ReactElement } from 'react';
 import '../../../../../../styles/lyrics/lyrics.css';
 import '../../../../../../styles/settings/modules/settings-skeleton.css';
@@ -52,9 +53,10 @@ export default function SongTab(): ReactElement {
       aria-label={t('maxExpand.nav.song')}
       style={{ '--song-accent': song.dominantColor.join(', ') } as CSSProperties}>
       <div className="song-layout">
-        <SongArtwork song={song} controls={controls} />
+        <SongArtwork song={song} />
         <SongLyricsPanel song={song} scroll={scroll} />
       </div>
+      <SongPlayerBar song={song} controls={controls} />
     </section>
   );
   /* eslint-enable better-tailwindcss/no-unknown-classes -- 歌曲展示样式例外结束。 */

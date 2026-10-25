@@ -27,6 +27,8 @@
 .song-panel {
   container-type: size;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -39,10 +41,11 @@
 .song-layout {
   box-sizing: border-box;
   display: grid;
+  flex: 1;
   grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
   gap: clamp(24px, 6cqw, 64px);
   align-items: center;
-  height: 100%;
+  min-height: 0;
   padding: clamp(20px, 5cqh, 44px) clamp(24px, 6cqw, 64px);
 
 }
@@ -126,38 +129,126 @@
 
 }
 
+.song-player-bar {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 48px;
+  padding: 8px clamp(24px, 5cqw, 44px);
+  background: rgb(var(--color-text-rgb), .025);
+  border-top: 1px solid rgb(var(--color-text-rgb), .06);
+
+}
+
+.song-player-times {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--color-text-rgb), .85);
+  white-space: nowrap;
+
+}
+
+.song-player-duration {
+  color: rgb(var(--color-text-rgb), .5);
+
+}
+
+.song-progress-slider {
+  position: absolute;
+  top: -7px;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+
+}
+
+/* Electron 使用 Chromium 的原生 range 伪元素绘制轨道与拖动手柄。 */
+.song-progress-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(to right, rgb(var(--color-text-rgb), .65) var(--song-progress), rgb(var(--color-text-rgb), .12) var(--song-progress));
+  border-radius: 1px;
+
+}
+
+.song-progress-slider::-webkit-slider-thumb {
+  width: 8px;
+  height: 8px;
+  margin-top: -3px;
+  appearance: none;
+  background: var(--color-island-text);
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity .2s;
+
+}
+
+.song-progress-slider:hover:enabled::-webkit-slider-thumb,
+.song-progress-slider:focus-visible::-webkit-slider-thumb {
+  opacity: 1;
+
+}
+
+.song-progress-slider:focus-visible {
+  outline: 2px solid rgb(var(--color-text-rgb), .5);
+  outline-offset: -2px;
+
+}
+
+.song-progress-slider:disabled {
+  cursor: default;
+  opacity: .35;
+
+}
+
 .song-controls {
   display: flex;
   gap: 16px;
   align-items: center;
-  margin-top: 18px;
+  justify-content: center;
 
 }
 
 .song-controls > button {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 9px;
+  width: 28px;
+  height: 28px;
+  padding: 7px;
   cursor: pointer;
   background: transparent;
   border: 0;
   border-radius: 50%;
-  transition: background-color .2s;
+  transition: background-color .2s, transform .15s;
 
 }
 
 .song-controls > .song-play {
-  width: 42px;
-  height: 42px;
-  padding: 12px;
+  width: 60px;
+  height: 30px;
+  padding: 7px 22px;
   background: rgb(var(--color-text-rgb), .08);
+  border-radius: 24px;
 
 }
 
 .song-controls > button:hover:enabled {
   background: rgb(var(--color-text-rgb), .14);
+
+}
+
+.song-controls > button:active:enabled {
+  transform: scale(.95);
 
 }
 
@@ -388,12 +479,45 @@
   }
 
   .song-controls {
-    gap: 4px;
+    gap: 12px;
+
+  }
+
+  .song-player-bar {
+    min-height: 44px;
+    padding: 6px 16px;
+
+  }
+
+  .song-player-times {
+    font-size: 10px;
+
+  }
+
+  .song-controls > button {
+    width: 28px;
+    height: 28px;
+    padding: 7px;
+
+  }
+
+  .song-controls > .song-play {
+    width: 56px;
+    height: 30px;
+    padding: 7px 20px;
 
   }
 
   .song-lyric-block {
     padding: 4px 10px;
+
+  }
+
+}
+
+@container (width < 400px) {
+  .song-player-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
 
   }
 
@@ -415,16 +539,16 @@
 
   }
 
-  .song-controls {
-    margin-top: 8px;
-
-  }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
   .song-controls > button,
   .song-lyric-block {
+    transition: none;
+
+  }
+
+  .song-progress-slider::-webkit-slider-thumb {
     transition: none;
 
   }

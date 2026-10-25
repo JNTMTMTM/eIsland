@@ -18,9 +18,10 @@ import SongTab from '../SongTab';
 import SongArtwork from '../SongArtwork';
 import SongLyricsPanel from '../SongLyricsPanel';
 import SongLyricsSkeleton from '../SongLyricsSkeleton';
+import SongPlayerBar from '../SongPlayerBar';
 import { KaraokeSyllableLine } from '../../../../../lyrics/components/KaraokeSyllableLine';
 import type { SyncedLyricLine } from '../../../../../../../store/types';
-import type { SongArtworkProps, SongLyricsPanelProps } from '../../types/songTypes';
+import type { SongArtworkProps, SongLyricsPanelProps, SongPlayerBarProps } from '../../types/songTypes';
 
 const model = vi.hoisted(() => ({
   karaokeEnabled: false,
@@ -37,7 +38,7 @@ vi.mock('react', async (load) => {
   // Mock 会提升到导入之前；动态读取调度器，避免 React 导入先于其初始化。
   const harness = await import('../../../../../../test/elementHarness');
   const lifecycle = await import('../../../../../../components/test/contentLifecycleHarness');
-  return { ...actual, ...harness.hookMocks, ...lifecycle.lifecycleHooks };
+  return { ...actual, ...harness.hookMocks, ...lifecycle.lifecycleHooks, useLayoutEffect: lifecycle.lifecycleHooks.useEffect };
 });
 vi.mock('zustand/react/shallow', () => ({ useShallow: <T,>(selector: T): T => selector }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
@@ -46,6 +47,8 @@ vi.mock('../../hooks/useSongLyricsWheel', () => ({ default: () => undefined }));
 vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (store: typeof model.store) => unknown) => selector(model.store) }));
 const scrollTo = vi.fn();
 let active: object | null;
+let slider: EventTarget & { value: string };
+let sliderKey: string | null;
 
 /**
  * 展开拆出的纯展示组件，共享逐字及轮播控件继续作为原有叶节点边界。
@@ -59,6 +62,7 @@ function expandSongViews(value: ReactNode): ReactNode {
   if (element.type === SongArtwork) return expandSongViews(SongArtwork(element.props as unknown as SongArtworkProps));
   if (element.type === SongLyricsPanel) return expandSongViews(SongLyricsPanel(element.props as unknown as SongLyricsPanelProps));
   if (element.type === SongLyricsSkeleton) return expandSongViews(SongLyricsSkeleton());
+  if (element.type === SongPlayerBar) return expandSongViews(SongPlayerBar(element.props as unknown as SongPlayerBarProps));
   return cloneElement(element, undefined, expandSongViews(element.props.children));
 }
 
@@ -71,6 +75,15 @@ function render(): TestElement {
   const viewport = elements(tree).find((node) => node.props.className === 'song-lyrics');
   if (viewport) {
     (viewport.props.ref as { current: unknown }).current = { scrollTo, offsetTop: 10, clientHeight: 400, querySelector: () => active };
+  }
+  const progress = elements(tree).find((node) => node.props.className === 'song-progress-slider');
+  if (progress) {
+    if (sliderKey !== progress.key) {
+      slider = Object.assign(new EventTarget(), { value: '0' });
+      sliderKey = progress.key;
+    }
+    slider.value = String(progress.props.value);
+    (progress.props.ref as { current: unknown }).current = slider;
   }
   runEffects();
   return tree;
@@ -94,6 +107,8 @@ beforeEach(() => {
   model.store.syncedLyrics = [{ time_ms: 1000, text: 'First' }, { time_ms: 2000, text: 'Second' }, { time_ms: 3000, text: 'Third' }];
   Object.assign(model.store, { isMusicPlaying: true, lyricsLoading: false, currentPositionMs: 1500, currentDurationMs: 60000 });
   model.mediaSeek.mockResolvedValue({ success: true });
+  slider = Object.assign(new EventTarget(), { value: '0' });
+  sliderKey = null;
   active = { offsetTop: 500, offsetHeight: 100 };
   vi.stubGlobal('ResizeObserver', class {
     observe = vi.fn();
@@ -105,6 +120,46 @@ beforeEach(() => {
 afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('maxExpand SongTab', () => {
+  it('底部进度条跟随播放时间，时长未知时禁用拖动', () => {
+    let tree = render();
+    const progress = (): TestElement => findElement(tree, (node) => node.props.className === 'song-progress-slider');
+    expect(progress().props).toMatchObject({ value: 1500, max: 60000, disabled: false });
+    expect(textContent(findElement(tree, (node) => node.props.className === 'song-player-times'))).toBe('00:01 / 01:00');
+    model.store.currentPositionMs = 20000;
+    tree = render();
+    expect(progress().props.value).toBe(20000);
+    model.store.currentDurationMs = 0;
+    render(); tree = render();
+    expect(progress().props).toMatchObject({ value: 0, max: 1, disabled: true });
+  });
+  it('拖动进度只预览，松手后跳转；失败时恢复实际播放位置', async () => {
+    model.mediaSeek.mockResolvedValue({ success: false });
+    let tree = render();
+    invoke(findElement(tree, (node) => node.props.className === 'song-progress-slider'), 'onChange', { currentTarget: { value: '45000' } });
+    tree = render();
+    expect(model.mediaSeek).not.toHaveBeenCalled();
+    expect(findElement(tree, (node) => node.props.className === 'song-progress-slider').props.value).toBe(45000);
+    slider.dispatchEvent(new Event('change'));
+    tree = render();
+    expect(model.mediaSeek).toHaveBeenCalledExactlyOnceWith(45000);
+    expect(findElement(tree, (node) => node.props.className === 'song-progress-slider').props.value).toBe(45000);
+    await Promise.resolve(); await Promise.resolve();
+    tree = render();
+    expect(findElement(tree, (node) => node.props.className === 'song-progress-slider').props.value).toBe(1500);
+  });
+  it('换歌丢弃未完成的进度预览，旧滑块不再提交跳转', () => {
+    const tree = render();
+    invoke(findElement(tree, (node) => node.props.className === 'song-progress-slider'), 'onChange', { currentTarget: { value: '45000' } });
+    render();
+    const oldSlider = slider;
+    model.store.mediaInfo = { title: 'New song', artist: 'Artist', album: '' };
+    model.store.currentPositionMs = 5000;
+    render();
+    const updated = render();
+    oldSlider.dispatchEvent(new Event('change'));
+    expect(model.mediaSeek).not.toHaveBeenCalled();
+    expect(findElement(updated, (node) => node.props.className === 'song-progress-slider').props.value).toBe(5000);
+  });
   it('首次显示和更换歌词都默认归顶，下一次播放切行恢复居中', () => {
     render();
     vi.advanceTimersByTime(0);

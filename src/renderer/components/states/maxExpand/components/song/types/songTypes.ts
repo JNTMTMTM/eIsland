@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { KeyboardEvent, MouseEvent, RefObject } from 'react';
+import type { ChangeEvent, KeyboardEvent, MouseEvent, RefObject } from 'react';
 import type { MediaInfo, SyncedLyricLine } from '../../../../../../store/types';
 
 /** 同一时间戳对应的完整原文、逐字信息与翻译。 */
@@ -87,10 +87,33 @@ export interface SongMediaControls {
   handleNext: () => void;
 }
 
-/** 封面与歌曲信息只接收展示所需数据和播放控制。 */
+/** 封面与歌曲信息只接收展示所需数据。 */
 export interface SongArtworkProps {
-  song: Pick<SongData, 'mediaInfo' | 'coverImage' | 'trackKey' | 'isMusicPlaying' | 'isPlaying'>;
+  song: Pick<SongData, 'mediaInfo' | 'coverImage' | 'trackKey'>;
+}
+
+/** 底部播放器展示与进度跳转所需的数据。 */
+export interface SongPlayerBarProps {
+  song: Pick<SongData, 'trackKey' | 'canSeek' | 'currentDurationMs' | 'positionMs' | 'commitSeek' | 'isMusicPlaying' | 'isPlaying'>;
   controls: SongMediaControls;
+}
+
+/** 进度条不单独订阅播放器，复用页面已有的跳转确认状态。 */
+export interface SongProgressOptions {
+  trackKey: string;
+  canSeek: boolean;
+  currentDurationMs: number;
+  positionMs: number;
+  commitSeek: (targetMs: number) => void;
+}
+
+/** 进度条显示数据与原生 change 事件绑定引用。 */
+export interface SongProgressResult {
+  sliderRef: RefObject<HTMLInputElement | null>;
+  handlePreview: (event: ChangeEvent<HTMLInputElement>) => void;
+  durationMs: number;
+  displayPositionMs: number;
+  progressPercent: number;
 }
 
 /** 歌词面板接收派生状态和滚动句柄，不订阅播放器。 */
