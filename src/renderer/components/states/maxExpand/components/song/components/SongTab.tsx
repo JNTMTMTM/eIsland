@@ -35,6 +35,7 @@ import { findCurrentIndex } from '../../../../lyrics/utils/findCurrentIndex';
 import { useLyricsSettings } from '../../../../lyrics/hooks/useLyricsSettings';
 import { KaraokeSyllableLine } from '../../../../lyrics/components/KaraokeSyllableLine';
 import buildSongLyricBlocks from '../utils/buildSongLyricBlocks';
+import useSongLyricsWheel from '../hooks/useSongLyricsWheel';
 import '../styles/song.css';
 
 /**
@@ -66,6 +67,7 @@ export default function SongTab(): ReactElement {
   const followTimerRef = useRef<number | null>(null);
   const canSeek = isMusicPlaying && Number.isFinite(currentDurationMs) && currentDurationMs > 0;
   const hasLyrics = isMusicPlaying && !lyricsLoading && blocks.length > 0;
+  useSongLyricsWheel(lyricsRef, blocks, currentIndex, hasLyrics);
 
   useEffect(() => {
     browsingUntilRef.current = 0;

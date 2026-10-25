@@ -31,6 +31,7 @@ vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), .
 vi.mock('zustand/react/shallow', () => ({ useShallow: <T,>(selector: T): T => selector }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('../../../../../lyrics/hooks/useLyricsSettings', () => ({ useLyricsSettings: () => ({ karaokeEnabled: model.karaokeEnabled }) }));
+vi.mock('../../hooks/useSongLyricsWheel', () => ({ default: () => undefined }));
 vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (store: typeof model.store) => unknown) => selector(model.store) }));
 const scrollTo = vi.fn();
 let active: object | null;
