@@ -192,6 +192,7 @@
   padding: 8px clamp(24px, 5cqw, 44px);
   background: rgb(var(--color-text-rgb), .025);
   border-top: 1px solid rgb(var(--color-text-rgb), .06);
+  border-radius: 0 0 16px 16px;
 
 }
 
