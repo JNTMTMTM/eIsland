@@ -258,6 +258,71 @@
 
 }
 
+.song-volume {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-self: end;
+  width: clamp(116px, 18cqw, 168px);
+  min-width: 0;
+  max-width: 100%;
+
+}
+
+.song-volume-icon-img {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  opacity: .65;
+  filter: brightness(0) invert(1);
+
+}
+
+.song-volume-value {
+  min-width: 30px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--color-text-rgb), .55);
+  text-align: right;
+
+}
+
+.song-volume-slider {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+
+}
+
+.song-volume-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  background: linear-gradient(to right, rgb(var(--color-text-rgb), .65) var(--song-volume), rgb(var(--color-text-rgb), .14) var(--song-volume));
+  border-radius: 2px;
+
+}
+
+.song-volume-slider::-webkit-slider-thumb {
+  width: 8px;
+  height: 8px;
+  margin-top: -2.5px;
+  appearance: none;
+  background: var(--color-island-text);
+  border: 0;
+  border-radius: 50%;
+
+}
+
+.song-volume-slider:disabled {
+  cursor: default;
+  opacity: .3;
+
+}
+
 .song-control-icon-img,
 .song-placeholder-icon-img {
   width: 100%;
@@ -267,6 +332,7 @@
 }
 
 [data-theme="light"] .song-control-icon-img,
+[data-theme="light"] .song-volume-icon-img,
 [data-theme="light"] .song-placeholder-icon-img {
   filter: brightness(0) invert(0);
 
@@ -463,6 +529,7 @@
 }
 
 .song-controls > button:focus-visible,
+.song-volume-slider:focus-visible,
 .song-lyric-block:focus-visible,
 .song-lyrics:focus-visible {
   outline: 2px solid rgb(var(--color-text-rgb), .65);
@@ -471,6 +538,17 @@
 }
 
 @container (width < 520px) {
+  .song-volume {
+    gap: 6px;
+    width: 96px;
+
+  }
+
+  .song-volume-value {
+    display: none;
+
+  }
+
   .song-layout {
     grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr);
     gap: 16px;
@@ -516,8 +594,25 @@
 }
 
 @container (width < 400px) {
-  .song-player-bar {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .song-controls {
+    gap: 4px;
+
+  }
+
+  .song-controls > .song-play {
+    width: 44px;
+    padding-inline: 14px;
+
+  }
+
+  .song-player-duration,
+  .song-volume-icon-img {
+    display: none;
+
+  }
+
+  .song-volume {
+    width: 64px;
 
   }
 

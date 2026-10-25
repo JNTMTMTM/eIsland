@@ -116,6 +116,13 @@ export interface SongProgressResult {
   progressPercent: number;
 }
 
+/** 系统音量独立于媒体时间线，直接读写 volume 插件。 */
+export interface SongVolumeResult {
+  volume: number;
+  isAvailable: boolean;
+  handleVolumeChange: (event: ChangeEvent<HTMLInputElement>) => void;
+}
+
 /** 歌词面板接收派生状态和滚动句柄，不订阅播放器。 */
 export interface SongLyricsPanelProps {
   song: Pick<SongData, 'blocks' | 'currentIndex' | 'karaokeEnabled' | 'positionMs' | 'canSeek' | 'hasLyrics' | 'showSkeleton' | 'isMusicPlaying'>;

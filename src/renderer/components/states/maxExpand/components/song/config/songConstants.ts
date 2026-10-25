@@ -30,5 +30,11 @@ export const SONG_SKELETON_ROWS = ['first', 'second', 'current', 'fourth', 'last
 /** 手动浏览结束后恢复歌词跟随的等待时间。 */
 export const SONG_LYRICS_BROWSE_DELAY_MS = 4000;
 
+/** 音量滑动合并写入的等待时间。 */
+export const SONG_VOLUME_UPDATE_DELAY_MS = 80;
+
+/** 页面显示期间同步系统外部音量调节的间隔。 */
+export const SONG_VOLUME_POLL_MS = 2000;
+
 /** 需要暂缓自动跟随的键盘浏览操作。 */
 export const SONG_LYRICS_BROWSE_KEYS = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', 'Tab'];

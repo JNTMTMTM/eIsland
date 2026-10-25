@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { formatProgressTime } from '../../../../hover/pages/lyric/utils/lyricUtils';
 import useSongProgress from '../hooks/useSongProgress';
+import SongVolumeControl from './SongVolumeControl';
 import type { CSSProperties, ReactElement } from 'react';
 import type { SongPlayerBarProps } from '../types/songTypes';
 
@@ -69,6 +70,7 @@ export default function SongPlayerBar({ song, controls }: SongPlayerBarProps): R
           <img className="song-control-icon-img" src={SvgIcon.NEXT_SONG} alt="" />
         </button>
       </div>
+      <SongVolumeControl />
     </footer>
   );
   /* eslint-enable better-tailwindcss/no-unknown-classes -- 底部播放器样式例外结束。 */
