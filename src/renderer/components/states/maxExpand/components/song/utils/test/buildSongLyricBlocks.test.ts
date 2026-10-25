@@ -14,6 +14,17 @@ import { describe, expect, it } from 'vitest';
 import buildSongLyricBlocks from '../buildSongLyricBlocks';
 
 describe('buildSongLyricBlocks', () => {
+  it('构建双语块保留逐字时间数据，合并同时间戳的原文时不会丢失整行文字', () => {
+    const syllables = [{ text: 'First', start_offset_ms: 0, duration_ms: 1000 }];
+    const lyrics = [{ syllables, time_ms: 1000, text: 'First', duration_ms: 1000 }];
+    const translation = { status: 'available' as const, lines: [{ time_ms: 1000, text: '第一句' }] };
+    expect(buildSongLyricBlocks(lyrics, translation)[0]).toMatchObject({ syllables, duration_ms: 1000, translation: '第一句' });
+    expect(buildSongLyricBlocks(lyrics, null)[0].syllables).toBe(syllables);
+    const [combined] = buildSongLyricBlocks([...lyrics, { time_ms: 1000, text: 'Second' }], null);
+    expect(combined.text).toBe('First\nSecond');
+    expect(combined.syllables).toBeUndefined();
+    expect(lyrics[0].syllables).toBe(syllables);
+  });
   it('保留完整原文并按时间而非数组位置配对译文，缺行不复用上一句', () => {
     const lyrics = [{ time_ms: 1000, text: 'First' }, { time_ms: 2000, text: 'Second' }, { time_ms: 3000, text: 'Third' }, { time_ms: 4000, text: 'Fourth' }];
     const translation = { status: 'available' as const, lines: [{ time_ms: 1000, text: '第一句' }, { time_ms: 3000, text: '第三句' }, { time_ms: 3500, text: '第三句补充' }, { time_ms: 4000, text: 'Fourth' }] };

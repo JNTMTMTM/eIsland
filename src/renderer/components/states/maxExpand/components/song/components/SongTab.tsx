@@ -32,6 +32,8 @@ import useIslandStore from '../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { usePendingSeek } from '../../../../../hooks/usePendingSeek';
 import { findCurrentIndex } from '../../../../lyrics/utils/findCurrentIndex';
+import { useLyricsSettings } from '../../../../lyrics/hooks/useLyricsSettings';
+import { KaraokeSyllableLine } from '../../../../lyrics/components/KaraokeSyllableLine';
 import buildSongLyricBlocks from '../utils/buildSongLyricBlocks';
 import '../styles/song.css';
 
@@ -41,6 +43,7 @@ import '../styles/song.css';
  */
 export default function SongTab(): ReactElement {
   const { t } = useTranslation();
+  const { karaokeEnabled } = useLyricsSettings();
   const { mediaInfo, coverImage, dominantColor, isMusicPlaying, isPlaying, syncedLyrics, translationLyrics, lyricsLoading, currentPositionMs, currentDurationMs } = useIslandStore(useShallow((store) => ({
     mediaInfo: store.mediaInfo,
     coverImage: store.coverImage,
@@ -56,7 +59,8 @@ export default function SongTab(): ReactElement {
   const trackKey = `${mediaInfo.title}\n${mediaInfo.artist}`;
   const { pendingSeek, commitSeek } = usePendingSeek(trackKey);
   const blocks = useMemo(() => buildSongLyricBlocks(syncedLyrics, translationLyrics), [syncedLyrics, translationLyrics]);
-  const currentIndex = findCurrentIndex(blocks, pendingSeek?.targetMs ?? currentPositionMs);
+  const positionMs = pendingSeek?.targetMs ?? currentPositionMs;
+  const currentIndex = findCurrentIndex(blocks, positionMs);
   const lyricsRef = useRef<HTMLDivElement>(null);
   const browsingUntilRef = useRef(0);
   const followTimerRef = useRef<number | null>(null);
@@ -157,7 +161,11 @@ export default function SongTab(): ReactElement {
               {blocks.map((block, index) => (
                 <button className="song-lyric-block" key={block.time_ms} type="button" data-time={block.time_ms}
                   aria-current={index === currentIndex ? 'true' : undefined} disabled={!canSeek} onClick={handleSeek}>
-                  <span className="song-lyric-original">{block.text}</span>
+                  <span className="song-lyric-original">
+                    {index === currentIndex && karaokeEnabled && block.syllables?.length ? (
+                      <KaraokeSyllableLine syllables={block.syllables} lineStartMs={block.time_ms} posMs={positionMs} />
+                    ) : block.text}
+                  </span>
                   {block.translation && <span className="song-lyric-translation">{block.translation}</span>}
                 </button>
               ))}

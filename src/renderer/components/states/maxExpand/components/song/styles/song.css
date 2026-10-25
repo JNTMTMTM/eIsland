@@ -175,7 +175,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   height: 100%;
   padding-block: 38cqh;
   overflow: hidden auto;
@@ -187,7 +187,7 @@
 .song-lyric-block {
   flex-shrink: 0;
   width: 100%;
-  padding: 12px 14px;
+  padding: 8px 14px;
   font: inherit;
   color: rgb(var(--color-text-rgb), .4);
   text-align: left;
@@ -204,7 +204,7 @@
 
 }
 
-.song-lyric-block:hover:enabled {
+.song-lyric-block:hover:enabled:not([aria-current="true"]) {
   color: rgb(var(--color-text-rgb), .8);
   background: rgb(var(--color-text-rgb), .06);
 
@@ -212,7 +212,6 @@
 
 .song-lyric-block[aria-current="true"] {
   color: var(--color-island-text);
-  background: rgb(var(--color-text-rgb), .1);
 
 }
 
@@ -231,8 +230,15 @@
 
 }
 
+.song-lyric-original .lyrics-syllable {
+  color: transparent;
+  background: linear-gradient(to right, rgb(var(--color-text-rgb), .95) var(--syl-prog, 0%), rgb(var(--color-text-rgb), .28) var(--syl-prog, 0%));
+  background-clip: text;
+
+}
+
 .song-lyric-translation {
-  margin-top: 5px;
+  margin-top: 4px;
   font-size: clamp(13px, 2.1cqw, 19px);
   font-weight: 500;
   line-height: 1.5;
@@ -282,7 +288,7 @@
   }
 
   .song-lyric-block {
-    padding: 10px;
+    padding: 6px 10px;
 
   }
 

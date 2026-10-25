@@ -14,12 +14,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { hookMocks, elements, findElement, invoke, textContent, type TestElement } from '../../../../../../test/elementHarness';
 import { lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../../../../../components/test/contentLifecycleHarness';
 import SongTab from '../SongTab';
+import { KaraokeSyllableLine } from '../../../../../lyrics/components/KaraokeSyllableLine';
+import type { SyncedLyricLine } from '../../../../../../../store/types';
 
 const model = vi.hoisted(() => ({
+  karaokeEnabled: false,
   store: {
     mediaInfo: { title: 'Song', artist: 'Artist', album: 'Album' }, coverImage: 'cover.jpg', dominantColor: [30, 50, 80],
     isMusicPlaying: true, isPlaying: true, lyricsLoading: false, currentPositionMs: 1500, currentDurationMs: 60000,
-    syncedLyrics: [{ time_ms: 1000, text: 'First' }, { time_ms: 2000, text: 'Second' }, { time_ms: 3000, text: 'Third' }],
+    syncedLyrics: [{ time_ms: 1000, text: 'First' }, { time_ms: 2000, text: 'Second' }, { time_ms: 3000, text: 'Third' }] as SyncedLyricLine[],
     translationLyrics: { status: 'available', lines: [{ time_ms: 1000, text: '第一句' }] },
   },
   mediaSeek: vi.fn(),
@@ -27,6 +30,7 @@ const model = vi.hoisted(() => ({
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 vi.mock('zustand/react/shallow', () => ({ useShallow: <T,>(selector: T): T => selector }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+vi.mock('../../../../../lyrics/hooks/useLyricsSettings', () => ({ useLyricsSettings: () => ({ karaokeEnabled: model.karaokeEnabled }) }));
 vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (store: typeof model.store) => unknown) => selector(model.store) }));
 const scrollTo = vi.fn();
 let active: object | null;
@@ -58,6 +62,8 @@ beforeEach(() => {
   resetLifecycle();
   vi.useFakeTimers();
   vi.clearAllMocks();
+  model.karaokeEnabled = false;
+  model.store.syncedLyrics = [{ time_ms: 1000, text: 'First' }, { time_ms: 2000, text: 'Second' }, { time_ms: 3000, text: 'Third' }];
   Object.assign(model.store, { isMusicPlaying: true, lyricsLoading: false, currentPositionMs: 1500, currentDurationMs: 60000 });
   model.mediaSeek.mockResolvedValue({ success: true });
   active = { offsetTop: 500, offsetHeight: 100 };
@@ -71,6 +77,24 @@ beforeEach(() => {
 afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('maxExpand SongTab', () => {
+  it('仅当前句使用原始音节与播放进度扫光，关闭逐字或遇到普通行时回退整行文字', () => {
+    model.karaokeEnabled = true;
+    const syllables = [{ text: 'First', start_offset_ms: 0, duration_ms: 1000 }];
+    model.store.syncedLyrics = [{ syllables, time_ms: 1000, text: 'First', duration_ms: 1000 }, { time_ms: 2000, text: 'Second' }];
+    let tree = render();
+    const karaoke = findElement(tree, (node) => node.type === KaraokeSyllableLine);
+    expect(karaoke.props).toMatchObject({ syllables, lineStartMs: 1000, posMs: 1500 });
+    model.store.currentPositionMs = 2500;
+    tree = render();
+    expect(elements(tree).filter((node) => node.type === KaraokeSyllableLine)).toHaveLength(0);
+    expect(blocks(tree)[1].props['aria-current']).toBe('true');
+    expect(textContent(blocks(tree)[1])).toBe('Second');
+    model.store.currentPositionMs = 1500;
+    model.karaokeEnabled = false;
+    tree = render();
+    expect(elements(tree).filter((node) => node.type === KaraokeSyllableLine)).toHaveLength(0);
+    expect(textContent(blocks(tree)[0])).toBe('First第一句');
+  });
   it('展示完整歌词、封面与翻译，并随实际进度高亮当前句', () => {
     let tree = render();
     expect(blocks(tree).map(textContent)).toEqual(['First第一句', 'Second', 'Third']);

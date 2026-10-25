@@ -30,8 +30,11 @@ export default function buildSongLyricBlocks(lyrics: SyncedLyricLine[] | null, t
   (lyrics ?? []).forEach((line) => {
     if (!line.text.trim()) return;
     const previous = blocks.at(-1);
-    if (previous?.time_ms === line.time_ms) previous.text += `\n${line.text}`;
-    else blocks.push({ time_ms: line.time_ms, text: line.text, translation: '' });
+    if (previous?.time_ms === line.time_ms) {
+      previous.text += `\n${line.text}`;
+      // 合并的多行原文不能用其中一行的音节替代，否则会漏掉另一行文字。
+      delete previous.syllables;
+    } else blocks.push({ ...line, translation: '' });
   });
   const translated = translation?.status === 'available' ? translation.lines : null;
   if (!translated?.length) return blocks;
@@ -44,6 +47,6 @@ export default function buildSongLyricBlocks(lyrics: SyncedLyricLine[] | null, t
       const text = line.text.trim();
       if (line.time_ms >= block.time_ms && text && !block.text.split('\n').includes(text)) texts.push(text);
     }
-    return { time_ms: block.time_ms, text: block.text, translation: texts.join('\n') };
+    return { ...block, translation: texts.join('\n') };
   });
 }
