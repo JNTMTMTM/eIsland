@@ -64,6 +64,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
   model.karaokeEnabled = false;
+  model.store.mediaInfo = { title: 'Song', artist: 'Artist', album: 'Album' };
   model.store.syncedLyrics = [{ time_ms: 1000, text: 'First' }, { time_ms: 2000, text: 'Second' }, { time_ms: 3000, text: 'Third' }];
   Object.assign(model.store, { isMusicPlaying: true, lyricsLoading: false, currentPositionMs: 1500, currentDurationMs: 60000 });
   model.mediaSeek.mockResolvedValue({ success: true });
@@ -78,6 +79,30 @@ beforeEach(() => {
 afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('maxExpand SongTab', () => {
+  it('首次显示和更换歌词都默认归顶，下一次播放切行恢复居中', () => {
+    render();
+    vi.advanceTimersByTime(0);
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
+    expect(scrollTo).toHaveBeenCalledOnce();
+    model.store.currentPositionMs = 2500;
+    render(); vi.advanceTimersByTime(0);
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: 350, behavior: 'smooth' });
+    model.store.syncedLyrics = model.store.syncedLyrics.map((line) => ({ ...line, text: `${line.text} new` }));
+    render(); vi.advanceTimersByTime(0);
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
+  });
+  it('切歌后异步歌词显示时重新归顶，并清除上一首的浏览定时器', () => {
+    const tree = render();
+    invoke(findElement(tree, (node) => node.props.className === 'song-lyrics'), 'onWheel');
+    model.store.mediaInfo = { title: 'New song', artist: 'Artist', album: '' };
+    model.store.lyricsLoading = true;
+    render();
+    model.store.lyricsLoading = false;
+    model.store.syncedLyrics = [{ time_ms: 0, text: 'New first' }, { time_ms: 3000, text: 'New second' }];
+    scrollTo.mockClear();
+    render(); vi.advanceTimersByTime(5000);
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 0, behavior: 'instant' });
+  });
   it('仅当前句使用原始音节与播放进度扫光，关闭逐字或遇到普通行时回退整行文字', () => {
     model.karaokeEnabled = true;
     const syllables = [{ text: 'First', start_offset_ms: 0, duration_ms: 1000 }];
@@ -122,12 +147,14 @@ describe('maxExpand SongTab', () => {
     expect(model.mediaSeek).not.toHaveBeenCalled();
   });
   it('手动浏览暂停自动居中，停止操作四秒后恢复；卸载清理定时器', () => {
+    render();
+    model.store.currentPositionMs = 2500;
     const tree = render();
     vi.advanceTimersByTime(0);
     expect(scrollTo).toHaveBeenLastCalledWith({ top: 350, behavior: 'smooth' });
     scrollTo.mockClear();
     invoke(findElement(tree, (node) => node.props.className === 'song-lyrics'), 'onWheel');
-    model.store.currentPositionMs = 2500;
+    model.store.currentPositionMs = 3500;
     render();
     vi.advanceTimersByTime(3999);
     expect(scrollTo).not.toHaveBeenCalled();

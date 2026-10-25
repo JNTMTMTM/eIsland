@@ -65,16 +65,28 @@ export default function SongTab(): ReactElement {
   const lyricsRef = useRef<HTMLDivElement>(null);
   const browsingUntilRef = useRef(0);
   const followTimerRef = useRef<number | null>(null);
+  const initialLineRef = useRef<number | null>(null);
+  const scrollContextRef = useRef<{ trackKey: string; lyrics: typeof syncedLyrics; visible: boolean } | null>(null);
   const canSeek = isMusicPlaying && Number.isFinite(currentDurationMs) && currentDurationMs > 0;
   const hasLyrics = isMusicPlaying && !lyricsLoading && blocks.length > 0;
   useSongLyricsWheel(lyricsRef, blocks, currentIndex, hasLyrics);
 
   useEffect(() => {
-    browsingUntilRef.current = 0;
-    lyricsRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-  }, [trackKey]);
+    const previous = scrollContextRef.current;
+    if (!previous || previous.trackKey !== trackKey || previous.lyrics !== syncedLyrics || previous.visible !== hasLyrics) {
+      scrollContextRef.current = { trackKey, lyrics: syncedLyrics, visible: hasLyrics };
+      browsingUntilRef.current = 0;
+      if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
+      // 新歌词异步挂载后再归顶，等下一次切行才恢复跟随，避免归顶立即被自动居中覆盖。
+      initialLineRef.current = currentIndex;
+      lyricsRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+    } else if (initialLineRef.current !== currentIndex) {
+      initialLineRef.current = null;
+    }
+  }, [trackKey, syncedLyrics, hasLyrics, currentIndex]);
 
   const followLyrics = useCallback((): void => {
+    if (initialLineRef.current !== null) return;
     const container = lyricsRef.current;
     const active = container?.querySelector<HTMLElement>('[aria-current="true"]');
     if (!container || !active) return;
@@ -102,6 +114,7 @@ export default function SongTab(): ReactElement {
   const handleBrowse = useCallback((): void => {
     // 手动浏览时暂缓跟随；停下后回到当前句，避免歌词变化打断滚动。
     browsingUntilRef.current = Date.now() + 4000;
+    initialLineRef.current = null;
     if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
     followTimerRef.current = window.setTimeout(followLyrics, 4000);
   }, [followLyrics]);
@@ -113,6 +126,7 @@ export default function SongTab(): ReactElement {
   const handleSeek = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
     if (!canSeek) return;
     browsingUntilRef.current = 0;
+    initialLineRef.current = null;
     commitSeek(Math.min(currentDurationMs, Math.max(0, Number(event.currentTarget.dataset.time))));
     if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
     followTimerRef.current = window.setTimeout(followLyrics, 0);

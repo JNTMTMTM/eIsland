@@ -251,7 +251,7 @@
 }
 
 .song-lyric-translation {
-  margin-top: 2px;
+  margin-top: 6px;
   font-size: clamp(13px, 2.1cqw, 19px);
   font-weight: 500;
   line-height: 1.35;
