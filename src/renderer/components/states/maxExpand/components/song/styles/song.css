@@ -190,7 +190,7 @@
   padding: 8px 14px;
   font: inherit;
   color: rgb(var(--color-text-rgb), .4);
-  text-align: left;
+  text-align: right;
   cursor: pointer;
   background: transparent;
   border: 0;
