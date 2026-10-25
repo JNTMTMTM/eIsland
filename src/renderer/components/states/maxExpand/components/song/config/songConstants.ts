@@ -36,5 +36,8 @@ export const SONG_VOLUME_UPDATE_DELAY_MS = 80;
 /** 页面显示期间同步系统外部音量调节的间隔。 */
 export const SONG_VOLUME_POLL_MS = 2000;
 
+/** 音量读写的最长等待时间，超时视为失败，释放在途状态以继续后续轮询与写入。 */
+export const SONG_VOLUME_REQUEST_TIMEOUT_MS = 1500;
+
 /** 需要暂缓自动跟随的键盘浏览操作。 */
 export const SONG_LYRICS_BROWSE_KEYS = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', 'Tab'];

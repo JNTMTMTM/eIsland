@@ -19,12 +19,11 @@
  */
 
 /**
- * @file SongArtwork.tsx
+ * @file songArtwork.tsx
  * @description 歌曲封面、长标题轮播与元数据的展示。
  * @author 鸡哥
  */
 
-// eslint-disable-next-line project/filename -- 模块拆分规范要求组件文件名使用 PascalCase。
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { ScrollingText } from '../../../../lyrics/components/ScrollingText';

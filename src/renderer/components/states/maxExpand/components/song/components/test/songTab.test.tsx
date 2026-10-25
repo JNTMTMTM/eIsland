@@ -14,11 +14,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cloneElement, isValidElement, type ReactNode } from 'react';
 import { elements, findElement, invoke, textContent, type TestElement } from '../../../../../../test/elementHarness';
 import { renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../../../../../components/test/contentLifecycleHarness';
-import SongTab from '../SongTab';
-import SongArtwork from '../SongArtwork';
-import SongLyricsPanel from '../SongLyricsPanel';
-import SongLyricsSkeleton from '../SongLyricsSkeleton';
-import SongPlayerBar from '../SongPlayerBar';
+import SongTab from '../songTab';
+import SongArtwork from '../songArtwork';
+import SongLyricsPanel from '../songLyricsPanel';
+import SongLyricsSkeleton from '../songLyricsSkeleton';
+import SongPlayerBar from '../songPlayerBar';
 import { KaraokeSyllableLine } from '../../../../../lyrics/components/KaraokeSyllableLine';
 import type { SyncedLyricLine } from '../../../../../../../store/types';
 import type { SongArtworkProps, SongLyricsPanelProps, SongPlayerBarProps } from '../../types/songTypes';
@@ -150,12 +150,15 @@ describe('maxExpand SongTab', () => {
     tree = render();
     expect(findElement(tree, (node) => node.props.className === 'song-progress-slider').props.value).toBe(1500);
   });
-  it('换歌丢弃未完成的进度预览，旧滑块不再提交跳转', () => {
+  it.each([
+    { scenario: '换歌', mediaInfo: { title: 'New song', artist: 'Artist', album: '' } },
+    { scenario: '同名同歌手换专辑', mediaInfo: { title: 'Song', artist: 'Artist', album: 'Live' } },
+  ])('$scenario，丢弃未完成的进度预览，旧滑块不再提交跳转', ({ mediaInfo }) => {
     const tree = render();
     invoke(findElement(tree, (node) => node.props.className === 'song-progress-slider'), 'onChange', { currentTarget: { value: '45000' } });
     render();
     const oldSlider = slider;
-    model.store.mediaInfo = { title: 'New song', artist: 'Artist', album: '' };
+    model.store.mediaInfo = mediaInfo;
     model.store.currentPositionMs = 5000;
     render();
     const updated = render();
@@ -278,6 +281,17 @@ describe('maxExpand SongTab', () => {
     expect(scrollTo).toHaveBeenCalledOnce();
     unmountHooks();
     expect(vi.getTimerCount()).toBe(0);
+  });
+  it('仅拦截 Tab 防止外层切页，Escape 继续冒泡到窗口级层级返回', () => {
+    const panel = findElement(render(), (node) => String(node.props.className).includes('song-panel'));
+    const press = (key: string): ReturnType<typeof vi.fn> => {
+      const stopPropagation = vi.fn();
+      invoke(panel, 'onKeyDown', { key, stopPropagation });
+      return stopPropagation;
+    };
+    expect(press('Tab')).toHaveBeenCalledOnce();
+    expect(press('Escape')).not.toHaveBeenCalled();
+    expect(press('ArrowDown')).not.toHaveBeenCalled();
   });
   it('前奏不高亮，加载中或停止播放时提供对应提示', () => {
     model.store.currentPositionMs = 0;

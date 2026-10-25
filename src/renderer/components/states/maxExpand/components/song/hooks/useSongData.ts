@@ -51,7 +51,8 @@ export default function useSongData(): SongData {
     currentPositionMs: store.currentPositionMs,
     currentDurationMs: store.currentDurationMs,
   })));
-  const trackKey = `${mediaInfo.title}\n${mediaInfo.artist}`;
+  // 同名同歌手的不同专辑视为另一首，避免沿用上一首未确认的跳转与拖动预览。
+  const trackKey = `${mediaInfo.title}\n${mediaInfo.artist}\n${mediaInfo.album}`;
   const { pendingSeek, commitSeek } = usePendingSeek(trackKey);
   const blocks = useMemo(() => buildSongLyricBlocks(syncedLyrics, translationLyrics), [syncedLyrics, translationLyrics]);
   const positionMs = pendingSeek?.targetMs ?? currentPositionMs;

@@ -19,17 +19,16 @@
  */
 
 /**
- * @file SongPlayerBar.tsx
+ * @file songPlayerBar.tsx
  * @description 底部播放器，展示细进度条、播放时间和居中的播放控制。
  * @author 鸡哥
  */
 
-// eslint-disable-next-line project/filename -- 歌曲模块的展示组件沿用 PascalCase 命名。
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { formatProgressTime } from '../../../../hover/pages/lyric/utils/lyricUtils';
 import useSongProgress from '../hooks/useSongProgress';
-import SongVolumeControl from './SongVolumeControl';
+import SongVolumeControl from './songVolumeControl';
 import type { CSSProperties, ReactElement } from 'react';
 import type { SongPlayerBarProps } from '../types/songTypes';
 

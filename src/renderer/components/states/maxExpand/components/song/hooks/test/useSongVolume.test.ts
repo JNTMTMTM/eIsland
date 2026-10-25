@@ -73,6 +73,26 @@ it('串行写入期间仅保留最后一次输入，过期读数不会覆盖新�
   expect(renderHook(useSongVolume).volume).toBe(95);
 });
 
+it('读取挂起超时后禁用控件，后续轮询照常恢复', async () => {
+  get.mockReturnValueOnce(new Promise(() => {}));
+  renderHook(useSongVolume); flushHookEffects();
+  await vi.advanceTimersByTimeAsync(1500);
+  expect(renderHook(useSongVolume).isAvailable).toBe(false);
+  get.mockResolvedValue(40); await vi.advanceTimersByTimeAsync(500);
+  expect(renderHook(useSongVolume)).toMatchObject({ volume: 40, isAvailable: true });
+});
+
+it('写入挂起超时后释放写入状态，提交排队中的最新输入', async () => {
+  renderHook(useSongVolume); flushHookEffects(); await settleHook();
+  set.mockReturnValueOnce(new Promise(() => {}));
+  change(30); await vi.advanceTimersByTimeAsync(80);
+  change(60); await vi.advanceTimersByTimeAsync(80);
+  await vi.advanceTimersByTimeAsync(1419);
+  expect(set.mock.calls).toEqual([[30]]);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(set.mock.calls).toEqual([[30], [60]]);
+});
+
 it('插件不可用时禁用，恢复后重新启用；卸载清理轮询和待提交写入', async () => {
   get.mockResolvedValue(null);
   renderHook(useSongVolume); flushHookEffects(); await settleHook();

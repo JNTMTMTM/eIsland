@@ -117,13 +117,13 @@ describe('AiChatTab real state and send integration', () => {
     const usable = (tree: ReturnType<typeof run>) => elements(tree).every((node) => node.props.inert !== true);
     const actions = runtime.store.getState();
     runtime.store.setState({ aiChatReady: false, aiChatLoading: false });
-    expect(chat(run()).props.loading).toBe(true);
+    expect(chat(run()).props).toMatchObject({ loading: true, sendDisabled: true });
     runtime.store.setState({ aiChatLoading: true });
     const firstLoad = run();
-    expect(chat(firstLoad).props.loading).toBe(true);
+    expect(chat(firstLoad).props).toMatchObject({ loading: true, sendDisabled: true });
     expect(usable(firstLoad)).toBe(true);
     runtime.store.setState({ aiChatReady: true, aiChatLoading: false });
-    expect(chat(run()).props.loading).toBe(false);
+    expect(chat(run()).props).toMatchObject({ loading: false, sendDisabled: false });
     messages([{ role: 'user', content: 'first session' }]);
     await actions.flushAiChatStorage();
     const first = runtime.store.getState().activeAiChatSessionId;
@@ -134,13 +134,13 @@ describe('AiChatTab real state and send integration', () => {
     const status = find(reading, (node) => node.props.role === 'status');
     expect(text(status)).toBe('aiChat.storageLoading');
     expect(status.props.className).toBe('sr-only');
-    expect(chat(reading).props.loading).toBe(false);
+    expect(chat(reading).props).toMatchObject({ loading: false, sendDisabled: true });
     expect(usable(reading)).toBe(true);
     await switching;
     const settled = run();
     expect(elements(settled).some((node) => node.props['aria-busy'] === false)).toBe(true);
     expect(elements(settled).some((node) => node.props.role === 'status')).toBe(false);
-    expect(chat(settled).props.loading).toBe(false);
+    expect(chat(settled).props).toMatchObject({ loading: false, sendDisabled: false });
     // 重新进入时当前会话正文已释放，再次读取视为首次加载。
     actions.releaseAiChatBodies();
     expect(chat(run()).props.loading).toBe(true);

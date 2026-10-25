@@ -19,16 +19,15 @@
  */
 
 /**
- * @file SongLyricsPanel.tsx
+ * @file songLyricsPanel.tsx
  * @description 歌词、译文、逐字扫光、加载骨架与空状态的纯展示组合。
  * @author 鸡哥
  */
 
-// eslint-disable-next-line project/filename -- 模块拆分规范要求组件文件名使用 PascalCase。
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import { KaraokeSyllableLine } from '../../../../lyrics/components/KaraokeSyllableLine';
-import SongLyricsSkeleton from './SongLyricsSkeleton';
+import SongLyricsSkeleton from './songLyricsSkeleton';
 import type { ReactElement } from 'react';
 import type { SongLyricsPanelProps } from '../types/songTypes';
 

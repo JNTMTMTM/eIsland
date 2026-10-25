@@ -115,8 +115,8 @@ export default function useSongLyricsScroll(options: SongLyricsScrollOptions): S
     followTimerRef.current = window.setTimeout(followLyrics, SONG_LYRICS_BROWSE_DELAY_MS);
   }, [followLyrics]);
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLElement>): void => {
-    // Tab 在歌曲面板内用于访问歌词按钮，不能被外层导航截获。
-    event.stopPropagation();
+    // Tab 在歌曲面板内用于访问歌词按钮，不能被外层导航截获；Escape 等其余按键仍交给窗口级层级返回。
+    if (event.key === 'Tab') event.stopPropagation();
     if (SONG_LYRICS_BROWSE_KEYS.includes(event.key)) handleBrowse();
   }, [handleBrowse]);
   const handleSeek = useCallback((event: MouseEvent<HTMLButtonElement>): void => {

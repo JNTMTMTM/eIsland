@@ -19,12 +19,11 @@
  */
 
 /**
- * @file SongLyricsSkeleton.tsx
+ * @file songLyricsSkeleton.tsx
  * @description 加载中的双行歌词骨架，复用共享扫光并提供读屏状态。
  * @author 鸡哥
  */
 
-// eslint-disable-next-line project/filename -- 模块拆分规范要求组件文件名使用 PascalCase。
 import { useTranslation } from 'react-i18next';
 import { SONG_SKELETON_ROWS } from '../config/songConstants';
 import type { ReactElement } from 'react';

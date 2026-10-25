@@ -19,12 +19,11 @@
  */
 
 /**
- * @file SongVolumeControl.tsx
+ * @file songVolumeControl.tsx
  * @description 歌曲播放器右侧的系统音量滑块，复用 volume 插件 IPC。
  * @author 鸡哥
  */
 
-// eslint-disable-next-line project/filename -- 歌曲模块的展示组件沿用 PascalCase 命名。
 import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import useSongVolume from '../hooks/useSongVolume';

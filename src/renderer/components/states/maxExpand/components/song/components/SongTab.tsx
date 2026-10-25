@@ -19,19 +19,18 @@
  */
 
 /**
- * @file SongTab.tsx
+ * @file songTab.tsx
  * @description 最大展开歌曲页的薄组合入口，数据、交互与展示由模块内部各层负责。
  * @author 鸡哥
  */
 
-// eslint-disable-next-line project/filename -- 模块拆分规范要求组件文件名使用 PascalCase。
 import { useTranslation } from 'react-i18next';
 import useSongData from '../hooks/useSongData';
 import useSongLyricsScroll from '../hooks/useSongLyricsScroll';
 import useSongMediaControls from '../hooks/useSongMediaControls';
-import SongArtwork from './SongArtwork';
-import SongLyricsPanel from './SongLyricsPanel';
-import SongPlayerBar from './SongPlayerBar';
+import SongArtwork from './songArtwork';
+import SongLyricsPanel from './songLyricsPanel';
+import SongPlayerBar from './songPlayerBar';
 import type { CSSProperties, ReactElement } from 'react';
 import '../../../../../../styles/lyrics/lyrics.css';
 import '../../../../../../styles/settings/modules/settings-skeleton.css';

@@ -114,6 +114,8 @@ interface ChatInputBarProps {
   setPendingQuote: (quote: string | null) => void;
   /** 操作 */
   handleSend: () => void;
+  /** 会话读取完成前禁用发送，避免点击后消息被静默忽略 */
+  sendDisabled?: boolean;
   handleStop: () => void;
   handleKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
   /** refs */
@@ -161,7 +163,7 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
     handleAttachFiles,
     skillDragOver, setSkillDragOver, skillDragDepthRef,
     pendingQuote, setPendingQuote,
-    handleSend, handleStop, handleKeyDown,
+    handleSend, sendDisabled = false, handleStop, handleKeyDown,
     inputRef,
     selectedProvider,
   } = props;
@@ -599,7 +601,7 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
               {t('aiChat.actions.stop', { defaultValue: '停止' })}
             </button>
           ) : (
-            <button className="max-expand-chat-send" onClick={handleSend}>
+            <button className="max-expand-chat-send" onClick={handleSend} disabled={sendDisabled}>
               {t('aiChat.actions.send', { defaultValue: '发送' })}
             </button>
           )}

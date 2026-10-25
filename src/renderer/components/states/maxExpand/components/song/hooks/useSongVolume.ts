@@ -25,9 +25,28 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SONG_VOLUME_POLL_MS, SONG_VOLUME_UPDATE_DELAY_MS } from '../config/songConstants';
+import { SONG_VOLUME_POLL_MS, SONG_VOLUME_REQUEST_TIMEOUT_MS, SONG_VOLUME_UPDATE_DELAY_MS } from '../config/songConstants';
 import type { ChangeEvent } from 'react';
 import type { SongVolumeResult } from '../types/songTypes';
+
+/**
+ * 限制原生音量请求的等待时间，挂起的请求不会一直占用读写标记。
+ * @param request - volume 插件桥接返回的请求，桥接缺失时为 undefined。
+ * @returns 请求结果；超时与桥接缺失一样返回 undefined，读取据此视为不可用。
+ */
+async function boundVolumeRequest<T>(request: Promise<T> | undefined): Promise<T | undefined> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<undefined>((resolve) => {
+    timer = setTimeout(() => { resolve(undefined); }, SONG_VOLUME_REQUEST_TIMEOUT_MS);
+  });
+  try {
+    // 等待竞速结束后才进入 finally 清理计时器，不能直接返回未决的 Promise。
+    const result = await Promise.race([request, timeout]);
+    return result;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * 管理系统主音量，串行提交最新滑块值，写入完成后重新读取真实设备状态。
@@ -53,7 +72,7 @@ export default function useSongVolume(): SongVolumeResult {
       reading = true;
       const readRevision = revision;
       try {
-        const value = await window.api?.getVolume?.();
+        const value = await boundVolumeRequest(window.api?.getVolume?.());
         if (!active || readRevision !== revision) return;
         const available = typeof value === 'number' && Number.isFinite(value);
         setIsAvailable(available);
@@ -72,7 +91,7 @@ export default function useSongVolume(): SongVolumeResult {
       queued = null;
       writing = true;
       try {
-        await window.api?.setVolume?.(target);
+        await boundVolumeRequest(window.api?.setVolume?.(target));
       } catch {
         // 设备写入失败后由真实读数恢复滑块，不保留虚假的成功值。
       } finally {

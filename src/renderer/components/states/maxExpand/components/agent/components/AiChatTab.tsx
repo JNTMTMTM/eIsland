@@ -39,6 +39,8 @@ import { ChatMessagesSkeleton, ChatSessionListSkeleton } from './chatLoadingSkel
 interface AiChatContentProps {
   /** 首次加载会话正文：历史会话侧栏与消息区显示骨架，标题栏与输入栏照常显示 */
   loading?: boolean;
+  /** 会话尚未就绪（首次加载或切换读取中）：发送无法执行，禁用发送按钮 */
+  sendDisabled?: boolean;
 }
 
 /**
@@ -46,9 +48,10 @@ interface AiChatContentProps {
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  * @param props - 组件属性
  * @param props.loading - 首次加载会话正文时为 true
+ * @param props.sendDisabled - 会话尚未就绪、发送无法执行时为 true
  * @returns 聊天界面元素
  */
-export function AiChatContent({ loading = false }: AiChatContentProps): React.ReactElement {
+export function AiChatContent({ loading = false, sendDisabled = false }: AiChatContentProps): React.ReactElement {
   const { t } = useTranslation();
   const state = useChatState();
   const send = useChatSend({ state });
@@ -299,6 +302,7 @@ export function AiChatContent({ loading = false }: AiChatContentProps): React.Re
         pendingQuote={state.pendingQuote}
         setPendingQuote={state.setPendingQuote}
         handleSend={handleSend}
+        sendDisabled={sendDisabled}
         handleStop={state.handleStop}
         handleKeyDown={handleKeyDown}
         inputRef={inputRef}
@@ -315,6 +319,7 @@ export function AiChatContent({ loading = false }: AiChatContentProps): React.Re
 export function AiChatTab(): React.ReactElement {
   const { t } = useTranslation();
   const loading = useIslandStore((state) => state.aiChatLoading);
+  const ready = useIslandStore((state) => state.aiChatReady);
   // 首次加载（含重新进入时当前会话正文已释放）显示骨架；切换会话时沿用切换前的消息，不显示骨架。
   const firstLoad = useIslandStore((state) => !state.aiChatSwitchingView && (state.aiChatLoading || !state.aiChatReady
     || state.aiChatSessions.find((session) => session.id === state.activeAiChatSessionId)?.messagesLoaded === false));
@@ -325,7 +330,7 @@ export function AiChatTab(): React.ReactElement {
   // 首次读取完成前也挂载聊天界面，标题栏与输入栏照常显示；读取失败时以重试覆盖整个页面。
   return (
     <div className="relative isolate flex size-full min-h-0 flex-col overflow-hidden" aria-busy={loading}>
-      <div className="flex min-h-0 flex-1 flex-col" inert={failed}><AiChatContent loading={firstLoad} /></div>
+      <div className="flex min-h-0 flex-1 flex-col" inert={failed}><AiChatContent loading={firstLoad} sendDisabled={loading || !ready} /></div>
       {loading && !failed && <span className="sr-only" role="status">{t('aiChat.storageLoading')}</span>}
       {failed && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[var(--color-island-bg)] text-center text-sm text-[rgb(var(--color-text-rgb))]" role="status">

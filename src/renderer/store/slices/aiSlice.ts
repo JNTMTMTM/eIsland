@@ -452,12 +452,12 @@ export const createAiSlice: StateCreator<
   /**
    * 计算切换期间界面沿用的消息。
    * @param state - 切换前的状态。
-   * @returns 连续切换时保留最初显示的消息；首次加载或当前正文已释放时没有可沿用的内容，返回 null。
+   * @returns 连续切换时保留最初显示的消息；首次加载、当前会话已删除或正文已释放时没有可沿用的内容，返回 null。
    */
   const holdSwitchingView = (state: AiSlice): AiChatSwitchingView | null => {
     if (state.aiChatLoading) return state.aiChatSwitchingView;
     const shown = state.aiChatSessions.find((session) => session.id === state.activeAiChatSessionId);
-    return state.aiChatReady && shown?.messagesLoaded !== false
+    return state.aiChatReady && shown !== undefined && shown.messagesLoaded !== false
       ? { sessionId: state.activeAiChatSessionId, messages: state.aiChatMessages } : null;
   };
   const select = async (id: string): Promise<void> => {
@@ -608,7 +608,8 @@ export const createAiSlice: StateCreator<
         revisions.delete(id);
         retained.delete(id);
         const sessions = get().aiChatSessions.filter((session) => session.id !== id);
-        set({ aiChatSessions: sessions });
+        // 切换期间沿用的若是被删会话的消息，一并清除，不让已删除的内容停留到目标正文读完。
+        set((state) => ({ aiChatSessions: sessions, ...(state.aiChatSwitchingView?.sessionId === id ? { aiChatSwitchingView: null } : {}) }));
         if (get().activeAiChatSessionId === id) await select(sessions[0].id);
       } catch (error) { set({ aiChatStorageError: true }); throw error; }
       finally { deleting.delete(id); }
