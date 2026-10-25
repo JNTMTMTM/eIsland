@@ -175,7 +175,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   height: 100%;
   padding-block: 38cqh;
   overflow: hidden auto;
@@ -187,7 +187,7 @@
 .song-lyric-block {
   flex-shrink: 0;
   width: 100%;
-  padding: 8px 14px;
+  padding: 4px 14px;
   font: inherit;
   color: rgb(var(--color-text-rgb), .4);
   text-align: right;
@@ -226,7 +226,7 @@
 .song-lyric-original {
   font-size: clamp(19px, 3.1cqw, 30px);
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.3;
 
 }
 
@@ -238,10 +238,10 @@
 }
 
 .song-lyric-translation {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: clamp(13px, 2.1cqw, 19px);
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.35;
   opacity: .7;
 
 }
@@ -288,7 +288,7 @@
   }
 
   .song-lyric-block {
-    padding: 6px 10px;
+    padding: 4px 10px;
 
   }
 
