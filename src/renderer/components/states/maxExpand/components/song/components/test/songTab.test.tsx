@@ -25,6 +25,7 @@ import type { SongArtworkProps, SongLyricsPanelProps, SongPlayerBarProps } from 
 
 const model = vi.hoisted(() => ({
   karaokeEnabled: false,
+  contentActive: true,
   store: {
     mediaInfo: { title: 'Song', artist: 'Artist', album: 'Album' }, coverImage: 'cover.jpg', dominantColor: [30, 50, 80],
     isMusicPlaying: true, isPlaying: true, lyricsLoading: false, currentPositionMs: 1500, currentDurationMs: 60000,
@@ -44,6 +45,7 @@ vi.mock('zustand/react/shallow', () => ({ useShallow: <T,>(selector: T): T => se
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('../../../../../lyrics/hooks/useLyricsSettings', () => ({ useLyricsSettings: () => ({ karaokeEnabled: model.karaokeEnabled }) }));
 vi.mock('../../hooks/useSongLyricsWheel', () => ({ default: () => undefined }));
+vi.mock('../../../../../../hooks/islandContentActivity', () => ({ useIslandContentActive: () => model.contentActive }));
 vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (store: typeof model.store) => unknown) => selector(model.store) }));
 const scrollTo = vi.fn();
 let active: object | null;
@@ -103,6 +105,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
   model.karaokeEnabled = false;
+  model.contentActive = true;
   model.store.mediaInfo = { title: 'Song', artist: 'Artist', album: 'Album' };
   model.store.syncedLyrics = [{ time_ms: 1000, text: 'First' }, { time_ms: 2000, text: 'Second' }, { time_ms: 3000, text: 'Third' }];
   Object.assign(model.store, { isMusicPlaying: true, lyricsLoading: false, currentPositionMs: 1500, currentDurationMs: 60000 });
@@ -160,10 +163,10 @@ describe('maxExpand SongTab', () => {
     expect(model.mediaSeek).not.toHaveBeenCalled();
     expect(findElement(updated, (node) => node.props.className === 'song-progress-slider').props.value).toBe(5000);
   });
-  it('首次显示和更换歌词都默认归顶，下一次播放切行恢复居中', () => {
+  it('进入页面居中当前行，更换歌词时归顶，下一次播放切行恢复跟随', () => {
     render();
     vi.advanceTimersByTime(0);
-    expect(scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: 350, behavior: 'instant' });
     expect(scrollTo).toHaveBeenCalledOnce();
     model.store.currentPositionMs = 2500;
     render(); vi.advanceTimersByTime(0);
@@ -171,6 +174,37 @@ describe('maxExpand SongTab', () => {
     model.store.syncedLyrics = model.store.syncedLyrics.map((line) => ({ ...line, text: `${line.text} new` }));
     render(); vi.advanceTimersByTime(0);
     expect(scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
+  });
+  it('离开后重新挂载立即显示当前播放行，不继承手动浏览等待', () => {
+    const tree = render();
+    invoke(findElement(tree, (node) => node.props.className === 'song-lyrics'), 'onWheel');
+    unmountHooks(); resetLifecycle(); scrollTo.mockClear();
+    model.store.currentPositionMs = 3500;
+    const reentered = render(); vi.advanceTimersByTime(0);
+    expect(blocks(reentered)[2].props['aria-current']).toBe('true');
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 350, behavior: 'instant' });
+  });
+  it('暂留页面重新激活时清除浏览等待并回中当前行', () => {
+    const tree = render(); vi.advanceTimersByTime(0);
+    invoke(findElement(tree, (node) => node.props.className === 'song-lyrics'), 'onWheel');
+    model.contentActive = false;
+    render(); scrollTo.mockClear();
+    model.store.currentPositionMs = 2500;
+    render(); vi.advanceTimersByTime(5000);
+    expect(scrollTo).not.toHaveBeenCalled();
+    model.contentActive = true;
+    render(); vi.advanceTimersByTime(0);
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 350, behavior: 'instant' });
+  });
+  it('进入时歌词仍在加载，挂载后按照最新播放位置回中', () => {
+    model.store.lyricsLoading = true;
+    render();
+    model.store.currentPositionMs = 3500;
+    model.store.lyricsLoading = false;
+    scrollTo.mockClear();
+    const tree = render(); vi.advanceTimersByTime(0);
+    expect(blocks(tree)[2].props['aria-current']).toBe('true');
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 350, behavior: 'instant' });
   });
   it('切歌后异步歌词显示时重新归顶，并清除上一首的浏览定时器', () => {
     const tree = render();
@@ -229,6 +263,7 @@ describe('maxExpand SongTab', () => {
   });
   it('手动浏览暂停自动居中，停止操作四秒后恢复；卸载清理定时器', () => {
     render();
+    vi.advanceTimersByTime(0);
     model.store.currentPositionMs = 2500;
     const tree = render();
     vi.advanceTimersByTime(0);

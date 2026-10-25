@@ -20,11 +20,12 @@
 
 /**
  * @file useSongLyricsScroll.ts
- * @description 封装歌词归顶、自动跟随、手动浏览、键盘操作与点击跳转。
+ * @description 封装进入页面回中、歌词切换归顶、自动跟随、手动浏览与点击跳转。
  * @author 鸡哥
  */
 
 import { useCallback, useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useIslandContentActive } from '../../../../../hooks/islandContentActivity';
 import { SONG_LYRICS_BROWSE_DELAY_MS, SONG_LYRICS_BROWSE_KEYS } from '../config/songConstants';
 import useSongLyricsWheel from './useSongLyricsWheel';
 import type { SongLyricsScrollOptions, SongLyricsScrollResult, SongScrollContext } from '../types/songTypes';
@@ -41,30 +42,52 @@ export default function useSongLyricsScroll(options: SongLyricsScrollOptions): S
   const followTimerRef = useRef<number | null>(null);
   const initialLineRef = useRef<number | null>(null);
   const scrollContextRef = useRef<SongScrollContext | null>(null);
-  useSongLyricsWheel(lyricsRef, blocks, currentIndex, hasLyrics);
+  const entryPendingRef = useRef(true);
+  const centerOnEntryRef = useRef(false);
+  const contentActive = useIslandContentActive();
+  useSongLyricsWheel(lyricsRef, blocks, currentIndex, hasLyrics && contentActive);
 
   useEffect(() => {
+    if (!contentActive) {
+      entryPendingRef.current = true;
+      browsingUntilRef.current = 0;
+      if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
+      return;
+    }
     const previous = scrollContextRef.current;
-    if (!previous || previous.trackKey !== trackKey || previous.lyrics !== syncedLyrics || previous.visible !== hasLyrics) {
+    if (entryPendingRef.current || !previous || previous.trackKey !== trackKey || previous.lyrics !== syncedLyrics || previous.visible !== hasLyrics) {
       scrollContextRef.current = { trackKey, lyrics: syncedLyrics, visible: hasLyrics };
       browsingUntilRef.current = 0;
       if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
-      // 新歌词异步挂载后再归顶，等下一次切行才恢复跟随，避免归顶立即被自动居中覆盖。
-      initialLineRef.current = currentIndex;
-      lyricsRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      // 进入页面优先显示当前句；等待异步歌词挂载后再完成首次定位。
+      if (entryPendingRef.current && hasLyrics) {
+        entryPendingRef.current = false;
+        centerOnEntryRef.current = true;
+        initialLineRef.current = null;
+      } else {
+        // 页面内换歌或切换歌词仍先归顶，下一次播放切行恢复跟随。
+        initialLineRef.current = currentIndex;
+        lyricsRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      }
     } else if (initialLineRef.current !== currentIndex) {
       initialLineRef.current = null;
     }
-  }, [trackKey, syncedLyrics, hasLyrics, currentIndex]);
+  }, [trackKey, syncedLyrics, hasLyrics, currentIndex, contentActive]);
 
   const followLyrics = useCallback((): void => {
-    if (initialLineRef.current !== null) return;
+    if (!contentActive || initialLineRef.current !== null) return;
     const container = lyricsRef.current;
     const active = container?.querySelector<HTMLElement>('[aria-current="true"]');
-    if (!container || !active) return;
+    if (!container) return;
+    if (!active) {
+      if (centerOnEntryRef.current) container.scrollTo({ top: 0, behavior: 'instant' });
+      centerOnEntryRef.current = false;
+      return;
+    }
     const top = active.offsetTop - (container.clientHeight - active.offsetHeight) / 2;
-    container.scrollTo({ top: Math.max(0, top), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
-  }, []);
+    container.scrollTo({ top: Math.max(0, top), behavior: centerOnEntryRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    centerOnEntryRef.current = false;
+  }, [contentActive]);
 
   useEffect(() => {
     const scheduleFollow = (): void => {
@@ -73,7 +96,7 @@ export default function useSongLyricsScroll(options: SongLyricsScrollOptions): S
     };
     const container = lyricsRef.current;
     const observer = new ResizeObserver(scheduleFollow);
-    if (hasLyrics && container) {
+    if (contentActive && hasLyrics && container) {
       scheduleFollow();
       observer.observe(container);
     }
@@ -81,12 +104,13 @@ export default function useSongLyricsScroll(options: SongLyricsScrollOptions): S
       if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
       observer.disconnect();
     };
-  }, [currentIndex, blocks, hasLyrics, followLyrics]);
+  }, [currentIndex, blocks, hasLyrics, followLyrics, contentActive]);
 
   const handleBrowse = useCallback((): void => {
     // 手动浏览时暂缓跟随；停下后回到当前句，避免歌词变化打断滚动。
     browsingUntilRef.current = Date.now() + SONG_LYRICS_BROWSE_DELAY_MS;
     initialLineRef.current = null;
+    centerOnEntryRef.current = false;
     if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
     followTimerRef.current = window.setTimeout(followLyrics, SONG_LYRICS_BROWSE_DELAY_MS);
   }, [followLyrics]);
@@ -99,6 +123,7 @@ export default function useSongLyricsScroll(options: SongLyricsScrollOptions): S
     if (!canSeek) return;
     browsingUntilRef.current = 0;
     initialLineRef.current = null;
+    centerOnEntryRef.current = false;
     commitSeek(Math.min(currentDurationMs, Math.max(0, Number(event.currentTarget.dataset.time))));
     if (followTimerRef.current !== null) window.clearTimeout(followTimerRef.current);
     followTimerRef.current = window.setTimeout(followLyrics, 0);
