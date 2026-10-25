@@ -175,7 +175,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
   height: 100%;
   padding-block: 38cqh;
   overflow: hidden auto;
@@ -189,7 +189,7 @@
   width: 100%;
   padding: 4px 14px;
   font: inherit;
-  color: rgb(var(--color-text-rgb), .65);
+  color: rgb(var(--color-text-rgb), .25);
   text-align: right;
   cursor: pointer;
   background: transparent;
