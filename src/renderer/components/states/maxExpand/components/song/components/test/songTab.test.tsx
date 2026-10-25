@@ -11,11 +11,16 @@
  * @author 鸡哥
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { hookMocks, elements, findElement, invoke, textContent, type TestElement } from '../../../../../../test/elementHarness';
-import { lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../../../../../components/test/contentLifecycleHarness';
+import { cloneElement, isValidElement, type ReactNode } from 'react';
+import { elements, findElement, invoke, textContent, type TestElement } from '../../../../../../test/elementHarness';
+import { renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../../../../../components/test/contentLifecycleHarness';
 import SongTab from '../SongTab';
+import SongArtwork from '../SongArtwork';
+import SongLyricsPanel from '../SongLyricsPanel';
+import SongLyricsSkeleton from '../SongLyricsSkeleton';
 import { KaraokeSyllableLine } from '../../../../../lyrics/components/KaraokeSyllableLine';
 import type { SyncedLyricLine } from '../../../../../../../store/types';
+import type { SongArtworkProps, SongLyricsPanelProps } from '../../types/songTypes';
 
 const model = vi.hoisted(() => ({
   karaokeEnabled: false,
@@ -27,7 +32,13 @@ const model = vi.hoisted(() => ({
   },
   mediaSeek: vi.fn(),
 }));
-vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
+vi.mock('react', async (load) => {
+  const actual = await load<typeof import('react')>();
+  // Mock 会提升到导入之前；动态读取调度器，避免 React 导入先于其初始化。
+  const harness = await import('../../../../../../test/elementHarness');
+  const lifecycle = await import('../../../../../../components/test/contentLifecycleHarness');
+  return { ...actual, ...harness.hookMocks, ...lifecycle.lifecycleHooks };
+});
 vi.mock('zustand/react/shallow', () => ({ useShallow: <T,>(selector: T): T => selector }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('../../../../../lyrics/hooks/useLyricsSettings', () => ({ useLyricsSettings: () => ({ karaokeEnabled: model.karaokeEnabled }) }));
@@ -37,11 +48,26 @@ const scrollTo = vi.fn();
 let active: object | null;
 
 /**
+ * 展开拆出的纯展示组件，共享逐字及轮播控件继续作为原有叶节点边界。
+ * @param value - 真实入口返回的组件树。
+ * @returns 可断言交互与文案的完整歌曲展示树。
+ */
+function expandSongViews(value: ReactNode): ReactNode {
+  if (Array.isArray(value)) return value.map(expandSongViews);
+  if (!isValidElement(value)) return value;
+  const element = value as TestElement;
+  if (element.type === SongArtwork) return expandSongViews(SongArtwork(element.props as unknown as SongArtworkProps));
+  if (element.type === SongLyricsPanel) return expandSongViews(SongLyricsPanel(element.props as unknown as SongLyricsPanelProps));
+  if (element.type === SongLyricsSkeleton) return expandSongViews(SongLyricsSkeleton());
+  return cloneElement(element, undefined, expandSongViews(element.props.children));
+}
+
+/**
  * 绑定歌词滚动容器并执行真实 effect。
  * @returns 歌曲页元素树。
  */
 function render(): TestElement {
-  const tree = renderWithHooks(SongTab) as TestElement;
+  const tree = renderWithHooks(() => expandSongViews(SongTab())) as TestElement;
   const viewport = elements(tree).find((node) => node.props.className === 'song-lyrics');
   if (viewport) {
     (viewport.props.ref as { current: unknown }).current = { scrollTo, offsetTop: 10, clientHeight: 400, querySelector: () => active };

@@ -14,10 +14,7 @@
 import type { SyncedLyricLine } from '../../../../../../store/types';
 import type { TranslationLyricsResult } from '../../../../../../api/lyrics/lrcApi';
 
-/** 可点击跳转的双语歌词块，同一时间戳的原文合并展示。 */
-interface SongLyricBlock extends SyncedLyricLine {
-  translation: string;
-}
+import type { SongLyricBlock } from '../types/songTypes';
 
 /**
  * 以原文时间区间匹配译文，忽略空行与重复原文的译文。
