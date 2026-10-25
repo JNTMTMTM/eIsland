@@ -43,9 +43,12 @@ export default function useSongLyricsWheel(
       rows.forEach((row, index) => {
         const distance = positions[index];
         const depth = Math.abs(distance);
+        const curvature = 1 - Math.cos(depth * Math.PI / 2);
+        const arcDistance = Math.min(1, depth * radius / Math.max(1, container.clientHeight / 2));
+        row.style.setProperty('--song-wheel-curve', Math.cos(arcDistance * Math.PI / 2).toFixed(3));
         row.style.setProperty('--song-wheel-angle', `${(-distance * 44).toFixed(2)}deg`);
-        row.style.setProperty('--song-wheel-depth', `${(-depth * 54).toFixed(2)}px`);
-        row.style.setProperty('--song-wheel-scale', (1 - depth * .12).toFixed(3));
+        row.style.setProperty('--song-wheel-depth', `${(-curvature * 54).toFixed(2)}px`);
+        row.style.setProperty('--song-wheel-scale', (1 - curvature * .12).toFixed(3));
         row.style.setProperty('--song-wheel-opacity', (1 - depth * .55).toFixed(3));
       });
     };

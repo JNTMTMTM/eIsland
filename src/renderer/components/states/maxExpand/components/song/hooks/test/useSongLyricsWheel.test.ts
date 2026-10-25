@@ -67,10 +67,14 @@ it('中间歌词正对视线，上下歌词反向倾斜；手动滚动后轮盘�
   expect(Number.parseFloat(styles[1].get('--song-wheel-angle')!)).toBe(0);
   expect(Number.parseFloat(styles[2].get('--song-wheel-angle')!)).toBeLessThan(0);
   expect(Number(styles[1].get('--song-wheel-scale'))).toBe(1);
+  expect(Number(styles[1].get('--song-wheel-curve'))).toBe(1);
+  expect(Number(styles[0].get('--song-wheel-curve'))).toBeLessThan(Number(styles[1].get('--song-wheel-curve')));
+  expect(styles[0].get('--song-wheel-curve')).toBe(styles[2].get('--song-wheel-curve'));
   expect(Number(styles[0].get('--song-wheel-opacity'))).toBeLessThan(Number(styles[1].get('--song-wheel-opacity')));
   container.scrollTop = 200; container.dispatchEvent(new Event('scroll')); paint();
   expect(Number.parseFloat(styles[1].get('--song-wheel-angle')!)).toBeGreaterThan(0);
   expect(Number.parseFloat(styles[2].get('--song-wheel-angle')!)).toBe(0);
+  expect(Number(styles[2].get('--song-wheel-curve'))).toBe(1);
 });
 
 it('连续滚动只请求一帧，隐藏或卸载时清理帧、尺寸观察及滚动监听', () => {

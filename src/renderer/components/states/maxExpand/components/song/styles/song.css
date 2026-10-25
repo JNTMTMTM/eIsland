@@ -171,6 +171,8 @@
 }
 
 .song-lyrics {
+  --song-wheel-inset: clamp(24px, 5cqw, 40px);
+
   position: relative;
   box-sizing: border-box;
   display: flex;
@@ -178,6 +180,7 @@
   gap: 8px;
   height: 100%;
   padding-block: 38cqh;
+  padding-inline-start: var(--song-wheel-inset);
   overflow: hidden auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -197,7 +200,7 @@
   border-radius: 12px;
   opacity: var(--song-wheel-opacity, 1);
   transition: color .25s, background-color .25s, opacity .18s linear, transform .18s ease-out;
-  transform: perspective(720px) translateZ(var(--song-wheel-depth, 0)) rotateX(var(--song-wheel-angle, 0deg)) scale(var(--song-wheel-scale, 1));
+  transform: translateX(calc(var(--song-wheel-inset, 0px) * var(--song-wheel-curve, 0) * -1)) perspective(720px) translateZ(var(--song-wheel-depth, 0)) rotateX(var(--song-wheel-angle, 0deg)) scale(var(--song-wheel-scale, 1));
   transform-origin: right center;
   backface-visibility: hidden;
 
