@@ -110,11 +110,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('AiChatTab real state and send integration', () => {
-  it('keeps the chat usable without a page overlay and lets it show skeletons until the session body is ready', async () => {
+  it('shows skeletons only on the first load, never while switching sessions, and keeps the chat usable', async () => {
     let AiChatContent: typeof Component;
     ({ AiChatTab: Component, AiChatContent } = await import('../AiChatTab'));
     const chat = (tree: ReturnType<typeof run>) => find(tree, (node) => node.type === AiChatContent);
     const usable = (tree: ReturnType<typeof run>) => elements(tree).every((node) => node.props.inert !== true);
+    const actions = runtime.store.getState();
     runtime.store.setState({ aiChatReady: false, aiChatLoading: false });
     expect(chat(run()).props.loading).toBe(true);
     runtime.store.setState({ aiChatLoading: true });
@@ -123,23 +124,52 @@ describe('AiChatTab real state and send integration', () => {
     expect(usable(firstLoad)).toBe(true);
     runtime.store.setState({ aiChatReady: true, aiChatLoading: false });
     expect(chat(run()).props.loading).toBe(false);
-    runtime.store.setState({ aiChatLoading: true });
-    const switching = run();
-    expect(elements(switching).some((node) => node.props['aria-busy'] === true)).toBe(true);
-    const status = find(switching, (node) => node.props.role === 'status');
+    messages([{ role: 'user', content: 'first session' }]);
+    await actions.flushAiChatStorage();
+    const first = runtime.store.getState().activeAiChatSessionId;
+    await actions.createNewAiChatSession();
+    const switching = actions.switchAiChatSession(first);
+    const reading = run();
+    expect(elements(reading).some((node) => node.props['aria-busy'] === true)).toBe(true);
+    const status = find(reading, (node) => node.props.role === 'status');
     expect(text(status)).toBe('aiChat.storageLoading');
     expect(status.props.className).toBe('sr-only');
-    expect(chat(switching).props.loading).toBe(true);
-    expect(usable(switching)).toBe(true);
-    runtime.store.setState({ aiChatLoading: false });
+    expect(chat(reading).props.loading).toBe(false);
+    expect(usable(reading)).toBe(true);
+    await switching;
     const settled = run();
     expect(elements(settled).some((node) => node.props['aria-busy'] === false)).toBe(true);
     expect(elements(settled).some((node) => node.props.role === 'status')).toBe(false);
     expect(chat(settled).props.loading).toBe(false);
-    runtime.store.setState({ aiChatReady: false, aiChatStorageError: true });
+    // 重新进入时当前会话正文已释放，再次读取视为首次加载。
+    actions.releaseAiChatBodies();
+    expect(chat(run()).props.loading).toBe(true);
+    await actions.ensureAiChatReady();
+    expect(chat(run()).props.loading).toBe(false);
+    runtime.store.setState({ aiChatStorageError: true });
     const failed = run();
     expect(text(find(failed, (node) => node.props.role === 'status'))).toBe('aiChat.storageRetry');
     expect(usable(failed)).toBe(false);
+  });
+  it('keeps the previous session messages on screen until the selected session body is read', async () => {
+    login();
+    const actions = runtime.store.getState();
+    messages([{ role: 'user', content: 'first session' }]);
+    await actions.flushAiChatStorage();
+    const first = runtime.store.getState().activeAiChatSessionId;
+    await actions.createNewAiChatSession();
+    messages([{ role: 'user', content: 'second session' }]);
+    await actions.flushAiChatStorage();
+    mount();
+    const switching = actions.switchAiChatSession(first);
+    const reading = text(byClass(run(), 'max-expand-chat-messages'));
+    expect(reading).toContain('second session');
+    expect(reading).not.toContain('first session');
+    expect(reading).not.toContain('aiChat.messages.aiGeneratedDisclaimer');
+    await switching;
+    const settled = text(byClass(run(), 'max-expand-chat-messages'));
+    expect(settled).toContain('first session');
+    expect(settled).not.toContain('second session');
   });
   it('loads only when the chat shell mounts, exposes retry and releases bodies on unmount', async () => {
     ({ AiChatTab: Component } = await import('../AiChatTab'));

@@ -37,7 +37,7 @@ import { ChatInputBar } from './ChatInputBar';
 import { ChatMessagesSkeleton, ChatSessionListSkeleton } from './chatLoadingSkeleton';
 
 interface AiChatContentProps {
-  /** 会话正文尚未就绪：历史会话侧栏与消息区显示骨架，标题栏与输入栏照常显示 */
+  /** 首次加载会话正文：历史会话侧栏与消息区显示骨架，标题栏与输入栏照常显示 */
   loading?: boolean;
 }
 
@@ -45,7 +45,7 @@ interface AiChatContentProps {
  * AI 对话 Tab
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
  * @param props - 组件属性
- * @param props.loading - 会话正文尚未就绪时为 true
+ * @param props.loading - 首次加载会话正文时为 true
  * @returns 聊天界面元素
  */
 export function AiChatContent({ loading = false }: AiChatContentProps): React.ReactElement {
@@ -62,7 +62,7 @@ export function AiChatContent({ loading = false }: AiChatContentProps): React.Re
     currentAgentModeConfig,
     emptyGreeting, hasActiveTextSelection,
     orderedSessions, getSessionCardState,
-    aiChatMessages, aiChatStreaming, activeAiChatSessionId,
+    aiChatMessages, aiChatSwitchingView, aiChatStreaming, activeAiChatSessionId,
     aiWebAccessPrompt, aiLocalToolAccessPrompt,
     aiConfig,
     setAiChatStreaming,
@@ -155,7 +155,7 @@ export function AiChatContent({ loading = false }: AiChatContentProps): React.Re
           </button>
         </div>
       </div>
-      {/* 切换或读取会话期间只有历史会话侧栏与消息区显示骨架，标题栏与输入栏照常可用；侧栏收起时骨架随之隐藏。 */}
+      {/* 首次加载会话时只有历史会话侧栏与消息区显示骨架，标题栏与输入栏照常可用；侧栏收起时骨架随之隐藏。 */}
       <div className="max-expand-chat-body">
         <aside
           className={`max-expand-chat-session-sidebar ${showSessionSidebar ? 'is-open' : 'is-closed'}`}
@@ -186,12 +186,12 @@ export function AiChatContent({ loading = false }: AiChatContentProps): React.Re
           </div>
         </aside>
         <div className="max-expand-chat-content">
-          {/* 消息列表 */}
+          {/* 消息列表：切换会话读取正文期间沿用切换前的消息，读完一次性换成目标会话，不闪出空会话。 */}
           {loading ? <ChatMessagesSkeleton /> : (
             <VirtualChatMessages
-              key={activeAiChatSessionId}
-              messages={aiChatMessages}
-              isStreaming={aiChatStreaming}
+              key={aiChatSwitchingView?.sessionId ?? activeAiChatSessionId}
+              messages={aiChatSwitchingView?.messages ?? aiChatMessages}
+              isStreaming={!aiChatSwitchingView && aiChatStreaming}
               agentMode={agentMode}
               r1pxcAvatar={aiConfig.r1pxcAvatar}
               userAvatarUrl={userAvatarUrl}
@@ -314,16 +314,18 @@ export function AiChatContent({ loading = false }: AiChatContentProps): React.Re
  */
 export function AiChatTab(): React.ReactElement {
   const { t } = useTranslation();
-  const ready = useIslandStore((state) => state.aiChatReady);
   const loading = useIslandStore((state) => state.aiChatLoading);
+  // 首次加载（含重新进入时当前会话正文已释放）显示骨架；切换会话时沿用切换前的消息，不显示骨架。
+  const firstLoad = useIslandStore((state) => !state.aiChatSwitchingView && (state.aiChatLoading || !state.aiChatReady
+    || state.aiChatSessions.find((session) => session.id === state.activeAiChatSessionId)?.messagesLoaded === false));
   const failed = useIslandStore((state) => state.aiChatStorageError);
   const ensure = useIslandStore((state) => state.ensureAiChatReady);
   const release = useIslandStore((state) => state.releaseAiChatBodies);
   useEffect(() => { void ensure().catch(() => {}); return release; }, [ensure, release]);
-  // 首次读取完成前也挂载聊天界面，标题栏与输入栏照常显示，正文就绪前由侧栏与消息区骨架占位；读取失败时以重试覆盖整个页面。
+  // 首次读取完成前也挂载聊天界面，标题栏与输入栏照常显示；读取失败时以重试覆盖整个页面。
   return (
     <div className="relative isolate flex size-full min-h-0 flex-col overflow-hidden" aria-busy={loading}>
-      <div className="flex min-h-0 flex-1 flex-col" inert={failed}><AiChatContent loading={loading || !ready} /></div>
+      <div className="flex min-h-0 flex-1 flex-col" inert={failed}><AiChatContent loading={firstLoad} /></div>
       {loading && !failed && <span className="sr-only" role="status">{t('aiChat.storageLoading')}</span>}
       {failed && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[var(--color-island-bg)] text-center text-sm text-[rgb(var(--color-text-rgb))]" role="status">

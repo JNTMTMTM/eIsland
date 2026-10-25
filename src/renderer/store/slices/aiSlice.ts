@@ -26,7 +26,7 @@
 
 import { aiChatStorage, toAiChatIndex } from '../utils/aiChatStorage';
 import type { StateCreator } from 'zustand';
-import type { AiSlice, AiConfig, AiChatMessage, AiChatSession, AiWebAccessPrompt, AiSkill } from '../types';
+import type { AiSlice, AiConfig, AiChatMessage, AiChatSession, AiChatSwitchingView, AiWebAccessPrompt, AiSkill } from '../types';
 
 const AI_CONFIG_KEY = 'eIsland_aiConfig';
 const AI_CHAT_MESSAGES_KEY = 'eIsland_aiChatMessages';
@@ -449,24 +449,36 @@ export const createAiSlice: StateCreator<
     if (checkpoints.has(id)) return;
     checkpoints.set(id, setTimeout(() => { checkpoints.delete(id); save(id, false); }, CHAT_CHECKPOINT_MS));
   };
+  /**
+   * 计算切换期间界面沿用的消息。
+   * @param state - 切换前的状态。
+   * @returns 连续切换时保留最初显示的消息；首次加载或当前正文已释放时没有可沿用的内容，返回 null。
+   */
+  const holdSwitchingView = (state: AiSlice): AiChatSwitchingView | null => {
+    if (state.aiChatLoading) return state.aiChatSwitchingView;
+    const shown = state.aiChatSessions.find((session) => session.id === state.activeAiChatSessionId);
+    return state.aiChatReady && shown?.messagesLoaded !== false
+      ? { sessionId: state.activeAiChatSessionId, messages: state.aiChatMessages } : null;
+  };
   const select = async (id: string): Promise<void> => {
     const target = get().aiChatSessions.find((session) => session.id === id);
     if (!target) return;
     const version = ++selectionVersion;
-    set({ activeAiChatSessionId: id, aiChatMessages: target.messages, aiChatLoading: true });
+    // 目标正文未读入时消息先置空；与切换同一次提交记下切换前的消息，界面读完前沿用，避免闪出空会话。
+    set((state) => ({ activeAiChatSessionId: id, aiChatMessages: target.messages, aiChatLoading: true, aiChatSwitchingView: holdSwitchingView(state) }));
     try {
       const messages = target.messagesLoaded === false ? await aiChatStorage.read(id) : target.messages;
       if (!messages) throw new Error('Chat session body is missing');
       if (version !== selectionVersion) return;
       set((state) => ({
-        aiChatMessages: messages, aiChatLoading: false,
+        aiChatMessages: messages, aiChatLoading: false, aiChatSwitchingView: null,
         aiChatSessions: state.aiChatSessions.map((session) => session.id === id
           ? { ...session, messages, messagesLoaded: true } : session),
       }));
       try { localStorage.setItem(AI_ACTIVE_CHAT_SESSION_ID_KEY, id); } catch { /* 选择失败不影响正文事务。 */ }
       releaseBodies();
     } catch (error) {
-      if (version === selectionVersion) set({ aiChatLoading: false, aiChatStorageError: true });
+      if (version === selectionVersion) set({ aiChatLoading: false, aiChatStorageError: true, aiChatSwitchingView: null });
       throw error;
     }
   };
@@ -498,6 +510,7 @@ export const createAiSlice: StateCreator<
     aiChatSessions: [],
     activeAiChatSessionId: '',
     aiChatMessages: [],
+    aiChatSwitchingView: null,
     aiChatStreaming: false,
     aiWebAccessPrompt: null,
     aiWebAccessResolveError: '',
