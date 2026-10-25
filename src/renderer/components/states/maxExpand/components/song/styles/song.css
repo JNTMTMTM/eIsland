@@ -269,6 +269,74 @@
 
 }
 
+.song-lyrics-skeleton {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 20px 14px;
+
+}
+
+.song-skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 4cqh, 28px);
+  width: 100%;
+
+}
+
+.song-skeleton-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  width: 82%;
+  margin-left: auto;
+  opacity: .5;
+
+}
+
+.song-skeleton-row:nth-child(2),
+.song-skeleton-row:nth-child(4) {
+  width: 92%;
+  margin-right: 14px;
+  opacity: .7;
+
+}
+
+.song-skeleton-row:nth-child(3) {
+  width: 78%;
+  margin-right: clamp(24px, 5cqw, 40px);
+  opacity: 1;
+
+}
+
+.song-skeleton-original,
+.song-skeleton-translation {
+  position: relative;
+  overflow: hidden;
+
+}
+
+.song-skeleton-original {
+  width: 100%;
+  height: clamp(18px, 2.5cqw, 24px);
+
+}
+
+.song-skeleton-row:nth-child(3) .song-skeleton-original {
+  height: clamp(22px, 3.2cqw, 28px);
+
+}
+
+.song-skeleton-translation {
+  width: 65%;
+  height: clamp(10px, 1.5cqw, 14px);
+  opacity: .55;
+
+}
+
 .song-empty {
   display: flex;
   flex-direction: column;

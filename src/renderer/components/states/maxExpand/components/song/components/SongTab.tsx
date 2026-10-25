@@ -38,7 +38,10 @@ import { ScrollingText } from '../../../../lyrics/components/ScrollingText';
 import buildSongLyricBlocks from '../utils/buildSongLyricBlocks';
 import useSongLyricsWheel from '../hooks/useSongLyricsWheel';
 import '../../../../../../styles/lyrics/lyrics.css';
+import '../../../../../../styles/settings/modules/settings-skeleton.css';
 import '../styles/song.css';
+
+const SKELETON_ROWS = ['first', 'second', 'current', 'fourth', 'last'];
 
 /**
  * 最大展开模式下的歌曲面板。
@@ -140,9 +143,8 @@ export default function SongTab(): ReactElement {
   /* eslint-enable promise/prefer-await-to-then -- 媒体命令回调结束。 */
   const title = mediaInfo.title || t('songTab.meta.notPlaying');
   const artist = mediaInfo.artist || t('hover.music.unknownArtist');
-  let statusText = t('songTab.lyrics.empty');
-  if (lyricsLoading) statusText = t('songTab.lyrics.loading');
-  if (!isMusicPlaying) statusText = t('songTab.onboarding.hint');
+  const showSkeleton = isMusicPlaying && lyricsLoading;
+  const statusText = isMusicPlaying ? t('songTab.lyrics.empty') : t('songTab.onboarding.hint');
 
   /* eslint-disable better-tailwindcss/no-unknown-classes -- 歌曲页的容器查询与歌词状态样式由本组件导入的 song.css 定义。 */
   return (
@@ -175,7 +177,19 @@ export default function SongTab(): ReactElement {
           </div>
         </div>
         <div className="song-lyrics-viewport">
-          {hasLyrics ? (
+          {showSkeleton && (
+            <div className="song-lyrics-skeleton" role="status" aria-busy="true" aria-label={t('songTab.lyrics.loading')}>
+              <div className="song-skeleton-lines" aria-hidden="true">
+                {SKELETON_ROWS.map((key) => (
+                  <div className="song-skeleton-row" key={key}>
+                    <span className="settings-skeleton-block settings-skeleton-sweep song-skeleton-original" />
+                    <span className="settings-skeleton-block settings-skeleton-sweep song-skeleton-translation" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {hasLyrics && (
             <div className="song-lyrics" ref={lyricsRef} onWheel={handleBrowse} onTouchMove={handleBrowse} onPointerDown={handleBrowse}
               role="region" aria-label={t('songTab.lyrics.all')}>
               {blocks.map((block, index) => (
@@ -190,7 +204,8 @@ export default function SongTab(): ReactElement {
                 </button>
               ))}
             </div>
-          ) : (
+          )}
+          {!hasLyrics && !showSkeleton && (
             <div className="song-empty" role="status">
               <img className="song-placeholder-icon-img" src={SvgIcon.MUSIC} alt="" />
               <p>{statusText}</p>
