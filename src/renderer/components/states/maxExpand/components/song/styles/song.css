@@ -81,7 +81,6 @@
 .song-album {
   margin: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 
 }
@@ -93,12 +92,18 @@
 
 }
 
+.song-title-text {
+  text-align: left;
+
+}
+
 .song-artist,
 .song-album {
   margin-top: 4px;
   font-size: 13px;
   line-height: 1.5;
   color: rgb(var(--color-text-rgb), .55);
+  text-overflow: ellipsis;
 
 }
 

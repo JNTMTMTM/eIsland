@@ -34,8 +34,10 @@ import { usePendingSeek } from '../../../../../hooks/usePendingSeek';
 import { findCurrentIndex } from '../../../../lyrics/utils/findCurrentIndex';
 import { useLyricsSettings } from '../../../../lyrics/hooks/useLyricsSettings';
 import { KaraokeSyllableLine } from '../../../../lyrics/components/KaraokeSyllableLine';
+import { ScrollingText } from '../../../../lyrics/components/ScrollingText';
 import buildSongLyricBlocks from '../utils/buildSongLyricBlocks';
 import useSongLyricsWheel from '../hooks/useSongLyricsWheel';
+import '../../../../../../styles/lyrics/lyrics.css';
 import '../styles/song.css';
 
 /**
@@ -154,7 +156,9 @@ export default function SongTab(): ReactElement {
             {coverImage ? <img src={coverImage} alt={title} draggable={false} /> : <img className="song-placeholder-icon-img" src={SvgIcon.MUSIC} alt="" />}
           </div>
           <div className="song-meta">
-            <h2 className="song-title" title={title}>{title}</h2>
+            <div className="song-title" role="heading" aria-level={2} title={title}>
+              <ScrollingText key={trackKey} className="song-title-text">{title}</ScrollingText>
+            </div>
             <p className="song-artist" title={artist}>{artist}</p>
             {mediaInfo.album && <p className="song-album" title={mediaInfo.album}>{mediaInfo.album}</p>}
           </div>
