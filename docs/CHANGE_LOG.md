@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T03:29:01.717Z
+> 生成时间：2026-10-26T03:52:52.531Z
 
 ## 27.0.0
 
@@ -3872,9 +3872,18 @@
 
 ## Unreleased
 
+- 2026-10-25 | 57ae2987 | JNTMTMTM | Merge pull request #282 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/koffi-3.3.3
+- 2026-10-25 | f7e083b9 | JNTMTMTM | Merge pull request #287 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-hardware-info-helper/types/node-26.6.5
+- 2026-10-25 | 16ccbbab | JNTMTMTM | Merge pull request #280 from JNTMTMTM/dependabot/npm_and_yarn/electron-45.0.0
+- 2026-10-25 | 0cf7392b | 鸡哥 | fix(deps): synchronize PR #282 locks and plugin release versions
+- 2026-10-26 | 4dba43dc | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-25 | 690d4e81 | 鸡哥 | Merge main and synchronize Electron 45 dependency lock
+- 2026-10-26 | 70334ef9 | eislandBot | docs: auto update CHANGE_LOG.md for #279 by @dependabot[bot] [skip ci]
 - 2026-10-25 | dfed62ff | JNTMTMTM | Merge pull request #279 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b9f6b06a63
 - 2026-10-26 | 7acbd2e4 | eislandBot | docs: auto update CHANGE_LOG.md for #277 by @JNTMTMTM [skip ci]
 - 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
+- 2026-10-26 | 59473d68 | dependabot[bot] | chore(deps): bump koffi
+- 2026-10-26 | 14d859ee | dependabot[bot] | chore(deps): bump electron from 44.8.0 to 45.0.0
 - 2026-10-26 | 077ff54f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 19 updates
 - 2026-10-25 | 8400698d | 鸡哥 | feat(chat): update sendDisabled prop description and ensure input is read-only when disabled
 - 2026-10-25 | d2ec3cf9 | 鸡哥 | feat: refactor song component imports to use default exports and improve code consistency
