@@ -11,20 +11,20 @@
     "@stylistic/stylelint-plugin": "^5.3.1",
     "eslint": "^10.13.0",
     "eslint-import-resolver-typescript": "^4.4.5",
-    "eslint-plugin-better-tailwindcss": "^4.9.1",
+    "eslint-plugin-better-tailwindcss": "^4.10.0",
     "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-jsdoc": "~65.3.8",
+    "eslint-plugin-jsdoc": "~65.4.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-promise": "^7.3.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
-    "html-validate": "^11.16.2",
+    "html-validate": "^11.17.0",
     "stylelint": "^17.16.0",
     "stylelint-config-standard-scss": "^17.0.0",
     "stylelint-order": "^8.1.2",
     "ts-api-utils": "^2.5.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.71.2"
+    "typescript-eslint": "^8.72.0"
   }
 }

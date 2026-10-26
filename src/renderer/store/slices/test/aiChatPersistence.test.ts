@@ -88,6 +88,67 @@ describe('asynchronous chat persistence', () => {
     expect(api.getState().activeAiChatSessionId).toBe('c');
     expect(api.getState().aiChatMessages).toEqual(messages('c'));
   });
+  it('holds the previously shown messages while a released body is read and clears the hold once the switch settles', async () => {
+    const api = makeStore();
+    await api.getState().ensureAiChatReady();
+    expect(api.getState().aiChatSwitchingView).toBeNull();
+    let resolveB!: (value: AiChatMessage[]) => void;
+    database.read.mockImplementationOnce(() => new Promise((resolve) => { resolveB = resolve; }));
+    const b = api.getState().switchAiChatSession('b');
+    expect(api.getState()).toMatchObject({ activeAiChatSessionId: 'b', aiChatMessages: [], aiChatLoading: true,
+      aiChatSwitchingView: { sessionId: 'a', messages: messages('a') } });
+    const c = api.getState().switchAiChatSession('c');
+    expect(api.getState().aiChatSwitchingView).toEqual({ sessionId: 'a', messages: messages('a') });
+    resolveB(messages('b'));
+    await Promise.all([b, c]);
+    expect(api.getState()).toMatchObject({ activeAiChatSessionId: 'c', aiChatMessages: messages('c'), aiChatLoading: false, aiChatSwitchingView: null });
+  });
+  it('holds nothing on the first load or after the shown body was released, and drops the hold when a read fails', async () => {
+    const api = makeStore();
+    const deferRead = (): ((value: AiChatMessage[]) => void) => {
+      let resolve!: (value: AiChatMessage[]) => void;
+      database.read.mockImplementationOnce(() => new Promise((settle) => { resolve = settle; }));
+      return (value) => resolve(value);
+    };
+    let resolveRead = deferRead();
+    const firstLoad = api.getState().ensureAiChatReady();
+    await vi.waitFor(() => expect(database.read).toHaveBeenCalledTimes(1));
+    expect(api.getState()).toMatchObject({ aiChatLoading: true, aiChatSwitchingView: null });
+    resolveRead(messages('a'));
+    await firstLoad;
+    api.getState().releaseAiChatBodies();
+    resolveRead = deferRead();
+    const reentry = api.getState().ensureAiChatReady();
+    await vi.waitFor(() => expect(database.read).toHaveBeenCalledTimes(2));
+    expect(api.getState()).toMatchObject({ aiChatLoading: true, aiChatSwitchingView: null });
+    resolveRead(messages('a'));
+    await reentry;
+    database.read.mockRejectedValueOnce(new Error('read failed'));
+    const failing = api.getState().switchAiChatSession('b');
+    expect(api.getState().aiChatSwitchingView).toEqual({ sessionId: 'a', messages: messages('a') });
+    await expect(failing).rejects.toThrow('read failed');
+    expect(api.getState()).toMatchObject({ aiChatLoading: false, aiChatStorageError: true, aiChatSwitchingView: null });
+  });
+  it('never holds a deleted session view while the replacement body is read', async () => {
+    const api = makeStore();
+    await api.getState().ensureAiChatReady();
+    let resolveB!: (value: AiChatMessage[]) => void;
+    database.read.mockImplementationOnce(() => new Promise((resolve) => { resolveB = resolve; }));
+    const deletingActive = api.getState().deleteAiChatSession('a');
+    await vi.waitFor(() => expect(api.getState().activeAiChatSessionId).toBe('b'));
+    expect(api.getState()).toMatchObject({ aiChatLoading: true, aiChatSwitchingView: null });
+    resolveB(messages('b'));
+    await deletingActive;
+    let resolveC!: (value: AiChatMessage[]) => void;
+    database.read.mockImplementationOnce(() => new Promise((resolve) => { resolveC = resolve; }));
+    const switching = api.getState().switchAiChatSession('c');
+    expect(api.getState().aiChatSwitchingView).toEqual({ sessionId: 'b', messages: messages('b') });
+    await api.getState().deleteAiChatSession('b');
+    expect(api.getState()).toMatchObject({ activeAiChatSessionId: 'c', aiChatLoading: true, aiChatSwitchingView: null });
+    resolveC(messages('c'));
+    await switching;
+    expect(api.getState()).toMatchObject({ aiChatMessages: messages('c'), aiChatLoading: false, aiChatSwitchingView: null });
+  });
   it('never persists an index placeholder as an empty conversation', async () => {
     const api = makeStore();
     await api.getState().ensureAiChatReady();
