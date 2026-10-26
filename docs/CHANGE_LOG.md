@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T02:58:10.021Z
+> 生成时间：2026-10-26T03:29:01.717Z
 
 ## 27.0.0
 
@@ -3872,7 +3872,10 @@
 
 ## Unreleased
 
+- 2026-10-25 | dfed62ff | JNTMTMTM | Merge pull request #279 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b9f6b06a63
+- 2026-10-26 | 7acbd2e4 | eislandBot | docs: auto update CHANGE_LOG.md for #277 by @JNTMTMTM [skip ci]
 - 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
+- 2026-10-26 | 077ff54f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 19 updates
 - 2026-10-25 | 8400698d | 鸡哥 | feat(chat): update sendDisabled prop description and ensure input is read-only when disabled
 - 2026-10-25 | d2ec3cf9 | 鸡哥 | feat: refactor song component imports to use default exports and improve code consistency
 - 2026-10-25 | 921b05b2 | 鸡哥 | feat(song): add border-radius to song controls for improved aesthetics
