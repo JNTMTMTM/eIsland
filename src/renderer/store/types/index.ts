@@ -50,7 +50,7 @@ export type ExpandTab = 'hover' | 'overview' | 'song' | 'tools' | 'translation' 
 export type CliProvider = 'claude' | 'codex';
 
 /** MaxExpand 状态下的子标签页类型 */
-export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'alarm' | 'toolbox' | 'miniGame' | 'stock' | 'cli' | 'calculator' | 'worldClock' | 'calendar' | 'settings';
+export type MaxExpandTab = 'aiChat' | 'todo' | 'urlFavorites' | 'localFileSearch' | 'clipboardHistory' | 'album' | 'mail' | 'memo' | 'countdown' | 'alarm' | 'toolbox' | 'miniGame' | 'stock' | 'cli' | 'calculator' | 'worldClock' | 'calendar' | 'song' | 'settings';
 
 /** 歌词显示模式 */
 export type LrcMode = 'off' | 'info' | 'lrc';
@@ -304,6 +304,14 @@ export interface AiChatSession {
   replyStatus?: 'idle' | 'success' | 'failed';
 }
 
+/** 切换会话读取正文期间，界面沿用的切换前消息 */
+export interface AiChatSwitchingView {
+  /** 切换前显示的会话 ID */
+  sessionId: string;
+  /** 切换前显示的消息 */
+  messages: AiChatMessage[];
+}
+
 /** AI Web 访问提示 */
 export interface AiWebAccessPrompt {
   sessionId?: string;
@@ -466,6 +474,8 @@ export interface AiSlice {
   aiChatSessions: AiChatSession[];
   activeAiChatSessionId: string;
   aiChatMessages: AiChatMessage[];
+  /** 切换会话读取正文期间沿用的切换前消息；首次加载、读取结束后为 null */
+  aiChatSwitchingView: AiChatSwitchingView | null;
   aiChatStreaming: boolean;
   createNewAiChatSession: () => Promise<void>;
   switchAiChatSession: (sessionId: string) => Promise<void>;
