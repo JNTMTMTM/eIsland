@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T19:27:30.295Z
+> 生成时间：2026-10-26T19:28:13.226Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,9 @@
 
 ## Unreleased
 
+- 2026-10-26 | ed660418 | JNTMTMTM | Merge pull request #300 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/koffi-3.3.3
+- 2026-10-26 | a30b1a48 | JNTMTMTM | Merge pull request #299 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/types/node-26.6.5
+- 2026-10-26 | b2c647a2 | eislandBot | docs: auto update CHANGE_LOG.md for #295 by @dependabot[bot] [skip ci]
 - 2026-10-26 | 6669cffe | JNTMTMTM | Merge pull request #298 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-volume-helper/types/node-26.6.5
 - 2026-10-26 | 9d1f9c79 | JNTMTMTM | Merge pull request #295 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-smtc-helper/types/node-26.6.5
 - 2026-10-26 | cd0014cc | JNTMTMTM | Merge pull request #294 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-smtc-helper/koffi-3.3.3
@@ -3899,6 +3902,8 @@
 - 2026-10-25 | 57ae2987 | JNTMTMTM | Merge pull request #282 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/koffi-3.3.3
 - 2026-10-25 | f7e083b9 | JNTMTMTM | Merge pull request #287 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-hardware-info-helper/types/node-26.6.5
 - 2026-10-25 | 16ccbbab | JNTMTMTM | Merge pull request #280 from JNTMTMTM/dependabot/npm_and_yarn/electron-45.0.0
+- 2026-10-25 | 3e6c184d | 鸡哥 | fix(deps): synchronize PR #300 locks and plugin release versions
+- 2026-10-25 | 2c60a5d6 | 鸡哥 | fix(deps): synchronize PR #299 locks
 - 2026-10-25 | 041babc6 | 鸡哥 | fix(deps): synchronize PR #298 locks
 - 2026-10-25 | 532fb4f4 | 鸡哥 | fix(deps): synchronize PR #295 locks
 - 2026-10-25 | ea4fa1d1 | 鸡哥 | fix(deps): synchronize PR #294 locks and plugin release versions
@@ -3917,6 +3922,7 @@
 - 2026-10-25 | 1cf3bf95 | 鸡哥 | fix(deps): synchronize PR #278 locks and plugin release versions
 - 2026-10-26 | 98e50075 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 08bbc445 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 6dbe9c26 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | ffbda6dd | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | eede2954 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 6ac88210 | dependabot[bot] | chore(deps): bump @types/node
@@ -3932,6 +3938,7 @@
 - 2026-10-25 | dfed62ff | JNTMTMTM | Merge pull request #279 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b9f6b06a63
 - 2026-10-26 | 7acbd2e4 | eislandBot | docs: auto update CHANGE_LOG.md for #277 by @JNTMTMTM [skip ci]
 - 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
+- 2026-10-26 | 51d351d7 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-wifi-helper
 - 2026-10-26 | f7c87b8d | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-smtc-helper
 - 2026-10-26 | 073353dd | dependabot[bot] | chore(deps): bump koffi
 - 2026-10-26 | da1e2796 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-power-helper
