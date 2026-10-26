@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T03:52:52.531Z
+> 生成时间：2026-10-26T03:54:45.015Z
 
 ## 27.0.0
 
@@ -3872,10 +3872,13 @@
 
 ## Unreleased
 
+- 2026-10-25 | 503c6fd7 | JNTMTMTM | Merge pull request #297 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-volume-analyzer/types/node-26.6.5
+- 2026-10-26 | 14dfa75a | eislandBot | docs: auto update CHANGE_LOG.md for #280 by @dependabot[bot] [skip ci]
 - 2026-10-25 | 57ae2987 | JNTMTMTM | Merge pull request #282 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/koffi-3.3.3
 - 2026-10-25 | f7e083b9 | JNTMTMTM | Merge pull request #287 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-hardware-info-helper/types/node-26.6.5
 - 2026-10-25 | 16ccbbab | JNTMTMTM | Merge pull request #280 from JNTMTMTM/dependabot/npm_and_yarn/electron-45.0.0
 - 2026-10-25 | 0cf7392b | 鸡哥 | fix(deps): synchronize PR #282 locks and plugin release versions
+- 2026-10-26 | 08bbc445 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 4dba43dc | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-25 | 690d4e81 | 鸡哥 | Merge main and synchronize Electron 45 dependency lock
 - 2026-10-26 | 70334ef9 | eislandBot | docs: auto update CHANGE_LOG.md for #279 by @dependabot[bot] [skip ci]
