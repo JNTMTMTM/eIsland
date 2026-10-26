@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-24T21:02:09.135Z
+> 生成时间：2026-10-26T02:58:10.021Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,29 @@
 
 ## Unreleased
 
+- 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
+- 2026-10-25 | 8400698d | 鸡哥 | feat(chat): update sendDisabled prop description and ensure input is read-only when disabled
+- 2026-10-25 | d2ec3cf9 | 鸡哥 | feat: refactor song component imports to use default exports and improve code consistency
+- 2026-10-25 | 921b05b2 | 鸡哥 | feat(song): add border-radius to song controls for improved aesthetics
+- 2026-10-25 | 4b1c52ab | 鸡哥 | feat(song): enhance SongTab tests and improve useSongLyricsScroll for content activity management
+- 2026-10-25 | 8e1a8444 | 鸡哥 | feat(volume): add SongVolumeControl component and useSongVolume hook for volume management
+- 2026-10-24 | 0568b701 | 鸡哥 | feat: implement SongPlayerBar and useSongProgress for enhanced playback controls and progress tracking
+- 2026-10-24 | b39cddfe | 鸡哥 | feat: update license information and enhance CSS comments for clarity
+- 2026-10-24 | df7843a2 | 鸡哥 | feat(song): refactor song components and hooks for improved structure and functionality
+- 2026-10-24 | fc27024e | 鸡哥 | feat: add loading skeleton for lyrics display and update status handling in SongTab
+- 2026-10-24 | b14f3925 | 鸡哥 | feat: integrate scrolling text for song titles and enhance CSS styles for better text alignment and overflow handling
+- 2026-10-24 | 26a60d69 | 鸡哥 | feat: enhance scrolling behavior in SongTab for better lyric navigation and visibility
+- 2026-10-24 | 4644b441 | 鸡哥 | feat: enhance song wheel dynamics with curvature and inset adjustments for improved visual effects
+- 2026-10-24 | 6db83d06 | 鸡哥 | style: increase gap in song lyric blocks and adjust text color for improved readability
+- 2026-10-24 | 6d2071a8 | 鸡哥 | feat: implement useSongLyricsWheel hook for 3D lyric wheel visualization and scrolling synchronization
+- 2026-10-24 | 4c367bcc | 鸡哥 | style: reduce gaps and padding in song lyric blocks for improved layout
+- 2026-10-24 | 4d9d4240 | 鸡哥 | fix: align text to the right in song controls for improved layout
+- 2026-10-24 | 310c9ad2 | 鸡哥 | feat: enhance SongTab and dynamic island functionality with karaoke support and lyric synchronization
+- 2026-10-24 | 4b73f41a | 鸡哥 | feat: add bilingual lyrics support and enhance SongTab component layout
+- 2026-10-24 | db0a464f | 鸡哥 | feat: implement aiChatSwitchingView to manage messages during session switching
+- 2026-10-24 | f8e9bbc2 | 鸡哥 | feat: enhance AiChatTab with loading skeletons for chat sessions and messages
+- 2026-10-24 | a4263f15 | 鸡哥 | feat: add song tab and related functionality for media playback
+- 2026-10-24 | ff311952 | eislandBot | docs: auto update CHANGE_LOG.md for #276 by @JNTMTMTM [skip ci]
 - 2026-10-24 | 29ad182e | JNTMTMTM | Merge pull request #276 from JNTMTMTM/dev
 - 2026-10-24 | d4988581 | 鸡哥 | feat: implement pending seek functionality for media playback
 - 2026-10-24 | 85988a9e | 鸡哥 | feat: add tests for island visibility transitions and mock functionality
