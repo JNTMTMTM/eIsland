@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T04:01:20.248Z
+> 生成时间：2026-10-26T19:25:38.104Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,16 @@
 
 ## Unreleased
 
+- 2026-10-26 | d0fa1a9f | JNTMTMTM | Merge pull request #291 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/types/node-26.6.5
+- 2026-10-26 | 75aa0f0b | JNTMTMTM | Merge pull request #290 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/koffi-3.3.3
+- 2026-10-26 | 84029feb | JNTMTMTM | Merge pull request #289 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/types/node-26.6.5
+- 2026-10-26 | e3ec6b07 | JNTMTMTM | Merge pull request #288 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/types/node-26.6.5
+- 2026-10-26 | cf316cdd | JNTMTMTM | Merge pull request #286 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/types/node-26.6.5
+- 2026-10-26 | a6205c4b | JNTMTMTM | Merge pull request #285 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-brightness-helper/types/node-26.6.5
+- 2026-10-26 | 48c4935e | JNTMTMTM | Merge pull request #284 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-bluetooth-helper/types/node-26.6.5
+- 2026-10-26 | de6f8d0d | JNTMTMTM | Merge pull request #281 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/types/node-26.6.5
+- 2026-10-26 | 4cd61b16 | JNTMTMTM | Merge pull request #278 from JNTMTMTM/dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-dc1e335c27
+- 2026-10-26 | a287b5ac | eislandBot | docs: auto update CHANGE_LOG.md for #283 by @dependabot[bot] [skip ci]
 - 2026-10-26 | af5bb296 | eislandBot | docs: auto update CHANGE_LOG.md for #297 by @dependabot[bot] [skip ci]
 - 2026-10-26 | 7d0b9a4a | eislandBot | docs: auto update CHANGE_LOG.md for #282 by @dependabot[bot] [skip ci]
 - 2026-10-25 | 1c64d139 | JNTMTMTM | Merge pull request #283 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-bluetooth-helper/koffi-3.3.3
@@ -3881,19 +3891,37 @@
 - 2026-10-25 | 57ae2987 | JNTMTMTM | Merge pull request #282 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/koffi-3.3.3
 - 2026-10-25 | f7e083b9 | JNTMTMTM | Merge pull request #287 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-hardware-info-helper/types/node-26.6.5
 - 2026-10-25 | 16ccbbab | JNTMTMTM | Merge pull request #280 from JNTMTMTM/dependabot/npm_and_yarn/electron-45.0.0
+- 2026-10-25 | 44ba1e3b | 鸡哥 | fix(deps): synchronize PR #291 locks
+- 2026-10-25 | 8ae50323 | 鸡哥 | fix(deps): synchronize PR #290 locks and plugin release versions
+- 2026-10-25 | e3f91b8a | 鸡哥 | fix(deps): synchronize PR #289 locks
+- 2026-10-25 | 3b97784d | 鸡哥 | fix(deps): synchronize PR #288 locks
+- 2026-10-25 | fda79701 | 鸡哥 | fix(deps): synchronize PR #286 locks
+- 2026-10-25 | 474ec9bb | 鸡哥 | fix(deps): synchronize PR #285 locks
+- 2026-10-25 | 207a2dba | 鸡哥 | fix(deps): synchronize PR #284 locks
 - 2026-10-25 | b2df2c9f | 鸡哥 | fix(deps): synchronize PR #283 locks and plugin release versions
 - 2026-10-25 | 0cf7392b | 鸡哥 | fix(deps): synchronize PR #282 locks and plugin release versions
+- 2026-10-25 | 2099a9f6 | 鸡哥 | fix(deps): synchronize PR #281 locks
+- 2026-10-25 | 1cf3bf95 | 鸡哥 | fix(deps): synchronize PR #278 locks and plugin release versions
 - 2026-10-26 | 08bbc445 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | eede2954 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 6ac88210 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 70ae5838 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 4dba43dc | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | b978af20 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 7452de14 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 01a30ae0 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | bb11353d | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-25 | 690d4e81 | 鸡哥 | Merge main and synchronize Electron 45 dependency lock
 - 2026-10-26 | 70334ef9 | eislandBot | docs: auto update CHANGE_LOG.md for #279 by @dependabot[bot] [skip ci]
 - 2026-10-25 | dfed62ff | JNTMTMTM | Merge pull request #279 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b9f6b06a63
 - 2026-10-26 | 7acbd2e4 | eislandBot | docs: auto update CHANGE_LOG.md for #277 by @JNTMTMTM [skip ci]
 - 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
+- 2026-10-26 | da1e2796 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-power-helper
 - 2026-10-26 | 15dc53ba | dependabot[bot] | chore(deps): bump koffi
 - 2026-10-26 | 59473d68 | dependabot[bot] | chore(deps): bump koffi
 - 2026-10-26 | 14d859ee | dependabot[bot] | chore(deps): bump electron from 44.8.0 to 45.0.0
 - 2026-10-26 | 077ff54f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 19 updates
+- 2026-10-26 | 525adeff | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update
 - 2026-10-25 | 8400698d | 鸡哥 | feat(chat): update sendDisabled prop description and ensure input is read-only when disabled
 - 2026-10-25 | d2ec3cf9 | 鸡哥 | feat: refactor song component imports to use default exports and improve code consistency
 - 2026-10-25 | 921b05b2 | 鸡哥 | feat(song): add border-radius to song controls for improved aesthetics
