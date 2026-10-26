@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-bluetooth-helper",
-  "version": "26.0.2",
+  "version": "26.0.3",
   "description": "Windows Bluetooth device enumeration and real-time monitoring via Native AOT DLL.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -28,7 +28,7 @@
     "smoke:monitor": "node --experimental-strip-types test/bluetooth.monitor.smoke.ts"
   },
   "dependencies": {
-    "koffi": "^2.9.1"
+    "koffi": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^24.19.2"
