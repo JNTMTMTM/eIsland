@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-screenshot-helper",
-  "version": "26.0.4",
+  "version": "26.0.5",
   "description": "High-performance Windows screen capture via Native AOT DLL and JS FFI.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -22,7 +22,7 @@
     "smoke": "node --experimental-strip-types test/screenshot.smoke.ts"
   },
   "dependencies": {
-    "koffi": "^2.9.1"
+    "koffi": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^26.6.5"
