@@ -173,7 +173,8 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
   useIslandNowPlayingSync({
     progressEnabled: state === 'lyrics' || state === 'lyricsTranslation' || state === 'cli'
       || (state === 'hover' && store.hoverTab === 'lyrics')
-      || (state === 'expanded' && (store.expandTab === 'song' || store.expandTab === 'overview')),
+      || (state === 'expanded' && (store.expandTab === 'song' || store.expandTab === 'overview'))
+      || store.maxExpandSongActive,
     handleNowPlayingUpdate,
     updateProgress,
     setSyncedLyrics,
