@@ -30,7 +30,7 @@ import { MaxExpandContentLazy as Component } from '../MaxExpandContentLazy';
 import { MaxExpandContentShell } from '../MaxExpandContentShell';
 import { render, value } from './componentHarness';
 describe('MaxExpandContentLazy', () => {
-  it.each(['aiChat', 'todo', 'urlFavorites', 'localFileSearch', 'clipboardHistory', 'album', 'mail', 'memo', 'countdown', 'alarm', 'toolbox', 'miniGame', 'stock', 'cli', 'calculator', 'worldClock', 'calendar', 'settings'])('wraps ready %s content in Suspense and retains the loading fallback', (tab) => {
+  it.each(['aiChat', 'todo', 'urlFavorites', 'localFileSearch', 'clipboardHistory', 'album', 'mail', 'memo', 'countdown', 'alarm', 'toolbox', 'miniGame', 'stock', 'cli', 'calculator', 'worldClock', 'calendar', 'song', 'settings'])('wraps ready %s content in Suspense and retains the loading fallback', (tab) => {
     const tree = render(Component);
     expect(value(tree, MaxExpandContentShell, 'performanceModeEnabled')).toBe(true);
     const renderActiveTab = value(tree, MaxExpandContentShell, 'renderActiveTab') as (tab: string, fallback: ReactElement, ready: boolean) => ReactElement;

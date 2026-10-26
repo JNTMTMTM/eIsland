@@ -146,6 +146,8 @@ export interface ChatState {
   aiConfig: ReturnType<typeof useIslandStore.getState>['aiConfig'];
   setAiConfig: ReturnType<typeof useIslandStore.getState>['setAiConfig'];
   aiChatMessages: AiChatMessage[];
+  /** 切换会话读取正文期间沿用的切换前消息 */
+  aiChatSwitchingView: ReturnType<typeof useIslandStore.getState>['aiChatSwitchingView'];
   aiChatSessions: ReturnType<typeof useIslandStore.getState>['aiChatSessions'];
   activeAiChatSessionId: string;
   aiChatStreaming: boolean;
@@ -218,7 +220,7 @@ export function useChatState(): ChatState {
   // ── store ──
   const {
     aiConfig, setAiConfig,
-    aiChatMessages, aiChatSessions, activeAiChatSessionId, aiChatStreaming,
+    aiChatMessages, aiChatSwitchingView, aiChatSessions, activeAiChatSessionId, aiChatStreaming,
     createNewAiChatSession, switchAiChatSession, deleteAiChatSession,
     setAiChatStreaming, setMaxExpandTab, setAiChatSessionMessages,
     markAiChatSessionReplyFinished, setAiChatMessages,
@@ -227,7 +229,7 @@ export function useChatState(): ChatState {
     setLogin, setRegister, dominantColor,
   } = useIslandStore(useShallow((store) => ({
     aiConfig: store.aiConfig, setAiConfig: store.setAiConfig,
-    aiChatMessages: store.aiChatMessages, aiChatSessions: store.aiChatSessions,
+    aiChatMessages: store.aiChatMessages, aiChatSwitchingView: store.aiChatSwitchingView, aiChatSessions: store.aiChatSessions,
     activeAiChatSessionId: store.activeAiChatSessionId, aiChatStreaming: store.aiChatStreaming,
     createNewAiChatSession: store.createNewAiChatSession, switchAiChatSession: store.switchAiChatSession,
     deleteAiChatSession: store.deleteAiChatSession, setAiChatStreaming: store.setAiChatStreaming,
@@ -604,7 +606,7 @@ export function useChatState(): ChatState {
     hasActiveTextSelection, syncInputHeight,
     handleStop, handleCreateNewChat,
     aiConfig, setAiConfig,
-    aiChatMessages, aiChatSessions, activeAiChatSessionId, aiChatStreaming,
+    aiChatMessages, aiChatSwitchingView, aiChatSessions, activeAiChatSessionId, aiChatStreaming,
     createNewAiChatSession, switchAiChatSession, deleteAiChatSession,
     setAiChatStreaming, setMaxExpandTab, setAiChatSessionMessages,
     markAiChatSessionReplyFinished, setAiChatMessages,

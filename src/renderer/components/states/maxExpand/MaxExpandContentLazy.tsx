@@ -47,6 +47,7 @@ const CliTab = lazy(() => import('./components/cli').then((module) => ({ default
 const CalculatorTab = lazy(() => import('./components/calculator').then((module) => ({ default: module.CalculatorTab })));
 const WorldClockTab = lazy(() => import('./components/worldClock').then((module) => ({ default: module.WorldClockTab })));
 const CalendarTab = lazy(() => import('./components/calendar').then((module) => ({ default: module.CalendarTab })));
+const SongTab = lazy(() => import('./components/song'));
 
 function renderLazyActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElement, contentReady: boolean): ReactElement | null {
   if (!contentReady) return loadingFallback;
@@ -68,6 +69,7 @@ function renderLazyActiveTab(activeTab: MaxExpandTab, loadingFallback: ReactElem
   if (activeTab === 'calculator') content = <CalculatorTab />;
   if (activeTab === 'worldClock') content = <WorldClockTab />;
   if (activeTab === 'calendar') content = <CalendarTab />;
+  if (activeTab === 'song') content = <SongTab />;
   if (activeTab === 'settings') content = <SettingsTab />;
   return <Suspense fallback={loadingFallback}>{content}</Suspense>;
 }
