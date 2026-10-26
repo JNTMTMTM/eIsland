@@ -114,7 +114,7 @@ interface ChatInputBarProps {
   setPendingQuote: (quote: string | null) => void;
   /** 操作 */
   handleSend: () => void;
-  /** 会话读取完成前禁用发送，避免点击后消息被静默忽略 */
+  /** 会话读取完成前禁用发送并将输入框设为只读，避免输入后回车或点击发送被静默忽略 */
   sendDisabled?: boolean;
   handleStop: () => void;
   handleKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
@@ -591,8 +591,8 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            readOnly={isStreaming && agentMode !== 'r1pxc'}
-            aria-disabled={isStreaming && agentMode !== 'r1pxc'}
+            readOnly={sendDisabled || (isStreaming && agentMode !== 'r1pxc')}
+            aria-disabled={sendDisabled || (isStreaming && agentMode !== 'r1pxc')}
             rows={1}
           />
           {/* 发送/停止按钮 */}

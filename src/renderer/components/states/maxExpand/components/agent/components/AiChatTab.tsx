@@ -39,7 +39,7 @@ import { ChatMessagesSkeleton, ChatSessionListSkeleton } from './chatLoadingSkel
 interface AiChatContentProps {
   /** 首次加载会话正文：历史会话侧栏与消息区显示骨架，标题栏与输入栏照常显示 */
   loading?: boolean;
-  /** 会话尚未就绪（首次加载或切换读取中）：发送无法执行，禁用发送按钮 */
+  /** 会话尚未就绪（首次加载或切换读取中）：发送无法执行，禁用发送按钮并将输入框设为只读 */
   sendDisabled?: boolean;
 }
 
