@@ -1,6 +1,6 @@
 {
   "name": "@eisland/windows-smtc-helper",
-  "version": "26.0.4",
+  "version": "26.0.5",
   "description": "Windows SMTC (System Media Transport Controls) all-in-one: commands, status, and real-time session monitoring via Native AOT DLL.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -39,7 +39,7 @@
     "test:ctypes": "python test/smtc_ctypes_test.py"
   },
   "dependencies": {
-    "koffi": "^2.9.1"
+    "koffi": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^24.19.2"
