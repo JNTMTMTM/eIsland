@@ -39,7 +39,7 @@
     "test:ctypes": "python test/smtc_ctypes_test.py"
   },
   "dependencies": {
-    "koffi": "^2.9.1"
+    "koffi": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^24.19.2"
