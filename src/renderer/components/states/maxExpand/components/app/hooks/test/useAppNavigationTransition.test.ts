@@ -295,7 +295,7 @@ describe('useAppNavigationTransition', () => {
 
   it.each(['open', 'close'] as const)('中等宽度 %s 动画的相邻采样之间保持图标顺序，不互相穿过', (direction) => {
     const activeIndex = 17;
-    const positions = [5, 4, 5, 4].flatMap((count, row) => Array.from(Array.from({ length: count }).keys(), (column) => ({
+    const positions = [5, 4, 5, 4, 1].flatMap((count, row) => Array.from(Array.from({ length: count }).keys(), (column) => ({
       x: 60 + (column + row % 2 / 2) * 65.6,
       y: 60 + row * 94,
       width: 63.6,
