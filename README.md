@@ -1,84 +1,113 @@
 <div align="center">
-  <h1><img src="assets/eisland.svg" alt="eIsland Logo" height="32" style="vertical-align: middle;" />&nbsp;eIsland</h1>
-  <p><strong>Dynamic Island-style desktop app for Windows</strong></p>
-  <p>Built with Electron + React + TypeScript</p>
-  <p>Supports real-time weather, synced lyrics, timers, and quick system utility actions</p>
 
-  [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
-  [![Electron](https://img.shields.io/badge/Electron-35-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
-  [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-</div>
+<img src="assets/readme/banner.svg" alt="eIsland" width="100%" />
 
----
+### A Dynamic Island for your Windows desktop
 
-> License note: This project is open-sourced under GPLv3 with additional clauses and supplements (see `LICENSE` for details).
+[![Release](https://img.shields.io/github/v/release/JNTMTMTM/eIsland?style=flat-square&color=5be6da&label=release)](https://github.com/JNTMTMTM/eIsland/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-8da8ff?style=flat-square)](#getting-started)
+[![License](https://img.shields.io/badge/license-GPL--3.0-b08fd8?style=flat-square)](LICENSE)
 
-## UI Preview
-
-<div align="center">
-
-### Overview Screen
-<p>At-a-glance view of date, weather, countdowns, and quick launch tools</p>
-
-<img src="assets/1.png" alt="Overview Screen" width="680" />
-
-### Weather Screen
-<p>Live weather and forecast with both auto-location and manual configuration</p>
-
-<img src="assets/2.png" alt="Weather Screen" width="680" />
-
-### Lyrics Screen
-<p>Real-time synced lyrics with automatic matching from multiple lyric sources</p>
-
-<img src="assets/3.png" alt="Lyrics Screen" width="680" />
-
-### Settings Screen
-<p>Comprehensive customization for appearance, interaction behavior, and network configuration</p>
-
-<img src="assets/4.png" alt="Settings Screen" width="680" />
-
-### Agent Screen
-<p>Built-in AI agent workspace for intelligent assistance and streamlined productivity workflows</p>
-
-<img src="assets/5.png" alt="Agent Screen" width="680" />
-
-### Toolbox Screen
-<p>Practical utility panel with quick-access tools and common software actions</p>
-
-<img src="assets/6.png" alt="Toolbox Screen" width="680" />
+[**Download**](https://github.com/JNTMTMTM/eIsland/releases/latest) · [Website](https://www.pyisland.com) · [Developer docs](https://eisland-dev.pyisland.com) · [Changelog](docs/CHANGE_LOG.md)
 
 </div>
 
----
+> [!NOTE]
+> eIsland is open source under GPLv3 with additional terms. See [License](#license) before redistributing.
 
-## Icon Credits
+## One island, four states
 
-All icons used in this project are sourced from [iconfont](https://www.iconfont.cn/).
+<p align="center">
+  <img src="assets/readme/states.webp" alt="eIsland idle, hover, expanded and max expand states" width="100%" />
+</p>
 
-## Image Credits
+<p align="center"><b>Idle</b> → <b>Hover</b> → <b>Expanded</b> → <b>Max Expand</b><br/><sub>Rest the cursor on the island to peek, scroll the wheel to go deeper.</sub></p>
 
-The following images used in this project are from the Artemis II mission:
+## Gallery
 
-| Wallpaper Name | File Name | Capture Device | Original Link |
-|---------------|-----------|----------------|---------------|
+<table>
+  <tr>
+    <td width="50%"><img src="assets/readme/pill.webp" alt="Lyrics, quick tools and weather inside the pill" /><p align="center"><b>Lyrics & hover views</b></p></td>
+    <td width="50%"><img src="assets/readme/music.webp" alt="Music player with synced lyrics" /><p align="center"><b>Music & lyrics</b></p></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/ai-chat.webp" alt="AI agent chat" /><p align="center"><b>AI agent</b></p></td>
+    <td><img src="assets/readme/todo.webp" alt="Todo list" /><p align="center"><b>Todo</b></p></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/countdown.webp" alt="Countdown events on a NASA wallpaper" /><p align="center"><b>Countdown & wallpapers</b></p></td>
+    <td><img src="assets/readme/wallpaper-market.webp" alt="Wallpaper market" /><p align="center"><b>Wallpaper market</b></p></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/calculator.webp" alt="Graphing calculator" /><p align="center"><b>Graphing calculator</b></p></td>
+    <td><img src="assets/readme/world-clock.webp" alt="World clock" /><p align="center"><b>World clock</b></p></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/toolbox.webp" alt="Toolbox" /><p align="center"><b>Toolbox</b></p></td>
+    <td><img src="assets/readme/mini-game.webp" alt="2048 mini game" /><p align="center"><b>Mini games</b></p></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/settings.webp" alt="Settings quick navigation" /><p align="center"><b>Settings</b></p></td>
+    <td><img src="assets/readme/light-calendar.webp" alt="Calendar in light theme" /><p align="center"><b>Light theme</b></p></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="assets/readme/standalone.webp" alt="Standalone window with URL favorites" /><p align="center"><b>Standalone window</b></p></td>
+  </tr>
+</table>
+
+## Getting started
+
+Grab the latest `eIsland-<version>-Setup.exe` from [Releases](https://github.com/JNTMTMTM/eIsland/releases/latest) and run it. eIsland runs on Windows 10 22H2 or later (x64).
+
+### Build from source
+
+Requirements: Node.js `24.21.0` (see [`.nvmrc`](.nvmrc)), the .NET 10 SDK and the Visual Studio C++ build tools for the native plugins.
+
+```sh
+git clone https://github.com/JNTMTMTM/eIsland.git
+cd eIsland
+npm ci
+npm run dev       # start with hot reload
+npm run package   # build the NSIS installer into dist/
+```
+
+`npm run check` runs lint, type checks and tests. The [developer docs](https://eisland-dev.pyisland.com) cover the architecture, IPC APIs and plugins.
+
+### Built with
+
+[![Electron](https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)
+[![Zustand](https://img.shields.io/badge/Zustand-443E38?style=flat-square)](https://github.com/pmndrs/zustand)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![i18next](https://img.shields.io/badge/i18next-26A69A?style=flat-square&logo=i18next&logoColor=white)](https://www.i18next.com/)
+[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square)](https://playwright.dev/)
+
+## Community
+
+Bug reports and feature requests are welcome in [Issues](https://github.com/JNTMTMTM/eIsland/issues). Please follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
+
+## Credits
+
+Icons come from [iconfont](https://www.iconfont.cn/). The built-in wallpapers are Artemis II mission photos from [NASA](https://www.nasa.gov/):
+
+| Wallpaper | File | Capture device | Source |
+|-----------|------|----------------|--------|
 | Spaceship Earth | `art002e008487-orig.jpg` | iPhone 17 Pro Max | [images.nasa.gov](https://images.nasa.gov/details/art002e008487) |
 | A Crescent Earth | `art002e004441-orig.jpg` | NIKON Z9 35mm f/2 | [images.nasa.gov](https://images.nasa.gov/details/art002e004441) |
 | Thinking of You, Earth | `art002e008486-orig.jpg` | iPhone 17 Pro Max | [images.nasa.gov](https://images.nasa.gov/details/art002e008486) |
 
-> All images are sourced from [NASA](https://www.nasa.gov/) (National Aeronautics and Space Administration)
->
-> All NASA images in this repository are used under NASA's image usage policy and do not imply NASA endorsement of this project.
+NASA images are used under NASA's image usage policy and do not imply NASA endorsement of this project. More Artemis II images: [images.nasa.gov](https://images.nasa.gov/) · [Artemis II mobile wallpapers](https://www.nasa.gov/artemis-ii-mobile-wallpapers/).
 
-More Artemis II images are available at:
-- https://images.nasa.gov/
-- https://www.nasa.gov/artemis-ii-mobile-wallpapers/
+The music, todos, chat and wallpaper market listings shown in the screenshots are demo data.
 
-## License & Legal
+## Legal
 
-- Terms of Service: `LEGAL/TERMS_OF_SERVICE.md`
-- Privacy Policy: `LEGAL/PRIVACY_POLICY.md`
-- Billing & Refund Policy: `LEGAL/BILLING_REFUND_POLICY.md`
+- [Terms of Service](docs/LEGAL/TERMS_OF_SERVICE.md)
+- [Privacy Policy](docs/LEGAL/PRIVACY_POLICY.md)
+- [Billing & Refund Policy](docs/LEGAL/BILLING_REFUND_POLICY.md)
 
 ## License
 
@@ -89,10 +118,4 @@ Under GPLv3 Section 7(b), limited additional terms apply: the following author a
 - Copyright (C) 2026-present JNTMTMTM (https://github.com/JNTMTMTM)
 - Copyright (C) 2026-present pyisland.com (https://pyisland.com)
 
-### Platform Restriction
-
-**This software is developed exclusively for Windows. Any porting, adaptation, or redistribution targeting Apple macOS or any Apple operating system is strictly prohibited by the original author.**
-
-This prohibition applies to all forks, derivative works, and redistributions. Any such work must retain this restriction notice in full. Violations will be subject to legal action.
-
-For full terms (including the standard GPLv3 text and additional clauses), see the `LICENSE` file in the repository root.
+For full terms (including the standard GPLv3 text and additional clauses), see the [`LICENSE`](LICENSE) file in the repository root.
