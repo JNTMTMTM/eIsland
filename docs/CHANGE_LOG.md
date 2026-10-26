@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T19:25:38.104Z
+> 生成时间：2026-10-26T19:26:15.093Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,7 @@
 
 ## Unreleased
 
+- 2026-10-26 | bc1c3ec9 | eislandBot | docs: auto update CHANGE_LOG.md for #290 by @dependabot[bot] [skip ci]
 - 2026-10-26 | d0fa1a9f | JNTMTMTM | Merge pull request #291 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/types/node-26.6.5
 - 2026-10-26 | 75aa0f0b | JNTMTMTM | Merge pull request #290 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/koffi-3.3.3
 - 2026-10-26 | 84029feb | JNTMTMTM | Merge pull request #289 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/types/node-26.6.5
