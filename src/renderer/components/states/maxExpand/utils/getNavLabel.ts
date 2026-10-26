@@ -46,6 +46,7 @@ const NAV_LABEL_MAP: Record<string, string> = {
   calculator: '计算器',
   worldClock: '世界时钟',
   calendar: '日历',
+  song: '歌曲',
   settings: '设置',
 };
 

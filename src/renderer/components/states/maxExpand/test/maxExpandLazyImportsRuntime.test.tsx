@@ -37,7 +37,7 @@ beforeAll(async () => {
   lazyContent = await import('../MaxExpandContentLazy');
 });
 afterAll(() => vi.unstubAllGlobals());
-const tabs: MaxExpandTab[] = ['aiChat','todo','urlFavorites','localFileSearch','clipboardHistory','album','mail','settings','countdown','memo','alarm','toolbox','miniGame','stock','cli','calculator','worldClock','calendar'];
+const tabs: MaxExpandTab[] = ['aiChat','todo','urlFavorites','localFileSearch','clipboardHistory','album','mail','settings','countdown','memo','alarm','toolbox','miniGame','stock','cli','calculator','worldClock','calendar','song'];
 it.each(tabs)('loads the real %s module through React Suspense', async (tab) => {
   const shell = lazyContent.MaxExpandContentLazy() as React.ReactElement<MaxExpandContentShellProps>;
   expect(shell.props.performanceModeEnabled).toBe(true);

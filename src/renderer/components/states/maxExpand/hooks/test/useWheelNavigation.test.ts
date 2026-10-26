@@ -54,3 +54,8 @@ it('keeps calculator scrolling and graph zoom inside the current maxExpand tab',
   const target = { closest: (selector: string) => selector === '.calculator-panel' ? target : null } as unknown as HTMLElement;
   expect(shouldIgnoreWheelEvent(target)).toBe(true);
 });
+
+it('keeps full lyrics scrolling inside the song tab', () => {
+  const target = { closest: (selector: string) => selector === '.song-panel' ? target : null } as unknown as HTMLElement;
+  expect(shouldIgnoreWheelEvent(target)).toBe(true);
+});
