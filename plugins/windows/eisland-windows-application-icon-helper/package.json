@@ -26,7 +26,7 @@
     "smoke:shortcut": "node --experimental-strip-types test/icon.by-shortcut.smoke.ts"
   },
   "dependencies": {
-    "koffi": "^2.9.1"
+    "koffi": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^24.19.2"
