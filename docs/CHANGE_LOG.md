@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T03:58:47.287Z
+> 生成时间：2026-10-26T04:01:20.248Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,7 @@
 
 ## Unreleased
 
+- 2026-10-26 | af5bb296 | eislandBot | docs: auto update CHANGE_LOG.md for #297 by @dependabot[bot] [skip ci]
 - 2026-10-26 | 7d0b9a4a | eislandBot | docs: auto update CHANGE_LOG.md for #282 by @dependabot[bot] [skip ci]
 - 2026-10-25 | 1c64d139 | JNTMTMTM | Merge pull request #283 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-bluetooth-helper/koffi-3.3.3
 - 2026-10-26 | 4ac5e140 | eislandBot | docs: auto update CHANGE_LOG.md for #287 by @dependabot[bot] [skip ci]
