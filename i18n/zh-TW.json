@@ -861,6 +861,7 @@
       "next": "下一曲"
     },
     "lyrics": {
+      "all": "全部歌詞",
       "loading": "正在加載歌詞",
       "empty": "暫無歌詞",
       "enjoyMusic": "享受音樂"
@@ -1581,6 +1582,7 @@
       "calculator": "準備計算面板與輸入控件。",
       "worldClock": "準備城市時鐘與時區視圖。",
       "calendar": "準備日曆與日期詳情。",
+      "song": "準備歌曲信息與播放控制。",
       "settings": "準備設置分類與配置面板。"
     },
     "nav": {
@@ -1602,6 +1604,7 @@
       "calculator": "計算器",
       "worldClock": "世界時鐘",
       "calendar": "日曆",
+      "song": "歌曲",
       "settings": "設置",
       "switchTo": "切換到{{label}}"
     },
@@ -3171,7 +3174,8 @@
           "cli": "CLI 控制台",
           "calculator": "計算器",
           "worldClock": "世界時鐘",
-          "calendar": "日曆"
+          "calendar": "日曆",
+          "song": "歌曲"
         }
       },
       "hideProcess": {

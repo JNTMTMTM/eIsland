@@ -46,6 +46,7 @@ export const MAX_EXPAND_APPS = {
   calculator: { icon: SvgIcon.CALCULATOR },
   worldClock: { icon: SvgIcon.WORLDCLOCK },
   calendar: { icon: SvgIcon.CALENDER },
+  song: { icon: SvgIcon.MUSIC },
   settings: { icon: SvgIcon.SETTING },
 } as const satisfies Record<MaxExpandTab, { icon: string }>;
 
