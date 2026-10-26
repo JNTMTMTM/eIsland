@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T19:28:13.226Z
+> 生成时间：2026-10-26T19:29:43.086Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,8 @@
 
 ## Unreleased
 
+- 2026-10-26 | 7fed7229 | JNTMTMTM | Merge pull request #296 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/types/node-26.6.5
+- 2026-10-26 | 3ed10f8c | eislandBot | docs: auto update CHANGE_LOG.md for #300 by @dependabot[bot] [skip ci]
 - 2026-10-26 | ed660418 | JNTMTMTM | Merge pull request #300 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/koffi-3.3.3
 - 2026-10-26 | a30b1a48 | JNTMTMTM | Merge pull request #299 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/types/node-26.6.5
 - 2026-10-26 | b2c647a2 | eislandBot | docs: auto update CHANGE_LOG.md for #295 by @dependabot[bot] [skip ci]
@@ -3905,6 +3907,7 @@
 - 2026-10-25 | 3e6c184d | 鸡哥 | fix(deps): synchronize PR #300 locks and plugin release versions
 - 2026-10-25 | 2c60a5d6 | 鸡哥 | fix(deps): synchronize PR #299 locks
 - 2026-10-25 | 041babc6 | 鸡哥 | fix(deps): synchronize PR #298 locks
+- 2026-10-25 | 362bcfe8 | 鸡哥 | fix(deps): synchronize PR #296 locks
 - 2026-10-25 | 532fb4f4 | 鸡哥 | fix(deps): synchronize PR #295 locks
 - 2026-10-25 | ea4fa1d1 | 鸡哥 | fix(deps): synchronize PR #294 locks and plugin release versions
 - 2026-10-25 | 24aa092e | 鸡哥 | fix(deps): synchronize PR #293 locks and plugin release versions
@@ -3923,6 +3926,7 @@
 - 2026-10-26 | 98e50075 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 08bbc445 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 6dbe9c26 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | b603b327 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | ffbda6dd | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | eede2954 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 6ac88210 | dependabot[bot] | chore(deps): bump @types/node
