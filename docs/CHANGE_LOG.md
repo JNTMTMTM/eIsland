@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T19:26:15.093Z
+> 生成时间：2026-10-26T19:26:51.610Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,9 @@
 
 ## Unreleased
 
+- 2026-10-26 | d1383f01 | JNTMTMTM | Merge pull request #293 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-screenshot-helper/koffi-3.3.3
+- 2026-10-26 | 8d9adc00 | JNTMTMTM | Merge pull request #292 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-screenshot-helper/types/node-26.6.5
+- 2026-10-26 | 9e71bbaa | eislandBot | docs: auto update CHANGE_LOG.md for #291 by @dependabot[bot] [skip ci]
 - 2026-10-26 | bc1c3ec9 | eislandBot | docs: auto update CHANGE_LOG.md for #290 by @dependabot[bot] [skip ci]
 - 2026-10-26 | d0fa1a9f | JNTMTMTM | Merge pull request #291 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/types/node-26.6.5
 - 2026-10-26 | 75aa0f0b | JNTMTMTM | Merge pull request #290 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/koffi-3.3.3
@@ -3892,6 +3895,8 @@
 - 2026-10-25 | 57ae2987 | JNTMTMTM | Merge pull request #282 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/koffi-3.3.3
 - 2026-10-25 | f7e083b9 | JNTMTMTM | Merge pull request #287 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-hardware-info-helper/types/node-26.6.5
 - 2026-10-25 | 16ccbbab | JNTMTMTM | Merge pull request #280 from JNTMTMTM/dependabot/npm_and_yarn/electron-45.0.0
+- 2026-10-25 | 24aa092e | 鸡哥 | fix(deps): synchronize PR #293 locks and plugin release versions
+- 2026-10-25 | 636b7e29 | 鸡哥 | fix(deps): synchronize PR #292 locks
 - 2026-10-25 | 44ba1e3b | 鸡哥 | fix(deps): synchronize PR #291 locks
 - 2026-10-25 | 8ae50323 | 鸡哥 | fix(deps): synchronize PR #290 locks and plugin release versions
 - 2026-10-25 | e3f91b8a | 鸡哥 | fix(deps): synchronize PR #289 locks
@@ -3904,6 +3909,7 @@
 - 2026-10-25 | 2099a9f6 | 鸡哥 | fix(deps): synchronize PR #281 locks
 - 2026-10-25 | 1cf3bf95 | 鸡哥 | fix(deps): synchronize PR #278 locks and plugin release versions
 - 2026-10-26 | 08bbc445 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | ffbda6dd | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | eede2954 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 6ac88210 | dependabot[bot] | chore(deps): bump @types/node
 - 2026-10-26 | 70ae5838 | dependabot[bot] | chore(deps): bump @types/node
@@ -3917,6 +3923,7 @@
 - 2026-10-25 | dfed62ff | JNTMTMTM | Merge pull request #279 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b9f6b06a63
 - 2026-10-26 | 7acbd2e4 | eislandBot | docs: auto update CHANGE_LOG.md for #277 by @JNTMTMTM [skip ci]
 - 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
+- 2026-10-26 | 073353dd | dependabot[bot] | chore(deps): bump koffi
 - 2026-10-26 | da1e2796 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-power-helper
 - 2026-10-26 | 15dc53ba | dependabot[bot] | chore(deps): bump koffi
 - 2026-10-26 | 59473d68 | dependabot[bot] | chore(deps): bump koffi
