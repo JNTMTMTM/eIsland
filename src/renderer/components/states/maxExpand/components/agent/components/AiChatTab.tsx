@@ -34,13 +34,24 @@ import { VirtualChatMessages } from './virtualChatMessages';
 import ChatSessionItem from './chatSessionItem';
 import { WebAccessPanel, LocalToolAccessPanel } from './WebAccessPanel';
 import { ChatInputBar } from './ChatInputBar';
-import ChatLoadingSkeleton from './chatLoadingSkeleton';
+import { ChatMessagesSkeleton, ChatSessionListSkeleton } from './chatLoadingSkeleton';
+
+interface AiChatContentProps {
+  /** 首次加载会话正文：历史会话侧栏与消息区显示骨架，标题栏与输入栏照常显示 */
+  loading?: boolean;
+  /** 会话尚未就绪（首次加载或切换读取中）：发送无法执行，禁用发送按钮并将输入框设为只读 */
+  sendDisabled?: boolean;
+}
 
 /**
  * AI 对话 Tab
  * @description 包含消息列表和输入栏的聊天界面，调用 OpenAI 兼容 API
+ * @param props - 组件属性
+ * @param props.loading - 首次加载会话正文时为 true
+ * @param props.sendDisabled - 会话尚未就绪、发送无法执行时为 true
+ * @returns 聊天界面元素
  */
-export function AiChatContent(): React.ReactElement {
+export function AiChatContent({ loading = false, sendDisabled = false }: AiChatContentProps): React.ReactElement {
   const { t } = useTranslation();
   const state = useChatState();
   const send = useChatSend({ state });
@@ -54,7 +65,7 @@ export function AiChatContent(): React.ReactElement {
     currentAgentModeConfig,
     emptyGreeting, hasActiveTextSelection,
     orderedSessions, getSessionCardState,
-    aiChatMessages, aiChatStreaming, activeAiChatSessionId,
+    aiChatMessages, aiChatSwitchingView, aiChatStreaming, activeAiChatSessionId,
     aiWebAccessPrompt, aiLocalToolAccessPrompt,
     aiConfig,
     setAiChatStreaming,
@@ -147,54 +158,61 @@ export function AiChatContent(): React.ReactElement {
           </button>
         </div>
       </div>
+      {/* 首次加载会话时只有历史会话侧栏与消息区显示骨架，标题栏与输入栏照常可用；侧栏收起时骨架随之隐藏。 */}
       <div className="max-expand-chat-body">
         <aside
           className={`max-expand-chat-session-sidebar ${showSessionSidebar ? 'is-open' : 'is-closed'}`}
           aria-hidden={!showSessionSidebar}
         >
           <div className="max-expand-chat-session-sidebar-inner">
-            <div className="max-expand-chat-session-sidebar-title">
-              {t('aiChat.session.historyTitle', { defaultValue: '历史会话' })}
-            </div>
-            <div className="max-expand-chat-session-list">
-              {orderedSessions.map((session) => (
-                <ChatSessionItem
-                  key={session.id}
-                  id={session.id}
-                  title={session.title}
-                  updatedAt={session.updatedAt}
-                  active={session.id === activeAiChatSessionId}
-                  status={getSessionCardState(session.id)}
-                  onSelect={handleSelectSession}
-                  onDelete={handleDeleteSession}
-                />
-              ))}
-            </div>
+            {loading ? <ChatSessionListSkeleton /> : (
+              <>
+                <div className="max-expand-chat-session-sidebar-title">
+                  {t('aiChat.session.historyTitle', { defaultValue: '历史会话' })}
+                </div>
+                <div className="max-expand-chat-session-list">
+                  {orderedSessions.map((session) => (
+                    <ChatSessionItem
+                      key={session.id}
+                      id={session.id}
+                      title={session.title}
+                      updatedAt={session.updatedAt}
+                      active={session.id === activeAiChatSessionId}
+                      status={getSessionCardState(session.id)}
+                      onSelect={handleSelectSession}
+                      onDelete={handleDeleteSession}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </aside>
         <div className="max-expand-chat-content">
-          {/* 消息列表 */}
-          <VirtualChatMessages
-            key={activeAiChatSessionId}
-            messages={aiChatMessages}
-            isStreaming={aiChatStreaming}
-            agentMode={agentMode}
-            r1pxcAvatar={aiConfig.r1pxcAvatar}
-            userAvatarUrl={userAvatarUrl}
-            showThinking={Boolean(aiConfig.deepseekThinking)}
-            onQuote={handleQuote}
-            onReportIssue={handleReportIssueFromFinalAnswer}
-            navigateToSettingsTab={navigateToSettingsTab}
-            hasActiveTextSelection={hasActiveTextSelection}
-            emptyContent={(
-              <div className="max-expand-chat-empty">
-                <div>{emptyGreeting}</div>
-                <div className="max-expand-chat-empty-disclaimer">
-                  {t('aiChat.messages.aiGeneratedDisclaimer', { defaultValue: '内容由 AI 生成，请仔细甄别。' })}
+          {/* 消息列表：切换会话读取正文期间沿用切换前的消息，读完一次性换成目标会话，不闪出空会话。 */}
+          {loading ? <ChatMessagesSkeleton /> : (
+            <VirtualChatMessages
+              key={aiChatSwitchingView?.sessionId ?? activeAiChatSessionId}
+              messages={aiChatSwitchingView?.messages ?? aiChatMessages}
+              isStreaming={!aiChatSwitchingView && aiChatStreaming}
+              agentMode={agentMode}
+              r1pxcAvatar={aiConfig.r1pxcAvatar}
+              userAvatarUrl={userAvatarUrl}
+              showThinking={Boolean(aiConfig.deepseekThinking)}
+              onQuote={handleQuote}
+              onReportIssue={handleReportIssueFromFinalAnswer}
+              navigateToSettingsTab={navigateToSettingsTab}
+              hasActiveTextSelection={hasActiveTextSelection}
+              emptyContent={(
+                <div className="max-expand-chat-empty">
+                  <div>{emptyGreeting}</div>
+                  <div className="max-expand-chat-empty-disclaimer">
+                    {t('aiChat.messages.aiGeneratedDisclaimer', { defaultValue: '内容由 AI 生成，请仔细甄别。' })}
+                  </div>
                 </div>
-              </div>
-            )}
-          />
+              )}
+            />
+          )}
 
         </div>
       </div>
@@ -284,6 +302,7 @@ export function AiChatContent(): React.ReactElement {
         pendingQuote={state.pendingQuote}
         setPendingQuote={state.setPendingQuote}
         handleSend={handleSend}
+        sendDisabled={sendDisabled}
         handleStop={state.handleStop}
         handleKeyDown={handleKeyDown}
         inputRef={inputRef}
@@ -295,24 +314,27 @@ export function AiChatContent(): React.ReactElement {
 
 /**
  * 按需加载当前会话，离开聊天后释放未运行的正文。
- * @returns 聊天加载状态或内容。
+ * @returns 聊天界面，读取失败时叠加重试入口。
  */
 export function AiChatTab(): React.ReactElement {
   const { t } = useTranslation();
-  const ready = useIslandStore((state) => state.aiChatReady);
   const loading = useIslandStore((state) => state.aiChatLoading);
+  const ready = useIslandStore((state) => state.aiChatReady);
+  // 首次加载（含重新进入时当前会话正文已释放）显示骨架；切换会话时沿用切换前的消息，不显示骨架。
+  const firstLoad = useIslandStore((state) => !state.aiChatSwitchingView && (state.aiChatLoading || !state.aiChatReady
+    || state.aiChatSessions.find((session) => session.id === state.activeAiChatSessionId)?.messagesLoaded === false));
   const failed = useIslandStore((state) => state.aiChatStorageError);
   const ensure = useIslandStore((state) => state.ensureAiChatReady);
   const release = useIslandStore((state) => state.releaseAiChatBodies);
   useEffect(() => { void ensure().catch(() => {}); return release; }, [ensure, release]);
+  // 首次读取完成前也挂载聊天界面，标题栏与输入栏照常显示；读取失败时以重试覆盖整个页面。
   return (
     <div className="relative isolate flex size-full min-h-0 flex-col overflow-hidden" aria-busy={loading}>
-      {ready && <div className="flex min-h-0 flex-1 flex-col" inert={loading || failed}><AiChatContent /></div>}
-      {(loading || failed) && (
+      <div className="flex min-h-0 flex-1 flex-col" inert={failed}><AiChatContent loading={firstLoad} sendDisabled={loading || !ready} /></div>
+      {loading && !failed && <span className="sr-only" role="status">{t('aiChat.storageLoading')}</span>}
+      {failed && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[var(--color-island-bg)] text-center text-sm text-[rgb(var(--color-text-rgb))]" role="status">
-          {failed
-            ? <button className="m-4" type="button" disabled={loading} onClick={() => { void ensure().catch(() => {}); }}>{t('aiChat.storageRetry')}</button>
-            : <><span className="sr-only">{t('aiChat.storageLoading')}</span><ChatLoadingSkeleton /></>}
+          <button className="m-4" type="button" disabled={loading} onClick={() => { void ensure().catch(() => {}); }}>{t('aiChat.storageRetry')}</button>
         </div>
       )}
     </div>

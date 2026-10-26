@@ -32,6 +32,7 @@ import { completeIslandWindowTransition, getIslandWindowTransitionId } from '../
 import selectDynamicIslandState from '../../utils/selectDynamicIslandState';
 import { LOCAL_ISLAND_BG_SYNC_EVENT } from '../../config/dynamicIslandConfig';
 import { useDynamicIslandCoordinator } from '../useDynamicIslandCoordinator';
+import { findCurrentIndex } from '../../states/lyrics/utils/findCurrentIndex';
 import { createVideo, videoEvent } from './backgroundVideoHarness';
 import { broadcast, ipc, settleBackground, surface } from './standaloneIpcHarness';
 import { claude, cliIpc, resetCliBoundary, snapshot } from './cliHookHarness';
@@ -110,6 +111,40 @@ async function mount(): Promise<ReturnType<typeof useDynamicIslandCoordinator>> 
   commit(); await settleBackground(); return commit();
 }
 describe('协调器真实子 Hook 和公共状态贯通', () => {
+  it.each([{ label: '缺失', syllables: undefined }, { label: '空数组', syllables: [] }])('maxExpand歌曲页的普通歌词持续切行，离开后停止插值，返回后恢复（音节：$label）', async ({ syllables }) => {
+    useIslandStore.setState({ state: 'maxExpand', maxExpandTab: 'song' });
+    await mount();
+    listeners.get('onNowPlayingInfo')?.({
+      title: 'Song', artist: 'Artist', album: '', position_ms: 1000, duration_ms: 60000,
+      positionTimestampMs: Date.now(), isPlaying: true, deviceId: 'player',
+      canFastForward: false, canSkip: false, canLike: false, canChangeVolume: false, canSetOutput: false,
+    });
+    await settleBackground();
+    const lyrics = [
+      { syllables, time_ms: 1000, text: 'First line' },
+      { syllables, time_ms: 2000, text: 'Second line' },
+      { syllables, time_ms: 4000, text: 'Third line' },
+    ];
+    useIslandStore.getState().setSyncedLyrics(lyrics);
+    commit();
+    expect(findCurrentIndex(lyrics, useIslandStore.getState().currentPositionMs)).toBe(0);
+    await vi.advanceTimersByTimeAsync(1320);
+    expect(findCurrentIndex(lyrics, useIslandStore.getState().currentPositionMs)).toBe(1);
+
+    useIslandStore.setState({ maxExpandTab: 'todo' }); commit();
+    const stoppedPosition = useIslandStore.getState().currentPositionMs;
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(useIslandStore.getState().currentPositionMs).toBe(stoppedPosition);
+    useIslandStore.setState({ maxExpandTab: 'song' }); commit();
+    expect(findCurrentIndex(lyrics, useIslandStore.getState().currentPositionMs)).toBe(2);
+
+    useIslandStore.setState({ maxExpandAppModeEnabled: true, maxExpandLauncherVisible: true }); commit();
+    const launcherPosition = useIslandStore.getState().currentPositionMs;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(useIslandStore.getState().currentPositionMs).toBe(launcherPosition);
+    useIslandStore.setState({ maxExpandLauncherVisible: false }); commit();
+    expect(useIslandStore.getState().currentPositionMs).toBeGreaterThan(launcherPosition);
+  });
   it('初始化聚合壳层、时间和背景默认值，并注册实际运行时订阅且卸载清理', async () => {
     const result = await mount();
     expect(result.shellClassName).toContain('shape-notch'); expect(useIslandStore.getState().state).toBe('idle');

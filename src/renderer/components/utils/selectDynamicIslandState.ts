@@ -29,6 +29,8 @@ export default function selectDynamicIslandState(store: IIslandStore) {
     state: store.state,
     hoverTab: store.hoverTab,
     expandTab: store.expandTab,
+    maxExpandSongActive: store.state === 'maxExpand' && store.maxExpandTab === 'song'
+      && !(store.maxExpandAppModeEnabled && store.maxExpandLauncherVisible),
     weather: store.weather,
     timerData: store.timerData,
     notification: store.notification,
