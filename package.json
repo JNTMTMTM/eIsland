@@ -197,6 +197,7 @@
     "file:../../plugins/windows/eisland-windows-volume-helper": true,
     "file:../../plugins/windows/eisland-windows-processes-attacker": true,
     "file:../../plugins/windows/eisland-windows-wifi-helper": true,
-    "file:../../plugins/windows/eisland-windows-power-helper": true
+    "file:../../plugins/windows/eisland-windows-power-helper": true,
+    "koffi@3.3.4": true
   }
 }
