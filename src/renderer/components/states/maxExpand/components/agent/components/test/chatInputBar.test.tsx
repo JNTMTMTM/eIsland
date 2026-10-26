@@ -37,6 +37,11 @@ describe('ChatInputBar', () => {
     trigger(initial, 'textarea', 'onChange', { target: { value: 'hello' } });
     (value(initial, '.max-expand-chat-send', 'onClick', 2) as () => void)();
     expect(props.setInput).toHaveBeenCalledWith('hello'); expect(props.handleSend).toHaveBeenCalledOnce();
+    expect(value(initial, '.max-expand-chat-send', 'disabled', 2)).toBe(false);
+    const loading = render(Component, { ...props, sendDisabled: true });
+    expect(value(loading, '.max-expand-chat-send', 'disabled', 2)).toBe(true);
+    expect(value(loading, 'textarea', 'readOnly')).toBe(true);
+    expect(value(loading, 'textarea', 'aria-disabled')).toBe(true);
     const streaming = render(Component, { ...props, isStreaming: true });
     expect(value(streaming, 'textarea', 'readOnly')).toBe(true);
     expect(value(streaming, '.max-expand-chat-send', 'disabled', 1)).toBe(true);

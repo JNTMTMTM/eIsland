@@ -861,6 +861,7 @@
       "next": "Next"
     },
     "lyrics": {
+      "all": "All lyrics",
       "loading": "Loading lyrics",
       "empty": "No lyrics",
       "enjoyMusic": "Enjoy the music"
@@ -1581,6 +1582,7 @@
       "calculator": "Preparing the calculator and input controls.",
       "worldClock": "Preparing city clocks and time zone views.",
       "calendar": "Preparing the calendar and date details.",
+      "song": "Preparing song information and playback controls.",
       "settings": "Preparing settings categories and controls."
     },
     "nav": {
@@ -1602,6 +1604,7 @@
       "calculator": "Calculator",
       "worldClock": "World Clock",
       "calendar": "Calendar",
+      "song": "Music",
       "settings": "Settings",
       "switchTo": "Switch to {{label}}"
     },
@@ -3171,7 +3174,8 @@
           "cli": "CLI Console",
           "calculator": "Calculator",
           "worldClock": "World Clock",
-          "calendar": "Calendar"
+          "calendar": "Calendar",
+          "song": "Music"
         }
       },
       "hideProcess": {
