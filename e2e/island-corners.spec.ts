@@ -148,7 +148,7 @@ test('concave corners adapt to theme, media, zoom and pill with live cross-windo
   }))).toEqual({ ready: true, error: null });
   await expectConcaveOutline(page);
   await page.evaluate(() => window.api.shapeModeSet('pill'));
-  await expect(page.locator('.island-shell')).toHaveCSS('clip-path', 'none');
+  await expect(page.locator('.island-shell')).toHaveCSS('clip-path', /^shape\(/);
   await expect(page.locator('.island-shell')).toHaveCSS('padding-left', '0px');
   await page.evaluate(() => window.api.shapeModeSet('notch'));
   await expectConcaveOutline(page);
@@ -156,5 +156,57 @@ test('concave corners adapt to theme, media, zoom and pill with live cross-windo
   await expect(page.locator('.island-shell')).toHaveCSS('clip-path', 'none');
   await standalone.evaluate(() => window.api.storeWrite('island-corner-style', 'unknown'));
   await expect(page.locator('.island-shell')).toHaveCSS('clip-path', 'none');
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('pill to concave notch interpolates the outline and spacing and can reverse mid-flight', async ({ desktop }) => {
+  const page = desktop.main;
+  const standalone = await desktop.openStandalone();
+  await standalone.evaluate(async () => {
+    await window.api.storeWrite('island-corner-style', 'concave');
+    await window.api.animationSpeedSet('slow');
+  });
+  await page.evaluate(() => window.api.shapeModeSet('pill'));
+  const shell = page.locator('.island-shell');
+  await expect(shell).toHaveCSS('padding-left', '0px');
+  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: 46, height: 52 });
+  const samples = await page.evaluate(async () => {
+    const node = document.querySelector<HTMLElement>('.island-shell');
+    if (!node) throw new Error('Island shell is required');
+    const frames: Array<{ clip: string; padding: number; height: number }> = [];
+    await window.api.shapeModeSet('notch');
+    const start = performance.now();
+    await new Promise<void>((resolve) => {
+      const sample = (): void => {
+        const style = getComputedStyle(node);
+        frames.push({ clip: style.clipPath, padding: parseFloat(style.paddingInlineStart), height: parseFloat(style.height) });
+        if (performance.now() - start < 1200) requestAnimationFrame(sample);
+        else resolve();
+      };
+      requestAnimationFrame(sample);
+    });
+    return frames;
+  });
+  expect(samples.some(({ padding }) => padding > 1 && padding < 15)).toBe(true);
+  expect(samples.some(({ height }) => height > 43 && height < 51)).toBe(true);
+  expect(new Set(samples.map(({ clip }) => clip)).size).toBeGreaterThan(4);
+  await expectConcaveOutline(page);
+  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: 0, height: 42 });
+  await page.evaluate(async () => {
+    await window.api.shapeModeSet('pill');
+    // 在形变实际开始后反向，覆盖从当前插值轮廓继续过渡的路径。
+    await new Promise<void>((resolve) => {
+      const waitForIntermediate = (): void => {
+        const node = document.querySelector('.island-shell');
+        if (node && parseFloat(getComputedStyle(node).paddingInlineStart) < 12) resolve();
+        else requestAnimationFrame(waitForIntermediate);
+      };
+      requestAnimationFrame(waitForIntermediate);
+    });
+    await window.api.shapeModeSet('notch');
+  });
+  await expectConcaveOutline(page);
+  await expect(shell).toHaveCSS('padding-left', '16px');
+  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: 0, height: 42 });
   expect(desktop.rendererErrors).toEqual([]);
 });

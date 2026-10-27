@@ -84,11 +84,11 @@ describe('island window transition acknowledgements', () => {
     expect(complete).toHaveBeenCalledExactlyOnceWith(current);
   });
 
-  it('waits for late CSS geometry animations and a final frame, excluding infinite glow', async () => {
+  it.each(['width', 'clipPath', 'paddingInlineStart', 'paddingInlineEnd'])('waits for late CSS %s animations and a final frame, excluding infinite glow', async (property) => {
     let finish: () => void = () => {};
     const geometry = {
       playState: 'running',
-      effect: { getComputedTiming: () => ({ endTime: 340 }), getKeyframes: () => [{ width: '500px' }] },
+      effect: { getComputedTiming: () => ({ endTime: 340 }), getKeyframes: () => [{ [property]: 'value' }] },
       finished: new Promise<void>((resolve) => { finish = resolve; }),
     };
     const glow = {

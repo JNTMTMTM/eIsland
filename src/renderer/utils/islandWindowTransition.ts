@@ -78,7 +78,8 @@ export function completeIslandWindowTransition(transitionId: number): void {
     const effect = animation.effect as KeyframeEffect | null;
     if (!effect?.getKeyframes || !Number.isFinite(effect.getComputedTiming().endTime)) return false;
     return effect.getKeyframes().some((frame) => Object.keys(frame).some((key) =>
-      ['width', 'height', 'transform'].includes(key) || (key.startsWith('border') && key.endsWith('Radius'))));
+      ['width', 'height', 'transform', 'clipPath', 'paddingInline', 'paddingInlineStart', 'paddingInlineEnd'].includes(key)
+      || (key.startsWith('border') && key.endsWith('Radius'))));
   }) ?? [];
   if (animations.length) {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 完成信号保持同步接口；allSettled 消化动画取消，令牌校验隔离过期异步任务。
