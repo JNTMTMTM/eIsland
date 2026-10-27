@@ -36,12 +36,12 @@ const base: Options = { state: 'idle', morphing: false, fromState: '', showGlow:
 describe('useIslandShellPresentation 实际展示值', () => {
   it('idle 显式标记收拢目标且无 glow 样式', () => {
     const result = renderWithHooks(() => useIslandShellPresentation(base));
-    expect(result.shellClassName).toBe('island-shell shape-notch idle speed-medium'); expect(result.shellStyle).toBeUndefined();
+    expect(result.shellClassName).toBe('island-shell shape-notch corners-rounded idle speed-medium'); expect(result.shellStyle).toBeUndefined();
   });
   it('组合真实状态、变形来源、暂停、弹簧与形状参数', () => {
     const input: Options = { ...base, state: 'hover', morphing: true, fromState: 'lyrics', showGlow: 'paused', springAnimation: true, animationSpeed: 'fast', shapeMode: 'pill' };
     const result = renderWithHooks(() => useIslandShellPresentation(input));
-    expect(result.shellClassName).toBe('island-shell shape-pill hover morphing from-lyrics music-glow music-paused spring-animation speed-fast');
+    expect(result.shellClassName).toBe('island-shell shape-pill corners-rounded hover morphing from-lyrics music-glow music-paused spring-animation speed-fast');
     expect(result.shellStyle).toEqual({ '--glow-r': 1, '--glow-g': 2, '--glow-b': 3 });
   });
   it('播放 glow 与暂停区分，主色更新只改变样式，关闭 glow 清除样式', () => {

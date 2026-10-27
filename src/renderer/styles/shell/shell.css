@@ -599,3 +599,21 @@
   opacity: 0;
   animation-play-state: paused;
 }
+
+/** 反弧形在原窗口内预留两侧肩部，裁切整个壳层以统一适配图片、视频和透明度。 */
+.island-shell.shape-notch.corners-concave {
+  padding-inline: 16px;
+  border-radius: 0;
+  clip-path: shape(
+    from 0 0,
+    hline to 100%,
+    curve to calc(100% - 16px) 16px with calc(100% - 16px) 0,
+    vline to calc(100% - 22px),
+    curve to calc(100% - 38px) 100% with calc(100% - 16px) 100%,
+    hline to 38px,
+    curve to 16px calc(100% - 22px) with 16px 100%,
+    vline to 16px,
+    curve to 0 0 with 16px 0,
+    close
+  );
+}

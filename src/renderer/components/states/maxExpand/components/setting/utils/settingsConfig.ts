@@ -490,6 +490,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '视频播放', desc: '背景视频的填充、声音与播放控制', labelKey: 'settings.app.theme.videoCardTitle', descKey: 'settings.app.theme.videoCardSubtitle', tab: 'app', appPage: 'theme' },
   { label: '灵动岛透明度', desc: '数值越低越透明（10% - 100%）', labelKey: 'settings.app.theme.islandOpacityTitle', descKey: 'settings.app.theme.islandOpacityHint', tab: 'app', appPage: 'theme' },
   { label: '音乐外光圈特效', desc: '控制歌曲播放时专辑封面外圈的跑马灯/光晕动态效果。', labelKey: 'settings.app.theme.musicOuterGlowTitle', descKey: 'settings.app.theme.musicOuterGlowHint', tab: 'app', appPage: 'theme' },
+  { label: '边角样式', desc: '选择当前圆角或顶部两侧反弧形，反弧形仅在刘海屏形态生效。', labelKey: 'settings.app.theme.cornerStyleTitle', descKey: 'settings.app.theme.cornerStyleHint', tab: 'app', appPage: 'theme' },
   { label: '界面字体', desc: '选择灵动岛界面使用的字体', labelKey: 'settings.app.theme.uiFontTitle', descKey: 'settings.app.theme.uiFontHint', tab: 'app', appPage: 'theme' },
   { label: '歌词字体', desc: '选择歌词显示使用的字体', labelKey: 'settings.app.theme.lyricsFontTitle', descKey: 'settings.app.theme.lyricsFontHint', tab: 'app', appPage: 'theme' },
   // ── 软件设置 > 语言 ──
