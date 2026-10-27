@@ -643,8 +643,27 @@
 
 }
 
+/** 标准圆角也保留同构裁切路径，使 corner 配置切换时能连续插值，而非从 none 突变。 */
+.island-shell.shape-notch.corners-rounded {
+  padding-inline: 0;
+  border-radius: 0 0 22px 22px;
+  clip-path: shape(
+    from 0 0,
+    hline to 100%,
+    curve to 100% 0 with 100% 0 / 100% 0,
+    vline to calc(100% - 22px),
+    curve to calc(100% - 22px) 100% with 100% calc(100% - 9.849px) / calc(100% - 9.849px) 100%,
+    hline to 22px,
+    curve to 0 calc(100% - 22px) with 9.849px 100% / 0 calc(100% - 9.849px),
+    vline to 0,
+    curve to 0 0 with 0 0 / 0 0,
+    close
+  );
+
+}
+
 /** 与 notch 保持相同的曲线指令，使浏览器能插值轮廓；控制点系数对应圆角的三次贝塞尔近似。 */
-.island-shell.shape-pill.corners-concave {
+.island-shell.shape-pill:is(.corners-concave, .corners-rounded) {
   padding-inline: 0;
   border-radius: 0;
   clip-path: shape(
@@ -659,5 +678,11 @@
     curve to var(--shell-pill-radius) 0 with 0 calc(var(--shell-pill-radius) * .4477) / calc(var(--shell-pill-radius) * .4477) 0,
     close
   );
+
+}
+
+/** 保留标准胶囊的圆角继承，避免背景与音乐描边失去原有圆角。 */
+.island-shell.shape-pill.corners-rounded {
+  border-radius: var(--shell-pill-radius);
 
 }

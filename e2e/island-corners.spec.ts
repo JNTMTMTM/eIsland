@@ -32,6 +32,30 @@ import type { Page } from '@playwright/test';
 import type { BrowserWindow } from 'electron';
 
 /**
+ * 记录实际设置切换后的逐帧轮廓和内容间距，验证中间态而非仅检查最终类名。
+ * @param page - 实际灵动岛页面。
+ * @returns 默认动画时长内采集的样式样本。
+ */
+async function sampleCornerMorph(page: Page): Promise<Array<{ clip: string; padding: number }>> {
+  return page.evaluate(async () => {
+    const node = document.querySelector('.island-shell');
+    if (!node) throw new Error('Island shell is required');
+    const frames: Array<{ clip: string; padding: number }> = [];
+    const start = performance.now();
+    await new Promise<void>((resolve) => {
+      const sample = (): void => {
+        const style = getComputedStyle(node);
+        frames.push({ clip: style.clipPath, padding: parseFloat(style.paddingInlineStart) });
+        if (performance.now() - start < 800) requestAnimationFrame(sample);
+        else resolve();
+      };
+      requestAnimationFrame(sample);
+    });
+    return frames;
+  });
+}
+
+/**
  * 验证反弧形实际命中区域：顶部肩部可见，侧边及底部外角透明，主体仍可交互。
  * @param page - 实际灵动岛页面。
  */
@@ -56,12 +80,12 @@ async function expectConcaveOutline(page: Page): Promise<void> {
   });
 }
 
-test('theme corner selector is searchable, switches immediately and survives restart', async ({ desktop }, testInfo) => {
+test('theme corner selector is searchable, morphs smoothly in both directions and survives restart', async ({ desktop }, testInfo) => {
   const page = desktop.main;
   const shell = page.locator('.island-shell');
   const mainWindow = await desktop.app.browserWindow(page);
   await expect.poll(() => mainWindow.evaluate((win: BrowserWindow) => win.isVisible())).toBe(true);
-  await expect(shell).toHaveCSS('clip-path', 'none');
+  await expect(shell).toHaveCSS('padding-left', '0px');
   await page.evaluate(() => window.api.maxexpandMouseleaveIdleSet(false));
   await desktop.app.evaluate(({ BrowserWindow }) => {
     const main = BrowserWindow.getAllWindows().find((win) => win.webContents.getURL().endsWith('DynamicIslandIndex.html'));
@@ -77,6 +101,9 @@ test('theme corner selector is searchable, switches immediately and survives res
   await expect(rounded).toHaveAttribute('aria-pressed', 'true');
   const originalBounds = await page.evaluate(() => window.api.getWindowBounds());
   await concave.click();
+  const forward = await sampleCornerMorph(page);
+  expect(forward.some(({ padding }) => padding > 1 && padding < 15)).toBe(true);
+  expect(new Set(forward.map(({ clip }) => clip)).size).toBeGreaterThan(4);
   await expect(concave).toHaveAttribute('aria-pressed', 'true');
   await expectConcaveOutline(page);
   expect(await page.evaluate(() => window.api.getWindowBounds())).toEqual(originalBounds);
@@ -89,7 +116,10 @@ test('theme corner selector is searchable, switches immediately and survives res
   }, Promise.resolve());
   await page.screenshot({ path: testInfo.outputPath('concave-settings.png') });
   await rounded.click();
-  await expect(shell).toHaveCSS('clip-path', 'none');
+  const backward = await sampleCornerMorph(page);
+  expect(backward.some(({ padding }) => padding > 1 && padding < 15)).toBe(true);
+  expect(new Set(backward.map(({ clip }) => clip)).size).toBeGreaterThan(4);
+  await expect(shell).toHaveCSS('padding-left', '0px');
   await concave.click();
   await expect.poll(async (): Promise<unknown> => JSON.parse(await readFile(join(desktop.userData, 'eIsland_store', 'island-corner-style.json'), 'utf8')) as unknown).toBe('concave');
   await page.evaluate(async () => {
@@ -153,9 +183,11 @@ test('concave corners adapt to theme, media, zoom and pill with live cross-windo
   await page.evaluate(() => window.api.shapeModeSet('notch'));
   await expectConcaveOutline(page);
   await standalone.evaluate(() => window.api.storeWrite('island-corner-style', 'rounded'));
-  await expect(page.locator('.island-shell')).toHaveCSS('clip-path', 'none');
+  await expect(page.locator('.island-shell')).toHaveCSS('padding-left', '0px');
   await standalone.evaluate(() => window.api.storeWrite('island-corner-style', 'unknown'));
-  await expect(page.locator('.island-shell')).toHaveCSS('clip-path', 'none');
+  await expect(page.locator('.island-shell')).toHaveCSS('padding-left', '0px');
+  await page.evaluate(() => window.api.shapeModeSet('pill'));
+  await expect(page.locator('.island-shell')).toHaveCSS('border-radius', '21px');
   expect(desktop.rendererErrors).toEqual([]);
 });
 
