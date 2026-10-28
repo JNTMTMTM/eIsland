@@ -80,6 +80,61 @@ async function expectConcaveOutline(page: Page): Promise<void> {
   });
 }
 
+test('concave music glow follows both sides of the notch and pill outlines', async ({ desktop }) => {
+  const page = desktop.main;
+  const standalone = await desktop.openStandalone();
+  await standalone.evaluate(() => window.api.storeWrite('island-corner-style', 'concave'));
+  const shell = page.locator('.island-shell');
+  await expectConcaveOutline(page);
+  // 使用实色光带隔离旋转时序，像素断言仍经过真实壳层、遮罩和反弧裁切。
+  await page.addStyleTag({ content: `
+    .island-shell { --color-island-bg: #000; }
+    .island-shell > * { visibility: hidden; }
+    .island-shell.music-glow::after { background: #fff; animation: none; transition: none; }
+  ` });
+  await (['notch', 'pill'] as const).reduce(async (previous, shape) => {
+    await previous;
+    await page.evaluate((value) => window.api.shapeModeSet(value), shape);
+    await expect(shell).toHaveCSS('padding-left', shape === 'notch' ? '16px' : '0px');
+    await expect.poll(() => page.evaluate(() => innerHeight)).toBe(shape === 'notch' ? 42 : 52);
+    await shell.evaluate((node) => node.classList.add('music-glow'));
+    const screenshot = await shell.screenshot({ omitBackground: true, scale: 'css' });
+    const pixels = await page.evaluate(async ({ encoded, shape }) => {
+      const response = await fetch(`data:image/png;base64,${encoded}`);
+      const bitmap = await createImageBitmap(await response.blob());
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas context is required');
+      context.drawImage(bitmap, 0, 0);
+      const brightness = (x: number, y: number): number => {
+        const [red, , , alpha] = context.getImageData(x, y, 1, 1).data;
+        return red * alpha / 255;
+      };
+      const side = shape === 'notch' ? 17 : 1;
+      const result = {
+        left: brightness(side, bitmap.height / 2),
+        right: brightness(bitmap.width - side - 1, bitmap.height / 2),
+        bottom: brightness(bitmap.width / 2, bitmap.height - 2),
+        center: brightness(bitmap.width / 2, bitmap.height / 2),
+        upperEdge: shape === 'notch' ? brightness(13, 5) : brightness(bitmap.width / 2, 1),
+      };
+      bitmap.close();
+      return result;
+    }, { shape, encoded: screenshot.toString('base64') });
+    expect(pixels.left).toBeGreaterThan(200);
+    expect(pixels.right).toBeGreaterThan(200);
+    expect(pixels.bottom).toBeGreaterThan(200);
+    expect(pixels.upperEdge).toBeGreaterThan(200);
+    expect(pixels.center).toBeLessThan(10);
+    await shell.evaluate((node) => node.classList.add('music-paused'));
+    await expect.poll(() => shell.evaluate((node) => getComputedStyle(node, '::after').opacity)).toBe('0');
+    await shell.evaluate((node) => node.classList.remove('music-glow', 'music-paused'));
+  }, Promise.resolve());
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
 test('theme corner selector is searchable, morphs smoothly in both directions and survives restart', async ({ desktop }, testInfo) => {
   const page = desktop.main;
   const shell = page.locator('.island-shell');

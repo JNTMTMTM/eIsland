@@ -624,6 +624,32 @@
   animation-play-state: paused;
 }
 
+/**
+ * 反弧光带沿内缩 3px 的轮廓挖空；矩形边框会落在壳层裁切区域外。
+ * 肩部内轮廓半径为 19px，与 y=3 相交于 sqrt(19² - 13²) ≈ 13.856px。
+ */
+.island-shell.shape-notch.corners-concave.music-glow::after {
+  mask: none;
+  clip-path: shape(
+    evenodd from 0 1px,
+    hline to 100%,
+    vline to 100%,
+    hline to 0,
+    close,
+    move to 13.856px 3px,
+    hline to calc(100% - 13.856px),
+    arc to calc(100% - 19px) 16px of 19px ccw,
+    vline to calc(100% - 22px),
+    curve to calc(100% - 38px) calc(100% - 3px) with calc(100% - 19px) calc(100% - 11.506px) / calc(100% - 27.506px) calc(100% - 3px),
+    hline to 38px,
+    curve to 19px calc(100% - 22px) with 27.506px calc(100% - 3px) / 19px calc(100% - 11.506px),
+    vline to 16px,
+    arc to 13.856px 3px of 19px ccw,
+    close
+  );
+
+}
+
 /** 反弧形在原窗口内预留两侧肩部，裁切整个壳层以统一适配图片、视频和透明度。 */
 .island-shell.shape-notch.corners-concave {
   padding-inline: 16px;
@@ -681,7 +707,8 @@
 
 }
 
-/** 保留标准胶囊的圆角继承，避免背景与音乐描边失去原有圆角。 */
+/** 两种边角配置下胶囊均保留圆角继承，避免背景与音乐描边被轮廓裁断。 */
+.island-shell.shape-pill.corners-concave,
 .island-shell.shape-pill.corners-rounded {
   border-radius: var(--shell-pill-radius);
 
