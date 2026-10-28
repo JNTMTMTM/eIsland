@@ -4682,7 +4682,7 @@
       },
       "alarm": {
         "label": "Alarm Settings",
-        "desc": "Configure alarm sound, snooze and notification behavior."
+        "desc": "Sound, snooze and notifications."
       },
       "autostart": {
         "label": "Utilities",
