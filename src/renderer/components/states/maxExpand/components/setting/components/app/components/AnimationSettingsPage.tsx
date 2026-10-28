@@ -44,6 +44,8 @@ const DEFAULT_SPLASH_BG_COLOR = '#000000';
  */
 export function AnimationSettingsPage(): ReactElement {
   const { t } = useTranslation();
+  const springAnimation = useIslandStore((state) => state.springAnimation);
+  const animationSpeed = useIslandStore((state) => state.animationSpeed);
   const [maxExpandTabAnim, setMaxExpandTabAnim] = useState(true);
   const [expandTabAnim, setExpandTabAnim] = useState(true);
   const [startupAnimationEnabled, setStartupAnimationEnabled] = useState<boolean>(true);
@@ -140,7 +142,7 @@ export function AnimationSettingsPage(): ReactElement {
             <label className="settings-card-check">
               <input
                 type="checkbox"
-                checked={useIslandStore.getState().springAnimation}
+                checked={springAnimation}
                 onChange={(e) => {
                   const next = e.target.checked;
                   useIslandStore.getState().setSpringAnimation(next);
@@ -163,7 +165,7 @@ export function AnimationSettingsPage(): ReactElement {
                 <input
                   type="radio"
                   name="animation-speed"
-                  checked={useIslandStore.getState().animationSpeed === speed}
+                  checked={animationSpeed === speed}
                   onChange={() => {
                     useIslandStore.getState().setAnimationSpeed(speed);
                     window.api.animationSpeedSet(speed).catch(() => {});
