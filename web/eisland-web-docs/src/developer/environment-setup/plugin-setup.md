@@ -35,7 +35,7 @@ All plugins are compiled using **node-gyp** or **dotnet publish**, which require
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| **Node.js** | 24.21.0 | JavaScript runtime for node-gyp |
+| **Node.js** | 24.22.1 | JavaScript runtime for node-gyp |
 | **npm** | >= 10.x | Package manager |
 | **Visual Studio Build Tools 2022** | Latest | C/C++ compiler toolchain |
 | **.NET 10 SDK** | >= 10.0 | Build .NET Native AOT plugins and temperature-helper |
@@ -649,7 +649,7 @@ After completing the setup, verify everything works:
 
 ```bash
 # 1. Check Node.js version
-node -v  # Should print v24.21.0
+node -v  # Should print v24.22.1
 
 # 2. Check .NET SDK
 dotnet --version  # Should be 10.x.x or later

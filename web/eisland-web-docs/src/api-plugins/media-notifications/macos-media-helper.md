@@ -21,7 +21,7 @@ This independent plugin lives in `plugins/macos/eisland-macos-media-helper`. It 
 | Platform | macOS, with a macOS 13 deployment target; compatibility with every older OS release has not been verified |
 | Architecture | Separate `darwin-arm64` and `darwin-x64` prebuilds |
 | Runtime | Node.js 18+ and Node-API 8; no Xcode or Swift compiler required for prebuilt package consumers |
-| Development | Xcode Command Line Tools; Node.js 24.21.0 for Vitest 4.1 and the locked toolchain |
+| Development | Xcode Command Line Tools; Node.js 24.22.1 for Vitest 4.1 and the locked toolchain |
 | Backend | Vendored MediaRemote Adapter framework loaded by system Perl |
 
 Run development commands from the repository checkout:

@@ -3,7 +3,7 @@
 根目录 `npm test` 收集 `src` 与 `plugins` 的 Vitest 测试。在 Windows 上，插件测试分为两个项目：
 
 - `plugins`：不依赖真实设备的单元测试，包括 Runtime fixture、FFI loader、打包路径和模拟轮询测试。
-- `plugins-integration`：加载真实 Windows 插件的测试，串行执行，并在单元测试阶段结束后开始。需要 Windows x64、Node.js 24.21.0、.NET 10 SDK 和 Visual Studio 2022 C++ 构建工具。
+- `plugins-integration`：加载真实 Windows 插件的测试，串行执行，并在单元测试阶段结束后开始。需要 Windows x64、Node.js 24.22.1、.NET 10 SDK 和 Visual Studio 2022 C++ 构建工具。
 
 首次执行真实插件测试前，先构建所需依赖：
 

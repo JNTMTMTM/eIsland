@@ -16,7 +16,7 @@ npm run <script>
 ```
 
 :::warning
-Use **Node.js 24.21.0 LTS** for the quality commands, including native TypeScript execution. See [Frontend Setup — Prerequisites](/developer/environment-setup/frontend-setup.md#prerequisites).
+Use **Node.js 24.22.1 LTS** for the quality commands, including native TypeScript execution. See [Frontend Setup — Prerequisites](/developer/environment-setup/frontend-setup.md#prerequisites).
 :::
 
 ## ESLint
@@ -254,15 +254,15 @@ Run this after adding new UI text. A missing translation key will show a runtime
 **Node.js version too old:**
 
 ```bash
-node -v  # Must be v24.21.0
+node -v  # Must be v24.22.1
 
 # If using nvm-windows
-nvm install 24.21.0
-nvm use 24.21.0
+nvm install 24.22.1
+nvm use 24.22.1
 ```
 
 :::important
-Both `comment:check` and `i18n:check` use `--experimental-strip-types` (Node.js 24.21.0 native TypeScript execution). Older Node.js versions will fail with syntax errors on TypeScript annotations.
+Both `comment:check` and `i18n:check` use `--experimental-strip-types` (Node.js 24.22.1 native TypeScript execution). Older Node.js versions will fail with syntax errors on TypeScript annotations.
 :::
 
 ### ESLint Config Not Found

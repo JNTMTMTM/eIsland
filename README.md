@@ -61,7 +61,7 @@ Grab the latest `eIsland-<version>-Setup.exe` from [Releases](https://github.com
 
 ### Build from source
 
-Requirements: Node.js `24.21.0` (see [`.nvmrc`](.nvmrc)), the .NET 10 SDK and the Visual Studio C++ build tools for the native plugins.
+Requirements: Node.js `24.22.1` (see [`.nvmrc`](.nvmrc)), the .NET 10 SDK and the Visual Studio C++ build tools for the native plugins.
 
 ```sh
 git clone https://github.com/JNTMTMTM/eIsland.git

@@ -11,7 +11,7 @@ The Playwright suite launches the real Electron main process and built React UI 
 
 ## Install and Run
 
-Run these commands from the repository root with Node.js 24.21.0, matching the E2E CI workflow:
+Run these commands from the repository root with Node.js 24.22.1, matching the E2E CI workflow:
 
 ```bash
 npm ci --ignore-scripts --force
