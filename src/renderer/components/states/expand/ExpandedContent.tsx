@@ -31,6 +31,7 @@ import useIslandStore from '../../../store/slices';
 import { useIslandContentActive } from '../../hooks/islandContentActivity';
 import type { ExpandTab, MaxExpandTab } from '../../../store/types';
 import '../../../styles/expanded/expanded.css';
+import { AgentUsageTab } from './components/AgentUsageTab';
 import { OverviewTab } from './components/OverviewTab';
 import { PerformanceMonitorTab } from './components/PerformanceMonitorTab';
 import { SongTab } from './components/SongTab';
@@ -145,6 +146,7 @@ export function ExpandedContent(): React.ReactElement {
           {expandTab === 'tools' && <ToolsTab />}
           {expandTab === 'translation' && <TranslationTab />}
           {expandTab === 'performanceMonitor' && <PerformanceMonitorTab />}
+          {expandTab === 'agentUsage' && <AgentUsageTab />}
         </div>
       </div>
 

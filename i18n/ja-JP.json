@@ -671,7 +671,8 @@
       "song": "曲の情報と再生コントロールを準備しています。",
       "tools": "ツールとショートカットを準備しています。",
       "translation": "翻訳の入力欄と結果パネルを準備しています。",
-      "performanceMonitor": "システムパフォーマンスとハードウェアの状態パネルを準備しています。"
+      "performanceMonitor": "システムパフォーマンスとハードウェアの状態パネルを準備しています。",
+      "agentUsage": "Agent の使用量パネルを準備しています。"
     },
     "nav": {
       "hover": "戻る",
@@ -680,6 +681,7 @@
       "tools": "ツール",
       "translation": "翻訳",
       "performanceMonitor": "パフォーマンスモニター",
+      "agentUsage": "Agent 使用量",
       "maxExpand": "最大まで展開",
       "switchToPage": "{{label}} ページに切り替え"
     },
@@ -3138,7 +3140,8 @@
           "song": "音楽",
           "tools": "ツール",
           "translation": "翻訳",
-          "performanceMonitor": "パフォーマンスモニター"
+          "performanceMonitor": "パフォーマンスモニター",
+          "agentUsage": "Agent 使用量"
         }
       },
       "maxExpandLayout": {

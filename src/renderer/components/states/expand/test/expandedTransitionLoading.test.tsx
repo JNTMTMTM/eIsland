@@ -35,7 +35,7 @@ vi.mock('../../../../store/isLandStore', () => ({ default: (selector: (state: { 
 vi.mock('../../maxExpand/hooks/usePerformanceMode', () => ({ usePerformanceMode: () => mocks.performance }));
 
 describe('ExpandedTransitionLoading', () => {
-  it.each(['hover', 'overview', 'song', 'tools', 'translation', 'performanceMonitor'] as const)('页面 %s 使用正确标题及说明', (tab) => {
+  it.each(['hover', 'overview', 'song', 'tools', 'translation', 'performanceMonitor', 'agentUsage'] as const)('页面 %s 使用正确标题及说明', (tab) => {
     mocks.tab = tab;
     const tree = render(ExpandedTransitionLoading);
     const expected = tab === 'hover' ? 'overview' : tab;

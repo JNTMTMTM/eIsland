@@ -32,8 +32,8 @@ import { ExpandedContent } from '../ExpandedContent';
 const mocks = vi.hoisted(() => ({
   active: true, animation: true, app: false, loaded: true, startup: 'integrated', tab: 'overview',
   maxTab: 'todo', expand: vi.fn(), hover: vi.fn(), max: vi.fn(), selectMax: vi.fn(), launcher: vi.fn(),
-  preload: vi.fn(), wheel: vi.fn(), pages: Array.from({ length: 5 }, () => () => null),
-  nav: [{ id: 'overview', visible: true }, { id: 'song', visible: true }, { id: 'tools', visible: true }, { id: 'translation', visible: true }, { id: 'performanceMonitor', visible: true }],
+  preload: vi.fn(), wheel: vi.fn(), pages: Array.from({ length: 6 }, () => () => null),
+  nav: [{ id: 'overview', visible: true }, { id: 'song', visible: true }, { id: 'tools', visible: true }, { id: 'translation', visible: true }, { id: 'performanceMonitor', visible: true }, { id: 'agentUsage', visible: true }],
   maxNav: [{ id: 'todo', visible: true }, { id: 'album', visible: true }],
 }));
 vi.mock('../../../../store/slices', () => ({ default: (selector: (state: object) => unknown) => selector({
@@ -56,21 +56,22 @@ vi.mock('../components/SongTab', () => ({ SongTab: mocks.pages[1] }));
 vi.mock('../components/ToolsTab', () => ({ ToolsTab: mocks.pages[2] }));
 vi.mock('../components/TranslationTab', () => ({ TranslationTab: mocks.pages[3] }));
 vi.mock('../components/PerformanceMonitorTab', () => ({ PerformanceMonitorTab: mocks.pages[4] }));
+vi.mock('../components/AgentUsageTab', () => ({ AgentUsageTab: mocks.pages[5] }));
 
 describe('ExpandedContent', () => {
   beforeEach(() => {
     mocks.active = true; mocks.animation = true; mocks.app = false; mocks.loaded = true;
     mocks.startup = 'integrated'; mocks.tab = 'overview'; mocks.maxTab = 'todo';
-    mocks.nav = ['overview', 'song', 'tools', 'translation', 'performanceMonitor'].map((id) => ({ id, visible: true }));
+    mocks.nav = ['overview', 'song', 'tools', 'translation', 'performanceMonitor', 'agentUsage'].map((id) => ({ id, visible: true }));
     mocks.maxNav = [{ id: 'todo', visible: true }, { id: 'album', visible: true }];
   });
   afterEach(() => { vi.unstubAllGlobals(); });
 
-  it.each(['overview', 'song', 'tools', 'translation', 'performanceMonitor'] as const)('渲染 %s 实际页面选择与导航激活', (tab) => {
+  it.each(['overview', 'song', 'tools', 'translation', 'performanceMonitor', 'agentUsage'] as const)('渲染 %s 实际页面选择与导航激活', (tab) => {
     mocks.tab = tab;
     const tree = render(ExpandedContent);
-    expect(nodes(tree, mocks.pages[['overview', 'song', 'tools', 'translation', 'performanceMonitor'].indexOf(tab)])).toHaveLength(1);
-    expect(nodes(tree, '.expand-nav-dot')).toHaveLength(7);
+    expect(nodes(tree, mocks.pages[['overview', 'song', 'tools', 'translation', 'performanceMonitor', 'agentUsage'].indexOf(tab)])).toHaveLength(1);
+    expect(nodes(tree, '.expand-nav-dot')).toHaveLength(8);
     const selected = nodes(tree, '.expand-nav-dot').find((node) => String(node.props.className).includes('active'));
     expect(selected?.props.title).toContain(tab);
   });
@@ -111,18 +112,18 @@ describe('ExpandedContent', () => {
 
   it('应用模式打开启动器，未加载或独立模式无可见应用隐藏最大展开入口', async () => {
     mocks.app = true;
-    fire(render(ExpandedContent), '.expand-nav-dot', 'onClick', 6);
+    fire(render(ExpandedContent), '.expand-nav-dot', 'onClick', 7);
     expect(mocks.launcher).toHaveBeenCalledOnce();
     mocks.app = false; mocks.loaded = false;
-    expect(nodes(render(ExpandedContent), '.expand-nav-dot')).toHaveLength(6);
+    expect(nodes(render(ExpandedContent), '.expand-nav-dot')).toHaveLength(7);
     mocks.loaded = true; mocks.startup = 'standalone'; mocks.maxNav = [];
     flushEffects(); await Promise.resolve();
-    expect(nodes(render(ExpandedContent), '.expand-nav-dot')).toHaveLength(6);
+    expect(nodes(render(ExpandedContent), '.expand-nav-dot')).toHaveLength(7);
   });
 
   it('集成模式无可见应用时回到设置；隐藏展开页通过effect纠正', async () => {
     mocks.maxNav = []; mocks.maxTab = 'calendar';
-    fire(render(ExpandedContent), '.expand-nav-dot', 'onClick', 6);
+    fire(render(ExpandedContent), '.expand-nav-dot', 'onClick', 7);
     expect(mocks.selectMax).toHaveBeenCalledWith('settings');
     mocks.nav = [{ id: 'overview', visible: false }, { id: 'song', visible: true }];
     const tree = render(ExpandedContent);

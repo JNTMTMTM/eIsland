@@ -671,7 +671,8 @@
       "song": "Preparing song information and playback controls.",
       "tools": "Preparing tools and shortcuts.",
       "translation": "Preparing the translation input and results panel.",
-      "performanceMonitor": "Preparing system performance and hardware status panels."
+      "performanceMonitor": "Preparing system performance and hardware status panels.",
+      "agentUsage": "Preparing the Agent usage panel."
     },
     "nav": {
       "hover": "Back",
@@ -680,6 +681,7 @@
       "tools": "Tools",
       "translation": "Translation",
       "performanceMonitor": "Performance Monitor",
+      "agentUsage": "Agent Usage",
       "maxExpand": "Max Expand",
       "switchToPage": "Switch to {{label}} page"
     },
@@ -3138,7 +3140,8 @@
           "song": "Music",
           "tools": "Tools",
           "translation": "Translation",
-          "performanceMonitor": "Performance Monitor"
+          "performanceMonitor": "Performance Monitor",
+          "agentUsage": "Agent Usage"
         }
       },
       "maxExpandLayout": {

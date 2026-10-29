@@ -671,7 +671,8 @@
       "song": "准备歌曲信息与播放控制。",
       "tools": "准备实用工具与快捷入口。",
       "translation": "准备翻译输入与结果面板。",
-      "performanceMonitor": "准备系统性能与硬件状态面板。"
+      "performanceMonitor": "准备系统性能与硬件状态面板。",
+      "agentUsage": "准备 Agent 用量面板。"
     },
     "nav": {
       "hover": "返回",
@@ -680,6 +681,7 @@
       "tools": "工具",
       "translation": "翻译",
       "performanceMonitor": "性能监控",
+      "agentUsage": "Agent用量",
       "maxExpand": "最大展开",
       "switchToPage": "切换到{{label}}页面"
     },
@@ -3138,7 +3140,8 @@
           "song": "歌曲",
           "tools": "工具",
           "translation": "翻译",
-          "performanceMonitor": "性能监控"
+          "performanceMonitor": "性能监控",
+          "agentUsage": "Agent用量"
         }
       },
       "maxExpandLayout": {

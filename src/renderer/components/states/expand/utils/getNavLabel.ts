@@ -45,5 +45,7 @@ export const getNavLabel = (
                 ? '翻译'
                 : tab === 'performanceMonitor'
                   ? '性能监控'
-                  : '最大展开',
+                  : tab === 'agentUsage'
+                    ? 'Agent用量'
+                    : '最大展开',
   });
