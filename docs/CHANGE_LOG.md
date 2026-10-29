@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-26T19:29:43.086Z
+> 生成时间：2026-10-29T23:00:51.569Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,21 @@
 
 ## Unreleased
 
+- 2026-10-29 | 9f635d43 | JNTMTMTM | Merge pull request #301 from JNTMTMTM/dev
+- 2026-10-28 | a950dd93 | 鸡哥 | Merge branch 'dev' of https://github.com/JNTMTMTM/eIsland into dev
+- 2026-10-28 | f5c70282 | 鸡哥 | feat: implement island corner style management with error handling and UI feedback
+- 2026-10-28 | 8d25c707 | 鸡哥 | fix: adjust window bounds calculations for concave notch tests to account for macOS work area
+- 2026-10-28 | 0f3ccda8 | 鸡哥 | feat: update country flag SVGs and add tests
+- 2026-10-28 | 74f8b82a | 鸡哥 | feat: add animation settings functionality and corresponding tests for immediate updates
+- 2026-10-28 | 61277ae6 | 鸡哥 | feat: implement concave music glow effect and enhance corner styling for island shell
+- 2026-10-27 | bc490f2a | 鸡哥 | fix: simplify alarm settings description for clarity
+- 2026-10-27 | a275fefd | 鸡哥 | chore: update Node.js version to 24.22.1 across workflows, documentation, and configuration files
+- 2026-10-26 | e39683f8 | 鸡哥 | Refactor code structure for improved readability and maintainability
+- 2026-10-26 | a2dee17e | 鸡哥 | feat: enhance island transition and styling with clip-path and padding animations
+- 2026-10-26 | da3a982b | 鸡哥 | feat: add corner style settings for island display and implement cross-window synchronization
+- 2026-10-26 | 8e85f2c7 | 鸡哥 | Refactor code structure and remove redundant sections for improved readability and maintainability
+- 2026-10-26 | a0213335 | 鸡哥 | chore: remove koffi package and update hasInstallScript for dependencies
+- 2026-10-26 | d38d2bdd | eislandBot | docs: auto update CHANGE_LOG.md for #296 by @dependabot[bot] [skip ci]
 - 2026-10-26 | 7fed7229 | JNTMTMTM | Merge pull request #296 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/types/node-26.6.5
 - 2026-10-26 | 3ed10f8c | eislandBot | docs: auto update CHANGE_LOG.md for #300 by @dependabot[bot] [skip ci]
 - 2026-10-26 | ed660418 | JNTMTMTM | Merge pull request #300 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/koffi-3.3.3
