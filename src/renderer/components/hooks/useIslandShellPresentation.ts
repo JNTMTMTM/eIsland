@@ -26,6 +26,7 @@
 
 import { useMemo } from 'react';
 import { getStateClassName } from '../config/dynamicIslandConfig';
+import { useIslandCornerStyle } from './useIslandCornerStyle';
 import type { IslandShapeMode } from '../../store/types';
 
 interface UseIslandShellPresentationOptions {
@@ -50,6 +51,7 @@ interface IslandShellPresentationState {
  * @returns 壳层 className 与 style。
  */
 export function useIslandShellPresentation(options: UseIslandShellPresentationOptions): IslandShellPresentationState {
+  const [cornerStyle] = useIslandCornerStyle();
   const {
     state,
     morphing,
@@ -62,8 +64,8 @@ export function useIslandShellPresentation(options: UseIslandShellPresentationOp
   } = options;
 
   const shellClassName = useMemo(() => {
-    return `island-shell shape-${shapeMode} ${getStateClassName(state as Parameters<typeof getStateClassName>[0]) || 'idle'}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
-  }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed, shapeMode]);
+    return `island-shell shape-${shapeMode} corners-${cornerStyle} ${getStateClassName(state as Parameters<typeof getStateClassName>[0]) || 'idle'}${morphing ? ' morphing' : ''}${fromState ? ` from-${fromState}` : ''}${showGlow ? ' music-glow' : ''}${showGlow === 'paused' ? ' music-paused' : ''}${springAnimation ? ' spring-animation' : ''} speed-${animationSpeed}`;
+  }, [state, morphing, fromState, showGlow, springAnimation, animationSpeed, shapeMode, cornerStyle]);
 
   const shellStyle = useMemo<React.CSSProperties | undefined>(() => {
     if (!showGlow) return undefined;

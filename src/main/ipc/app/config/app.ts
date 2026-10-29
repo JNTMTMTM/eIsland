@@ -33,6 +33,7 @@ export const MAX_LOCAL_CMD_OUTPUT_BYTES = 1024 * 1024;
 /** 灵动岛设置项注册表 */
 export const ISLAND_SETTINGS_REGISTRY: Array<{ key: string; description: string; type: string }> = [
   { key: 'theme-mode', description: '主题模式 (dark/light/system)', type: 'string' },
+  { key: 'island-corner-style', description: '刘海屏顶部边角 (rounded/concave，默认 rounded；concave 为顶部两侧反弧形；胶囊保持圆角；保存成功后同步所有窗口)', type: 'string' },
   { key: 'island-opacity', description: '灵动岛透明度 (10-100)', type: 'number' },
   { key: 'expand-mouseleave-idle', description: 'Expand 鼠标移开自动回 idle', type: 'boolean' },
   { key: 'maxexpand-mouseleave-idle', description: 'MaxExpand 鼠标移开自动回 idle', type: 'boolean' },

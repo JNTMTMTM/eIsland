@@ -14,7 +14,7 @@ on:
         default: false
 
 env:
-  NODE_VERSION: '24.21.0'
+  NODE_VERSION: '24.22.1'
   DOTNET_VERSION: '10.0.x'
 
 jobs:

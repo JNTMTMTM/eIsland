@@ -31,6 +31,7 @@ import { BUILTIN_WALLPAPERS } from '../../../../../../../../assets/wallpaper/bui
 import useIslandStore from '../../../../../../../../store/slices';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import { injectFontFace, releaseCustomFonts } from '../../../../../../../../utils/font';
+import { useIslandCornerStyle } from '../../../../../../../hooks/useIslandCornerStyle';
 import type { AppSettingsSectionProps } from './types';
 
 type ThemeSettingsPageProps = Pick<
@@ -183,6 +184,7 @@ export function ThemeSettingsPage({
   handleAutoDimDelayChange,
 }: ThemeSettingsPageProps): ReactElement {
   const { t } = useTranslation();
+  const [cornerStyle, setCornerStyle, cornerStyleSaveFailed] = useIslandCornerStyle();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
   const [uiFont, setUIFont] = useState<string>('default');
@@ -287,6 +289,30 @@ export function ThemeSettingsPage({
   return (
     <div className="max-expand-settings-section">
       <div className="settings-cards">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">{t('settings.app.theme.cornerStyleTitle')}</div>
+            <div className="settings-card-subtitle">{t('settings.app.theme.cornerStyleHint')}</div>
+          </div>
+          <div className="settings-lyrics-source-options" role="group" aria-label={t('settings.app.theme.cornerStyleTitle')}>
+            {([
+              { value: 'rounded', label: t('settings.app.theme.cornerStyleRounded') },
+              { value: 'concave', label: t('settings.app.theme.cornerStyleConcave') },
+            ] as const).map(({ value, label }) => (
+              <button
+                key={value}
+                className={`settings-lyrics-source-btn ${cornerStyle === value ? 'active' : ''}`}
+                type="button"
+                aria-pressed={cornerStyle === value}
+                onClick={() => setCornerStyle(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {cornerStyleSaveFailed && <div className="settings-music-hint" role="alert">{t('settings.app.theme.cornerStyleSaveError')}</div>}
+        </div>
+
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">{t('settings.app.theme.title', { defaultValue: '主题模式' })}</div>

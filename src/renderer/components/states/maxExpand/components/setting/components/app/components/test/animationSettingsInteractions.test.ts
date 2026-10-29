@@ -44,9 +44,9 @@ vi.mock('react-i18next', () => ({
   })
 }));
 vi.mock('../../../../../../../../../store/slices', () => ({
-  default: {
+  default: Object.assign((selector: (state: typeof store) => unknown) => selector(store), {
     getState: () => store
-  }
+  })
 }));
 vi.mock('../../../../../../../../components/DynamicIslandSharedWaveEffect', () => ({
   WaveEffect: () => null

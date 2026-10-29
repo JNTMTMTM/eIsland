@@ -1,1 +1,5 @@
-<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1778423427397" class="icon" viewBox="0 0 1536 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15112" xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height="200"><path d="M0.120426 682.245175h1536.639765v341.754825H0.120426z" fill="#F1D21E" p-id="15113"></path><path d="M0.120426 341.754825h1536.639765v341.754826H0.120426z" fill="#D23A37" p-id="15114"></path><path d="M0 0h1536.519338v341.754825H0z" fill="#221714" p-id="15115"></path></svg>
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-de" viewBox="0 0 640 480">
+  <path fill="#fc0" d="M0 320h640v160H0z"/>
+  <path fill="#000001" d="M0 0h640v160H0z"/>
+  <path fill="red" d="M0 160h640v160H0z"/>
+</svg>

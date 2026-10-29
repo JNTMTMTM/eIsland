@@ -17,7 +17,7 @@ npm run <script>
 ```
 
 :::warning
-All scripts that invoke `.ts` files use `node --experimental-strip-types` for native TypeScript execution. Use **Node.js 24.21.0 LTS** for this repository. See [Frontend Setup — Prerequisites](/developer/environment-setup/frontend-setup.md#prerequisites).
+All scripts that invoke `.ts` files use `node --experimental-strip-types` for native TypeScript execution. Use **Node.js 24.22.1 LTS** for this repository. See [Frontend Setup — Prerequisites](/developer/environment-setup/frontend-setup.md#prerequisites).
 :::
 
 ## Changelog Generation

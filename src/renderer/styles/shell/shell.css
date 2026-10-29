@@ -43,6 +43,8 @@
   transition: width 0.4s ease,
               height 0.4s ease,
               border-radius 0.4s ease,
+              clip-path 0.4s ease,
+              padding-inline 0.4s ease,
               background 0.4s ease,
               box-shadow 0.4s ease,
               opacity 0.8s ease;
@@ -59,6 +61,8 @@
 /* ── 灵动岛胶囊形态（pill） ── */
 
 .island-shell.shape-pill {
+  --shell-pill-radius: 21px;
+
   height: 52px;
   border-radius: 21px;
   transform-origin: center center;
@@ -70,6 +74,8 @@
 }
 
 .island-shell.shape-pill.hover {
+  --shell-pill-radius: 30px;
+
   height: 72px;
   border-radius: 30px;
 }
@@ -78,6 +84,8 @@
 .island-shell.shape-pill.agent,
 .island-shell.shape-pill.stt,
 .island-shell.shape-pill.cli {
+  --shell-pill-radius: 44px;
+
   height: 100px;
   border-radius: 44px;
 }
@@ -95,6 +103,8 @@
 .island-shell.shape-pill.announcement,
 .island-shell.shape-pill.questionnaire,
 .island-shell.shape-pill[class~="musicProvidersLogin"] {
+  --shell-pill-radius: 26px;
+
   border-radius: 26px;
 }
 
@@ -119,11 +129,15 @@
 
 .island-shell.shape-pill.lyrics,
 .island-shell.shape-pill.agentVoiceInput {
+  --shell-pill-radius: 21px;
+
   height: 52px;
   border-radius: 21px;
 }
 
 .island-shell.shape-pill.lyricsTranslation {
+  --shell-pill-radius: 30px;
+
   height: 72px;
   border-radius: 30px;
 }
@@ -132,6 +146,8 @@
   transition: width 0.68s cubic-bezier(0.22, 1, 0.36, 1),
               height 0.68s cubic-bezier(0.22, 1, 0.36, 1),
               border-radius 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+              clip-path 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+              padding-inline 0.68s cubic-bezier(0.22, 1, 0.36, 1),
               background 0.45s ease,
               box-shadow 0.68s ease;
 }
@@ -305,6 +321,8 @@
   transition: width 0.64s ease,
               height 0.64s ease,
               border-radius 0.64s ease,
+              clip-path 0.64s ease,
+              padding-inline 0.64s ease,
               background 0.64s ease,
               box-shadow 0.64s ease;
 }
@@ -312,6 +330,8 @@
   transition: width 1.08s cubic-bezier(0.22, 1, 0.36, 1),
               height 1.08s cubic-bezier(0.22, 1, 0.36, 1),
               border-radius 1.08s cubic-bezier(0.22, 1, 0.36, 1),
+              clip-path 1.08s cubic-bezier(0.22, 1, 0.36, 1),
+              padding-inline 1.08s cubic-bezier(0.22, 1, 0.36, 1),
               background 0.72s ease,
               box-shadow 1.08s ease;
 }
@@ -324,6 +344,8 @@
   transition: width 0.2s ease,
               height 0.2s ease,
               border-radius 0.2s ease,
+              clip-path 0.2s ease,
+              padding-inline 0.2s ease,
               background 0.2s ease,
               box-shadow 0.2s ease;
 }
@@ -331,6 +353,8 @@
   transition: width 0.34s cubic-bezier(0.22, 1, 0.36, 1),
               height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
               border-radius 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              clip-path 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              padding-inline 0.34s cubic-bezier(0.22, 1, 0.36, 1),
               background 0.22s ease,
               box-shadow 0.34s ease;
 }
@@ -598,4 +622,94 @@
 .island-shell.music-glow.music-paused::after {
   opacity: 0;
   animation-play-state: paused;
+}
+
+/**
+ * 反弧光带沿内缩 3px 的轮廓挖空；矩形边框会落在壳层裁切区域外。
+ * 肩部内轮廓半径为 19px，与 y=3 相交于 sqrt(19² - 13²) ≈ 13.856px。
+ */
+.island-shell.shape-notch.corners-concave.music-glow::after {
+  mask: none;
+  clip-path: shape(
+    evenodd from 0 1px,
+    hline to 100%,
+    vline to 100%,
+    hline to 0,
+    close,
+    move to 13.856px 3px,
+    hline to calc(100% - 13.856px),
+    arc to calc(100% - 19px) 16px of 19px ccw,
+    vline to calc(100% - 22px),
+    curve to calc(100% - 38px) calc(100% - 3px) with calc(100% - 19px) calc(100% - 11.506px) / calc(100% - 27.506px) calc(100% - 3px),
+    hline to 38px,
+    curve to 19px calc(100% - 22px) with 27.506px calc(100% - 3px) / 19px calc(100% - 11.506px),
+    vline to 16px,
+    arc to 13.856px 3px of 19px ccw,
+    close
+  );
+
+}
+
+/** 反弧形在原窗口内预留两侧肩部，裁切整个壳层以统一适配图片、视频和透明度。 */
+.island-shell.shape-notch.corners-concave {
+  padding-inline: 16px;
+  border-radius: 0;
+  clip-path: shape(
+    from 0 0,
+    hline to 100%,
+    curve to calc(100% - 16px) 16px with calc(100% - 8.837px) 0 / calc(100% - 16px) 7.163px,
+    vline to calc(100% - 22px),
+    curve to calc(100% - 38px) 100% with calc(100% - 16px) calc(100% - 9.849px) / calc(100% - 25.849px) 100%,
+    hline to 38px,
+    curve to 16px calc(100% - 22px) with 25.849px 100% / 16px calc(100% - 9.849px),
+    vline to 16px,
+    curve to 0 0 with 16px 7.163px / 8.837px 0,
+    close
+  );
+
+}
+
+/** 标准圆角也保留同构裁切路径，使 corner 配置切换时能连续插值，而非从 none 突变。 */
+.island-shell.shape-notch.corners-rounded {
+  padding-inline: 0;
+  border-radius: 0 0 22px 22px;
+  clip-path: shape(
+    from 0 0,
+    hline to 100%,
+    curve to 100% 0 with 100% 0 / 100% 0,
+    vline to calc(100% - 22px),
+    curve to calc(100% - 22px) 100% with 100% calc(100% - 9.849px) / calc(100% - 9.849px) 100%,
+    hline to 22px,
+    curve to 0 calc(100% - 22px) with 9.849px 100% / 0 calc(100% - 9.849px),
+    vline to 0,
+    curve to 0 0 with 0 0 / 0 0,
+    close
+  );
+
+}
+
+/** 与 notch 保持相同的曲线指令，使浏览器能插值轮廓；控制点系数对应圆角的三次贝塞尔近似。 */
+.island-shell.shape-pill:is(.corners-concave, .corners-rounded) {
+  padding-inline: 0;
+  border-radius: 0;
+  clip-path: shape(
+    from var(--shell-pill-radius) 0,
+    hline to calc(100% - var(--shell-pill-radius)),
+    curve to 100% var(--shell-pill-radius) with calc(100% - var(--shell-pill-radius) * .4477) 0 / 100% calc(var(--shell-pill-radius) * .4477),
+    vline to calc(100% - var(--shell-pill-radius)),
+    curve to calc(100% - var(--shell-pill-radius)) 100% with 100% calc(100% - var(--shell-pill-radius) * .4477) / calc(100% - var(--shell-pill-radius) * .4477) 100%,
+    hline to var(--shell-pill-radius),
+    curve to 0 calc(100% - var(--shell-pill-radius)) with calc(var(--shell-pill-radius) * .4477) 100% / 0 calc(100% - var(--shell-pill-radius) * .4477),
+    vline to var(--shell-pill-radius),
+    curve to var(--shell-pill-radius) 0 with 0 calc(var(--shell-pill-radius) * .4477) / calc(var(--shell-pill-radius) * .4477) 0,
+    close
+  );
+
+}
+
+/** 两种边角配置下胶囊均保留圆角继承，避免背景与音乐描边被轮廓裁断。 */
+.island-shell.shape-pill.corners-concave,
+.island-shell.shape-pill.corners-rounded {
+  border-radius: var(--shell-pill-radius);
+
 }

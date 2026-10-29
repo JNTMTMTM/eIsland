@@ -1,8 +1,8 @@
 /.windsurf
 /coverage
 /reports/
-/.claude/settings.json
-/.claude/settings.local.json
+**/.claude/settings.json
+**/.claude/settings.local.json
 /test.ts
 /test.tsx
 /desc.json

@@ -61,6 +61,7 @@ interface FontFile {
   ext: string;
 }
 const api = {
+  onSettingsChanged: vi.fn(() => vi.fn()),
   storeRead: vi.fn<(key: string) => Promise<unknown>>(),
   storeWrite: vi.fn<(key: string, value: unknown) => Promise<boolean>>(),
   settingsPreview: vi.fn<(channel: string, value: unknown) => Promise<boolean>>(),
@@ -158,6 +159,8 @@ beforeEach(() => {
   });
   vi.stubGlobal('window', {
     api,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
     dispatchEvent: dispatch
   });
   vi.stubGlobal('document', {
