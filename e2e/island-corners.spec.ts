@@ -274,6 +274,8 @@ test('concave corners adapt to theme, media, zoom and pill with live cross-windo
 
 test('pill to concave notch interpolates the outline and spacing and can reverse mid-flight', async ({ desktop }) => {
   const page = desktop.main;
+  // macOS 菜单栏等系统区域会使工作区顶部偏离屏幕原点。
+  const workAreaY = await desktop.app.evaluate(({ screen }) => screen.getPrimaryDisplay().workArea.y);
   const standalone = await desktop.openStandalone();
   await standalone.evaluate(async () => {
     await window.api.storeWrite('island-corner-style', 'concave');
@@ -282,7 +284,7 @@ test('pill to concave notch interpolates the outline and spacing and can reverse
   await page.evaluate(() => window.api.shapeModeSet('pill'));
   const shell = page.locator('.island-shell');
   await expect(shell).toHaveCSS('padding-left', '0px');
-  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: 46, height: 52 });
+  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: workAreaY + 46, height: 52 });
   const samples = await page.evaluate(async () => {
     const node = document.querySelector<HTMLElement>('.island-shell');
     if (!node) throw new Error('Island shell is required');
@@ -304,7 +306,7 @@ test('pill to concave notch interpolates the outline and spacing and can reverse
   expect(samples.some(({ height }) => height > 43 && height < 51)).toBe(true);
   expect(new Set(samples.map(({ clip }) => clip)).size).toBeGreaterThan(4);
   await expectConcaveOutline(page);
-  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: 0, height: 42 });
+  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: workAreaY, height: 42 });
   await page.evaluate(async () => {
     await window.api.shapeModeSet('pill');
     // 在形变实际开始后反向，覆盖从当前插值轮廓继续过渡的路径。
@@ -320,6 +322,6 @@ test('pill to concave notch interpolates the outline and spacing and can reverse
   });
   await expectConcaveOutline(page);
   await expect(shell).toHaveCSS('padding-left', '16px');
-  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: 0, height: 42 });
+  await expect.poll(() => page.evaluate(() => window.api.getWindowBounds())).toMatchObject({ y: workAreaY, height: 42 });
   expect(desktop.rendererErrors).toEqual([]);
 });
