@@ -24,11 +24,10 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type IslandCornerStyle = 'rounded' | 'concave';
 export const ISLAND_CORNER_STYLE_STORE_KEY = 'island-corner-style';
-const LOCAL_EVENT = 'island-corner-style-changed';
 
 /**
  * 将缺失或非法配置回退为原有圆角，兼容旧版配置。
@@ -40,11 +39,13 @@ function normalizeCornerStyle(value: unknown): IslandCornerStyle {
 }
 
 /**
- * 读取并订阅边角样式；本窗口立即更新，其他窗口通过 store 广播同步。
- * @returns 当前样式及持久化切换函数。
+ * 读取并订阅已提交的边角样式，所有窗口按主进程广播顺序更新。
+ * @returns 当前样式、持久化切换函数及保存失败状态。
  */
-export function useIslandCornerStyle(): readonly [IslandCornerStyle, (value: IslandCornerStyle) => void] {
+export function useIslandCornerStyle(): readonly [IslandCornerStyle, (value: IslandCornerStyle) => void, boolean] {
   const [style, setStyle] = useState<IslandCornerStyle>('rounded');
+  const [saveFailed, setSaveFailed] = useState(false);
+  const requestId = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,12 +53,11 @@ export function useIslandCornerStyle(): readonly [IslandCornerStyle, (value: Isl
     const apply = (value: unknown): void => {
       updated = true;
       setStyle(normalizeCornerStyle(value));
+      setSaveFailed(false);
     };
     const unsubscribe = window.api.onSettingsChanged((channel, value) => {
       if (channel === `store:${ISLAND_CORNER_STYLE_STORE_KEY}`) apply(value);
     });
-    const onLocalChange = (event: Event): void => apply((event as CustomEvent<unknown>).detail);
-    window.addEventListener(LOCAL_EVENT, onLocalChange);
     const load = async (): Promise<void> => {
       try {
         const value = await window.api.storeRead(ISLAND_CORNER_STYLE_STORE_KEY);
@@ -71,24 +71,25 @@ export function useIslandCornerStyle(): readonly [IslandCornerStyle, (value: Isl
     void load();
     return () => {
       cancelled = true;
+      requestId.current += 1;
       unsubscribe?.();
-      window.removeEventListener(LOCAL_EVENT, onLocalChange);
     };
   }, []);
 
   const changeStyle = useCallback((value: IslandCornerStyle): void => {
-    setStyle(value);
-    window.dispatchEvent(new CustomEvent(LOCAL_EVENT, { detail: value }));
+    const currentRequest = ++requestId.current;
+    setSaveFailed(false);
     const save = async (): Promise<void> => {
       try {
-        await window.api.storeWrite(ISLAND_CORNER_STYLE_STORE_KEY, value);
+        const saved = await window.api.storeWrite(ISLAND_CORNER_STYLE_STORE_KEY, value);
+        if (currentRequest === requestId.current) setSaveFailed(!saved);
       } catch {
-        // 与其他外观配置一致，存储不可用时保留当前窗口的预览。
+        if (currentRequest === requestId.current) setSaveFailed(true);
       }
     };
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 本地预览同步完成；存储异常已在 save 内处理。
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 事件处理器同步返回；保存结果及异常已在 save 内处理。
     void save();
   }, []);
 
-  return [style, changeStyle] as const;
+  return [style, changeStyle, saveFailed] as const;
 }

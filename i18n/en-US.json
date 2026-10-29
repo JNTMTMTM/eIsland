@@ -3274,6 +3274,7 @@
         "cornerStyleHint": "Choose the current rounded corners or concave top corners. Concave corners apply only to the notch shape.",
         "cornerStyleRounded": "Rounded (default)",
         "cornerStyleConcave": "Concave (reference)",
+        "cornerStyleSaveError": "Could not save the corner style. The previous setting is retained. Please try again.",
         "islandOpacityTitle": "Island Opacity",
         "islandOpacityHint": "Lower value = more transparent (10% - 100%)",
         "autoDimTitle": "Auto-dim when idle",

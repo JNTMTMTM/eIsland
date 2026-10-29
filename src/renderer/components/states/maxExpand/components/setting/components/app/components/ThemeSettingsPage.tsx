@@ -184,7 +184,7 @@ export function ThemeSettingsPage({
   handleAutoDimDelayChange,
 }: ThemeSettingsPageProps): ReactElement {
   const { t } = useTranslation();
-  const [cornerStyle, setCornerStyle] = useIslandCornerStyle();
+  const [cornerStyle, setCornerStyle, cornerStyleSaveFailed] = useIslandCornerStyle();
   const setNotification = useIslandStore((s) => s.setNotification);
   const [musicOuterGlowEffectEnabled, setMusicOuterGlowEffectEnabled] = useState<boolean>(true);
   const [uiFont, setUIFont] = useState<string>('default');
@@ -310,6 +310,7 @@ export function ThemeSettingsPage({
               </button>
             ))}
           </div>
+          {cornerStyleSaveFailed && <div className="settings-music-hint" role="alert">{t('settings.app.theme.cornerStyleSaveError')}</div>}
         </div>
 
         <div className="settings-card">

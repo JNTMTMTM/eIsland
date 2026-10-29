@@ -25,11 +25,32 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanupHarness, resetHarness, mocks, tool, errorContaining } from './appHarness';
+import { cleanupHarness, resetHarness, mocks, tool, invoke, errorContaining } from './appHarness';
+import { registerStoreIpcHandlers } from '../store';
 beforeEach(resetHarness);
 afterEach(cleanupHarness);
 
 describe('island settings storage and broadcasts', () => {
+  it('commits an earlier agent corner write before a newer UI selection without an async gap', async () => {
+    registerStoreIpcHandlers({ storeDir: 'C:/pictures/eIsland_store' });
+    const pending = tool('island.settings.write', { key: 'island-corner-style', value: 'concave' });
+    expect(invoke('store:write', 'island-corner-style', 'rounded')).toBe(true);
+    expect(await pending).toMatchObject({ success: true, result: { value: 'concave', written: true } });
+    expect(mocks.writeSync.mock.calls.map((call) => call[1])).toEqual(['"concave"', '"rounded"']);
+    expect(mocks.write).not.toHaveBeenCalled();
+    expect(mocks.broadcast.mock.calls).toEqual([
+      [-1, 'store:island-corner-style', 'concave'],
+      [-1, 'store:island-corner-style', 'rounded'],
+    ]);
+  });
+  it('reports failed corner commits to both UI and agents without broadcasting an unsaved value', async () => {
+    registerStoreIpcHandlers({ storeDir: 'C:/pictures/eIsland_store' });
+    mocks.writeSync.mockImplementation(() => { throw new Error('disk full'); });
+    expect(invoke('store:write', 'island-corner-style', 'concave')).toBe(false);
+    expect(await tool('island.settings.write', { key: 'island-corner-style', value: 'concave' }))
+      .toMatchObject({ success: false, error: errorContaining('Failed to save island-corner-style') });
+    expect(mocks.broadcast).not.toHaveBeenCalled();
+  });
   it('lists registry entries with parsed values and defaults for missing or invalid stores', async () => {
     mocks.exists.mockImplementation((path) => !path.endsWith('island-opacity.json'));
     mocks.read.mockImplementation((path) => Promise.resolve(String(path).endsWith('theme-mode.json') ? '"light"' : '{broken'));

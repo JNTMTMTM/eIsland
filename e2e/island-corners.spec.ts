@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, rmdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import en from '../i18n/en-US.json';
 import { test, expect } from './fixtures';
@@ -132,6 +132,32 @@ test('concave music glow follows both sides of the notch and pill outlines', asy
     await expect.poll(() => shell.evaluate((node) => getComputedStyle(node, '::after').opacity)).toBe('0');
     await shell.evaluate((node) => node.classList.remove('music-glow', 'music-paused'));
   }, Promise.resolve());
+  expect(desktop.rendererErrors).toEqual([]);
+});
+
+test('failed corner saves retain the committed choice and recover on retry', async ({ desktop }) => {
+  const page = await desktop.openStandalone();
+  await page.getByRole('button', { name: en.standalone.tabs.settings, exact: true }).click();
+  await page.getByPlaceholder(en.settings.index.searchPlaceholder).fill(en.settings.app.theme.cornerStyleTitle);
+  await page.locator('.settings-index-search-dropdown').getByRole('button').filter({ hasText: en.settings.app.theme.cornerStyleTitle })
+    .click();
+  const rounded = page.getByRole('button', { name: en.settings.app.theme.cornerStyleRounded, exact: true });
+  const concave = page.getByRole('button', { name: en.settings.app.theme.cornerStyleConcave, exact: true });
+  const settingFile = join(desktop.userData, 'eIsland_store', 'island-corner-style.json');
+  // 空目录模拟真实写入失败；只影响此测试的临时配置目录。
+  await mkdir(settingFile);
+  await concave.click();
+  await expect(page.getByRole('alert')).toHaveText(en.settings.app.theme.cornerStyleSaveError);
+  await expect(rounded).toHaveAttribute('aria-pressed', 'true');
+  await expect(desktop.main.locator('.island-shell')).toHaveClass(/\bcorners-rounded\b/);
+  await rmdir(settingFile);
+  await concave.click();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(concave).toHaveAttribute('aria-pressed', 'true');
+  await expectConcaveOutline(desktop.main);
+  expect(JSON.parse(await readFile(settingFile, 'utf8'))).toBe('concave');
+  await desktop.restart();
+  await expectConcaveOutline(desktop.main);
   expect(desktop.rendererErrors).toEqual([]);
 });
 

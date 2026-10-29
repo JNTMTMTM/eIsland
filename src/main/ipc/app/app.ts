@@ -38,6 +38,7 @@ import { registerAgentIpcHandlers } from '../agent';
 import { queryOpenWindowsWithIcons, type RunningWindowInfo } from '../../system/runningProcesses';
 import { broadcastSettingChange } from '../../utils/broadcast';
 import { getSmtcNowPlaying } from '../../music/smtcAccessor';
+import writeIslandCornerStyle from './islandCornerStyle';
 import { getIconByPath, getIconByShortcutPath } from '@eisland/windows-application-icon-helper';
 import type { LocalFileSearchItem, LocalFileSearchOptions, AgentLocalToolRequest } from './types';
 import {
@@ -1545,6 +1546,10 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
       if (!key) throw new Error('island.settings.write 需要 key');
       const value = args.value;
       const storeDir = resolve(app.getPath('userData'), 'eIsland_store');
+      if (key === 'island-corner-style') {
+        if (!writeIslandCornerStyle(storeDir, value)) throw new Error('Failed to save island-corner-style');
+        return { success: true, result: { key, value, written: true }, error: '', durationMs: Date.now() - startedAt };
+      }
       await mkdir(storeDir, { recursive: true });
       const filePath = resolve(storeDir, `${key}.json`);
       await writeFile(filePath, JSON.stringify(value, null, 2), 'utf8');

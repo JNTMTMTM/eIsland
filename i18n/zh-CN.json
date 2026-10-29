@@ -3274,6 +3274,7 @@
         "cornerStyleHint": "选择当前圆角或顶部两侧反弧形，反弧形仅在刘海屏形态生效。",
         "cornerStyleRounded": "当前圆角（默认）",
         "cornerStyleConcave": "反弧形（参考图）",
+        "cornerStyleSaveError": "边角样式保存失败，已保留原设置，请重试。",
         "islandOpacityTitle": "灵动岛透明度",
         "islandOpacityHint": "数值越低越透明（10% - 100%）",
         "autoDimTitle": "闲置自动降低不透明度",

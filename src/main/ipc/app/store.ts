@@ -30,6 +30,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { isDeepStrictEqual } from 'node:util';
 import { broadcastSettingChange } from '../../utils/broadcast';
+import writeIslandCornerStyle from './islandCornerStyle';
 import type { RegisterStoreIpcHandlersOptions } from './types';
 
 /** 合法的 store key：不含路径分隔符和 traversal 片段 */
@@ -98,6 +99,11 @@ export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOption
   ipcMain.handle('store:write', (event, key: string, data: unknown) => {
     try {
       if (!isValidStoreKey(key)) return false;
+      if (key === 'island-corner-style') {
+        const saved = writeIslandCornerStyle(options.storeDir, data);
+        if (saved) options.onWrite?.(key);
+        return saved;
+      }
       const filePath = join(options.storeDir, `${key}.json`);
       writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
       const notifySender = key === 'alarms' || key === 'alarm-sound-enabled' || key === 'alarm-notification-enabled' || key === 'break-reminder-items';

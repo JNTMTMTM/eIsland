@@ -60,6 +60,8 @@ const mocks = vi.hoisted(() => ({
   stat: vi.fn<(file: string) => Promise<FileInfo>>(),
   read: vi.fn<(...args: unknown[]) => Promise<string | Buffer>>(),
   write: vi.fn<(...args: unknown[]) => Promise<void>>(),
+  writeSync: vi.fn<(...args: unknown[]) => void>(),
+  mkdirSync: vi.fn<(...args: unknown[]) => void>(),
   mkdir: vi.fn<(...args: unknown[]) => Promise<void>>(),
   copy: vi.fn<(...args: unknown[]) => Promise<void>>(),
   append: vi.fn<(...args: unknown[]) => Promise<void>>(),
@@ -126,7 +128,7 @@ vi.mock('electron', () => ({
   Notification: mocks.notification,
   shell: { showItemInFolder: mocks.reveal, openPath: mocks.openPath, readShortcutLink: mocks.shortcut, openExternal: mocks.external, trashItem: mocks.trash },
 }));
-vi.mock('fs', () => ({ existsSync: mocks.exists, createReadStream: mocks.stream }));
+vi.mock('fs', () => ({ existsSync: mocks.exists, createReadStream: mocks.stream, writeFileSync: mocks.writeSync, mkdirSync: mocks.mkdirSync }));
 vi.mock('fs/promises', () => ({
   readdir: mocks.readdir, stat: mocks.stat, readFile: mocks.read, writeFile: mocks.write,
   mkdir: mocks.mkdir, copyFile: mocks.copy, appendFile: mocks.append, rename: mocks.rename, rm: mocks.rm,

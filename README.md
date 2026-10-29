@@ -2,7 +2,7 @@
 
 <img src="assets/readme/banner.svg" alt="eIsland" width="100%" />
 
-### A Dynamic Island for your Windows desktop
+# eIsland — A Dynamic Island for your Windows desktop
 
 [![Release](https://img.shields.io/github/v/release/JNTMTMTM/eIsland?style=flat-square&color=5be6da&label=release)](https://github.com/JNTMTMTM/eIsland/releases/latest)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-8da8ff?style=flat-square)](#getting-started)
