@@ -49,19 +49,73 @@
   color: rgba(var(--color-text-rgb), 0.62);
 }
 
-.au-spinner {
-  width: 13px;
-  height: 13px;
-  flex: 0 0 13px;
-  border: 2px solid rgba(var(--color-text-rgb), 0.16);
-  border-top-color: rgba(var(--color-text-rgb), 0.72);
-  border-radius: 50%;
-  animation: auSpin 0.8s linear infinite;
+.au-card-skeleton {
+  position: relative;
 }
 
-@keyframes auSpin {
+.au-skeleton-block {
+  display: block;
+  border-radius: 3px;
+  background: rgba(var(--color-text-rgb), 0.1);
+}
+
+.au-skeleton-action {
+  width: 88px;
+  height: 14px;
+  border-radius: 999px;
+}
+
+.au-skeleton-name {
+  width: 64px;
+  height: 9px;
+}
+
+.au-skeleton-model {
+  width: 80px;
+  height: 8px;
+}
+
+.au-skeleton-today {
+  width: 52px;
+  height: 16px;
+}
+
+.au-skeleton-meta {
+  width: 96px;
+  height: 8px;
+  margin-left: auto;
+}
+
+.au-skeleton-cell {
+  height: 8px;
+}
+
+.au-skeleton-bar {
+  height: 4px;
+  border-radius: 999px;
+}
+
+/* 扫光只做 transform 位移，交给合成层执行，不触发重绘。 */
+.au-card-skeleton::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(var(--color-text-rgb), 0.07), transparent);
+  animation: auSkeletonShimmer 1.4s ease-in-out infinite;
+  transform: translateX(-100%);
+  content: "";
+}
+
+@keyframes auSkeletonShimmer {
   to {
-    transform: rotate(360deg);
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .au-card-skeleton::after {
+    display: none;
+    animation: none;
   }
 }
 

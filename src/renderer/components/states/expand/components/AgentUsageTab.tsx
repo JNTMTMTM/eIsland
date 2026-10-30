@@ -157,6 +157,37 @@ function ProviderCard({ provider, now, t }: { provider: AgentUsageProviderSnapsh
   );
 }
 
+const SKELETON_PROVIDERS = ['claude', 'codex'] as const;
+
+/**
+ * 渲染单个来源的加载骨架卡片。
+ * @description 沿用真实卡片的四行布局，数据到达后切换不会产生位移。
+ * @param props - 组件参数
+ * @param props.provider - 来源标识，用于保留来源色点
+ * @returns 骨架卡片
+ */
+function ProviderSkeleton({ provider }: { provider: (typeof SKELETON_PROVIDERS)[number] }): React.ReactElement {
+  return (
+    <div className={`au-card au-card--${provider} au-card-skeleton`} aria-hidden="true">
+      <div className="au-card-head">
+        <span className="au-card-dot" />
+        <span className="au-skeleton-block au-skeleton-name" />
+        <span className="au-skeleton-block au-skeleton-model" />
+      </div>
+      <div className="au-card-summary">
+        <span className="au-skeleton-block au-skeleton-today" />
+        <span className="au-skeleton-block au-skeleton-meta" />
+      </div>
+      <div className="au-card-breakdown">
+        {[0, 1, 2, 3].map((index) => <span key={index} className="au-skeleton-block au-skeleton-cell" />)}
+      </div>
+      <div className="au-card-quota">
+        <span className="au-skeleton-block au-skeleton-bar" />
+      </div>
+    </div>
+  );
+}
+
 /**
  * Agent 用量 Tab
  * @description 展开时读取本地日志汇总，标签页可见期间每分钟刷新一次
@@ -223,21 +254,33 @@ export function AgentUsageTab(): React.ReactElement {
     };
   }, [load]);
 
-  if (!snapshot) {
+  if (!snapshot && failed) {
     return (
       <div className="expand-tab-panel au-tab-panel">
         <div className="au-status">
-          {!failed && <span className="au-spinner" aria-hidden="true" />}
-          <span>
-            {failed
-              ? t('expanded.agentUsage.error', { defaultValue: '读取本地日志失败' })
-              : t('expanded.agentUsage.loading', { defaultValue: '正在读取本地日志...' })}
-          </span>
-          {failed && (
-            <button className="au-refresh-btn" type="button" onClick={handleRefresh}>
-              {t('expanded.agentUsage.refresh', { defaultValue: '刷新' })}
-            </button>
-          )}
+          <span>{t('expanded.agentUsage.error', { defaultValue: '读取本地日志失败' })}</span>
+          <button className="au-refresh-btn" type="button" onClick={handleRefresh}>
+            {t('expanded.agentUsage.refresh', { defaultValue: '刷新' })}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!snapshot) {
+    return (
+      <div className="expand-tab-panel au-tab-panel">
+        <div className="au-panel-wrap" role="status" aria-busy="true" aria-label={t('expanded.agentUsage.loading', { defaultValue: '正在读取本地日志...' })}>
+          <div className="au-head">
+            <div className="au-title-group">
+              <span className="au-title">{t('expanded.agentUsage.title', { defaultValue: 'Agent 用量' })}</span>
+              <span className="au-subtitle">{t('expanded.agentUsage.subtitle', { defaultValue: '读取本机 Claude Code 与 Codex 日志' })}</span>
+            </div>
+            <span className="au-skeleton-block au-skeleton-action" />
+          </div>
+          <div className="au-cards">
+            {SKELETON_PROVIDERS.map((provider) => <ProviderSkeleton key={provider} provider={provider} />)}
+          </div>
         </div>
       </div>
     );

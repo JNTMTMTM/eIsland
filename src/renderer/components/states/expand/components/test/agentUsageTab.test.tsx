@@ -95,14 +95,31 @@ afterEach(() => {
 });
 
 describe('AgentUsageTab', () => {
-  it('首次挂载显示加载态，延迟后才请求快照', async () => {
+  it('首次挂载显示与卡片同构的骨架屏，延迟后才请求快照', async () => {
     leaves.snapshot.mockReturnValue(new Promise(() => {}));
     run();
     flushHookEffects();
-    expect(text(run())).toContain('expanded.agentUsage.loading');
+    const tree = run();
+    const status = byClass(tree, 'au-panel-wrap');
+    expect(status.props).toMatchObject({ role: 'status', 'aria-busy': 'true', 'aria-label': 'expanded.agentUsage.loading' });
+    const skeletons = elements(tree).filter((node) => String(node.props.className).includes('au-card-skeleton'));
+    expect(skeletons.map((node) => node.props.className)).toEqual(['au-card au-card--claude au-card-skeleton', 'au-card au-card--codex au-card-skeleton']);
+    expect(skeletons.every((node) => node.props['aria-hidden'] === 'true')).toBe(true);
+    expect(elements(skeletons[0]).filter((node) => String(node.props.className).includes('au-skeleton-cell'))).toHaveLength(4);
+    expect(text(tree)).toContain('expanded.agentUsage.title');
+    expect(text(tree)).not.toContain('expanded.agentUsage.error');
     expect(leaves.snapshot).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(200);
     expect(leaves.snapshot).toHaveBeenCalledOnce();
+  });
+
+  it('数据到达后骨架屏替换为真实卡片', async () => {
+    leaves.snapshot.mockResolvedValue(snapshot([provider({})]));
+    await mount();
+    const tree = run();
+    expect(elements(tree).some((node) => String(node.props.className).includes('au-card-skeleton'))).toBe(false);
+    expect(byClass(tree, 'au-panel-wrap').props.role).toBeUndefined();
+    expect(text(byClass(tree, 'au-card-today'))).toBe('8.33M');
   });
 
   it('首次失败显示错误与刷新按钮，点击后重新请求', async () => {
