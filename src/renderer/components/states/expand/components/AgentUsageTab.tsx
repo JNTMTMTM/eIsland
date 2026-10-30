@@ -26,8 +26,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AgentIcon } from '../../../../utils/SvgIcon';
 import type React from 'react';
 import type {
+  AgentUsageProviderId,
   AgentUsageProviderSnapshot,
   AgentUsageRateLimitWindow,
   AgentUsageSnapshot,
@@ -38,6 +40,11 @@ const START_FETCH_DELAY_MS = 200;
 let cachedAgentUsageSnapshot: AgentUsageSnapshot | null = null;
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+const PROVIDER_ICONS: Record<AgentUsageProviderId, string> = {
+  claude: AgentIcon.CLAUDE,
+  codex: AgentIcon.CODEX,
+};
 
 function formatTokens(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return '0';
@@ -102,6 +109,7 @@ function ProviderCard({ provider, now, t }: { provider: AgentUsageProviderSnapsh
   if (!provider.available) {
     return (
       <div className={`au-card au-card--${provider.provider} au-card--empty`}>
+        <img className="au-card-icon" src={PROVIDER_ICONS[provider.provider]} alt="" draggable={false} />
         <div className="au-card-head">
           <span className="au-card-dot" aria-hidden="true" />
           <span className="au-card-name">{name}</span>
@@ -119,6 +127,7 @@ function ProviderCard({ provider, now, t }: { provider: AgentUsageProviderSnapsh
   ];
   return (
     <div className={`au-card au-card--${provider.provider}`}>
+      <img className="au-card-icon" src={PROVIDER_ICONS[provider.provider]} alt="" draggable={false} />
       <div className="au-card-head">
         <span className="au-card-dot" aria-hidden="true" />
         <span className="au-card-name">{name}</span>
@@ -157,7 +166,7 @@ function ProviderCard({ provider, now, t }: { provider: AgentUsageProviderSnapsh
   );
 }
 
-const SKELETON_PROVIDERS = ['claude', 'codex'] as const;
+const SKELETON_PROVIDERS: AgentUsageProviderId[] = ['claude', 'codex'];
 
 /**
  * 渲染单个来源的加载骨架卡片。
@@ -166,9 +175,10 @@ const SKELETON_PROVIDERS = ['claude', 'codex'] as const;
  * @param props.provider - 来源标识，用于保留来源色点
  * @returns 骨架卡片
  */
-function ProviderSkeleton({ provider }: { provider: (typeof SKELETON_PROVIDERS)[number] }): React.ReactElement {
+function ProviderSkeleton({ provider }: { provider: AgentUsageProviderId }): React.ReactElement {
   return (
     <div className={`au-card au-card--${provider} au-card-skeleton`} aria-hidden="true">
+      <img className="au-card-icon" src={PROVIDER_ICONS[provider]} alt="" draggable={false} />
       <div className="au-card-head">
         <span className="au-card-dot" />
         <span className="au-skeleton-block au-skeleton-name" />

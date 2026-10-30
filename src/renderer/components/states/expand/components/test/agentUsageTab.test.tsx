@@ -28,6 +28,7 @@ import { isValidElement, type ReactElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
 import { byClass, elements, invoke, text } from '../../../test/tree';
+import { AgentIcon } from '../../../../../utils/SvgIcon';
 import type { AgentUsageProviderSnapshot, AgentUsageSnapshot } from '../../../../../../preload/types/agentUsage';
 
 const leaves = vi.hoisted(() => ({
@@ -105,6 +106,7 @@ describe('AgentUsageTab', () => {
     const skeletons = elements(tree).filter((node) => String(node.props.className).includes('au-card-skeleton'));
     expect(skeletons.map((node) => node.props.className)).toEqual(['au-card au-card--claude au-card-skeleton', 'au-card au-card--codex au-card-skeleton']);
     expect(skeletons.every((node) => node.props['aria-hidden'] === 'true')).toBe(true);
+    expect(skeletons.map((node) => byClass(node, 'au-card-icon').props.src)).toEqual([AgentIcon.CLAUDE, AgentIcon.CODEX]);
     expect(elements(skeletons[0]).filter((node) => String(node.props.className).includes('au-skeleton-cell'))).toHaveLength(4);
     expect(text(tree)).toContain('expanded.agentUsage.title');
     expect(text(tree)).not.toContain('expanded.agentUsage.error');
@@ -139,6 +141,10 @@ describe('AgentUsageTab', () => {
     const tree = run();
     const cards = elements(tree).filter((node) => String(node.props.className).startsWith('au-card au-card--'));
     expect(cards.map((node) => node.props.className)).toEqual(['au-card au-card--claude', 'au-card au-card--codex']);
+    expect(cards.map((node) => byClass(node, 'au-card-icon').props)).toEqual([
+      expect.objectContaining({ src: AgentIcon.CLAUDE, alt: '' }),
+      expect.objectContaining({ src: AgentIcon.CODEX, alt: '' }),
+    ]);
     expect(text(cards[0])).toContain('expanded.agentUsage.providers.claude');
     expect(text(cards[0])).toContain('claude-opus-5-5');
     expect(text(byClass(cards[0], 'au-card-today'))).toBe('8.33M');
@@ -176,6 +182,7 @@ describe('AgentUsageTab', () => {
     await mount();
     const tree = run();
     expect(byClass(tree, 'au-card').props.className).toContain('au-card--empty');
+    expect(byClass(tree, 'au-card-icon').props.src).toBe(AgentIcon.CLAUDE);
     expect(text(tree)).toContain('expanded.agentUsage.unavailable');
     expect(elements(tree).some((node) => node.props.className === 'au-card-today')).toBe(false);
   });

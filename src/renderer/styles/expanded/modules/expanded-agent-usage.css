@@ -202,9 +202,10 @@
 .au-card {
   --au-accent: rgba(var(--color-text-rgb), 0.6);
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto auto 1fr;
   align-content: start;
-  gap: 4px;
+  gap: 4px 10px;
   min-width: 0;
   min-height: 0;
   padding: 6px 8px;
@@ -224,6 +225,31 @@
 .au-card--empty {
   grid-template-rows: auto 1fr;
   align-content: stretch;
+}
+
+/* 图标独占左列并纵跨全部行，其余内容统一落在右列。 */
+.au-card-icon {
+  grid-row: 1 / -1;
+  grid-column: 1;
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  user-select: none;
+}
+
+.au-card > :not(.au-card-icon) {
+  grid-column: 2;
+}
+
+/* Codex 图标为白色单色，浅色主题下反相以保持可见。 */
+.au-card--codex .au-card-icon {
+  filter: brightness(0) invert(1);
+  opacity: 0.82;
+}
+
+[data-theme='light'] .au-card--codex .au-card-icon {
+  filter: brightness(0) invert(0);
 }
 
 .au-card-head {
