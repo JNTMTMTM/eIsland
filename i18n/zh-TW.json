@@ -822,6 +822,9 @@
     "performanceMonitor": {
       "title": "性能監控"
     },
+    "agentQuota": {
+      "title": "Agent 額度"
+    },
     "breakReminder": {
       "title": "休息提醒",
       "count": "{{count}} 項",
@@ -3131,7 +3134,8 @@
           "breakReminder": "休息提醒",
           "alarm": "鬧鐘",
           "worldClock": "世界時鐘",
-          "performanceMonitor": "性能監控"
+          "performanceMonitor": "性能監控",
+          "agentQuota": "Agent 額度"
         },
         "previewMock": {
           "previewTag": "預覽",

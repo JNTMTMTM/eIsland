@@ -26,7 +26,15 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AgentIcon } from '../../../../utils/SvgIcon';
+import {
+  AGENT_USAGE_PROVIDER_ICONS,
+  effectivePercent,
+  formatTokens,
+  quotaLevel,
+  resetLabel,
+  windowLabel,
+  type Translate,
+} from '../utils/agentUsageFormat';
 import type React from 'react';
 import type {
   AgentUsageProviderId,
@@ -39,64 +47,15 @@ const REFRESH_INTERVAL_MS = 60_000;
 const START_FETCH_DELAY_MS = 200;
 let cachedAgentUsageSnapshot: AgentUsageSnapshot | null = null;
 
-type Translate = (key: string, options?: Record<string, unknown>) => string;
-
-const PROVIDER_ICONS: Record<AgentUsageProviderId, string> = {
-  claude: AgentIcon.CLAUDE,
-  codex: AgentIcon.CODEX,
-};
-
-function formatTokens(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return '0';
-  const units = ['', 'K', 'M', 'B'];
-  let scaled = value;
-  let index = 0;
-  while (scaled >= 1000 && index < units.length - 1) {
-    scaled /= 1000;
-    index += 1;
-  }
-  if (index === 0) return String(Math.round(scaled));
-  return `${scaled >= 100 ? scaled.toFixed(0) : scaled.toFixed(scaled >= 10 ? 1 : 2)}${units[index]}`;
-}
-
-function formatDuration(ms: number): string {
-  const minutes = Math.max(1, Math.ceil(ms / 60_000));
-  const days = Math.floor(minutes / 1440);
-  const hours = Math.floor((minutes % 1440) / 60);
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  return `${minutes}m`;
-}
-
-function windowLabel(windowMinutes: number | null, t: Translate): string {
-  if (windowMinutes === 300) return t('expanded.agentUsage.window.fiveHour', { defaultValue: '5 小时' });
-  if (windowMinutes === 10080) return t('expanded.agentUsage.window.weekly', { defaultValue: '每周' });
-  if (windowMinutes && windowMinutes > 0) return t('expanded.agentUsage.window.hours', { defaultValue: '{{count}} 小时', count: Math.round(windowMinutes / 60) });
-  return t('expanded.agentUsage.window.unknown', { defaultValue: '额度' });
-}
-
-function quotaLevel(percent: number): string {
-  if (percent >= 90) return 'au-quota-fill--danger';
-  if (percent >= 70) return 'au-quota-fill--warn';
-  return '';
-}
-
-function resetLabel(resetsAt: number | null, now: number, t: Translate): string {
-  if (resetsAt === null) return '';
-  if (resetsAt <= now) return t('expanded.agentUsage.resetDone', { defaultValue: '已重置' });
-  return t('expanded.agentUsage.resetIn', { defaultValue: '{{time}}后重置', time: formatDuration(resetsAt - now) });
-}
-
 function QuotaBar({ window, now, t }: { window: AgentUsageRateLimitWindow; now: number; t: Translate }): React.ReactElement {
-  // 窗口已过重置时间时日志尚未刷新，按已重置展示。
-  const expired = window.resetsAt !== null && window.resetsAt <= now;
-  const percent = expired ? 0 : window.usedPercent;
+  const percent = effectivePercent(window, now);
+  const level = quotaLevel(percent);
   const resetText = resetLabel(window.resetsAt, now, t);
   return (
     <div className="au-quota">
       <span className="au-quota-label">{windowLabel(window.windowMinutes, t)}</span>
       <div className="au-quota-track">
-        <div className={`au-quota-fill ${quotaLevel(percent)}`} style={{ width: `${percent}%` }} />
+        <div className={`au-quota-fill${level ? ` au-quota-fill--${level}` : ''}`} style={{ width: `${percent}%` }} />
       </div>
       <span className="au-quota-value">{`${Math.round(percent)}%`}</span>
       {resetText && <span className="au-quota-reset">{resetText}</span>}
@@ -109,7 +68,7 @@ function ProviderCard({ provider, now, t }: { provider: AgentUsageProviderSnapsh
   if (!provider.available) {
     return (
       <div className={`au-card au-card--${provider.provider} au-card--empty`}>
-        <img className="au-card-icon" src={PROVIDER_ICONS[provider.provider]} alt="" draggable={false} />
+        <img className="au-card-icon" src={AGENT_USAGE_PROVIDER_ICONS[provider.provider]} alt="" draggable={false} />
         <div className="au-card-head">
           <span className="au-card-dot" aria-hidden="true" />
           <span className="au-card-name">{name}</span>
@@ -127,7 +86,7 @@ function ProviderCard({ provider, now, t }: { provider: AgentUsageProviderSnapsh
   ];
   return (
     <div className={`au-card au-card--${provider.provider}`}>
-      <img className="au-card-icon" src={PROVIDER_ICONS[provider.provider]} alt="" draggable={false} />
+      <img className="au-card-icon" src={AGENT_USAGE_PROVIDER_ICONS[provider.provider]} alt="" draggable={false} />
       <div className="au-card-head">
         <span className="au-card-dot" aria-hidden="true" />
         <span className="au-card-name">{name}</span>
@@ -178,7 +137,7 @@ const SKELETON_PROVIDERS: AgentUsageProviderId[] = ['claude', 'codex'];
 function ProviderSkeleton({ provider }: { provider: AgentUsageProviderId }): React.ReactElement {
   return (
     <div className={`au-card au-card--${provider} au-card-skeleton`} aria-hidden="true">
-      <img className="au-card-icon" src={PROVIDER_ICONS[provider]} alt="" draggable={false} />
+      <img className="au-card-icon" src={AGENT_USAGE_PROVIDER_ICONS[provider]} alt="" draggable={false} />
       <div className="au-card-head">
         <span className="au-card-dot" />
         <span className="au-skeleton-block au-skeleton-name" />

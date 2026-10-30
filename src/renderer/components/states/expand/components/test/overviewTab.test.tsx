@@ -34,7 +34,7 @@ const mocks = vi.hoisted(() => ({
   read: vi.fn<(key: string) => Promise<unknown>>(), write: vi.fn<(key: string, data: unknown) => Promise<boolean>>(),
   subscribe: vi.fn<(callback: (channel: string, data: unknown) => void) => () => void>(), unsubscribe: vi.fn(),
   openFile: vi.fn<(path: string) => Promise<boolean>>(), openWindow: vi.fn<() => Promise<boolean>>(),
-  select: vi.fn(), max: vi.fn(), widgets: Array.from({ length: 12 }, () => () => null), localGet: vi.fn<() => string | null>(), localSet: vi.fn(),
+  select: vi.fn(), max: vi.fn(), widgets: Array.from({ length: 13 }, () => () => null), localGet: vi.fn<() => string | null>(), localSet: vi.fn(),
 }));
 // 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
 vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
@@ -52,6 +52,7 @@ vi.mock('../OverviewTab/components/OverviewWidgets', () => ({
   WorldClockWidget: mocks.widgets[9],
   AlarmWidget: mocks.widgets[10],
   PerformanceMonitorWidget: mocks.widgets[11],
+  AgentQuotaWidget: mocks.widgets[12],
 }));
 
 /**
@@ -104,7 +105,7 @@ describe('OverviewTab', () => {
   it.each(OVERVIEW_WIDGET_OPTIONS)('控件 $value 可选为左右两栏并生成对应组件', async ({ value: widget }) => {
     layout = { ...layout, left: widget, right: widget };
     const cleanup = await boot();
-    const map: Record<string, number> = { album: 0, breakReminder: 1, countdown: 2, mokugyo: 3, pomodoro: 4, shortcuts: 5, song: 6, todo: 7, urlFavorites: 8, worldClock: 9, alarm: 10, performanceMonitor: 11 };
+    const map: Record<string, number> = { album: 0, breakReminder: 1, countdown: 2, mokugyo: 3, pomodoro: 4, shortcuts: 5, song: 6, todo: 7, urlFavorites: 8, worldClock: 9, alarm: 10, performanceMonitor: 11, agentQuota: 12 };
     expect(nodes(render(OverviewTab), mocks.widgets[map[widget]])).toHaveLength(2);
     cleanup.forEach((fn) => fn());
   });

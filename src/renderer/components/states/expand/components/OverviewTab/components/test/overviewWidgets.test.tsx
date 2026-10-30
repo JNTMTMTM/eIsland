@@ -32,9 +32,9 @@ vi.mock('../../../../../../../store/slices', () => ({ default: Object.assign(vi.
 vi.mock('../../../../../../../i18n', () => ({ default: { t: (key: string) => key } }));
 
 describe('OverviewWidgets facade', () => {
-  it('完整透传全部12个真实控件引用', () => {
+  it('完整透传全部13个真实控件引用', () => {
     expect(Object.keys(facade).sort()).toEqual(Object.keys(widgets).sort());
-    expect(Object.keys(facade)).toHaveLength(12);
+    expect(Object.keys(facade)).toHaveLength(13);
     Object.entries(widgets).forEach(([name, component]) => {
       expect(facade[name as keyof typeof facade]).toBe(component);
     });

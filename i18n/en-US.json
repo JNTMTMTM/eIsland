@@ -822,6 +822,9 @@
     "performanceMonitor": {
       "title": "Performance Monitor"
     },
+    "agentQuota": {
+      "title": "Agent Quota"
+    },
     "breakReminder": {
       "title": "Break Reminder",
       "count": "{{count}} items",
@@ -3131,7 +3134,8 @@
           "breakReminder": "Break Reminder",
           "alarm": "Alarms",
           "worldClock": "World Clock",
-          "performanceMonitor": "Performance Monitor"
+          "performanceMonitor": "Performance Monitor",
+          "agentQuota": "Agent Quota"
         },
         "previewMock": {
           "previewTag": "Preview",

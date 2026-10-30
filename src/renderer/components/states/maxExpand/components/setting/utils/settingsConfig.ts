@@ -459,6 +459,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '总览布局预览', desc: '实时显示左右控件组合后的 Expand 态灵动岛样式，切换下方控件可即时预览。', labelKey: 'settings.app.layout.previewTitle', descKey: 'settings.app.layout.previewHint', tab: 'app', appPage: 'layout-preview' },
   { label: '控件组合', desc: '分别选择左右两侧展示的控件，切换后自动保存。', labelKey: 'settings.app.layout.widgetPickerTitle', descKey: 'settings.app.layout.widgetPickerHint', tab: 'app', appPage: 'layout-preview' },
   { label: '性能监控', desc: '分别选择左右两侧展示的控件，切换后自动保存。', labelKey: 'settings.app.layout.widgetNames.performanceMonitor', descKey: 'settings.app.layout.widgetPickerHint', tab: 'app', appPage: 'layout-preview' },
+  { label: 'Agent 额度', desc: '分别选择左右两侧展示的控件，切换后自动保存。', labelKey: 'settings.app.layout.widgetNames.agentQuota', descKey: 'settings.app.layout.widgetPickerHint', tab: 'app', appPage: 'layout-preview' },
   { label: '中间时钟样式', desc: '选择总览中间时钟区域样式，切换后自动保存。', labelKey: 'settings.app.layout.clockStyleTitle', descKey: 'settings.app.layout.clockStyleHint', tab: 'app', appPage: 'layout-preview' },
   { label: '渐变颜色编辑', desc: '选择一个基准色，自动生成渐变时钟字体。', labelKey: 'settings.app.layout.gradientEditorTitle', descKey: 'settings.app.layout.gradientEditorHint', tab: 'app', appPage: 'layout-preview' },
   { label: 'Hover 音乐背景样式', desc: '预览并选择 Hover 态歌曲界面的背景波浪效果样式。', labelKey: 'settings.app.layout.musicBgTitle', descKey: 'settings.app.layout.musicBgHint', tab: 'app', appPage: 'layout-preview' },

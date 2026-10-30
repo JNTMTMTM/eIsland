@@ -42,6 +42,7 @@ import {
   WorldClockWidget,
   AlarmWidget,
   PerformanceMonitorWidget,
+  AgentQuotaWidget,
 } from './OverviewTab/components/OverviewWidgets';
 import {
   APPS_STORE_KEY,
@@ -54,7 +55,7 @@ import {
 } from './OverviewTab/utils/overviewUtils';
 
 /** 总览控件类型 */
-export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album' | 'mokugyo' | 'breakReminder' | 'worldClock' | 'alarm' | 'performanceMonitor';
+export type OverviewWidgetType = 'shortcuts' | 'todo' | 'song' | 'countdown' | 'pomodoro' | 'urlFavorites' | 'album' | 'mokugyo' | 'breakReminder' | 'worldClock' | 'alarm' | 'performanceMonitor' | 'agentQuota';
 
 /** 中间时钟样式类型 */
 export type OverviewClockStyle = 'classic' | 'gradient' | 'minimal';
@@ -73,6 +74,7 @@ export const OVERVIEW_WIDGET_OPTIONS: { value: OverviewWidgetType }[] = [
   { value: 'worldClock' },
   { value: 'alarm' },
   { value: 'performanceMonitor' },
+  { value: 'agentQuota' },
 ];
 
 /** 时钟样式选项 */
@@ -407,6 +409,8 @@ export function OverviewTab(): React.ReactElement {
         return <AlarmWidget onOpenAlarmPage={() => openTargetPage('alarm')} />;
       case 'performanceMonitor':
         return <PerformanceMonitorWidget />;
+      case 'agentQuota':
+        return <AgentQuotaWidget />;
       default:
         return null;
     }

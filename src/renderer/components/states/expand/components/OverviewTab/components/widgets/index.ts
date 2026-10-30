@@ -36,3 +36,4 @@ export * from './BreakReminderWidget';
 export * from './WorldClockWidget';
 export * from './AlarmWidget';
 export * from './PerformanceMonitorWidget';
+export * from './AgentQuotaWidget';

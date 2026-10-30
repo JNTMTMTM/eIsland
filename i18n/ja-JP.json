@@ -822,6 +822,9 @@
     "performanceMonitor": {
       "title": "パフォーマンスモニター"
     },
+    "agentQuota": {
+      "title": "Agent クォータ"
+    },
     "breakReminder": {
       "title": "休憩リマインダー",
       "count": "{{count}} 件",
@@ -3131,7 +3134,8 @@
           "breakReminder": "休憩リマインダー",
           "alarm": "アラーム",
           "worldClock": "世界時計",
-          "performanceMonitor": "パフォーマンスモニター"
+          "performanceMonitor": "パフォーマンスモニター",
+          "agentQuota": "Agent クォータ"
         },
         "previewMock": {
           "previewTag": "プレビュー",

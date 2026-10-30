@@ -39,6 +39,7 @@ export const OVERVIEW_WIDGET_LABEL_KEYS: Record<OverviewWidgetType, string> = {
   worldClock: 'settings.app.layout.widgetNames.worldClock',
   alarm: 'settings.app.layout.widgetNames.alarm',
   performanceMonitor: 'settings.app.layout.widgetNames.performanceMonitor',
+  agentQuota: 'settings.app.layout.widgetNames.agentQuota',
 };
 
 export const OVERVIEW_CLOCK_STYLE_LABEL_KEYS: Record<OverviewClockStyle, string> = {

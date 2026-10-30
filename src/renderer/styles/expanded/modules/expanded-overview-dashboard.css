@@ -846,6 +846,198 @@
 
 }
 
+/** Agent 额度控件 */
+.ov-dash-agent-quota-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+
+}
+
+.ov-dash-agent-quota-item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 5px 8px;
+  background: rgb(var(--color-text-rgb), .035);
+  border-radius: 7px;
+
+}
+
+.ov-dash-agent-quota-item--claude {
+  --ov-agent-accent: #d97757;
+
+}
+
+.ov-dash-agent-quota-item--codex {
+  --ov-agent-accent: #8da8ff;
+
+}
+
+.ov-dash-agent-quota-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+
+}
+
+.ov-dash-agent-quota-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  user-select: none;
+
+}
+
+/* Codex 图标为白色单色，浅色主题下反相以保持可见。 */
+.ov-dash-agent-quota-item--codex .ov-dash-agent-quota-icon {
+  opacity: .82;
+  filter: brightness(0) invert(1);
+
+}
+
+[data-theme='light'] .ov-dash-agent-quota-item--codex .ov-dash-agent-quota-icon {
+  filter: brightness(0) invert(0);
+
+}
+
+.ov-dash-agent-quota-name {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .62);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.ov-dash-agent-quota-today {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 12px;
+  line-height: 1.2;
+  color: rgb(var(--color-text-rgb), .9);
+  font-variant-numeric: tabular-nums;
+
+}
+
+.ov-dash-agent-quota-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 28px;
+  gap: 6px;
+  align-items: center;
+
+}
+
+.ov-dash-agent-quota-window,
+.ov-dash-agent-quota-hint {
+  overflow: hidden;
+  font-size: 9px;
+  color: rgb(var(--color-text-rgb), .4);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+.ov-dash-agent-quota-percent {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgb(var(--color-text-rgb), .78);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+
+}
+
+.ov-dash-agent-quota-track {
+  height: 3px;
+  overflow: hidden;
+  background: rgb(var(--color-text-rgb), .08);
+  border-radius: 2px;
+
+}
+
+.ov-dash-agent-quota-fill {
+  height: 100%;
+  background: var(--ov-agent-accent, rgb(var(--color-text-rgb), .6));
+  border-radius: 2px;
+  transition: width .35s ease;
+
+}
+
+.ov-dash-agent-quota-fill--warn {
+  background: #f59e0b;
+
+}
+
+.ov-dash-agent-quota-fill--danger {
+  background: #ef4444;
+
+}
+
+.ov-dash-agent-quota-empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: rgb(var(--color-text-rgb), .24);
+  text-align: center;
+
+}
+
+.ov-dash-agent-quota-skeleton {
+  position: relative;
+  overflow: hidden;
+
+}
+
+.ov-dash-agent-quota-skeleton-block {
+  display: block;
+  background: rgb(var(--color-text-rgb), .1);
+  border-radius: 3px;
+
+}
+
+.ov-dash-agent-quota-skeleton-name {
+  width: 56px;
+  height: 8px;
+
+}
+
+.ov-dash-agent-quota-skeleton-bar {
+  height: 3px;
+
+}
+
+/* 扫光只做 transform 位移，交给合成层执行，不触发重绘。 */
+.ov-dash-agent-quota-skeleton::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-text-rgb), .07), transparent);
+  animation: ov-performance-skeleton-shimmer 1.4s ease-in-out infinite;
+  transform: translateX(-100%);
+  content: "";
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-dash-agent-quota-skeleton::after {
+    display: none;
+    animation: none;
+
+  }
+
+}
+
 /** 相册轮播控件 */
 .ov-dash-album-count {
   position: absolute;
