@@ -685,6 +685,39 @@
       "maxExpand": "最大まで展開",
       "switchToPage": "{{label}} ページに切り替え"
     },
+    "agentUsage": {
+      "title": "Agent 使用量",
+      "subtitle": "ローカルの Claude Code と Codex のログを読み取り",
+      "refresh": "更新",
+      "refreshing": "更新中",
+      "updatedAt": "{{time}} 更新",
+      "loading": "ローカルログを読み取り中...",
+      "error": "ローカルログの読み取りに失敗しました",
+      "unavailable": "ローカルログが見つかりません",
+      "todayTokens": "本日の tokens",
+      "week": "7 日 {{value}}",
+      "sessions": "本日のセッション {{count}}",
+      "noQuotaInLogs": "ローカルログに上限情報はありません",
+      "noQuotaData": "上限データはまだありません",
+      "resetIn": "{{time}}後にリセット",
+      "resetDone": "リセット済み",
+      "window": {
+        "fiveHour": "5 時間",
+        "weekly": "毎週",
+        "hours": "{{count}} 時間",
+        "unknown": "上限"
+      },
+      "providers": {
+        "claude": "Claude Code",
+        "codex": "Codex"
+      },
+      "tokens": {
+        "input": "入力",
+        "output": "出力",
+        "cacheRead": "キャッシュ読",
+        "cacheWrite": "キャッシュ書"
+      }
+    },
     "performanceMonitor": {
       "title": "システムパフォーマンス",
       "subtitle": "ハードウェアの状態と温度をリアルタイムで表示",

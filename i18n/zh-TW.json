@@ -685,6 +685,39 @@
       "maxExpand": "最大展開",
       "switchToPage": "切換到{{label}}頁面"
     },
+    "agentUsage": {
+      "title": "Agent 用量",
+      "subtitle": "讀取本機 Claude Code 與 Codex 日誌",
+      "refresh": "重新整理",
+      "refreshing": "重新整理中",
+      "updatedAt": "更新於 {{time}}",
+      "loading": "正在讀取本機日誌...",
+      "error": "讀取本機日誌失敗",
+      "unavailable": "未偵測到本機日誌",
+      "todayTokens": "今日 tokens",
+      "week": "7 天 {{value}}",
+      "sessions": "今日會話 {{count}}",
+      "noQuotaInLogs": "本機日誌不含額度資訊",
+      "noQuotaData": "暫無額度資料",
+      "resetIn": "{{time}}後重置",
+      "resetDone": "已重置",
+      "window": {
+        "fiveHour": "5 小時",
+        "weekly": "每週",
+        "hours": "{{count}} 小時",
+        "unknown": "額度"
+      },
+      "providers": {
+        "claude": "Claude Code",
+        "codex": "Codex"
+      },
+      "tokens": {
+        "input": "輸入",
+        "output": "輸出",
+        "cacheRead": "快取讀",
+        "cacheWrite": "快取寫"
+      }
+    },
     "performanceMonitor": {
       "title": "系統性能",
       "subtitle": "實時硬件狀態與溫度",

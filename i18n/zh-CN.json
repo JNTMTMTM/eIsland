@@ -685,6 +685,39 @@
       "maxExpand": "最大展开",
       "switchToPage": "切换到{{label}}页面"
     },
+    "agentUsage": {
+      "title": "Agent 用量",
+      "subtitle": "读取本机 Claude Code 与 Codex 日志",
+      "refresh": "刷新",
+      "refreshing": "刷新中",
+      "updatedAt": "更新于 {{time}}",
+      "loading": "正在读取本地日志...",
+      "error": "读取本地日志失败",
+      "unavailable": "未检测到本地日志",
+      "todayTokens": "今日 tokens",
+      "week": "7 天 {{value}}",
+      "sessions": "今日会话 {{count}}",
+      "noQuotaInLogs": "本地日志不含额度信息",
+      "noQuotaData": "暂无额度数据",
+      "resetIn": "{{time}}后重置",
+      "resetDone": "已重置",
+      "window": {
+        "fiveHour": "5 小时",
+        "weekly": "每周",
+        "hours": "{{count}} 小时",
+        "unknown": "额度"
+      },
+      "providers": {
+        "claude": "Claude Code",
+        "codex": "Codex"
+      },
+      "tokens": {
+        "input": "输入",
+        "output": "输出",
+        "cacheRead": "缓存读",
+        "cacheWrite": "缓存写"
+      }
+    },
     "performanceMonitor": {
       "title": "系统性能",
       "subtitle": "实时硬件状态与温度",

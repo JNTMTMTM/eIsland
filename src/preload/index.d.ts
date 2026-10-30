@@ -86,6 +86,7 @@ import type {
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
+  AgentUsageSnapshot,
 } from './types';
 import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
 
@@ -380,6 +381,7 @@ declare global {
       codexEventsClear: () => Promise<CodexStatusSnapshot>;
       codexSessionsDelete: (sessionIds: string[]) => Promise<CodexStatusSnapshot>;
       onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void) => () => void;
+      agentUsageSnapshotGet: () => Promise<AgentUsageSnapshot>;
     };
   }
 }

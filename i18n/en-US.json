@@ -685,6 +685,39 @@
       "maxExpand": "Max Expand",
       "switchToPage": "Switch to {{label}} page"
     },
+    "agentUsage": {
+      "title": "Agent Usage",
+      "subtitle": "From local Claude Code and Codex logs",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing",
+      "updatedAt": "Updated {{time}}",
+      "loading": "Reading local logs...",
+      "error": "Failed to read local logs",
+      "unavailable": "No local logs found",
+      "todayTokens": "tokens today",
+      "week": "7d {{value}}",
+      "sessions": "{{count}} sessions today",
+      "noQuotaInLogs": "Local logs have no quota data",
+      "noQuotaData": "No quota data yet",
+      "resetIn": "Resets in {{time}}",
+      "resetDone": "Reset",
+      "window": {
+        "fiveHour": "5h",
+        "weekly": "Weekly",
+        "hours": "{{count}}h",
+        "unknown": "Quota"
+      },
+      "providers": {
+        "claude": "Claude Code",
+        "codex": "Codex"
+      },
+      "tokens": {
+        "input": "In",
+        "output": "Out",
+        "cacheRead": "Cache R",
+        "cacheWrite": "Cache W"
+      }
+    },
     "performanceMonitor": {
       "title": "System Performance",
       "subtitle": "Live hardware status and temperatures",
