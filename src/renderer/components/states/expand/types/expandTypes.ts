@@ -19,12 +19,52 @@
  */
 
 /**
- * @file types.ts
- * @description 展开状态导航点类型定义
+ * @file expandTypes.ts
+ * @description 展开状态导航点、切换方向、子组件入参与 hook 返回值类型定义
  * @author 鸡哥
  */
 
+import type { RefObject } from 'react';
 import type { ExpandTab } from '../../../../store/types';
 
 /** 导航点标识 — 含特殊动作：hover 返回、settings 切换独立状态 */
 export type NavDotId = ExpandTab | 'maxExpand';
+
+/** Tab 切换的滑动方向，null 表示首次挂载不播放方向动画 */
+export type ExpandSlideDirection = 'left' | 'right' | null;
+
+/** 启动窗口模式 */
+export type ExpandStartupMode = 'integrated' | 'standalone';
+
+/** 展开页加载反馈对应的页面，hover 回退为总览 */
+export type ExpandLoadingTab = Exclude<ExpandTab, 'hover'>;
+
+/** useExpandedContent hook 返回值类型 */
+export interface UseExpandedContentReturn {
+  expandTab: ExpandTab;
+  contentRef: RefObject<HTMLDivElement | null>;
+  slideDir: ExpandSlideDirection;
+  tabAnimation: boolean;
+  navDots: NavDotId[];
+  handleNavDotClick: (tab: NavDotId) => void;
+}
+
+/** useExpandedTransitionLoading hook 返回值类型 */
+export interface UseExpandedTransitionLoadingReturn {
+  activeTab: ExpandLoadingTab;
+  performanceModeEnabled: boolean;
+}
+
+/** ExpandedTabContent 组件入参 */
+export interface ExpandedTabContentProps {
+  expandTab: ExpandTab;
+  slideDir: ExpandSlideDirection;
+  tabAnimation: boolean;
+}
+
+/** ExpandedNavDots 组件入参 */
+export interface ExpandedNavDotsProps {
+  navDots: NavDotId[];
+  expandTab: ExpandTab;
+  onNavDotClick: (tab: NavDotId) => void;
+}

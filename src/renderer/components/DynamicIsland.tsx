@@ -32,7 +32,7 @@ import { DynamicIslandBackground } from './components/DynamicIslandBackground';
 import { DynamicIslandStateContent } from './components/DynamicIslandStateContent';
 import IslandContentTransition from './components/islandContentTransition';
 import MaxExpandTransitionLoading from './states/maxExpand/maxExpandTransitionLoading';
-import ExpandedTransitionLoading from './states/expand/components/expandedTransitionLoading';
+import { ExpandedTransitionLoading } from './states/expand';
 import { usePerformanceMode } from './states/maxExpand/hooks/usePerformanceMode';
 import { useDynamicIslandCoordinator } from './hooks/useDynamicIslandCoordinator';
 import selectDynamicIslandState from './utils/selectDynamicIslandState';

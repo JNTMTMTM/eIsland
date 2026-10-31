@@ -26,7 +26,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import { render, value } from '../../../maxExpand/test/componentHarness';
-import ExpandedTransitionLoading from '../expandedTransitionLoading';
+import { ExpandedTransitionLoading } from '../ExpandedTransitionLoading';
 import IslandPageLoading from '../../../../components/islandPageLoading';
 import type { ExpandTab } from '../../../../../store/types';
 

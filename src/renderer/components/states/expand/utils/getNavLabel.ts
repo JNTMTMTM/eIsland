@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { NavDotId } from '../config/types';
+import type { NavDotId } from '../types/expandTypes';
 
 /** 获取导航点的 i18n 标签 */
 export const getNavLabel = (

@@ -25,6 +25,9 @@
  */
 
 import {
+  isValidElement, type ReactElement, type ReactNode
+} from 'react';
+import {
   afterEach, beforeEach, describe, expect, it, vi
 } from 'vitest';
 import {
@@ -33,9 +36,6 @@ import {
 import {
   lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks
 } from '../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
-import type {
-  ReactElement
-} from 'react';
 const context = vi.hoisted(() => ({
   active: true
 }));
@@ -67,11 +67,24 @@ function snapshot<T>(subscribe: (callback: () => void) => () => void, getSnapsho
   void subscribe;
   return getSnapshot();
 }
+/** 展开内容区与导航点子组件，保留页面组件边界，使断言覆盖面板的真实输出。
+ * @param tree - 元素树
+ * @returns 展开后的元素树
+ */
+function expandParts(tree: ReactNode): ReactNode {
+  if (Array.isArray(tree)) return tree.map(expandParts);
+  if (!isValidElement<Record<string, unknown>>(tree)) return tree;
+  if (typeof tree.type === 'function' && ['ExpandedTabContent', 'ExpandedNavDots'].includes(tree.type.name)) {
+    return expandParts((tree.type as (props: object) => ReactNode)(tree.props));
+  }
+  const children = tree.props.children as ReactNode;
+  return { ...tree, props: { ...tree.props, children: Array.isArray(children) ? children.map(expandParts) : expandParts(children) } } as ReactElement;
+}
 /** 执行真实组件及所有展开设置 Hook。
  * @returns 当前元素树。
  */
 function view(): ReactElement {
-  return renderWithHooks(Component);
+  return expandParts(renderWithHooks(Component)) as ReactElement;
 }
 /** 提交实际设置初始化与 Promise 回调。
  * @returns 最新元素树。
