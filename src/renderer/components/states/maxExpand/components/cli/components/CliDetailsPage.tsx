@@ -44,10 +44,10 @@ export function CliDetailsPage({ id, provider, revision = 0, t }: { id: string; 
     <div className="cli-event-card-detail-item">
       {page ? <pre>{page.text}</pre> : <span>{t(failed ? 'maxExpand.cli.detailUnavailable' : 'maxExpand.cli.detailLoading')}</span>}
       {failed && <button type="button" onClick={() => setRetry((value) => value + 1)}>{t('maxExpand.cli.detailRetry')}</button>}
-      <div>
-        <button type="button" disabled={offsets.length === 1} onClick={() => setOffsets((values) => values.slice(0, -1))}>{t('maxExpand.cli.detailPrevious')}</button>
-        <span> {offsets.length} </span>
-        <button type="button" disabled={!page || page.nextOffset === null} onClick={() => {
+      <div className="mt-1.5 flex items-center gap-1.5">
+        <button className="cli-tab-page-btn" type="button" disabled={offsets.length === 1} onClick={() => setOffsets((values) => values.slice(0, -1))}>{t('maxExpand.cli.detailPrevious')}</button>
+        <span className="cli-tab-phase cli-tab-page-indicator">{offsets.length}</span>
+        <button className="cli-tab-page-btn" type="button" disabled={!page || page.nextOffset === null} onClick={() => {
           if (page?.nextOffset !== null && page?.nextOffset !== undefined) setOffsets((values) => [...values, page.nextOffset!]);
         }}>{t('maxExpand.cli.detailNext')}</button>
       </div>
