@@ -38,6 +38,7 @@ jobs:
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
           - eisland-windows-smtc-helper
+          - eisland-windows-startup-helper
           - eisland-windows-toast-listener
           - eisland-windows-screenshot-helper
           - eisland-windows-volume-analyzer
@@ -129,6 +130,7 @@ jobs:
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
           - eisland-windows-smtc-helper
+          - eisland-windows-startup-helper
           - eisland-windows-toast-listener
           - eisland-windows-screenshot-helper
           - eisland-windows-volume-analyzer
