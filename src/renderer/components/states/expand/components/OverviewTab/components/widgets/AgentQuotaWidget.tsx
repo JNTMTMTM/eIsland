@@ -27,14 +27,14 @@
 import { useCallback, useEffect, useState, type KeyboardEvent, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import useIslandStore from '../../../../../../../store/slices';
+import { AGENT_USAGE_PROVIDER_ICONS } from '../../../AgentUsageTab/config/agentUsageConfig';
 import {
-  AGENT_USAGE_PROVIDER_ICONS,
   effectivePercent,
   formatTokens,
   quotaLevel,
   windowLabel,
-  type Translate,
-} from '../../../../utils/agentUsageFormat';
+} from '../../../AgentUsageTab/utils/agentUsageUtils';
+import type { Translate } from '../../../AgentUsageTab/types/agentUsageTypes';
 import type { AgentUsageProviderId, AgentUsageProviderSnapshot, AgentUsageRateLimitWindow, AgentUsageSnapshot } from '../../../../../../../../preload/types/agentUsage';
 
 /** 与 Agent 用量页保持相同刷新节奏。 */

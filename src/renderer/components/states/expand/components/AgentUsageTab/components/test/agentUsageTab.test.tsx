@@ -26,10 +26,10 @@
 
 import { isValidElement, type ReactElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
-import { byClass, elements, invoke, text } from '../../../test/tree';
-import { AgentIcon } from '../../../../../utils/SvgIcon';
-import type { AgentUsageProviderSnapshot, AgentUsageSnapshot } from '../../../../../../preload/types/agentUsage';
+import { flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
+import { byClass, elements, invoke, text } from '../../../../../test/tree';
+import { AgentIcon } from '../../../../../../../utils/SvgIcon';
+import type { AgentUsageProviderSnapshot, AgentUsageSnapshot } from '../../../../../../../../preload/types/agentUsage';
 
 const leaves = vi.hoisted(() => ({
   snapshot: vi.fn<() => Promise<unknown>>(),

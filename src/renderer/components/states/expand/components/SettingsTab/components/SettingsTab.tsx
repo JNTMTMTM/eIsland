@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 /**
  * 设置 Tab
  * @description 展开状态下的设置面板
+ * @returns 设置面板
  */
 export function SettingsTab(): React.ReactElement {
   const { t } = useTranslation();

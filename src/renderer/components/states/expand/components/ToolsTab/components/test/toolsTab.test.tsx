@@ -25,8 +25,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushEffects, nodes, render, text, value } from '../../../maxExpand/test/componentHarness';
-import { fire, fireAsync } from '../../../maxExpand/components/tools/components/test/toolTestEvents';
+import { flushEffects, nodes, render, text, value } from '../../../../../maxExpand/test/componentHarness';
+import { fire, fireAsync } from '../../../../../maxExpand/components/tools/components/test/toolTestEvents';
 import { ToolsTab } from '../ToolsTab';
 
 const mocks = vi.hoisted(() => ({

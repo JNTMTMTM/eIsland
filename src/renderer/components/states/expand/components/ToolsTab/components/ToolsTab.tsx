@@ -24,158 +24,36 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-
-/** 应用快捷方式 */
-interface AppShortcut {
-  id: number;
-  name: string;
-  path: string;
-  iconBase64: string | null;
-}
-
-/** 存储键名 */
-const APPS_STORE_KEY = 'app-shortcuts';
-/** 最大快捷启动数量 */
-const MAX_APPS = 18;
+import { useToolsTab } from '../hooks/useToolsTab';
+import type { ReactElement } from 'react';
 
 /**
  * 系统工具 Tab
  * @description 展开状态下的快捷启动管理面板
+ * @returns 快捷启动面板
  */
-export function ToolsTab(): React.ReactElement {
+export function ToolsTab(): ReactElement {
   const { t } = useTranslation();
-  const [apps, setApps] = useState<AppShortcut[]>([]);
-  const [appsLoaded, setAppsLoaded] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const [dropError, setDropError] = useState(false);
-  const [dropDuplicate, setDropDuplicate] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState('');
-  const editRef = useRef<HTMLInputElement>(null);
-  const dragCountRef = useRef(0);
-
-  /** 加载应用快捷方式 */
-  useEffect(() => {
-    let cancelled = false;
-    window.api.storeRead(APPS_STORE_KEY).then((data) => {
-      if (cancelled) return;
-      if (Array.isArray(data)) setApps(data as AppShortcut[]);
-      setAppsLoaded(true);
-    }).catch(() => { if (!cancelled) setAppsLoaded(true); });
-    return () => { cancelled = true; };
-  }, []);
-
-  /** 持久化 */
-  useEffect(() => {
-    if (!appsLoaded) return;
-    window.api.storeWrite(APPS_STORE_KEY, apps).catch(() => {});
-  }, [apps, appsLoaded]);
-
-  /** 全局阻止默认拖拽行为（Electron 透明窗口必需） */
-  useEffect(() => {
-    const preventDragDefault = (e: DragEvent): void => {
-      e.preventDefault();
-    };
-    document.addEventListener('dragover', preventDragDefault);
-    document.addEventListener('drop', preventDragDefault);
-    return () => {
-      document.removeEventListener('dragover', preventDragDefault);
-      document.removeEventListener('drop', preventDragDefault);
-    };
-  }, []);
-
-  /** 聚焦编辑输入框 */
-  useEffect(() => {
-    if (editingId !== null && editRef.current) {
-      editRef.current.focus();
-      editRef.current.select();
-    }
-  }, [editingId]);
-
-  /** 拖拽添加应用 */
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCountRef.current = 0;
-    setDragOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    let hasInvalid = false;
-    let hasValid = false;
-    let hasDuplicate = false;
-    let addedCount = 0;
-    for (let i = 0; i < files.length; i++) {
-      const filePath = window.api.getPathForFile(files[i]);
-      if (!filePath) continue;
-      if (!/\.(exe|lnk)$/i.test(filePath)) { hasInvalid = true; continue; }
-      if (apps.some(a => a.path === filePath)) { hasDuplicate = true; continue; }
-      if (apps.length + addedCount >= MAX_APPS) break;
-      hasValid = true;
-      const name = filePath.split('\\').pop()?.replace(/\.(exe|lnk)$/i, '') || t('toolsTab.defaultAppName', { defaultValue: 'App' });
-      try {
-        const iconBase64 = await window.api.getFileIcon(filePath);
-        setApps(prev => prev.length >= MAX_APPS ? prev : [...prev, { id: Date.now() + Math.random(), name, path: filePath, iconBase64 }]);
-        addedCount += 1;
-      } catch { /* noop */ }
-    }
-    if (hasInvalid && !hasValid) {
-      setDropError(true);
-      setTimeout(() => setDropError(false), 2000);
-    } else if (hasDuplicate && !hasValid) {
-      setDropDuplicate(true);
-      setTimeout(() => setDropDuplicate(false), 2000);
-    }
-  }, [apps]);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCountRef.current += 1;
-    if (dragCountRef.current === 1) setDragOver(true);
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCountRef.current -= 1;
-    if (dragCountRef.current <= 0) {
-      dragCountRef.current = 0;
-      setDragOver(false);
-    }
-  }, []);
-
-  /** 删除 */
-  const removeApp = useCallback((id: number) => {
-    setApps(prev => prev.filter(a => a.id !== id));
-    if (editingId === id) setEditingId(null);
-  }, [editingId]);
-
-  /** 开始编辑名称 */
-  const startEdit = useCallback((app: AppShortcut) => {
-    setEditingId(app.id);
-    setEditName(app.name);
-  }, []);
-
-  /** 确认编辑 */
-  const confirmEdit = useCallback(() => {
-    if (editingId === null) return;
-    const trimmed = editName.trim();
-    if (trimmed) {
-      setApps(prev => prev.map(a => a.id === editingId ? { ...a, name: trimmed } : a));
-    }
-    setEditingId(null);
-  }, [editingId, editName]);
-
-  /** 打开应用 */
-  const openApp = useCallback((path: string) => {
-    window.api.openFile(path).catch(() => {});
-  }, []);
+  const {
+    apps,
+    dragOver,
+    dropError,
+    dropDuplicate,
+    editingId,
+    editName,
+    editRef,
+    setEditName,
+    setEditingId,
+    handleDrop,
+    handleDragEnter,
+    handleDragOver,
+    handleDragLeave,
+    removeApp,
+    startEdit,
+    confirmEdit,
+    openApp,
+  } = useToolsTab();
 
   return (
     <div className="expand-tab-panel tools-panel">

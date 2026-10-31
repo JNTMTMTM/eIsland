@@ -24,293 +24,50 @@
  * @author 鸡哥
  */
 
-import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import useIslandStore from '../../../../store/slices';
-import type { SyncedLyricLine, SyncedLyricSyllable } from '../../../../store/types';
-import { SvgIcon } from '../../../../utils/SvgIcon';
-import { formatTime, getDayName } from '../../../../utils/timeUtils';
-import { abbreviateWeatherDescription } from '../../../../utils/weatherText';
-
-/** 显示歌词行数 */
-const VISIBLE_LINES = 5;
-
-// ===================== 工具函数 =====================
-
-function findCurrentIndex(lyrics: SyncedLyricLine[], posMs: number): number {
-  if (lyrics.length === 0 || posMs < lyrics[0].time_ms) return -1;
-  let lo = 0;
-  let hi = lyrics.length - 1;
-  while (lo < hi) {
-    const mid = (lo + hi + 1) >> 1;
-    if (lyrics[mid].time_ms <= posMs) lo = mid;
-    else hi = mid - 1;
-  }
-  return lo;
-}
-
-function sliceNearby(
-  lyrics: SyncedLyricLine[],
-  idx: number,
-): { text: string; isCurrent: boolean; key: string }[] {
-  const half = Math.floor(VISIBLE_LINES / 2);
-  const result: { text: string; isCurrent: boolean; key: string }[] = [];
-  for (let offset = -half; offset <= half; offset++) {
-    const i = idx + offset;
-    if (i >= 0 && i < lyrics.length) {
-      result.push({ text: lyrics[i].text, isCurrent: offset === 0, key: `${i}` });
-    } else {
-      result.push({ text: '', isCurrent: false, key: `pad_${offset}` });
-    }
-  }
-  return result;
-}
-
-/** 格式化倒计时剩余 */
-function formatCountdownRemaining(targetDate: string, t: (key: string, options?: Record<string, unknown>) => string): string {
-  const diff = new Date(targetDate).getTime() - Date.now();
-  if (diff <= 0) return t('songTab.countdown.expired', { defaultValue: '已到期' });
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff % 86400000) / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  if (d > 0) return t('songTab.countdown.dayHour', { defaultValue: '{{days}}天{{hours}}时', days: d, hours: h });
-  if (h > 0) return t('songTab.countdown.hourMinute', { defaultValue: '{{hours}}时{{minutes}}分', hours: h, minutes: m });
-  return t('songTab.countdown.minute', { defaultValue: '{{minutes}}分', minutes: m });
-}
-
-// ===================== 歌词文本轮播组件 =====================
-
-/**
- * 歌词文本轮播
- * @description 文本超出容器时自动从右向左滚动，停顿后循环
- */
-function MarqueeLyricText({ children }: { children: React.ReactNode }): React.ReactElement {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLSpanElement>(null);
-  const [overflow, setOverflow] = useState(0);
-
-  const measure = useCallback(() => {
-    const outer = outerRef.current;
-    const inner = innerRef.current;
-    if (!outer || !inner) { setOverflow(0); return; }
-    const diff = inner.scrollWidth - outer.clientWidth;
-    setOverflow(diff > 1 ? diff : 0);
-  }, []);
-
-  useEffect(() => {
-    measure();
-  }, [children, measure]);
-
-  useEffect(() => {
-    const outer = outerRef.current;
-    if (!outer) return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(outer);
-    return () => ro.disconnect();
-  }, [measure]);
-
-  return (
-    <div ref={outerRef} className="ov-lrc-marquee-wrap">
-      <span
-        ref={innerRef}
-        className={overflow > 0 ? 'ov-lrc-marquee-inner scrolling' : 'ov-lrc-marquee-inner'}
-        style={overflow > 0 ? { '--marquee-dist': `${-overflow}px`, '--marquee-dur': `${Math.max(3, overflow / 30)}s` } as React.CSSProperties : undefined}
-      >
-        {children}
-      </span>
-    </div>
-  );
-}
-
-// ===================== 逐字扫光组件 =====================
-
-/**
- * 当前行逐字扫光渲染 — 按音节真实 start/duration 计算每个音节独立进度
- * @description 移植自 lyricify-lyrics-provider-rs 的音节时间模型,每个音节以 `--syl-prog` 控制渐变
- * @param syllables - 音节数组(相对偏移 + 持续时长)
- * @param lineStartMs - 行起始绝对毫秒
- * @param posMs - 当前播放位置(绝对毫秒)
- */
-function KaraokeSyllableLine({
-  syllables,
-  lineStartMs,
-  posMs,
-}: {
-  syllables: SyncedLyricSyllable[];
-  lineStartMs: number;
-  posMs: number;
-}): React.ReactElement {
-  return (
-    <>
-      {syllables.map((syl, i) => {
-        const sylStart = lineStartMs + syl.start_offset_ms;
-        const sylEnd = sylStart + syl.duration_ms;
-        let prog = 0;
-        if (posMs >= sylEnd) prog = 1;
-        else if (posMs > sylStart && syl.duration_ms > 0) {
-          prog = (posMs - sylStart) / syl.duration_ms;
-        }
-        return (
-          <span
-            key={i}
-            className="ov-lrc-syllable"
-            style={{ '--syl-prog': `${(prog * 100).toFixed(2)}%` } as React.CSSProperties}
-          >
-            {syl.text}
-          </span>
-        );
-      })}
-    </>
-  );
-}
-
-// ===================== 频谱波形组件 =====================
-
-/**
- * 频谱波形画布组件
- * @description 绘制三层叠加正弦波动画，用于音乐播放时的视觉装饰效果
- * @param color - RGB 主题色
- * @param playing - 是否处于播放状态（true 时动画运行）
- * @returns Canvas 元素，绘制动态波形
- */
-function WaveCanvas({ color, playing }: { color: [number, number, number]; playing: boolean }): React.ReactElement {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number>(0);
-  const tRef = useRef(0);
-  const playingRef = useRef(playing);
-  playingRef.current = playing;
-
-  const sizeCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    const w = parent.clientWidth;
-    const h = parent.clientHeight;
-    const dpr = window.devicePixelRatio;
-    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      const ctx = canvas.getContext('2d');
-      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-  }, []);
-
-  const draw = useCallback(() => {
-    sizeCanvas();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = window.devicePixelRatio;
-    const W = canvas.width / dpr;
-    const H = canvas.height / dpr;
-    ctx.clearRect(0, 0, W, H);
-
-    if (playingRef.current) tRef.current += 0.025;
-
-    const [r, g, b] = color;
-    const waves = [
-      { amp: H * 0.22, freq: 1.8, phase: 0,    speed: 1.0, alpha: 0.15 },
-      { amp: H * 0.17, freq: 2.5, phase: 1.2,  speed: 0.7, alpha: 0.10 },
-      { amp: H * 0.12, freq: 3.2, phase: 2.8,  speed: 1.3, alpha: 0.07 },
-    ];
-
-    waves.forEach((w) => {
-      ctx.beginPath();
-      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${w.alpha})`;
-      ctx.lineWidth = 2;
-      for (let x = 0; x <= W; x += 2) {
-        const nx = x / W;
-        const y = H / 2
-          + Math.sin(nx * Math.PI * w.freq + tRef.current * w.speed + w.phase) * w.amp
-          + Math.cos(nx * Math.PI * w.freq * 0.6 + tRef.current * w.speed * 0.8) * w.amp * 0.3;
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    });
-
-    rafRef.current = requestAnimationFrame(draw);
-  }, [color, sizeCanvas]);
-
-  useEffect(() => {
-    rafRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [draw]);
-
-  return <canvas ref={canvasRef} className="ov-wave-canvas" />;
-}
-
-// ===================== 组件 =====================
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import { formatTime } from '../../../../../../utils/timeUtils';
+import { abbreviateWeatherDescription } from '../../../../../../utils/weatherText';
+import { useSongTab } from '../hooks/useSongTab';
+import { formatCountdownRemaining } from '../utils/songUtils';
+import { KaraokeSyllableLine } from './KaraokeSyllableLine';
+import { MarqueeLyricText } from './MarqueeLyricText';
+import { WaveCanvas } from './WaveCanvas';
+import type { CSSProperties, ReactElement } from 'react';
 
 /**
  * 歌曲 Tab
  * @description 展开状态下三栏布局歌曲面板
+ * @returns 歌曲面板
  */
-export function SongTab(): React.ReactElement {
+export function SongTab(): ReactElement {
   const { t } = useTranslation();
-  const isMusicPlaying = useIslandStore((state) => state.isMusicPlaying);
-  const isPlaying = useIslandStore((state) => state.isPlaying);
-  const mediaInfo = useIslandStore((state) => state.mediaInfo);
-  const syncedLyrics = useIslandStore((state) => state.syncedLyrics);
-  const lyricsLoading = useIslandStore((state) => state.lyricsLoading);
-  const coverImage = useIslandStore((state) => state.coverImage);
-  const dominantColor = useIslandStore((state) => state.dominantColor);
-  const weather = useIslandStore((state) => state.weather);
-  const countdown = useIslandStore((state) => state.countdown);
-  const timerData = useIslandStore((state) => state.timerData);
-  const currentPositionMs = useIslandStore((state) => state.currentPositionMs);
-
-  const [now, setNow] = useState(new Date());
-  const [karaokeEnabled, setKaraokeEnabled] = useState(false);
-
-  /** 加载逐字扫光配置 */
-  useEffect(() => {
-    window.api?.musicLyricsKaraokeGet().then(setKaraokeEnabled).catch(() => {});
-  }, []);
-
-  /** 时钟 + 倒计时刷新 */
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  /** 当前歌词行索引（由进度与歌词直接推导） */
-  const currentIdx = useMemo(() => {
-    if (!syncedLyrics || syncedLyrics.length === 0) return -1;
-    return findCurrentIndex(syncedLyrics, currentPositionMs);
-  }, [syncedLyrics, currentPositionMs]);
-
-  /** 媒体控制 */
-  const handlePlayPause = () => window.api?.mediaPlayPause();
-  const handlePrev = () => window.api?.mediaPrev();
-  const handleNext = () => window.api?.mediaNext();
-
-  /** 计时器格式化 */
-  const timerRunning = timerData.state === 'running' || timerData.state === 'paused';
-  const timerMM = Math.floor(timerData.remainingSeconds / 60).toString().padStart(2, '0');
-  const timerSS = (timerData.remainingSeconds % 60).toString().padStart(2, '0');
-  const dayName = t(`songTab.time.weekdays.${now.getDay()}`, { defaultValue: getDayName(now) });
-
-  /** 歌词切片 */
-  const hasLyrics = syncedLyrics && syncedLyrics.length > 0 && !lyricsLoading;
-  const isIntro = hasLyrics && currentIdx < 0;
-  const lines = useMemo(
-    () => (hasLyrics && !isIntro ? sliceNearby(syncedLyrics!, currentIdx) : []),
-    [hasLyrics, isIntro, syncedLyrics, currentIdx],
-  );
-  /** 当前行对象,用于读取 text 与 syllables */
-  const currentLine = useMemo(
-    () => (hasLyrics && !isIntro && currentIdx >= 0 && syncedLyrics ? syncedLyrics[currentIdx] : null),
-    [hasLyrics, isIntro, currentIdx, syncedLyrics],
-  );
-  const hasSyllables = Boolean(
-    currentLine && currentLine.syllables && currentLine.syllables.length > 0,
-  );
+  const {
+    isMusicPlaying,
+    isPlaying,
+    mediaInfo,
+    syncedLyrics,
+    lyricsLoading,
+    coverImage,
+    dominantColor,
+    weather,
+    countdown,
+    currentPositionMs,
+    now,
+    karaokeEnabled,
+    timerRunning,
+    timerMM,
+    timerSS,
+    dayName,
+    hasLyrics,
+    isIntro,
+    lines,
+    currentLine,
+    hasSyllables,
+    handlePlayPause,
+    handlePrev,
+    handleNext,
+  } = useSongTab();
 
   return (
     <div className="expand-tab-panel ov-panel">
@@ -319,7 +76,7 @@ export function SongTab(): React.ReactElement {
       <div className="ov-left">
         <div
           className={`ov-disc ${isPlaying ? 'spinning' : ''}`}
-          style={{ '--disc-glow': `rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, 0.45)` } as React.CSSProperties}
+          style={{ '--disc-glow': `rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, 0.45)` } as CSSProperties}
         >
           <div
             className="ov-disc-cover"

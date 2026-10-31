@@ -35,10 +35,10 @@ import {
 } from '../TranslationTab';
 import {
   byClass, elements, invoke
-} from '../../../test/tree';
+} from '../../../../../test/tree';
 import {
   renderWithHooks, resetLifecycle, runEffects, unmountHooks
-} from '../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
+} from '../../../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
 
 const translate = vi.hoisted(() => {
   vi.stubGlobal('window', {
@@ -58,8 +58,8 @@ vi.mock('react-dom', () => ({
 }));
 vi.mock('react', async (original) => ({
   ...(await original<typeof import('react')>()),
-  ...(await import('../../../../test/elementHarness')).hookMocks,
-  ...(await import('../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks
+  ...(await import('../../../../../../test/elementHarness')).hookMocks,
+  ...(await import('../../../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks
 }));
 
 const netFetch = vi.fn<Window['api']['netFetch']>();

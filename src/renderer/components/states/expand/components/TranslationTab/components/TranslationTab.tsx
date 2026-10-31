@@ -24,127 +24,17 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactElement } from 'react';
-import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
-import { resolveCountryIcon } from '../../../../utils/SvgIcon/country-icon';
-import { TRANSLATE_LANGUAGES, TRANSLATE_TARGET_LANGUAGES } from '../../maxExpand/components/tools/config/translateToolConfig';
-import { useTranslateTool } from '../../maxExpand/components/tools/hooks/useTranslateTool';
+import { SvgIcon } from '../../../../../../utils/SvgIcon';
+import { TRANSLATE_LANGUAGES, TRANSLATE_TARGET_LANGUAGES } from '../../../../maxExpand/components/tools/config/translateToolConfig';
+import { useTranslateTool } from '../../../../maxExpand/components/tools/hooks/useTranslateTool';
+import { TranslationLangSelect } from './TranslationLangSelect';
+import type { ReactElement } from 'react';
 
-interface TranslationLanguageOption {
-  code: string;
-  labelKey: string;
-}
-
-function TranslationLangSelect({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly TranslationLanguageOption[];
-  value: string;
-  onChange: (code: string) => void;
-}): ReactElement {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const selected = options.find((option) => option.code === value);
-  const selectedFlag = resolveCountryIcon(value);
-  const selectedIcon = selectedFlag ?? (value === 'auto' ? SvgIcon.AI : undefined);
-
-  useEffect(() => {
-    if (!open || !wrapperRef.current) return;
-
-    const rect = wrapperRef.current.getBoundingClientRect();
-    const containerRect = wrapperRef.current.closest('.translation-tab')?.getBoundingClientRect();
-    const containerBottom = containerRect?.bottom ?? window.innerHeight;
-    const availableHeight = Math.max(80, containerBottom - rect.bottom - 8);
-    const preferredHeight = options.length * 30 + 8;
-    setMenuStyle({
-      position: 'fixed',
-      top: rect.bottom + 4,
-      left: rect.left,
-      width: rect.width,
-      maxHeight: Math.min(preferredHeight, availableHeight),
-    });
-  }, [open, options.length]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      const target = event.target as Node;
-      if (wrapperRef.current?.contains(target)) return;
-      if (menuRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-
-    if (open) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
-
-  return (
-    <div className="translation-lang-dropdown" ref={wrapperRef}>
-      <button
-        className="translation-lang-dropdown-trigger"
-        type="button"
-        aria-label={t('expanded.translation.languageAria')}
-        aria-expanded={open}
-        onClick={() => setOpen((prev) => !prev)}
-      >
-        {selectedIcon ? (
-          <img
-            className={selectedFlag ? 'translation-lang-flag no-filter' : 'translation-lang-ai-icon'}
-            src={selectedIcon}
-            alt=""
-            draggable={false}
-          />
-        ) : (
-          <span className="translation-lang-flag-placeholder" />
-        )}
-        <span className="translation-lang-dropdown-label">
-          {selected ? t(selected.labelKey) : value}
-        </span>
-        <span className="translation-lang-dropdown-arrow">▾</span>
-      </button>
-      {open && createPortal(
-        <div className="translation-lang-dropdown-menu" ref={menuRef} style={menuStyle}>
-          {options.map((lang) => {
-            const flag = resolveCountryIcon(lang.code);
-            const icon = flag ?? (lang.code === 'auto' ? SvgIcon.AI : undefined);
-            return (
-              <button
-                key={lang.code}
-                className={`translation-lang-dropdown-item ${lang.code === value ? 'active' : ''}`}
-                type="button"
-                onClick={() => {
-                  onChange(lang.code);
-                  setOpen(false);
-                }}
-              >
-                {icon ? (
-                  <img
-                    className={flag ? 'translation-lang-flag no-filter' : 'translation-lang-ai-icon'}
-                    src={icon}
-                    alt=""
-                    draggable={false}
-                  />
-                ) : (
-                  <span className="translation-lang-flag-placeholder" />
-                )}
-                <span>{t(lang.labelKey)}</span>
-              </button>
-            );
-          })}
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-}
-
-/** Expanded 翻译页面 */
+/**
+ * Expanded 翻译页面
+ * @returns 翻译工作区
+ */
 export function TranslationTab(): ReactElement {
   const { t } = useTranslation();
   const {

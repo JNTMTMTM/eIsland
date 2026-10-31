@@ -25,17 +25,17 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushEffects, nodes, render, text, value } from '../../../maxExpand/test/componentHarness';
-import { fire } from '../../../maxExpand/components/tools/components/test/toolTestEvents';
+import { flushEffects, nodes, render, text, value } from '../../../../../maxExpand/test/componentHarness';
+import { fire } from '../../../../../maxExpand/components/tools/components/test/toolTestEvents';
 import { SongTab } from '../SongTab';
 import type { ReactElement } from 'react';
-import type { IIslandStore } from '../../../../../store/types';
+import type { IIslandStore } from '../../../../../../../store/types';
 
 type SongState = Pick<IIslandStore, 'isMusicPlaying' | 'isPlaying' | 'mediaInfo' | 'syncedLyrics' | 'lyricsLoading' | 'coverImage' | 'dominantColor' | 'countdown' | 'timerData' | 'currentPositionMs'> & { weather: { temperature: number; description: string } | null };
 const mocks = vi.hoisted(() => ({
   state: {} as SongState, karaoke: vi.fn<() => Promise<boolean>>(), prev: vi.fn(), next: vi.fn(), play: vi.fn(),
 }));
-vi.mock('../../../../../store/slices', () => ({ default: (selector: (state: SongState) => unknown) => selector(mocks.state) }));
+vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (state: SongState) => unknown) => selector(mocks.state) }));
 
 describe('SongTab', () => {
   beforeEach(() => {

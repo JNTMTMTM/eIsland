@@ -19,21 +19,13 @@
  */
 
 /**
- * @file agentUsageFormat.ts
+ * @file agentUsageUtils.ts
  * @description Agent 用量页与总览额度卡片共用的 token、额度窗口与重置时间格式化工具。
  * @author 鸡哥
  */
 
-import { AgentIcon } from '../../../../utils/SvgIcon';
-import type { AgentUsageProviderId, AgentUsageRateLimitWindow } from '../../../../../preload/types/agentUsage';
-
-export type Translate = (key: string, options?: Record<string, unknown>) => string;
-
-/** 来源对应的品牌图标。 */
-export const AGENT_USAGE_PROVIDER_ICONS: Record<AgentUsageProviderId, string> = {
-  claude: AgentIcon.CLAUDE,
-  codex: AgentIcon.CODEX,
-};
+import type { AgentUsageRateLimitWindow } from '../../../../../../../preload/types/agentUsage';
+import type { Translate } from '../types/agentUsageTypes';
 
 /**
  * 将 token 数格式化为 K/M/B 紧凑写法。

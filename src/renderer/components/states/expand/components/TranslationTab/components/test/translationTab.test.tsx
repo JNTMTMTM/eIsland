@@ -26,13 +26,13 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ReactElement, type ReactNode } from 'react';
-import { flushEffects, nodes, render, text, value } from '../../../maxExpand/test/componentHarness';
-import { fire } from '../../../maxExpand/components/tools/components/test/toolTestEvents';
+import { flushEffects, nodes, render, text, value } from '../../../../../maxExpand/test/componentHarness';
+import { fire } from '../../../../../maxExpand/components/tools/components/test/toolTestEvents';
 import { TranslationTab } from '../TranslationTab';
-import type { UseTranslateToolResult } from '../../../maxExpand/components/tools/hooks/useTranslateTool';
+import type { UseTranslateToolResult } from '../../../../../maxExpand/components/tools/hooks/useTranslateTool';
 
 const hook = vi.hoisted(() => vi.fn<() => UseTranslateToolResult>());
-vi.mock('../../../maxExpand/components/tools/hooks/useTranslateTool', () => ({ useTranslateTool: hook }));
+vi.mock('../../../../../maxExpand/components/tools/hooks/useTranslateTool', () => ({ useTranslateTool: hook }));
 vi.mock('react-dom', () => ({ createPortal: (children: ReactNode) => children }));
 
 interface LanguageProps { value: string; options: readonly { code: string; labelKey: string }[]; onChange: (code: string) => void; }

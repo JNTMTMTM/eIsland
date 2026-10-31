@@ -25,7 +25,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { render, text, value } from '../../../maxExpand/test/componentHarness';
+import { render, text, value } from '../../../../../maxExpand/test/componentHarness';
 import { SettingsTab } from '../SettingsTab';
 
 describe('SettingsTab', () => {

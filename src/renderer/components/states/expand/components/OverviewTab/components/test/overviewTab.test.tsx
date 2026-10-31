@@ -25,10 +25,12 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushEffects, nodes, render, text, trigger, value } from '../../../maxExpand/test/componentHarness';
-import { OverviewTab, normalizeOverviewLayoutConfig, OVERVIEW_WIDGET_OPTIONS, DEFAULT_OVERVIEW_GRADIENT_COLORS } from '../OverviewTab';
-import type { OverviewLayoutConfig } from '../OverviewTab';
-import type { AppShortcut, TodoItem } from '../OverviewTab/utils/types';
+import { flushEffects, nodes, render, text, trigger, value } from '../../../../../maxExpand/test/componentHarness';
+import { OverviewTab } from '../OverviewTab';
+import { OVERVIEW_WIDGET_OPTIONS, DEFAULT_OVERVIEW_GRADIENT_COLORS } from '../../config/overviewConfig';
+import { normalizeOverviewLayoutConfig } from '../../utils/overviewTabUtils';
+import type { OverviewLayoutConfig } from '../../types/overviewTypes';
+import type { AppShortcut, TodoItem } from '../../utils/types';
 
 const mocks = vi.hoisted(() => ({
   read: vi.fn<(key: string) => Promise<unknown>>(), write: vi.fn<(key: string, data: unknown) => Promise<boolean>>(),
@@ -38,8 +40,8 @@ const mocks = vi.hoisted(() => ({
 }));
 // 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
 vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
-vi.mock('../../../../../store/slices', () => ({ default: () => ({ setMaxExpand: mocks.max, setMaxExpandTab: mocks.select }) }));
-vi.mock('../OverviewTab/components/OverviewWidgets', () => ({
+vi.mock('../../../../../../../store/slices', () => ({ default: () => ({ setMaxExpand: mocks.max, setMaxExpandTab: mocks.select }) }));
+vi.mock('../OverviewWidgets', () => ({
   AlbumCarouselWidget: mocks.widgets[0],
   BreakReminderWidget: mocks.widgets[1],
   CountdownWidget: mocks.widgets[2],

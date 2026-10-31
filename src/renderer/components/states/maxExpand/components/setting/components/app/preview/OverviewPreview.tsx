@@ -31,7 +31,7 @@ import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../..
 import { PerformanceMetricGrid, type PerformanceWidgetMetrics } from '../../../../../../expand/components/OverviewTab/components/PerformanceMetricGrid';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import { DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS } from '../../../../../../../../utils/performanceMonitorColors';
-import { AGENT_USAGE_PROVIDER_ICONS } from '../../../../../../expand/utils/agentUsageFormat';
+import { AGENT_USAGE_PROVIDER_ICONS } from '../../../../../../expand/components/AgentUsageTab/config/agentUsageConfig';
 import { WorldClockFlag } from '../../../../../components/worldClock/components/WorldClockFlag';
 import type { AgentUsageProviderId } from '../../../../../../../../../preload/types/agentUsage';
 

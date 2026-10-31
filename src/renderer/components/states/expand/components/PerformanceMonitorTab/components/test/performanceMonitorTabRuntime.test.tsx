@@ -24,9 +24,9 @@
  * @author 鸡哥
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
-import { byClass, elements, invoke, text } from '../../../test/tree';
-import { PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY, PERFORMANCE_MONITOR_HARDWARE_SELECTION_STORE_KEY } from '../../../../../utils/performanceMonitorColors';
+import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
+import { byClass, elements, invoke, text } from '../../../../../test/tree';
+import { PERFORMANCE_MONITOR_CHART_COLORS_STORE_KEY, PERFORMANCE_MONITOR_HARDWARE_SELECTION_STORE_KEY } from '../../../../../../../utils/performanceMonitorColors';
 import type { ReactElement } from 'react';
 const leaves = vi.hoisted(() => ({
   snapshot: vi.fn<(selection: unknown, hardware: boolean) => Promise<unknown>>(),
@@ -41,7 +41,7 @@ const leaves = vi.hoisted(() => ({
 }));
 // 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
 vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
-vi.mock('../../../../../store/slices', () => ({
+vi.mock('../../../../../../../store/slices', () => ({
   default: () => ({
     setMaxExpand: leaves.max,
     setMaxExpandTab: leaves.tab

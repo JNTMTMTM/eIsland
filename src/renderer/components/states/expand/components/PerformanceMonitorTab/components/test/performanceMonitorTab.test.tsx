@@ -26,8 +26,8 @@
 
 import { Children, type ReactElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushEffects, nodes, render, text, value } from '../../../maxExpand/test/componentHarness';
-import { fire } from '../../../maxExpand/components/tools/components/test/toolTestEvents';
+import { flushEffects, nodes, render, text, value } from '../../../../../maxExpand/test/componentHarness';
+import { fire } from '../../../../../maxExpand/components/tools/components/test/toolTestEvents';
 
 const mocks = vi.hoisted(() => ({
   snapshot: vi.fn<(selection: unknown, includeHardware: boolean) => Promise<unknown>>(),
@@ -37,7 +37,7 @@ const mocks = vi.hoisted(() => ({
 }));
 // 状态 hook 在此测试直接调用；浅比较由 Zustand 负责，保留选择器输入。
 vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
-vi.mock('../../../../../store/slices', () => ({ default: () => ({ setMaxExpand: mocks.max, setMaxExpandTab: mocks.select }) }));
+vi.mock('../../../../../../../store/slices', () => ({ default: () => ({ setMaxExpand: mocks.max, setMaxExpandTab: mocks.select }) }));
 
 /**
  * 构造含缺失与越界硬件字段的接口结果。

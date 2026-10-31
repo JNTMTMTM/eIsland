@@ -32,14 +32,14 @@ import {
 } from '../OverviewTab';
 import {
   TodoWidget, ShortcutsWidget, WorldClockWidget, AlbumCarouselWidget
-} from '../OverviewTab/components/OverviewWidgets';
-import useIslandStore from '../../../../../store/slices';
+} from '../OverviewWidgets';
+import useIslandStore from '../../../../../../../store/slices';
 import {
   elements, find, invoke, text, byClass
-} from '../../../test/tree';
+} from '../../../../../test/tree';
 import {
   lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks
-} from '../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
+} from '../../../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
 
 const translate = vi.hoisted(() => {
   const localStorage = {
@@ -65,8 +65,8 @@ vi.mock('react-i18next', async (original) => ({
 }));
 vi.mock('react', async (original) => ({
   ...(await original<typeof import('react')>()),
-  ...(await import('../../../../test/elementHarness')).hookMocks,
-  ...(await import('../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks
+  ...(await import('../../../../../../test/elementHarness')).hookMocks,
+  ...(await import('../../../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks
 }));
 const api = {
   storeRead: vi.fn<Window['api']['storeRead']>(), storeWrite: vi.fn<Window['api']['storeWrite']>(),

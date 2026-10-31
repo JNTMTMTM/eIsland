@@ -25,10 +25,10 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
-import { byClass, elements, find, invoke, text, type TreeElement } from '../../../test/tree';
+import { flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../maxExpand/components/calendar/hooks/test/calendarHookHarness';
+import { byClass, elements, find, invoke, text, type TreeElement } from '../../../../../test/tree';
 import { SongTab } from '../SongTab';
-import type { IIslandStore } from '../../../../../store/types';
+import type { IIslandStore } from '../../../../../../../store/types';
 import type { ReactElement, RefObject } from 'react';
 type SongState = Pick<IIslandStore, 'isMusicPlaying' | 'isPlaying' | 'mediaInfo' | 'syncedLyrics' | 'lyricsLoading' | 'coverImage' | 'dominantColor' | 'countdown' | 'timerData' | 'currentPositionMs'> & {
   weather: {
@@ -43,7 +43,7 @@ const leaves = vi.hoisted(() => ({
   next: vi.fn(),
   play: vi.fn()
 }));
-vi.mock('../../../../../store/slices', () => ({
+vi.mock('../../../../../../../store/slices', () => ({
   default: (selector: (state: SongState) => unknown) => selector(leaves.state)
 }));
 let resize: (() => void) | undefined;

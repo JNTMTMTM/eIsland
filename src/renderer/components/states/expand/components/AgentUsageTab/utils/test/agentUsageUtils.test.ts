@@ -19,26 +19,26 @@
  */
 
 /**
- * @file agentUsageFormat.test.ts
- * @description Agent 用量格式化工具的 token、时长、窗口名称、警示等级、重置提示与过期百分比测试。
+ * @file agentUsageUtils.test.ts
+ * @description Agent 用量工具的 token、时长、窗口名称、警示等级、重置提示与过期百分比测试。
  * @author 鸡哥
  */
 
 import { describe, expect, it } from 'vitest';
-import { AgentIcon } from '../../../../../utils/SvgIcon';
+import { AgentIcon } from '../../../../../../../utils/SvgIcon';
+import { AGENT_USAGE_PROVIDER_ICONS } from '../../config/agentUsageConfig';
 import {
-  AGENT_USAGE_PROVIDER_ICONS,
   effectivePercent,
   formatDuration,
   formatTokens,
   quotaLevel,
   resetLabel,
   windowLabel,
-} from '../agentUsageFormat';
+} from '../agentUsageUtils';
 
 const t = (key: string, options?: Record<string, unknown>): string => (options ? `${key}:${JSON.stringify(options)}` : key);
 
-describe('agentUsageFormat', () => {
+describe('agentUsageUtils', () => {
   it('来源图标映射到 AgentIcon 枚举', () => {
     expect(AGENT_USAGE_PROVIDER_ICONS).toEqual({ claude: AgentIcon.CLAUDE, codex: AgentIcon.CODEX });
   });

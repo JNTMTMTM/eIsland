@@ -32,10 +32,10 @@ import {
 } from '../ToolsTab';
 import {
   byClass, elements, invoke, text
-} from '../../../test/tree';
+} from '../../../../../test/tree';
 import {
   renderWithHooks, resetLifecycle, runEffects, unmountHooks
-} from '../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
+} from '../../../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -44,8 +44,8 @@ vi.mock('react-i18next', () => ({
 }));
 vi.mock('react', async (original) => ({
   ...(await original<typeof import('react')>()),
-  ...(await import('../../../../test/elementHarness')).hookMocks,
-  ...(await import('../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks
+  ...(await import('../../../../../../test/elementHarness')).hookMocks,
+  ...(await import('../../../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks
 }));
 
 const api = {
