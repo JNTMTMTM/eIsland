@@ -28,7 +28,7 @@ import type { JSX } from 'react';
 import type { NotificationData, WeatherData } from '../../store/types';
 import { IdleClockContent, HoverClockContent } from './IslandClockContent';
 import { NotificationContent } from '../states/notification/NotificationContent';
-import { ExpandedContent } from '../states/expand/ExpandedContent';
+import { ExpandedContent } from '../states/expand/components/ExpandedContent';
 import { MaxExpandContent } from '../states/maxExpand/MaxExpandContent';
 import { LyricsContent } from '../states/lyrics/LyricsContent';
 import { LyricsTranslationContent } from '../states/lyricsTranslation/LyricsTranslationContent';

@@ -27,23 +27,23 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
-import useIslandStore from '../../../store/slices';
-import { useIslandContentActive } from '../../hooks/islandContentActivity';
-import type { ExpandTab, MaxExpandTab } from '../../../store/types';
-import '../../../styles/expanded/expanded.css';
-import { AgentUsageTab } from './components/AgentUsageTab';
-import { OverviewTab } from './components/OverviewTab';
-import { PerformanceMonitorTab } from './components/PerformanceMonitorTab';
-import { SongTab } from './components/SongTab';
-import { ToolsTab } from './components/ToolsTab';
-import { TranslationTab } from './components/TranslationTab';
-import { getStartupMode, getStartupModeReady, isStartupModeResolved } from '../maxExpand/config/shellConstants';
-import type { NavDotId } from './config/types';
-import { useExpandNavLayout } from './hooks/useExpandNavLayout';
-import { useExpandTabAnimation } from './hooks/useExpandTabAnimation';
-import { useExpandWheelNav } from './hooks/useExpandWheelNav';
-import { getNavLabel } from './utils/getNavLabel';
-import { useAppMode } from '../maxExpand/hooks/useAppMode';
+import useIslandStore from '../../../../store/slices';
+import { useIslandContentActive } from '../../../hooks/islandContentActivity';
+import type { ExpandTab, MaxExpandTab } from '../../../../store/types';
+import '../../../../styles/expanded/expanded.css';
+import { AgentUsageTab } from '../pages/AgentUsageTab';
+import { OverviewTab } from '../pages/OverviewTab';
+import { PerformanceMonitorTab } from '../pages/PerformanceMonitorTab';
+import { SongTab } from '../pages/SongTab';
+import { ToolsTab } from '../pages/ToolsTab';
+import { TranslationTab } from '../pages/TranslationTab';
+import { getStartupMode, getStartupModeReady, isStartupModeResolved } from '../../maxExpand/config/shellConstants';
+import type { NavDotId } from '../config/types';
+import { useExpandNavLayout } from '../hooks/useExpandNavLayout';
+import { useExpandTabAnimation } from '../hooks/useExpandTabAnimation';
+import { useExpandWheelNav } from '../hooks/useExpandWheelNav';
+import { getNavLabel } from '../utils/getNavLabel';
+import { useAppMode } from '../../maxExpand/hooks/useAppMode';
 
 /**
  * Expanded 状态内容组件

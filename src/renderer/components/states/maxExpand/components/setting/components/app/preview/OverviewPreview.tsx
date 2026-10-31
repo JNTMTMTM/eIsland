@@ -27,11 +27,11 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/components/OverviewTab';
-import { PerformanceMetricGrid, type PerformanceWidgetMetrics } from '../../../../../../expand/components/OverviewTab/components/PerformanceMetricGrid';
+import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/pages/OverviewTab';
+import { PerformanceMetricGrid, type PerformanceWidgetMetrics } from '../../../../../../expand/pages/OverviewTab/components/PerformanceMetricGrid';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import { DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS } from '../../../../../../../../utils/performanceMonitorColors';
-import { AGENT_USAGE_PROVIDER_ICONS } from '../../../../../../expand/components/AgentUsageTab/config/agentUsageConfig';
+import { AGENT_USAGE_PROVIDER_ICONS } from '../../../../../../expand/pages/AgentUsageTab/config/agentUsageConfig';
 import { WorldClockFlag } from '../../../../../components/worldClock/components/WorldClockFlag';
 import type { AgentUsageProviderId } from '../../../../../../../../../preload/types/agentUsage';
 

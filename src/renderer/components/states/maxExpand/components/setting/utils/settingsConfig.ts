@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { OverviewLayoutConfig } from '../../../../expand/components/OverviewTab';
+import type { OverviewLayoutConfig } from '../../../../expand/pages/OverviewTab';
 import { SvgIcon } from '../../../../../../utils/SvgIcon';
 import type { WeatherProvider, WeatherLocationPriority } from '../../../../../../store/utils/storage';
 

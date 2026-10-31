@@ -25,8 +25,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushEffects, nodes, render, text, value } from '../../maxExpand/test/componentHarness';
-import { fire } from '../../maxExpand/components/tools/components/test/toolTestEvents';
+import { flushEffects, nodes, render, text, value } from '../../../maxExpand/test/componentHarness';
+import { fire } from '../../../maxExpand/components/tools/components/test/toolTestEvents';
 import { ExpandedContent } from '../ExpandedContent';
 
 const mocks = vi.hoisted(() => ({
@@ -36,27 +36,27 @@ const mocks = vi.hoisted(() => ({
   nav: [{ id: 'overview', visible: true }, { id: 'song', visible: true }, { id: 'tools', visible: true }, { id: 'translation', visible: true }, { id: 'performanceMonitor', visible: true }, { id: 'agentUsage', visible: true }],
   maxNav: [{ id: 'todo', visible: true }, { id: 'album', visible: true }],
 }));
-vi.mock('../../../../store/slices', () => ({ default: (selector: (state: object) => unknown) => selector({
+vi.mock('../../../../../store/slices', () => ({ default: (selector: (state: object) => unknown) => selector({
   expandTab: mocks.tab, maxExpandTab: mocks.maxTab, setExpandTab: mocks.expand, setHover: mocks.hover,
   setMaxExpand: mocks.max, setMaxExpandTab: mocks.selectMax, showMaxExpandLauncher: mocks.launcher,
 }) }));
 vi.mock('zustand/react/shallow', () => ({ useShallow: (selector: unknown) => selector }));
-vi.mock('../../../hooks/islandContentActivity', () => ({ useIslandContentActive: () => mocks.active }));
-vi.mock('../hooks/useExpandNavLayout', () => ({ useExpandNavLayout: () => ({
+vi.mock('../../../../hooks/islandContentActivity', () => ({ useIslandContentActive: () => mocks.active }));
+vi.mock('../../hooks/useExpandNavLayout', () => ({ useExpandNavLayout: () => ({
   navLayoutConfig: mocks.nav, maxExpandNavLayoutConfig: mocks.maxNav, preloadEagerWhenPerformanceModeDisabled: mocks.preload,
 }) }));
-vi.mock('../hooks/useExpandTabAnimation', () => ({ useExpandTabAnimation: () => mocks.animation }));
-vi.mock('../hooks/useExpandWheelNav', () => ({ useExpandWheelNav: mocks.wheel }));
-vi.mock('../../maxExpand/hooks/useAppMode', () => ({ useAppMode: () => ({ appModeEnabled: mocks.app, appModeLoaded: mocks.loaded }) }));
-vi.mock('../../maxExpand/config/shellConstants', () => ({
+vi.mock('../../hooks/useExpandTabAnimation', () => ({ useExpandTabAnimation: () => mocks.animation }));
+vi.mock('../../hooks/useExpandWheelNav', () => ({ useExpandWheelNav: mocks.wheel }));
+vi.mock('../../../maxExpand/hooks/useAppMode', () => ({ useAppMode: () => ({ appModeEnabled: mocks.app, appModeLoaded: mocks.loaded }) }));
+vi.mock('../../../maxExpand/config/shellConstants', () => ({
   isStartupModeResolved: () => true, getStartupMode: () => mocks.startup, getStartupModeReady: () => Promise.resolve(),
 }));
-vi.mock('../components/OverviewTab', () => ({ OverviewTab: mocks.pages[0] }));
-vi.mock('../components/SongTab', () => ({ SongTab: mocks.pages[1] }));
-vi.mock('../components/ToolsTab', () => ({ ToolsTab: mocks.pages[2] }));
-vi.mock('../components/TranslationTab', () => ({ TranslationTab: mocks.pages[3] }));
-vi.mock('../components/PerformanceMonitorTab', () => ({ PerformanceMonitorTab: mocks.pages[4] }));
-vi.mock('../components/AgentUsageTab', () => ({ AgentUsageTab: mocks.pages[5] }));
+vi.mock('../../pages/OverviewTab', () => ({ OverviewTab: mocks.pages[0] }));
+vi.mock('../../pages/SongTab', () => ({ SongTab: mocks.pages[1] }));
+vi.mock('../../pages/ToolsTab', () => ({ ToolsTab: mocks.pages[2] }));
+vi.mock('../../pages/TranslationTab', () => ({ TranslationTab: mocks.pages[3] }));
+vi.mock('../../pages/PerformanceMonitorTab', () => ({ PerformanceMonitorTab: mocks.pages[4] }));
+vi.mock('../../pages/AgentUsageTab', () => ({ AgentUsageTab: mocks.pages[5] }));
 
 describe('ExpandedContent', () => {
   beforeEach(() => {

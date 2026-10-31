@@ -26,7 +26,7 @@
 
 export { IdleContent } from './idle';
 export { HoverContent } from './hover';
-export { ExpandedContent } from './expand/ExpandedContent';
+export { ExpandedContent } from './expand/components/ExpandedContent';
 export { MaxExpandContent } from './maxExpand/MaxExpandContent';
 export { LyricsTranslationContent } from './lyricsTranslation/LyricsTranslationContent';
 export { GuideContent } from './guide/GuideContent';

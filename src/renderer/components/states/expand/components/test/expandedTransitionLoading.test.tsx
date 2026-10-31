@@ -25,14 +25,14 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, value } from '../../maxExpand/test/componentHarness';
+import { render, value } from '../../../maxExpand/test/componentHarness';
 import ExpandedTransitionLoading from '../expandedTransitionLoading';
-import IslandPageLoading from '../../../components/islandPageLoading';
-import type { ExpandTab } from '../../../../store/types';
+import IslandPageLoading from '../../../../components/islandPageLoading';
+import type { ExpandTab } from '../../../../../store/types';
 
 const mocks = vi.hoisted<{ tab: ExpandTab; performance: boolean }>(() => ({ tab: 'hover', performance: false }));
-vi.mock('../../../../store/isLandStore', () => ({ default: (selector: (state: { expandTab: ExpandTab }) => unknown) => selector({ expandTab: mocks.tab }) }));
-vi.mock('../../maxExpand/hooks/usePerformanceMode', () => ({ usePerformanceMode: () => mocks.performance }));
+vi.mock('../../../../../store/isLandStore', () => ({ default: (selector: (state: { expandTab: ExpandTab }) => unknown) => selector({ expandTab: mocks.tab }) }));
+vi.mock('../../../maxExpand/hooks/usePerformanceMode', () => ({ usePerformanceMode: () => mocks.performance }));
 
 describe('ExpandedTransitionLoading', () => {
   it.each(['hover', 'overview', 'song', 'tools', 'translation', 'performanceMonitor', 'agentUsage'] as const)('页面 %s 使用正确标题及说明', (tab) => {

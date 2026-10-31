@@ -36,7 +36,7 @@ vi.mock('react', async (importOriginal) => ({
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { resolvedLanguage: 'en-US', language: 'en-US', changeLanguage: vi.fn(() => Promise.resolve()) } }) }));
 vi.mock('../IslandClockContent', () => ({ IdleClockContent: Object.assign(vi.fn(), { displayName: 'IdleContent' }), HoverClockContent: Object.assign(vi.fn(), { displayName: 'HoverContent' }) }));
 vi.mock('../../states/notification/NotificationContent', () => ({ NotificationContent: Object.assign(vi.fn(), { displayName: 'NotificationContent' }) }));
-vi.mock('../../states/expand/ExpandedContent', () => ({ ExpandedContent: Object.assign(vi.fn(), { displayName: 'ExpandedContent' }) }));
+vi.mock('../../states/expand/components/ExpandedContent', () => ({ ExpandedContent: Object.assign(vi.fn(), { displayName: 'ExpandedContent' }) }));
 vi.mock('../../states/maxExpand/MaxExpandContent', () => ({ MaxExpandContent: Object.assign(vi.fn(), { displayName: 'MaxExpandContent' }) }));
 vi.mock('../../states/lyrics/LyricsContent', () => ({ LyricsContent: Object.assign(vi.fn(), { displayName: 'LyricsContent' }) }));
 vi.mock('../../states/lyricsTranslation/LyricsTranslationContent', () => ({ LyricsTranslationContent: Object.assign(vi.fn(), { displayName: 'LyricsTranslationContent' }) }));

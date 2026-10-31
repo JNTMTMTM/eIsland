@@ -51,7 +51,7 @@ vi.mock('../../../../../../../store/slices', () => ({ default: (selector: (store
 vi.mock('../../../../../../../utils/theme', () => ({ getThemeMode: () => 'system', setThemeMode: vi.fn() }));
 vi.mock('../../../../../../../i18n', () => ({ getLanguage: () => 'zh-CN', setLanguage: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('../../../../../../../api/user/userAccountApi.client', () => ({ request: vi.fn() }));
-vi.mock('../../../../../expand/components/OverviewTab', () => ({ OVERVIEW_WIDGET_OPTIONS: [{ value: 'todo' }], OVERVIEW_CLOCK_STYLE_OPTIONS: [{ value: 'classic' }], normalizeOverviewLayoutConfig: (raw: unknown) => raw }));
+vi.mock('../../../../../expand/pages/OverviewTab', () => ({ OVERVIEW_WIDGET_OPTIONS: [{ value: 'todo' }], OVERVIEW_CLOCK_STYLE_OPTIONS: [{ value: 'classic' }], normalizeOverviewLayoutConfig: (raw: unknown) => raw }));
 vi.mock('../update/UpdateSettingsSection', () => ({ UpdateSettingsSection: () => null }));
 vi.mock('../index/IndexSettingsSection', () => ({ IndexSettingsSection: () => null }));
 vi.mock('../app/AppSettingsSection', () => ({ AppSettingsSection: () => null }));

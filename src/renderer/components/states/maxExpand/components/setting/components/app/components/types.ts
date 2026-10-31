@@ -31,7 +31,7 @@ import type {
   OverviewClockStyle,
   OverviewLayoutConfig,
   OverviewWidgetType,
-} from '../../../../../../expand/components/OverviewTab';
+} from '../../../../../../expand/pages/OverviewTab';
 
 /**
  * 运行中窗口信息

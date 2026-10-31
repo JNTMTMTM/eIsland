@@ -25,9 +25,9 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import useIslandStore from '../../../store/isLandStore';
-import IslandPageLoading from '../../components/islandPageLoading';
-import { usePerformanceMode } from '../maxExpand/hooks/usePerformanceMode';
+import useIslandStore from '../../../../store/isLandStore';
+import IslandPageLoading from '../../../components/islandPageLoading';
+import { usePerformanceMode } from '../../maxExpand/hooks/usePerformanceMode';
 import type { ReactElement } from 'react';
 
 /**

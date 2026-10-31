@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { OverviewClockStyle, OverviewWidgetType } from '../../../../expand/components/OverviewTab';
+import type { OverviewClockStyle, OverviewWidgetType } from '../../../../expand/pages/OverviewTab';
 
 export const OVERVIEW_WIDGET_LABEL_KEYS: Record<OverviewWidgetType, string> = {
   shortcuts: 'settings.app.layout.widgetNames.shortcuts',

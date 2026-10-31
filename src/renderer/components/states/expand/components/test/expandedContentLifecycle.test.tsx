@@ -29,10 +29,10 @@ import {
 } from 'vitest';
 import {
   byClass, elements, invoke
-} from '../../test/tree';
+} from '../../../test/tree';
 import {
   lifecycleHooks, renderWithHooks, resetLifecycle, runEffects, unmountHooks
-} from '../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
+} from '../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness';
 import type {
   ReactElement
 } from 'react';
@@ -41,8 +41,8 @@ const context = vi.hoisted(() => ({
 }));
 vi.mock('react', async (original) => ({
   ...(await original<typeof import('react')>()),
-  ...(await import('../../../test/elementHarness')).hookMocks,
-  ...(await import('../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks,
+  ...(await import('../../../../test/elementHarness')).hookMocks,
+  ...(await import('../../../maxExpand/components/setting/hooks/test/settingsCoverageHarness')).lifecycleHooks,
   useContext: () => context.active,
 }));
 vi.mock('react-i18next', async (original) => ({
@@ -56,7 +56,7 @@ const storeRead = vi.fn<Window['api']['storeRead']>();
 const storeWrite = vi.fn<Window['api']['storeWrite']>();
 const onSettingsChanged = vi.fn<Window['api']['onSettingsChanged']>();
 let Component: typeof import('../ExpandedContent').ExpandedContent;
-let store: typeof import('../../../../store/slices').default;
+let store: typeof import('../../../../../store/slices').default;
 let resolveMode: (value: unknown) => void;
 /** 读取实际 Zustand 外部快照。
  * @param subscribe - React订阅入口。
@@ -124,7 +124,7 @@ beforeEach(async () => {
   } = await import('../ExpandedContent'));
   ({
     default: store
-  } = await import('../../../../store/slices'));
+  } = await import('../../../../../store/slices'));
   store.setState({
     state: 'expanded', expandTab: 'overview', maxExpandTab: 'settings', uiStateLocked: false, maxExpandAppModeEnabled: false
   });

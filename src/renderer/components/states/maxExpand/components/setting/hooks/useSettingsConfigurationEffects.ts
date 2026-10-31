@@ -26,7 +26,7 @@
 
 import { useEffect } from 'react';
 import useIslandStore from '../../../../../../store/slices';
-import { normalizeOverviewLayoutConfig } from '../../../../expand/components/OverviewTab';
+import { normalizeOverviewLayoutConfig } from '../../../../expand/pages/OverviewTab';
 import {
   CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY,
   SETTINGS_OPEN_TAB_STORE_KEY,
