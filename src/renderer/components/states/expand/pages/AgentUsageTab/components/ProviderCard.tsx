@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { AGENT_USAGE_PROVIDER_ICONS } from '../config/agentUsageConfig';
+import { AGENT_USAGE_PROVIDER_ICONS, TOKEN_BREAKDOWN_KEYS } from '../config/agentUsageConfig';
 import { formatTokens } from '../utils/agentUsageUtils';
 import { QuotaBar } from './QuotaBar';
 import type { ReactElement } from 'react';
@@ -54,12 +54,7 @@ export function ProviderCard({ provider, now, t }: ProviderCardProps): ReactElem
     );
   }
   const windows = [provider.rateLimits?.primary, provider.rateLimits?.secondary].filter((item): item is AgentUsageRateLimitWindow => Boolean(item));
-  const breakdown = [
-    { key: 'input', value: provider.today.input },
-    { key: 'output', value: provider.today.output },
-    { key: 'cacheRead', value: provider.today.cacheRead },
-    { key: 'cacheWrite', value: provider.today.cacheWrite },
-  ];
+  const breakdown = TOKEN_BREAKDOWN_KEYS.map((key) => ({ key, value: provider.today[key] }));
   return (
     <div className={`au-card au-card--${provider.provider}`}>
       <img className="au-card-icon" src={AGENT_USAGE_PROVIDER_ICONS[provider.provider]} alt="" draggable={false} />

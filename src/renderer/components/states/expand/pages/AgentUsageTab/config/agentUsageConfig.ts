@@ -20,18 +20,21 @@
 
 /**
  * @file agentUsageConfig.ts
- * @description Expanded Agent 用量 Tab 的刷新节奏、骨架来源与来源图标映射。
+ * @description Expanded Agent 用量 Tab 的刷新节奏、骨架来源、明细分类与来源图标映射。
  * @author 鸡哥
  */
 
 import { AgentIcon } from '../../../../../../utils/SvgIcon';
-import type { AgentUsageProviderId } from '../../../../../../../preload/types/agentUsage';
+import type { AgentUsageProviderId, AgentUsageTokens } from '../../../../../../../preload/types/agentUsage';
 
 export const REFRESH_INTERVAL_MS = 60_000;
 export const START_FETCH_DELAY_MS = 200;
 
 /** 首次加载时骨架卡片对应的来源 */
 export const SKELETON_PROVIDERS: AgentUsageProviderId[] = ['claude', 'codex'];
+
+/** 卡片明细行展示的 token 分类，骨架屏按同一顺序占位 */
+export const TOKEN_BREAKDOWN_KEYS: readonly (keyof Omit<AgentUsageTokens, 'total'>)[] = ['input', 'output', 'cacheRead', 'cacheWrite'];
 
 /** 来源对应的品牌图标。 */
 export const AGENT_USAGE_PROVIDER_ICONS: Record<AgentUsageProviderId, string> = {

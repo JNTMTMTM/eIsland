@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { AGENT_USAGE_PROVIDER_ICONS } from '../config/agentUsageConfig';
+import { AGENT_USAGE_PROVIDER_ICONS, TOKEN_BREAKDOWN_KEYS } from '../config/agentUsageConfig';
 import type { ReactElement } from 'react';
 import type { ProviderSkeletonProps } from '../types/agentUsageTypes';
 
@@ -49,7 +49,7 @@ export function ProviderSkeleton({ provider }: ProviderSkeletonProps): ReactElem
         <span className="au-skeleton-block au-skeleton-meta" />
       </div>
       <div className="au-card-breakdown">
-        {[0, 1, 2, 3].map((index) => <span key={index} className="au-skeleton-block au-skeleton-cell" />)}
+        {TOKEN_BREAKDOWN_KEYS.map((key) => <span key={key} className="au-skeleton-block au-skeleton-cell" />)}
       </div>
       <div className="au-card-quota">
         <span className="au-skeleton-block au-skeleton-bar" />
