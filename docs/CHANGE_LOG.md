@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-29T23:00:51.569Z
+> 生成时间：2026-10-31T14:33:03.015Z
 
 ## 27.0.0
 
@@ -3872,6 +3872,25 @@
 
 ## Unreleased
 
+- 2026-10-31 | eaddcf24 | JNTMTMTM | Merge pull request #302 from JNTMTMTM/dev
+- 2026-10-30 | b0dfcc82 | 鸡哥 | feat: update main window bounds handling to maintain notification canvas state before first show
+- 2026-10-30 | 2c152583 | 鸡哥 | feat: add TOKEN_BREAKDOWN_KEYS for consistent token breakdown display in ProviderCard and ProviderSkeleton
+- 2026-10-30 | 6f583dd6 | 鸡哥 | feat(cli): enhance styling and structure of pagination controls in CliDetailsPage
+- 2026-10-30 | 6f465d95 | 鸡哥 | feat(cli): refactor CLI state components and add permission handling
+- 2026-10-30 | b6fba252 | 鸡哥 | feat: add CliContent component and associated tests for CLI state management and interactions
+- 2026-10-30 | a65c3ec6 | 鸡哥 | feat: enhance navigation label handling with default labels and improved getNavLabel function
+- 2026-10-30 | 8800c92c | 鸡哥 | feat: Refactor expanded state components and hooks for improved structure and functionality
+- 2026-10-30 | d38c8a7d | 鸡哥 | feat: add ExpandedTransitionLoading component and associated types for loading state
+- 2026-10-30 | 995eb4cf | 鸡哥 | refactor: reorganize component imports and update paths for consistency
+- 2026-10-30 | 31b68398 | 鸡哥 | feat: add ToolsTab and TranslationTab components with associated hooks, utils, and types
+- 2026-10-30 | 707b8938 | 鸡哥 | feat: add expanded SongTab and ToolsTab components with hooks and utilities
+- 2026-10-30 | 8fd3e31b | 鸡哥 | feat: add ToolsTab and TranslationTab components with comprehensive tests
+- 2026-10-30 | 2fb3fdaf | 鸡哥 | feat: add Agent Quota Widget to Overview Tab
+- 2026-10-30 | c62db168 | 鸡哥 | feat: add icons for agent usage providers and update styles for card layout
+- 2026-10-29 | 388d05b2 | 鸡哥 | feat: add skeleton loading state for Agent Usage tab and enhance styles
+- 2026-10-29 | 7be25251 | 鸡哥 | feat: implement agent usage service for tracking Claude Code and Codex token usage
+- 2026-10-29 | fc8ce3df | 鸡哥 | feat: add Agent Usage tab and update internationalization for new feature
+- 2026-10-29 | d76feab0 | eislandBot | docs: auto update CHANGE_LOG.md for #301 by @JNTMTMTM [skip ci]
 - 2026-10-29 | 9f635d43 | JNTMTMTM | Merge pull request #301 from JNTMTMTM/dev
 - 2026-10-28 | a950dd93 | 鸡哥 | Merge branch 'dev' of https://github.com/JNTMTMTM/eIsland into dev
 - 2026-10-28 | f5c70282 | 鸡哥 | feat: implement island corner style management with error handling and UI feedback
