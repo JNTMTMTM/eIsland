@@ -186,7 +186,8 @@ export function createMainWindowService(options: CreateMainWindowServiceOptions)
     }]);
 
     mainWindow.on('ready-to-show', async () => {
-      setMainWindowBounds(mainWindow, backingBounds);
+      // 首帧前 renderer 可能已切到通知等状态并撑大画布，按最近一次主动设置的尺寸重申，而不是退回 idle 初始尺寸。
+      setMainWindowBounds(mainWindow, readMainWindowBounds(mainWindow));
       if (options.onBeforeShow) {
         options.onBeforeShow();
       }

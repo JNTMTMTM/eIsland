@@ -95,9 +95,10 @@ describe('main window first expansion', () => {
 
   /**
    * 按实际启动顺序注册 IPC、创建窗口并等待首次显示。
+   * @param ready - 是否立即派发 ready-to-show；为 false 时模拟首帧前已有状态切换。
    * @returns 主窗口服务，供位置变更断言使用。
    */
-  async function startWindow(): Promise<ReturnType<typeof createMainWindowService>> {
+  async function startWindow(ready = true): Promise<ReturnType<typeof createMainWindowService>> {
     const service = createMainWindowService({
       getMainWindow: () => mainWindow,
       setMainWindow: (value) => { mainWindow = value; },
@@ -122,7 +123,7 @@ describe('main window first expansion', () => {
       sizes,
     });
     service.createWindow();
-    await events.get('ready-to-show')?.();
+    if (ready) await events.get('ready-to-show')?.();
     return service;
   }
 
@@ -240,6 +241,16 @@ describe('main window first expansion', () => {
     ipcEvents.get('window:expand')?.();
     expect(bounds).toEqual({ x: 540, y: 51, width: 860, height: 72 });
     expect(win.setShape).toHaveBeenLastCalledWith([{ x: 180, y: 0, width: 500, height: 72 }]);
+  });
+
+  it('keeps a notification canvas requested before the first show instead of restoring the idle frame', async () => {
+    await startWindow(false);
+    ipcEvents.get('window:expand-notification')?.({}, 220);
+    const expanded = { ...bounds };
+    expect(expanded.height).toBe(90);
+    await events.get('ready-to-show')?.();
+    expect(bounds).toEqual(expanded);
+    expect(win.show).toHaveBeenCalled();
   });
 
   it('does not reuse the previous window size when moving a replacement pill', async () => {
