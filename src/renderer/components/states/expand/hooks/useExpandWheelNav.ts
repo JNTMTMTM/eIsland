@@ -27,7 +27,7 @@
 import { type RefObject, useEffect, useRef } from 'react';
 import { useIslandContentActive } from '../../../hooks/islandContentActivity';
 import type { ExpandTab } from '../../../../store/types';
-import type { NavDotId } from '../config/types';
+import type { NavDotId } from '../types/expandTypes';
 
 interface UseExpandWheelNavOptions {
   contentRef: RefObject<HTMLDivElement | null>;

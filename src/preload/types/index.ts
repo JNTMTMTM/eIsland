@@ -28,6 +28,7 @@ export * from './common';
 export * from './window';
 export * from './file';
 export * from './performance';
+export * from './agentUsage';
 export * from './process';
 export * from './media';
 export * from './agent';

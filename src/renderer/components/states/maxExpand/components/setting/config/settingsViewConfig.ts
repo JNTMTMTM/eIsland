@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { OverviewClockStyle, OverviewWidgetType } from '../../../../expand/components/OverviewTab';
+import type { OverviewClockStyle, OverviewWidgetType } from '../../../../expand/pages/OverviewTab';
 
 export const OVERVIEW_WIDGET_LABEL_KEYS: Record<OverviewWidgetType, string> = {
   shortcuts: 'settings.app.layout.widgetNames.shortcuts',
@@ -39,6 +39,7 @@ export const OVERVIEW_WIDGET_LABEL_KEYS: Record<OverviewWidgetType, string> = {
   worldClock: 'settings.app.layout.widgetNames.worldClock',
   alarm: 'settings.app.layout.widgetNames.alarm',
   performanceMonitor: 'settings.app.layout.widgetNames.performanceMonitor',
+  agentQuota: 'settings.app.layout.widgetNames.agentQuota',
 };
 
 export const OVERVIEW_CLOCK_STYLE_LABEL_KEYS: Record<OverviewClockStyle, string> = {

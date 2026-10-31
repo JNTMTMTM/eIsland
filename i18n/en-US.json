@@ -671,7 +671,8 @@
       "song": "Preparing song information and playback controls.",
       "tools": "Preparing tools and shortcuts.",
       "translation": "Preparing the translation input and results panel.",
-      "performanceMonitor": "Preparing system performance and hardware status panels."
+      "performanceMonitor": "Preparing system performance and hardware status panels.",
+      "agentUsage": "Preparing the Agent usage panel."
     },
     "nav": {
       "hover": "Back",
@@ -680,8 +681,42 @@
       "tools": "Tools",
       "translation": "Translation",
       "performanceMonitor": "Performance Monitor",
+      "agentUsage": "Agent Usage",
       "maxExpand": "Max Expand",
       "switchToPage": "Switch to {{label}} page"
+    },
+    "agentUsage": {
+      "title": "Agent Usage",
+      "subtitle": "From local Claude Code and Codex logs",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing",
+      "updatedAt": "Updated {{time}}",
+      "loading": "Reading local logs...",
+      "error": "Failed to read local logs",
+      "unavailable": "No local logs found",
+      "todayTokens": "tokens today",
+      "week": "7d {{value}}",
+      "sessions": "{{count}} sessions today",
+      "noQuotaInLogs": "Local logs have no quota data",
+      "noQuotaData": "No quota data yet",
+      "resetIn": "Resets in {{time}}",
+      "resetDone": "Reset",
+      "window": {
+        "fiveHour": "5h",
+        "weekly": "Weekly",
+        "hours": "{{count}}h",
+        "unknown": "Quota"
+      },
+      "providers": {
+        "claude": "Claude Code",
+        "codex": "Codex"
+      },
+      "tokens": {
+        "input": "In",
+        "output": "Out",
+        "cacheRead": "Cache R",
+        "cacheWrite": "Cache W"
+      }
     },
     "performanceMonitor": {
       "title": "System Performance",
@@ -786,6 +821,9 @@
     },
     "performanceMonitor": {
       "title": "Performance Monitor"
+    },
+    "agentQuota": {
+      "title": "Agent Quota"
     },
     "breakReminder": {
       "title": "Break Reminder",
@@ -3096,7 +3134,8 @@
           "breakReminder": "Break Reminder",
           "alarm": "Alarms",
           "worldClock": "World Clock",
-          "performanceMonitor": "Performance Monitor"
+          "performanceMonitor": "Performance Monitor",
+          "agentQuota": "Agent Quota"
         },
         "previewMock": {
           "previewTag": "Preview",
@@ -3138,7 +3177,8 @@
           "song": "Music",
           "tools": "Tools",
           "translation": "Translation",
-          "performanceMonitor": "Performance Monitor"
+          "performanceMonitor": "Performance Monitor",
+          "agentUsage": "Agent Usage"
         }
       },
       "maxExpandLayout": {

@@ -28,7 +28,7 @@ import type { JSX } from 'react';
 import type { NotificationData, WeatherData } from '../../store/types';
 import { IdleClockContent, HoverClockContent } from './IslandClockContent';
 import { NotificationContent } from '../states/notification/NotificationContent';
-import { ExpandedContent } from '../states/expand/ExpandedContent';
+import { ExpandedContent } from '../states/expand';
 import { MaxExpandContent } from '../states/maxExpand/MaxExpandContent';
 import { LyricsContent } from '../states/lyrics/LyricsContent';
 import { LyricsTranslationContent } from '../states/lyricsTranslation/LyricsTranslationContent';
@@ -42,7 +42,7 @@ import { AnnouncementContent } from '../states/announcement/AnnouncementContent'
 import { AgentVoiceInputContent } from '../states/agentVoiceInput/AgentVoiceInputContent';
 import { AgentContent } from '../states/agent/AgentContent';
 import { SttContent } from '../states/stt/SttContent';
-import { CliContent } from '../states/cli/CliContent';
+import { CliContent } from '../states/cli';
 import { SetPasswordContent } from '../states/setPassword';
 import { BindOAuthContent } from '../states/bindOAuth';
 import { BindEmailContent } from '../states/bindEmail';

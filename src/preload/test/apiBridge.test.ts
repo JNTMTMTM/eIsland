@@ -317,7 +317,8 @@ const TRANSPORT_ROUTES = [
   ['codexMonitorEnable', 'codex:monitor:enable', 0, 'invoke'],
   ['codexMonitorDisable', 'codex:monitor:disable', 0, 'invoke'],
   ['codexEventsClear', 'codex:events:clear', 0, 'invoke'],
-  ['codexSessionsDelete', 'codex:sessions:delete', 1, 'invoke']
+  ['codexSessionsDelete', 'codex:sessions:delete', 1, 'invoke'],
+  ['agentUsageSnapshotGet', 'agent-usage:snapshot:get', 0, 'invoke']
 ] as const satisfies readonly (readonly [string, string, number, 'invoke' | 'send'])[];
 
 const LISTENER_ROUTES = [

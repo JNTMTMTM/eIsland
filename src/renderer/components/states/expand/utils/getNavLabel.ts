@@ -24,26 +24,18 @@
  * @author 鸡哥
  */
 
-import type { NavDotId } from '../config/types';
+import { NAV_DOT_DEFAULT_LABELS } from '../config/expandConfig';
+import type { NavDotId } from '../types/expandTypes';
 
-/** 获取导航点的 i18n 标签 */
-export const getNavLabel = (
+/**
+ * 获取导航点的 i18n 标签
+ * @param tab - 导航点标识
+ * @param t - 翻译函数
+ * @returns 当前语言的标签，翻译缺失时使用中文默认文案
+ */
+export function getNavLabel(
   tab: NavDotId,
   t: (key: string, opts?: Record<string, unknown>) => string,
-): string =>
-  t(`expanded.nav.${tab}`, {
-    defaultValue:
-      tab === 'hover'
-        ? '返回'
-        : tab === 'overview'
-          ? '总览'
-          : tab === 'song'
-            ? '歌曲'
-            : tab === 'tools'
-              ? '工具'
-              : tab === 'translation'
-                ? '翻译'
-                : tab === 'performanceMonitor'
-                  ? '性能监控'
-                  : '最大展开',
-  });
+): string {
+  return t(`expanded.nav.${tab}`, { defaultValue: NAV_DOT_DEFAULT_LABELS[tab] ?? NAV_DOT_DEFAULT_LABELS.maxExpand });
+}

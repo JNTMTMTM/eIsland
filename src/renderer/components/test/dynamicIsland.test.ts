@@ -43,7 +43,7 @@ vi.mock('../hooks/useDynamicIslandCoordinator', () => ({ useDynamicIslandCoordin
 vi.mock('../states/maxExpand/hooks/usePerformanceMode', () => ({ usePerformanceMode: () => true }));
 vi.mock('../components/DynamicIslandStateContent', () => ({ DynamicIslandStateContent: vi.fn() }));
 vi.mock('../states/maxExpand/maxExpandTransitionLoading', () => ({ default: vi.fn() }));
-vi.mock('../states/expand/expandedTransitionLoading', () => ({ default: vi.fn() }));
+vi.mock('../states/expand', () => ({ ExpandedTransitionLoading: vi.fn() }));
 beforeEach(() => {
   vi.clearAllMocks();
   resetState();

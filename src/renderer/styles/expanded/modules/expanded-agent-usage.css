@@ -1,0 +1,423 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/**
+ * @file expanded-agent-usage.css
+ * @description Expanded Agent 用量面板样式 — 双来源卡片，配色与性能监控面板一致
+ */
+
+.au-tab-panel {
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.au-panel-wrap {
+  width: 100%;
+  height: calc(100% - 2px);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 5px;
+  padding: 2px 4px 0;
+  overflow: hidden;
+}
+
+.au-status {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(var(--color-text-rgb), 0.62);
+}
+
+.au-card-skeleton {
+  position: relative;
+}
+
+.au-skeleton-block {
+  display: block;
+  border-radius: 3px;
+  background: rgba(var(--color-text-rgb), 0.1);
+}
+
+.au-skeleton-action {
+  width: 88px;
+  height: 14px;
+  border-radius: 999px;
+}
+
+.au-skeleton-name {
+  width: 64px;
+  height: 9px;
+}
+
+.au-skeleton-model {
+  width: 80px;
+  height: 8px;
+}
+
+.au-skeleton-today {
+  width: 52px;
+  height: 16px;
+}
+
+.au-skeleton-meta {
+  width: 96px;
+  height: 8px;
+  margin-left: auto;
+}
+
+.au-skeleton-cell {
+  height: 8px;
+}
+
+.au-skeleton-bar {
+  height: 4px;
+  border-radius: 999px;
+}
+
+/* 扫光只做 transform 位移，交给合成层执行，不触发重绘。 */
+.au-card-skeleton::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(var(--color-text-rgb), 0.07), transparent);
+  animation: auSkeletonShimmer 1.4s ease-in-out infinite;
+  transform: translateX(-100%);
+  content: "";
+}
+
+@keyframes auSkeletonShimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .au-card-skeleton::after {
+    display: none;
+    animation: none;
+  }
+}
+
+.au-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.au-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.au-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.92);
+  white-space: nowrap;
+}
+
+.au-subtitle {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.38);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.au-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.au-updated {
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.45);
+  white-space: nowrap;
+}
+
+.au-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 3px 10px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.18);
+  border-radius: 999px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  color: rgba(var(--color-text-rgb), 0.8);
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.au-refresh-btn:hover:not(:disabled) {
+  background: rgba(var(--color-text-rgb), 0.14);
+  color: rgba(var(--color-text-rgb), 0.92);
+}
+
+.au-refresh-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.au-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.au-card {
+  --au-accent: rgba(var(--color-text-rgb), 0.6);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto 1fr;
+  align-content: start;
+  gap: 4px 10px;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px 8px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.05);
+}
+
+.au-card--claude {
+  --au-accent: #d97757;
+}
+
+.au-card--codex {
+  --au-accent: #8da8ff;
+}
+
+.au-card--empty {
+  grid-template-rows: auto 1fr;
+  align-content: stretch;
+}
+
+/* 图标独占左列并纵跨全部行，其余内容统一落在右列。 */
+.au-card-icon {
+  grid-row: 1 / -1;
+  grid-column: 1;
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  user-select: none;
+}
+
+.au-card > :not(.au-card-icon) {
+  grid-column: 2;
+}
+
+/* Codex 图标为白色单色，浅色主题下反相以保持可见。 */
+.au-card--codex .au-card-icon {
+  filter: brightness(0) invert(1);
+  opacity: 0.82;
+}
+
+[data-theme='light'] .au-card--codex .au-card-icon {
+  filter: brightness(0) invert(0);
+}
+
+.au-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.au-card-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--au-accent);
+}
+
+.au-card-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.86);
+  white-space: nowrap;
+}
+
+.au-card-model {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.42);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.au-card-plan {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(var(--color-text-rgb), 0.08);
+  font-size: 8px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.6);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.au-card-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.au-card-today {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.au-card-today-label {
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.42);
+  white-space: nowrap;
+}
+
+.au-card-meta {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.55);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.au-card-breakdown {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.au-card-breakdown-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.au-card-breakdown-label {
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.36);
+  white-space: nowrap;
+}
+
+.au-card-breakdown-value {
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(var(--color-text-rgb), 0.72);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.au-card-quota {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-height: 0;
+}
+
+.au-quota {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 28px auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.au-quota-label,
+.au-quota-reset {
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.42);
+  white-space: nowrap;
+}
+
+.au-quota-value {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(var(--color-text-rgb), 0.78);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.au-quota-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(var(--color-text-rgb), 0.09);
+}
+
+.au-quota-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--au-accent);
+  transition: width 0.35s ease;
+}
+
+.au-quota-fill--warn {
+  background: #f59e0b;
+}
+
+.au-quota-fill--danger {
+  background: #ef4444;
+}
+
+.au-card-hint {
+  align-self: center;
+  font-size: 9px;
+  color: rgba(var(--color-text-rgb), 0.42);
+}
+
+@media (max-width: 520px) {
+  .au-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .au-subtitle {
+    display: none;
+  }
+}

@@ -88,6 +88,7 @@ import type {
   ClaudeCodeHookMutationResult,
   CodexStatusSnapshot,
   CodexMonitorMutationResult,
+  AgentUsageSnapshot,
 } from './types';
 import { TRAY_MENU_CHANNELS } from '../shared/trayMenu';
 import type { TrayMenuAction, TrayMenuState } from '../shared/trayMenu';
@@ -1841,7 +1842,8 @@ const api = {
   codexSessionsDelete: (sessionIds: string[]): Promise<CodexStatusSnapshot> => {
     return ipcRenderer.invoke('codex:sessions:delete', sessionIds);
   },
-  onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void): (() => void) => subscribeCliStatus('codex:status-updated', 'codex:status:get', callback)
+  onCodexStatusUpdated: (callback: (snapshot: CodexStatusSnapshot) => void): (() => void) => subscribeCliStatus('codex:status-updated', 'codex:status:get', callback),
+  agentUsageSnapshotGet: (): Promise<AgentUsageSnapshot> => ipcRenderer.invoke('agent-usage:snapshot:get')
 };
 
 /** 注入到 window 对象，供渲染进程访问 */

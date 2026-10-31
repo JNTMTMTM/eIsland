@@ -27,11 +27,13 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/components/OverviewTab';
-import { PerformanceMetricGrid, type PerformanceWidgetMetrics } from '../../../../../../expand/components/OverviewTab/components/PerformanceMetricGrid';
+import type { OverviewLayoutConfig, OverviewWidgetType } from '../../../../../../expand/pages/OverviewTab';
+import { PerformanceMetricGrid, type PerformanceWidgetMetrics } from '../../../../../../expand/pages/OverviewTab/components/PerformanceMetricGrid';
 import { SvgIcon } from '../../../../../../../../utils/SvgIcon';
 import { DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS } from '../../../../../../../../utils/performanceMonitorColors';
+import { AGENT_USAGE_PROVIDER_ICONS } from '../../../../../../expand/pages/AgentUsageTab/config/agentUsageConfig';
 import { WorldClockFlag } from '../../../../../components/worldClock/components/WorldClockFlag';
+import type { AgentUsageProviderId } from '../../../../../../../../../preload/types/agentUsage';
 
 interface PreviewCountdownItem {
   id: number;
@@ -51,6 +53,12 @@ const PREVIEW_PERFORMANCE_METRICS: PerformanceWidgetMetrics = {
   memory: { percent: 61, temperature: null },
   disk: { percent: 45, temperature: 38 },
 };
+
+/** Agent 额度预览使用固定示例值，不读取本地日志。 */
+const PREVIEW_AGENT_QUOTA: { provider: AgentUsageProviderId; today: string; percent: number | null }[] = [
+  { provider: 'claude', today: '8.33M', percent: null },
+  { provider: 'codex', today: '1.20M', percent: 42 },
+];
 
 function previewDiffDays(targetStr: string): number {
   const today = new Date();
@@ -419,6 +427,36 @@ export function OverviewPreview({ layoutConfig }: { layoutConfig: OverviewLayout
               <span className="ov-dash-widget-title">{t('overview.performanceMonitor.title')}</span>
             </div>
             <PerformanceMetricGrid metrics={PREVIEW_PERFORMANCE_METRICS} colors={DEFAULT_PERFORMANCE_MONITOR_CHART_COLORS} />
+          </div>
+        );
+      case 'agentQuota':
+        return (
+          <div className="ov-dash-widget ov-dash-agent-quota-widget">
+            <div className="ov-dash-widget-header">
+              <span className="ov-dash-widget-title">{t('overview.agentQuota.title')}</span>
+            </div>
+            <div className="ov-dash-agent-quota-list">
+              {PREVIEW_AGENT_QUOTA.map((item) => (
+                <div key={item.provider} className={`ov-dash-agent-quota-item ov-dash-agent-quota-item--${item.provider}`}>
+                  <div className="ov-dash-agent-quota-head">
+                    <img className="ov-dash-agent-quota-icon" src={AGENT_USAGE_PROVIDER_ICONS[item.provider]} alt="" draggable={false} />
+                    <span className="ov-dash-agent-quota-name">{t(`expanded.agentUsage.providers.${item.provider}`)}</span>
+                    <span className="ov-dash-agent-quota-today">{item.today}</span>
+                  </div>
+                  {item.percent === null
+                    ? <span className="ov-dash-agent-quota-hint">{t('expanded.agentUsage.noQuotaInLogs')}</span>
+                    : (
+                      <div className="ov-dash-agent-quota-row">
+                        <span className="ov-dash-agent-quota-window">{t('expanded.agentUsage.window.fiveHour')}</span>
+                        <div className="ov-dash-agent-quota-track">
+                          <div className="ov-dash-agent-quota-fill" style={{ width: `${item.percent}%` }} />
+                        </div>
+                        <span className="ov-dash-agent-quota-percent">{`${item.percent}%`}</span>
+                      </div>
+                    )}
+                </div>
+              ))}
+            </div>
           </div>
         );
       default:

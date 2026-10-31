@@ -27,7 +27,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createHookReactMock, flushHookEffects, renderHook, resetHook, unmountHook } from '../../../../hooks/test/startupHookHarness';
 import type { useExpandWheelNav } from '../useExpandWheelNav';
 import type { ExpandTab } from '../../../../../store/types';
-import type { NavDotId } from '../../config/types';
+import type { NavDotId } from '../../types/expandTypes';
 const context = vi.hoisted(() => ({
   active: true
 }));

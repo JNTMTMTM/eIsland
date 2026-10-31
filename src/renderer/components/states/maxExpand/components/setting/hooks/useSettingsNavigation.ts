@@ -25,7 +25,7 @@
  */
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { OVERVIEW_CLOCK_STYLE_OPTIONS, OVERVIEW_WIDGET_OPTIONS } from '../../../../expand/components/OverviewTab';
+import { OVERVIEW_CLOCK_STYLE_OPTIONS, OVERVIEW_WIDGET_OPTIONS } from '../../../../expand/pages/OverviewTab';
 import { getRoleFromToken, type PluginMarketPageKey } from '../config/settingsTabConfig';
 import { OVERVIEW_CLOCK_STYLE_LABEL_KEYS, OVERVIEW_WIDGET_LABEL_KEYS } from '../config/settingsViewConfig';
 import {

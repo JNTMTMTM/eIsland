@@ -671,7 +671,8 @@
       "song": "準備歌曲信息與播放控制。",
       "tools": "準備實用工具與快捷入口。",
       "translation": "準備翻譯輸入與結果面板。",
-      "performanceMonitor": "準備系統性能與硬件狀態面板。"
+      "performanceMonitor": "準備系統性能與硬件狀態面板。",
+      "agentUsage": "準備 Agent 用量面板。"
     },
     "nav": {
       "hover": "返回",
@@ -680,8 +681,42 @@
       "tools": "工具",
       "translation": "翻譯",
       "performanceMonitor": "性能監控",
+      "agentUsage": "Agent用量",
       "maxExpand": "最大展開",
       "switchToPage": "切換到{{label}}頁面"
+    },
+    "agentUsage": {
+      "title": "Agent 用量",
+      "subtitle": "讀取本機 Claude Code 與 Codex 日誌",
+      "refresh": "重新整理",
+      "refreshing": "重新整理中",
+      "updatedAt": "更新於 {{time}}",
+      "loading": "正在讀取本機日誌...",
+      "error": "讀取本機日誌失敗",
+      "unavailable": "未偵測到本機日誌",
+      "todayTokens": "今日 tokens",
+      "week": "7 天 {{value}}",
+      "sessions": "今日會話 {{count}}",
+      "noQuotaInLogs": "本機日誌不含額度資訊",
+      "noQuotaData": "暫無額度資料",
+      "resetIn": "{{time}}後重置",
+      "resetDone": "已重置",
+      "window": {
+        "fiveHour": "5 小時",
+        "weekly": "每週",
+        "hours": "{{count}} 小時",
+        "unknown": "額度"
+      },
+      "providers": {
+        "claude": "Claude Code",
+        "codex": "Codex"
+      },
+      "tokens": {
+        "input": "輸入",
+        "output": "輸出",
+        "cacheRead": "快取讀",
+        "cacheWrite": "快取寫"
+      }
     },
     "performanceMonitor": {
       "title": "系統性能",
@@ -786,6 +821,9 @@
     },
     "performanceMonitor": {
       "title": "性能監控"
+    },
+    "agentQuota": {
+      "title": "Agent 額度"
     },
     "breakReminder": {
       "title": "休息提醒",
@@ -3096,7 +3134,8 @@
           "breakReminder": "休息提醒",
           "alarm": "鬧鐘",
           "worldClock": "世界時鐘",
-          "performanceMonitor": "性能監控"
+          "performanceMonitor": "性能監控",
+          "agentQuota": "Agent 額度"
         },
         "previewMock": {
           "previewTag": "預覽",
@@ -3138,7 +3177,8 @@
           "song": "歌曲",
           "tools": "工具",
           "translation": "翻譯",
-          "performanceMonitor": "性能監控"
+          "performanceMonitor": "性能監控",
+          "agentUsage": "Agent用量"
         }
       },
       "maxExpandLayout": {

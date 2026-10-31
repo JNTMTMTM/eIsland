@@ -36,6 +36,7 @@ import { startClipboardUrlWatcher, stopClipboardUrlWatcher } from './clipboard/u
 import { createClipboardUrlState } from './clipboard/clipboardUrlState';
 import { registerClaudeCodeStatusIpcHandlers } from './ipc/agent/claudeCodeStatusIpc';
 import { registerCodexStatusIpcHandlers } from './ipc/agent/codexStatusIpc';
+import { registerAgentUsageIpcHandlers } from './ipc/agent/agentUsageIpc';
 import { registerClipboardIpcHandlers } from './ipc/settings/clipboard';
 import { registerCaptureIpcHandlers } from './ipc/window/capture';
 import { disposeLocalOcrWorker } from './services/captureLocalOcrService';
@@ -81,6 +82,7 @@ import { createAutoHideWatcher } from './system/autoHideWatcher';
 import { createExternalAgentWatcher } from './system/externalAgentWatcher';
 import { createClaudeCodeStatusService } from './system/claudeCodeStatusService';
 import { createCodexStatusService } from './system/codexStatusService';
+import { createAgentUsageService } from './system/agentUsageService';
 import {
   queryFocusedWindow,
   queryOpenWindowsWithIcons,
@@ -449,6 +451,11 @@ const codexStatusService = createCodexStatusService({
   getMainWindow: () => mainWindow,
 });
 
+const agentUsageService = createAgentUsageService({
+  claudeProjectsPath: join(app.getPath('home'), '.claude', 'projects'),
+  codexSessionsPath: join(app.getPath('home'), '.codex', 'sessions'),
+});
+
 /** SMTC 自动取消订阅时间（毫秒），0 为永不取消 */
 let smtcUnsubscribeMs = DEFAULT_SMTC_UNSUBSCRIBE_MS;
 
@@ -649,6 +656,7 @@ function registerIpcHandlers(): void {
   registerReminderWakeups();
   registerClaudeCodeStatusIpcHandlers({ service: claudeCodeStatusService });
   registerCodexStatusIpcHandlers(codexStatusService);
+  registerAgentUsageIpcHandlers(agentUsageService);
   registerSettingsPreviewHandler();
 
   registerLogIpcHandlers({ writeMainLog });

@@ -34,7 +34,7 @@ import type {
   OverviewClockStyle,
   OverviewLayoutConfig,
   OverviewWidgetType,
-} from '../../../../expand/components/OverviewTab';
+} from '../../../../expand/pages/OverviewTab';
 import {
   DEFAULT_AUTO_DIM_DELAY_SEC,
   ISLAND_AUTO_DIM_DELAY_STORE_KEY,

@@ -93,6 +93,7 @@ describe('normalizeExpandNavLayoutConfig', () => {
       { id: 'overview', visible: true },
       { id: 'translation', visible: true },
       { id: 'performanceMonitor', visible: true },
+      { id: 'agentUsage', visible: true },
     ];
     const result = mod.normalizeExpandNavLayoutConfig(input);
     expect(result.map((i) => i.id)).toEqual([
@@ -101,6 +102,7 @@ describe('normalizeExpandNavLayoutConfig', () => {
       'overview',
       'translation',
       'performanceMonitor',
+      'agentUsage',
     ]);
   });
 
@@ -148,11 +150,12 @@ describe('normalizeExpandNavLayoutConfig', () => {
     // 'song' first, then missing tabs appended
     const ids = result.map((i) => i.id);
     expect(ids[0]).toBe('song');
-    // overview, tools, translation, performanceMonitor should be appended
+    // overview, tools, translation, performanceMonitor, agentUsage should be appended
     expect(ids).toContain('overview');
     expect(ids).toContain('tools');
     expect(ids).toContain('translation');
     expect(ids).toContain('performanceMonitor');
+    expect(ids).toContain('agentUsage');
     expect(result.length).toBe(mod.EXPAND_CONFIGURABLE_TABS.length);
   });
 
