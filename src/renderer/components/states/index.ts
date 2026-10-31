@@ -37,6 +37,6 @@ export { AnnouncementContent } from './announcement/AnnouncementContent';
 export { AgentVoiceInputContent } from './agentVoiceInput/AgentVoiceInputContent';
 export { AgentContent } from './agent/AgentContent';
 export { SttContent } from './stt/SttContent';
-export { CliContent } from './cli/CliContent';
+export { CliContent } from './cli';
 export { SetPasswordContent } from './setPassword';
 export { BindOAuthContent } from './bindOAuth';

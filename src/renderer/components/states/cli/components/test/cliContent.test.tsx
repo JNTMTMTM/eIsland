@@ -24,29 +24,45 @@
  * @author 鸡哥
  */
 
+import { isValidElement, type ReactElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { byClass, elements, invoke, text } from '../../test/tree';
+import { byClass, elements, invoke, text } from '../../../test/tree';
 
 import { CliContent } from '../CliContent';
-import type { TreeElement } from '../../test/tree';
+import type { TreeElement } from '../../../test/tree';
 const api = { claudeCodePermissionResolve: vi.fn().mockResolvedValue(true) };
 
 const slots = vi.hoisted(() => ({ cursor: 0, values: [] as unknown[], effects: [] as Array<() => unknown> }));
-vi.mock('react', async (importOriginal) => { const actual = await importOriginal<typeof import('react')>(); const { mockHooks } = await import('../../test/hooks'); return mockHooks(actual, slots); });
+vi.mock('react', async (importOriginal) => { const actual = await importOriginal<typeof import('react')>(); const { mockHooks } = await import('../../../test/hooks'); return mockHooks(actual, slots); });
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'zh-CN' } }) }));
 beforeEach(() => { slots.cursor = 0; slots.values = []; slots.effects = []; });
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 const model = vi.hoisted(() => ({ store: { setIdle: vi.fn(), setMaxExpand: vi.fn(), setMaxExpandTab: vi.fn(), cliProvider: 'claude', setCliProvider: vi.fn(), isMusicPlaying: false, syncedLyrics: [], lyricsLoading: false, currentPositionMs: 1500 }, snapshot: { sessions: [] as Array<{ id: string; title: string; phase: string; lastEventAt: number; pendingPermission?: { raw: Record<string, unknown>; toolName: string } }>, events: [] as Array<{ sessionId: string; eventName: string; summary: string; kind: string }> }, lyric: { currentIdx: 0, currentLine: null, currentText: 'Lyric', hasSyllables: false } }));
-vi.mock('../../../../store/isLandStore', () => ({ default: (selector: (state: typeof model.store) => unknown) => selector(model.store) }));
-vi.mock('../../maxExpand/components/cli/hooks/useCliStatus', () => ({ useCliStatus: () => ({ snapshot: model.snapshot }) }));
-vi.mock('../../lyrics/hooks/useCurrentLyric', () => ({ useCurrentLyric: () => model.lyric }));
-vi.mock('../../lyrics/hooks/useLyricsSettings', () => ({ useLyricsSettings: () => ({ karaokeEnabled: false }) }));
+vi.mock('../../../../../store/isLandStore', () => ({ default: (selector: (state: typeof model.store) => unknown) => selector(model.store) }));
+vi.mock('../../../maxExpand/components/cli/hooks/useCliStatus', () => ({ useCliStatus: () => ({ snapshot: model.snapshot }) }));
+vi.mock('../../../lyrics/hooks/useCurrentLyric', () => ({ useCurrentLyric: () => model.lyric }));
+vi.mock('../../../lyrics/hooks/useLyricsSettings', () => ({ useLyricsSettings: () => ({ karaokeEnabled: false }) }));
 beforeEach(() => { model.snapshot.sessions = []; model.snapshot.events = []; model.store.cliProvider = 'claude'; model.store.isMusicPlaying = false; vi.stubGlobal('window', { api }); });
+const CLI_PARTS = ['CliStateBody', 'CliStateActions', 'CliPermissionActions', 'CliStateLyric'];
+
+/** 展开 CLI 状态卡片的内部子组件，保留外部组件边界，使断言覆盖卡片的真实输出。
+ * @param tree - 元素树
+ * @returns 展开后的元素树
+ */
+function expandParts(tree: ReactNode): ReactNode {
+  if (Array.isArray(tree)) return tree.map(expandParts);
+  if (!isValidElement<Record<string, unknown>>(tree)) return tree;
+  if (typeof tree.type === 'function' && CLI_PARTS.includes(tree.type.name)) {
+    return expandParts((tree.type as (props: object) => ReactNode)(tree.props));
+  }
+  const children = tree.props.children as ReactNode;
+  return { ...tree, props: { ...tree.props, children: Array.isArray(children) ? children.map(expandParts) : expandParts(children) } } as ReactElement;
+}
 describe('CliContent', () => {
-  it('renders empty event state and forwards panel/close actions', () => { const root = ((CliContent() as TreeElement)); expect(text(root)).toContain('maxExpand.cli.emptyEvents'); invoke(byClass(root, 'cli-state-body'), 'onClick'); expect(model.store.setMaxExpandTab).toHaveBeenCalledWith('cli'); expect(model.store.setMaxExpand).toHaveBeenCalledOnce(); invoke(byClass(root, 'cli-state-action-btn'), 'onClick'); expect(model.store.setIdle).toHaveBeenCalledWith(true); });
-  it('selects latest active session and its event, ignoring completed sessions', () => { model.snapshot.sessions = [{ id: 'old', title: 'Old', phase: 'running', lastEventAt: 1 }, { id: 'new', title: 'New', phase: 'running', lastEventAt: 2 }, { id: 'done', title: 'Completed', phase: 'completed', lastEventAt: 3 }]; model.snapshot.events = [{ sessionId: 'new', eventName: 'Tool', summary: 'New summary', kind: 'tool' }]; const root = ((CliContent() as TreeElement)); expect(text(root)).toContain('New'); expect(text(root)).toContain('New summary'); expect(text(root)).not.toContain('Completed'); expect(byClass(root, 'cli-state-icon').props.src).toContain('waving'); });
-  it('renders pending command and resolves each Claude permission choice', () => { model.snapshot.sessions = [{ id: 'permission', title: 'Authorize', phase: 'waiting_permission', lastEventAt: 1, pendingPermission: { raw: { tool_input: { command: 'git status', description: 'Read status' } }, toolName: 'Shell' } }]; const root = ((CliContent() as TreeElement)); expect(text(root)).toContain('git status'); expect(text(root)).toContain('Read status'); ['deny', 'allow', 'always'].forEach((choice) => { invoke(byClass(root, `cli-state-permission-${choice}`), 'onClick'); }); expect(vi.mocked(api.claudeCodePermissionResolve).mock.calls).toEqual([['permission', 'deny'], ['permission', 'allow'], ['permission', 'always']]); });
-  it('uses Codex icon and lyric instead of Claude-specific permission controls', () => { model.store.cliProvider = 'codex'; model.store.isMusicPlaying = true; const root = ((CliContent() as TreeElement)); expect(byClass(root, 'cli-state-icon').props.className).toContain('--codex'); expect(text(root)).toContain('Lyric'); expect(elements(root).some((node) => node.props.className === 'cli-state-permission')).toBe(false); });
+  it('renders empty event state and forwards panel/close actions', () => { const root = (expandParts(CliContent()) as TreeElement); expect(text(root)).toContain('maxExpand.cli.emptyEvents'); invoke(byClass(root, 'cli-state-body'), 'onClick'); expect(model.store.setMaxExpandTab).toHaveBeenCalledWith('cli'); expect(model.store.setMaxExpand).toHaveBeenCalledOnce(); invoke(byClass(root, 'cli-state-action-btn'), 'onClick'); expect(model.store.setIdle).toHaveBeenCalledWith(true); });
+  it('selects latest active session and its event, ignoring completed sessions', () => { model.snapshot.sessions = [{ id: 'old', title: 'Old', phase: 'running', lastEventAt: 1 }, { id: 'new', title: 'New', phase: 'running', lastEventAt: 2 }, { id: 'done', title: 'Completed', phase: 'completed', lastEventAt: 3 }]; model.snapshot.events = [{ sessionId: 'new', eventName: 'Tool', summary: 'New summary', kind: 'tool' }]; const root = (expandParts(CliContent()) as TreeElement); expect(text(root)).toContain('New'); expect(text(root)).toContain('New summary'); expect(text(root)).not.toContain('Completed'); expect(byClass(root, 'cli-state-icon').props.src).toContain('waving'); });
+  it('renders pending command and resolves each Claude permission choice', () => { model.snapshot.sessions = [{ id: 'permission', title: 'Authorize', phase: 'waiting_permission', lastEventAt: 1, pendingPermission: { raw: { tool_input: { command: 'git status', description: 'Read status' } }, toolName: 'Shell' } }]; const root = (expandParts(CliContent()) as TreeElement); expect(text(root)).toContain('git status'); expect(text(root)).toContain('Read status'); ['deny', 'allow', 'always'].forEach((choice) => { invoke(byClass(root, `cli-state-permission-${choice}`), 'onClick'); }); expect(vi.mocked(api.claudeCodePermissionResolve).mock.calls).toEqual([['permission', 'deny'], ['permission', 'allow'], ['permission', 'always']]); });
+  it('uses Codex icon and lyric instead of Claude-specific permission controls', () => { model.store.cliProvider = 'codex'; model.store.isMusicPlaying = true; const root = (expandParts(CliContent()) as TreeElement); expect(byClass(root, 'cli-state-icon').props.className).toContain('--codex'); expect(text(root)).toContain('Lyric'); expect(elements(root).some((node) => node.props.className === 'cli-state-permission')).toBe(false); });
 });

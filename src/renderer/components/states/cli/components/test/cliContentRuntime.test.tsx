@@ -25,20 +25,20 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import i18n from '../../../../i18n';
-import useIslandStore from '../../../../store/slices';
-import { lifecycleHooks, renderWithHooks, runEffects, unmountHooks } from '../../../components/test/contentLifecycleHarness';
-import { elements, findElement, hookMocks, invoke, textContent } from '../../../test/elementHarness';
-import { contentApi, resetContent, settings } from '../../lyrics/test/lyricsContentHarness';
-import { KaraokeSyllableLine } from '../../lyrics/components/KaraokeSyllableLine';
-import { CliProviderSwitch } from '../../maxExpand/components/cli/components/CliProviderSwitch';
-import { EMPTY_CLI_STATUS } from '../../maxExpand/components/cli/types/types';
-import { GifIcon } from '../../../../utils/GifIcon/gif-icon';
-import { AgentIcon } from '../../../../utils/SvgIcon';
+import i18n from '../../../../../i18n';
+import useIslandStore from '../../../../../store/slices';
+import { lifecycleHooks, renderWithHooks, runEffects, unmountHooks } from '../../../../components/test/contentLifecycleHarness';
+import { elements, findElement, hookMocks, invoke, textContent } from '../../../../test/elementHarness';
+import { contentApi, resetContent, settings } from '../../../lyrics/test/lyricsContentHarness';
+import { KaraokeSyllableLine } from '../../../lyrics/components/KaraokeSyllableLine';
+import { CliProviderSwitch } from '../../../maxExpand/components/cli/components/CliProviderSwitch';
+import { EMPTY_CLI_STATUS } from '../../../maxExpand/components/cli/types/types';
+import { GifIcon } from '../../../../../utils/GifIcon/gif-icon';
+import { AgentIcon } from '../../../../../utils/SvgIcon';
 import { CliContent } from '../CliContent';
-import { settleBackground } from '../../../hooks/test/standaloneIpcHarness';
-import type { CliHookEvent, CliSessionSnapshot, CliStatusSnapshot } from '../../maxExpand/components/cli/types/types';
-import type { ReactElement } from 'react';
+import { settleBackground } from '../../../../hooks/test/standaloneIpcHarness';
+import type { CliHookEvent, CliSessionSnapshot, CliStatusSnapshot } from '../../../maxExpand/components/cli/types/types';
+import type { ReactElement, ReactNode } from 'react';
 
 vi.hoisted(() => {
   const localStorage = { getItem: () => null, setItem: () => undefined };
@@ -56,8 +56,8 @@ vi.mock('react', async (load) => ({
 vi.mock('react-i18next', async (load) => ({
   ...await load<typeof import('react-i18next')>(), useTranslation: () => ({ t: i18n.t }),
 }));
-vi.mock('../../../../store/slices', async (load) => {
-  const actual = await load<typeof import('../../../../store/slices')>();
+vi.mock('../../../../../store/slices', async (load) => {
+  const actual = await load<typeof import('../../../../../store/slices')>();
   return { ...actual, default: Object.assign(
     <T,>(selector: (state: ReturnType<typeof actual.default.getState>) => T): T => selector(actual.default.getState()),
     actual.default,
@@ -94,6 +94,21 @@ beforeEach(() => {
 });
 afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
+const CLI_PARTS = ['CliStateBody', 'CliStateActions', 'CliPermissionActions', 'CliStateLyric'];
+/** 展开 CLI 状态卡片的内部子组件，保留外部组件边界，使断言覆盖卡片的真实输出。
+ * @param tree - 元素树
+ * @returns 展开后的元素树
+ */
+function expandParts(tree: ReactNode): ReactNode {
+  if (Array.isArray(tree)) return tree.map(expandParts);
+  if (!tree || typeof tree !== 'object' || !('props' in tree)) return tree;
+  const element = tree as ReactElement<Record<string, unknown>>;
+  if (typeof element.type === 'function' && CLI_PARTS.includes(element.type.name)) {
+    return expandParts((element.type as (props: object) => ReactNode)(element.props));
+  }
+  const children = element.props.children as ReactNode;
+  return { ...element, props: { ...element.props, children: Array.isArray(children) ? children.map(expandParts) : expandParts(children) } } as ReactElement;
+}
 /**
  * 制造符合原生快照契约的事件，不替换任何派生业务逻辑。
  * @param raw - 真实IPC允许的原始JSON数据。
@@ -122,9 +137,9 @@ function session(phase: CliSessionSnapshot['phase'] = 'running', pendingPermissi
  * @returns 当前真实组件树。
  */
 async function mount(): Promise<ReactElement> {
-  renderWithHooks(CliContent); runEffects();
+  (expandParts(renderWithHooks(CliContent)) as ReactElement); runEffects();
   await settleBackground();
-  return renderWithHooks(CliContent);
+  return (expandParts(renderWithHooks(CliContent)) as ReactElement);
 }
 
 /**
@@ -137,7 +152,7 @@ function publish(sessions: CliSessionSnapshot[], events: CliHookEvent[] = []): R
   const next = { ...snapshot };
   Object.assign(next, { sessions, events, updatedAt: snapshot.updatedAt + 1 });
   claudeReceive?.(next);
-  return renderWithHooks(CliContent);
+  return (expandParts(renderWithHooks(CliContent)) as ReactElement);
 }
 
 describe('CLI内容真实快照、歌词配置与状态集成', () => {
@@ -236,7 +251,7 @@ describe('CLI内容真实快照、歌词配置与状态集成', () => {
     const view = KaraokeSyllableLine(line.props as unknown as Parameters<typeof KaraokeSyllableLine>[0]);
     expect(findElement(view, (node) => node.props.className === 'lyrics-syllable').props.style).toEqual({ '--syl-prog': '50.00%' });
     browser.dispatchEvent(new CustomEvent('island:setting-changed', { detail: { channel: 'music:lyrics-karaoke', value: false } }));
-    tree = renderWithHooks(CliContent);
+    tree = (expandParts(renderWithHooks(CliContent)) as ReactElement);
     expect(findElement(tree, (node) => node.props.className === 'cli-state-lyric').props.children).toBe('original');
     expect(elements(tree).some((node) => node.type === KaraokeSyllableLine)).toBe(false);
   });
@@ -246,7 +261,7 @@ describe('CLI内容真实快照、歌词配置与状态集成', () => {
     let tree = await mount();
     expect(findElement(tree, (node) => node.props.className === 'cli-state-lyric').props.children).toBe('original');
     useIslandStore.setState({ currentPositionMs: 0 });
-    tree = renderWithHooks(CliContent);
+    tree = (expandParts(renderWithHooks(CliContent)) as ReactElement);
     expect(elements(tree).some((node) => String(node.props.className).startsWith('cli-state-lyric'))).toBe(false);
   });
 
@@ -256,9 +271,9 @@ describe('CLI内容真实快照、歌词配置与状态集成', () => {
     const controls = CliProviderSwitch(switchElement.props as unknown as Parameters<typeof CliProviderSwitch>[0]);
     invoke(findElement(controls, (node) => node.type === 'button' && node.props.children === i18n.t('maxExpand.cli.provider.codex')), 'onClick');
     expect(useIslandStore.getState().cliProvider).toBe('codex');
-    renderWithHooks(CliContent); runEffects();
+    (expandParts(renderWithHooks(CliContent)) as ReactElement); runEffects();
     await settleBackground();
-    tree = renderWithHooks(CliContent);
+    tree = (expandParts(renderWithHooks(CliContent)) as ReactElement);
     expect(claudeOff).toHaveBeenCalledOnce(); expect(codexGet).toHaveBeenCalledOnce();
     expect(codexReceive).toBeTypeOf('function');
     expect(findElement(tree, (node) => String(node.props.className).startsWith('cli-state-icon')).props.src).toBe(AgentIcon.CODEX);
