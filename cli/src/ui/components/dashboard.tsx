@@ -26,7 +26,7 @@
 
 import { Box, Text } from 'ink';
 
-import { PICKER_CHROME_ROWS, TASK_COLUMN_RATIO } from '../config/uiConfig';
+import { PICKER_CHROME_ROWS, TASK_BOX_WIDTH } from '../config/uiConfig';
 import useDashboard from '../hooks/useDashboard';
 import { t } from '../../core/i18n';
 import ActionMenu from './actionMenu';
@@ -54,16 +54,16 @@ export default function Dashboard({ manager, root, skipConfirm, passthrough, onQ
   return (
     <Box flexDirection="column" width={columns} height={layout.rows}>
       <OutputPanel task={current} index={currentIndex + 1} total={tasks.length} height={layout.outputHeight} anchor={anchor} />
-      <Box flexDirection="column" flexShrink={0} height={layout.bottomHeight} borderStyle="round" paddingX={1}>
+      <Box flexDirection="column" flexShrink={0} height={layout.bottomHeight}>
         <Box flexGrow={1}>
-          <Box flexDirection="column" width={Math.floor(columns * TASK_COLUMN_RATIO)} marginRight={2}>
+          <Box flexDirection="column" width={TASK_BOX_WIDTH} flexShrink={0} borderStyle="round" paddingX={1}>
             <Text wrap="truncate-end">
               <Text bold color="cyan">eIsland CLI</Text>
               <Text dimColor>{`  ${t('devCli.dashboard.tasks', { count: tasks.length })}`}</Text>
             </Text>
             <TaskList tasks={tasks} currentId={current?.id} maxListed={layout.bottomInnerRows - 1} />
           </Box>
-          <Box flexDirection="column" flexGrow={1}>
+          <Box flexDirection="column" flexGrow={1} flexBasis={0} borderStyle="round" paddingX={1}>
             {mode.kind === 'actions' ? <ActionMenu actions={actions} activeIndex={actionIndex} /> : null}
             {mode.kind === 'picker' ? (
               <ScriptPicker entries={mode.entries} onSubmit={handlePick} pageSize={Math.max(2, layout.bottomInnerRows - PICKER_CHROME_ROWS)} />
@@ -77,7 +77,9 @@ export default function Dashboard({ manager, root, skipConfirm, passthrough, onQ
             {mode.kind === 'quitting' ? <Text color="yellow">{t('devCli.dashboard.quitting')}</Text> : null}
           </Box>
         </Box>
-        <Text dimColor wrap="truncate-end">{t('devCli.dashboard.hint')}</Text>
+        <Box paddingX={1}>
+          <Text dimColor wrap="truncate-end">{t('devCli.dashboard.hint')}</Text>
+        </Box>
       </Box>
     </Box>
   );

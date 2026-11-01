@@ -37,13 +37,13 @@ export const STATUS_STYLE: Record<TaskStatus, StatusStyle> = {
 // 下方操作区占屏幕高度的比例与下限，保证选择器至少能展示几行脚本。
 export const BOTTOM_RATIO = 0.4;
 export const MIN_BOTTOM_ROWS = 10;
-// 任务列表占操作区宽度的比例，其余留给操作与脚本选择器。
-export const TASK_COLUMN_RATIO = 0.4;
+// 任务框固定宽度，不随终端变宽，其余宽度留给操作与脚本选择器。
+export const TASK_BOX_WIDTH = 32;
 // ink-testing-library 等非终端输出流不提供 rows。
 export const FALLBACK_ROWS = 24;
 // 输出面板的上下边框与标题行。
 export const OUTPUT_CHROME_ROWS = 3;
-// 操作区的上下边框与底部按键提示。
+// 任务框与操作框各自的上下边框（并排共用两行）与底部按键提示。
 export const BOTTOM_CHROME_ROWS = 3;
 // 选择器除列表外的行：输入框、剩余条数、可能折行的提示。
 export const PICKER_CHROME_ROWS = 4;

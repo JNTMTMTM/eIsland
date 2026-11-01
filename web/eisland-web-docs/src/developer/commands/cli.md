@@ -75,11 +75,11 @@ The task view uses a top/bottom layout:
 | Area | Content |
 |------|---------|
 | Top | Output of the current task, following the latest line by default |
-| Bottom left | Task list (`●` running, `✔` done, `✖` failed, `■` ended); older tasks collapse when space runs out |
-| Bottom right | The actions, script picker, or confirmation prompt |
+| Bottom left box | Task list (`●` running, `✔` done, `✖` failed, `■` ended); older tasks collapse when space runs out |
+| Bottom right box | The actions, script picker, or confirmation prompt |
 
 :::note
-The bottom panel takes 40% of the terminal height (at least 10 rows), and the output panel gets the rest. If the terminal is narrower than the logo, the welcome screen shows a plain `eIsland` title instead.
+The bottom panel takes 40% of the terminal height (at least 10 rows), and the output panel gets the rest. The task box has a fixed width of 32 columns, and long task names are truncated. The action box gets the remaining width. If the terminal is narrower than the logo, the welcome screen shows a plain `eIsland` title instead.
 :::
 
 | Action | Description |
