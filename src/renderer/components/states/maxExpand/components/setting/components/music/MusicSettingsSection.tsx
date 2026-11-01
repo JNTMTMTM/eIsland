@@ -26,12 +26,13 @@
 
 import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
-import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
 import useIslandStore from '../../../../../../../store/slices';
 import { SettingsPageNavigation, SettingsPageNavigationToggle } from '../SettingsPageNavigation';
 import { PlayerIcon } from '../../../../../../../utils/SvgIcon/player-icon';
+import { canonicalizeMusicWhitelistEntry, normalizeMusicWhitelist } from '../../../../../../../utils/musicWhitelist';
+import type { ReactElement } from 'react';
+import type { MusicSettingsPageKey } from '../../utils/settingsConfig';
 
 interface MusicSourceOption {
   value: string;
@@ -227,7 +228,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                 <div className="settings-whitelist-list">
                   {whitelist.length === 0 ? (
                     <span className="settings-hide-selected-empty">{t('settings.music.whitelist.empty', { defaultValue: '暂无已加入的播放器' })}</span>
-                  ) : whitelist.map((item: string, idx: number) => {
+                  ) : whitelist.map((item: string) => {
                     const playerIcon = getPlayerIcon(item);
                     return (
                     <div className="settings-whitelist-item" key={item}>
@@ -238,9 +239,11 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                         type="button"
                         title={t('settings.common.remove', { defaultValue: '移除' })}
                         onClick={() => {
-                          const next = whitelist.filter((_, i) => i !== idx);
-                          setWhitelist(next);
-                          window.api.musicWhitelistSet(next).catch(() => {});
+                            const next = normalizeMusicWhitelist(
+                              whitelist.filter((entry) => canonicalizeMusicWhitelistEntry(entry) !== canonicalizeMusicWhitelistEntry(item)),
+                            );
+                            setWhitelist(next);
+                            window.api.musicWhitelistSet(next).catch(() => {});
                         }}
                       >
                         ×
@@ -293,7 +296,8 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                     <div className="settings-card-subgroup-title">{t('settings.music.whitelist.detectedTitle', { defaultValue: '当前检测到' })}</div>
                     <div className="settings-whitelist-detected-list">
                       {detectedSources.map((source) => {
-                        const alreadyAdded = whitelist.some((w) => w.toLowerCase() === source.sourceAppId.toLowerCase());
+                        const sourceId = canonicalizeMusicWhitelistEntry(source.sourceAppId);
+                        const alreadyAdded = whitelist.some((w) => canonicalizeMusicWhitelistEntry(w).toLowerCase() === sourceId.toLowerCase());
                         return (
                           <div className="settings-whitelist-detected-item" key={source.sourceAppId}>
                             {source.thumbnail && (
@@ -311,7 +315,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
                                 className="settings-whitelist-add-btn"
                                 type="button"
                                 onClick={() => {
-                                  const next = [...whitelist, source.sourceAppId];
+                                  const next = normalizeMusicWhitelist([...whitelist, sourceId]);
                                   setWhitelist(next);
                                   window.api.musicWhitelistSet(next).catch(() => {});
                                 }}

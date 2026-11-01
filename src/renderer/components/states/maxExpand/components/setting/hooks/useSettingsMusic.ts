@@ -25,6 +25,7 @@
  */
 
 import { useState } from 'react';
+import { canonicalizeMusicWhitelistEntry, normalizeMusicWhitelist } from '../../../../../../utils/musicWhitelist';
 
 import type { useTranslation } from 'react-i18next';
 
@@ -71,17 +72,17 @@ export function useSettingsMusic(options: SettingsMusicOptions) {
   };
 
   const handleAddWhitelist = (): void => {
-    const nextItem = whitelistDraft.trim();
+    const nextItem = canonicalizeMusicWhitelistEntry(whitelistDraft.trim());
     if (!nextItem) return;
 
-    const exists = whitelist.some((item) => item.toLowerCase() === nextItem.toLowerCase());
+    const exists = whitelist.some((item) => canonicalizeMusicWhitelistEntry(item).toLowerCase() === nextItem.toLowerCase());
     if (exists) {
       setWhitelistDraft('');
       setWhitelistInputError(t('settings.music.whitelist.alreadyExists', { defaultValue: '已在白名单中' }));
       return;
     }
 
-    const next = [...whitelist, nextItem];
+    const next = normalizeMusicWhitelist([...whitelist, nextItem]);
     setWhitelist(next);
     setWhitelistDraft('');
     setWhitelistInputError('');
