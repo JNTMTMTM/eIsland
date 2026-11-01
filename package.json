@@ -24,6 +24,7 @@
     "test:plugins:build": "node scripts/test/build-windows-plugins.mjs",
     "test:discovery": "node --test scripts/test/vitest-discovery.test.mjs",
     "test:coverage": "vitest run --coverage",
+    "test:cli": "vitest run --project cli",
     "postinstall": "electron-builder install-app-deps",
     "package": "electron-vite build && electron-builder",
     "changelog:generate": "node --experimental-strip-types scripts/generate-changelog.ts -o docs/CHANGE_LOG.md",

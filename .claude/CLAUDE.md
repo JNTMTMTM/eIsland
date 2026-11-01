@@ -85,13 +85,17 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **Every user-facing string must have translations. No exceptions.**
 
-After any UI change (new component, new text, modified labels, new feedback messages):
-1. Scan all `t('...')` calls in changed files for translation keys.
-2. Check both `i18n/zh-CN.json` and `i18n/en-US.json` — every key must exist in both.
-3. If a key is missing, add it to both files before marking the task done.
-4. Hard-coded Chinese/English strings in UI code are forbidden — wrap them in `t()`.
+Supported locales: `zh-CN`, `zh-TW`, `en-US`, `ja-JP`. There are two independent translation sets:
+- App UI (`src/`) → `i18n/*.json`
+- CLI (`cli/src/`) → `cli/i18n/*.json` (each root `package.json` script also needs a `scripts.<name>` description)
 
-Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` should show `t()` wrappers, not raw strings.
+After any UI or CLI output change (new component, new text, modified labels, new feedback messages, new root script):
+1. Scan all `t('...')` calls in changed files for translation keys.
+2. Check all four locale files of the matching set — every key must exist in all of them.
+3. If a key is missing, add it to all four files before marking the task done.
+4. Hard-coded Chinese/English strings in UI or CLI output are forbidden — wrap them in `t()`.
+
+Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` should show `t()` wrappers, not raw strings; `npm run i18n:check` must pass (checks both sets, including that the CLI covers every app locale); for CLI changes also run `npm run test:cli`.
 
 ## 7. Comment Standards (Code Change Gate)
 

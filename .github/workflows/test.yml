@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/**'
       - 'plugins/**'
+      - 'cli/**'
       - 'package.json'
       - 'package-lock.json'
       - 'vitest.config.mts'
@@ -22,7 +23,7 @@ on:
         description: 'Vitest project to run'
         type: choice
         default: all
-        options: [all, main, preload, shared, plugins, renderer]
+        options: [all, main, preload, shared, plugins, renderer, cli]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -71,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: ${{ fromJSON(inputs.project && inputs.project != 'all' && format('["{0}"]', inputs.project) || '["main","preload","shared","plugins","renderer"]') }}
+        project: ${{ fromJSON(inputs.project && inputs.project != 'all' && format('["{0}"]', inputs.project) || '["main","preload","shared","plugins","renderer","cli"]') }}
     defaults:
       run:
         shell: bash
@@ -95,6 +96,11 @@ jobs:
 
       - name: Install Electron binary
         run: node node_modules/electron/install.js
+
+      # CLI 是独立包，Ink 等运行时依赖不在根 node_modules 中。
+      - name: Install CLI dependencies
+        if: matrix.project == 'cli'
+        run: npm ci --prefix cli --ignore-scripts
 
       - name: Setup .NET SDK for native plugin tests
         if: matrix.project == 'plugins'
@@ -165,7 +171,7 @@ jobs:
             const marker = '<!-- test-workflow-report -->';
 
             // 各矩阵任务使用独立附件；报告缺失或测试进程异常退出都不能显示为通过。
-            const projects = ['main', 'preload', 'shared', 'plugins', 'renderer'];
+            const projects = ['main', 'preload', 'shared', 'plugins', 'renderer', 'cli'];
             const readFile = (path) => {
               try { return fs.readFileSync(path, 'utf8').trim(); } catch { return ''; }
             };

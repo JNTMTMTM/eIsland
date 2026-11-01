@@ -110,6 +110,13 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: { label: 'cli', color: 'white' },
+          include: ['cli/src/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
           name: { label: 'renderer', color: 'magenta' },
           include: ['src/renderer/**/*.test.{ts,tsx}'],
         },

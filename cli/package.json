@@ -1,0 +1,33 @@
+{
+  "name": "@eisland/cli",
+  "version": "1.0.0",
+  "description": "Command line entry for running eIsland repository scripts",
+  "license": "GPL-3.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "eisland": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "cross-spawn": "^7.0.6",
+    "i18next": "^26.6.0",
+    "ink": "^8.0.0",
+    "react": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "ink-testing-library": "^4.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  }
+}
