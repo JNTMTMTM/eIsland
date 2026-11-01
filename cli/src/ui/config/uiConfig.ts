@@ -49,6 +49,14 @@ export const BOTTOM_CHROME_ROWS = 3;
 export const PICKER_CHROME_ROWS = 4;
 // 脚本数量远超一屏，选择器固定窗口高度并随光标滚动。
 export const DEFAULT_PAGE_SIZE = 12;
+// 操作框左右边框与内边距占用的列数。
+export const ACTION_BOX_CHROME_COLUMNS = 4;
+// 脚本行说明列之前的列：光标标记与脚本名后的间隔。
+export const PICKER_ROW_CHROME_COLUMNS = 4;
+// 说明滚动的步进间隔、首次滚动前停留的步数与首尾衔接的空白。
+export const MARQUEE_INTERVAL_MS = 250;
+export const MARQUEE_PAUSE_TICKS = 4;
+export const MARQUEE_GAP = '   ';
 
 export const LOGO_LINES: readonly LogoLine[] = [
   { id: 'top', color: 'cyanBright', text: '███████╗██╗███████╗██╗      █████╗ ███╗   ██╗██████╗ ' },

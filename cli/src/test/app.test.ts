@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 
+import { stripVTControlCharacters } from 'node:util';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import runCli from '../app';
@@ -122,6 +124,11 @@ describe('runCli', () => {
     const text = output.join('\n');
     expect(text).toContain('test:main');
     expect(text).not.toContain('postinstall');
+  });
+
+  it('list 将危险标记放在说明之前', async () => {
+    expect(await cli('list', 'release')).toBe(0);
+    expect(stripVTControlCharacters(output.join('\n'))).toMatch(/release:upload\s+\[dangerous\] \S/);
   });
 
   it('list 未知分组时报错', async () => {

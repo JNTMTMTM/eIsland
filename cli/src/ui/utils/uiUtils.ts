@@ -24,8 +24,12 @@
  * @author 鸡哥
  */
 
+import sliceAnsi from 'slice-ansi';
+import stringWidth from 'string-width';
+
 import {
-  BOTTOM_CHROME_ROWS, BOTTOM_RATIO, FALLBACK_ROWS, MIN_BOTTOM_ROWS, OUTPUT_CHROME_ROWS,
+  ACTION_BOX_CHROME_COLUMNS, BOTTOM_CHROME_ROWS, BOTTOM_RATIO, FALLBACK_ROWS, MARQUEE_GAP, MIN_BOTTOM_ROWS,
+  OUTPUT_CHROME_ROWS, PICKER_ROW_CHROME_COLUMNS, TASK_BOX_WIDTH,
 } from '../config/uiConfig';
 import { t } from '../../core/i18n';
 
@@ -138,6 +142,41 @@ export function hiddenTaskCount(total: number, maxListed: number): number {
  */
 export function pickerWindowStart(index: number, total: number, pageSize: number): number {
   return Math.max(0, Math.min(index - Math.floor(pageSize / 2), total - pageSize));
+}
+
+/**
+ * 计算操作框内每行可用列数
+ * @param columns - 终端列数
+ * @returns 扣除任务框与操作框边框、内边距后的列数
+ */
+export function pickerRowWidth(columns: number): number {
+  return Math.max(0, columns - TASK_BOX_WIDTH - ACTION_BOX_CHROME_COLUMNS);
+}
+
+/**
+ * 计算脚本行说明列的可用列数
+ * @param rowWidth - 每行可用列数
+ * @param nameWidth - 脚本名列宽
+ * @param tag - 说明前的危险标记
+ * @returns 说明可用列数，不小于 0
+ */
+export function descriptionWidth(rowWidth: number, nameWidth: number, tag: string): number {
+  return Math.max(0, rowWidth - PICKER_ROW_CHROME_COLUMNS - nameWidth - stringWidth(tag));
+}
+
+/**
+ * 截取滚动说明的当前片段
+ * @description 按终端显示宽度截取，中日文字符占两列；首尾以空白衔接循环滚动
+ * @param text - 完整说明
+ * @param width - 可用列数
+ * @param offset - 已滚动的列数，负数视为停留在开头
+ * @returns 放得下时原样返回，否则返回宽度不超过可用列数的片段
+ */
+export function marqueeFrame(text: string, width: number, offset: number): string {
+  const textWidth = stringWidth(text);
+  if (width <= 0 || textWidth <= width) return text;
+  const start = Math.max(0, offset) % (textWidth + MARQUEE_GAP.length);
+  return sliceAnsi(`${text}${MARQUEE_GAP}${text}`, start, start + width);
 }
 
 /**

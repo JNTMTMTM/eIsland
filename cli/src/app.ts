@@ -46,12 +46,12 @@ const CLI_DIR = fileURLToPath(new URL('.', import.meta.url));
  * 格式化单个脚本行
  * @param entry - 脚本
  * @param width - 脚本名列宽
- * @returns 带说明与危险标记的单行文本
+ * @returns 单行文本，危险标记放在说明之前，避免长说明在窄终端被折行后不易察觉
  */
 function formatScriptLine(entry: ScriptEntry, width: number): string {
   const description = describeScript(entry.name) || styleText('dim', entry.command);
-  const tag = entry.dangerous ? styleText('red', ` [${t('devCli.list.dangerousTag')}]`) : '';
-  return `  ${styleText('cyan', entry.name.padEnd(width))}  ${description}${tag}`;
+  const tag = entry.dangerous ? styleText('red', `[${t('devCli.list.dangerousTag')}] `) : '';
+  return `  ${styleText('cyan', entry.name.padEnd(width))}  ${tag}${description}`;
 }
 
 /** 打印帮助信息 */

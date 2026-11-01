@@ -130,6 +130,8 @@ export interface ScriptPickerProps {
   onSubmit: (entry: ScriptEntry | null) => void;
   /** 列表可见行数，随所在面板高度调整 */
   pageSize?: number;
+  /** 每行可用列数；提供时光标行放不下的说明会滚动展示 */
+  rowWidth?: number;
 }
 
 /** PickerRow 组件入参 */
@@ -140,6 +142,8 @@ export interface PickerRowProps {
   active: boolean;
   /** 脚本名列宽，用于对齐说明列 */
   width: number;
+  /** 每行可用列数，未提供时不滚动 */
+  rowWidth?: number;
 }
 
 /** ConfirmPrompt 组件入参 */
@@ -216,4 +220,12 @@ export interface UseWelcomeGateReturn {
   entered: boolean;
   /** 进入任务界面 */
   enter: () => void;
+}
+
+/** usePickerRow hook 返回值类型 */
+export interface UsePickerRowReturn {
+  /** 危险标记文案，非危险脚本为空字符串 */
+  tag: string;
+  /** 当前展示的说明，光标行放不下时为滚动中的片段 */
+  description: string;
 }

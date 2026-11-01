@@ -84,7 +84,7 @@ The bottom panel takes 40% of the terminal height (at least 10 rows), and the ou
 
 | Action | Description |
 |--------|-------------|
-| Run script... | Open the picker. Type to filter by name or description; several space-separated keywords must all match |
+| Run script... | Open the picker. Type to filter by name or description; several space-separated keywords must all match. The `[dangerous]` tag comes first in the description column, and the selected row's description scrolls when it does not fit |
 | End current task | Kill the current task's whole process tree (shown while it is running) |
 | Close current task | Remove a finished task from the list |
 | Quit | End all running tasks (asks first if any are running) and restore the terminal |

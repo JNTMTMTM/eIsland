@@ -28,6 +28,7 @@ import { Box, Text } from 'ink';
 
 import { PICKER_CHROME_ROWS, TASK_BOX_WIDTH } from '../config/uiConfig';
 import useDashboard from '../hooks/useDashboard';
+import { pickerRowWidth } from '../utils/uiUtils';
 import { t } from '../../core/i18n';
 import ActionMenu from './actionMenu';
 import ConfirmPrompt from './confirmPrompt';
@@ -66,7 +67,11 @@ export default function Dashboard({ manager, root, skipConfirm, passthrough, onQ
           <Box flexDirection="column" flexGrow={1} flexBasis={0} borderStyle="round" paddingX={1}>
             {mode.kind === 'actions' ? <ActionMenu actions={actions} activeIndex={actionIndex} /> : null}
             {mode.kind === 'picker' ? (
-              <ScriptPicker entries={mode.entries} onSubmit={handlePick} pageSize={Math.max(2, layout.bottomInnerRows - PICKER_CHROME_ROWS)} />
+              <ScriptPicker entries={mode.entries}
+                onSubmit={handlePick}
+                pageSize={Math.max(2, layout.bottomInnerRows - PICKER_CHROME_ROWS)}
+                rowWidth={pickerRowWidth(columns)}
+              />
             ) : null}
             {mode.kind === 'confirmRun' ? (
               <ConfirmPrompt message={t('devCli.confirm.dangerous', { name: mode.entry.name })} onSubmit={handleConfirmRun} />

@@ -38,9 +38,12 @@ import type { ScriptPickerProps } from '../types/uiTypes';
  * @param props.entries - 全部脚本
  * @param props.onSubmit - 选中或返回时的回调
  * @param props.pageSize - 列表可见行数
+ * @param props.rowWidth - 每行可用列数
  * @returns 选择器界面
  */
-export default function ScriptPicker({ entries, onSubmit, pageSize }: ScriptPickerProps): React.JSX.Element {
+export default function ScriptPicker({
+  entries, onSubmit, pageSize, rowWidth,
+}: ScriptPickerProps): React.JSX.Element {
   const { query, activeEntry, visible, width, remaining, empty } = useScriptPicker({ entries, onSubmit, pageSize });
   return (
     <Box flexDirection="column">
@@ -51,7 +54,7 @@ export default function ScriptPicker({ entries, onSubmit, pageSize }: ScriptPick
         <Text dimColor>▏</Text>
       </Text>
       {visible.map((entry) => (
-        <PickerRow key={entry.name} entry={entry} active={entry === activeEntry} width={width} />
+        <PickerRow key={entry.name} entry={entry} active={entry === activeEntry} width={width} rowWidth={rowWidth} />
       ))}
       {empty ? <Text dimColor>{t('devCli.picker.empty')}</Text> : null}
       {remaining > 0 ? <Text dimColor>{t('devCli.picker.more', { count: remaining })}</Text> : null}

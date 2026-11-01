@@ -20,13 +20,13 @@
 
 /**
  * @file pickerRow.tsx
- * @description 脚本选择器中的单个脚本行
+ * @description 脚本选择器中的单个脚本行，危险标记在说明之前
  * @author 鸡哥
  */
 
 import { Text } from 'ink';
 
-import { describeScript, t } from '../../core/i18n';
+import usePickerRow from '../hooks/usePickerRow';
 
 import type { PickerRowProps } from '../types/uiTypes';
 
@@ -36,17 +36,18 @@ import type { PickerRowProps } from '../types/uiTypes';
  * @param props.entry - 脚本
  * @param props.active - 是否为光标所在行
  * @param props.width - 脚本名列宽
+ * @param props.rowWidth - 每行可用列数
  * @returns 脚本行
  */
-export default function PickerRow({ entry, active, width }: PickerRowProps): React.JSX.Element {
-  const description = describeScript(entry.name) || entry.command;
+export default function PickerRow({ entry, active, width, rowWidth }: PickerRowProps): React.JSX.Element {
+  const { tag, description } = usePickerRow({ entry, active, width, rowWidth });
   return (
     <Text color={active ? 'cyan' : undefined} wrap="truncate-end">
       {active ? '❯ ' : '  '}
       {entry.name.padEnd(width)}
       {'  '}
+      {tag ? <Text color="red">{tag}</Text> : null}
       <Text dimColor={!active}>{description}</Text>
-      {entry.dangerous ? <Text color="red">{` [${t('devCli.list.dangerousTag')}]`}</Text> : null}
     </Text>
   );
 }

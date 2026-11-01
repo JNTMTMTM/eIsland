@@ -20,7 +20,7 @@
 
 /**
  * @file uiUtils.test.ts
- * @description 验证交互界面的布局、输出窗口、翻页、任务切换与选择器窗口计算
+ * @description 验证交互界面的布局、输出窗口、翻页、任务切换、选择器窗口与说明滚动计算
  * @author 鸡哥
  */
 
@@ -28,8 +28,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import { initI18n } from '../../../core/i18n';
 import {
-  computeLayout, dashboardActions, hiddenTaskCount, nextTaskIndex, outputRows, pageDownAnchor, pageUpAnchor,
-  pickerWindowStart, statusText, windowStart,
+  computeLayout, dashboardActions, descriptionWidth, hiddenTaskCount, marqueeFrame, nextTaskIndex, outputRows,
+  pageDownAnchor, pageUpAnchor, pickerRowWidth, pickerWindowStart, statusText, windowStart,
 } from '../uiUtils';
 
 import type { Task } from '../../../core/taskManager';
@@ -115,5 +115,33 @@ describe('statusText', () => {
   it('失败状态包含退出码', () => {
     expect(statusText(task('failed', 2))).toBe('failed (2)');
     expect(statusText(task('running'))).toBe('running');
+  });
+});
+
+describe('说明列宽与滚动', () => {
+  it('扣除任务框、边框与行首列宽', () => {
+    expect(pickerRowWidth(100)).toBe(64);
+    expect(pickerRowWidth(10)).toBe(0);
+    expect(descriptionWidth(64, 10, '')).toBe(50);
+    expect(descriptionWidth(64, 10, '[危险] ')).toBe(43);
+    expect(descriptionWidth(10, 10, '')).toBe(0);
+  });
+
+  it('放得下时原样返回', () => {
+    expect(marqueeFrame('short', 10, 5)).toBe('short');
+    expect(marqueeFrame('anything', 0, 3)).toBe('anything');
+  });
+
+  it('放不下时按偏移截取并首尾循环', () => {
+    expect(marqueeFrame('abcdefgh', 4, -2)).toBe('abcd');
+    expect(marqueeFrame('abcdefgh', 4, 2)).toBe('cdef');
+    expect(marqueeFrame('abcdefgh', 4, 6)).toBe('gh  ');
+    expect(marqueeFrame('abcdefgh', 4, 10)).toBe(' abc');
+    expect(marqueeFrame('abcdefgh', 4, 11)).toBe('abcd');
+  });
+
+  it('中日文字符按两列计算', () => {
+    expect(marqueeFrame('上传发布产物', 4, 0)).toBe('上传');
+    expect(marqueeFrame('上传发布产物', 4, 2)).toBe('传发');
   });
 });

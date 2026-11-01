@@ -60,6 +60,28 @@ describe('ScriptPicker', () => {
     unmount();
   });
 
+  it('危险标记位于说明之前', () => {
+    const { lastFrame, unmount } = render(<ScriptPicker entries={entries} onSubmit={vi.fn()} />);
+    expect(lastFrame()).toMatch(/release:upload\s+\[dangerous\] \S/);
+    unmount();
+  });
+
+  it('光标行说明放不下时滚动，离开后复位', async () => {
+    vi.useFakeTimers();
+    const long = [{ ...entry('build:long'), command: 'a very long command that cannot fit in the row' }, entry('dev')];
+    const { stdin, lastFrame, unmount } = render(<ScriptPicker entries={long} onSubmit={vi.fn()} rowWidth={30} />);
+    const activeLine = (): string => (lastFrame() ?? '').split('\n').find((row) => row.startsWith('❯')) ?? '';
+    expect(activeLine()).toContain('a very long');
+    await vi.advanceTimersByTimeAsync(250 * 8);
+    expect(activeLine()).not.toContain('a very long');
+    expect(activeLine()).toContain('long command');
+    stdin.write(DOWN);
+    await vi.advanceTimersByTimeAsync(50);
+    expect(lastFrame()).toContain('a very long');
+    vi.useRealTimers();
+    unmount();
+  });
+
   it('输入关键词过滤后回车选中当前脚本', async () => {
     const onSubmit = vi.fn();
     const { stdin, lastFrame, unmount } = render(<ScriptPicker entries={entries} onSubmit={onSubmit} />);
