@@ -24,35 +24,40 @@
  * @author 鸡哥
  */
 
+import * as startup from '../index.js';
+
 if (process.platform !== 'win32') {
   console.log('Skipping: Windows-only plugin');
   process.exit(0);
 }
 
-const startup = require('../');
-
 console.log('=== Startup Helper Smoke Test ===\n');
 
-const tests: Array<{ name: string; fn: () => unknown[] }> = [
-  { name: 'Startup Items',   fn: startup.getStartupItems },
-  { name: 'Scheduled Tasks', fn: startup.getScheduledTasks },
-  { name: 'Services',        fn: startup.getServices },
+// 计划任务与服务在任何 Windows 系统上都必然存在，空结果视为失败；启动项允许为空
+const tests: Array<{ name: string; fn: () => Promise<{ items: unknown[]; errors: unknown[] }>; requireItems: boolean }> = [
+  { name: 'Startup Items',   fn: startup.getStartupItems,   requireItems: false },
+  { name: 'Scheduled Tasks', fn: startup.getScheduledTasks, requireItems: true },
+  { name: 'Services',        fn: startup.getServices,       requireItems: true },
 ];
 
-for (const t of tests) {
+const outcomes = await tests.reduce<Promise<boolean[]>>(async (prev, t) => {
+  const done = await prev;
   console.log(`--- ${t.name} ---`);
+  let ok = false;
   try {
-    const result = t.fn();
-    if (Array.isArray(result) && result.length > 0) {
-      console.log(`  Found ${result.length} item(s)`);
-      console.log(JSON.stringify(result[0], null, 2));
-    } else {
-      console.log('  No data returned');
-    }
+    const { items, errors } = await t.fn();
+    console.log(`  Found ${items.length} item(s), ${errors.length} location error(s)`);
+    if (items.length > 0) console.log(JSON.stringify(items[0], null, 2));
+    if (errors.length > 0) console.log('  First error:', JSON.stringify(errors[0]));
+    ok = items.length > 0 || !t.requireItems;
+    if (!ok) console.error('  FAIL: expected at least one item');
   } catch (e) {
-    console.error(`  Error: ${e}`);
+    console.error(`  FAIL: ${e}`);
   }
   console.log();
-}
+  return [...done, ok];
+}, Promise.resolve([]));
 
-console.log('=== Smoke Test Complete ===');
+const failed = outcomes.filter((ok) => !ok).length;
+console.log(failed === 0 ? '=== Smoke Test Passed ===' : `=== Smoke Test Failed (${failed}) ===`);
+process.exitCode = failed === 0 ? 0 : 1;

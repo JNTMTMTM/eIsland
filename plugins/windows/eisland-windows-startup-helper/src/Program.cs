@@ -18,28 +18,47 @@
  * GNU General Public License for more details.
  */
 
+/*
+ * @file Program.cs
+ * @description 启动项 / 计划任务 / 服务查询 helper 入口，结果以 { items, errors } JSON 写入 stdout
+ * @description errors 记录无权限或读取失败的位置，供调用方识别不完整结果；整体失败时以非零退出码退出
+ * @author 鸡哥
+ */
+
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Win32;
 
 var command = args.FirstOrDefault() ?? "";
 var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+// 错误信息可能为本地化文本，固定 UTF-8 避免调用方读取 stderr 时乱码
+Console.OutputEncoding = Encoding.UTF8;
 
 try
 {
-    string json = command switch
+    var errors = new List<object>();
+    object[]? items = command switch
     {
-        "startup"  => JsonSerializer.Serialize(StartupInfoHelper.GetStartupItems(), jsonOptions),
-        "tasks"    => JsonSerializer.Serialize(StartupInfoHelper.GetScheduledTasks(), jsonOptions),
-        "services" => JsonSerializer.Serialize(StartupInfoHelper.GetServices(), jsonOptions),
-        _          => JsonSerializer.Serialize(new { error = $"Unknown command: {command}" }, jsonOptions)
+        "startup"  => StartupInfoHelper.GetStartupItems(errors),
+        "tasks"    => StartupInfoHelper.GetScheduledTasks(errors),
+        "services" => StartupInfoHelper.GetServices(errors),
+        _          => null
     };
-    Console.WriteLine(json);
+    if (items == null)
+    {
+        Console.Error.WriteLine($"Unknown command: {command}");
+        return 1;
+    }
+    Console.WriteLine(JsonSerializer.Serialize(new { items, errors }, jsonOptions));
+    return 0;
 }
 catch (Exception ex)
 {
-    Console.WriteLine(JsonSerializer.Serialize(new { error = ex.Message }, jsonOptions));
+    Console.Error.WriteLine(ex.Message);
+    return 1;
 }
 
 static class StartupInfoHelper
@@ -50,40 +69,40 @@ static class StartupInfoHelper
 
     // ───────────────────────── 启动项 ─────────────────────────
 
-    public static object[] GetStartupItems()
+    public static object[] GetStartupItems(List<object> errors)
     {
         var list = new List<object>();
         var hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
         var hklm64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
 
-        AddRegistryItems(list, hkcu, RunPath, "user", hkcu, "Run");
-        AddRegistryItems(list, hkcu, RunOncePath, "user", null, null);
-        AddRegistryItems(list, hklm64, RunPath, "machine", hklm64, "Run");
-        AddRegistryItems(list, hklm64, RunOncePath, "machine", null, null);
+        AddRegistryItems(list, errors, hkcu, RunPath, "user", hkcu, "Run");
+        AddRegistryItems(list, errors, hkcu, RunOncePath, "user", null, null);
+        AddRegistryItems(list, errors, hklm64, RunPath, "machine", hklm64, "Run");
+        AddRegistryItems(list, errors, hklm64, RunOncePath, "machine", null, null);
 
         // 32 位系统上两个视图指向同一位置，跳过以避免重复
         if (Environment.Is64BitOperatingSystem)
         {
             var hklm32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-            AddRegistryItems(list, hklm32, RunPath, "machine", hklm64, "Run32");
-            AddRegistryItems(list, hklm32, RunOncePath, "machine", null, null);
+            AddRegistryItems(list, errors, hklm32, RunPath, "machine", hklm64, "Run32");
+            AddRegistryItems(list, errors, hklm32, RunOncePath, "machine", null, null);
         }
 
-        AddFolderItems(list, Environment.GetFolderPath(Environment.SpecialFolder.Startup), "user", hkcu);
-        AddFolderItems(list, Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup), "machine", hklm64);
+        AddFolderItems(list, errors, Environment.GetFolderPath(Environment.SpecialFolder.Startup), "user", hkcu);
+        AddFolderItems(list, errors, Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup), "machine", hklm64);
 
         return list.ToArray();
     }
 
     static void AddRegistryItems(
-        List<object> list, RegistryKey hive, string path, string scope,
+        List<object> list, List<object> errors, RegistryKey hive, string path, string scope,
         RegistryKey? approvedHive, string? approvedSub)
     {
+        var source = $@"{hive.Name}\{path}" + (hive.View == RegistryView.Registry32 ? " (32-bit)" : "");
         try
         {
             using var key = hive.OpenSubKey(path);
             if (key == null) return;
-            var source = $@"{hive.Name}\{path}" + (hive.View == RegistryView.Registry32 ? " (32-bit)" : "");
             foreach (var valueName in key.GetValueNames())
             {
                 if (string.IsNullOrEmpty(valueName)) continue;
@@ -98,10 +117,10 @@ static class StartupInfoHelper
                 });
             }
         }
-        catch { /* 无权限读取时跳过该位置 */ }
+        catch (Exception ex) { errors.Add(QueryError(source, ex)); }
     }
 
-    static void AddFolderItems(List<object> list, string folder, string scope, RegistryKey approvedHive)
+    static void AddFolderItems(List<object> list, List<object> errors, string folder, string scope, RegistryKey approvedHive)
     {
         try
         {
@@ -121,8 +140,11 @@ static class StartupInfoHelper
                 });
             }
         }
-        catch { /* 无权限读取时跳过该位置 */ }
+        catch (Exception ex) { errors.Add(QueryError(folder, ex)); }
     }
+
+    /// 记录单个位置的读取失败，source 为注册表键、目录、任务路径或 service:名称
+    static object QueryError(string source, Exception ex) => new { source, message = ex.Message };
 
     /// StartupApproved 值首字节最低位为 1 表示被任务管理器禁用；缺失视为启用
     static bool IsApproved(RegistryKey hive, string sub, string valueName)
@@ -141,42 +163,46 @@ static class StartupInfoHelper
 
     // ───────────────────────── 计划任务 ─────────────────────────
 
-    public static object[] GetScheduledTasks()
+    public static object[] GetScheduledTasks(List<object> errors)
     {
         var list = new List<object>();
         var type = Type.GetTypeFromProgID("Schedule.Service")
             ?? throw new InvalidOperationException("Task Scheduler service is unavailable");
         dynamic service = Activator.CreateInstance(type)!;
         service.Connect();
-        WalkTaskFolder(service.GetFolder(@"\"), list);
+        WalkTaskFolder(service.GetFolder(@"\"), list, errors);
         return list.ToArray();
     }
 
-    static void WalkTaskFolder(dynamic folder, List<object> list)
+    static void WalkTaskFolder(dynamic folder, List<object> list, List<object> errors)
     {
+        string folderPath = (string)folder.Path;
         try
         {
             // 1 = TASK_ENUM_HIDDEN，包含隐藏任务
             foreach (dynamic task in folder.GetTasks(1))
             {
-                try { list.Add(ReadTask(task)); }
-                catch { /* 单个任务读取失败不影响其余任务 */ }
+                // 单个任务读取失败不影响其余任务
+                try { list.Add(ReadTask(task, errors)); }
+                catch (Exception ex) { errors.Add(QueryError(folderPath, ex)); }
             }
         }
-        catch { /* 无权限枚举该目录的任务 */ }
+        catch (Exception ex) { errors.Add(QueryError(folderPath, ex)); }
 
         try
         {
+            // ITaskFolder::GetFolders 的 flags 为保留参数，必须为 0；隐藏属性只作用于任务而非目录
             foreach (dynamic sub in folder.GetFolders(0))
             {
-                WalkTaskFolder(sub, list);
+                WalkTaskFolder(sub, list, errors);
             }
         }
-        catch { /* 无权限枚举子目录 */ }
+        catch (Exception ex) { errors.Add(QueryError(folderPath, ex)); }
     }
 
-    static object ReadTask(dynamic task)
+    static object ReadTask(dynamic task, List<object> errors)
     {
+        string path = (string)task.Path;
         string? author = null, description = null;
         var actions = new List<object>();
         try
@@ -193,9 +219,9 @@ static class StartupInfoHelper
                     : new { type = TaskActionTypeName(actionType), path = (string?)null, arguments = (string?)null, workingDirectory = (string?)null });
             }
         }
-        catch { /* 部分系统任务定义需要管理员权限 */ }
+        // 部分系统任务定义需要管理员权限，此时 author / description / actions 缺失
+        catch (Exception ex) { errors.Add(QueryError(path, ex)); }
 
-        string path = (string)task.Path;
         int lastSlash = path.LastIndexOf('\\');
         return new
         {
@@ -215,7 +241,7 @@ static class StartupInfoHelper
 
     /// 任务计划程序以 1899/1999 等占位日期表示"从未运行/无计划"
     static string? TaskTime(DateTime dt) =>
-        dt.Year < 2000 ? null : dt.ToString("yyyy-MM-ddTHH:mm:ss");
+        dt.Year < 2000 ? null : dt.ToString("yyyy-MM-dd'T'HH':'mm':'ss", CultureInfo.InvariantCulture);
 
     static string TaskStateName(int s) => s switch
     {
@@ -231,7 +257,7 @@ static class StartupInfoHelper
 
     // ───────────────────────── 服务 ─────────────────────────
 
-    public static object[] GetServices()
+    public static object[] GetServices(List<object> errors)
     {
         var scm = Scm.OpenSCManagerW(null, null, Scm.SC_MANAGER_CONNECT | Scm.SC_MANAGER_ENUMERATE_SERVICE);
         if (scm == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -259,7 +285,7 @@ static class StartupInfoHelper
                     for (var i = 0; i < returned; i++)
                     {
                         var entry = Marshal.PtrToStructure<Scm.ENUM_SERVICE_STATUS_PROCESSW>(buf + i * entrySize);
-                        list.Add(ReadService(scm, entry));
+                        list.Add(ReadService(scm, entry, errors));
                     }
                 }
                 finally { Marshal.FreeHGlobal(buf); }
@@ -270,31 +296,36 @@ static class StartupInfoHelper
         finally { Scm.CloseServiceHandle(scm); }
     }
 
-    static object ReadService(IntPtr scm, Scm.ENUM_SERVICE_STATUS_PROCESSW entry)
+    static object ReadService(IntPtr scm, Scm.ENUM_SERVICE_STATUS_PROCESSW entry, List<object> errors)
     {
         var name = Marshal.PtrToStringUni(entry.lpServiceName);
         var status = entry.ServiceStatusProcess;
         string? description = null, pathName = null, startName = null, startMode = null;
         bool? delayedAutoStart = null;
 
+        var source = $"service:{name}";
         var svc = Scm.OpenServiceW(scm, name!, Scm.SERVICE_QUERY_CONFIG);
-        if (svc != IntPtr.Zero)
+        if (svc == IntPtr.Zero)
+        {
+            errors.Add(QueryError(source, new Win32Exception(Marshal.GetLastWin32Error())));
+        }
+        else
         {
             try
             {
-                QueryConfig(svc, (b, s, out n) => Scm.QueryServiceConfigW(svc, b, s, out n), b =>
+                QueryConfig(errors, source, (b, s, out n) => Scm.QueryServiceConfigW(svc, b, s, out n), b =>
                 {
                     var cfg = Marshal.PtrToStructure<Scm.QUERY_SERVICE_CONFIGW>(b);
                     pathName = Marshal.PtrToStringUni(cfg.lpBinaryPathName);
                     startName = NullIfEmpty(Marshal.PtrToStringUni(cfg.lpServiceStartName));
                     startMode = StartModeName(cfg.dwStartType);
                 });
-                QueryConfig(svc, (b, s, out n) => Scm.QueryServiceConfig2W(svc, Scm.SERVICE_CONFIG_DESCRIPTION, b, s, out n), b =>
+                QueryConfig(errors, source, (b, s, out n) => Scm.QueryServiceConfig2W(svc, Scm.SERVICE_CONFIG_DESCRIPTION, b, s, out n), b =>
                 {
                     var ptr = Marshal.ReadIntPtr(b);
                     description = ptr == IntPtr.Zero ? null : Marshal.PtrToStringUni(ptr);
                 });
-                QueryConfig(svc, (b, s, out n) => Scm.QueryServiceConfig2W(svc, Scm.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, b, s, out n), b =>
+                QueryConfig(errors, source, (b, s, out n) => Scm.QueryServiceConfig2W(svc, Scm.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, b, s, out n), b =>
                 {
                     delayedAutoStart = Marshal.ReadInt32(b) != 0;
                 });
@@ -319,17 +350,30 @@ static class StartupInfoHelper
 
     delegate bool ConfigQuery(IntPtr buf, uint size, out uint needed);
 
-    /// 两段式查询：先取所需字节数，再分配缓冲区读取；无权限或失败时静默跳过
-    static void QueryConfig(IntPtr svc, ConfigQuery query, Action<IntPtr> read)
+    /// 按所需字节数分配缓冲区读取；配置在两次调用间变大时按新的大小重试，其余失败记入 errors
+    static void QueryConfig(List<object> errors, string source, ConfigQuery query, Action<IntPtr> read)
     {
-        query(IntPtr.Zero, 0, out var needed);
-        if (needed == 0) return;
-        var buf = Marshal.AllocHGlobal((int)needed);
-        try
+        uint size = 0;
+        while (true)
         {
-            if (query(buf, needed, out _)) read(buf);
+            var buf = size == 0 ? IntPtr.Zero : Marshal.AllocHGlobal((int)size);
+            try
+            {
+                if (query(buf, size, out var needed))
+                {
+                    read(buf);
+                    return;
+                }
+                var err = Marshal.GetLastWin32Error();
+                if (err != Scm.ERROR_INSUFFICIENT_BUFFER || needed <= size)
+                {
+                    errors.Add(QueryError(source, new Win32Exception(err)));
+                    return;
+                }
+                size = needed;
+            }
+            finally { if (buf != IntPtr.Zero) Marshal.FreeHGlobal(buf); }
         }
-        finally { Marshal.FreeHGlobal(buf); }
     }
 
     static string? NullIfEmpty(string? s) => string.IsNullOrEmpty(s) ? null : s;
@@ -367,6 +411,7 @@ static class Scm
     public const uint SERVICE_STATE_ALL = 0x3;
     public const uint SERVICE_CONFIG_DESCRIPTION = 1;
     public const uint SERVICE_CONFIG_DELAYED_AUTO_START_INFO = 3;
+    public const int ERROR_INSUFFICIENT_BUFFER = 122;
     public const int ERROR_MORE_DATA = 234;
 
     [StructLayout(LayoutKind.Sequential)]

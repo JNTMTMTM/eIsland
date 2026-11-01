@@ -24,57 +24,66 @@
  * @author 鸡哥
  */
 
-import { describe, it, expect } from 'vitest';
-import type * as StartupApi from '../index';
+import fs from 'node:fs';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import * as api from '../index';
 
 const isWin = process.platform === 'win32';
 const describeWin = isWin ? describe : describe.skip;
 
-// 非 Windows CI 上加载会失败，按条件 require
-let api: typeof StartupApi;
-try {
-  api = require('../');
-} catch {
-  api = {} as typeof StartupApi;
-}
-
 describeWin('@eisland/windows-startup-helper', () => {
+  afterEach(() => {
+    api.__resetHelperCache();
+  });
+
   it('exports all expected functions', () => {
     expect(typeof api.getStartupItems).toBe('function');
     expect(typeof api.getScheduledTasks).toBe('function');
     expect(typeof api.getServices).toBe('function');
   });
 
-  it('getStartupItems items have expected shape', () => {
-    const items = api.getStartupItems();
+  it('rejects with StartupHelperError when the helper is missing', async () => {
+    vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+    api.__resetHelperCache();
+    await expect(api.getStartupItems()).rejects.toBeInstanceOf(api.StartupHelperError);
+  });
+
+  it('getStartupItems items have expected shape', async () => {
+    const { items, errors } = await api.getStartupItems();
     expect(Array.isArray(items)).toBe(true);
-    for (const item of items) {
+    expect(Array.isArray(errors)).toBe(true);
+    items.forEach((item) => {
       expect(typeof item.name).toBe('string');
       expect(['registry', 'startupFolder']).toContain(item.location);
       expect(['user', 'machine']).toContain(item.scope);
       expect(typeof item.enabled).toBe('boolean');
-    }
+    });
   });
 
-  it('getScheduledTasks items have expected shape', () => {
-    const items = api.getScheduledTasks();
-    expect(Array.isArray(items)).toBe(true);
+  it('getScheduledTasks items have expected shape', async () => {
+    const { items } = await api.getScheduledTasks();
     expect(items.length).toBeGreaterThan(0);
-    for (const task of items) {
+    items.forEach((task) => {
       expect(typeof task.name).toBe('string');
       expect(task.path.startsWith('\\')).toBe(true);
       expect(typeof task.enabled).toBe('boolean');
       expect(Array.isArray(task.actions)).toBe(true);
-    }
+      [task.lastRunTime, task.nextRunTime].forEach((time) => {
+        expect(time === null || /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(time)).toBe(true);
+      });
+    });
   });
 
-  it('getServices items have expected shape', () => {
-    const items = api.getServices();
-    expect(Array.isArray(items)).toBe(true);
+  it('getServices items have expected shape', async () => {
+    const { items, errors } = await api.getServices();
     expect(items.length).toBeGreaterThan(0);
-    for (const svc of items) {
+    items.forEach((svc) => {
       expect(svc.name === null || typeof svc.name === 'string').toBe(true);
       expect(svc.processId === null || typeof svc.processId === 'number').toBe(true);
-    }
+    });
+    errors.forEach((error) => {
+      expect(error.source.startsWith('service:')).toBe(true);
+      expect(typeof error.message).toBe('string');
+    });
   });
 });
