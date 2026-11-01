@@ -78,7 +78,7 @@ describe('SMTC native boundaries', () => {
     else await images[0].onload?.();
     expect(await pending).toEqual(outcome === 'color' ? [10, 20, 30] : [0, 0, 0]);
   });
-  it.each([{ app: '', name: '', icon: undefined }, { app: '/path/Spotify.exe', name: 'Spotify', icon: 'SPOTIFY' }, { app: '.exe', name: '.exe', icon: undefined }, { app: 'unknown', name: 'unknown', icon: undefined }])('resolves player name and icon $app', async ({ app, name, icon }) => {
+  it.each([{ app: '', name: '', icon: undefined }, { app: '/path/Spotify.exe', name: 'Spotify', icon: 'SPOTIFY' }, { app: 'com.github.th-ch.youtube-music', name: 'com.github.th-ch.youtube-music', icon: 'YOUTUBE_MUSIC' }, { app: 'Chrome._crx_cinhimbnkkghhklpknlkffjgod', name: 'Chrome._crx_cinhimbnkkghhklpknlkffjgod', icon: 'YOUTUBE_MUSIC' }, { app: '.exe', name: '.exe', icon: undefined }, { app: 'unknown', name: 'unknown', icon: undefined }])('resolves player name and icon $app', async ({ app, name, icon }) => {
     const utils = await import('../smtcUtils');
     expect(utils.extractPlayerName(app)).toBe(name);
     expect(utils.getPlayerIcon(app)).toBe(icon);

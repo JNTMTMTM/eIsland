@@ -46,6 +46,7 @@ const PLAYER_ICON_MAP: Array<{ keywords: string[]; icon: string }> = [
   { keywords: ['sodamusic', '汽水'], icon: PlayerIcon.SODAMUSIC }, // i18n-exclude
   { keywords: ['apple', 'applemusic'], icon: PlayerIcon.APPLE_MUSIC },
   { keywords: ['spotify'], icon: PlayerIcon.SPOTIFY },
+  { keywords: ['youtube-music', '_crx_cinhimbnkkghhklpknlkffjgod'], icon: PlayerIcon.YOUTUBE_MUSIC },
 ];
 
 /** 根据进程名匹配播放器图标 */

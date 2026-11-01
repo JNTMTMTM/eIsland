@@ -36,6 +36,7 @@ describe('PlayerIcon', () => {
     expect(PlayerIcon).toHaveProperty('KUGOU');
     expect(PlayerIcon).toHaveProperty('APPLE_MUSIC');
     expect(PlayerIcon).toHaveProperty('SPOTIFY');
+    expect(PlayerIcon).toHaveProperty('YOUTUBE_MUSIC');
   });
 
   it('all values should be strings starting with ../svg/player/ and ending with .svg', () => {
@@ -45,8 +46,8 @@ describe('PlayerIcon', () => {
     });
   });
 
-  it('should contain exactly 6 keys', () => {
-    expect(Object.keys(PlayerIcon)).toHaveLength(6);
+  it('should contain exactly 7 keys', () => {
+    expect(Object.keys(PlayerIcon)).toHaveLength(7);
   });
 
   it('PLAYER_ICON_MAP should only reference valid PlayerIcon keys', () => {

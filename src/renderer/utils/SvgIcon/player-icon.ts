@@ -31,6 +31,7 @@ export const PlayerIcon = {
   KUGOU: '../svg/player/kugou.svg',
   APPLE_MUSIC: '../svg/player/applemusic.svg',
   SPOTIFY: '../svg/player/spotify.svg',
+  YOUTUBE_MUSIC: '../svg/player/youtubemusic.svg',
 } as const;
 
 export type PlayerIconKey = keyof typeof PlayerIcon;

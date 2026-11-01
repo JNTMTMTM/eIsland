@@ -45,7 +45,7 @@ describe('WhitelistStep', () => {
     const onPrev = vi.fn();
     const tree = WhitelistStep({ onNext, onPrev });
     const choices = elements(tree).filter((node) => node.type === 'button' && String(elementProps(node).className).startsWith('guide-whitelist-option'));
-    expect(choices).toHaveLength(6);
+    expect(choices).toHaveLength(8);
     expect(elementProps(choices[0]).className).toContain('selected');
     expect(elementProps(choices[1]).className).not.toContain('selected');
     invoke(choices[1], 'onClick');

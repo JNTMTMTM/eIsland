@@ -71,6 +71,8 @@ export const PLAYER_ICON_MAP: Record<string, PlayerIconKey> = {
   KuGoo: 'KUGOU',
   汽水音乐: 'SODAMUSIC',
   iTunes: 'APPLE_MUSIC',
+  'com.github.th-ch.youtube-music': 'YOUTUBE_MUSIC',
+  'Chrome._crx_cinhimbnkkghhklpknlkffjgod': 'YOUTUBE_MUSIC',
 };
 
 /**

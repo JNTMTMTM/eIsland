@@ -90,7 +90,9 @@
       "sodamusic": "Soda Music",
       "kugou": "KuGou",
       "applemusic": "Apple Music",
-      "spotify": "Spotify"
+      "spotify": "Spotify",
+      "ytmusic": "YouTube Music（デスクトップ版）",
+      "ytmusicPwa": "YouTube Music（Chrome アプリ）"
     },
     "theme": {
       "title": "外観",

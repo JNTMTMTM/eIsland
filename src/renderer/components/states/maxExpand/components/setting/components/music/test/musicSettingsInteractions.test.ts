@@ -172,7 +172,7 @@ describe('播放器真实持久化与输入', () => {
     expect(props.setWhitelist).toHaveBeenCalledWith(['unknown.exe']);
     expect(api.musicWhitelistSet).toHaveBeenCalledWith(['unknown.exe']);
   });
-  it.each(['netease.exe', 'kugou.exe', 'sodamusic.exe', 'applemusic.exe', 'spotify.exe'])('进程%s显示播放器图标', (name) => {
+  it.each(['netease.exe', 'kugou.exe', 'sodamusic.exe', 'applemusic.exe', 'spotify.exe', 'com.github.th-ch.youtube-music', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod'])('进程%s显示播放器图标', (name) => {
     props.whitelist = [name];
     expect(elements(render()).filter((node) => elementProps(node).className === 'settings-whitelist-icon')).toHaveLength(1);
   });
