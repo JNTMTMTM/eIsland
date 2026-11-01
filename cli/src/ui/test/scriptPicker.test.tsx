@@ -28,7 +28,7 @@ import { render } from 'ink-testing-library';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { initI18n } from '../../core/i18n';
-import { ScriptPicker } from '../scriptPicker';
+import ScriptPicker from '../scriptPicker';
 
 import type { ScriptEntry } from '../../core/scripts';
 
@@ -56,7 +56,7 @@ describe('ScriptPicker', () => {
     const frame = lastFrame() ?? '';
     expect(frame).toContain('Run main process unit and integration tests');
     expect(frame).toContain('[dangerous]');
-    expect(frame).toContain('Esc cancel');
+    expect(frame).toContain('Esc back');
     unmount();
   });
 
@@ -85,7 +85,7 @@ describe('ScriptPicker', () => {
     unmount();
   });
 
-  it('无匹配时回车不提交，Esc 取消', async () => {
+  it('无匹配时回车不提交，Esc 返回', async () => {
     const onSubmit = vi.fn();
     const { stdin, lastFrame, unmount } = render(<ScriptPicker entries={entries} onSubmit={onSubmit} />);
     await flush();

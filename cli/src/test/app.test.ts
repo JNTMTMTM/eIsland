@@ -29,15 +29,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import runCli from '../app';
 import runScript from '../core/runner';
 import { confirm } from '../ui/confirmPrompt';
-import { pickScript } from '../ui/scriptPicker';
+import { runDashboard } from '../ui/dashboard';
 
 vi.mock('../core/runner', () => ({ default: vi.fn() }));
 vi.mock('../ui/confirmPrompt', () => ({ confirm: vi.fn() }));
-vi.mock('../ui/scriptPicker', () => ({ pickScript: vi.fn() }));
+vi.mock('../ui/dashboard', () => ({ runDashboard: vi.fn() }));
 
 const runMock = vi.mocked(runScript);
 const confirmMock = vi.mocked(confirm);
-const pickMock = vi.mocked(pickScript);
+const dashboardMock = vi.mocked(runDashboard);
 let output: string[];
 let errors: string[];
 
@@ -99,18 +99,19 @@ describe('runCli', () => {
     expect(runMock).not.toHaveBeenCalled();
   });
 
-  it('无参数的交互终端打开选择器并执行选中脚本', async () => {
+  it('无参数的交互终端打开分栏界面并返回其退出码', async () => {
     setInteractive(true);
-    pickMock.mockImplementation((entries) => Promise.resolve(entries.find((entry) => entry.name === 'dev') ?? null));
-    expect(await cli()).toBe(0);
-    expect(runMock).toHaveBeenCalledWith(expect.any(String), 'dev', []);
+    dashboardMock.mockResolvedValue(0);
+    expect(await runCli(['--yes', '--lang', 'en-US', '--', '--watch'])).toBe(0);
+    expect(dashboardMock).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ yes: true, passthrough: ['--watch'] }));
+    expect(runMock).not.toHaveBeenCalled();
   });
 
-  it('选择器取消时返回 130', async () => {
+  it('直接执行命令在交互终端中也不进入分栏界面', async () => {
     setInteractive(true);
-    pickMock.mockResolvedValue(null);
-    expect(await cli()).toBe(130);
-    expect(runMock).not.toHaveBeenCalled();
+    expect(await cli('test', 'main')).toBe(0);
+    expect(dashboardMock).not.toHaveBeenCalled();
+    expect(runMock).toHaveBeenCalledWith(expect.any(String), 'test:main', []);
   });
 
   it('非交互终端无参数时打印帮助', async () => {

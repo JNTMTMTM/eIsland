@@ -4,7 +4,7 @@
     "usage": "用法",
     "options": "選項",
     "examples": "範例",
-    "cmdInteractive": "開啟互動式腳本選擇器",
+    "cmdInteractive": "開啟分欄任務介面",
     "cmdList": "依分組列出腳本，可只看某個分組",
     "cmdRun": "依完整名稱執行腳本",
     "cmdShorthand": "簡寫：各分段以 \":\" 拼接為腳本名稱",
@@ -20,7 +20,30 @@
     "prompt": "搜尋腳本",
     "empty": "沒有符合的腳本",
     "more": "還有 {{count}} 筆...",
-    "hint": "輸入以篩選 · ↑↓ 移動 · Enter 執行 · Esc 取消"
+    "hint": "輸入以篩選 · ↑↓ 移動 · Enter 執行 · Esc 返回"
+  },
+  "dashboard": {
+    "noTasks": "還沒有任務，在右側選擇「執行腳本...」開始。",
+    "outputTitle": "{{name}}（{{index}}/{{total}}）",
+    "scrolled": "已暫停跟隨 · End 回到最新",
+    "tasks": "任務（{{count}}）",
+    "moreTasks": "... 更早的 {{count}} 個",
+    "actions": {
+      "run": "執行腳本...",
+      "stop": "結束目前任務",
+      "close": "關閉目前任務",
+      "quit": "離開"
+    },
+    "actionsHint": "↑↓ 選擇 · Enter 確認 · Ctrl+C 離開",
+    "hint": "Tab 切換任務 · PgUp/PgDn 翻看 · Home/End 頂部/最新",
+    "confirmQuit": "還有 {{count}} 個任務在執行，全部結束並離開？",
+    "quitting": "正在結束執行中的任務...",
+    "status": {
+      "running": "執行中",
+      "succeeded": "已完成",
+      "failed": "失敗（{{code}}）",
+      "killed": "已結束"
+    }
   },
   "confirm": {
     "dangerous": "\"{{name}}\" 會發布或清除線上資源，且無法復原。確定繼續？",

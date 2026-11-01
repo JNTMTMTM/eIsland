@@ -34,7 +34,7 @@ import findProjectRoot from './core/projectRoot';
 import runScript from './core/runner';
 import { groupScripts, resolveScript, loadScripts } from './core/scripts';
 import { confirm } from './ui/confirmPrompt';
-import { pickScript } from './ui/scriptPicker';
+import { runDashboard } from './ui/dashboard';
 
 import type { CliArgs } from './core/args';
 import type { ScriptEntry } from './core/scripts';
@@ -181,21 +181,14 @@ export default async function runCli(argv: string[]): Promise<number> {
     console.error(t('errors.rootNotFound'));
     return 1;
   }
-  const entries = loadScripts(root);
   const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
 
   if (command === undefined) {
-    if (!interactive) {
-      printHelp();
-      return 0;
-    }
-    const entry = await pickScript(entries);
-    if (!entry) {
-      console.log(t('cancelled'));
-      return CANCELLED_EXIT_CODE;
-    }
-    return execute(root, entry, args, interactive);
+    if (interactive) return runDashboard(root, args);
+    printHelp();
+    return 0;
   }
+  const entries = loadScripts(root);
   if (command === 'list' || command === 'ls') return printList(entries, rest[0]);
 
   const tokens = command === 'run' ? rest : args.positionals;

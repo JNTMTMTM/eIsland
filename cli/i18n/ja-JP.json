@@ -4,7 +4,7 @@
     "usage": "使い方",
     "options": "オプション",
     "examples": "例",
-    "cmdInteractive": "対話式スクリプト選択を開く",
+    "cmdInteractive": "分割表示のタスク画面を開く",
     "cmdList": "グループ別にスクリプトを一覧表示（グループ指定可）",
     "cmdRun": "完全な名前でスクリプトを実行",
     "cmdShorthand": "短縮形：各セグメントを \":\" で連結",
@@ -20,7 +20,30 @@
     "prompt": "スクリプトを検索",
     "empty": "一致するスクリプトはありません",
     "more": "ほか {{count}} 件...",
-    "hint": "入力で絞り込み · ↑↓ 移動 · Enter 実行 · Esc キャンセル"
+    "hint": "入力で絞り込み · ↑↓ 移動 · Enter 実行 · Esc 戻る"
+  },
+  "dashboard": {
+    "noTasks": "タスクはまだありません。右側の「スクリプトを実行...」を選んでください。",
+    "outputTitle": "{{name}}（{{index}}/{{total}}）",
+    "scrolled": "追従を停止中 · End で最新へ",
+    "tasks": "タスク（{{count}}）",
+    "moreTasks": "... 以前の {{count}} 件",
+    "actions": {
+      "run": "スクリプトを実行...",
+      "stop": "現在のタスクを終了",
+      "close": "現在のタスクを閉じる",
+      "quit": "終了"
+    },
+    "actionsHint": "↑↓ 選択 · Enter 決定 · Ctrl+C 終了",
+    "hint": "Tab タスク切替 · PgUp/PgDn スクロール · Home/End 先頭/最新",
+    "confirmQuit": "{{count}} 件のタスクが実行中です。すべて終了して終了しますか？",
+    "quitting": "実行中のタスクを終了しています...",
+    "status": {
+      "running": "実行中",
+      "succeeded": "完了",
+      "failed": "失敗（{{code}}）",
+      "killed": "終了済み"
+    }
   },
   "confirm": {
     "dangerous": "\"{{name}}\" はリモートのリソースを公開または削除し、元に戻せません。続行しますか？",

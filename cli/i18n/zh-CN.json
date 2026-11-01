@@ -4,7 +4,7 @@
     "usage": "用法",
     "options": "选项",
     "examples": "示例",
-    "cmdInteractive": "打开交互式脚本选择器",
+    "cmdInteractive": "打开分栏任务界面",
     "cmdList": "按分组列出脚本，可只看某个分组",
     "cmdRun": "按完整名称执行脚本",
     "cmdShorthand": "简写：各分段以 \":\" 拼接为脚本名",
@@ -20,7 +20,30 @@
     "prompt": "搜索脚本",
     "empty": "没有匹配的脚本",
     "more": "还有 {{count}} 条...",
-    "hint": "输入以过滤 · ↑↓ 移动 · Enter 执行 · Esc 取消"
+    "hint": "输入以过滤 · ↑↓ 移动 · Enter 执行 · Esc 返回"
+  },
+  "dashboard": {
+    "noTasks": "还没有任务，在右侧选择「运行脚本...」开始。",
+    "outputTitle": "{{name}}（{{index}}/{{total}}）",
+    "scrolled": "已暂停跟随 · End 回到最新",
+    "tasks": "任务（{{count}}）",
+    "moreTasks": "... 更早的 {{count}} 个",
+    "actions": {
+      "run": "运行脚本...",
+      "stop": "结束当前任务",
+      "close": "关闭当前任务",
+      "quit": "退出"
+    },
+    "actionsHint": "↑↓ 选择 · Enter 确认 · Ctrl+C 退出",
+    "hint": "Tab 切换任务 · PgUp/PgDn 翻看 · Home/End 顶部/最新",
+    "confirmQuit": "还有 {{count}} 个任务在运行，全部结束并退出？",
+    "quitting": "正在结束运行中的任务...",
+    "status": {
+      "running": "运行中",
+      "succeeded": "已完成",
+      "failed": "失败（{{code}}）",
+      "killed": "已结束"
+    }
   },
   "confirm": {
     "dangerous": "\"{{name}}\" 会发布或清理线上资源，且无法撤销。确定继续？",

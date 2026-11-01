@@ -20,11 +20,11 @@
 
 /**
  * @file scriptPicker.tsx
- * @description 可输入关键词实时过滤的交互式脚本选择器
+ * @description 可输入关键词实时过滤的脚本选择器，嵌入分栏界面右侧
  * @author 鸡哥
  */
 
-import { Box, Text, render, useInput } from 'ink';
+import { Box, Text, useInput } from 'ink';
 import { useMemo, useState } from 'react';
 
 import { describeScript, t } from '../core/i18n';
@@ -32,15 +32,17 @@ import { filterScripts } from '../core/scripts';
 
 import type { ScriptEntry } from '../core/scripts';
 
-// 81 条脚本无法一屏展示，固定窗口高度并随光标滚动。
-const PAGE_SIZE = 12;
+// 脚本数量远超一屏，固定窗口高度并随光标滚动。
+const DEFAULT_PAGE_SIZE = 12;
 
 /** 选择器属性 */
 interface ScriptPickerProps {
   /** 全部脚本 */
   entries: ScriptEntry[];
-  /** 选中脚本时回调；取消时传入 null */
+  /** 选中脚本时回调；返回时传入 null */
   onSubmit: (entry: ScriptEntry | null) => void;
+  /** 列表可见行数，随所在面板高度调整 */
+  pageSize?: number;
 }
 
 /** 列表行属性 */
@@ -75,20 +77,21 @@ function PickerRow({ entry, active, width }: PickerRowProps): React.JSX.Element 
 }
 
 /**
- * 交互式脚本选择器
- * @description 输入字符过滤，↑↓ 移动光标，Enter 选中，Esc 或 Ctrl+C 取消
+ * 脚本选择器
+ * @description 输入字符过滤，↑↓ 移动光标，Enter 选中，Esc 或 Ctrl+C 返回
  * @param props - 选择器属性
  * @param props.entries - 全部脚本
- * @param props.onSubmit - 选中或取消时的回调
+ * @param props.onSubmit - 选中或返回时的回调
+ * @param props.pageSize - 列表可见行数
  * @returns 选择器界面
  */
-export function ScriptPicker({ entries, onSubmit }: ScriptPickerProps): React.JSX.Element {
+export default function ScriptPicker({ entries, onSubmit, pageSize = DEFAULT_PAGE_SIZE }: ScriptPickerProps): React.JSX.Element {
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
   const matches = useMemo(() => filterScripts(entries, query, describeScript), [entries, query]);
   const index = Math.min(cursor, Math.max(matches.length - 1, 0));
-  const start = Math.max(0, Math.min(index - Math.floor(PAGE_SIZE / 2), matches.length - PAGE_SIZE));
-  const visible = matches.slice(start, start + PAGE_SIZE);
+  const start = Math.max(0, Math.min(index - Math.floor(pageSize / 2), matches.length - pageSize));
+  const visible = matches.slice(start, start + pageSize);
   const width = Math.max(0, ...visible.map((entry) => entry.name.length));
   const remaining = matches.length - visible.length;
 
@@ -113,7 +116,7 @@ export function ScriptPicker({ entries, onSubmit }: ScriptPickerProps): React.JS
 
   return (
     <Box flexDirection="column">
-      <Text>
+      <Text wrap="truncate-end">
         <Text color="cyan">? </Text>
         {`${t('picker.prompt')}: `}
         <Text bold>{query}</Text>
@@ -124,21 +127,7 @@ export function ScriptPicker({ entries, onSubmit }: ScriptPickerProps): React.JS
       ))}
       {matches.length === 0 ? <Text dimColor>{t('picker.empty')}</Text> : null}
       {remaining > 0 ? <Text dimColor>{t('picker.more', { count: remaining })}</Text> : null}
-      <Text dimColor>{t('picker.hint')}</Text>
+      <Text dimColor wrap="wrap">{t('picker.hint')}</Text>
     </Box>
   );
-}
-
-/**
- * 打开脚本选择器并等待用户选择
- * @param entries - 全部脚本
- * @returns 选中的脚本，取消时为 null
- */
-export async function pickScript(entries: ScriptEntry[]): Promise<ScriptEntry | null> {
-  const { promise, resolve } = Promise.withResolvers<ScriptEntry | null>();
-  const app = render(<ScriptPicker entries={entries} onSubmit={resolve} />, { exitOnCtrlC: false });
-  const entry = await promise;
-  app.unmount();
-  await app.waitUntilExit();
-  return entry;
 }

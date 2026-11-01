@@ -4,7 +4,7 @@
     "usage": "Usage",
     "options": "Options",
     "examples": "Examples",
-    "cmdInteractive": "Open the interactive script picker",
+    "cmdInteractive": "Open the split-view task dashboard",
     "cmdList": "List scripts by group, optionally only one group",
     "cmdRun": "Run a script by its exact name",
     "cmdShorthand": "Shorthand: segments are joined with \":\"",
@@ -20,7 +20,30 @@
     "prompt": "Search scripts",
     "empty": "No matching scripts",
     "more": "{{count}} more...",
-    "hint": "Type to filter · ↑↓ move · Enter run · Esc cancel"
+    "hint": "Type to filter · ↑↓ move · Enter run · Esc back"
+  },
+  "dashboard": {
+    "noTasks": "No tasks yet. Choose \"Run script...\" on the right.",
+    "outputTitle": "{{name}} ({{index}}/{{total}})",
+    "scrolled": "Paused · End to follow",
+    "tasks": "Tasks ({{count}})",
+    "moreTasks": "... {{count}} earlier",
+    "actions": {
+      "run": "Run script...",
+      "stop": "End current task",
+      "close": "Close current task",
+      "quit": "Quit"
+    },
+    "actionsHint": "↑↓ select · Enter confirm · Ctrl+C quit",
+    "hint": "Tab switch task · PgUp/PgDn scroll · Home/End top/latest",
+    "confirmQuit": "{{count}} task(s) still running. End them all and quit?",
+    "quitting": "Ending running tasks...",
+    "status": {
+      "running": "running",
+      "succeeded": "done",
+      "failed": "failed ({{code}})",
+      "killed": "ended"
+    }
   },
   "confirm": {
     "dangerous": "\"{{name}}\" publishes or purges remote resources and cannot be undone. Continue?",

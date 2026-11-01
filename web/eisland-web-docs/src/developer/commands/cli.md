@@ -40,7 +40,7 @@ Run `npm run dev` inside `cli/` to rebuild on every change (`vite build --watch`
 
 | Command | Description |
 |---------|-------------|
-| `eisland` | Open the interactive picker (TTY only; prints help otherwise) |
+| `eisland` | Open the interactive dashboard (TTY only; prints help otherwise) |
 | `eisland list [group]` | List scripts by group (alias: `ls`) |
 | `eisland run <script> [-- args]` | Run a script by its exact name |
 | `eisland <seg> [seg...] [-- args]` | Shorthand: segments are joined with `:` |
@@ -66,9 +66,40 @@ eisland list plugin                     # list only the plugin group
 Arguments meant for the script must come after `--`. Unknown options before `--` are rejected, so `eisland test --watch` fails while `eisland test -- --watch` works.
 :::
 
-### Interactive Picker
+### Interactive Dashboard
 
-Type to filter by script name or description (several space-separated keywords must all match). Use `↑` / `↓` to move, `Enter` to run, and `Esc` or `Ctrl+C` to cancel. Scripts without a translated description show their raw command instead.
+Running `eisland` with no arguments opens a full-screen split view. Your previous terminal content comes back when you quit.
+
+| Area | Content |
+|------|---------|
+| Left | Output of the current task, following the latest line by default |
+| Right | Task list (`●` running, `✔` done, `✖` failed, `■` ended), then the actions or script picker |
+
+| Action | Description |
+|--------|-------------|
+| Run script... | Open the picker. Type to filter by name or description; several space-separated keywords must all match |
+| End current task | Kill the current task's whole process tree (shown while it is running) |
+| Close current task | Remove a finished task from the list |
+| Quit | End all running tasks (asks first if any are running) and restore the terminal |
+
+| Key | Effect |
+|-----|--------|
+| `↑` / `↓`, `Enter` | Choose and confirm an action or script |
+| `Esc` | Leave the picker and return to the actions |
+| `Tab` / `Shift+Tab` | Switch the task shown on the left |
+| `PgUp` / `PgDn` | Scroll output by one page (the view stays put while new output arrives) |
+| `Home` / `End` | Jump to the first line / resume following the latest output |
+| `Ctrl+C` | Quit (in the picker: go back) |
+
+Several tasks can run at the same time, for example `dev` alongside a test run. Each task keeps its last 5000 lines. The script list is reloaded each time the picker opens. Dangerous scripts ask for `(y/N)` confirmation in the right panel unless you started with `--yes`.
+
+:::warning
+In the dashboard, scripts write to a pipe, not the terminal. Colors are forced on with `FORCE_COLOR=1`, but scripts that read keyboard input (such as Vitest watch-mode shortcuts) receive none. Run those with a direct command instead, for example `eisland run test -- --watch`.
+:::
+
+:::tip
+"End current task" uses `taskkill /T /F` on Windows and signals the process group elsewhere, so grandchild processes such as the Electron window from `dev` also stop. Direct commands such as `eisland test main` keep the plain terminal output and exit after one run, so they stay safe to chain in shells and CI.
+:::
 
 ### Name Resolution
 
@@ -88,7 +119,8 @@ Groups are the first segment of each script name (`test`, `lint`, `plugin`, `rel
 |------|---------|
 | Script exit code | Passed through unchanged from `npm run` |
 | `1` | Invalid arguments, unknown script or group, refused dangerous script, or `npm` failed to start |
-| `130` | Cancelled by the user, or the script was terminated by a signal |
+| `0` | Quit from the interactive dashboard |
+| `130` | Dangerous script confirmation declined (direct commands), or the script was terminated by a signal |
 
 ## Dangerous Script Protection
 
@@ -136,9 +168,13 @@ Change CLI test settings only in `cli/vitest.config.ts`. The root config does no
 | `cli/src/core/args.ts` | Argument parsing with `util.parseArgs` and `--` passthrough |
 | `cli/src/core/scripts.ts` | Load, group, resolve, suggest, and filter scripts |
 | `cli/src/core/projectRoot.ts` | Find the repository root by walking up directories |
-| `cli/src/core/runner.ts` | Run `npm run` via `cross-spawn` and pass the exit code through |
+| `cli/src/core/runner.ts` | Run `npm run` via `cross-spawn` with inherited stdio for direct commands |
+| `cli/src/core/taskManager.ts` | Concurrent dashboard tasks: output capture, process tree kill, change subscription |
+| `cli/src/core/outputBuffer.ts` | Split piped output into lines and strip cursor control sequences |
+| `cli/src/ui/dashboard.tsx` | Full-screen split view, actions, and task switching |
+| `cli/src/ui/outputPanel.tsx` | Left output panel with paging |
 | `cli/src/core/i18n.ts` | Locale detection and i18next setup |
-| `cli/src/ui/scriptPicker.tsx` | Ink searchable script picker |
+| `cli/src/ui/scriptPicker.tsx` | Ink searchable script picker embedded in the right panel |
 | `cli/src/ui/confirmPrompt.tsx` | Ink `(y/N)` confirmation prompt |
 
 :::details Technology Stack
