@@ -18,7 +18,8 @@
  * GNU General Public License for more details.
  */
 
-using System.Management;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Microsoft.Win32;
 
@@ -232,39 +233,184 @@ static class StartupInfoHelper
 
     public static object[] GetServices()
     {
-        var list = new List<object>();
-        using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Service");
-        using var collection = searcher.Get();
-        foreach (ManagementObject obj in collection)
+        var scm = Scm.OpenSCManagerW(null, null, Scm.SC_MANAGER_CONNECT | Scm.SC_MANAGER_ENUMERATE_SERVICE);
+        if (scm == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
+
+        try
         {
-            using (obj)
+            var list = new List<object>();
+            uint resume = 0;
+            var entrySize = Marshal.SizeOf<Scm.ENUM_SERVICE_STATUS_PROCESSW>();
+            bool more;
+            do
             {
-                list.Add(new
+                // 首次以空缓冲区探测所需大小；ERROR_MORE_DATA 时按 resume 句柄继续分页
+                Scm.EnumServicesStatusExW(scm, Scm.SC_ENUM_PROCESS_INFO, Scm.SERVICE_WIN32, Scm.SERVICE_STATE_ALL,
+                    IntPtr.Zero, 0, out var needed, out _, ref resume, null);
+                var buf = Marshal.AllocHGlobal((int)needed);
+                try
                 {
-                    name             = Str(obj, "Name"),
-                    displayName      = Str(obj, "DisplayName"),
-                    description      = Str(obj, "Description"),
-                    state            = Str(obj, "State"),
-                    startMode        = Str(obj, "StartMode"),
-                    delayedAutoStart = Bool(obj, "DelayedAutoStart"),
-                    pathName         = Str(obj, "PathName"),
-                    startName        = Str(obj, "StartName"),
-                    processId        = Uint(obj, "ProcessId"),
-                    serviceType      = Str(obj, "ServiceType"),
-                });
-            }
+                    var ok = Scm.EnumServicesStatusExW(scm, Scm.SC_ENUM_PROCESS_INFO, Scm.SERVICE_WIN32, Scm.SERVICE_STATE_ALL,
+                        buf, needed, out _, out var returned, ref resume, null);
+                    var err = Marshal.GetLastWin32Error();
+                    more = !ok && err == Scm.ERROR_MORE_DATA;
+                    if (!ok && !more) throw new Win32Exception(err);
+
+                    for (var i = 0; i < returned; i++)
+                    {
+                        var entry = Marshal.PtrToStructure<Scm.ENUM_SERVICE_STATUS_PROCESSW>(buf + i * entrySize);
+                        list.Add(ReadService(scm, entry));
+                    }
+                }
+                finally { Marshal.FreeHGlobal(buf); }
+            } while (more);
+
+            return list.ToArray();
         }
-        return list.ToArray();
+        finally { Scm.CloseServiceHandle(scm); }
     }
 
-    // ───────────────────────── WMI 属性读取辅助 ─────────────────────────
+    static object ReadService(IntPtr scm, Scm.ENUM_SERVICE_STATUS_PROCESSW entry)
+    {
+        var name = Marshal.PtrToStringUni(entry.lpServiceName);
+        var status = entry.ServiceStatusProcess;
+        string? description = null, pathName = null, startName = null, startMode = null;
+        bool? delayedAutoStart = null;
 
-    static string? Str(ManagementObject o, string p)
-    { try { return o[p]?.ToString(); } catch { return null; } }
+        var svc = Scm.OpenServiceW(scm, name!, Scm.SERVICE_QUERY_CONFIG);
+        if (svc != IntPtr.Zero)
+        {
+            try
+            {
+                QueryConfig(svc, (b, s, out n) => Scm.QueryServiceConfigW(svc, b, s, out n), b =>
+                {
+                    var cfg = Marshal.PtrToStructure<Scm.QUERY_SERVICE_CONFIGW>(b);
+                    pathName = Marshal.PtrToStringUni(cfg.lpBinaryPathName);
+                    startName = NullIfEmpty(Marshal.PtrToStringUni(cfg.lpServiceStartName));
+                    startMode = StartModeName(cfg.dwStartType);
+                });
+                QueryConfig(svc, (b, s, out n) => Scm.QueryServiceConfig2W(svc, Scm.SERVICE_CONFIG_DESCRIPTION, b, s, out n), b =>
+                {
+                    var ptr = Marshal.ReadIntPtr(b);
+                    description = ptr == IntPtr.Zero ? null : Marshal.PtrToStringUni(ptr);
+                });
+                QueryConfig(svc, (b, s, out n) => Scm.QueryServiceConfig2W(svc, Scm.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, b, s, out n), b =>
+                {
+                    delayedAutoStart = Marshal.ReadInt32(b) != 0;
+                });
+            }
+            finally { Scm.CloseServiceHandle(svc); }
+        }
 
-    static uint? Uint(ManagementObject o, string p)
-    { try { return o[p] is uint v ? v : null; } catch { return null; } }
+        return new
+        {
+            name,
+            displayName      = Marshal.PtrToStringUni(entry.lpDisplayName),
+            description,
+            state            = StateName(status.dwCurrentState),
+            startMode,
+            delayedAutoStart,
+            pathName,
+            startName,
+            processId        = status.dwProcessId,
+            serviceType      = ServiceTypeName(status.dwServiceType),
+        };
+    }
 
-    static bool? Bool(ManagementObject o, string p)
-    { try { return o[p] is bool v ? v : null; } catch { return null; } }
+    delegate bool ConfigQuery(IntPtr buf, uint size, out uint needed);
+
+    /// 两段式查询：先取所需字节数，再分配缓冲区读取；无权限或失败时静默跳过
+    static void QueryConfig(IntPtr svc, ConfigQuery query, Action<IntPtr> read)
+    {
+        query(IntPtr.Zero, 0, out var needed);
+        if (needed == 0) return;
+        var buf = Marshal.AllocHGlobal((int)needed);
+        try
+        {
+            if (query(buf, needed, out _)) read(buf);
+        }
+        finally { Marshal.FreeHGlobal(buf); }
+    }
+
+    static string? NullIfEmpty(string? s) => string.IsNullOrEmpty(s) ? null : s;
+
+    // 名称映射与 WMI Win32_Service 的取值保持一致，避免调用方因实现切换而改动
+    static string StateName(uint s) => s switch
+    {
+        1 => "Stopped", 2 => "Start Pending", 3 => "Stop Pending", 4 => "Running",
+        5 => "Continue Pending", 6 => "Pause Pending", 7 => "Paused",
+        _ => "Unknown"
+    };
+
+    static string? StartModeName(uint t) => t switch
+    {
+        0 => "Boot", 1 => "System", 2 => "Auto", 3 => "Manual", 4 => "Disabled",
+        _ => null
+    };
+
+    // WMI 忽略 0x100（SERVICE_INTERACTIVE_PROCESS）标志位，只报告基础进程类型
+    static string ServiceTypeName(uint t) => (t & ~0x100u) switch
+    {
+        0x10 => "Own Process", 0x20 => "Share Process", 0x30 => "Share Process",
+        _ => "Unknown"
+    };
+}
+
+/// advapi32 服务控制管理器（SCM）P/Invoke 声明
+static class Scm
+{
+    public const uint SC_MANAGER_CONNECT = 0x0001;
+    public const uint SC_MANAGER_ENUMERATE_SERVICE = 0x0004;
+    public const uint SERVICE_QUERY_CONFIG = 0x0001;
+    public const uint SC_ENUM_PROCESS_INFO = 0;
+    public const uint SERVICE_WIN32 = 0x30;
+    public const uint SERVICE_STATE_ALL = 0x3;
+    public const uint SERVICE_CONFIG_DESCRIPTION = 1;
+    public const uint SERVICE_CONFIG_DELAYED_AUTO_START_INFO = 3;
+    public const int ERROR_MORE_DATA = 234;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SERVICE_STATUS_PROCESS
+    {
+        public uint dwServiceType, dwCurrentState, dwControlsAccepted, dwWin32ExitCode,
+                    dwServiceSpecificExitCode, dwCheckPoint, dwWaitHint, dwProcessId, dwServiceFlags;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ENUM_SERVICE_STATUS_PROCESSW
+    {
+        public IntPtr lpServiceName;
+        public IntPtr lpDisplayName;
+        public SERVICE_STATUS_PROCESS ServiceStatusProcess;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct QUERY_SERVICE_CONFIGW
+    {
+        public uint dwServiceType, dwStartType, dwErrorControl;
+        public IntPtr lpBinaryPathName, lpLoadOrderGroup;
+        public uint dwTagId;
+        public IntPtr lpDependencies, lpServiceStartName, lpDisplayName;
+    }
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern IntPtr OpenSCManagerW(string? machineName, string? databaseName, uint desiredAccess);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern IntPtr OpenServiceW(IntPtr scm, string serviceName, uint desiredAccess);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    public static extern bool CloseServiceHandle(IntPtr handle);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool EnumServicesStatusExW(
+        IntPtr scm, uint infoLevel, uint serviceType, uint serviceState,
+        IntPtr services, uint bufSize, out uint bytesNeeded, out uint servicesReturned,
+        ref uint resumeHandle, string? groupName);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool QueryServiceConfigW(IntPtr service, IntPtr config, uint bufSize, out uint bytesNeeded);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool QueryServiceConfig2W(IntPtr service, uint infoLevel, IntPtr buffer, uint bufSize, out uint bytesNeeded);
 }
