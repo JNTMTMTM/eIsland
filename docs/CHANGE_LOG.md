@@ -1,7 +1,382 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-10-31T14:33:03.015Z
+> 生成时间：2026-11-01T20:03:57.616Z
+
+## 27.0.1
+
+- 2026-10-31 | bb80bd41 | 鸡哥 | chore: update version to 27.0.1 in package.json and package-lock.json
+- 2026-10-31 | dd4ef576 | 鸡哥 | docs(announcement): add V27.0.1 release notes
+- 2026-10-31 | c4fb075f | eislandBot | docs: auto update CHANGE_LOG.md for #302 by @JNTMTMTM [skip ci]
+- 2026-10-31 | eaddcf24 | JNTMTMTM | Merge pull request #302 from JNTMTMTM/dev
+- 2026-10-30 | b0dfcc82 | 鸡哥 | feat: update main window bounds handling to maintain notification canvas state before first show
+- 2026-10-30 | 2c152583 | 鸡哥 | feat: add TOKEN_BREAKDOWN_KEYS for consistent token breakdown display in ProviderCard and ProviderSkeleton
+- 2026-10-30 | 6f583dd6 | 鸡哥 | feat(cli): enhance styling and structure of pagination controls in CliDetailsPage
+- 2026-10-30 | 6f465d95 | 鸡哥 | feat(cli): refactor CLI state components and add permission handling
+- 2026-10-30 | b6fba252 | 鸡哥 | feat: add CliContent component and associated tests for CLI state management and interactions
+- 2026-10-30 | a65c3ec6 | 鸡哥 | feat: enhance navigation label handling with default labels and improved getNavLabel function
+- 2026-10-30 | 8800c92c | 鸡哥 | feat: Refactor expanded state components and hooks for improved structure and functionality
+- 2026-10-30 | d38c8a7d | 鸡哥 | feat: add ExpandedTransitionLoading component and associated types for loading state
+- 2026-10-30 | 995eb4cf | 鸡哥 | refactor: reorganize component imports and update paths for consistency
+- 2026-10-30 | 31b68398 | 鸡哥 | feat: add ToolsTab and TranslationTab components with associated hooks, utils, and types
+- 2026-10-30 | 707b8938 | 鸡哥 | feat: add expanded SongTab and ToolsTab components with hooks and utilities
+- 2026-10-30 | 8fd3e31b | 鸡哥 | feat: add ToolsTab and TranslationTab components with comprehensive tests
+- 2026-10-30 | 2fb3fdaf | 鸡哥 | feat: add Agent Quota Widget to Overview Tab
+- 2026-10-30 | c62db168 | 鸡哥 | feat: add icons for agent usage providers and update styles for card layout
+- 2026-10-29 | 388d05b2 | 鸡哥 | feat: add skeleton loading state for Agent Usage tab and enhance styles
+- 2026-10-29 | 7be25251 | 鸡哥 | feat: implement agent usage service for tracking Claude Code and Codex token usage
+- 2026-10-29 | fc8ce3df | 鸡哥 | feat: add Agent Usage tab and update internationalization for new feature
+- 2026-10-29 | d76feab0 | eislandBot | docs: auto update CHANGE_LOG.md for #301 by @JNTMTMTM [skip ci]
+- 2026-10-29 | 9f635d43 | JNTMTMTM | Merge pull request #301 from JNTMTMTM/dev
+- 2026-10-28 | a950dd93 | 鸡哥 | Merge branch 'dev' of https://github.com/JNTMTMTM/eIsland into dev
+- 2026-10-28 | f5c70282 | 鸡哥 | feat: implement island corner style management with error handling and UI feedback
+- 2026-10-28 | 8d25c707 | 鸡哥 | fix: adjust window bounds calculations for concave notch tests to account for macOS work area
+- 2026-10-28 | 0f3ccda8 | 鸡哥 | feat: update country flag SVGs and add tests
+- 2026-10-28 | 74f8b82a | 鸡哥 | feat: add animation settings functionality and corresponding tests for immediate updates
+- 2026-10-28 | 61277ae6 | 鸡哥 | feat: implement concave music glow effect and enhance corner styling for island shell
+- 2026-10-27 | bc490f2a | 鸡哥 | fix: simplify alarm settings description for clarity
+- 2026-10-27 | a275fefd | 鸡哥 | chore: update Node.js version to 24.22.1 across workflows, documentation, and configuration files
+- 2026-10-26 | e39683f8 | 鸡哥 | Refactor code structure for improved readability and maintainability
+- 2026-10-26 | a2dee17e | 鸡哥 | feat: enhance island transition and styling with clip-path and padding animations
+- 2026-10-26 | da3a982b | 鸡哥 | feat: add corner style settings for island display and implement cross-window synchronization
+- 2026-10-26 | 8e85f2c7 | 鸡哥 | Refactor code structure and remove redundant sections for improved readability and maintainability
+- 2026-10-26 | a0213335 | 鸡哥 | chore: remove koffi package and update hasInstallScript for dependencies
+- 2026-10-26 | d38d2bdd | eislandBot | docs: auto update CHANGE_LOG.md for #296 by @dependabot[bot] [skip ci]
+- 2026-10-26 | 7fed7229 | JNTMTMTM | Merge pull request #296 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/types/node-26.6.5
+- 2026-10-26 | 3ed10f8c | eislandBot | docs: auto update CHANGE_LOG.md for #300 by @dependabot[bot] [skip ci]
+- 2026-10-26 | ed660418 | JNTMTMTM | Merge pull request #300 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/koffi-3.3.3
+- 2026-10-26 | a30b1a48 | JNTMTMTM | Merge pull request #299 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/types/node-26.6.5
+- 2026-10-26 | b2c647a2 | eislandBot | docs: auto update CHANGE_LOG.md for #295 by @dependabot[bot] [skip ci]
+- 2026-10-26 | 6669cffe | JNTMTMTM | Merge pull request #298 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-volume-helper/types/node-26.6.5
+- 2026-10-26 | 9d1f9c79 | JNTMTMTM | Merge pull request #295 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-smtc-helper/types/node-26.6.5
+- 2026-10-26 | cd0014cc | JNTMTMTM | Merge pull request #294 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-smtc-helper/koffi-3.3.3
+- 2026-10-26 | 4d3bbbdd | eislandBot | docs: auto update CHANGE_LOG.md for #292 by @dependabot[bot] [skip ci]
+- 2026-10-26 | d1383f01 | JNTMTMTM | Merge pull request #293 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-screenshot-helper/koffi-3.3.3
+- 2026-10-26 | 8d9adc00 | JNTMTMTM | Merge pull request #292 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-screenshot-helper/types/node-26.6.5
+- 2026-10-26 | 9e71bbaa | eislandBot | docs: auto update CHANGE_LOG.md for #291 by @dependabot[bot] [skip ci]
+- 2026-10-26 | bc1c3ec9 | eislandBot | docs: auto update CHANGE_LOG.md for #290 by @dependabot[bot] [skip ci]
+- 2026-10-26 | d0fa1a9f | JNTMTMTM | Merge pull request #291 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/types/node-26.6.5
+- 2026-10-26 | 75aa0f0b | JNTMTMTM | Merge pull request #290 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/koffi-3.3.3
+- 2026-10-26 | 84029feb | JNTMTMTM | Merge pull request #289 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/types/node-26.6.5
+- 2026-10-26 | e3ec6b07 | JNTMTMTM | Merge pull request #288 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/types/node-26.6.5
+- 2026-10-26 | cf316cdd | JNTMTMTM | Merge pull request #286 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/types/node-26.6.5
+- 2026-10-26 | a6205c4b | JNTMTMTM | Merge pull request #285 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-brightness-helper/types/node-26.6.5
+- 2026-10-26 | 48c4935e | JNTMTMTM | Merge pull request #284 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-bluetooth-helper/types/node-26.6.5
+- 2026-10-26 | de6f8d0d | JNTMTMTM | Merge pull request #281 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/types/node-26.6.5
+- 2026-10-26 | 4cd61b16 | JNTMTMTM | Merge pull request #278 from JNTMTMTM/dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-dc1e335c27
+- 2026-10-26 | a287b5ac | eislandBot | docs: auto update CHANGE_LOG.md for #283 by @dependabot[bot] [skip ci]
+- 2026-10-26 | af5bb296 | eislandBot | docs: auto update CHANGE_LOG.md for #297 by @dependabot[bot] [skip ci]
+- 2026-10-26 | 7d0b9a4a | eislandBot | docs: auto update CHANGE_LOG.md for #282 by @dependabot[bot] [skip ci]
+- 2026-10-25 | 1c64d139 | JNTMTMTM | Merge pull request #283 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-bluetooth-helper/koffi-3.3.3
+- 2026-10-26 | 4ac5e140 | eislandBot | docs: auto update CHANGE_LOG.md for #287 by @dependabot[bot] [skip ci]
+- 2026-10-25 | 503c6fd7 | JNTMTMTM | Merge pull request #297 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-volume-analyzer/types/node-26.6.5
+- 2026-10-26 | 14dfa75a | eislandBot | docs: auto update CHANGE_LOG.md for #280 by @dependabot[bot] [skip ci]
+- 2026-10-25 | 57ae2987 | JNTMTMTM | Merge pull request #282 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/koffi-3.3.3
+- 2026-10-25 | f7e083b9 | JNTMTMTM | Merge pull request #287 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-hardware-info-helper/types/node-26.6.5
+- 2026-10-25 | 16ccbbab | JNTMTMTM | Merge pull request #280 from JNTMTMTM/dependabot/npm_and_yarn/electron-45.0.0
+- 2026-10-25 | 3e6c184d | 鸡哥 | fix(deps): synchronize PR #300 locks and plugin release versions
+- 2026-10-25 | 2c60a5d6 | 鸡哥 | fix(deps): synchronize PR #299 locks
+- 2026-10-25 | 041babc6 | 鸡哥 | fix(deps): synchronize PR #298 locks
+- 2026-10-25 | 362bcfe8 | 鸡哥 | fix(deps): synchronize PR #296 locks
+- 2026-10-25 | 532fb4f4 | 鸡哥 | fix(deps): synchronize PR #295 locks
+- 2026-10-25 | ea4fa1d1 | 鸡哥 | fix(deps): synchronize PR #294 locks and plugin release versions
+- 2026-10-25 | 24aa092e | 鸡哥 | fix(deps): synchronize PR #293 locks and plugin release versions
+- 2026-10-25 | 636b7e29 | 鸡哥 | fix(deps): synchronize PR #292 locks
+- 2026-10-25 | 44ba1e3b | 鸡哥 | fix(deps): synchronize PR #291 locks
+- 2026-10-25 | 8ae50323 | 鸡哥 | fix(deps): synchronize PR #290 locks and plugin release versions
+- 2026-10-25 | e3f91b8a | 鸡哥 | fix(deps): synchronize PR #289 locks
+- 2026-10-25 | 3b97784d | 鸡哥 | fix(deps): synchronize PR #288 locks
+- 2026-10-25 | fda79701 | 鸡哥 | fix(deps): synchronize PR #286 locks
+- 2026-10-25 | 474ec9bb | 鸡哥 | fix(deps): synchronize PR #285 locks
+- 2026-10-25 | 207a2dba | 鸡哥 | fix(deps): synchronize PR #284 locks
+- 2026-10-25 | b2df2c9f | 鸡哥 | fix(deps): synchronize PR #283 locks and plugin release versions
+- 2026-10-25 | 0cf7392b | 鸡哥 | fix(deps): synchronize PR #282 locks and plugin release versions
+- 2026-10-25 | 2099a9f6 | 鸡哥 | fix(deps): synchronize PR #281 locks
+- 2026-10-25 | 1cf3bf95 | 鸡哥 | fix(deps): synchronize PR #278 locks and plugin release versions
+- 2026-10-26 | 98e50075 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 08bbc445 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 6dbe9c26 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | b603b327 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | ffbda6dd | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | eede2954 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 6ac88210 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | ff5e6436 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 70ae5838 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 4dba43dc | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | b978af20 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 7452de14 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | 01a30ae0 | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-26 | bb11353d | dependabot[bot] | chore(deps): bump @types/node
+- 2026-10-25 | 690d4e81 | 鸡哥 | Merge main and synchronize Electron 45 dependency lock
+- 2026-10-26 | 70334ef9 | eislandBot | docs: auto update CHANGE_LOG.md for #279 by @dependabot[bot] [skip ci]
+- 2026-10-25 | dfed62ff | JNTMTMTM | Merge pull request #279 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b9f6b06a63
+- 2026-10-26 | 7acbd2e4 | eislandBot | docs: auto update CHANGE_LOG.md for #277 by @JNTMTMTM [skip ci]
+- 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
+- 2026-10-26 | 51d351d7 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-wifi-helper
+- 2026-10-26 | f7c87b8d | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-smtc-helper
+- 2026-10-26 | 073353dd | dependabot[bot] | chore(deps): bump koffi
+- 2026-10-26 | da1e2796 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-power-helper
+- 2026-10-26 | 15dc53ba | dependabot[bot] | chore(deps): bump koffi
+- 2026-10-26 | 59473d68 | dependabot[bot] | chore(deps): bump koffi
+- 2026-10-26 | 14d859ee | dependabot[bot] | chore(deps): bump electron from 44.8.0 to 45.0.0
+- 2026-10-26 | 077ff54f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 19 updates
+- 2026-10-26 | 525adeff | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update
+- 2026-10-25 | 8400698d | 鸡哥 | feat(chat): update sendDisabled prop description and ensure input is read-only when disabled
+- 2026-10-25 | d2ec3cf9 | 鸡哥 | feat: refactor song component imports to use default exports and improve code consistency
+- 2026-10-25 | 921b05b2 | 鸡哥 | feat(song): add border-radius to song controls for improved aesthetics
+- 2026-10-25 | 4b1c52ab | 鸡哥 | feat(song): enhance SongTab tests and improve useSongLyricsScroll for content activity management
+- 2026-10-25 | 8e1a8444 | 鸡哥 | feat(volume): add SongVolumeControl component and useSongVolume hook for volume management
+- 2026-10-24 | 0568b701 | 鸡哥 | feat: implement SongPlayerBar and useSongProgress for enhanced playback controls and progress tracking
+- 2026-10-24 | b39cddfe | 鸡哥 | feat: update license information and enhance CSS comments for clarity
+- 2026-10-24 | df7843a2 | 鸡哥 | feat(song): refactor song components and hooks for improved structure and functionality
+- 2026-10-24 | fc27024e | 鸡哥 | feat: add loading skeleton for lyrics display and update status handling in SongTab
+- 2026-10-24 | b14f3925 | 鸡哥 | feat: integrate scrolling text for song titles and enhance CSS styles for better text alignment and overflow handling
+- 2026-10-24 | 26a60d69 | 鸡哥 | feat: enhance scrolling behavior in SongTab for better lyric navigation and visibility
+- 2026-10-24 | 4644b441 | 鸡哥 | feat: enhance song wheel dynamics with curvature and inset adjustments for improved visual effects
+- 2026-10-24 | 6db83d06 | 鸡哥 | style: increase gap in song lyric blocks and adjust text color for improved readability
+- 2026-10-24 | 6d2071a8 | 鸡哥 | feat: implement useSongLyricsWheel hook for 3D lyric wheel visualization and scrolling synchronization
+- 2026-10-24 | 4c367bcc | 鸡哥 | style: reduce gaps and padding in song lyric blocks for improved layout
+- 2026-10-24 | 4d9d4240 | 鸡哥 | fix: align text to the right in song controls for improved layout
+- 2026-10-24 | 310c9ad2 | 鸡哥 | feat: enhance SongTab and dynamic island functionality with karaoke support and lyric synchronization
+- 2026-10-24 | 4b73f41a | 鸡哥 | feat: add bilingual lyrics support and enhance SongTab component layout
+- 2026-10-24 | db0a464f | 鸡哥 | feat: implement aiChatSwitchingView to manage messages during session switching
+- 2026-10-24 | f8e9bbc2 | 鸡哥 | feat: enhance AiChatTab with loading skeletons for chat sessions and messages
+- 2026-10-24 | a4263f15 | 鸡哥 | feat: add song tab and related functionality for media playback
+- 2026-10-24 | ff311952 | eislandBot | docs: auto update CHANGE_LOG.md for #276 by @JNTMTMTM [skip ci]
+- 2026-10-24 | 29ad182e | JNTMTMTM | Merge pull request #276 from JNTMTMTM/dev
+- 2026-10-24 | d4988581 | 鸡哥 | feat: implement pending seek functionality for media playback
+- 2026-10-24 | 85988a9e | 鸡哥 | feat: add tests for island visibility transitions and mock functionality
+- 2026-10-24 | c101e69d | 鸡哥 | feat: implement island visibility management with fade transitions for show/hide functionality
+- 2026-10-24 | 4e86c9ed | 鸡哥 | feat: enhance LyricsProgress component with current lyric display and update time formatting
+- 2026-10-23 | a289704e | 鸡哥 | feat: update localization for playback controls and enhance LyricsTab interaction
+- 2026-10-23 | b7d70319 | 鸡哥 | feat: enhance LyricsTab with progress bar transitions and timer management
+- 2026-10-23 | 453d8f0e | 鸡哥 | feat: add playback progress slider and update localization for seek functionality
+- 2026-10-23 | 1baf54d1 | 鸡哥 | feat: add PROCESS_BAR SVG icon and update SvgIcon utility
+- 2026-10-23 | 051c46bd | 鸡哥 | feat: implement initial session handling and enhance current session retrieval in SMTC service
+- 2026-10-23 | 764b7d67 | 鸡哥 | feat: add playback timeline handling and enhance music card functionality
+- 2026-10-23 | e3c5bae5 | 鸡哥 | feat: enhance tray music card with playback control and seek functionality
+- 2026-10-23 | 5539aad1 | eislandBot | docs: auto update CHANGE_LOG.md for #275 by @JNTMTMTM [skip ci]
+- 2026-10-22 | c55e1503 | JNTMTMTM | Merge pull request #275 from JNTMTMTM/dev
+- 2026-10-22 | 7ef41a5a | 鸡哥 | feat(localTool): add conflict handling for duplicate request IDs and enhance caching mechanism
+- 2026-10-22 | b617f770 | 鸡哥 | fix(virtualChatMessages): adjust eslint-disable comments for import-x rule
+- 2026-10-22 | 5461bf4a | 鸡哥 | fix(chat): adjust eslint-disable comment for array index key in ChatMessage component
+- 2026-10-22 | cc92de56 | 鸡哥 | refactor: remove Bing search functionality and implement SearXNG integration for web search
+- 2026-10-22 | e4cd4196 | 鸡哥 | feat(chat): enhance scrolling behavior and performance in virtual chat messages
+- 2026-10-22 | 6ba1ff9c | 鸡哥 | feat(chat): implement virtual chat messages with dynamic height and scrolling
+- 2026-10-22 | d3091df0 | 鸡哥 | feat: update sound settings description for clarity
+- 2026-10-22 | 61053807 | 鸡哥 | feat: implement requestId for local tool execution to enable idempotency and result caching
+- 2026-10-22 | 59cf0e79 | 鸡哥 | feat: enhance theme setting execution in useChatSend to ensure proper application across windows
+- 2026-10-22 | 220081bd | 鸡哥 | feat: enhance authorization handling in AiChatTab and related components to prevent model card overlap
+- 2026-10-22 | 47de8501 | 鸡哥 | feat: Refactor MessageTimeline and related components for improved performance and stability
+- 2026-10-22 | 4a74df82 | 鸡哥 | feat: implement loading skeleton for chat and enhance AiChatTab layout
+- 2026-10-22 | 6c83ffde | 鸡哥 | refactor(authSession): update session token handling to refresh user profile after login
+- 2026-10-22 | ad039458 | eislandBot | docs: auto update CHANGE_LOG.md for #268 by @dependabot[bot] [skip ci]
+- 2026-10-21 | 9fb76665 | JNTMTMTM | Merge pull request #268 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-media-helper/node-gyp-13.1.0
+- 2026-10-22 | 398061d5 | dependabot[bot] | chore(deps): bump node-gyp in /plugins/macos/eisland-macos-media-helper
+- 2026-10-22 | 132bda64 | eislandBot | docs: auto update CHANGE_LOG.md for #272 by @dependabot[bot] [skip ci]
+- 2026-10-21 | 9a7fb2c3 | JNTMTMTM | Merge pull request #272 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/node-gyp-13.1.0
+- 2026-10-22 | a148e0cd | eislandBot | docs: auto update CHANGE_LOG.md for #271 by @dependabot[bot] [skip ci]
+- 2026-10-22 | cad01cd5 | eislandBot | docs: auto update CHANGE_LOG.md for #270 by @dependabot[bot] [skip ci]
+- 2026-10-21 | 5ba41c6c | JNTMTMTM | Merge pull request #271 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0
+- 2026-10-21 | e4e03c28 | JNTMTMTM | Merge pull request #270 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0
+- 2026-10-21 | 85a00ae2 | JNTMTMTM | Merge pull request #269 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/node-gyp-13.1.0
+- 2026-10-21 | 95d89877 | 鸡哥 | fix(plugins): sync toast gyp lock and release version
+- 2026-10-21 | ed109adf | 鸡哥 | fix(plugins): sync processes gyp lock and release version
+- 2026-10-21 | adb83dde | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/node-gyp-13.1.0
+- 2026-10-21 | 2e5cd8bc | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0
+- 2026-10-21 | d0dbe44c | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0
+- 2026-10-21 | a6cbc756 | 鸡哥 | fix(deps): retain native install metadata in root lock
+- 2026-10-21 | 24032ad8 | 鸡哥 | fix(plugins): sync performance gyp lock and release version
+- 2026-10-21 | 63d68ef7 | 鸡哥 | fix(plugins): sync fullscreen gyp lock and release version
+- 2026-10-21 | 9965af24 | 鸡哥 | Merge branch 'codex/fix-pr269-gyp13' into codex/fix-pr270-gyp13
+- 2026-10-22 | f60e4f89 | dependabot[bot] | chore(deps): bump node-gyp
+- 2026-10-22 | b44ae405 | dependabot[bot] | chore(deps): bump node-gyp
+- 2026-10-22 | dc8f0fb0 | dependabot[bot] | chore(deps): bump node-gyp
+- 2026-10-22 | 9ca494fd | dependabot[bot] | chore(deps): bump node-gyp
+- 2026-10-22 | 96e23ac9 | eislandBot | docs: auto update CHANGE_LOG.md for #262 by @dependabot[bot] [skip ci]
+- 2026-10-21 | 6885dba7 | JNTMTMTM | Merge pull request #262 from JNTMTMTM/dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-859a937aa3
+- 2026-10-21 | fbd06f97 | 鸡哥 | fix(plugins): bump WMI helper versions for dependency update
+- 2026-10-21 | e675d5d0 | 鸡哥 | Merge remote-tracking branch 'origin/main' into dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-859a937aa3
+- 2026-10-21 | 3baae0c2 | eislandBot | docs: auto update CHANGE_LOG.md for #267 by @dependabot[bot] [skip ci]
+- 2026-10-21 | 8317f3e3 | JNTMTMTM | Merge pull request #267 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-brightness-helper/node-gyp-13.1.0
+- 2026-10-21 | 91104a74 | eislandBot | docs: auto update CHANGE_LOG.md for #274 by @JNTMTMTM [skip ci]
+- 2026-10-20 | d533b3a1 | JNTMTMTM | Merge pull request #274 from JNTMTMTM/dev
+- 2026-10-20 | 4831d535 | 鸡哥 | feat(notification): update Windows toast listener version and enhance notification snapshot handling
+- 2026-10-20 | 24841659 | 鸡哥 | feat(tests): enhance Windows plugin integration testing and update dependencies
+- 2026-10-20 | 122e5e2b | 鸡哥 | feat(userAccount): enhance session management and token handling
+- 2026-10-20 | 51616309 | 鸡哥 | feat: enhance light theme drawer styles with backdrop and shadow adjustments
+- 2026-10-20 | 7f89d3ec | 鸡哥 | feat: update settings user skeleton to use clip for overflow handling
+- 2026-10-19 | a923b033 | 鸡哥 | feat: implement user settings skeleton components and improve loading states
+- 2026-10-19 | 4f3b107c | 鸡哥 | feat: add wallpaper card skeleton components for improved loading states in the plugin market
+- 2026-10-20 | deb15632 | eislandBot | docs: auto update CHANGE_LOG.md for #265 by @dependabot[bot] [skip ci]
+- 2026-10-19 | 04e10086 | JNTMTMTM | Merge pull request #265 from JNTMTMTM/dependabot/npm_and_yarn/vitejs/plugin-react-6.1.2
+- 2026-10-19 | 091b3cc8 | 鸡哥 | feat: add allowScripts configuration for enhanced script execution control
+- 2026-10-18 | 571950b6 | 鸡哥 | feat: enhance PerformanceMonitorWidget with keyboard accessibility and expand tab functionality
+- 2026-10-18 | 6fd55037 | 鸡哥 | feat: add PerformanceMetricSkeleton component and integrate it into PerformanceMonitorWidget for improved loading state
+- 2026-10-18 | 796ed51c | 鸡哥 | feat: add Performance Monitor widget and related functionality
+- 2026-10-18 | a5b04ea4 | 鸡哥 | feat: enhance NSIS integration tests with improved timeout handling and snapshot counting
+- 2026-10-18 | f11304ac | 鸡哥 | feat: add refreshAuthSession function and integrate it into bootstrap process for improved session handling
+- 2026-10-17 | b136512b | 鸡哥 | feat: enhance testing framework with native integration tests and improve timeout handling
+- 2026-10-17 | e1219ab4 | 鸡哥 | feat: add Windows performance monitoring capabilities
+- 2026-10-16 | 5b8ff597 | 鸡哥 | feat: implement asynchronous pipeline compilation in WebGPU initialization and enhance related tests
+- 2026-10-16 | 27de2409 | 鸡哥 | feat: implement uninstall temp handling and add integration tests for upgrade scenarios
+- 2026-10-16 | 49e2a06f | 鸡哥 | feat: enhance CI workflow with project-specific test reporting and error handling
+- 2026-10-20 | 0b63c230 | dependabot[bot] | chore(deps): bump @vitejs/plugin-react from 5.2.0 to 6.1.2
+- 2026-10-20 | ede3dc61 | eislandBot | docs: auto update CHANGE_LOG.md for #273 by @dependabot[bot] [skip ci]
+- 2026-10-19 | 41248f3f | JNTMTMTM | Merge pull request #273 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b086c4afa2
+- 2026-10-19 | 45620089 | 鸡哥 | test: verify dependency upgrades through real IMAP and desktop integration
+- 2026-10-19 | f497d1f0 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 19 updates
+- 2026-10-19 | 6fe60585 | eislandBot | docs: auto update CHANGE_LOG.md for #263 by @dependabot[bot] [skip ci]
+- 2026-10-19 | 4f23f6ab | JNTMTMTM | Merge pull request #266 from JNTMTMTM/dependabot/npm_and_yarn/electron-vite-6.0.0
+- 2026-10-19 | fd72321e | JNTMTMTM | Merge pull request #263 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-06917ca2d8
+- 2026-10-19 | f0d76805 | dependabot[bot] | chore(deps): bump node-gyp
+- 2026-10-19 | 618e346f | dependabot[bot] | chore(deps): bump electron-vite from 6.0.0-beta.8 to 6.0.0
+- 2026-10-19 | 48156b5d | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
+- 2026-10-19 | d524f580 | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update
+- 2026-10-16 | f2a8b8e2 | eislandBot | docs: auto update CHANGE_LOG.md for #261 by @JNTMTMTM [skip ci]
+- 2026-10-15 | 1d2d6345 | JNTMTMTM | Merge pull request #261 from JNTMTMTM/dev
+- 2026-10-15 | 4a22d2ac | 鸡哥 | feat: enhance installer process handling with ancestry cycle and slow snapshot variants in tests
+- 2026-10-15 | 15f04212 | 鸡哥 | refactor: replace for loops with forEach for improved readability in various test files
+- 2026-10-15 | cf805df3 | 鸡哥 | feat: implement island window transition management and animations
+- 2026-10-15 | 81f2fabf | 鸡哥 | feat: implement logging for calibration status changes in playback synchronization
+- 2026-10-15 | e011a7f5 | 鸡哥 | feat: enhance SMTC session management and playback calibration
+- 2026-10-15 | a7c4647d | 鸡哥 | fix: update import paths and file names for tray menu components and styles
+- 2026-10-15 | 5b838cc2 | 鸡哥 | feat: add Dynamic Island Tray Menu module with hooks and styles
+- 2026-10-15 | 04063926 | 鸡哥 | feat(trayMenu): implement background preload for tray menu window
+- 2026-10-15 | 73924f75 | 鸡哥 | feat(trayMenu): implement skeleton loading screen for tray menu components
+- 2026-10-15 | 84427835 | 鸡哥 | chore: update react and react-dom to version 19.3.1 in package.json and package-lock.json
+- 2026-10-15 | 8eaaa3a3 | 鸡哥 | chore: update vitest dependency to version 5.0.5 in package.json
+- 2026-10-15 | 209a5a2b | 鸡哥 | feat: add music control card to tray menu with playback functionality
+- 2026-10-15 | 82b0d685 | 鸡哥 | feat: add custom tray menu implementation with user card and menu items
+- 2026-10-15 | 18ab58e4 | 鸡哥 | feat: enhance tray functionality and window management
+- 2026-10-16 | 543a44e4 | silenthim | fix:修复了pill状态下灵动岛从右侧消失的问题 (#260)
+- 2026-10-14 | 62ca7b04 | 鸡哥 | chore: sync dev into main
+- 2026-10-15 | b836296b | eislandBot | docs: auto update CHANGE_LOG.md for #259 by @JNTMTMTM [skip ci]
+- 2026-10-14 | 7bfb363b | 鸡哥 | fix: 修复多个已知问题 (#259)
+- 2026-10-14 | 4483f223 | 鸡哥 | test: enhance NSIS process handle queries to support different line endings
+- 2026-10-14 | 5a1a3734 | 鸡哥 | test: adjust subscription period calculation for local timezone in payment lifecycle tests
+- 2026-10-14 | 963e2d49 | 鸡哥 | feat: enhance process management and file handling in installer
+- 2026-10-14 | 0d92087e | 鸡哥 | feat: add dynamic island scale settings with persistence (#39)
+- 2026-10-14 | e6c12b48 | 鸡哥 | fix: adjust will-change property to prevent text blurriness during animations
+- 2026-10-14 | 431e9652 | 鸡哥 | feat: enhance NSIS process detection and termination logic; add integration tests
+- 2026-10-14 | af3ef219 | eislandBot | docs: auto update CHANGE_LOG.md for #244 by @dependabot[bot] [skip ci]
+- 2026-10-14 | 8a400df6 | dependabot[bot] | chore(deps): upgrade Electron to 44.7.2 and adapt clipboard APIs (#244)
+- 2026-10-14 | 23203c69 | 鸡哥 | Merge branch 'dev' into main
+- 2026-10-13 | 70b37cfd | eislandBot | docs: auto update CHANGE_LOG.md for #258 by @JNTMTMTM [skip ci]
+- 2026-10-13 | fc973dd2 | 鸡哥 | feat: 全面优化 maxexpand 状态机计算器界面功能 (#258)
+- 2026-10-14 | c78618e2 | 鸡哥 | feat(calculator): enhance history handling and improve performance with deduplication and optimized rendering
+- 2026-10-14 | 7691dd27 | 鸡哥 | feat(calculator): replace placeholder with 'Undefined' for complex argument and update output handling
+- 2026-10-14 | f751b59c | 鸡哥 | feat(calculator): update calculator icon and equation mode icon to use SvgIcon
+- 2026-10-14 | 8ed1264f | 鸡哥 | feat(svg): add CALCULATOR and EQUATION SVG icons and update SvgIcon references
+- 2026-10-14 | 20d3a3c2 | 鸡哥 | feat(calculator): remove history hint text from UI and localization files
+- 2026-10-14 | 1d299f8c | 鸡哥 | feat(calculator): enhance history functionality with pagination and math rendering
+- 2026-10-14 | 908560ea | 鸡哥 | feat(calculator): enhance matrix operations with editable cells and improved UI
+- 2026-10-14 | c42486e7 | 鸡哥 | feat(calculator): add domain and range analysis for functions
+- 2026-10-14 | 2a8759bc | 鸡哥 | feat(calculator): add logarithm graph tests and enhance expression normalization for tangent analysis
+- 2026-10-14 | b24a0324 | 鸡哥 | feat(calculator): implement tangent analysis feature with UI integration and styling
+- 2026-10-14 | aa7fff53 | 鸡哥 | feat(calculator): enhance graphing functionality and styling for better responsiveness
+- 2026-10-13 | e07fdc05 | 鸡哥 | feat: Enhance updater service and notification handling
+- 2026-10-12 | 86b64496 | 鸡哥 | feat(styles): increase sidebar width for expanded navigation
+- 2026-10-12 | ef6e980a | 鸡哥 | feat(styles): improve focus outline and background styling for calculator panel
+- 2026-10-12 | 38d70192 | 鸡哥 | feat(calculator): enhance history panel styling and add delete button class
+- 2026-10-12 | 8d54af1c | 鸡哥 | feat(styles): unify scrollbar styles for calculator panel
+- 2026-10-12 | 1b4bd7a9 | 鸡哥 | feat(calculator): implement coordinate input panel with numeric, scientific, and analysis modes
+- 2026-10-12 | fae0a0f9 | 鸡哥 | fix(calculator): remove hint paragraphs from ComplexCalculator, EquationSolver, and MatrixCalculator components
+- 2026-10-12 | d90bbf2c | 鸡哥 | feat(calculator): add history functionality and UI updates
+- 2026-10-12 | 1e2d5240 | 鸡哥 | fix(styles): reduce gap and padding in sidebar navigation for improved layout
+- 2026-10-12 | 3bcd2761 | 鸡哥 | feat(calculator): enhance toolbar layout with tool buttons and styling
+- 2026-10-12 | ea4168c2 | 鸡哥 | fix(calculator): prevent scientific keys from overlapping history
+- 2026-10-12 | 9a753d3b | 鸡哥 | fix(calculator): start fresh Ans expressions after equals
+- 2026-10-12 | 734daca5 | 鸡哥 | feat(calculator): add matrix algebra and linear-system solving
+- 2026-10-12 | 37bd0e67 | 鸡哥 | feat(calculator): add complex-number arithmetic and polar display
+- 2026-10-12 | 686cb568 | 鸡哥 | feat(calculator): add analytic and numerical equation solving
+- 2026-10-12 | 1b5c6a58 | 鸡哥 | feat(calculator): add multi-curve graph analysis and coordinate tracking
+- 2026-10-12 | 53e8a50c | 鸡哥 | feat(calculator): add seven-category unit conversion
+- 2026-10-12 | dbabd484 | 鸡哥 | feat(calculator): explain mathematical and formula errors
+- 2026-10-12 | be47a826 | 鸡哥 | feat(calculator): add formula and result clipboard actions
+- 2026-10-12 | 822270bf | 鸡哥 | feat(calculator): add full-precision Ans and chained calculations
+- 2026-10-12 | 85060ca0 | 鸡哥 | feat(calculator): add persistent editable calculation history
+- 2026-10-12 | 1ab550c6 | 鸡哥 | style(calculator): enhance sidebar navigation with smooth transitions and improved label visibility
+- 2026-10-12 | 84f8f6bc | 鸡哥 | feat(calculator): add angle unit functionality with degree/radian support
+- 2026-10-12 | a5236e59 | 鸡哥 | style(calculator): hide scrollbar in calculator styles
+- 2026-10-12 | 43317960 | 鸡哥 | feat(calculator): enhance calculator functionality and UI
+- 2026-10-12 | c8c0b524 | 鸡哥 | test: cover chat storage transactions and failure paths
+- 2026-10-13 | d1c2c64f | eislandBot | docs: auto update CHANGE_LOG.md for #248 by @dependabot[bot] [skip ci]
+- 2026-10-13 | f93700fe | dependabot[bot] | build: upgrade issue-report TypeScript with shared lint tooling (#248)
+- 2026-10-13 | 342c2fc9 | eislandBot | docs: auto update CHANGE_LOG.md for #257 by @JNTMTMTM [skip ci]
+- 2026-10-12 | c9a82943 | 鸡哥 | build: record native install script metadata in root lockfile (#257)
+- 2026-10-13 | 9e6db5ee | eislandBot | docs: auto update CHANGE_LOG.md for #256 by @JNTMTMTM [skip ci]
+- 2026-10-12 | 8e55491a | 鸡哥 | fix: isolate workers and harden native media/process runtimes (#256)
+- 2026-10-12 | bf3c3437 | eislandBot | docs: auto update CHANGE_LOG.md for #255 by @JNTMTMTM [skip ci]
+- 2026-10-12 | 5d4bf6c6 | 鸡哥 | build: standardize Node 24.21.0 and patch tooling vulnerabilities (#255)
+- 2026-10-12 | 65269aae | eislandBot | docs: auto update CHANGE_LOG.md for #251 by @dependabot[bot] [skip ci]
+- 2026-10-12 | 37658d5f | dependabot[bot] | ci(deps): bump actions/download-artifact from 4 to 8 (#253)
+- 2026-10-12 | 7bb8ba9e | dependabot[bot] | ci(deps): bump actions/deploy-pages from 4 to 5 (#252)
+- 2026-10-12 | 7669e9f5 | dependabot[bot] | ci(deps): bump actions/github-script from 7 to 9 (#251)
+- 2026-10-12 | 4550fc7d | dependabot[bot] | ci(deps): bump actions/upload-artifact from 4 to 7 (#250)
+- 2026-10-12 | 0c30e579 | dependabot[bot] | ci(deps): bump actions/upload-pages-artifact from 3 to 5 (#249)
+- 2026-10-12 | 2491044f | dependabot[bot] | chore(deps): bump typescript from 5.9.3 to 7.0.2 in /sdk (#247)
+- 2026-10-12 | f946631c | dependabot[bot] | chore(deps): bump @eslint/js from 9.39.5 to 10.0.1 (#246)
+- 2026-10-12 | fd6f1b6b | dependabot[bot] | chore(deps): bump imapflow from 1.3.3 to 2.3.0 (#243)
+- 2026-10-12 | 37bc26c6 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc (#242)
+- 2026-10-11 | fba227aa | eislandBot | docs: auto update CHANGE_LOG.md for #240 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 64d5d6a4 | dependabot[bot] | build(deps): migrate ESLint 10 with plugin compatibility and CI regression checks (#240)
+- 2026-10-11 | 0c80ddb1 | eislandBot | docs: auto update CHANGE_LOG.md for #241 by @dependabot[bot] [skip ci]
+- 2026-10-11 | c4b26d4c | dependabot[bot] | build(deps): upgrade Vite 8 with electron-vite 6 beta (#241)
+- 2026-10-11 | a812fc25 | eislandBot | docs: auto update CHANGE_LOG.md for #235 by @dependabot[bot] [skip ci]
+- 2026-10-11 | cbc46352 | dependabot[bot] | ci(deps): Bump actions/setup-node from 4 to 7 (#235)
+- 2026-10-11 | 4e5e79c3 | eislandBot | docs: auto update CHANGE_LOG.md for #239 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 51abed77 | dependabot[bot] | chore(deps): bump @electron-toolkit/tsconfig from 1.0.1 to 2.0.0 (#239)
+- 2026-10-11 | 013f51a2 | eislandBot | docs: auto update CHANGE_LOG.md for #238 by @dependabot[bot] [skip ci]
+- 2026-10-11 | e5f9e144 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc from 61.7.1 to 65.2.0 (#238)
+- 2026-10-11 | 8306b040 | eislandBot | docs: auto update CHANGE_LOG.md for #237 by @dependabot[bot] [skip ci]
+- 2026-10-11 | a0ac6b0f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 38 updates (#237)
+- 2026-10-11 | d0d340e2 | eislandBot | docs: auto update CHANGE_LOG.md for #236 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 7a12c31b | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update (#236)
+- 2026-10-11 | bf574c5c | eislandBot | docs: auto update CHANGE_LOG.md for #233 by @dependabot[bot] [skip ci]
+- 2026-10-11 | a3d20334 | dependabot[bot] | ci(deps): bump actions/checkout from 4 to 7 (#233)
+- 2026-10-11 | 6b5e0b61 | eislandBot | docs: auto update CHANGE_LOG.md for #234 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 6529028f | dependabot[bot] | ci(deps): bump actions/setup-dotnet from 4 to 6 (#234)
+- 2026-10-11 | db99a0c9 | eislandBot | docs: auto update CHANGE_LOG.md for #232 by @dependabot[bot] [skip ci]
+- 2026-10-11 | e25a5308 | dependabot[bot] | ci(deps): bump softprops/action-gh-release from 2 to 3 (#232)
+- 2026-10-11 | 1c119cea | eislandBot | docs: auto update CHANGE_LOG.md for #231 by @dependabot[bot] [skip ci]
+- 2026-10-11 | 83f272bb | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments from 7.0.1 to 9.0.1 (#231)
+- 2026-10-11 | 0cf95c76 | eislandBot | docs: auto update CHANGE_LOG.md for #230 by @JNTMTMTM [skip ci]
+- 2026-10-11 | 010c7f60 | 鸡哥 | Merge pull request #230 from JNTMTMTM/dev
+- 2026-10-12 | 3bcf4b43 | 鸡哥 | fix(ci): reuse PR report comments and remove duplicates
+- 2026-10-12 | 77154f4f | 鸡哥 | ci: configure weekly Dependabot dependency updates
+- 2026-10-12 | eb5e5253 | 鸡哥 | fix(reminders): migrate legacy SVG icon paths
+- 2026-10-12 | 2f5fd603 | 鸡哥 | fix(ci): resolve PR quality violations and asset test timeout
+- 2026-10-11 | ac58f749 | 鸡哥 | fix(album): read original image size from local asset headers
+- 2026-10-11 | 2ba7481e | 鸡哥 | docs: remove performance audit report
+- 2026-10-11 | bd2221fd | 鸡哥 | fix: bound CLI snapshots and load event details on demand
+- 2026-10-11 | 2591c2da | 鸡哥 | fix: stream local assets and isolate screenshot encoding
+- 2026-10-11 | 4faf5284 | 鸡哥 | fix: virtualize album grids and bound visible media caching
+- 2026-10-11 | da803e6b | 鸡哥 | fix: bound WebGPU rendering and release device resources
+- 2026-10-11 | 960a245c | 鸡哥 | fix: isolate SMTC commands with deadlines and reusable STA
+- 2026-10-11 | 10f8c0f2 | 鸡哥 | fix: fetch mail summaries and load message bodies on demand
+- 2026-10-11 | ade58232 | 鸡哥 | fix: lazy load standalone window pages on demand
+- 2026-10-11 | 19420f9f | 鸡哥 | fix: checkpoint streaming chat sessions independently
+- 2026-10-11 | 04d3aa5b | 鸡哥 | fix: load chat history on demand from asynchronous session storage
+- 2026-10-11 | b591e640 | 鸡哥 | fix: suspend hidden window animations and background video
+- 2026-10-11 | a834b05e | 鸡哥 | fix: schedule reminders at deadlines instead of polling
+- 2026-10-11 | 27928aec | 鸡哥 | fix: run volume and brightness helpers asynchronously
+- 2026-10-11 | 1486d991 | 鸡哥 | fix: stream SMTC session deltas without repeated artwork
+- 2026-10-11 | 007fccb6 | 鸡哥 | fix: incrementally scan Codex logs in a dedicated worker
+- 2026-10-11 | 2621fc5d | 鸡哥 | fix: bound download history and shared connection ownership
+- 2026-10-11 | d7b3bd56 | 鸡哥 | fix: bound clipboard title requests and cancel stale work
+- 2026-10-11 | 2a5dbb08 | 鸡哥 | fix: isolate high-frequency renderer updates
+- 2026-10-11 | 9e29d123 | 鸡哥 | fix: share process snapshots when detecting external agents
+- 2026-10-11 | 017107a9 | 鸡哥 | feat: update version to 26.0.3 for macOS Brightness Helper and 26.1.4 for macOS Media Helper; enhance test coverage and skip non-macOS tests
+- 2026-10-10 | 69fe7cae | 鸡哥 | feat: update version to 26.0.2 for macOS Brightness Helper and enhance test coverage; update version to 26.1.3 for macOS Media Helper with improved test cases and commands
+- 2026-10-10 | a5794cbd | 鸡哥 | chore: update eisland-macos-media-helper to version 26.1.3
+- 2026-10-10 | 43391239 | 鸡哥 | feat: update version to 26.0.2, enhance test coverage, and add native coverage script
+- 2026-10-10 | e23db2d2 | eislandBot | docs: auto update CHANGE_LOG.md for #229 by @JNTMTMTM [skip ci]
+- 2026-10-10 | ddfb0c47 | 鸡哥 | Merge pull request #229 from JNTMTMTM/dev
+- 2026-10-10 | 42a712c3 | 鸡哥 | feat: update version to 26.0.1 and enhance documentation for macOS Brightness Helper
+- 2026-10-09 | df4131a9 | 鸡哥 | feat: add macOS Brightness Helper documentation and sidebar entry
+- 2026-10-09 | c6643867 | 鸡哥 | feat: add macOS brightness helper to publish workflow
+- 2026-10-09 | fdef904b | 鸡哥 | feat: Implement macOS brightness helper with Swift and Node-API integration
 
 ## 27.0.0
 
@@ -3872,372 +4247,11 @@
 
 ## Unreleased
 
-- 2026-10-31 | eaddcf24 | JNTMTMTM | Merge pull request #302 from JNTMTMTM/dev
-- 2026-10-30 | b0dfcc82 | 鸡哥 | feat: update main window bounds handling to maintain notification canvas state before first show
-- 2026-10-30 | 2c152583 | 鸡哥 | feat: add TOKEN_BREAKDOWN_KEYS for consistent token breakdown display in ProviderCard and ProviderSkeleton
-- 2026-10-30 | 6f583dd6 | 鸡哥 | feat(cli): enhance styling and structure of pagination controls in CliDetailsPage
-- 2026-10-30 | 6f465d95 | 鸡哥 | feat(cli): refactor CLI state components and add permission handling
-- 2026-10-30 | b6fba252 | 鸡哥 | feat: add CliContent component and associated tests for CLI state management and interactions
-- 2026-10-30 | a65c3ec6 | 鸡哥 | feat: enhance navigation label handling with default labels and improved getNavLabel function
-- 2026-10-30 | 8800c92c | 鸡哥 | feat: Refactor expanded state components and hooks for improved structure and functionality
-- 2026-10-30 | d38c8a7d | 鸡哥 | feat: add ExpandedTransitionLoading component and associated types for loading state
-- 2026-10-30 | 995eb4cf | 鸡哥 | refactor: reorganize component imports and update paths for consistency
-- 2026-10-30 | 31b68398 | 鸡哥 | feat: add ToolsTab and TranslationTab components with associated hooks, utils, and types
-- 2026-10-30 | 707b8938 | 鸡哥 | feat: add expanded SongTab and ToolsTab components with hooks and utilities
-- 2026-10-30 | 8fd3e31b | 鸡哥 | feat: add ToolsTab and TranslationTab components with comprehensive tests
-- 2026-10-30 | 2fb3fdaf | 鸡哥 | feat: add Agent Quota Widget to Overview Tab
-- 2026-10-30 | c62db168 | 鸡哥 | feat: add icons for agent usage providers and update styles for card layout
-- 2026-10-29 | 388d05b2 | 鸡哥 | feat: add skeleton loading state for Agent Usage tab and enhance styles
-- 2026-10-29 | 7be25251 | 鸡哥 | feat: implement agent usage service for tracking Claude Code and Codex token usage
-- 2026-10-29 | fc8ce3df | 鸡哥 | feat: add Agent Usage tab and update internationalization for new feature
-- 2026-10-29 | d76feab0 | eislandBot | docs: auto update CHANGE_LOG.md for #301 by @JNTMTMTM [skip ci]
-- 2026-10-29 | 9f635d43 | JNTMTMTM | Merge pull request #301 from JNTMTMTM/dev
-- 2026-10-28 | a950dd93 | 鸡哥 | Merge branch 'dev' of https://github.com/JNTMTMTM/eIsland into dev
-- 2026-10-28 | f5c70282 | 鸡哥 | feat: implement island corner style management with error handling and UI feedback
-- 2026-10-28 | 8d25c707 | 鸡哥 | fix: adjust window bounds calculations for concave notch tests to account for macOS work area
-- 2026-10-28 | 0f3ccda8 | 鸡哥 | feat: update country flag SVGs and add tests
-- 2026-10-28 | 74f8b82a | 鸡哥 | feat: add animation settings functionality and corresponding tests for immediate updates
-- 2026-10-28 | 61277ae6 | 鸡哥 | feat: implement concave music glow effect and enhance corner styling for island shell
-- 2026-10-27 | bc490f2a | 鸡哥 | fix: simplify alarm settings description for clarity
-- 2026-10-27 | a275fefd | 鸡哥 | chore: update Node.js version to 24.22.1 across workflows, documentation, and configuration files
-- 2026-10-26 | e39683f8 | 鸡哥 | Refactor code structure for improved readability and maintainability
-- 2026-10-26 | a2dee17e | 鸡哥 | feat: enhance island transition and styling with clip-path and padding animations
-- 2026-10-26 | da3a982b | 鸡哥 | feat: add corner style settings for island display and implement cross-window synchronization
-- 2026-10-26 | 8e85f2c7 | 鸡哥 | Refactor code structure and remove redundant sections for improved readability and maintainability
-- 2026-10-26 | a0213335 | 鸡哥 | chore: remove koffi package and update hasInstallScript for dependencies
-- 2026-10-26 | d38d2bdd | eislandBot | docs: auto update CHANGE_LOG.md for #296 by @dependabot[bot] [skip ci]
-- 2026-10-26 | 7fed7229 | JNTMTMTM | Merge pull request #296 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/types/node-26.6.5
-- 2026-10-26 | 3ed10f8c | eislandBot | docs: auto update CHANGE_LOG.md for #300 by @dependabot[bot] [skip ci]
-- 2026-10-26 | ed660418 | JNTMTMTM | Merge pull request #300 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/koffi-3.3.3
-- 2026-10-26 | a30b1a48 | JNTMTMTM | Merge pull request #299 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-wifi-helper/types/node-26.6.5
-- 2026-10-26 | b2c647a2 | eislandBot | docs: auto update CHANGE_LOG.md for #295 by @dependabot[bot] [skip ci]
-- 2026-10-26 | 6669cffe | JNTMTMTM | Merge pull request #298 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-volume-helper/types/node-26.6.5
-- 2026-10-26 | 9d1f9c79 | JNTMTMTM | Merge pull request #295 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-smtc-helper/types/node-26.6.5
-- 2026-10-26 | cd0014cc | JNTMTMTM | Merge pull request #294 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-smtc-helper/koffi-3.3.3
-- 2026-10-26 | 4d3bbbdd | eislandBot | docs: auto update CHANGE_LOG.md for #292 by @dependabot[bot] [skip ci]
-- 2026-10-26 | d1383f01 | JNTMTMTM | Merge pull request #293 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-screenshot-helper/koffi-3.3.3
-- 2026-10-26 | 8d9adc00 | JNTMTMTM | Merge pull request #292 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-screenshot-helper/types/node-26.6.5
-- 2026-10-26 | 9e71bbaa | eislandBot | docs: auto update CHANGE_LOG.md for #291 by @dependabot[bot] [skip ci]
-- 2026-10-26 | bc1c3ec9 | eislandBot | docs: auto update CHANGE_LOG.md for #290 by @dependabot[bot] [skip ci]
-- 2026-10-26 | d0fa1a9f | JNTMTMTM | Merge pull request #291 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/types/node-26.6.5
-- 2026-10-26 | 75aa0f0b | JNTMTMTM | Merge pull request #290 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/koffi-3.3.3
-- 2026-10-26 | 84029feb | JNTMTMTM | Merge pull request #289 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-power-helper/types/node-26.6.5
-- 2026-10-26 | e3ec6b07 | JNTMTMTM | Merge pull request #288 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/types/node-26.6.5
-- 2026-10-26 | cf316cdd | JNTMTMTM | Merge pull request #286 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/types/node-26.6.5
-- 2026-10-26 | a6205c4b | JNTMTMTM | Merge pull request #285 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-brightness-helper/types/node-26.6.5
-- 2026-10-26 | 48c4935e | JNTMTMTM | Merge pull request #284 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-bluetooth-helper/types/node-26.6.5
-- 2026-10-26 | de6f8d0d | JNTMTMTM | Merge pull request #281 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/types/node-26.6.5
-- 2026-10-26 | 4cd61b16 | JNTMTMTM | Merge pull request #278 from JNTMTMTM/dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-dc1e335c27
-- 2026-10-26 | a287b5ac | eislandBot | docs: auto update CHANGE_LOG.md for #283 by @dependabot[bot] [skip ci]
-- 2026-10-26 | af5bb296 | eislandBot | docs: auto update CHANGE_LOG.md for #297 by @dependabot[bot] [skip ci]
-- 2026-10-26 | 7d0b9a4a | eislandBot | docs: auto update CHANGE_LOG.md for #282 by @dependabot[bot] [skip ci]
-- 2026-10-25 | 1c64d139 | JNTMTMTM | Merge pull request #283 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-bluetooth-helper/koffi-3.3.3
-- 2026-10-26 | 4ac5e140 | eislandBot | docs: auto update CHANGE_LOG.md for #287 by @dependabot[bot] [skip ci]
-- 2026-10-25 | 503c6fd7 | JNTMTMTM | Merge pull request #297 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-volume-analyzer/types/node-26.6.5
-- 2026-10-26 | 14dfa75a | eislandBot | docs: auto update CHANGE_LOG.md for #280 by @dependabot[bot] [skip ci]
-- 2026-10-25 | 57ae2987 | JNTMTMTM | Merge pull request #282 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-application-icon-helper/koffi-3.3.3
-- 2026-10-25 | f7e083b9 | JNTMTMTM | Merge pull request #287 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-hardware-info-helper/types/node-26.6.5
-- 2026-10-25 | 16ccbbab | JNTMTMTM | Merge pull request #280 from JNTMTMTM/dependabot/npm_and_yarn/electron-45.0.0
-- 2026-10-25 | 3e6c184d | 鸡哥 | fix(deps): synchronize PR #300 locks and plugin release versions
-- 2026-10-25 | 2c60a5d6 | 鸡哥 | fix(deps): synchronize PR #299 locks
-- 2026-10-25 | 041babc6 | 鸡哥 | fix(deps): synchronize PR #298 locks
-- 2026-10-25 | 362bcfe8 | 鸡哥 | fix(deps): synchronize PR #296 locks
-- 2026-10-25 | 532fb4f4 | 鸡哥 | fix(deps): synchronize PR #295 locks
-- 2026-10-25 | ea4fa1d1 | 鸡哥 | fix(deps): synchronize PR #294 locks and plugin release versions
-- 2026-10-25 | 24aa092e | 鸡哥 | fix(deps): synchronize PR #293 locks and plugin release versions
-- 2026-10-25 | 636b7e29 | 鸡哥 | fix(deps): synchronize PR #292 locks
-- 2026-10-25 | 44ba1e3b | 鸡哥 | fix(deps): synchronize PR #291 locks
-- 2026-10-25 | 8ae50323 | 鸡哥 | fix(deps): synchronize PR #290 locks and plugin release versions
-- 2026-10-25 | e3f91b8a | 鸡哥 | fix(deps): synchronize PR #289 locks
-- 2026-10-25 | 3b97784d | 鸡哥 | fix(deps): synchronize PR #288 locks
-- 2026-10-25 | fda79701 | 鸡哥 | fix(deps): synchronize PR #286 locks
-- 2026-10-25 | 474ec9bb | 鸡哥 | fix(deps): synchronize PR #285 locks
-- 2026-10-25 | 207a2dba | 鸡哥 | fix(deps): synchronize PR #284 locks
-- 2026-10-25 | b2df2c9f | 鸡哥 | fix(deps): synchronize PR #283 locks and plugin release versions
-- 2026-10-25 | 0cf7392b | 鸡哥 | fix(deps): synchronize PR #282 locks and plugin release versions
-- 2026-10-25 | 2099a9f6 | 鸡哥 | fix(deps): synchronize PR #281 locks
-- 2026-10-25 | 1cf3bf95 | 鸡哥 | fix(deps): synchronize PR #278 locks and plugin release versions
-- 2026-10-26 | 98e50075 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | 08bbc445 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | 6dbe9c26 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | b603b327 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | ffbda6dd | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | eede2954 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | 6ac88210 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | ff5e6436 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | 70ae5838 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | 4dba43dc | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | b978af20 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | 7452de14 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | 01a30ae0 | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-26 | bb11353d | dependabot[bot] | chore(deps): bump @types/node
-- 2026-10-25 | 690d4e81 | 鸡哥 | Merge main and synchronize Electron 45 dependency lock
-- 2026-10-26 | 70334ef9 | eislandBot | docs: auto update CHANGE_LOG.md for #279 by @dependabot[bot] [skip ci]
-- 2026-10-25 | dfed62ff | JNTMTMTM | Merge pull request #279 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b9f6b06a63
-- 2026-10-26 | 7acbd2e4 | eislandBot | docs: auto update CHANGE_LOG.md for #277 by @JNTMTMTM [skip ci]
-- 2026-10-25 | 156e7837 | JNTMTMTM | Merge pull request #277 from JNTMTMTM/dev
-- 2026-10-26 | 51d351d7 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-wifi-helper
-- 2026-10-26 | f7c87b8d | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-smtc-helper
-- 2026-10-26 | 073353dd | dependabot[bot] | chore(deps): bump koffi
-- 2026-10-26 | da1e2796 | dependabot[bot] | chore(deps): bump koffi in /plugins/windows/eisland-windows-power-helper
-- 2026-10-26 | 15dc53ba | dependabot[bot] | chore(deps): bump koffi
-- 2026-10-26 | 59473d68 | dependabot[bot] | chore(deps): bump koffi
-- 2026-10-26 | 14d859ee | dependabot[bot] | chore(deps): bump electron from 44.8.0 to 45.0.0
-- 2026-10-26 | 077ff54f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 19 updates
-- 2026-10-26 | 525adeff | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update
-- 2026-10-25 | 8400698d | 鸡哥 | feat(chat): update sendDisabled prop description and ensure input is read-only when disabled
-- 2026-10-25 | d2ec3cf9 | 鸡哥 | feat: refactor song component imports to use default exports and improve code consistency
-- 2026-10-25 | 921b05b2 | 鸡哥 | feat(song): add border-radius to song controls for improved aesthetics
-- 2026-10-25 | 4b1c52ab | 鸡哥 | feat(song): enhance SongTab tests and improve useSongLyricsScroll for content activity management
-- 2026-10-25 | 8e1a8444 | 鸡哥 | feat(volume): add SongVolumeControl component and useSongVolume hook for volume management
-- 2026-10-24 | 0568b701 | 鸡哥 | feat: implement SongPlayerBar and useSongProgress for enhanced playback controls and progress tracking
-- 2026-10-24 | b39cddfe | 鸡哥 | feat: update license information and enhance CSS comments for clarity
-- 2026-10-24 | df7843a2 | 鸡哥 | feat(song): refactor song components and hooks for improved structure and functionality
-- 2026-10-24 | fc27024e | 鸡哥 | feat: add loading skeleton for lyrics display and update status handling in SongTab
-- 2026-10-24 | b14f3925 | 鸡哥 | feat: integrate scrolling text for song titles and enhance CSS styles for better text alignment and overflow handling
-- 2026-10-24 | 26a60d69 | 鸡哥 | feat: enhance scrolling behavior in SongTab for better lyric navigation and visibility
-- 2026-10-24 | 4644b441 | 鸡哥 | feat: enhance song wheel dynamics with curvature and inset adjustments for improved visual effects
-- 2026-10-24 | 6db83d06 | 鸡哥 | style: increase gap in song lyric blocks and adjust text color for improved readability
-- 2026-10-24 | 6d2071a8 | 鸡哥 | feat: implement useSongLyricsWheel hook for 3D lyric wheel visualization and scrolling synchronization
-- 2026-10-24 | 4c367bcc | 鸡哥 | style: reduce gaps and padding in song lyric blocks for improved layout
-- 2026-10-24 | 4d9d4240 | 鸡哥 | fix: align text to the right in song controls for improved layout
-- 2026-10-24 | 310c9ad2 | 鸡哥 | feat: enhance SongTab and dynamic island functionality with karaoke support and lyric synchronization
-- 2026-10-24 | 4b73f41a | 鸡哥 | feat: add bilingual lyrics support and enhance SongTab component layout
-- 2026-10-24 | db0a464f | 鸡哥 | feat: implement aiChatSwitchingView to manage messages during session switching
-- 2026-10-24 | f8e9bbc2 | 鸡哥 | feat: enhance AiChatTab with loading skeletons for chat sessions and messages
-- 2026-10-24 | a4263f15 | 鸡哥 | feat: add song tab and related functionality for media playback
-- 2026-10-24 | ff311952 | eislandBot | docs: auto update CHANGE_LOG.md for #276 by @JNTMTMTM [skip ci]
-- 2026-10-24 | 29ad182e | JNTMTMTM | Merge pull request #276 from JNTMTMTM/dev
-- 2026-10-24 | d4988581 | 鸡哥 | feat: implement pending seek functionality for media playback
-- 2026-10-24 | 85988a9e | 鸡哥 | feat: add tests for island visibility transitions and mock functionality
-- 2026-10-24 | c101e69d | 鸡哥 | feat: implement island visibility management with fade transitions for show/hide functionality
-- 2026-10-24 | 4e86c9ed | 鸡哥 | feat: enhance LyricsProgress component with current lyric display and update time formatting
-- 2026-10-23 | a289704e | 鸡哥 | feat: update localization for playback controls and enhance LyricsTab interaction
-- 2026-10-23 | b7d70319 | 鸡哥 | feat: enhance LyricsTab with progress bar transitions and timer management
-- 2026-10-23 | 453d8f0e | 鸡哥 | feat: add playback progress slider and update localization for seek functionality
-- 2026-10-23 | 1baf54d1 | 鸡哥 | feat: add PROCESS_BAR SVG icon and update SvgIcon utility
-- 2026-10-23 | 051c46bd | 鸡哥 | feat: implement initial session handling and enhance current session retrieval in SMTC service
-- 2026-10-23 | 764b7d67 | 鸡哥 | feat: add playback timeline handling and enhance music card functionality
-- 2026-10-23 | e3c5bae5 | 鸡哥 | feat: enhance tray music card with playback control and seek functionality
-- 2026-10-23 | 5539aad1 | eislandBot | docs: auto update CHANGE_LOG.md for #275 by @JNTMTMTM [skip ci]
-- 2026-10-22 | c55e1503 | JNTMTMTM | Merge pull request #275 from JNTMTMTM/dev
-- 2026-10-22 | 7ef41a5a | 鸡哥 | feat(localTool): add conflict handling for duplicate request IDs and enhance caching mechanism
-- 2026-10-22 | b617f770 | 鸡哥 | fix(virtualChatMessages): adjust eslint-disable comments for import-x rule
-- 2026-10-22 | 5461bf4a | 鸡哥 | fix(chat): adjust eslint-disable comment for array index key in ChatMessage component
-- 2026-10-22 | cc92de56 | 鸡哥 | refactor: remove Bing search functionality and implement SearXNG integration for web search
-- 2026-10-22 | e4cd4196 | 鸡哥 | feat(chat): enhance scrolling behavior and performance in virtual chat messages
-- 2026-10-22 | 6ba1ff9c | 鸡哥 | feat(chat): implement virtual chat messages with dynamic height and scrolling
-- 2026-10-22 | d3091df0 | 鸡哥 | feat: update sound settings description for clarity
-- 2026-10-22 | 61053807 | 鸡哥 | feat: implement requestId for local tool execution to enable idempotency and result caching
-- 2026-10-22 | 59cf0e79 | 鸡哥 | feat: enhance theme setting execution in useChatSend to ensure proper application across windows
-- 2026-10-22 | 220081bd | 鸡哥 | feat: enhance authorization handling in AiChatTab and related components to prevent model card overlap
-- 2026-10-22 | 47de8501 | 鸡哥 | feat: Refactor MessageTimeline and related components for improved performance and stability
-- 2026-10-22 | 4a74df82 | 鸡哥 | feat: implement loading skeleton for chat and enhance AiChatTab layout
-- 2026-10-22 | 6c83ffde | 鸡哥 | refactor(authSession): update session token handling to refresh user profile after login
-- 2026-10-22 | ad039458 | eislandBot | docs: auto update CHANGE_LOG.md for #268 by @dependabot[bot] [skip ci]
-- 2026-10-21 | 9fb76665 | JNTMTMTM | Merge pull request #268 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-media-helper/node-gyp-13.1.0
-- 2026-10-22 | 398061d5 | dependabot[bot] | chore(deps): bump node-gyp in /plugins/macos/eisland-macos-media-helper
-- 2026-10-22 | 132bda64 | eislandBot | docs: auto update CHANGE_LOG.md for #272 by @dependabot[bot] [skip ci]
-- 2026-10-21 | 9a7fb2c3 | JNTMTMTM | Merge pull request #272 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/node-gyp-13.1.0
-- 2026-10-22 | a148e0cd | eislandBot | docs: auto update CHANGE_LOG.md for #271 by @dependabot[bot] [skip ci]
-- 2026-10-22 | cad01cd5 | eislandBot | docs: auto update CHANGE_LOG.md for #270 by @dependabot[bot] [skip ci]
-- 2026-10-21 | 5ba41c6c | JNTMTMTM | Merge pull request #271 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0
-- 2026-10-21 | e4e03c28 | JNTMTMTM | Merge pull request #270 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0
-- 2026-10-21 | 85a00ae2 | JNTMTMTM | Merge pull request #269 from JNTMTMTM/dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/node-gyp-13.1.0
-- 2026-10-21 | 95d89877 | 鸡哥 | fix(plugins): sync toast gyp lock and release version
-- 2026-10-21 | ed109adf | 鸡哥 | fix(plugins): sync processes gyp lock and release version
-- 2026-10-21 | adb83dde | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-toast-listener/node-gyp-13.1.0
-- 2026-10-21 | 2e5cd8bc | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-processes-attacker/node-gyp-13.1.0
-- 2026-10-21 | d0dbe44c | 鸡哥 | Merge branch 'dependabot/npm_and_yarn/plugins/windows/eisland-windows-fullscreen-detector/node-gyp-13.1.0' into dependabot/npm_and_yarn/plugins/windows/eisland-windows-performance-monitor/node-gyp-13.1.0
-- 2026-10-21 | a6cbc756 | 鸡哥 | fix(deps): retain native install metadata in root lock
-- 2026-10-21 | 24032ad8 | 鸡哥 | fix(plugins): sync performance gyp lock and release version
-- 2026-10-21 | 63d68ef7 | 鸡哥 | fix(plugins): sync fullscreen gyp lock and release version
-- 2026-10-21 | 9965af24 | 鸡哥 | Merge branch 'codex/fix-pr269-gyp13' into codex/fix-pr270-gyp13
-- 2026-10-22 | f60e4f89 | dependabot[bot] | chore(deps): bump node-gyp
-- 2026-10-22 | b44ae405 | dependabot[bot] | chore(deps): bump node-gyp
-- 2026-10-22 | dc8f0fb0 | dependabot[bot] | chore(deps): bump node-gyp
-- 2026-10-22 | 9ca494fd | dependabot[bot] | chore(deps): bump node-gyp
-- 2026-10-22 | 96e23ac9 | eislandBot | docs: auto update CHANGE_LOG.md for #262 by @dependabot[bot] [skip ci]
-- 2026-10-21 | 6885dba7 | JNTMTMTM | Merge pull request #262 from JNTMTMTM/dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-859a937aa3
-- 2026-10-21 | fbd06f97 | 鸡哥 | fix(plugins): bump WMI helper versions for dependency update
-- 2026-10-21 | e675d5d0 | 鸡哥 | Merge remote-tracking branch 'origin/main' into dependabot/nuget/plugins/windows/eisland-windows-brightness-helper/src/nuget-minor-patch-859a937aa3
-- 2026-10-21 | 3baae0c2 | eislandBot | docs: auto update CHANGE_LOG.md for #267 by @dependabot[bot] [skip ci]
-- 2026-10-21 | 8317f3e3 | JNTMTMTM | Merge pull request #267 from JNTMTMTM/dependabot/npm_and_yarn/plugins/macos/eisland-macos-brightness-helper/node-gyp-13.1.0
-- 2026-10-21 | 91104a74 | eislandBot | docs: auto update CHANGE_LOG.md for #274 by @JNTMTMTM [skip ci]
-- 2026-10-20 | d533b3a1 | JNTMTMTM | Merge pull request #274 from JNTMTMTM/dev
-- 2026-10-20 | 4831d535 | 鸡哥 | feat(notification): update Windows toast listener version and enhance notification snapshot handling
-- 2026-10-20 | 24841659 | 鸡哥 | feat(tests): enhance Windows plugin integration testing and update dependencies
-- 2026-10-20 | 122e5e2b | 鸡哥 | feat(userAccount): enhance session management and token handling
-- 2026-10-20 | 51616309 | 鸡哥 | feat: enhance light theme drawer styles with backdrop and shadow adjustments
-- 2026-10-20 | 7f89d3ec | 鸡哥 | feat: update settings user skeleton to use clip for overflow handling
-- 2026-10-19 | a923b033 | 鸡哥 | feat: implement user settings skeleton components and improve loading states
-- 2026-10-19 | 4f3b107c | 鸡哥 | feat: add wallpaper card skeleton components for improved loading states in the plugin market
-- 2026-10-20 | deb15632 | eislandBot | docs: auto update CHANGE_LOG.md for #265 by @dependabot[bot] [skip ci]
-- 2026-10-19 | 04e10086 | JNTMTMTM | Merge pull request #265 from JNTMTMTM/dependabot/npm_and_yarn/vitejs/plugin-react-6.1.2
-- 2026-10-19 | 091b3cc8 | 鸡哥 | feat: add allowScripts configuration for enhanced script execution control
-- 2026-10-18 | 571950b6 | 鸡哥 | feat: enhance PerformanceMonitorWidget with keyboard accessibility and expand tab functionality
-- 2026-10-18 | 6fd55037 | 鸡哥 | feat: add PerformanceMetricSkeleton component and integrate it into PerformanceMonitorWidget for improved loading state
-- 2026-10-18 | 796ed51c | 鸡哥 | feat: add Performance Monitor widget and related functionality
-- 2026-10-18 | a5b04ea4 | 鸡哥 | feat: enhance NSIS integration tests with improved timeout handling and snapshot counting
-- 2026-10-18 | f11304ac | 鸡哥 | feat: add refreshAuthSession function and integrate it into bootstrap process for improved session handling
-- 2026-10-17 | b136512b | 鸡哥 | feat: enhance testing framework with native integration tests and improve timeout handling
-- 2026-10-17 | e1219ab4 | 鸡哥 | feat: add Windows performance monitoring capabilities
-- 2026-10-16 | 5b8ff597 | 鸡哥 | feat: implement asynchronous pipeline compilation in WebGPU initialization and enhance related tests
-- 2026-10-16 | 27de2409 | 鸡哥 | feat: implement uninstall temp handling and add integration tests for upgrade scenarios
-- 2026-10-16 | 49e2a06f | 鸡哥 | feat: enhance CI workflow with project-specific test reporting and error handling
-- 2026-10-20 | 0b63c230 | dependabot[bot] | chore(deps): bump @vitejs/plugin-react from 5.2.0 to 6.1.2
-- 2026-10-20 | ede3dc61 | eislandBot | docs: auto update CHANGE_LOG.md for #273 by @dependabot[bot] [skip ci]
-- 2026-10-19 | 41248f3f | JNTMTMTM | Merge pull request #273 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b086c4afa2
-- 2026-10-19 | 45620089 | 鸡哥 | test: verify dependency upgrades through real IMAP and desktop integration
-- 2026-10-19 | f497d1f0 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 19 updates
-- 2026-10-19 | 6fe60585 | eislandBot | docs: auto update CHANGE_LOG.md for #263 by @dependabot[bot] [skip ci]
-- 2026-10-19 | 4f23f6ab | JNTMTMTM | Merge pull request #266 from JNTMTMTM/dependabot/npm_and_yarn/electron-vite-6.0.0
-- 2026-10-19 | fd72321e | JNTMTMTM | Merge pull request #263 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-06917ca2d8
-- 2026-10-19 | f0d76805 | dependabot[bot] | chore(deps): bump node-gyp
-- 2026-10-19 | 618e346f | dependabot[bot] | chore(deps): bump electron-vite from 6.0.0-beta.8 to 6.0.0
-- 2026-10-19 | 48156b5d | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
-- 2026-10-19 | d524f580 | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update
-- 2026-10-16 | f2a8b8e2 | eislandBot | docs: auto update CHANGE_LOG.md for #261 by @JNTMTMTM [skip ci]
-- 2026-10-15 | 1d2d6345 | JNTMTMTM | Merge pull request #261 from JNTMTMTM/dev
-- 2026-10-15 | 4a22d2ac | 鸡哥 | feat: enhance installer process handling with ancestry cycle and slow snapshot variants in tests
-- 2026-10-15 | 15f04212 | 鸡哥 | refactor: replace for loops with forEach for improved readability in various test files
-- 2026-10-15 | cf805df3 | 鸡哥 | feat: implement island window transition management and animations
-- 2026-10-15 | 81f2fabf | 鸡哥 | feat: implement logging for calibration status changes in playback synchronization
-- 2026-10-15 | e011a7f5 | 鸡哥 | feat: enhance SMTC session management and playback calibration
-- 2026-10-15 | a7c4647d | 鸡哥 | fix: update import paths and file names for tray menu components and styles
-- 2026-10-15 | 5b838cc2 | 鸡哥 | feat: add Dynamic Island Tray Menu module with hooks and styles
-- 2026-10-15 | 04063926 | 鸡哥 | feat(trayMenu): implement background preload for tray menu window
-- 2026-10-15 | 73924f75 | 鸡哥 | feat(trayMenu): implement skeleton loading screen for tray menu components
-- 2026-10-15 | 84427835 | 鸡哥 | chore: update react and react-dom to version 19.3.1 in package.json and package-lock.json
-- 2026-10-15 | 8eaaa3a3 | 鸡哥 | chore: update vitest dependency to version 5.0.5 in package.json
-- 2026-10-15 | 209a5a2b | 鸡哥 | feat: add music control card to tray menu with playback functionality
-- 2026-10-15 | 82b0d685 | 鸡哥 | feat: add custom tray menu implementation with user card and menu items
-- 2026-10-15 | 18ab58e4 | 鸡哥 | feat: enhance tray functionality and window management
-- 2026-10-16 | 543a44e4 | silenthim | fix:修复了pill状态下灵动岛从右侧消失的问题 (#260)
-- 2026-10-14 | 62ca7b04 | 鸡哥 | chore: sync dev into main
-- 2026-10-15 | b836296b | eislandBot | docs: auto update CHANGE_LOG.md for #259 by @JNTMTMTM [skip ci]
-- 2026-10-14 | 7bfb363b | 鸡哥 | fix: 修复多个已知问题 (#259)
-- 2026-10-14 | 4483f223 | 鸡哥 | test: enhance NSIS process handle queries to support different line endings
-- 2026-10-14 | 5a1a3734 | 鸡哥 | test: adjust subscription period calculation for local timezone in payment lifecycle tests
-- 2026-10-14 | 963e2d49 | 鸡哥 | feat: enhance process management and file handling in installer
-- 2026-10-14 | 0d92087e | 鸡哥 | feat: add dynamic island scale settings with persistence (#39)
-- 2026-10-14 | e6c12b48 | 鸡哥 | fix: adjust will-change property to prevent text blurriness during animations
-- 2026-10-14 | 431e9652 | 鸡哥 | feat: enhance NSIS process detection and termination logic; add integration tests
-- 2026-10-14 | af3ef219 | eislandBot | docs: auto update CHANGE_LOG.md for #244 by @dependabot[bot] [skip ci]
-- 2026-10-14 | 8a400df6 | dependabot[bot] | chore(deps): upgrade Electron to 44.7.2 and adapt clipboard APIs (#244)
-- 2026-10-14 | 23203c69 | 鸡哥 | Merge branch 'dev' into main
-- 2026-10-13 | 70b37cfd | eislandBot | docs: auto update CHANGE_LOG.md for #258 by @JNTMTMTM [skip ci]
-- 2026-10-13 | fc973dd2 | 鸡哥 | feat: 全面优化 maxexpand 状态机计算器界面功能 (#258)
-- 2026-10-14 | c78618e2 | 鸡哥 | feat(calculator): enhance history handling and improve performance with deduplication and optimized rendering
-- 2026-10-14 | 7691dd27 | 鸡哥 | feat(calculator): replace placeholder with 'Undefined' for complex argument and update output handling
-- 2026-10-14 | f751b59c | 鸡哥 | feat(calculator): update calculator icon and equation mode icon to use SvgIcon
-- 2026-10-14 | 8ed1264f | 鸡哥 | feat(svg): add CALCULATOR and EQUATION SVG icons and update SvgIcon references
-- 2026-10-14 | 20d3a3c2 | 鸡哥 | feat(calculator): remove history hint text from UI and localization files
-- 2026-10-14 | 1d299f8c | 鸡哥 | feat(calculator): enhance history functionality with pagination and math rendering
-- 2026-10-14 | 908560ea | 鸡哥 | feat(calculator): enhance matrix operations with editable cells and improved UI
-- 2026-10-14 | c42486e7 | 鸡哥 | feat(calculator): add domain and range analysis for functions
-- 2026-10-14 | 2a8759bc | 鸡哥 | feat(calculator): add logarithm graph tests and enhance expression normalization for tangent analysis
-- 2026-10-14 | b24a0324 | 鸡哥 | feat(calculator): implement tangent analysis feature with UI integration and styling
-- 2026-10-14 | aa7fff53 | 鸡哥 | feat(calculator): enhance graphing functionality and styling for better responsiveness
-- 2026-10-13 | e07fdc05 | 鸡哥 | feat: Enhance updater service and notification handling
-- 2026-10-12 | 86b64496 | 鸡哥 | feat(styles): increase sidebar width for expanded navigation
-- 2026-10-12 | ef6e980a | 鸡哥 | feat(styles): improve focus outline and background styling for calculator panel
-- 2026-10-12 | 38d70192 | 鸡哥 | feat(calculator): enhance history panel styling and add delete button class
-- 2026-10-12 | 8d54af1c | 鸡哥 | feat(styles): unify scrollbar styles for calculator panel
-- 2026-10-12 | 1b4bd7a9 | 鸡哥 | feat(calculator): implement coordinate input panel with numeric, scientific, and analysis modes
-- 2026-10-12 | fae0a0f9 | 鸡哥 | fix(calculator): remove hint paragraphs from ComplexCalculator, EquationSolver, and MatrixCalculator components
-- 2026-10-12 | d90bbf2c | 鸡哥 | feat(calculator): add history functionality and UI updates
-- 2026-10-12 | 1e2d5240 | 鸡哥 | fix(styles): reduce gap and padding in sidebar navigation for improved layout
-- 2026-10-12 | 3bcd2761 | 鸡哥 | feat(calculator): enhance toolbar layout with tool buttons and styling
-- 2026-10-12 | ea4168c2 | 鸡哥 | fix(calculator): prevent scientific keys from overlapping history
-- 2026-10-12 | 9a753d3b | 鸡哥 | fix(calculator): start fresh Ans expressions after equals
-- 2026-10-12 | 734daca5 | 鸡哥 | feat(calculator): add matrix algebra and linear-system solving
-- 2026-10-12 | 37bd0e67 | 鸡哥 | feat(calculator): add complex-number arithmetic and polar display
-- 2026-10-12 | 686cb568 | 鸡哥 | feat(calculator): add analytic and numerical equation solving
-- 2026-10-12 | 1b5c6a58 | 鸡哥 | feat(calculator): add multi-curve graph analysis and coordinate tracking
-- 2026-10-12 | 53e8a50c | 鸡哥 | feat(calculator): add seven-category unit conversion
-- 2026-10-12 | dbabd484 | 鸡哥 | feat(calculator): explain mathematical and formula errors
-- 2026-10-12 | be47a826 | 鸡哥 | feat(calculator): add formula and result clipboard actions
-- 2026-10-12 | 822270bf | 鸡哥 | feat(calculator): add full-precision Ans and chained calculations
-- 2026-10-12 | 85060ca0 | 鸡哥 | feat(calculator): add persistent editable calculation history
-- 2026-10-12 | 1ab550c6 | 鸡哥 | style(calculator): enhance sidebar navigation with smooth transitions and improved label visibility
-- 2026-10-12 | 84f8f6bc | 鸡哥 | feat(calculator): add angle unit functionality with degree/radian support
-- 2026-10-12 | a5236e59 | 鸡哥 | style(calculator): hide scrollbar in calculator styles
-- 2026-10-12 | 43317960 | 鸡哥 | feat(calculator): enhance calculator functionality and UI
-- 2026-10-12 | c8c0b524 | 鸡哥 | test: cover chat storage transactions and failure paths
-- 2026-10-13 | d1c2c64f | eislandBot | docs: auto update CHANGE_LOG.md for #248 by @dependabot[bot] [skip ci]
-- 2026-10-13 | f93700fe | dependabot[bot] | build: upgrade issue-report TypeScript with shared lint tooling (#248)
-- 2026-10-13 | 342c2fc9 | eislandBot | docs: auto update CHANGE_LOG.md for #257 by @JNTMTMTM [skip ci]
-- 2026-10-12 | c9a82943 | 鸡哥 | build: record native install script metadata in root lockfile (#257)
-- 2026-10-13 | 9e6db5ee | eislandBot | docs: auto update CHANGE_LOG.md for #256 by @JNTMTMTM [skip ci]
-- 2026-10-12 | 8e55491a | 鸡哥 | fix: isolate workers and harden native media/process runtimes (#256)
-- 2026-10-12 | bf3c3437 | eislandBot | docs: auto update CHANGE_LOG.md for #255 by @JNTMTMTM [skip ci]
-- 2026-10-12 | 5d4bf6c6 | 鸡哥 | build: standardize Node 24.21.0 and patch tooling vulnerabilities (#255)
-- 2026-10-12 | 65269aae | eislandBot | docs: auto update CHANGE_LOG.md for #251 by @dependabot[bot] [skip ci]
-- 2026-10-12 | 37658d5f | dependabot[bot] | ci(deps): bump actions/download-artifact from 4 to 8 (#253)
-- 2026-10-12 | 7bb8ba9e | dependabot[bot] | ci(deps): bump actions/deploy-pages from 4 to 5 (#252)
-- 2026-10-12 | 7669e9f5 | dependabot[bot] | ci(deps): bump actions/github-script from 7 to 9 (#251)
-- 2026-10-12 | 4550fc7d | dependabot[bot] | ci(deps): bump actions/upload-artifact from 4 to 7 (#250)
-- 2026-10-12 | 0c30e579 | dependabot[bot] | ci(deps): bump actions/upload-pages-artifact from 3 to 5 (#249)
-- 2026-10-12 | 2491044f | dependabot[bot] | chore(deps): bump typescript from 5.9.3 to 7.0.2 in /sdk (#247)
-- 2026-10-12 | f946631c | dependabot[bot] | chore(deps): bump @eslint/js from 9.39.5 to 10.0.1 (#246)
-- 2026-10-12 | fd6f1b6b | dependabot[bot] | chore(deps): bump imapflow from 1.3.3 to 2.3.0 (#243)
-- 2026-10-12 | 37bc26c6 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc (#242)
-- 2026-10-11 | fba227aa | eislandBot | docs: auto update CHANGE_LOG.md for #240 by @dependabot[bot] [skip ci]
-- 2026-10-11 | 64d5d6a4 | dependabot[bot] | build(deps): migrate ESLint 10 with plugin compatibility and CI regression checks (#240)
-- 2026-10-11 | 0c80ddb1 | eislandBot | docs: auto update CHANGE_LOG.md for #241 by @dependabot[bot] [skip ci]
-- 2026-10-11 | c4b26d4c | dependabot[bot] | build(deps): upgrade Vite 8 with electron-vite 6 beta (#241)
-- 2026-10-11 | a812fc25 | eislandBot | docs: auto update CHANGE_LOG.md for #235 by @dependabot[bot] [skip ci]
-- 2026-10-11 | cbc46352 | dependabot[bot] | ci(deps): Bump actions/setup-node from 4 to 7 (#235)
-- 2026-10-11 | 4e5e79c3 | eislandBot | docs: auto update CHANGE_LOG.md for #239 by @dependabot[bot] [skip ci]
-- 2026-10-11 | 51abed77 | dependabot[bot] | chore(deps): bump @electron-toolkit/tsconfig from 1.0.1 to 2.0.0 (#239)
-- 2026-10-11 | 013f51a2 | eislandBot | docs: auto update CHANGE_LOG.md for #238 by @dependabot[bot] [skip ci]
-- 2026-10-11 | e5f9e144 | dependabot[bot] | chore(deps): bump eslint-plugin-jsdoc from 61.7.1 to 65.2.0 (#238)
-- 2026-10-11 | 8306b040 | eislandBot | docs: auto update CHANGE_LOG.md for #237 by @dependabot[bot] [skip ci]
-- 2026-10-11 | a0ac6b0f | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 4 directories with 38 updates (#237)
-- 2026-10-11 | d0d340e2 | eislandBot | docs: auto update CHANGE_LOG.md for #236 by @dependabot[bot] [skip ci]
-- 2026-10-11 | 7a12c31b | dependabot[bot] | chore(deps): Bump the nuget-minor-patch group with 1 update (#236)
-- 2026-10-11 | bf574c5c | eislandBot | docs: auto update CHANGE_LOG.md for #233 by @dependabot[bot] [skip ci]
-- 2026-10-11 | a3d20334 | dependabot[bot] | ci(deps): bump actions/checkout from 4 to 7 (#233)
-- 2026-10-11 | 6b5e0b61 | eislandBot | docs: auto update CHANGE_LOG.md for #234 by @dependabot[bot] [skip ci]
-- 2026-10-11 | 6529028f | dependabot[bot] | ci(deps): bump actions/setup-dotnet from 4 to 6 (#234)
-- 2026-10-11 | db99a0c9 | eislandBot | docs: auto update CHANGE_LOG.md for #232 by @dependabot[bot] [skip ci]
-- 2026-10-11 | e25a5308 | dependabot[bot] | ci(deps): bump softprops/action-gh-release from 2 to 3 (#232)
-- 2026-10-11 | 1c119cea | eislandBot | docs: auto update CHANGE_LOG.md for #231 by @dependabot[bot] [skip ci]
-- 2026-10-11 | 83f272bb | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments from 7.0.1 to 9.0.1 (#231)
-- 2026-10-11 | 0cf95c76 | eislandBot | docs: auto update CHANGE_LOG.md for #230 by @JNTMTMTM [skip ci]
-- 2026-10-11 | 010c7f60 | 鸡哥 | Merge pull request #230 from JNTMTMTM/dev
-- 2026-10-12 | 3bcf4b43 | 鸡哥 | fix(ci): reuse PR report comments and remove duplicates
-- 2026-10-12 | 77154f4f | 鸡哥 | ci: configure weekly Dependabot dependency updates
-- 2026-10-12 | eb5e5253 | 鸡哥 | fix(reminders): migrate legacy SVG icon paths
-- 2026-10-12 | 2f5fd603 | 鸡哥 | fix(ci): resolve PR quality violations and asset test timeout
-- 2026-10-11 | ac58f749 | 鸡哥 | fix(album): read original image size from local asset headers
-- 2026-10-11 | 2ba7481e | 鸡哥 | docs: remove performance audit report
-- 2026-10-11 | bd2221fd | 鸡哥 | fix: bound CLI snapshots and load event details on demand
-- 2026-10-11 | 2591c2da | 鸡哥 | fix: stream local assets and isolate screenshot encoding
-- 2026-10-11 | 4faf5284 | 鸡哥 | fix: virtualize album grids and bound visible media caching
-- 2026-10-11 | da803e6b | 鸡哥 | fix: bound WebGPU rendering and release device resources
-- 2026-10-11 | 960a245c | 鸡哥 | fix: isolate SMTC commands with deadlines and reusable STA
-- 2026-10-11 | 10f8c0f2 | 鸡哥 | fix: fetch mail summaries and load message bodies on demand
-- 2026-10-11 | ade58232 | 鸡哥 | fix: lazy load standalone window pages on demand
-- 2026-10-11 | 19420f9f | 鸡哥 | fix: checkpoint streaming chat sessions independently
-- 2026-10-11 | 04d3aa5b | 鸡哥 | fix: load chat history on demand from asynchronous session storage
-- 2026-10-11 | b591e640 | 鸡哥 | fix: suspend hidden window animations and background video
-- 2026-10-11 | a834b05e | 鸡哥 | fix: schedule reminders at deadlines instead of polling
-- 2026-10-11 | 27928aec | 鸡哥 | fix: run volume and brightness helpers asynchronously
-- 2026-10-11 | 1486d991 | 鸡哥 | fix: stream SMTC session deltas without repeated artwork
-- 2026-10-11 | 007fccb6 | 鸡哥 | fix: incrementally scan Codex logs in a dedicated worker
-- 2026-10-11 | 2621fc5d | 鸡哥 | fix: bound download history and shared connection ownership
-- 2026-10-11 | d7b3bd56 | 鸡哥 | fix: bound clipboard title requests and cancel stale work
-- 2026-10-11 | 2a5dbb08 | 鸡哥 | fix: isolate high-frequency renderer updates
-- 2026-10-11 | 9e29d123 | 鸡哥 | fix: share process snapshots when detecting external agents
-- 2026-10-11 | 017107a9 | 鸡哥 | feat: update version to 26.0.3 for macOS Brightness Helper and 26.1.4 for macOS Media Helper; enhance test coverage and skip non-macOS tests
-- 2026-10-10 | 69fe7cae | 鸡哥 | feat: update version to 26.0.2 for macOS Brightness Helper and enhance test coverage; update version to 26.1.3 for macOS Media Helper with improved test cases and commands
-- 2026-10-10 | a5794cbd | 鸡哥 | chore: update eisland-macos-media-helper to version 26.1.3
-- 2026-10-10 | 43391239 | 鸡哥 | feat: update version to 26.0.2, enhance test coverage, and add native coverage script
-- 2026-10-10 | e23db2d2 | eislandBot | docs: auto update CHANGE_LOG.md for #229 by @JNTMTMTM [skip ci]
-- 2026-10-10 | ddfb0c47 | 鸡哥 | Merge pull request #229 from JNTMTMTM/dev
-- 2026-10-10 | 42a712c3 | 鸡哥 | feat: update version to 26.0.1 and enhance documentation for macOS Brightness Helper
-- 2026-10-09 | df4131a9 | 鸡哥 | feat: add macOS Brightness Helper documentation and sidebar entry
-- 2026-10-09 | c6643867 | 鸡哥 | feat: add macOS brightness helper to publish workflow
-- 2026-10-09 | fdef904b | 鸡哥 | feat: Implement macOS brightness helper with Swift and Node-API integration
+- 2026-11-01 | 4dfb5bd7 | JNTMTMTM | Merge pull request #304 from JNTMTMTM/dev
+- 2026-11-01 | 4b982b8e | 鸡哥 | feat(tests): enhance startup tests with conditional execution based on helper availability
+- 2026-11-01 | 35f33052 | 鸡哥 | feat: enhance startup helper with error handling and async support for queries
+- 2026-11-01 | d5092783 | JNTMTMTM | Merge pull request #303 from binghao9312/feat/youtube-music-whitelist
+- 2026-11-01 | bd227b7e | 鸡哥 | feat(whitelist): unify YouTube Music PWA identifiers and enhance whitelist management
+- 2026-11-01 | 02e535f4 | binghao9312 | feat(music): add YouTube Music to player whitelist options
+- 2026-10-31 | 68fb68ff | 鸡哥 | refactor: replace ManagementObjectSearcher with P/Invoke for service enumeration
+- 2026-10-31 | cb6254ce | 鸡哥 | feat: add Windows startup helper plugin
