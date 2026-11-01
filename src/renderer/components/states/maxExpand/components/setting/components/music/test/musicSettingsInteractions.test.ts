@@ -162,6 +162,30 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('播放器真实持久化与输入', () => {
+  it.each([
+    ['_crx_cinhimbnkkghhklpknlkffjgod', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod'],
+    ['Chrome._crx_cinhimbnkkghhklpknlkffjgod', '_crx_cinhimbnkkghhklpknlkffjgod'],
+  ])('PWA 已有 %s 时检测到 %s 显示已添加', (saved, sourceAppId) => {
+    props.whitelist = [saved];
+    props.detectedSources = [{ sourceAppId, isPlaying: true, hasTitle: true, thumbnail: null }];
+    const row = findElement(render(), (node) => elementProps(node).className === 'settings-whitelist-detected-item');
+    expect(textContent(row)).toContain('settings.music.whitelist.added');
+    expect(elements(row).filter((node) => node.type === 'button')).toHaveLength(0);
+  });
+  it('移除 PWA 时同时移除旧后缀与完整 ID', () => {
+    props.whitelist = ['Spotify.exe', '_crx_cinhimbnkkghhklpknlkffjgod', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod'];
+    const rows = elements(render()).filter((node) => elementProps(node).className === 'settings-whitelist-item');
+    invoke(findElement(rows[1], (node) => node.type === 'button'), 'onClick');
+    expect(props.setWhitelist).toHaveBeenCalledWith(['Spotify.exe']);
+    expect(api.musicWhitelistSet).toHaveBeenCalledWith(['Spotify.exe']);
+  });
+  it('从检测结果添加旧 PWA 后缀时保存完整 ID', () => {
+    props.detectedSources = [{ sourceAppId: '_crx_cinhimbnkkghhklpknlkffjgod', isPlaying: true, hasTitle: true, thumbnail: null }];
+    const row = findElement(render(), (node) => elementProps(node).className === 'settings-whitelist-detected-item');
+    invoke(findElement(row, (node) => node.type === 'button'), 'onClick');
+    expect(props.setWhitelist).toHaveBeenCalledWith(['Chrome._crx_cinhimbnkkghhklpknlkffjgod']);
+    expect(api.musicWhitelistSet).toHaveBeenCalledWith(['Chrome._crx_cinhimbnkkghhklpknlkffjgod']);
+  });
   it.each([true, false])('白名单移除持久化失败=%s仍保留其他进程', async (failure) => {
     props.whitelist = ['QQMusic.exe', 'unknown.exe'];
     if (failure) api.musicWhitelistSet.mockRejectedValue(new Error('offline'));
@@ -172,7 +196,7 @@ describe('播放器真实持久化与输入', () => {
     expect(props.setWhitelist).toHaveBeenCalledWith(['unknown.exe']);
     expect(api.musicWhitelistSet).toHaveBeenCalledWith(['unknown.exe']);
   });
-  it.each(['netease.exe', 'kugou.exe', 'sodamusic.exe', 'applemusic.exe', 'spotify.exe'])('进程%s显示播放器图标', (name) => {
+  it.each(['netease.exe', 'kugou.exe', 'sodamusic.exe', 'applemusic.exe', 'spotify.exe', 'com.github.th-ch.youtube-music', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod'])('进程%s显示播放器图标', (name) => {
     props.whitelist = [name];
     expect(elements(render()).filter((node) => elementProps(node).className === 'settings-whitelist-icon')).toHaveLength(1);
   });

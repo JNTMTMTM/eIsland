@@ -26,7 +26,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WhitelistStep } from '../WhitelistStep';
-import { elementProps, elements, invoke, resetState } from '../../../../../test/elementHarness';
+import { elementProps, elements, findElement, invoke, resetState, textContent } from '../../../../../test/elementHarness';
 const hooks = vi.hoisted(() => ({ selected: ['QQMusic.exe'], toggle: vi.fn() }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
@@ -36,16 +36,30 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => k
 vi.mock('../../hooks/useWhitelistSelect', () => ({ useWhitelistSelect: () => hooks }));
 beforeEach(() => {
   vi.clearAllMocks();
+  hooks.selected = ['QQMusic.exe'];
   resetState();
 });
 afterEach(() => { vi.unstubAllGlobals(); });
 describe('WhitelistStep', () => {
+  it.each([
+    { label: 'guide.whitelist.ytmusic', value: 'com.github.th-ch.youtube-music' },
+    { label: 'guide.whitelist.ytmusicPwa', value: 'Chrome._crx_cinhimbnkkghhklpknlkffjgod' },
+  ])('renders and toggles $label with its source ID', ({ label, value }) => {
+    const props = { onNext: vi.fn(), onPrev: vi.fn() };
+    const choice = findElement(WhitelistStep(props), (node) => node.type === 'button' && textContent(node) === label);
+    expect(elementProps(choice).className).not.toContain(' selected');
+    invoke(choice, 'onClick');
+    expect(hooks.toggle).toHaveBeenCalledWith(value);
+    hooks.selected = [value];
+    const selected = findElement(WhitelistStep(props), (node) => node.type === 'button' && textContent(node) === label);
+    expect(elementProps(selected).className).toContain(' selected');
+  });
   it('renders configured selections and forwards player toggles', () => {
     const onNext = vi.fn();
     const onPrev = vi.fn();
     const tree = WhitelistStep({ onNext, onPrev });
     const choices = elements(tree).filter((node) => node.type === 'button' && String(elementProps(node).className).startsWith('guide-whitelist-option'));
-    expect(choices).toHaveLength(6);
+    expect(choices).toHaveLength(8);
     expect(elementProps(choices[0]).className).toContain('selected');
     expect(elementProps(choices[1]).className).not.toContain('selected');
     invoke(choices[1], 'onClick');

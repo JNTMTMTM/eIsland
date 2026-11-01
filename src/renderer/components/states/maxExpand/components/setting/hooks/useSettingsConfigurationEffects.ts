@@ -25,6 +25,7 @@
  */
 
 import { useEffect } from 'react';
+import { normalizeMusicWhitelist } from '../../../../../../utils/musicWhitelist';
 import useIslandStore from '../../../../../../store/slices';
 import { normalizeOverviewLayoutConfig } from '../../../../expand/pages/OverviewTab';
 import {
@@ -156,7 +157,7 @@ export function useSettingsConfigurationEffects(options: SettingsConfigurationEf
     let cancelled = false;
     window.api.musicWhitelistGet().then((list) => {
       if (cancelled) return;
-      setWhitelist(list);
+      setWhitelist(normalizeMusicWhitelist(list));
     }).catch(() => { });
     window.api.musicLyricsSourceGet().then((src) => {
       if (cancelled) return;

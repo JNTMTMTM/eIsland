@@ -60,6 +60,26 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('音乐来源和白名单', () => {
+  it.each([
+    ['_crx_cinhimbnkkghhklpknlkffjgod', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod'],
+    ['Chrome._crx_cinhimbnkkghhklpknlkffjgod', '_crx_cinhimbnkkghhklpknlkffjgod'],
+    ['Chrome._crx_cinhimbnkkghhklpknlkffjgod', 'CHROME._CRX_CINHIMBNKKGHHKLPKNLKFFJGOD'],
+  ])('PWA 已有 %s 时不重复添加 %s', (saved, draft) => {
+    render().setWhitelist([saved]);
+    render().setWhitelistDraft(draft);
+    render().handleAddWhitelist();
+    expect(render().whitelistInputError).toBe('settings.music.whitelist.alreadyExists');
+    expect(render().whitelistDraft).toBe('');
+    expect(api.musicWhitelistSet).not.toHaveBeenCalled();
+  });
+  it('手动添加旧 PWA 后缀时保存完整 ID，保留其他浏览器来源', () => {
+    render().setWhitelist(['Chrome', 'MSEdge._crx_cinhimbnkkghhklpknlkffjgod']);
+    render().setWhitelistDraft(' _crx_cinhimbnkkghhklpknlkffjgod ');
+    render().handleAddWhitelist();
+    expect(api.musicWhitelistSet).toHaveBeenCalledWith([
+      'Chrome', 'MSEdge._crx_cinhimbnkkghhklpknlkffjgod', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod',
+    ]);
+  });
   it.each([{
     ok: true,
     sources: [{

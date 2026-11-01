@@ -232,6 +232,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('真实初始化配置接线', () => {
+  it('加载白名单时合并 PWA 旧后缀与完整 ID', async () => {
+    api.musicWhitelistGet.mockResolvedValue(['Spotify.exe', '_crx_cinhimbnkkghhklpknlkffjgod', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod']);
+    mount();
+    await settle();
+    expect(setters.setWhitelist).toHaveBeenCalledWith(['Spotify.exe', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod']);
+  });
   it('所有音乐和快捷键读值传入正确状态并规范布局/导航', async () => {
     mount();
     await settle();

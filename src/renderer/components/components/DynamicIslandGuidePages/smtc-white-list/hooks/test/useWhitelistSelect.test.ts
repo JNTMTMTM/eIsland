@@ -66,6 +66,36 @@ function view(): ReturnType<typeof useWhitelistSelect> {
 }
 
 describe('引导白名单真实选择', () => {
+  it.each([
+    ['Chrome._crx_cinhimbnkkghhklpknlkffjgod'],
+    ['_crx_cinhimbnkkghhklpknlkffjgod'],
+    ['_crx_cinhimbnkkghhklpknlkffjgod', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod'],
+  ])('PWA 缓存 %s 使用完整 ID，切换时移除所有等价条目', async (...cached) => {
+    get.mockResolvedValue(['Spotify.exe', ...cached]);
+    view();
+    runEffects();
+    await settle();
+    expect(view().selected).toEqual(['Spotify.exe', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod']);
+    view().toggle('Chrome._crx_cinhimbnkkghhklpknlkffjgod');
+    expect(view().selected).toEqual(['Spotify.exe']);
+    expect(set).toHaveBeenLastCalledWith(['Spotify.exe']);
+  });
+  it.each(['com.github.th-ch.youtube-music', 'Chrome._crx_cinhimbnkkghhklpknlkffjgod'])('初始读取延迟返回时保留用户对 %s 的选择', async (sourceId) => {
+    let resolveList!: (list: string[]) => void;
+    get.mockReturnValue(new Promise<string[]>((resolve) => { resolveList = resolve; }));
+    view();
+    runEffects();
+    view().toggle(sourceId);
+    const selected = [...view().selected];
+    expect(selected).toContain(sourceId);
+    resolveList(['Spotify.exe']);
+    await settle();
+    expect(view().selected).toEqual(selected);
+    expect(set).toHaveBeenLastCalledWith(selected);
+    view().toggle(sourceId);
+    expect(view().selected).toEqual(selected.filter((item) => item !== sourceId));
+    expect(set).toHaveBeenCalledTimes(2);
+  });
   it.each([undefined, null, {}, 'QQMusic.exe', 2])('非数组缓存 %s 不替换默认选择', async (cached) => {
     get.mockResolvedValue(cached);
     expect(view().selected).toEqual(['QQMusic.exe', 'cloudmusic.exe', '汽水音乐', 'kugou']);

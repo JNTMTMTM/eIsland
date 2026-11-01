@@ -24,7 +24,8 @@
  * @author 鸡哥
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { canonicalizeMusicWhitelistEntry, normalizeMusicWhitelist } from '../../../../../utils/musicWhitelist';
 import { WHITELIST_OPTIONS } from '../config/whitelistOptions';
 
 /** 默认选中值 */
@@ -43,21 +44,27 @@ interface UseWhitelistSelectReturn {
  */
 export function useWhitelistSelect(): UseWhitelistSelectReturn {
   const [selected, setSelected] = useState<string[]>(DEFAULT_SELECTED);
+  const selectionChangedRef = useRef(false);
 
   /** 初始化时从存储加载当前白名单 */
   useEffect(() => {
+    let cancelled = false;
     window.api.musicWhitelistGet().then((list) => {
-      if (Array.isArray(list)) {
-        setSelected(list);
+      if (!cancelled && !selectionChangedRef.current && Array.isArray(list)) {
+        setSelected(normalizeMusicWhitelist(list));
       }
     }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   const toggle = useCallback((value: string): void => {
+    selectionChangedRef.current = true;
+    const sourceId = canonicalizeMusicWhitelistEntry(value);
     setSelected((prev) => {
-      const next = prev.includes(value)
-        ? prev.filter((v) => v !== value)
-        : [...prev, value];
+      const current = normalizeMusicWhitelist(prev);
+      const next = current.includes(sourceId)
+        ? current.filter((v) => v !== sourceId)
+        : [...current, sourceId];
       window.api.musicWhitelistSet(next).catch(() => {});
       return next;
     });

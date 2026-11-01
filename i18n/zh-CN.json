@@ -90,7 +90,9 @@
       "sodamusic": "汽水音乐",
       "kugou": "酷狗音乐",
       "applemusic": "Apple Music",
-      "spotify": "Spotify"
+      "spotify": "Spotify",
+      "ytmusic": "YouTube Music（桌面版）",
+      "ytmusicPwa": "YouTube Music（Chrome 应用）"
     },
     "theme": {
       "title": "外观设置",

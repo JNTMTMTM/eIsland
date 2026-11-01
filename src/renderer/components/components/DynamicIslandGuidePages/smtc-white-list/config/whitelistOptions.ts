@@ -25,6 +25,7 @@
  */
 
 import { PlayerIcon } from '../../../../../utils/SvgIcon/player-icon';
+import { YOUTUBE_MUSIC_PWA_SOURCE_ID } from '../../../../../utils/musicWhitelist';
 
 /** 白名单选项条目 */
 export interface WhitelistOption {
@@ -46,4 +47,6 @@ export const WHITELIST_OPTIONS: WhitelistOption[] = [
   { value: 'kugou', labelKey: 'guide.whitelist.kugou', icon: PlayerIcon.KUGOU, defaultSelected: true },
   { value: 'AppleMusic.exe', labelKey: 'guide.whitelist.applemusic', icon: PlayerIcon.APPLE_MUSIC, defaultSelected: false },
   { value: 'Spotify.exe', labelKey: 'guide.whitelist.spotify', icon: PlayerIcon.SPOTIFY, defaultSelected: false },
+  { value: 'com.github.th-ch.youtube-music', labelKey: 'guide.whitelist.ytmusic', icon: PlayerIcon.YOUTUBE_MUSIC, defaultSelected: false },
+  { value: YOUTUBE_MUSIC_PWA_SOURCE_ID, labelKey: 'guide.whitelist.ytmusicPwa', icon: PlayerIcon.YOUTUBE_MUSIC, defaultSelected: false },
 ];
