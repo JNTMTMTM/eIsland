@@ -22,8 +22,12 @@
     "more": "還有 {{count}} 筆...",
     "hint": "輸入以篩選 · ↑↓ 移動 · Enter 執行 · Esc 返回"
   },
+  "welcome": {
+    "subtitle": "儲存庫腳本控制台",
+    "hint": "按 Enter 進入 · Esc 離開"
+  },
   "dashboard": {
-    "noTasks": "還沒有任務，在右側選擇「執行腳本...」開始。",
+    "noTasks": "還沒有任務，在下方選擇「執行腳本...」開始。",
     "outputTitle": "{{name}}（{{index}}/{{total}}）",
     "scrolled": "已暫停跟隨 · End 回到最新",
     "tasks": "任務（{{count}}）",

@@ -22,8 +22,12 @@
     "more": "ほか {{count}} 件...",
     "hint": "入力で絞り込み · ↑↓ 移動 · Enter 実行 · Esc 戻る"
   },
+  "welcome": {
+    "subtitle": "リポジトリスクリプトコンソール",
+    "hint": "Enter で開始 · Esc で終了"
+  },
   "dashboard": {
-    "noTasks": "タスクはまだありません。右側の「スクリプトを実行...」を選んでください。",
+    "noTasks": "タスクはまだありません。下の「スクリプトを実行...」を選んでください。",
     "outputTitle": "{{name}}（{{index}}/{{total}}）",
     "scrolled": "追従を停止中 · End で最新へ",
     "tasks": "タスク（{{count}}）",

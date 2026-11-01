@@ -68,12 +68,19 @@ Arguments meant for the script must come after `--`. Unknown options before `--`
 
 ### Interactive Dashboard
 
-Running `eisland` with no arguments opens a full-screen split view. Your previous terminal content comes back when you quit.
+Running `eisland` with no arguments opens a full-screen welcome screen with the eIsland logo. Press `Enter` to open the task view, or `Esc` to quit. Your previous terminal content comes back when you quit.
+
+The task view uses a top/bottom layout:
 
 | Area | Content |
 |------|---------|
-| Left | Output of the current task, following the latest line by default |
-| Right | Task list (`●` running, `✔` done, `✖` failed, `■` ended), then the actions or script picker |
+| Top | Output of the current task, following the latest line by default |
+| Bottom left | Task list (`●` running, `✔` done, `✖` failed, `■` ended); older tasks collapse when space runs out |
+| Bottom right | The actions, script picker, or confirmation prompt |
+
+:::note
+The bottom panel takes 40% of the terminal height (at least 10 rows), and the output panel gets the rest. If the terminal is narrower than the logo, the welcome screen shows a plain `eIsland` title instead.
+:::
 
 | Action | Description |
 |--------|-------------|
@@ -86,12 +93,12 @@ Running `eisland` with no arguments opens a full-screen split view. Your previou
 |-----|--------|
 | `↑` / `↓`, `Enter` | Choose and confirm an action or script |
 | `Esc` | Leave the picker and return to the actions |
-| `Tab` / `Shift+Tab` | Switch the task shown on the left |
+| `Tab` / `Shift+Tab` | Switch the task shown in the output panel |
 | `PgUp` / `PgDn` | Scroll output by one page (the view stays put while new output arrives) |
 | `Home` / `End` | Jump to the first line / resume following the latest output |
 | `Ctrl+C` | Quit (in the picker: go back) |
 
-Several tasks can run at the same time, for example `dev` alongside a test run. Each task keeps its last 5000 lines. The script list is reloaded each time the picker opens. Dangerous scripts ask for `(y/N)` confirmation in the right panel unless you started with `--yes`.
+Several tasks can run at the same time, for example `dev` alongside a test run. Each task keeps its last 5000 lines. The script list is reloaded each time the picker opens. Dangerous scripts ask for `(y/N)` confirmation in the bottom panel unless you started with `--yes`.
 
 :::warning
 In the dashboard, scripts write to a pipe, not the terminal. Colors are forced on with `FORCE_COLOR=1`, but scripts that read keyboard input (such as Vitest watch-mode shortcuts) receive none. Run those with a direct command instead, for example `eisland run test -- --watch`.
@@ -171,10 +178,11 @@ Change CLI test settings only in `cli/vitest.config.ts`. The root config does no
 | `cli/src/core/runner.ts` | Run `npm run` via `cross-spawn` with inherited stdio for direct commands |
 | `cli/src/core/taskManager.ts` | Concurrent dashboard tasks: output capture, process tree kill, change subscription |
 | `cli/src/core/outputBuffer.ts` | Split piped output into lines and strip cursor control sequences |
-| `cli/src/ui/dashboard.tsx` | Full-screen split view, actions, and task switching |
-| `cli/src/ui/outputPanel.tsx` | Left output panel with paging |
+| `cli/src/ui/dashboard.tsx` | Full-screen task view (top/bottom layout), actions, and task switching |
+| `cli/src/ui/welcome.tsx` | Welcome screen with the eIsland logo |
+| `cli/src/ui/outputPanel.tsx` | Top output panel with paging |
 | `cli/src/core/i18n.ts` | Locale detection and i18next setup |
-| `cli/src/ui/scriptPicker.tsx` | Ink searchable script picker embedded in the right panel |
+| `cli/src/ui/scriptPicker.tsx` | Ink searchable script picker embedded in the bottom panel |
 | `cli/src/ui/confirmPrompt.tsx` | Ink `(y/N)` confirmation prompt |
 
 :::details Technology Stack

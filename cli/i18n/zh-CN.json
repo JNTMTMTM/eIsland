@@ -22,8 +22,12 @@
     "more": "还有 {{count}} 条...",
     "hint": "输入以过滤 · ↑↓ 移动 · Enter 执行 · Esc 返回"
   },
+  "welcome": {
+    "subtitle": "仓库脚本控制台",
+    "hint": "按 Enter 进入 · Esc 退出"
+  },
   "dashboard": {
-    "noTasks": "还没有任务，在右侧选择「运行脚本...」开始。",
+    "noTasks": "还没有任务，在下方选择「运行脚本...」开始。",
     "outputTitle": "{{name}}（{{index}}/{{total}}）",
     "scrolled": "已暂停跟随 · End 回到最新",
     "tasks": "任务（{{count}}）",

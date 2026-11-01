@@ -22,8 +22,12 @@
     "more": "{{count}} more...",
     "hint": "Type to filter · ↑↓ move · Enter run · Esc back"
   },
+  "welcome": {
+    "subtitle": "Repository script console",
+    "hint": "Press Enter to start · Esc to quit"
+  },
   "dashboard": {
-    "noTasks": "No tasks yet. Choose \"Run script...\" on the right.",
+    "noTasks": "No tasks yet. Choose \"Run script...\" below.",
     "outputTitle": "{{name}} ({{index}}/{{total}})",
     "scrolled": "Paused · End to follow",
     "tasks": "Tasks ({{count}})",
