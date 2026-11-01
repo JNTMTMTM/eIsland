@@ -28,12 +28,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import runCli from '../app';
 import runScript from '../core/runner';
-import { confirm } from '../ui/confirmPrompt';
-import { runDashboard } from '../ui/dashboard';
+import { confirm, runDashboard } from '../ui';
 
 vi.mock('../core/runner', () => ({ default: vi.fn() }));
-vi.mock('../ui/confirmPrompt', () => ({ confirm: vi.fn() }));
-vi.mock('../ui/dashboard', () => ({ runDashboard: vi.fn() }));
+vi.mock('../ui', () => ({ confirm: vi.fn(), runDashboard: vi.fn() }));
 
 const runMock = vi.mocked(runScript);
 const confirmMock = vi.mocked(confirm);

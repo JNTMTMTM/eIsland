@@ -22,15 +22,17 @@
  * @file i18n.ts
  * @description CLI 国际化：语言检测、i18next 初始化与脚本说明查询
  * @description 语言优先级：--lang > EISLAND_LANG > 系统语言 > en-US
+ * @description 文案位于根 i18n 文件的 devCli 命名空间，与应用共用一套翻译与完整性检查
  * @author 鸡哥
  */
 
 import i18next from 'i18next';
 
-import enUS from '../../i18n/en-US.json';
-import jaJP from '../../i18n/ja-JP.json';
-import zhCN from '../../i18n/zh-CN.json';
-import zhTW from '../../i18n/zh-TW.json';
+// 仅具名导入 devCli，打包时摇树移除应用其余文案，避免 CLI 产物携带整份翻译。
+import { devCli as enUS } from '../../../i18n/en-US.json';
+import { devCli as jaJP } from '../../../i18n/ja-JP.json';
+import { devCli as zhCN } from '../../../i18n/zh-CN.json';
+import { devCli as zhTW } from '../../../i18n/zh-TW.json';
 
 /** 支持的语言 */
 export type Locale = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP';
@@ -78,14 +80,14 @@ export async function initI18n(locale: Locale): Promise<void> {
   await instance.init({
     lng: locale,
     fallbackLng: FALLBACK_LOCALE,
-    // 脚本名包含 `:`，关闭命名空间分隔符以免 `scripts.test:main` 被拆分。
+    // 脚本名包含 `:`，关闭命名空间分隔符以免 `devCli.scripts.test:main` 被拆分。
     nsSeparator: false,
     interpolation: { escapeValue: false },
     resources: {
-      'zh-CN': { translation: zhCN },
-      'zh-TW': { translation: zhTW },
-      'en-US': { translation: enUS },
-      'ja-JP': { translation: jaJP },
+      'zh-CN': { translation: { devCli: zhCN } },
+      'zh-TW': { translation: { devCli: zhTW } },
+      'en-US': { translation: { devCli: enUS } },
+      'ja-JP': { translation: { devCli: jaJP } },
     },
   });
 }
@@ -107,6 +109,6 @@ export function t(key: string, options?: Record<string, unknown>): string {
  * @returns 本地化说明
  */
 export function describeScript(name: string): string {
-  const key = `scripts.${name}`;
+  const key = `devCli.scripts.${name}`;
   return instance.exists(key) ? instance.t(key) : '';
 }

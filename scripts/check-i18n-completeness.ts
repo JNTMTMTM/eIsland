@@ -28,13 +28,14 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, extname } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..');
-
-/** 应用与 CLI 各自维护翻译文件，键只在本组内对齐与引用；CLI 标签带 `cli/` 前缀以区分报告条目 */
-const LOCALE_GROUPS = [
-  { prefix: '', localeDir: join(ROOT, 'i18n'), sourceDir: join(ROOT, 'src'), hardcodedExtensions: new Set(['.tsx']) },
-  // CLI 没有 JSX，终端输出文案全部位于 .ts/.tsx 字符串中，需一并检测硬编码中文。
-  { prefix: 'cli/', localeDir: join(ROOT, 'cli', 'i18n'), sourceDir: join(ROOT, 'cli', 'src'), hardcodedExtensions: new Set(['.ts', '.tsx']) },
-];
+const LOCALE_DIR = join(ROOT, 'i18n');
+const LOCALE_FILES = readdirSync(LOCALE_DIR)
+  .filter((file) => file.endsWith('.json'))
+  .sort()
+  .map((file) => ({ path: join(LOCALE_DIR, file), label: file.slice(0, -'.json'.length) }));
+const SRC_DIR = join(ROOT, 'src');
+// CLI 文案位于同一套翻译文件的 devCli 命名空间；其终端输出全部写在 .ts 字符串中，需一并检测硬编码中文。
+const CLI_SRC_DIR = join(ROOT, 'cli', 'src');
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', 'out', 'test', '__tests__']);
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
@@ -87,34 +88,26 @@ function collectSourceFiles(dir: string): string[] {
 
 // ── Check 1: 翻译文件键对齐 ──
 
-const groupData = LOCALE_GROUPS.map((group) => {
-  const locales = readdirSync(group.localeDir)
-    .filter((file) => file.endsWith('.json'))
-    .sort()
-    .map((file) => {
-      const label = `${group.prefix}${file.slice(0, -'.json'.length)}`;
-      return { label, data: flattenTranslations(loadJson(join(group.localeDir, file), label)) };
-    });
-  const keySets = locales.map((l) => ({ label: l.label, keys: new Set(Object.keys(l.data)) }));
-  return { locales, keySets, ...group, allKeys: new Set(keySets.flatMap((s) => [...s.keys])) };
-});
-const localeKeySets = groupData.flatMap((group) => group.keySets);
+const localeData = LOCALE_FILES.map((f) => ({
+  ...f,
+  data: flattenTranslations(loadJson(f.path, f.label)),
+}));
+const localeKeySets = localeData.map((l) => ({ label: l.label, keys: new Set(Object.keys(l.data)) }));
+const allKeys = new Set(localeKeySets.flatMap((s) => [...s.keys]));
 
 const alignmentIssues: string[] = [];
 const alignmentDetails: string[][] = [];
-groupData.forEach(({ keySets }) => {
-  for (let i = 0; i < keySets.length; i++) {
-    for (let j = 0; j < keySets.length; j++) {
-      if (i === j) continue;
-      const missing = [...keySets[i].keys].filter((k) => !keySets[j].keys.has(k)).sort();
-      if (missing.length > 0) {
-        alignmentIssues.push(`${keySets[j].label} 缺少 ${missing.length} 个翻译键（${keySets[i].label} 中存在）:`);
-        for (const key of missing) alignmentIssues.push(`  - ${key}`);
-        for (const key of missing) alignmentDetails.push([keySets[j].label, keySets[i].label, key]);
-      }
+for (let i = 0; i < localeKeySets.length; i++) {
+  for (let j = 0; j < localeKeySets.length; j++) {
+    if (i === j) continue;
+    const missing = [...localeKeySets[i].keys].filter((k) => !localeKeySets[j].keys.has(k)).sort();
+    if (missing.length > 0) {
+      alignmentIssues.push(`${localeKeySets[j].label} 缺少 ${missing.length} 个翻译键（${localeKeySets[i].label} 中存在）:`);
+      for (const key of missing) alignmentIssues.push(`  - ${key}`);
+      for (const key of missing) alignmentDetails.push([localeKeySets[j].label, localeKeySets[i].label, key]);
     }
   }
-});
+}
 
 for (const l of localeKeySets) console.log(`[INFO] ${l.label}: ${l.keys.size} keys`);
 
@@ -128,18 +121,10 @@ if (alignmentIssues.length > 0) {
 // ── 翻译值及插值变量校验 ──
 
 const translationIssues: string[] = [];
-const languagesOf = (group: (typeof groupData)[number]): string[] => group.locales.map((l) => l.label.slice(group.prefix.length));
-const [appGroup, ...otherGroups] = groupData;
-otherGroups.forEach((group) => {
-  // 其他翻译组须覆盖与应用相同的语言集合，避免新增语言时遗漏 CLI。
-  const languages = languagesOf(group);
-  languagesOf(appGroup).filter((lang) => !languages.includes(lang))
-    .forEach((lang) => translationIssues.push(`${group.prefix}${lang}.json 缺失（应用已支持该语言）`));
-});
+const referenceLocale = localeData.find((locale) => locale.label === 'en-US');
+if (!referenceLocale) translationIssues.push('缺少基准语言 en-US.json');
 
-groupData.forEach((group) => group.locales.forEach((locale) => {
-  const referenceLocale = group.locales.find((l) => l.label === `${group.prefix}en-US`);
-  if (!referenceLocale && locale === group.locales[0]) translationIssues.push(`缺少基准语言 ${group.prefix}en-US.json`);
+localeData.forEach((locale) => {
   Object.entries(locale.data).forEach(([key, value]) => {
     const reference = referenceLocale?.data[key];
     if (typeof value !== 'string' || (!value.trim() && reference !== '')) {
@@ -153,7 +138,7 @@ groupData.forEach((group) => group.locales.forEach((locale) => {
       translationIssues.push(`${locale.label}: ${key} 插值变量不一致，预期 ${JSON.stringify(expected)}，实际 ${JSON.stringify(actual)}`);
     }
   });
-}));
+});
 
 if (translationIssues.length > 0) {
   console.log(`\n[FAIL] 翻译值或插值变量存在 ${translationIssues.length} 个问题:`);
@@ -164,13 +149,13 @@ if (translationIssues.length > 0) {
 
 // ── Check 2: 源码 t() 调用的键是否存在于翻译文件中 ──
 
-const sourceEntries = groupData.flatMap((group) => collectSourceFiles(group.sourceDir).map((filePath) => ({ filePath, group })));
-const sourceFiles = sourceEntries.map(({ filePath }) => filePath);
+const cliSourceFiles = collectSourceFiles(CLI_SRC_DIR);
+const sourceFiles = [...collectSourceFiles(SRC_DIR), ...cliSourceFiles];
 const missingKeyIssues: Issue[] = [];
 
 const T_CALL_RE = /\bt\(\s*['"]([^'"]+)['"]/g;
 
-for (const { filePath, group: { allKeys } } of sourceEntries) {
+for (const filePath of sourceFiles) {
   const content = readFileSync(filePath, 'utf-8');
   const relPath = relative(ROOT, filePath).replace(/\\/g, '/');
   const lines = content.split('\n');
@@ -206,8 +191,8 @@ const T_WRAPPED_RE = /\bt\(\s*['"][^'"]*['"]|tr\(\s*['"][^'"]*['"]/;
 
 const hardcodedIssues: Issue[] = [];
 
-for (const { filePath, group: { hardcodedExtensions } } of sourceEntries) {
-  if (!hardcodedExtensions.has(extname(filePath))) continue;
+for (const filePath of sourceFiles) {
+  if (!filePath.endsWith('.tsx') && !cliSourceFiles.includes(filePath)) continue;
   const content = readFileSync(filePath, 'utf-8');
   const relPath = relative(ROOT, filePath).replace(/\\/g, '/');
   const lines = content.split('\n');

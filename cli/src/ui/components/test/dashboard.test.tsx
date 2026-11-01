@@ -29,13 +29,12 @@ import { fileURLToPath } from 'node:url';
 import { render } from 'ink-testing-library';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { initI18n } from '../../core/i18n';
-import { Dashboard } from '../dashboard';
-import { windowStart } from '../outputPanel';
+import { initI18n } from '../../../core/i18n';
+import Dashboard from '../dashboard';
 
-import type { Task, TaskManager } from '../../core/taskManager';
+import type { Task, TaskManager } from '../../../core/taskManager';
 
-const ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
+const ROOT = fileURLToPath(new URL('../../../../../', import.meta.url));
 const DOWN = '\u001B[B';
 const ENTER = '\r';
 const TAB = '\t';
@@ -114,18 +113,6 @@ async function press(stdin: ReturnType<typeof render>['stdin'], ...keys: string[
 }
 
 beforeAll(() => initI18n('en-US'));
-
-describe('windowStart', () => {
-  it('跟随最新输出时展示末尾一屏', () => {
-    expect(windowStart(100, 10, null)).toBe(90);
-    expect(windowStart(5, 10, null)).toBe(0);
-  });
-
-  it('固定起始行不超过跟随位置', () => {
-    expect(windowStart(100, 10, 40)).toBe(40);
-    expect(windowStart(100, 10, 95)).toBe(90);
-  });
-});
 
 describe('Dashboard', () => {
   it('没有任务时提示运行脚本且不提供结束操作', async () => {

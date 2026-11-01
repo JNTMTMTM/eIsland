@@ -33,8 +33,7 @@ import { describeScript, detectLocale, initI18n, t } from './core/i18n';
 import findProjectRoot from './core/projectRoot';
 import runScript from './core/runner';
 import { groupScripts, resolveScript, loadScripts } from './core/scripts';
-import { confirm } from './ui/confirmPrompt';
-import { runDashboard } from './ui/dashboard';
+import { confirm, runDashboard } from './ui';
 
 import type { CliArgs } from './core/args';
 import type { ScriptEntry } from './core/scripts';
@@ -51,36 +50,36 @@ const CLI_DIR = fileURLToPath(new URL('.', import.meta.url));
  */
 function formatScriptLine(entry: ScriptEntry, width: number): string {
   const description = describeScript(entry.name) || styleText('dim', entry.command);
-  const tag = entry.dangerous ? styleText('red', ` [${t('list.dangerousTag')}]`) : '';
+  const tag = entry.dangerous ? styleText('red', ` [${t('devCli.list.dangerousTag')}]`) : '';
   return `  ${styleText('cyan', entry.name.padEnd(width))}  ${description}${tag}`;
 }
 
 /** 打印帮助信息 */
 function printHelp(): void {
   const rows: [string, string][] = [
-    ['eisland', t('help.cmdInteractive')],
-    ['eisland list [group]', t('help.cmdList')],
-    ['eisland run <script> [-- args]', t('help.cmdRun')],
-    ['eisland <seg> [seg...] [-- args]', t('help.cmdShorthand')],
+    ['eisland', t('devCli.help.cmdInteractive')],
+    ['eisland list [group]', t('devCli.help.cmdList')],
+    ['eisland run <script> [-- args]', t('devCli.help.cmdRun')],
+    ['eisland <seg> [seg...] [-- args]', t('devCli.help.cmdShorthand')],
   ];
   const options: [string, string][] = [
-    ['-y, --yes', t('help.optYes')],
-    ['--lang <locale>', t('help.optLang')],
-    ['-h, --help', t('help.optHelp')],
-    ['-v, --version', t('help.optVersion')],
+    ['-y, --yes', t('devCli.help.optYes')],
+    ['--lang <locale>', t('devCli.help.optLang')],
+    ['-h, --help', t('devCli.help.optHelp')],
+    ['-v, --version', t('devCli.help.optVersion')],
   ];
   const width = Math.max(...[...rows, ...options].map(([usage]) => usage.length));
   const format = ([usage, text]: [string, string]): string => `  ${usage.padEnd(width)}  ${text}`;
   console.log([
-    `${styleText('bold', `eIsland CLI v${pkg.version}`)} - ${t('help.title')}`,
+    `${styleText('bold', `eIsland CLI v${pkg.version}`)} - ${t('devCli.help.title')}`,
     '',
-    `${t('help.usage')}:`,
+    `${t('devCli.help.usage')}:`,
     ...rows.map(format),
     '',
-    `${t('help.options')}:`,
+    `${t('devCli.help.options')}:`,
     ...options.map(format),
     '',
-    `${t('help.examples')}:`,
+    `${t('devCli.help.examples')}:`,
     '  eisland test main',
     '  eisland plugin build smtc',
     '  eisland run test:renderer -- --watch',
@@ -96,7 +95,7 @@ function printHelp(): void {
 function printList(entries: ScriptEntry[], group: string | undefined): number {
   const groups = groupScripts(entries);
   if (group !== undefined && !groups.has(group)) {
-    console.error(t('errors.unknownGroup', { group, groups: [...groups.keys()].join(', ') }));
+    console.error(t('devCli.errors.unknownGroup', { group, groups: [...groups.keys()].join(', ') }));
     return 1;
   }
   const selected = [...groups].filter(([name]) => group === undefined || name === group);
@@ -122,20 +121,20 @@ async function execute(root: string, entry: ScriptEntry, args: CliArgs, interact
   if (entry.dangerous && !args.yes) {
     // 非交互环境（CI、管道）无法确认，必须显式传入 --yes，防止误发布。
     if (!interactive) {
-      console.error(t('errors.dangerousNonInteractive', { name: entry.name }));
+      console.error(t('devCli.errors.dangerousNonInteractive', { name: entry.name }));
       return 1;
     }
-    if (!(await confirm(t('confirm.dangerous', { name: entry.name })))) {
-      console.log(t('cancelled'));
+    if (!(await confirm(t('devCli.confirm.dangerous', { name: entry.name })))) {
+      console.log(t('devCli.cancelled'));
       return CANCELLED_EXIT_CODE;
     }
   }
-  console.log(styleText('cyan', `> ${t('run.start', { name: entry.name })}`));
+  console.log(styleText('cyan', `> ${t('devCli.run.start', { name: entry.name })}`));
   try {
     const code = await runScript(root, entry.name, args.passthrough);
     return code;
   } catch (error) {
-    console.error(t('errors.spawnFailed', { message: (error as Error).message }));
+    console.error(t('devCli.errors.spawnFailed', { message: (error as Error).message }));
     return 1;
   }
 }
@@ -152,7 +151,7 @@ async function parseOrReport(argv: string[]): Promise<CliArgs | null> {
     return args;
   } catch (error) {
     await initI18n(detectLocale(undefined));
-    console.error(t('errors.badArgs', { message: (error as Error).message }));
+    console.error(t('devCli.errors.badArgs', { message: (error as Error).message }));
     return null;
   }
 }
@@ -178,7 +177,7 @@ export default async function runCli(argv: string[]): Promise<number> {
   // 优先按当前目录定位，支持在其他 worktree 中复用全局链接的 CLI。
   const root = findProjectRoot(process.cwd()) ?? findProjectRoot(CLI_DIR);
   if (!root) {
-    console.error(t('errors.rootNotFound'));
+    console.error(t('devCli.errors.rootNotFound'));
     return 1;
   }
   const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
@@ -193,7 +192,7 @@ export default async function runCli(argv: string[]): Promise<number> {
 
   const tokens = command === 'run' ? rest : args.positionals;
   if (tokens.length === 0) {
-    console.error(t('errors.runMissingName'));
+    console.error(t('devCli.errors.runMissingName'));
     return 1;
   }
   const result = resolveScript(entries, tokens);
@@ -202,12 +201,12 @@ export default async function runCli(argv: string[]): Promise<number> {
   const name = tokens.join(':');
   if (result.kind === 'prefix') {
     const width = Math.max(...result.matches.map((entry) => entry.name.length));
-    console.error([t('errors.incompleteScript', { name }), ...result.matches.map((entry) => formatScriptLine(entry, width))].join('\n'));
+    console.error([t('devCli.errors.incompleteScript', { name }), ...result.matches.map((entry) => formatScriptLine(entry, width))].join('\n'));
   } else {
     const hints = result.suggestions.length > 0
-      ? [t('errors.didYouMean'), ...result.suggestions.map((item) => `  ${styleText('cyan', item)}`)]
-      : [t('errors.listHint')];
-    console.error([t('errors.unknownScript', { name }), ...hints].join('\n'));
+      ? [t('devCli.errors.didYouMean'), ...result.suggestions.map((item) => `  ${styleText('cyan', item)}`)]
+      : [t('devCli.errors.listHint')];
+    console.error([t('devCli.errors.unknownScript', { name }), ...hints].join('\n'));
   }
   return 1;
 }

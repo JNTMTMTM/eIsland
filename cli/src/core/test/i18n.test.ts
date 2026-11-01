@@ -28,10 +28,10 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-import enUS from '../../../i18n/en-US.json';
-import jaJP from '../../../i18n/ja-JP.json';
-import zhCN from '../../../i18n/zh-CN.json';
-import zhTW from '../../../i18n/zh-TW.json';
+import { devCli as enUS } from '../../../../i18n/en-US.json';
+import { devCli as jaJP } from '../../../../i18n/ja-JP.json';
+import { devCli as zhCN } from '../../../../i18n/zh-CN.json';
+import { devCli as zhTW } from '../../../../i18n/zh-TW.json';
 import { describeScript, detectLocale, initI18n, t } from '../i18n';
 
 const locales = { 'en-US': enUS, 'ja-JP': jaJP, 'zh-CN': zhCN, 'zh-TW': zhTW };
@@ -66,7 +66,7 @@ describe('翻译资源', () => {
   it('按语言返回脚本说明与插值文案', async () => {
     await initI18n('zh-CN');
     expect(describeScript('test:main')).toBe(zhCN.scripts['test:main']);
-    expect(t('errors.unknownScript', { name: 'x' })).toBe('未知脚本 "x"。');
+    expect(t('devCli.errors.unknownScript', { name: 'x' })).toBe('未知脚本 "x"。');
     await initI18n('en-US');
     expect(describeScript('test:main')).toBe(enUS.scripts['test:main']);
   });

@@ -29,13 +29,14 @@ import { fileURLToPath } from 'node:url';
 import { render } from 'ink-testing-library';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { initI18n } from '../../core/i18n';
-import { InteractiveApp } from '../dashboard';
-import Welcome, { LOGO_LINES } from '../welcome';
+import { LOGO_LINES } from '../../config/uiConfig';
+import { initI18n } from '../../../core/i18n';
+import InteractiveApp from '../interactiveApp';
+import Welcome from '../welcome';
 
-import type { Task, TaskManager } from '../../core/taskManager';
+import type { Task, TaskManager } from '../../../core/taskManager';
 
-const ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
+const ROOT = fileURLToPath(new URL('../../../../../', import.meta.url));
 
 /**
  * 等待 Ink 处理输入并完成重新渲染

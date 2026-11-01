@@ -27,8 +27,8 @@
 import { render } from 'ink-testing-library';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { initI18n } from '../../core/i18n';
-import { ConfirmPrompt } from '../confirmPrompt';
+import { initI18n } from '../../../core/i18n';
+import ConfirmPrompt from '../confirmPrompt';
 
 /**
  * 等待 Ink 处理输入

@@ -19,48 +19,38 @@
  */
 
 /**
- * @file confirmPrompt.tsx
- * @description 危险脚本执行前的 y/N 确认提示，默认拒绝
+ * @file launchers.tsx
+ * @description 挂载 Ink 界面的入口：交互模式全屏界面与直接执行时的确认提示
  * @author 鸡哥
  */
 
-import { Text, render, useInput } from 'ink';
+import { render } from 'ink';
 
-import { t } from '../core/i18n';
+import createTaskManager from '../../core/taskManager';
+import ConfirmPrompt from './confirmPrompt';
+import InteractiveApp from './interactiveApp';
 
-/** 确认提示属性 */
-interface ConfirmPromptProps {
-  /** 提示文案 */
-  message: string;
-  /** 用户作答回调，仅输入 y 时为 true */
-  onSubmit: (confirmed: boolean) => void;
-}
+import type { CliArgs } from '../../core/args';
 
 /**
- * 确认提示
- * @description 只有显式输入 y 才确认，Enter、Esc、n 与 Ctrl+C 均视为拒绝，避免误触发布
- * @param props - 确认提示属性
- * @param props.message - 提示文案
- * @param props.onSubmit - 作答回调
- * @returns 提示界面
+ * 以全屏界面运行交互模式
+ * @description 使用备用屏幕缓冲区，退出后恢复原终端内容；退出前结束全部运行中的任务
+ * @param root - 仓库根目录
+ * @param args - CLI 参数
+ * @returns 退出码，正常退出为 0
  */
-export function ConfirmPrompt({ message, onSubmit }: ConfirmPromptProps): React.JSX.Element {
-  useInput((input, key) => {
-    const answer = input.toLowerCase();
-    if (answer === 'y') {
-      onSubmit(true);
-    } else if (answer === 'n' || key.return || key.escape || (key.ctrl && input === 'c')) {
-      onSubmit(false);
-    }
-  });
-
-  return (
-    <Text>
-      <Text color="yellow">⚠ </Text>
-      {`${message} `}
-      <Text dimColor>{t('confirm.hint')}</Text>
-    </Text>
+export async function runDashboard(root: string, args: CliArgs): Promise<number> {
+  const manager = createTaskManager(root);
+  const { promise, resolve } = Promise.withResolvers<void>();
+  const app = render(
+    <InteractiveApp manager={manager} root={root} skipConfirm={args.yes} passthrough={args.passthrough} onQuit={resolve} />,
+    { exitOnCtrlC: false, alternateScreen: true },
   );
+  await promise;
+  await manager.killAll();
+  app.unmount();
+  await app.waitUntilExit();
+  return 0;
 }
 
 /**

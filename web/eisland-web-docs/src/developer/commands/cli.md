@@ -147,10 +147,10 @@ npm lifecycle scripts such as `postinstall` are hidden from the list and picker,
 
 ## Internationalization
 
-The output language is chosen in this order: `--lang` > the `EISLAND_LANG` environment variable > the system locale > `en-US`. Translations live in `cli/i18n/{zh-CN,zh-TW,en-US,ja-JP}.json` and are separate from the app's `i18n/` files.
+The output language is chosen in this order: `--lang` > the `EISLAND_LANG` environment variable > the system locale > `en-US`. Translations live in the `devCli` namespace of the root `i18n/{zh-CN,zh-TW,en-US,ja-JP}.json` files, shared with the app. The CLI imports only that namespace, so the bundle does not carry the app's translations.
 
 :::warning
-Every root `package.json` script needs a `scripts.<name>` description in all four CLI locale files. `npm run test:cli` fails when a description is missing, and `npm run i18n:check` checks key alignment, `t()` references, hard-coded Chinese, and that the CLI covers every app locale.
+Every root `package.json` script needs a `devCli.scripts.<name>` description in all four locale files. `npm run test:cli` fails when a description is missing, and `npm run i18n:check` scans `cli/src/` for key alignment, `t()` references, and hard-coded Chinese. Always call `t()` with the full `devCli.` key so the check can resolve it.
 :::
 
 ## Test
@@ -178,12 +178,30 @@ Change CLI test settings only in `cli/vitest.config.ts`. The root config does no
 | `cli/src/core/runner.ts` | Run `npm run` via `cross-spawn` with inherited stdio for direct commands |
 | `cli/src/core/taskManager.ts` | Concurrent dashboard tasks: output capture, process tree kill, change subscription |
 | `cli/src/core/outputBuffer.ts` | Split piped output into lines and strip cursor control sequences |
-| `cli/src/ui/dashboard.tsx` | Full-screen task view (top/bottom layout), actions, and task switching |
-| `cli/src/ui/welcome.tsx` | Welcome screen with the eIsland logo |
-| `cli/src/ui/outputPanel.tsx` | Top output panel with paging |
-| `cli/src/core/i18n.ts` | Locale detection and i18next setup |
-| `cli/src/ui/scriptPicker.tsx` | Ink searchable script picker embedded in the bottom panel |
-| `cli/src/ui/confirmPrompt.tsx` | Ink `(y/N)` confirmation prompt |
+| `cli/src/core/i18n.ts` | Locale detection and i18next setup for the `devCli` namespace |
+
+The Ink UI in `cli/src/ui/` follows the project's module layout:
+
+| Path | Responsibility |
+|------|---------------|
+| `ui/index.ts` | Module entry; exports `runDashboard` and `confirm` |
+| `ui/types/uiTypes.ts` | Dashboard mode and action types, layout, hook return types, all component props |
+| `ui/config/uiConfig.ts` | Layout ratios and row budgets, task status styles, welcome logo |
+| `ui/utils/uiUtils.ts` | Pure layout, output window, paging, task switching, and picker window math |
+| `ui/hooks/useDashboard.ts` | Task subscription, current task, panel mode, scrolling, and keyboard handling |
+| `ui/hooks/useScriptPicker.ts` | Picker filtering, cursor, and keyboard handling |
+| `ui/hooks/useConfirmInput.ts`, `useWelcome.ts`, `useWelcomeGate.ts` | Confirm keys, welcome keys and size, welcome-to-dashboard switch |
+| `ui/components/launchers.tsx` | Mount Ink for the full-screen dashboard and for direct-command confirmation |
+| `ui/components/interactiveApp.tsx` | Welcome screen first, then the dashboard |
+| `ui/components/dashboard.tsx` | Top/bottom task view composed from the components below |
+| `ui/components/welcome.tsx` | Welcome screen with the eIsland logo |
+| `ui/components/outputPanel.tsx`, `taskList.tsx`, `actionMenu.tsx` | Output panel with paging, task list, action list |
+| `ui/components/scriptPicker.tsx`, `pickerRow.tsx` | Searchable script picker and its rows |
+| `ui/components/confirmPrompt.tsx` | `(y/N)` confirmation prompt |
+
+:::note
+Component files use camelCase names (such as `taskList.tsx`), as required by the frontend standards (§3.20.5) and the `project/filename` lint rule.
+:::
 
 :::details Technology Stack
 - **Ink 8 + React 19** for the interactive UI

@@ -27,10 +27,10 @@
 import { render } from 'ink-testing-library';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { initI18n } from '../../core/i18n';
+import { initI18n } from '../../../core/i18n';
 import ScriptPicker from '../scriptPicker';
 
-import type { ScriptEntry } from '../../core/scripts';
+import type { ScriptEntry } from '../../../core/scripts';
 
 const entry = (name: string, dangerous = false): ScriptEntry => ({
   name, dangerous, command: `run ${name}`, group: name.split(':')[0], hidden: false,

@@ -19,72 +19,43 @@
  */
 
 /**
- * @file welcome.tsx
- * @description 交互模式的欢迎界面：居中展示 eIsland 字符画，Enter 进入任务界面
+ * @file uiConfig.ts
+ * @description 交互界面的布局常量、状态样式与欢迎字符画
  * @author 鸡哥
  */
 
-import { Box, Text, useInput, useWindowSize } from 'ink';
+import type { LogoLine, StatusStyle } from '../types/uiTypes';
+import type { TaskStatus } from '../../core/taskManager';
 
-import pkg from '../../package.json';
-import { t } from '../core/i18n';
+export const STATUS_STYLE: Record<TaskStatus, StatusStyle> = {
+  running: { mark: '●', color: 'yellow' },
+  succeeded: { mark: '✔', color: 'green' },
+  failed: { mark: '✖', color: 'red' },
+  killed: { mark: '■', color: 'gray' },
+};
 
-/** 欢迎界面属性 */
-interface WelcomeProps {
-  /** 按 Enter 进入任务界面 */
-  onEnter: () => void;
-  /** 按 Esc 或 Ctrl+C 退出 */
-  onQuit: () => void;
-}
+// 下方操作区占屏幕高度的比例与下限，保证选择器至少能展示几行脚本。
+export const BOTTOM_RATIO = 0.4;
+export const MIN_BOTTOM_ROWS = 10;
+// 任务列表占操作区宽度的比例，其余留给操作与脚本选择器。
+export const TASK_COLUMN_RATIO = 0.4;
+// ink-testing-library 等非终端输出流不提供 rows。
+export const FALLBACK_ROWS = 24;
+// 输出面板的上下边框与标题行。
+export const OUTPUT_CHROME_ROWS = 3;
+// 操作区的上下边框与底部按键提示。
+export const BOTTOM_CHROME_ROWS = 3;
+// 选择器除列表外的行：输入框、剩余条数、可能折行的提示。
+export const PICKER_CHROME_ROWS = 4;
+// 脚本数量远超一屏，选择器固定窗口高度并随光标滚动。
+export const DEFAULT_PAGE_SIZE = 12;
 
-/** 字符画行与对应颜色，自上而下渐变 */
-export const LOGO_LINES = [
+export const LOGO_LINES: readonly LogoLine[] = [
   { id: 'top', color: 'cyanBright', text: '███████╗██╗███████╗██╗      █████╗ ███╗   ██╗██████╗ ' },
   { id: 'upper', color: 'cyanBright', text: '██╔════╝██║██╔════╝██║     ██╔══██╗████╗  ██║██╔══██╗' },
   { id: 'middle', color: 'cyan', text: '█████╗  ██║███████╗██║     ███████║██╔██╗ ██║██║  ██║' },
   { id: 'lower', color: 'cyan', text: '██╔══╝  ██║╚════██║██║     ██╔══██║██║╚██╗██║██║  ██║' },
   { id: 'base', color: 'blueBright', text: '███████╗██║███████║███████╗██║  ██║██║ ╚████║██████╔╝' },
   { id: 'shadow', color: 'blue', text: '╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ' },
-] as const;
-const LOGO_WIDTH = LOGO_LINES[0].text.length;
-// ink-testing-library 等非终端输出流不提供 rows。
-const FALLBACK_ROWS = 24;
-
-/**
- * 欢迎界面
- * @description 终端宽度不足以容纳字符画时退化为纯文本标题，避免折行错位
- * @param props - 欢迎界面属性
- * @param props.onEnter - 进入任务界面回调
- * @param props.onQuit - 退出回调
- * @returns 全屏居中的欢迎界面
- */
-export default function Welcome({ onEnter, onQuit }: WelcomeProps): React.JSX.Element {
-  const { columns, rows } = useWindowSize();
-
-  useInput((input, key) => {
-    if (key.return) {
-      onEnter();
-    } else if (key.escape || (key.ctrl && input === 'c')) {
-      onQuit();
-    }
-  });
-
-  return (
-    <Box flexDirection="column" width={columns} height={rows || FALLBACK_ROWS} alignItems="center" justifyContent="center">
-      {columns > LOGO_WIDTH ? (
-        LOGO_LINES.map((line) => <Text key={line.id} color={line.color}>{line.text}</Text>)
-      ) : (
-        <Text bold color="cyan">eIsland</Text>
-      )}
-      <Box marginTop={1}>
-        <Text>
-          <Text bold>{t('welcome.subtitle')}</Text>
-          <Text dimColor>{`  v${pkg.version}`}</Text>
-        </Text>
-      </Box>
-      <Box marginTop={1}>
-        <Text color="cyan">{t('welcome.hint')}</Text>
-      </Box>
-    </Box>
-  );
-}
+];
+export const LOGO_WIDTH = LOGO_LINES[0].text.length;
