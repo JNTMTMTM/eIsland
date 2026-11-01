@@ -25,11 +25,22 @@
  */
 
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as api from '../index';
 
 const isWin = process.platform === 'win32';
 const describeWin = isWin ? describe : describe.skip;
+
+// 根目录 plugins 测试项目不会执行 dotnet build，未构建 helper 时跳过真实系统查询
+const binDir = fileURLToPath(new URL('../src/bin', import.meta.url));
+const rid = `win-${process.arch === 'ia32' ? 'x86' : process.arch}`;
+const helperBuilt = ['Release', 'Debug'].some((cfg) => [
+  path.join(binDir, cfg, 'net10.0', rid, 'eIslandStartupReader.exe'),
+  path.join(binDir, cfg, 'net10.0', 'eIslandStartupReader.exe'),
+].some((candidate) => fs.existsSync(candidate)));
+const itBuilt = it.skipIf(!helperBuilt);
 
 describeWin('@eisland/windows-startup-helper', () => {
   afterEach(() => {
@@ -48,7 +59,7 @@ describeWin('@eisland/windows-startup-helper', () => {
     await expect(api.getStartupItems()).rejects.toBeInstanceOf(api.StartupHelperError);
   });
 
-  it('getStartupItems items have expected shape', async () => {
+  itBuilt('getStartupItems items have expected shape', async () => {
     const { items, errors } = await api.getStartupItems();
     expect(Array.isArray(items)).toBe(true);
     expect(Array.isArray(errors)).toBe(true);
@@ -60,7 +71,7 @@ describeWin('@eisland/windows-startup-helper', () => {
     });
   });
 
-  it('getScheduledTasks items have expected shape', async () => {
+  itBuilt('getScheduledTasks items have expected shape', async () => {
     const { items } = await api.getScheduledTasks();
     expect(items.length).toBeGreaterThan(0);
     items.forEach((task) => {
@@ -74,7 +85,7 @@ describeWin('@eisland/windows-startup-helper', () => {
     });
   });
 
-  it('getServices items have expected shape', async () => {
+  itBuilt('getServices items have expected shape', async () => {
     const { items, errors } = await api.getServices();
     expect(items.length).toBeGreaterThan(0);
     items.forEach((svc) => {
