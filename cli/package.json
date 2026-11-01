@@ -1,6 +1,6 @@
 {
   "name": "@eisland/cli",
-  "version": "1.0.0",
+  "version": "26.0.0",
   "description": "Command line entry for running eIsland repository scripts",
   "license": "GPL-3.0",
   "private": true,
