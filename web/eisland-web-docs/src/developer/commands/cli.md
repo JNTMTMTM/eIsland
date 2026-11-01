@@ -33,6 +33,8 @@ Run `npm run dev` inside `cli/` to rebuild on every change (`vite build --watch`
 | `npm run build` | `vite build` | Bundle `src/index.ts` into `dist/index.js` (Vite SSR build, Node 24 target) |
 | `npm run dev` | `vite build --watch` | Rebuild on change |
 | `npm run typecheck` | `tsc -p tsconfig.json --noEmit` | Type-check only; `tsc` does not emit |
+| `npm test` | `vitest run` | Run CLI tests with the CLI's own Vitest config |
+| `npm run test:watch` | `vitest` | Run CLI tests in watch mode |
 
 ## Usage
 
@@ -116,9 +118,14 @@ Every root `package.json` script needs a `scripts.<name>` description in all fou
 
 | Command | Script | Description |
 |---------|--------|-------------|
+| `npm test` (inside `cli/`) | `vitest run` | Run CLI tests on their own |
 | `npm run test:cli` | `vitest run --project cli` | Run CLI tests from the repository root |
 
-The `cli` Vitest project collects `cli/src/**/*.test.{ts,tsx}`. In CI, it runs as its own matrix job, which installs `cli/` dependencies with `npm ci --prefix cli`.
+`cli/vitest.config.ts` is the single source of the CLI test settings (`src/**/*.test.{ts,tsx}`, Node environment, mocks cleared and restored). The root `vitest.config.mts` references that file as a project path, so `npm test` at the root also runs the CLI tests. In CI, the CLI runs as its own matrix job, which installs `cli/` dependencies with `npm ci --prefix cli`.
+
+:::tip
+Change CLI test settings only in `cli/vitest.config.ts`. The root config does not use `extends: true` for this project, so root-level options such as coverage settings do not apply to it.
+:::
 
 ## Source Files
 

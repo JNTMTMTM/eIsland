@@ -107,13 +107,8 @@ export default defineConfig({
           testTimeout: 15000,
         },
       },
-      {
-        extends: true,
-        test: {
-          name: { label: 'cli', color: 'white' },
-          include: ['cli/src/**/*.test.{ts,tsx}'],
-        },
-      },
+      // CLI 是独立包，测试设置由自身配置维护，可在 cli/ 内单独运行。
+      'cli/vitest.config.ts',
       {
         extends: true,
         test: {
