@@ -57,10 +57,10 @@ function formatScriptLine(entry: ScriptEntry, width: number): string {
 /** 打印帮助信息 */
 function printHelp(): void {
   const rows: [string, string][] = [
-    ['eisland', t('devCli.help.cmdInteractive')],
-    ['eisland list [group]', t('devCli.help.cmdList')],
-    ['eisland run <script> [-- args]', t('devCli.help.cmdRun')],
-    ['eisland <seg> [seg...] [-- args]', t('devCli.help.cmdShorthand')],
+    ['eisland-cli', t('devCli.help.cmdInteractive')],
+    ['eisland-cli list [group]', t('devCli.help.cmdList')],
+    ['eisland-cli run <script> [-- args]', t('devCli.help.cmdRun')],
+    ['eisland-cli <seg> [seg...] [-- args]', t('devCli.help.cmdShorthand')],
   ];
   const options: [string, string][] = [
     ['-y, --yes', t('devCli.help.optYes')],
@@ -80,9 +80,9 @@ function printHelp(): void {
     ...options.map(format),
     '',
     `${t('devCli.help.examples')}:`,
-    '  eisland test main',
-    '  eisland plugin build smtc',
-    '  eisland run test:renderer -- --watch',
+    '  eisland-cli test main',
+    '  eisland-cli plugin build smtc',
+    '  eisland-cli run test:renderer -- --watch',
   ].join('\n'));
 }
 

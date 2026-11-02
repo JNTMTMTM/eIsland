@@ -116,7 +116,7 @@ describe('runCli', () => {
 
   it('非交互终端无参数时打印帮助', async () => {
     expect(await cli()).toBe(0);
-    expect(output.join('\n')).toContain('eisland list [group]');
+    expect(output.join('\n')).toContain('eisland-cli list [group]');
   });
 
   it('list 按分组打印并隐藏生命周期脚本', async () => {

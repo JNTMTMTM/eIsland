@@ -4958,14 +4958,14 @@
     },
     "cancelled": "キャンセルしました",
     "errors": {
-      "badArgs": "引数が無効です：{{message}}\nスクリプトの引数は \"--\" の後に指定してください（例：eisland run test -- --watch）",
+      "badArgs": "引数が無効です：{{message}}\nスクリプトの引数は \"--\" の後に指定してください（例：eisland-cli run test -- --watch）",
       "rootNotFound": "eIsland リポジトリが見つかりません。リポジトリ内で実行してください。",
       "unknownGroup": "不明なグループ \"{{group}}\"。利用可能なグループ：{{groups}}",
-      "runMissingName": "スクリプト名がありません。使い方：eisland run <script>",
+      "runMissingName": "スクリプト名がありません。使い方：eisland-cli run <script>",
       "incompleteScript": "\"{{name}}\" はスクリプトではありません。一致するスクリプト：",
       "unknownScript": "不明なスクリプト \"{{name}}\"。",
       "didYouMean": "もしかして：",
-      "listHint": "\"eisland list\" ですべてのスクリプトを表示できます。",
+      "listHint": "\"eisland-cli list\" ですべてのスクリプトを表示できます。",
       "dangerousNonInteractive": "\"{{name}}\" は危険なスクリプトで、非対話ターミナルでは確認できません。--yes を付けて再実行してください。",
       "spawnFailed": "npm の起動に失敗しました：{{message}}"
     },

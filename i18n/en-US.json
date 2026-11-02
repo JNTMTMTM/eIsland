@@ -4958,14 +4958,14 @@
     },
     "cancelled": "Cancelled",
     "errors": {
-      "badArgs": "Invalid arguments: {{message}}\nPass script arguments after \"--\", e.g. eisland run test -- --watch",
+      "badArgs": "Invalid arguments: {{message}}\nPass script arguments after \"--\", e.g. eisland-cli run test -- --watch",
       "rootNotFound": "eIsland repository not found. Run this command inside the repository.",
       "unknownGroup": "Unknown group \"{{group}}\". Available groups: {{groups}}",
-      "runMissingName": "Missing script name. Usage: eisland run <script>",
+      "runMissingName": "Missing script name. Usage: eisland-cli run <script>",
       "incompleteScript": "\"{{name}}\" is not a script. Matching scripts:",
       "unknownScript": "Unknown script \"{{name}}\".",
       "didYouMean": "Did you mean:",
-      "listHint": "Run \"eisland list\" to see all scripts.",
+      "listHint": "Run \"eisland-cli list\" to see all scripts.",
       "dangerousNonInteractive": "\"{{name}}\" is dangerous and cannot be confirmed in a non-interactive terminal. Re-run with --yes.",
       "spawnFailed": "Failed to start npm: {{message}}"
     },

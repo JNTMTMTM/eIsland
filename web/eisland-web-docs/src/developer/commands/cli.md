@@ -6,7 +6,7 @@ icon: terminal
 # eIsland CLI
 
 :::info
-This document covers the `eisland` command line tool in `cli/`. It reads the scripts in the root `package.json` at runtime and runs them through `npm run`, with an interactive picker, grouped listing, shorthand commands, and confirmation before dangerous scripts. For the scripts themselves, see [Development Commands](README.md).
+This document covers the `eisland-cli` command line tool in `cli/`. It reads the scripts in the root `package.json` at runtime and runs them through `npm run`, with an interactive picker, grouped listing, shorthand commands, and confirmation before dangerous scripts. For the scripts themselves, see [Development Commands](README.md).
 :::
 
 ## Installation
@@ -20,7 +20,7 @@ npm run build
 npm link
 ```
 
-After `npm link`, the `eisland` command is available globally. It works from any directory inside the repository because it walks up to find the root `package.json` (`name: "eisland"`).
+After `npm link`, the `eisland-cli` command is available globally. It works from any directory inside the repository because it walks up to find the root `package.json` (`name: "eisland"`).
 
 :::tip
 Run `npm run dev` inside `cli/` to rebuild on every change (`vite build --watch`). The linked command picks up the new build right away.
@@ -40,17 +40,17 @@ Run `npm run dev` inside `cli/` to rebuild on every change (`vite build --watch`
 
 | Command | Description |
 |---------|-------------|
-| `eisland` | Open the interactive dashboard (TTY only; prints help otherwise) |
-| `eisland list [group]` | List scripts by group (alias: `ls`) |
-| `eisland run <script> [-- args]` | Run a script by its exact name |
-| `eisland <seg> [seg...] [-- args]` | Shorthand: segments are joined with `:` |
-| `eisland help` | Show help |
+| `eisland-cli` | Open the interactive dashboard (TTY only; prints help otherwise) |
+| `eisland-cli list [group]` | List scripts by group (alias: `ls`) |
+| `eisland-cli run <script> [-- args]` | Run a script by its exact name |
+| `eisland-cli <seg> [seg...] [-- args]` | Shorthand: segments are joined with `:` |
+| `eisland-cli help` | Show help |
 
 ```bash
-eisland test main                       # npm run test:main
-eisland plugin build smtc               # npm run plugin:build:smtc
-eisland run test:renderer -- --watch    # npm run test:renderer -- --watch
-eisland list plugin                     # list only the plugin group
+eisland-cli test main                       # npm run test:main
+eisland-cli plugin build smtc               # npm run plugin:build:smtc
+eisland-cli run test:renderer -- --watch    # npm run test:renderer -- --watch
+eisland-cli list plugin                     # list only the plugin group
 ```
 
 ### Options
@@ -63,12 +63,12 @@ eisland list plugin                     # list only the plugin group
 | `-v, --version` | Show the CLI version |
 
 :::important
-Arguments meant for the script must come after `--`. Unknown options before `--` are rejected, so `eisland test --watch` fails while `eisland test -- --watch` works.
+Arguments meant for the script must come after `--`. Unknown options before `--` are rejected, so `eisland-cli test --watch` fails while `eisland-cli test -- --watch` works.
 :::
 
 ### Interactive Dashboard
 
-Running `eisland` with no arguments opens a full-screen welcome screen with the eIsland logo and the main menu. Use `↑` / `↓` and `Enter` to open a feature, or `Esc` to quit. Your previous terminal content comes back when you quit.
+Running `eisland-cli` with no arguments opens a full-screen welcome screen with the eIsland logo and the main menu. Use `↑` / `↓` and `Enter` to open a feature, or `Esc` to quit. Your previous terminal content comes back when you quit.
 
 | Menu entry | Description |
 |------------|-------------|
@@ -111,11 +111,11 @@ The bottom panel takes 40% of the terminal height (at least 10 rows), and the ou
 Several tasks can run at the same time, for example `dev` alongside a test run. Each task keeps its last 5000 lines. The script list is reloaded each time the picker opens. Dangerous scripts ask for `(y/N)` confirmation in the bottom panel unless you started with `--yes`.
 
 :::warning
-In the dashboard, scripts write to a pipe, not the terminal. Colors are forced on with `FORCE_COLOR=1`, but scripts that read keyboard input (such as Vitest watch-mode shortcuts) receive none. Run those with a direct command instead, for example `eisland run test -- --watch`.
+In the dashboard, scripts write to a pipe, not the terminal. Colors are forced on with `FORCE_COLOR=1`, but scripts that read keyboard input (such as Vitest watch-mode shortcuts) receive none. Run those with a direct command instead, for example `eisland-cli run test -- --watch`.
 :::
 
 :::tip
-"End current task" uses `taskkill /T /F` on Windows and signals the process group elsewhere, so grandchild processes such as the Electron window from `dev` also stop. Direct commands such as `eisland test main` keep the plain terminal output and exit after one run, so they stay safe to chain in shells and CI.
+"End current task" uses `taskkill /T /F` on Windows and signals the process group elsewhere, so grandchild processes such as the Electron window from `dev` also stop. Direct commands such as `eisland-cli test main` keep the plain terminal output and exit after one run, so they stay safe to chain in shells and CI.
 :::
 
 ### Local Tests
@@ -143,8 +143,8 @@ Some apps do not report a timeline. For those, the progress row says so instead 
 | Input | Result |
 |-------|--------|
 | Exact match after joining with `:` | The script runs |
-| Prefix of existing scripts, e.g. `eisland plugin build` | Lists the matching scripts and exits with code `1` |
-| Typo, e.g. `eisland tset main` | Suggests similar names ("Did you mean") and exits with code `1` |
+| Prefix of existing scripts, e.g. `eisland-cli plugin build` | Lists the matching scripts and exits with code `1` |
+| Typo, e.g. `eisland-cli tset main` | Suggests similar names ("Did you mean") and exits with code `1` |
 
 :::note
 Groups are the first segment of each script name (`test`, `lint`, `plugin`, `release`, ...). The script list is never hard-coded, so a new root script works in the CLI right away.
@@ -173,7 +173,7 @@ Scripts matching `release:upload*` and `esa:purge*` upload release artifacts or 
 These scripts act on production resources and cannot be undone. Only pass `--yes` in automation that is meant to publish.
 :::
 
-npm lifecycle scripts such as `postinstall` are hidden from the list and picker, but you can still run them explicitly with `eisland run postinstall`.
+npm lifecycle scripts such as `postinstall` are hidden from the list and picker, but you can still run them explicitly with `eisland-cli run postinstall`.
 
 ## Internationalization
 

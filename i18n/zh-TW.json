@@ -4958,14 +4958,14 @@
     },
     "cancelled": "已取消",
     "errors": {
-      "badArgs": "參數無效：{{message}}\n腳本參數請放在 \"--\" 之後，例如 eisland run test -- --watch",
+      "badArgs": "參數無效：{{message}}\n腳本參數請放在 \"--\" 之後，例如 eisland-cli run test -- --watch",
       "rootNotFound": "找不到 eIsland 儲存庫，請在儲存庫目錄內執行。",
       "unknownGroup": "未知分組 \"{{group}}\"，可用分組：{{groups}}",
-      "runMissingName": "缺少腳本名稱。用法：eisland run <script>",
+      "runMissingName": "缺少腳本名稱。用法：eisland-cli run <script>",
       "incompleteScript": "\"{{name}}\" 不是完整的腳本名稱，符合的腳本：",
       "unknownScript": "未知腳本 \"{{name}}\"。",
       "didYouMean": "你是不是想執行：",
-      "listHint": "執行 \"eisland list\" 查看全部腳本。",
+      "listHint": "執行 \"eisland-cli list\" 查看全部腳本。",
       "dangerousNonInteractive": "\"{{name}}\" 是危險腳本，非互動終端機無法確認，請加上 --yes 重新執行。",
       "spawnFailed": "啟動 npm 失敗：{{message}}"
     },

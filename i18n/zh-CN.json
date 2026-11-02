@@ -4958,14 +4958,14 @@
     },
     "cancelled": "已取消",
     "errors": {
-      "badArgs": "参数无效：{{message}}\n脚本参数请放在 \"--\" 之后，例如 eisland run test -- --watch",
+      "badArgs": "参数无效：{{message}}\n脚本参数请放在 \"--\" 之后，例如 eisland-cli run test -- --watch",
       "rootNotFound": "未找到 eIsland 仓库，请在仓库目录内执行。",
       "unknownGroup": "未知分组 \"{{group}}\"，可用分组：{{groups}}",
-      "runMissingName": "缺少脚本名。用法：eisland run <script>",
+      "runMissingName": "缺少脚本名。用法：eisland-cli run <script>",
       "incompleteScript": "\"{{name}}\" 不是完整的脚本名，匹配的脚本：",
       "unknownScript": "未知脚本 \"{{name}}\"。",
       "didYouMean": "你是不是想执行：",
-      "listHint": "执行 \"eisland list\" 查看全部脚本。",
+      "listHint": "执行 \"eisland-cli list\" 查看全部脚本。",
       "dangerousNonInteractive": "\"{{name}}\" 是危险脚本，非交互终端无法确认，请加 --yes 重新执行。",
       "spawnFailed": "启动 npm 失败：{{message}}"
     },
