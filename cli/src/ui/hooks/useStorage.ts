@@ -20,7 +20,7 @@
 
 /**
  * @file useStorage.ts
- * @description 本地存储测试的读取、刷新、键名选择与详情翻看
+ * @description 本地存储测试的读取、刷新、删除、键名选择与详情翻看
  * @author 鸡哥
  */
 
@@ -31,13 +31,13 @@ import { FALLBACK_ROWS } from '../config/uiConfig';
 import {
   jsonLines, moveCursor, outputRows, pickerWindowStart, storageLayout,
 } from '../utils/uiUtils';
-import { loadStoreSnapshot, resolveStoreDir } from '../../core/storage';
+import { deleteStoreEntry, loadStoreSnapshot, resolveStoreDir } from '../../core/storage';
 
-import type { StorageViewProps, UseStorageReturn } from '../types/uiTypes';
+import type { StorageNotice, StorageViewProps, UseStorageReturn } from '../types/uiTypes';
 
 /**
  * 管理本地存储测试
- * @description 进入时读取一次，按 R 重新读取；↑↓ 选择键名，PgUp/PgDn 翻看详情，Esc 或 Ctrl+C 返回
+ * @description 进入时读取一次，按 R 重新读取；↑↓ 选择键名，PgUp/PgDn 翻看详情，D 删除选中项（需按 Y 确认），Esc 或 Ctrl+C 返回
  * @param props - 本地存储测试入参
  * @param props.onBack - 返回本机测试列表回调
  * @returns 终端尺寸、存储目录、读取结果、可见键名与详情行
@@ -49,6 +49,8 @@ export default function useStorage({ onBack }: StorageViewProps): UseStorageRetu
   const [snapshot, setSnapshot] = useState(() => loadStoreSnapshot(dir));
   const [cursor, setCursor] = useState(0);
   const [offset, setOffset] = useState(0);
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const [notice, setNotice] = useState<StorageNotice | null>(null);
 
   const { listRows, detailRows } = storageLayout(rows);
   const { entries } = snapshot;
@@ -67,7 +69,29 @@ export default function useStorage({ onBack }: StorageViewProps): UseStorageRetu
     setOffset(0);
   };
 
+  /**
+   * 删除等待确认的存储项并重新读取
+   * @param target - 存储键名
+   */
+  const remove = (target: string): void => {
+    try {
+      deleteStoreEntry(dir, target);
+      setNotice({ kind: 'deleted', key: target, error: '' });
+    } catch (error) {
+      setNotice({ kind: 'failed', key: target, error: error instanceof Error ? error.message : String(error) });
+    }
+    setSnapshot(loadStoreSnapshot(dir));
+    setOffset(0);
+  };
+
   useInput((input, key) => {
+    // 确认删除时只有 Y 执行，其余任何键（含 Esc）都视为取消，避免误删。
+    if (pendingKey !== null) {
+      setPendingKey(null);
+      if (input.toLowerCase() === 'y' && !key.ctrl) remove(pendingKey);
+      return;
+    }
+    setNotice(null);
     if (key.upArrow) {
       select(-1);
     } else if (key.downArrow) {
@@ -79,6 +103,8 @@ export default function useStorage({ onBack }: StorageViewProps): UseStorageRetu
     } else if (input.toLowerCase() === 'r' && !key.ctrl) {
       setSnapshot(loadStoreSnapshot(dir));
       setOffset(0);
+    } else if (input.toLowerCase() === 'd' && !key.ctrl && activeEntry) {
+      setPendingKey(activeEntry.key);
     } else if (key.escape || (key.ctrl && input === 'c')) {
       onBack();
     }
@@ -91,6 +117,8 @@ export default function useStorage({ onBack }: StorageViewProps): UseStorageRetu
     dir,
     snapshot,
     activeEntry,
+    pendingKey,
+    notice,
     visible: entries.slice(start, start + listRows),
     lines: outputRows(allLines, shown, detailRows),
     remaining: Math.max(0, allLines.length - shown - detailRows),

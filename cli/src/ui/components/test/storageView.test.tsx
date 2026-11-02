@@ -20,12 +20,12 @@
 
 /**
  * @file storageView.test.tsx
- * @description 验证本地存储测试界面的列表与详情渲染、遮蔽提示、翻看、刷新、返回与目录缺失提示
+ * @description 验证本地存储测试界面的列表与详情渲染、遮蔽提示、翻看、刷新、删除确认、返回与目录缺失提示
  * @author 鸡哥
  */
 
 import {
-  mkdirSync, mkdtempSync, rmSync, writeFileSync,
+  existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -128,6 +128,49 @@ describe('StorageView', () => {
     stdin.write(ESCAPE);
     await flush();
     expect(onBack).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it('D 进入确认，其他键取消，Y 删除并重新读取', async () => {
+    const onBack = vi.fn();
+    const target = path.join(storeDir, 'aaa-delete.json');
+    writeFileSync(target, JSON.stringify(1));
+    const { stdin, lastFrame, unmount } = render(<StorageView onBack={onBack} />);
+    await flush();
+    expect(lastFrame()).toContain('❯ aaa-delete');
+    stdin.write('d');
+    await flush();
+    expect(lastFrame()).toContain('Delete aaa-delete? This cannot be undone');
+    // Esc 在确认时只取消删除，不返回上一级。
+    stdin.write(ESCAPE);
+    await flush();
+    expect(onBack).not.toHaveBeenCalled();
+    expect(existsSync(target)).toBe(true);
+    expect(lastFrame()).toContain('D delete');
+    stdin.write('d');
+    await flush();
+    stdin.write('y');
+    await flush();
+    expect(existsSync(target)).toBe(false);
+    expect(lastFrame()).toContain('Deleted aaa-delete');
+    expect(lastFrame()).not.toContain('❯ aaa-delete');
+    stdin.write(DOWN);
+    await flush();
+    expect(lastFrame()).not.toContain('Deleted aaa-delete');
+    unmount();
+  });
+
+  it('删除失败时提示原因', async () => {
+    writeFileSync(path.join(storeDir, 'aaa-gone.json'), JSON.stringify(1));
+    const { stdin, lastFrame, unmount } = render(<StorageView onBack={vi.fn()} />);
+    await flush();
+    // 确认前文件已被其他进程删除。
+    rmSync(path.join(storeDir, 'aaa-gone.json'));
+    stdin.write('d');
+    await flush();
+    stdin.write('y');
+    await flush();
+    expect(lastFrame()).toContain('Failed to delete aaa-gone');
     unmount();
   });
 

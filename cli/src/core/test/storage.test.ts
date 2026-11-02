@@ -20,7 +20,7 @@
 
 /**
  * @file storage.test.ts
- * @description 验证应用存储目录定位、敏感内容遮蔽，以及存储目录的读取、排序与异常归类
+ * @description 验证应用存储目录定位、敏感内容遮蔽、存储项删除，以及存储目录的读取、排序与异常归类
  * @author 鸡哥
  */
 
@@ -33,7 +33,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 
 import {
-  loadStoreSnapshot, MASK, maskSecrets, readStore, resolveStoreDir,
+  deleteStoreEntry, loadStoreSnapshot, MASK, maskSecrets, readStore, resolveStoreDir,
 } from '../storage';
 
 const sandbox = mkdtempSync(path.join(tmpdir(), 'eisland-cli-storage-'));
@@ -110,6 +110,15 @@ describe('readStore', () => {
 
   it('目录不存在时返回 null', () => {
     expect(readStore(path.join(sandbox, 'missing'))).toBeNull();
+  });
+});
+
+describe('deleteStoreEntry', () => {
+  it('删除对应的 JSON 文件，不存在时抛出', () => {
+    writeFileSync(path.join(storeDir, 'to-delete.json'), JSON.stringify(1));
+    deleteStoreEntry(storeDir, 'to-delete');
+    expect(readStore(storeDir)?.map((entry) => entry.key)).not.toContain('to-delete');
+    expect(() => deleteStoreEntry(storeDir, 'to-delete')).toThrow();
   });
 });
 

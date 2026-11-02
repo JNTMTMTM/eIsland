@@ -20,13 +20,15 @@
 
 /**
  * @file storage.ts
- * @description 本机 eIsland 应用存储的只读读取
+ * @description 本机 eIsland 应用存储的读取与删除
  * @description 应用把每个配置项保存为 userData/eIsland_store/<key>.json（见 src/main/config/storeConfig.ts），
  * 这里按同样的规则定位目录并解析全部文件；敏感内容在读取时即被遮蔽，避免出现在终端或录屏中
  * @author 鸡哥
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import {
+  readdirSync, readFileSync, rmSync, statSync,
+} from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -143,6 +145,16 @@ export function readStore(dir: string): StoreEntry[] | null {
       };
     }
   });
+}
+
+/**
+ * 删除一个存储项文件
+ * @description 应用下次读取该键时会回落到默认值；应用运行中可能随时重新写入
+ * @param dir - 存储目录
+ * @param key - 存储键名
+ */
+export function deleteStoreEntry(dir: string, key: string): void {
+  rmSync(path.join(dir, `${key}.json`));
 }
 
 /**

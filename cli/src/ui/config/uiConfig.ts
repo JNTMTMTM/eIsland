@@ -72,7 +72,7 @@ export const SMTC_LABEL_WIDTH = 10;
 export const SMTC_PROGRESS_WIDTH = 30;
 // 本地存储界面的键名列表宽度。
 export const STORAGE_LIST_WIDTH = 36;
-// 本地存储界面除内容外的行：外框上下边框、标题、路径、按键提示与两个内框的上下边框。
+// 本地存储界面除内容外的行：外框上下边框、标题、路径、按键提示（确认删除与删除结果共用此行）与两个内框的上下边框。
 export const STORAGE_CHROME_ROWS = 7;
 // 详情中 JSON 之前的行：键名、类型与大小、遮蔽提示或空行；之后的剩余行数提示。
 export const STORAGE_DETAIL_CHROME_ROWS = 4;

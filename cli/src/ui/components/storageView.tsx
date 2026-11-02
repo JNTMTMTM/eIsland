@@ -31,6 +31,7 @@ import useStorage from '../hooks/useStorage';
 import { t } from '../../core/i18n';
 import StorageDetail from './storageDetail';
 import StorageList from './storageList';
+import StorageStatus from './storageStatus';
 
 import type { StorageViewProps } from '../types/uiTypes';
 
@@ -42,7 +43,7 @@ import type { StorageViewProps } from '../types/uiTypes';
  */
 export default function StorageView({ onBack }: StorageViewProps): React.JSX.Element {
   const {
-    columns, rows, dir, snapshot, visible, activeEntry, lines, remaining,
+    columns, rows, dir, snapshot, visible, activeEntry, lines, remaining, pendingKey, notice,
   } = useStorage({ onBack });
   const { state, entries, error } = snapshot;
   return (
@@ -67,7 +68,7 @@ export default function StorageView({ onBack }: StorageViewProps): React.JSX.Ele
           </>
         ) : null}
       </Box>
-      <Text dimColor wrap="truncate-end">{t('devCli.localTest.storage.hint')}</Text>
+      <StorageStatus pendingKey={pendingKey} notice={notice} />
     </Box>
   );
 }

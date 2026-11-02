@@ -44,6 +44,16 @@ export type SmtcState = 'loading' | 'ready' | 'unsupported' | 'error';
 /** 存储值的类型 */
 export type StoreValueType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
 
+/** 删除存储项的结果 */
+export interface StorageNotice {
+  /** deleted 删除成功；failed 删除失败 */
+  kind: 'deleted' | 'failed';
+  /** 被删除的存储键名 */
+  key: string;
+  /** 失败原因，成功时为空字符串 */
+  error: string;
+}
+
 /** 本地存储界面各区域的可用行数 */
 export interface StorageLayout {
   /** 键名列表可见行数 */
@@ -243,6 +253,14 @@ export interface StorageListProps {
   activeEntry: StoreEntry | undefined;
 }
 
+/** StorageStatus 组件入参 */
+export interface StorageStatusProps {
+  /** 等待确认删除的存储键名 */
+  pendingKey: string | null;
+  /** 最近一次删除的结果 */
+  notice: StorageNotice | null;
+}
+
 /** StorageDetail 组件入参 */
 export interface StorageDetailProps {
   /** 光标所在的存储项 */
@@ -383,4 +401,8 @@ export interface UseStorageReturn {
   lines: OutputRow[];
   /** 详情可见行之外剩余的行数 */
   remaining: number;
+  /** 等待确认删除的存储键名，未在确认时为 null */
+  pendingKey: string | null;
+  /** 最近一次删除的结果，按下其他键后清除 */
+  notice: StorageNotice | null;
 }
