@@ -20,11 +20,11 @@
 
 /**
  * @file smtcSessionInfo.tsx
- * @description SMTC 测试界面中的媒体会话字段与播放进度
+ * @description SMTC 测试界面中的单个媒体会话：来源应用、播放状态、字段与播放进度
  * @author 鸡哥
  */
 
-import { Box } from 'ink';
+import { Box, Text } from 'ink';
 
 import { SMTC_PROGRESS_WIDTH, SMTC_STATUS_COLOR } from '../config/uiConfig';
 import { formatDuration, progressBar } from '../utils/uiUtils';
@@ -34,26 +34,31 @@ import SmtcField from './smtcField';
 import type { SmtcSessionInfoProps } from '../types/uiTypes';
 
 /**
- * 媒体会话信息
+ * 单个媒体会话
  * @description 应用未提供时间线（总时长为 0）时不绘制进度条
  * @param props - 会话信息入参
- * @param props.session - 媒体会话
- * @param props.position - 推算的当前播放位置
- * @returns 字段列表
+ * @param props.entry - 带推算播放位置的媒体会话
+ * @param props.index - 会话序号
+ * @returns 会话标题行与字段列表
  */
-export default function SmtcSessionInfo({ session, position }: SmtcSessionInfoProps): React.JSX.Element {
-  const status = t(`devCli.localTest.smtc.status.${session.status.toLowerCase()}`, { defaultValue: session.status });
+export default function SmtcSessionInfo({ entry, index }: SmtcSessionInfoProps): React.JSX.Element {
+  const { session, position } = entry;
   const progress = session.duration > 0
     ? `${progressBar(position, session.duration, SMTC_PROGRESS_WIDTH)} ${formatDuration(position)} / ${formatDuration(session.duration)}`
     : t('devCli.localTest.smtc.noTimeline');
   return (
-    <Box flexDirection="column">
-      <SmtcField label={t('devCli.localTest.smtc.fields.title')} value={session.title} color="cyan" />
-      <SmtcField label={t('devCli.localTest.smtc.fields.artist')} value={session.artist} />
-      <SmtcField label={t('devCli.localTest.smtc.fields.album')} value={session.album} />
-      <SmtcField label={t('devCli.localTest.smtc.fields.status')} value={status} color={SMTC_STATUS_COLOR[session.status] ?? 'gray'} />
-      <SmtcField label={t('devCli.localTest.smtc.fields.progress')} value={progress} />
-      <SmtcField label={t('devCli.localTest.smtc.fields.app')} value={session.app} />
+    <Box flexDirection="column" marginBottom={1}>
+      <Text wrap="truncate-end">
+        <Text dimColor>{`#${index} `}</Text>
+        <Text bold>{session.app || t('devCli.localTest.smtc.unknown')}</Text>
+        <Text color={SMTC_STATUS_COLOR[session.status] ?? 'gray'}>{`  ${t(`devCli.localTest.smtc.status.${session.status}`)}`}</Text>
+      </Text>
+      <Box flexDirection="column" paddingLeft={2}>
+        <SmtcField label={t('devCli.localTest.smtc.fields.title')} value={session.title} color="cyan" />
+        <SmtcField label={t('devCli.localTest.smtc.fields.artist')} value={session.artist} />
+        <SmtcField label={t('devCli.localTest.smtc.fields.album')} value={session.album} />
+        <SmtcField label={t('devCli.localTest.smtc.fields.progress')} value={progress} />
+      </Box>
     </Box>
   );
 }

@@ -73,7 +73,7 @@ Running `eisland` with no arguments opens a full-screen welcome screen with the 
 | Menu entry | Description |
 |------------|-------------|
 | Repository | The task view for root `package.json` scripts (the CLI's first feature) |
-| Local tests | Self-contained checks of system features on this machine; see [Local Tests](#local-tests) |
+| Local tests | Checks of system features on this machine; see [Local Tests](#local-tests) |
 
 :::important
 Going back to the main menu does not stop running tasks. They keep running and are still listed when you open Repository again. Quitting from the main menu asks first if any task is still running.
@@ -124,14 +124,18 @@ The Local tests screen lists tests that check system features of this machine. P
 
 | Test | Description |
 |------|-------------|
-| SMTC | Reads the current media session from Windows System Media Transport Controls and refreshes it every second: title, artist, album, playback status, progress, and source app |
+| SMTC | Lists every media session from Windows System Media Transport Controls and refreshes them every second: source app, playback status, title, artist, album, and progress |
 
 :::info
-The SMTC test is fully self-contained. It does not load the repository's SMTC plugin or any native module. It starts the built-in Windows PowerShell with an embedded script (passed via `-EncodedCommand`) that calls the WinRT `GlobalSystemMediaTransportControlsSessionManager` API and prints one JSON line per second. The reader process stops when you leave the test.
+The SMTC test uses the repository's own plugin, `plugins/windows/eisland-windows-smtc-helper`. The CLI loads it at runtime from the repository root (it is a CommonJS package that loads a native DLL through koffi, so it is not bundled into the CLI). The test starts the plugin's `SmtcMonitor`, calls `getMediaSessions()` once per second, and stops the monitor when you leave the test.
+:::
+
+:::warning
+The plugin's DLL must be built first. If the test reports `Unable to find eIslandSmtcHelper.dll`, run `npm install` (its `postinstall` builds the DLL) or `npm run build` inside `plugins/windows/eisland-windows-smtc-helper`. Building requires the .NET SDK.
 :::
 
 :::note
-Some apps do not report a timeline. For those, the progress row says so instead of drawing a bar. While media is playing, the position is extrapolated from the last timeline update, so the bar keeps moving between updates. On macOS and Linux the test shows that SMTC is Windows-only and starts nothing.
+Some apps do not report a timeline. For those, the progress row says so instead of drawing a bar. While media is playing, the position is extrapolated from the plugin's sample time (`sampledAtMs`), so the bar keeps moving between updates. Sessions that do not fit on the screen are cut off at the bottom. On macOS and Linux the test shows that SMTC is Windows-only and starts nothing.
 :::
 
 ### Name Resolution
@@ -205,7 +209,7 @@ Change CLI test settings only in `cli/vitest.config.ts`. The root config does no
 | `cli/src/core/taskManager.ts` | Concurrent dashboard tasks: output capture, process tree kill, change subscription |
 | `cli/src/core/outputBuffer.ts` | Split piped output into lines and strip cursor control sequences |
 | `cli/src/core/i18n.ts` | Locale detection and i18next setup for the `devCli` namespace |
-| `cli/src/core/smtc.ts` | Self-contained SMTC reader: embedded PowerShell script, JSON line parsing, process lifecycle |
+| `cli/src/core/smtc.ts` | Loads the SMTC helper plugin from the repository, converts its session snapshots, and polls all sessions |
 
 The Ink UI in `cli/src/ui/` follows the project's module layout:
 
@@ -218,13 +222,13 @@ The Ink UI in `cli/src/ui/` follows the project's module layout:
 | `ui/hooks/useDashboard.ts` | Task subscription, current task, panel mode, scrolling, and keyboard handling |
 | `ui/hooks/useScriptPicker.ts` | Picker filtering, cursor, and keyboard handling |
 | `ui/hooks/useConfirmInput.ts`, `useWelcome.ts`, `useAppScreen.ts` | Confirm keys, main menu cursor and quit confirmation, screen switching |
-| `ui/hooks/useLocalTest.ts`, `useSmtc.ts` | Local test list, SMTC reader lifecycle and live state |
+| `ui/hooks/useLocalTest.ts`, `useSmtc.ts` | Local test list, SMTC monitor lifecycle and live session state |
 | `ui/components/launchers.tsx` | Mount Ink for the full-screen dashboard and for direct-command confirmation |
 | `ui/components/interactiveApp.tsx` | Switches between the main menu, the dashboard, and local tests |
 | `ui/components/dashboard.tsx` | Top/bottom task view composed from the components below |
 | `ui/components/welcome.tsx` | Welcome screen with the eIsland logo and main menu |
 | `ui/components/localTest.tsx` | Local test list |
-| `ui/components/smtcView.tsx`, `smtcSessionInfo.tsx`, `smtcField.tsx` | SMTC test screen, session fields, and progress |
+| `ui/components/smtcView.tsx`, `smtcSessionInfo.tsx`, `smtcField.tsx` | SMTC test screen, one block per session, session fields and progress |
 | `ui/components/outputPanel.tsx`, `taskList.tsx`, `actionMenu.tsx` | Output panel with paging, task list, action list |
 | `ui/components/scriptPicker.tsx`, `pickerRow.tsx` | Searchable script picker and its rows |
 | `ui/components/confirmPrompt.tsx` | `(y/N)` confirmation prompt |

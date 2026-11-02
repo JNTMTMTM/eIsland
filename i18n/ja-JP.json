@@ -4921,7 +4921,7 @@
         },
         "localTest": {
           "label": "ローカルテスト",
-          "description": "このマシンのシステム機能を確認（リポジトリのコード不要）"
+          "description": "このマシンのシステム機能を確認"
         }
       }
     },
@@ -5055,11 +5055,12 @@
       "items": {
         "smtc": {
           "label": "SMTC",
-          "description": "システムメディアトランスポートコントロールから再生中の情報をリアルタイムで取得"
+          "description": "このマシンのすべての SMTC 再生セッションをリアルタイムで取得"
         }
       },
       "smtc": {
         "title": "SMTC メディア情報",
+        "count": "{{count}} 件のセッション",
         "loading": "再生情報を読み取り中...",
         "unsupported": "SMTC は Windows でのみ利用できます。",
         "error": "読み取りに失敗しました：{{message}}",
@@ -5071,9 +5072,7 @@
           "title": "タイトル",
           "artist": "アーティスト",
           "album": "アルバム",
-          "status": "状態",
-          "progress": "進行",
-          "app": "提供元アプリ"
+          "progress": "進行"
         },
         "status": {
           "playing": "再生中",
@@ -5081,7 +5080,8 @@
           "stopped": "停止",
           "closed": "終了",
           "opened": "起動済み",
-          "changing": "切り替え中"
+          "changing": "切り替え中",
+          "unknown": "不明"
         }
       }
     }

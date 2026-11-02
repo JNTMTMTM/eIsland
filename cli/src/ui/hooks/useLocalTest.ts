@@ -39,7 +39,7 @@ import type { LocalTestProps, UseLocalTestReturn } from '../types/uiTypes';
  * @param props.onBack - 返回主菜单回调
  * @returns 终端尺寸、光标与正在运行的测试项
  */
-export default function useLocalTest({ onBack }: LocalTestProps): UseLocalTestReturn {
+export default function useLocalTest({ onBack }: Pick<LocalTestProps, 'onBack'>): UseLocalTestReturn {
   const { columns, rows } = useWindowSize();
   const [cursor, setCursor] = useState(0);
   const [running, setRunning] = useState<UseLocalTestReturn['running']>(null);

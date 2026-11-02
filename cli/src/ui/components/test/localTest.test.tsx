@@ -20,7 +20,7 @@
 
 /**
  * @file localTest.test.tsx
- * @description 验证本机测试列表的选择与返回，以及 SMTC 测试的读取状态渲染与进程生命周期
+ * @description 验证本机测试列表的选择与返回，以及 SMTC 测试的全部会话渲染与插件监控生命周期
  * @author 鸡哥
  */
 
@@ -33,7 +33,7 @@ import { initI18n } from '../../../core/i18n';
 import { isSmtcSupported, watchSmtc } from '../../../core/smtc';
 import LocalTest from '../localTest';
 
-import type { SmtcSnapshot } from '../../../core/smtc';
+import type { SmtcSession } from '../../../core/smtc';
 
 vi.mock('../../../core/smtc', () => ({
   isSmtcSupported: vi.fn(() => true),
@@ -46,6 +46,7 @@ const stopMock = vi.fn();
 const DOWN = '\u001B[B';
 const ENTER = '\r';
 const ESCAPE = '\u001B';
+const ROOT = '/repo';
 
 /**
  * 等待 Ink 处理输入并完成重新渲染
@@ -59,8 +60,8 @@ const flush = (): Promise<void> => new Promise((resolve) => {
  * 获取最近一次启动读取时注册的回调
  * @returns 读取结果与错误回调
  */
-const callbacks = (): { update: (snapshot: SmtcSnapshot) => void; fail: (message: string) => void } => {
-  const [update, fail] = watchMock.mock.calls.at(-1) ?? [];
+const callbacks = (): { update: (sessions: SmtcSession[]) => void; fail: (message: string) => void } => {
+  const [, update, fail] = watchMock.mock.calls.at(-1) ?? [];
   if (!update || !fail) throw new Error('watchSmtc was not called');
   return { update, fail };
 };
@@ -71,12 +72,21 @@ const callbacks = (): { update: (snapshot: SmtcSnapshot) => void; fail: (message
  */
 async function openSmtc(): Promise<ReturnType<typeof render> & { onBack: ReturnType<typeof vi.fn> }> {
   const onBack = vi.fn();
-  const instance = render(<LocalTest onBack={onBack} />);
+  const instance = render(<LocalTest root={ROOT} onBack={onBack} />);
   await flush();
   instance.stdin.write(ENTER);
   await flush();
   return { onBack, ...instance };
 }
+
+/**
+ * 创建媒体会话
+ * @param overrides - 覆盖字段
+ * @returns 没有时间线的默认会话与覆盖字段合并后的会话
+ */
+const session = (overrides: Partial<SmtcSession>): SmtcSession => ({
+  app: 'app', title: '', artist: '', album: '', status: 'unknown', position: 0, duration: 0, updated: 0, ...overrides,
+});
 
 beforeAll(() => initI18n('en-US'));
 
@@ -87,7 +97,7 @@ beforeEach(() => {
 
 describe('LocalTest', () => {
   it('列出 SMTC 测试项与返回主菜单', () => {
-    const { lastFrame, unmount } = render(<LocalTest onBack={vi.fn()} />);
+    const { lastFrame, unmount } = render(<LocalTest root={ROOT} onBack={vi.fn()} />);
     const frame = lastFrame() ?? '';
     expect(frame).toContain('Local tests');
     expect(frame).toContain('SMTC');
@@ -97,7 +107,7 @@ describe('LocalTest', () => {
 
   it('选中返回主菜单或按 Esc 时回调', async () => {
     const onBack = vi.fn();
-    const { stdin, unmount } = render(<LocalTest onBack={onBack} />);
+    const { stdin, unmount } = render(<LocalTest root={ROOT} onBack={onBack} />);
     await flush();
     stdin.write(DOWN);
     await flush();
@@ -114,11 +124,17 @@ describe('SMTC 测试', () => {
   it('读取到会话前显示加载，读取后渲染字段与进度', async () => {
     const { lastFrame, unmount } = await openSmtc();
     expect(lastFrame()).toContain('Reading playback info');
-    callbacks().update({
-      app: 'Spotify.exe', title: 'Song', artist: 'Singer', album: '', status: 'Playing', position: 65, duration: 200, updated: 0,
-    });
+    expect(watchMock).toHaveBeenCalledWith(ROOT, expect.any(Function), expect.any(Function));
+    callbacks().update([
+      session({
+        app: 'Spotify.exe', title: 'Song', artist: 'Singer', status: 'playing', position: 65, duration: 200,
+      }),
+      session({ app: 'Games.exe', title: 'Game', status: 'paused' }),
+    ]);
     await flush();
     const frame = lastFrame() ?? '';
+    expect(frame).toContain('2 session(s)');
+    expect(frame.indexOf('#1 Spotify.exe')).toBeLessThan(frame.indexOf('#2 Games.exe'));
     expect(frame).toContain('Song');
     expect(frame).toContain('Singer');
     expect(frame).toContain('not provided');
@@ -130,12 +146,10 @@ describe('SMTC 测试', () => {
 
   it('没有会话或没有时间线时分别提示', async () => {
     const { lastFrame, unmount } = await openSmtc();
-    callbacks().update(null);
+    callbacks().update([]);
     await flush();
-    expect(lastFrame()).toContain('No media session');
-    callbacks().update({
-      app: 'Games.exe', title: 'Game', artist: '', album: '', status: 'Paused', position: 0, duration: 0, updated: 0,
-    });
+    expect(lastFrame()).toContain('No media sessions');
+    callbacks().update([session({ app: 'Games.exe', title: 'Game', status: 'paused' })]);
     await flush();
     expect(lastFrame()).toContain('does not report playback progress');
     expect(lastFrame()).toContain('paused');

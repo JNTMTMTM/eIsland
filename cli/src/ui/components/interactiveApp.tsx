@@ -47,6 +47,6 @@ export default function InteractiveApp({ manager, root, skipConfirm, passthrough
   if (screen === 'repo') {
     return <Dashboard manager={manager} root={root} skipConfirm={skipConfirm} passthrough={passthrough} onQuit={onQuit} onBack={back} />;
   }
-  if (screen === 'localTest') return <LocalTest onBack={back} />;
+  if (screen === 'localTest') return <LocalTest root={root} onBack={back} />;
   return <Welcome manager={manager} onSelect={open} onQuit={onQuit} />;
 }

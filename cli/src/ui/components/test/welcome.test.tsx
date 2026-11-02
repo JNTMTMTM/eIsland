@@ -150,7 +150,7 @@ describe('InteractiveApp', () => {
     await flush();
     stdin.write('\r');
     await flush();
-    expect(lastFrame()).toContain('Read what is playing now');
+    expect(lastFrame()).toContain('Read every SMTC playback session');
     stdin.write('\u001B');
     await flush();
     expect(lastFrame()).toContain('Enter open');

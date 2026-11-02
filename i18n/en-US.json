@@ -4921,7 +4921,7 @@
         },
         "localTest": {
           "label": "Local tests",
-          "description": "Check system features on this machine, no repository code needed"
+          "description": "Check system features on this machine"
         }
       }
     },
@@ -5055,15 +5055,16 @@
       "items": {
         "smtc": {
           "label": "SMTC",
-          "description": "Read what is playing now from System Media Transport Controls"
+          "description": "Read every SMTC playback session on this machine in real time"
         }
       },
       "smtc": {
         "title": "SMTC media info",
+        "count": "{{count}} session(s)",
         "loading": "Reading playback info...",
         "unsupported": "SMTC is only available on Windows.",
         "error": "Failed to read: {{message}}",
-        "empty": "No media session. Start playing something in any player.",
+        "empty": "No media sessions. Start playing something in any player.",
         "unknown": "not provided",
         "noTimeline": "The app does not report playback progress",
         "hint": "Esc back · refreshes every second",
@@ -5071,9 +5072,7 @@
           "title": "Title",
           "artist": "Artist",
           "album": "Album",
-          "status": "Status",
-          "progress": "Progress",
-          "app": "Source app"
+          "progress": "Progress"
         },
         "status": {
           "playing": "playing",
@@ -5081,7 +5080,8 @@
           "stopped": "stopped",
           "closed": "closed",
           "opened": "opened",
-          "changing": "changing"
+          "changing": "changing",
+          "unknown": "unknown"
         }
       }
     }

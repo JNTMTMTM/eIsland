@@ -20,17 +20,20 @@
 
 /**
  * @file smtc.ts
- * @description 本机 SMTC（系统媒体传输控件）播放信息读取
- * @description 完全自包含：不依赖仓库插件或原生模块，通过系统自带的 Windows PowerShell 调用 WinRT 接口，
- * 常驻进程每秒输出一行 JSON，CLI 解析后实时渲染
+ * @description 本机 SMTC（系统媒体传输控件）全部播放实例读取
+ * @description 直接加载仓库内的 eisland-windows-smtc-helper 插件，启动其会话监控后每秒同步读取全部会话
  * @author 鸡哥
  */
 
-import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+import path from 'node:path';
 
-/** 当前媒体会话 */
+/** 播放状态，按 WinRT GlobalSystemMediaTransportControlsSessionPlaybackStatus 枚举顺序 */
+export type SmtcStatus = 'closed' | 'opened' | 'changing' | 'stopped' | 'playing' | 'paused' | 'unknown';
+
+/** 单个媒体会话 */
 export interface SmtcSession {
-  /** 来源应用的 AppUserModelId */
+  /** 来源应用标识 */
   app: string;
   /** 标题 */
   title: string;
@@ -38,51 +41,49 @@ export interface SmtcSession {
   artist: string;
   /** 专辑 */
   album: string;
-  /** 播放状态，如 Playing、Paused */
-  status: string;
+  /** 播放状态 */
+  status: SmtcStatus;
   /** 时间线位置（秒），对应 updated 时刻 */
   position: number;
   /** 总时长（秒），应用未提供时间线时为 0 */
   duration: number;
-  /** 时间线最后更新时刻（Unix 毫秒），未提供时为非正数 */
+  /** 位置采样时刻（Unix 毫秒），未提供时为 0 */
   updated: number;
 }
 
-/** 单次读取结果，null 表示当前没有媒体会话 */
-export type SmtcSnapshot = SmtcSession | null;
+/** 插件返回的会话快照，仅声明 CLI 用到的字段 */
+export interface HelperSession {
+  sourceAppId: string;
+  media: { title: string; artist: string; albumTitle: string } | null;
+  playback: { playbackStatus: number } | null;
+  timeline: { position: number; duration: number; sampledAtMs?: number } | null;
+}
 
-/** 读取进程句柄 */
+/** 插件的会话监控器 */
+export interface HelperMonitor {
+  start: () => void;
+  stop: () => void;
+  getMediaSessions: () => HelperSession[];
+  on: (event: 'error', listener: (error: Error) => void) => unknown;
+}
+
+/** 插件模块入口 */
+export interface HelperModule {
+  SmtcMonitor: new () => HelperMonitor;
+}
+
+/** 读取句柄 */
 export interface SmtcWatcher {
-  /** 结束读取进程 */
+  /** 停止读取并关闭插件监控 */
   stop: () => void;
 }
 
-/** 刷新间隔，与脚本中的 Start-Sleep 一致 */
+/** 插件在仓库中的位置 */
+export const SMTC_HELPER_DIR = path.join('plugins', 'windows', 'eisland-windows-smtc-helper');
+/** 读取间隔 */
 export const SMTC_INTERVAL_MS = 1000;
 
-// PowerShell 5.1 没有 await，借助 AsTask 把 WinRT 异步操作转为 Task 后同步等待。
-const SMTC_SCRIPT = [
-  "$ErrorActionPreference = 'Stop'",
-  '[Console]::OutputEncoding = [Text.Encoding]::UTF8',
-  'Add-Type -AssemblyName System.Runtime.WindowsRuntime',
-  "$asTask = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.IsGenericMethod -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1' } | Select-Object -First 1",
-  'function Await($operation, [Type]$type) { $task = $asTask.MakeGenericMethod($type).Invoke($null, @($operation)); $null = $task.Wait(-1); $task.Result }',
-  '$managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType = WindowsRuntime]',
-  '$propsType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties, Windows.Media.Control, ContentType = WindowsRuntime]',
-  '$manager = Await ($managerType::RequestAsync()) $managerType',
-  'while ($true) {',
-  '  $session = $manager.GetCurrentSession()',
-  '  if ($null -eq $session) { $payload = @{ active = $false } } else {',
-  '    $props = Await ($session.TryGetMediaPropertiesAsync()) $propsType',
-  '    $playback = $session.GetPlaybackInfo()',
-  '    $timeline = $session.GetTimelineProperties()',
-  '    $payload = @{ active = $true; app = $session.SourceAppUserModelId; title = $props.Title; artist = $props.Artist; album = $props.AlbumTitle; status = [string]$playback.PlaybackStatus; position = $timeline.Position.TotalSeconds; duration = $timeline.EndTime.TotalSeconds; updated = $timeline.LastUpdatedTime.ToUnixTimeMilliseconds() }',
-  '  }',
-  '  [Console]::Out.WriteLine(($payload | ConvertTo-Json -Compress))',
-  '  [Console]::Out.Flush()',
-  `  Start-Sleep -Milliseconds ${SMTC_INTERVAL_MS}`,
-  '}',
-].join('\n');
+const PLAYBACK_STATUS: readonly SmtcStatus[] = ['closed', 'opened', 'changing', 'stopped', 'playing', 'paused'];
 
 /**
  * 是否支持读取 SMTC
@@ -94,74 +95,72 @@ export function isSmtcSupported(platform: NodeJS.Platform = process.platform): b
 }
 
 /**
- * 解析脚本输出的一行
- * @param line - JSON 文本
- * @returns 读取结果；无法解析时返回 undefined
+ * 加载仓库内的 SMTC 插件
+ * @description 插件为 CommonJS 并通过 koffi 加载原生 DLL，需在运行时按仓库路径加载，不能打包进 CLI
+ * @param root - 仓库根目录
+ * @returns 插件模块
  */
-export function parseSmtcLine(line: string): SmtcSnapshot | undefined {
-  try {
-    const value = JSON.parse(line) as Record<string, unknown>;
-    if (value.active !== true) return null;
-    const text = (key: string): string => (typeof value[key] === 'string' ? value[key] : '');
-    const num = (key: string): number => (typeof value[key] === 'number' ? value[key] : 0);
-    return {
-      app: text('app'),
-      title: text('title'),
-      artist: text('artist'),
-      album: text('album'),
-      status: text('status'),
-      position: num('position'),
-      duration: num('duration'),
-      updated: num('updated'),
-    };
-  } catch {
-    return undefined;
-  }
+export function loadSmtcHelper(root: string): HelperModule {
+  return createRequire(import.meta.url)(path.join(root, SMTC_HELPER_DIR)) as HelperModule;
 }
 
 /**
- * 启动常驻读取进程
- * @description 脚本以 -EncodedCommand 传入，避免命令行转义问题；进程异常退出时回调错误
- * @param onUpdate - 每次读取到结果时回调
- * @param onError - 进程启动失败或异常退出时回调
- * @returns 读取进程句柄
+ * 将插件快照转换为 CLI 会话
+ * @param raw - 插件返回的会话快照
+ * @returns 会话
  */
-export function watchSmtc(onUpdate: (snapshot: SmtcSnapshot) => void, onError: (message: string) => void): SmtcWatcher {
-  const encoded = Buffer.from(SMTC_SCRIPT, 'utf16le').toString('base64');
-  const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encoded], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-    windowsHide: true,
-  });
-  let stopped = false;
-  let pending = '';
-  let stderr = '';
+export function toSmtcSession(raw: HelperSession): SmtcSession {
+  return {
+    app: raw.sourceAppId,
+    title: raw.media?.title ?? '',
+    artist: raw.media?.artist ?? '',
+    album: raw.media?.albumTitle ?? '',
+    status: PLAYBACK_STATUS[raw.playback?.playbackStatus ?? -1] ?? 'unknown',
+    position: raw.timeline?.position ?? 0,
+    duration: raw.timeline?.duration ?? 0,
+    updated: raw.timeline?.sampledAtMs ?? 0,
+  };
+}
 
-  child.stdout.setEncoding('utf8');
-  child.stdout.on('data', (chunk: string) => {
-    const lines = `${pending}${chunk}`.split(/\r?\n/);
-    pending = lines.pop() ?? '';
-    lines.forEach((line) => {
-      const snapshot = parseSmtcLine(line);
-      if (snapshot !== undefined) onUpdate(snapshot);
-    });
-  });
-  child.stderr.setEncoding('utf8');
-  child.stderr.on('data', (chunk: string) => {
-    stderr += chunk;
-  });
-  child.on('error', (error) => {
-    if (!stopped) onError(error.message);
-  });
-  child.on('close', (code) => {
-    if (stopped) return;
-    const [detail] = stderr.trim().split(/\r?\n/);
-    onError(detail || `exit ${code}`);
-  });
+/**
+ * 启动插件监控并定时读取全部会话
+ * @description 插件监控启动后会话列表需要短暂时间填充，因此首次读取放在第一个间隔之后
+ * @param root - 仓库根目录
+ * @param onUpdate - 每次读取到全部会话时回调
+ * @param onError - 插件加载、启动或读取失败时回调
+ * @param load - 插件加载函数，测试时可替换
+ * @returns 读取句柄
+ */
+export function watchSmtc(
+  root: string,
+  onUpdate: (sessions: SmtcSession[]) => void,
+  onError: (message: string) => void,
+  load: (root: string) => HelperModule = loadSmtcHelper,
+): SmtcWatcher {
+  const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+  let monitor: HelperMonitor;
+  try {
+    const { SmtcMonitor } = load(root);
+    monitor = new SmtcMonitor();
+    monitor.on('error', (error) => onError(error.message));
+    monitor.start();
+  } catch (error) {
+    onError(message(error));
+    return { stop: () => {} };
+  }
+
+  const timer = setInterval(() => {
+    try {
+      onUpdate(monitor.getMediaSessions().map(toSmtcSession));
+    } catch (error) {
+      onError(message(error));
+    }
+  }, SMTC_INTERVAL_MS);
 
   return {
     stop: () => {
-      stopped = true;
-      child.kill();
+      clearInterval(timer);
+      monitor.stop();
     },
   };
 }

@@ -40,6 +40,14 @@ export type LocalTestItem = 'smtc' | 'menu';
 /** SMTC 读取状态 */
 export type SmtcState = 'loading' | 'ready' | 'unsupported' | 'error';
 
+/** 带推算播放位置的媒体会话 */
+export interface SmtcEntry {
+  /** 媒体会话 */
+  session: SmtcSession;
+  /** 按经过时间推算的当前播放位置（秒） */
+  position: number;
+}
+
 /** 下方操作区当前所处的交互模式 */
 export type Mode =
   | { kind: 'actions' }
@@ -185,16 +193,18 @@ export interface WelcomeProps {
 
 /** LocalTest 组件与 useLocalTest hook 入参 */
 export interface LocalTestProps {
+  /** 仓库根目录，用于加载测试依赖的插件 */
+  root: string;
   /** 返回主菜单 */
   onBack: () => void;
 }
 
 /** SmtcSessionInfo 组件入参 */
 export interface SmtcSessionInfoProps {
-  /** 媒体会话 */
-  session: SmtcSession;
-  /** 推算的当前播放位置（秒） */
-  position: number;
+  /** 带推算播放位置的媒体会话 */
+  entry: SmtcEntry;
+  /** 会话序号，从 1 开始 */
+  index: number;
 }
 
 /** SmtcField 组件入参 */
@@ -209,6 +219,8 @@ export interface SmtcFieldProps {
 
 /** SmtcView 组件与 useSmtc hook 入参 */
 export interface SmtcViewProps {
+  /** 仓库根目录，用于加载 SMTC 插件 */
+  root: string;
   /** 返回本机测试列表 */
   onBack: () => void;
 }
@@ -303,10 +315,8 @@ export interface UseSmtcReturn {
   rows: number;
   /** 读取状态 */
   state: SmtcState;
-  /** 当前媒体会话，没有会话时为 null */
-  session: SmtcSession | null;
-  /** 按经过时间推算的当前播放位置（秒） */
-  position: number;
+  /** 全部媒体会话 */
+  entries: SmtcEntry[];
   /** 读取失败原因 */
   error: string;
 }

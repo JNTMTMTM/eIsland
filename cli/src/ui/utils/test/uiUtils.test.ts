@@ -150,7 +150,7 @@ describe('说明列宽与滚动', () => {
 
 describe('菜单与 SMTC 展示', () => {
   const session = (overrides: Partial<SmtcSession>): SmtcSession => ({
-    app: 'app', title: 't', artist: '', album: '', status: 'Playing', position: 10, duration: 100, updated: 1_000, ...overrides,
+    app: 'app', title: 't', artist: '', album: '', status: 'playing', position: 10, duration: 100, updated: 1_000, ...overrides,
   });
 
   it('光标限制在列表范围内', () => {
@@ -168,7 +168,7 @@ describe('菜单与 SMTC 展示', () => {
   it('播放中按经过时间推算位置并限制在总时长内', () => {
     expect(livePosition(session({}), 6_000)).toBe(15);
     expect(livePosition(session({}), 500_000)).toBe(100);
-    expect(livePosition(session({ status: 'Paused' }), 6_000)).toBe(10);
+    expect(livePosition(session({ status: 'paused' }), 6_000)).toBe(10);
     expect(livePosition(session({ updated: -1 }), 6_000)).toBe(10);
     expect(livePosition(session({ duration: 0 }), 6_000)).toBe(0);
   });

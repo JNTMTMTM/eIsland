@@ -4921,7 +4921,7 @@
         },
         "localTest": {
           "label": "本機測試",
-          "description": "檢測本機系統能力，不依賴倉庫程式碼"
+          "description": "檢測本機系統能力"
         }
       }
     },
@@ -5055,11 +5055,12 @@
       "items": {
         "smtc": {
           "label": "SMTC",
-          "description": "即時讀取系統媒體傳輸控制項的目前播放資訊"
+          "description": "即時讀取本機全部 SMTC 播放實例"
         }
       },
       "smtc": {
         "title": "SMTC 媒體資訊",
+        "count": "{{count}} 個工作階段",
         "loading": "正在讀取本機播放資訊...",
         "unsupported": "SMTC 僅支援 Windows。",
         "error": "讀取失敗：{{message}}",
@@ -5071,9 +5072,7 @@
           "title": "標題",
           "artist": "演出者",
           "album": "專輯",
-          "status": "狀態",
-          "progress": "進度",
-          "app": "來源應用程式"
+          "progress": "進度"
         },
         "status": {
           "playing": "播放中",
@@ -5081,7 +5080,8 @@
           "stopped": "已停止",
           "closed": "已關閉",
           "opened": "已開啟",
-          "changing": "切換中"
+          "changing": "切換中",
+          "unknown": "未知"
         }
       }
     }

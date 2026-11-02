@@ -20,7 +20,7 @@
 
 /**
  * @file smtcView.tsx
- * @description SMTC 测试界面：实时展示本机当前媒体会话
+ * @description SMTC 测试界面：实时展示本机全部媒体会话
  * @author 鸡哥
  */
 
@@ -34,23 +34,30 @@ import type { SmtcViewProps } from '../types/uiTypes';
 
 /**
  * SMTC 测试界面
+ * @description 会话超出屏幕高度时裁掉末尾，避免撑破全屏布局
  * @param props - SMTC 测试入参
+ * @param props.root - 仓库根目录
  * @param props.onBack - 返回本机测试列表回调
  * @returns 全屏测试界面
  */
-export default function SmtcView({ onBack }: SmtcViewProps): React.JSX.Element {
+export default function SmtcView({ root, onBack }: SmtcViewProps): React.JSX.Element {
   const {
-    columns, rows, state, session, position, error,
-  } = useSmtc({ onBack });
+    columns, rows, state, entries, error,
+  } = useSmtc({ root, onBack });
   return (
     <Box flexDirection="column" width={columns} height={rows} borderStyle="round" paddingX={1}>
-      <Text bold color="cyan">{t('devCli.localTest.smtc.title')}</Text>
-      <Box flexDirection="column" flexGrow={1} marginTop={1}>
+      <Text wrap="truncate-end">
+        <Text bold color="cyan">{t('devCli.localTest.smtc.title')}</Text>
+        {state === 'ready' ? <Text dimColor>{`  ${t('devCli.localTest.smtc.count', { count: entries.length })}`}</Text> : null}
+      </Text>
+      <Box flexDirection="column" flexGrow={1} marginTop={1} overflow="hidden">
         {state === 'loading' ? <Text color="yellow">{t('devCli.localTest.smtc.loading')}</Text> : null}
         {state === 'unsupported' ? <Text color="red">{t('devCli.localTest.smtc.unsupported')}</Text> : null}
         {state === 'error' ? <Text color="red" wrap="wrap">{t('devCli.localTest.smtc.error', { message: error })}</Text> : null}
-        {state === 'ready' && !session ? <Text dimColor>{t('devCli.localTest.smtc.empty')}</Text> : null}
-        {state === 'ready' && session ? <SmtcSessionInfo session={session} position={position} /> : null}
+        {state === 'ready' && entries.length === 0 ? <Text dimColor>{t('devCli.localTest.smtc.empty')}</Text> : null}
+        {state === 'ready' ? entries.map((entry, index) => (
+          <SmtcSessionInfo key={entry.session.app} entry={entry} index={index + 1} />
+        )) : null}
       </Box>
       <Text dimColor wrap="truncate-end">{t('devCli.localTest.smtc.hint')}</Text>
     </Box>

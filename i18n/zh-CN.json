@@ -4921,7 +4921,7 @@
         },
         "localTest": {
           "label": "本机测试",
-          "description": "检测本机系统能力，不依赖仓库代码"
+          "description": "检测本机系统能力"
         }
       }
     },
@@ -5055,11 +5055,12 @@
       "items": {
         "smtc": {
           "label": "SMTC",
-          "description": "实时读取系统媒体传输控件的当前播放信息"
+          "description": "实时读取本机全部 SMTC 播放实例"
         }
       },
       "smtc": {
         "title": "SMTC 媒体信息",
+        "count": "{{count}} 个会话",
         "loading": "正在读取本机播放信息...",
         "unsupported": "SMTC 仅支持 Windows。",
         "error": "读取失败：{{message}}",
@@ -5071,9 +5072,7 @@
           "title": "标题",
           "artist": "艺术家",
           "album": "专辑",
-          "status": "状态",
-          "progress": "进度",
-          "app": "来源应用"
+          "progress": "进度"
         },
         "status": {
           "playing": "播放中",
@@ -5081,7 +5080,8 @@
           "stopped": "已停止",
           "closed": "已关闭",
           "opened": "已打开",
-          "changing": "切换中"
+          "changing": "切换中",
+          "unknown": "未知"
         }
       }
     }

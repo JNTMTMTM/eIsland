@@ -20,53 +20,82 @@
 
 /**
  * @file smtc.test.ts
- * @description 验证 SMTC 输出解析、平台判断，以及读取进程的启动参数、分行解析、错误与结束处理
+ * @description 验证 SMTC 插件快照转换、平台判断，以及插件监控的启动、定时读取全部会话、错误与停止处理
  * @author 鸡哥
  */
 
-import { spawn } from 'node:child_process';
-import { EventEmitter } from 'node:events';
-import { PassThrough } from 'node:stream';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach, beforeEach, describe, expect, it, vi,
+} from 'vitest';
 
-import { isSmtcSupported, parseSmtcLine, watchSmtc } from '../smtc';
+import {
+  isSmtcSupported, SMTC_HELPER_DIR, SMTC_INTERVAL_MS, toSmtcSession, watchSmtc,
+} from '../smtc';
 
-vi.mock('node:child_process', () => ({ spawn: vi.fn() }));
+import type {
+  HelperModule, HelperMonitor, HelperSession, SmtcSession,
+} from '../smtc';
 
-/** 模拟的子进程 */
-interface FakeChild extends EventEmitter {
-  stdout: PassThrough;
-  stderr: PassThrough;
-  kill: ReturnType<typeof vi.fn>;
+const ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
+
+const raw = (overrides: Partial<HelperSession> = {}): HelperSession => ({
+  sourceAppId: 'Spotify.exe',
+  media: { title: 'Song', artist: 'Singer', albumTitle: 'Album' },
+  playback: { playbackStatus: 4 },
+  timeline: { position: 12, duration: 200, sampledAtMs: 1_000 },
+  ...overrides,
+});
+
+/** 模拟插件监控器 */
+const monitor = {
+  start: vi.fn(),
+  stop: vi.fn(),
+  getMediaSessions: vi.fn((): HelperSession[] => []),
+  on: vi.fn(),
+};
+
+/** 插件监控器替身，方法均委托给共享的模拟函数，便于断言 */
+class FakeMonitor implements HelperMonitor {
+  start = monitor.start;
+
+  stop = monitor.stop;
+
+  getMediaSessions = monitor.getMediaSessions;
+
+  on = monitor.on;
 }
 
-const spawnMock = vi.mocked(spawn);
-let child: FakeChild;
-
 /**
- * 等待流数据事件派发
- * @returns 下一轮宏任务的 Promise
+ * 模拟插件模块
+ * @returns 构造监控器替身的模块
  */
-const flush = (): Promise<void> => new Promise((resolve) => {
-  setTimeout(resolve, 0);
-});
+const fakeModule = (): HelperModule => ({ SmtcMonitor: FakeMonitor });
 
 beforeEach(() => {
-  child = Object.assign(new EventEmitter(), { stdout: new PassThrough(), stderr: new PassThrough(), kill: vi.fn() });
-  spawnMock.mockReturnValue(child as unknown as ReturnType<typeof spawn>);
+  vi.useFakeTimers();
 });
 
-describe('parseSmtcLine', () => {
-  it('解析会话字段，缺失或类型不符时取默认值', () => {
-    expect(parseSmtcLine('{"active":true,"title":"Song","artist":null,"position":12.5,"duration":"x","status":"Playing"}')).toEqual({
-      app: '', title: 'Song', artist: '', album: '', status: 'Playing', position: 12.5, duration: 0, updated: 0,
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+describe('toSmtcSession', () => {
+  it('转换媒体、状态与时间线字段', () => {
+    expect(toSmtcSession(raw())).toEqual({
+      app: 'Spotify.exe', title: 'Song', artist: 'Singer', album: 'Album', status: 'playing', position: 12, duration: 200, updated: 1_000,
     });
   });
 
-  it('没有会话返回 null，无法解析返回 undefined', () => {
-    expect(parseSmtcLine('{"active":false}')).toBeNull();
-    expect(parseSmtcLine('WARNING: something')).toBeUndefined();
+  it('缺失的媒体与时间线取默认值，未知状态归为 unknown', () => {
+    expect(toSmtcSession(raw({ media: null, playback: null, timeline: null }))).toEqual({
+      app: 'Spotify.exe', title: '', artist: '', album: '', status: 'unknown', position: 0, duration: 0, updated: 0,
+    });
+    expect(toSmtcSession(raw({ playback: { playbackStatus: 5 } })).status).toBe('paused');
+    expect(toSmtcSession(raw({ playback: { playbackStatus: 9 } })).status).toBe('unknown');
   });
 });
 
@@ -79,50 +108,53 @@ describe('isSmtcSupported', () => {
 });
 
 describe('watchSmtc', () => {
-  it('以编码命令启动系统 PowerShell，不依赖仓库文件', () => {
-    watchSmtc(vi.fn(), vi.fn());
-    const [[command, args, options]] = spawnMock.mock.calls;
-    expect(command).toBe('powershell.exe');
-    expect(args).toEqual(expect.arrayContaining(['-NoProfile', '-NonInteractive', '-EncodedCommand']));
-    const script = Buffer.from(args.at(-1) ?? '', 'base64').toString('utf16le');
-    expect(script).toContain('GlobalSystemMediaTransportControlsSessionManager');
-    expect(options).toEqual(expect.objectContaining({ windowsHide: true }));
-    expect(options).not.toHaveProperty('cwd');
+  it('插件路径指向仓库内的 SMTC 插件', () => {
+    expect(existsSync(path.join(ROOT, SMTC_HELPER_DIR, 'package.json'))).toBe(true);
   });
 
-  it('跨数据块拼接行并忽略无法解析的行', async () => {
-    const onUpdate = vi.fn();
-    watchSmtc(onUpdate, vi.fn());
-    child.stdout.write('{"active":fa');
-    child.stdout.write('lse}\r\nnoise\r\n{"active":true,"title":"A"}\r\n');
-    await flush();
+  it('从仓库根目录加载插件并启动监控，每个间隔读取全部会话', () => {
+    const load = vi.fn(fakeModule);
+    const onUpdate = vi.fn<(sessions: SmtcSession[]) => void>();
+    monitor.getMediaSessions.mockReturnValue([raw(), raw({ sourceAppId: 'Games.exe', timeline: null })]);
+    watchSmtc('/repo', onUpdate, vi.fn(), load);
+    expect(load).toHaveBeenCalledWith('/repo');
+    expect(monitor.start).toHaveBeenCalledTimes(1);
+    expect(onUpdate).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(SMTC_INTERVAL_MS * 2);
     expect(onUpdate).toHaveBeenCalledTimes(2);
-    expect(onUpdate).toHaveBeenNthCalledWith(1, null);
-    expect(onUpdate).toHaveBeenNthCalledWith(2, expect.objectContaining({ title: 'A' }));
+    expect(onUpdate.mock.calls[0][0].map((session) => session.app)).toEqual(['Spotify.exe', 'Games.exe']);
   });
 
-  it('异常退出时回调错误输出的首行', async () => {
+  it('插件加载或启动失败时回调错误且不再读取', () => {
     const onError = vi.fn();
-    watchSmtc(vi.fn(), onError);
-    child.stderr.write('Unable to find type\r\nat line 1\r\n');
-    await flush();
-    child.emit('close', 1);
-    expect(onError).toHaveBeenCalledWith('Unable to find type');
+    const watcher = watchSmtc('/repo', vi.fn(), onError, () => {
+      throw new Error('Unable to find eIslandSmtcHelper.dll');
+    });
+    expect(onError).toHaveBeenCalledWith('Unable to find eIslandSmtcHelper.dll');
+    expect(() => watcher.stop()).not.toThrow();
   });
 
-  it('启动失败时回调错误信息', () => {
+  it('读取失败或监控报错时回调错误', () => {
     const onError = vi.fn();
-    watchSmtc(vi.fn(), onError);
-    child.emit('error', new Error('spawn powershell.exe ENOENT'));
-    expect(onError).toHaveBeenCalledWith('spawn powershell.exe ENOENT');
+    monitor.getMediaSessions.mockImplementation(() => {
+      throw new Error('read failed');
+    });
+    watchSmtc('/repo', vi.fn(), onError, fakeModule);
+    vi.advanceTimersByTime(SMTC_INTERVAL_MS);
+    expect(onError).toHaveBeenCalledWith('read failed');
+    const [[event, listener]] = monitor.on.mock.calls as [string, (error: Error) => void][];
+    expect(event).toBe('error');
+    listener(new Error('monitor failed'));
+    expect(onError).toHaveBeenCalledWith('monitor failed');
   });
 
-  it('主动结束后不再回调错误', () => {
-    const onError = vi.fn();
-    const watcher = watchSmtc(vi.fn(), onError);
+  it('停止后关闭插件监控且不再读取', () => {
+    const onUpdate = vi.fn();
+    monitor.getMediaSessions.mockReturnValue([]);
+    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), fakeModule);
     watcher.stop();
-    child.emit('close', null);
-    expect(child.kill).toHaveBeenCalledTimes(1);
-    expect(onError).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(SMTC_INTERVAL_MS * 3);
+    expect(monitor.stop).toHaveBeenCalledTimes(1);
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 });

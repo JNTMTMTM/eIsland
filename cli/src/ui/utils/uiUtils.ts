@@ -211,7 +211,7 @@ export function padDisplay(text: string, width: number): string {
  */
 export function livePosition(session: SmtcSession, now: number): number {
   if (session.duration <= 0) return 0;
-  const elapsed = session.status === 'Playing' && session.updated > 0 ? Math.max(0, now - session.updated) / 1000 : 0;
+  const elapsed = session.status === 'playing' && session.updated > 0 ? Math.max(0, now - session.updated) / 1000 : 0;
   return Math.min(session.duration, session.position + elapsed);
 }
 

@@ -27,6 +27,7 @@
 import type {
   LocalTestItem, LogoLine, MenuEntry, StatusStyle,
 } from '../types/uiTypes';
+import type { SmtcStatus } from '../../core/smtc';
 import type { TaskStatus } from '../../core/taskManager';
 
 export const STATUS_STYLE: Record<TaskStatus, StatusStyle> = {
@@ -70,7 +71,7 @@ export const MENU_LABEL_WIDTH = 12;
 export const SMTC_LABEL_WIDTH = 10;
 export const SMTC_PROGRESS_WIDTH = 30;
 // 播放状态颜色，未列出的状态使用灰色。
-export const SMTC_STATUS_COLOR: Readonly<Record<string, string>> = { Playing: 'green', Paused: 'yellow' };
+export const SMTC_STATUS_COLOR: Readonly<Partial<Record<SmtcStatus, string>>> = { playing: 'green', paused: 'yellow' };
 
 export const LOGO_LINES: readonly LogoLine[] = [
   { id: 'top', color: 'cyanBright', text: '███████╗██╗███████╗██╗      █████╗ ███╗   ██╗██████╗ ' },

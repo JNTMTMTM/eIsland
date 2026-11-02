@@ -37,14 +37,15 @@ import type { LocalTestProps } from '../types/uiTypes';
 /**
  * 本机测试界面
  * @param props - 本机测试入参
+ * @param props.root - 仓库根目录
  * @param props.onBack - 返回主菜单回调
  * @returns 测试列表，或正在运行的测试界面
  */
-export default function LocalTest({ onBack }: LocalTestProps): React.JSX.Element {
+export default function LocalTest({ root, onBack }: LocalTestProps): React.JSX.Element {
   const {
     columns, rows, activeIndex, running, closeTest,
   } = useLocalTest({ onBack });
-  if (running === 'smtc') return <SmtcView onBack={closeTest} />;
+  if (running === 'smtc') return <SmtcView root={root} onBack={closeTest} />;
   return (
     <Box flexDirection="column" width={columns} height={rows} borderStyle="round" paddingX={1}>
       <Text bold color="cyan">{t('devCli.localTest.title')}</Text>
