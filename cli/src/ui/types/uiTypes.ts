@@ -25,7 +25,20 @@
  */
 
 import type { ScriptEntry } from '../../core/scripts';
+import type { SmtcSession } from '../../core/smtc';
 import type { Task, TaskManager } from '../../core/taskManager';
+
+/** 交互模式的界面：主菜单、仓库管理、本机测试 */
+export type Screen = 'menu' | 'repo' | 'localTest';
+
+/** 主菜单中可进入的功能 */
+export type MenuEntry = Exclude<Screen, 'menu'>;
+
+/** 本机测试列表项：测试项或返回主菜单 */
+export type LocalTestItem = 'smtc' | 'menu';
+
+/** SMTC 读取状态 */
+export type SmtcState = 'loading' | 'ready' | 'unsupported' | 'error';
 
 /** 下方操作区当前所处的交互模式 */
 export type Mode =
@@ -36,7 +49,7 @@ export type Mode =
   | { kind: 'quitting' };
 
 /** 操作列表项 */
-export type Action = 'run' | 'stop' | 'close' | 'quit';
+export type Action = 'run' | 'stop' | 'close' | 'menu' | 'quit';
 
 /** 任务状态的展示样式 */
 export interface StatusStyle {
@@ -88,6 +101,12 @@ export interface DashboardProps {
   passthrough: string[];
   /** 用户确认退出时回调，由调用方结束任务并卸载界面 */
   onQuit: () => void;
+}
+
+/** Dashboard 组件入参 */
+export interface RepoDashboardProps extends DashboardProps {
+  /** 返回主菜单，运行中的任务继续保留 */
+  onBack: () => void;
 }
 
 /** TaskList 组件入参 */
@@ -156,10 +175,42 @@ export interface ConfirmPromptProps {
 
 /** Welcome 组件与 useWelcome hook 入参 */
 export interface WelcomeProps {
-  /** 按 Enter 进入任务界面 */
-  onEnter: () => void;
-  /** 按 Esc 或 Ctrl+C 退出 */
+  /** 任务管理器，退出前用于确认是否仍有运行中的任务 */
+  manager: TaskManager;
+  /** 选中主菜单项时回调 */
+  onSelect: (entry: MenuEntry) => void;
+  /** 按 Esc 或 Ctrl+C 并确认后退出 */
   onQuit: () => void;
+}
+
+/** LocalTest 组件与 useLocalTest hook 入参 */
+export interface LocalTestProps {
+  /** 返回主菜单 */
+  onBack: () => void;
+}
+
+/** SmtcSessionInfo 组件入参 */
+export interface SmtcSessionInfoProps {
+  /** 媒体会话 */
+  session: SmtcSession;
+  /** 推算的当前播放位置（秒） */
+  position: number;
+}
+
+/** SmtcField 组件入参 */
+export interface SmtcFieldProps {
+  /** 字段名 */
+  label: string;
+  /** 字段值，为空时显示未提供 */
+  value: string;
+  /** 字段值颜色 */
+  color?: string;
+}
+
+/** SmtcView 组件与 useSmtc hook 入参 */
+export interface SmtcViewProps {
+  /** 返回本机测试列表 */
+  onBack: () => void;
 }
 
 /** useDashboard hook 返回值类型 */
@@ -212,14 +263,52 @@ export interface UseWelcomeReturn {
   columns: number;
   /** 终端行数 */
   rows: number;
+  /** 光标所在的菜单项下标 */
+  activeIndex: number;
+  /** 等待退出确认时为运行中的任务数，否则为 null */
+  confirmQuit: number | null;
+  /** 退出确认作答回调 */
+  handleConfirmQuit: (confirmed: boolean) => void;
 }
 
-/** useWelcomeGate hook 返回值类型 */
-export interface UseWelcomeGateReturn {
-  /** 是否已离开欢迎界面 */
-  entered: boolean;
-  /** 进入任务界面 */
-  enter: () => void;
+/** useAppScreen hook 返回值类型 */
+export interface UseAppScreenReturn {
+  /** 当前界面 */
+  screen: Screen;
+  /** 进入主菜单项对应的界面 */
+  open: (entry: MenuEntry) => void;
+  /** 返回主菜单 */
+  back: () => void;
+}
+
+/** useLocalTest hook 返回值类型 */
+export interface UseLocalTestReturn {
+  /** 终端列数 */
+  columns: number;
+  /** 终端行数 */
+  rows: number;
+  /** 光标所在的列表项下标 */
+  activeIndex: number;
+  /** 正在运行的测试项，未运行时为 null */
+  running: Exclude<LocalTestItem, 'menu'> | null;
+  /** 结束测试并回到列表 */
+  closeTest: () => void;
+}
+
+/** useSmtc hook 返回值类型 */
+export interface UseSmtcReturn {
+  /** 终端列数 */
+  columns: number;
+  /** 终端行数 */
+  rows: number;
+  /** 读取状态 */
+  state: SmtcState;
+  /** 当前媒体会话，没有会话时为 null */
+  session: SmtcSession | null;
+  /** 按经过时间推算的当前播放位置（秒） */
+  position: number;
+  /** 读取失败原因 */
+  error: string;
 }
 
 /** usePickerRow hook 返回值类型 */

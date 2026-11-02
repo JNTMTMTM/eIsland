@@ -34,6 +34,7 @@ import {
 import { t } from '../../core/i18n';
 
 import type { Action, DashboardLayout, OutputRow } from '../types/uiTypes';
+import type { SmtcSession } from '../../core/smtc';
 import type { Task } from '../../core/taskManager';
 
 /**
@@ -105,11 +106,11 @@ export function computeLayout(windowRows: number | undefined): DashboardLayout {
 /**
  * 根据当前任务生成可用操作
  * @param current - 当前查看的任务
- * @returns 运行中提供结束，已结束提供关闭，没有任务时两者都不提供
+ * @returns 运行中提供结束，已结束提供关闭，没有任务时两者都不提供；始终可返回主菜单与退出
  */
 export function dashboardActions(current: Task | undefined): Action[] {
-  if (!current) return ['run', 'quit'];
-  return ['run', current.status === 'running' ? 'stop' : 'close', 'quit'];
+  if (!current) return ['run', 'menu', 'quit'];
+  return ['run', current.status === 'running' ? 'stop' : 'close', 'menu', 'quit'];
 }
 
 /**
@@ -177,6 +178,66 @@ export function marqueeFrame(text: string, width: number, offset: number): strin
   if (width <= 0 || textWidth <= width) return text;
   const start = Math.max(0, offset) % (textWidth + MARQUEE_GAP.length);
   return sliceAnsi(`${text}${MARQUEE_GAP}${text}`, start, start + width);
+}
+
+/**
+ * 在列表中移动光标
+ * @param index - 当前下标
+ * @param length - 列表长度
+ * @param delta - 移动量，-1 向上，1 向下
+ * @returns 限制在列表范围内的新下标
+ */
+export function moveCursor(index: number, length: number, delta: number): number {
+  return Math.max(0, Math.min(length - 1, index + delta));
+}
+
+/**
+ * 按终端显示宽度右侧补齐空格
+ * @description 中日文字符占两列，按字符数补齐会导致说明列错位
+ * @param text - 文本
+ * @param width - 目标列数
+ * @returns 补齐后的文本，超出时原样返回
+ */
+export function padDisplay(text: string, width: number): string {
+  return `${text}${' '.repeat(Math.max(0, width - stringWidth(text)))}`;
+}
+
+/**
+ * 推算当前播放位置
+ * @description SMTC 的时间线只在应用上报时更新，播放中按距上次更新的经过时间补齐，避免进度停顿
+ * @param session - 媒体会话
+ * @param now - 当前时刻（Unix 毫秒）
+ * @returns 播放位置（秒），不超过总时长
+ */
+export function livePosition(session: SmtcSession, now: number): number {
+  if (session.duration <= 0) return 0;
+  const elapsed = session.status === 'Playing' && session.updated > 0 ? Math.max(0, now - session.updated) / 1000 : 0;
+  return Math.min(session.duration, session.position + elapsed);
+}
+
+/**
+ * 格式化时长
+ * @param seconds - 秒数
+ * @returns 不足一小时为 m:ss，否则为 h:mm:ss
+ */
+export function formatDuration(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const pad = (value: number): string => String(value).padStart(2, '0');
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(total % 60)}` : `${minutes}:${pad(total % 60)}`;
+}
+
+/**
+ * 生成播放进度条
+ * @param position - 播放位置（秒）
+ * @param duration - 总时长（秒）
+ * @param width - 进度条列数
+ * @returns 已播放部分为粗线、剩余部分为细线的进度条
+ */
+export function progressBar(position: number, duration: number, width: number): string {
+  const filled = duration > 0 ? Math.round((Math.min(position, duration) / duration) * width) : 0;
+  return `${'━'.repeat(filled)}${'─'.repeat(width - filled)}`;
 }
 
 /**

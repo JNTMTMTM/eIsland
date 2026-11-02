@@ -20,7 +20,7 @@
 
 /**
  * @file welcome.test.tsx
- * @description 验证欢迎界面的字符画展示、进入与退出，以及进入后切换到任务界面
+ * @description 验证欢迎界面的字符画、主菜单选择与退出确认，以及主菜单与各功能界面之间的切换
  * @author 鸡哥
  */
 
@@ -36,6 +36,7 @@ import Welcome from '../welcome';
 
 import type { Task, TaskManager } from '../../../core/taskManager';
 
+const DOWN = '\u001B[B';
 const ROOT = fileURLToPath(new URL('../../../../../', import.meta.url));
 
 /**
@@ -48,14 +49,21 @@ const flush = (): Promise<void> => new Promise((resolve) => {
 
 // useSyncExternalStore 要求快照在变化前保持同一引用。
 const NO_TASKS: readonly Task[] = [];
-const emptyManager: TaskManager = {
+const RUNNING: readonly Task[] = [{ id: 1, name: 'dev', status: 'running', code: null, lines: [] }];
+
+/**
+ * 创建返回固定快照的任务管理器
+ * @param snapshot - 任务快照
+ * @returns 任务管理器
+ */
+const staticManager = (snapshot: readonly Task[]): TaskManager => ({
   start: vi.fn(),
   kill: vi.fn(),
   remove: vi.fn(),
   killAll: vi.fn(() => Promise.resolve()),
   subscribe: () => () => {},
-  getSnapshot: () => NO_TASKS,
-};
+  getSnapshot: () => snapshot,
+});
 
 beforeAll(() => initI18n('en-US'));
 
@@ -64,24 +72,49 @@ describe('Welcome', () => {
     expect(new Set(LOGO_LINES.map((line) => line.text.length)).size).toBe(1);
   });
 
-  it('展示字符画、副标题与进入提示', () => {
-    const { lastFrame, unmount } = render(<Welcome onEnter={vi.fn()} onQuit={vi.fn()} />);
+  it('展示字符画、副标题、主菜单与提示', () => {
+    const { lastFrame, unmount } = render(<Welcome manager={staticManager(NO_TASKS)} onSelect={vi.fn()} onQuit={vi.fn()} />);
     const frame = lastFrame() ?? '';
     expect(frame).toContain(LOGO_LINES[0].text.trimEnd());
     expect(frame).toContain('Repository script console');
-    expect(frame).toContain('Press Enter to start');
+    // 仓库管理是第一个功能。
+    expect(frame.indexOf('Repository ')).toBeLessThan(frame.indexOf('Local tests'));
+    expect(frame).toContain('Enter open');
     unmount();
   });
 
-  it('Enter 进入，Esc 退出', async () => {
-    const onEnter = vi.fn();
+  it('方向键选择功能后 Enter 进入，Esc 退出', async () => {
+    const onSelect = vi.fn();
     const onQuit = vi.fn();
-    const { stdin, unmount } = render(<Welcome onEnter={onEnter} onQuit={onQuit} />);
+    const { stdin, unmount } = render(<Welcome manager={staticManager(NO_TASKS)} onSelect={onSelect} onQuit={onQuit} />);
     await flush();
     stdin.write('\r');
     await flush();
-    expect(onEnter).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenLastCalledWith('repo');
+    stdin.write(DOWN);
+    await flush();
+    stdin.write('\r');
+    await flush();
+    expect(onSelect).toHaveBeenLastCalledWith('localTest');
     stdin.write('\u001B');
+    await flush();
+    expect(onQuit).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it('仍有运行中的任务时退出需确认', async () => {
+    const onQuit = vi.fn();
+    const { stdin, lastFrame, unmount } = render(<Welcome manager={staticManager(RUNNING)} onSelect={vi.fn()} onQuit={onQuit} />);
+    await flush();
+    stdin.write('\u001B');
+    await flush();
+    expect(lastFrame()).toContain('1 task(s) still running');
+    stdin.write('n');
+    await flush();
+    expect(onQuit).not.toHaveBeenCalled();
+    stdin.write('\u001B');
+    await flush();
+    stdin.write('y');
     await flush();
     expect(onQuit).toHaveBeenCalledTimes(1);
     unmount();
@@ -89,18 +122,38 @@ describe('Welcome', () => {
 });
 
 describe('InteractiveApp', () => {
-  it('Enter 后由欢迎界面切换到上下布局的任务界面', async () => {
+  it('进入仓库管理后可返回主菜单', async () => {
     const { stdin, lastFrame, unmount } = render(
-      <InteractiveApp manager={emptyManager} root={ROOT} skipConfirm={false} passthrough={[]} onQuit={vi.fn()} />,
+      <InteractiveApp manager={staticManager(NO_TASKS)} root={ROOT} skipConfirm={false} passthrough={[]} onQuit={vi.fn()} />,
     );
     await flush();
-    expect(lastFrame()).toContain('Press Enter to start');
     stdin.write('\r');
     await flush();
     const frame = lastFrame() ?? '';
-    expect(frame).not.toContain('Press Enter to start');
+    expect(frame).not.toContain('Enter open');
     // 输出面板在上，操作区在下。
     expect(frame.indexOf('No tasks yet')).toBeLessThan(frame.indexOf('Run script...'));
+    stdin.write(DOWN);
+    await flush();
+    stdin.write('\r');
+    await flush();
+    expect(lastFrame()).toContain('Enter open');
+    unmount();
+  });
+
+  it('进入本机测试后 Esc 返回主菜单', async () => {
+    const { stdin, lastFrame, unmount } = render(
+      <InteractiveApp manager={staticManager(NO_TASKS)} root={ROOT} skipConfirm={false} passthrough={[]} onQuit={vi.fn()} />,
+    );
+    await flush();
+    stdin.write(DOWN);
+    await flush();
+    stdin.write('\r');
+    await flush();
+    expect(lastFrame()).toContain('Read what is playing now');
+    stdin.write('\u001B');
+    await flush();
+    expect(lastFrame()).toContain('Enter open');
     unmount();
   });
 });

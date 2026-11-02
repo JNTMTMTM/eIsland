@@ -92,11 +92,12 @@ const flush = (): Promise<void> => new Promise((resolve) => {
  * @param skipConfirm - 是否跳过危险脚本确认
  * @returns 渲染实例与退出回调
  */
-async function mount(manager: TaskManager, skipConfirm = false): Promise<ReturnType<typeof render> & { onQuit: ReturnType<typeof vi.fn> }> {
+async function mount(manager: TaskManager, skipConfirm = false): Promise<ReturnType<typeof render> & { onQuit: ReturnType<typeof vi.fn>; onBack: ReturnType<typeof vi.fn> }> {
   const onQuit = vi.fn();
-  const instance = render(<Dashboard manager={manager} root={ROOT} skipConfirm={skipConfirm} passthrough={[]} onQuit={onQuit} />);
+  const onBack = vi.fn();
+  const instance = render(<Dashboard manager={manager} root={ROOT} skipConfirm={skipConfirm} passthrough={[]} onQuit={onQuit} onBack={onBack} />);
   await flush();
-  return { onQuit, ...instance };
+  return { onQuit, onBack, ...instance };
 }
 
 /**
@@ -195,11 +196,22 @@ describe('Dashboard', () => {
 
   it('有运行中任务时退出需确认', async () => {
     const { stdin, lastFrame, onQuit, unmount } = await mount(fakeManager([task(1, 'running')]));
-    await press(stdin, DOWN, DOWN, ENTER);
+    await press(stdin, DOWN, DOWN, DOWN, ENTER);
     expect(lastFrame()).toContain('1 task(s) still running');
     expect(onQuit).not.toHaveBeenCalled();
     await press(stdin, 'y');
     expect(onQuit).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it('返回主菜单不结束运行中的任务', async () => {
+    const manager = fakeManager([task(1, 'running')]);
+    const { stdin, lastFrame, onBack, onQuit, unmount } = await mount(manager);
+    expect(lastFrame()).toContain('Back to main menu');
+    await press(stdin, DOWN, DOWN, ENTER);
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(onQuit).not.toHaveBeenCalled();
+    expect(manager.kill).not.toHaveBeenCalled();
     unmount();
   });
 

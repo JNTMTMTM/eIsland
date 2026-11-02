@@ -4913,7 +4913,17 @@
     },
     "welcome": {
       "subtitle": "Repository script console",
-      "hint": "Press Enter to start · Esc to quit"
+      "hint": "↑↓ select · Enter open · Esc quit",
+      "menu": {
+        "repo": {
+          "label": "Repository",
+          "description": "Run and manage root package.json scripts"
+        },
+        "localTest": {
+          "label": "Local tests",
+          "description": "Check system features on this machine, no repository code needed"
+        }
+      }
     },
     "dashboard": {
       "noTasks": "No tasks yet. Choose \"Run script...\" below.",
@@ -4925,7 +4935,8 @@
         "run": "Run script...",
         "stop": "End current task",
         "close": "Close current task",
-        "quit": "Quit"
+        "quit": "Quit",
+        "menu": "Back to main menu"
       },
       "actionsHint": "↑↓ select · Enter confirm · Ctrl+C quit",
       "hint": "Tab switch task · PgUp/PgDn scroll · Home/End top/latest",
@@ -5037,6 +5048,42 @@
       "test:e2e:windows": "Build and run Windows E2E tests",
       "test:e2e:run": "Run Playwright E2E tests against an existing build",
       "typecheck:e2e": "Type-check E2E tests"
+    },
+    "localTest": {
+      "title": "Local tests",
+      "hint": "↑↓ select · Enter run · Esc main menu",
+      "items": {
+        "smtc": {
+          "label": "SMTC",
+          "description": "Read what is playing now from System Media Transport Controls"
+        }
+      },
+      "smtc": {
+        "title": "SMTC media info",
+        "loading": "Reading playback info...",
+        "unsupported": "SMTC is only available on Windows.",
+        "error": "Failed to read: {{message}}",
+        "empty": "No media session. Start playing something in any player.",
+        "unknown": "not provided",
+        "noTimeline": "The app does not report playback progress",
+        "hint": "Esc back · refreshes every second",
+        "fields": {
+          "title": "Title",
+          "artist": "Artist",
+          "album": "Album",
+          "status": "Status",
+          "progress": "Progress",
+          "app": "Source app"
+        },
+        "status": {
+          "playing": "playing",
+          "paused": "paused",
+          "stopped": "stopped",
+          "closed": "closed",
+          "opened": "opened",
+          "changing": "changing"
+        }
+      }
     }
   }
 }

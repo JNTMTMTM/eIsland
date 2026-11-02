@@ -24,7 +24,9 @@
  * @author 鸡哥
  */
 
-import type { LogoLine, StatusStyle } from '../types/uiTypes';
+import type {
+  LocalTestItem, LogoLine, MenuEntry, StatusStyle,
+} from '../types/uiTypes';
 import type { TaskStatus } from '../../core/taskManager';
 
 export const STATUS_STYLE: Record<TaskStatus, StatusStyle> = {
@@ -57,6 +59,18 @@ export const PICKER_ROW_CHROME_COLUMNS = 4;
 export const MARQUEE_INTERVAL_MS = 250;
 export const MARQUEE_PAUSE_TICKS = 4;
 export const MARQUEE_GAP = '   ';
+
+// 主菜单功能顺序：仓库管理为 CLI 的第一个功能。
+export const MENU_ENTRIES: readonly MenuEntry[] = ['repo', 'localTest'];
+// 本机测试列表，末尾固定为返回主菜单。
+export const LOCAL_TEST_ITEMS: readonly LocalTestItem[] = ['smtc', 'menu'];
+// 本机测试与主菜单列表项的名称列宽，用于对齐说明。
+export const MENU_LABEL_WIDTH = 12;
+// SMTC 信息标签列宽与播放进度条宽度。
+export const SMTC_LABEL_WIDTH = 10;
+export const SMTC_PROGRESS_WIDTH = 30;
+// 播放状态颜色，未列出的状态使用灰色。
+export const SMTC_STATUS_COLOR: Readonly<Record<string, string>> = { Playing: 'green', Paused: 'yellow' };
 
 export const LOGO_LINES: readonly LogoLine[] = [
   { id: 'top', color: 'cyanBright', text: '███████╗██╗███████╗██╗      █████╗ ███╗   ██╗██████╗ ' },

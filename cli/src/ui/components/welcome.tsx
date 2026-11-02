@@ -20,16 +20,20 @@
 
 /**
  * @file welcome.tsx
- * @description 交互模式的欢迎界面：居中展示 eIsland 字符画，Enter 进入任务界面
+ * @description 欢迎界面：字符画、版本与主菜单
  * @author 鸡哥
  */
 
 import { Box, Text } from 'ink';
 
-import { LOGO_LINES, LOGO_WIDTH } from '../config/uiConfig';
+import {
+  LOGO_LINES, LOGO_WIDTH, MENU_ENTRIES, MENU_LABEL_WIDTH,
+} from '../config/uiConfig';
 import useWelcome from '../hooks/useWelcome';
+import { padDisplay } from '../utils/uiUtils';
 import pkg from '../../../package.json';
 import { t } from '../../core/i18n';
+import ConfirmPrompt from './confirmPrompt';
 
 import type { WelcomeProps } from '../types/uiTypes';
 
@@ -37,12 +41,15 @@ import type { WelcomeProps } from '../types/uiTypes';
  * 欢迎界面
  * @description 终端宽度不足以容纳字符画时退化为纯文本标题，避免折行错位
  * @param props - 欢迎界面入参
- * @param props.onEnter - 进入任务界面回调
+ * @param props.manager - 任务管理器
+ * @param props.onSelect - 选中主菜单项回调
  * @param props.onQuit - 退出回调
  * @returns 全屏居中的欢迎界面
  */
-export default function Welcome({ onEnter, onQuit }: WelcomeProps): React.JSX.Element {
-  const { columns, rows } = useWelcome({ onEnter, onQuit });
+export default function Welcome({ manager, onSelect, onQuit }: WelcomeProps): React.JSX.Element {
+  const {
+    columns, rows, activeIndex, confirmQuit, handleConfirmQuit,
+  } = useWelcome({ manager, onSelect, onQuit });
   return (
     <Box flexDirection="column" width={columns} height={rows} alignItems="center" justifyContent="center">
       {columns > LOGO_WIDTH ? (
@@ -56,8 +63,21 @@ export default function Welcome({ onEnter, onQuit }: WelcomeProps): React.JSX.El
           <Text dimColor>{`  v${pkg.version}`}</Text>
         </Text>
       </Box>
+      <Box flexDirection="column" marginTop={1}>
+        {MENU_ENTRIES.map((entry, index) => (
+          <Text key={entry} color={index === activeIndex ? 'cyan' : undefined}>
+            {index === activeIndex ? '❯ ' : '  '}
+            <Text bold={index === activeIndex}>{padDisplay(t(`devCli.welcome.menu.${entry}.label`), MENU_LABEL_WIDTH)}</Text>
+            <Text dimColor={index !== activeIndex}>{t(`devCli.welcome.menu.${entry}.description`)}</Text>
+          </Text>
+        ))}
+      </Box>
       <Box marginTop={1}>
-        <Text color="cyan">{t('devCli.welcome.hint')}</Text>
+        {confirmQuit === null ? (
+          <Text color="cyan">{t('devCli.welcome.hint')}</Text>
+        ) : (
+          <ConfirmPrompt message={t('devCli.dashboard.confirmQuit', { count: confirmQuit })} onSubmit={handleConfirmQuit} />
+        )}
       </Box>
     </Box>
   );

@@ -20,28 +20,33 @@
 
 /**
  * @file interactiveApp.tsx
- * @description 交互模式根组件：先展示欢迎界面，Enter 后进入任务界面
+ * @description 交互模式根组件：主菜单与各功能界面之间切换
  * @author 鸡哥
  */
 
-import useWelcomeGate from '../hooks/useWelcomeGate';
+import useAppScreen from '../hooks/useAppScreen';
 import Dashboard from './dashboard';
+import LocalTest from './localTest';
 import Welcome from './welcome';
 
 import type { DashboardProps } from '../types/uiTypes';
 
 /**
  * 交互模式根组件
+ * @description 任务管理器在各界面之间共享，返回主菜单后运行中的任务继续保留
  * @param props - 与任务界面相同的入参
  * @param props.manager - 任务管理器
  * @param props.root - 仓库根目录
  * @param props.skipConfirm - 是否跳过危险脚本确认
  * @param props.passthrough - 透传给脚本的参数
  * @param props.onQuit - 退出回调
- * @returns 欢迎界面或任务界面
+ * @returns 当前界面
  */
 export default function InteractiveApp({ manager, root, skipConfirm, passthrough, onQuit }: DashboardProps): React.JSX.Element {
-  const { entered, enter } = useWelcomeGate();
-  if (!entered) return <Welcome onEnter={enter} onQuit={onQuit} />;
-  return <Dashboard manager={manager} root={root} skipConfirm={skipConfirm} passthrough={passthrough} onQuit={onQuit} />;
+  const { screen, open, back } = useAppScreen();
+  if (screen === 'repo') {
+    return <Dashboard manager={manager} root={root} skipConfirm={skipConfirm} passthrough={passthrough} onQuit={onQuit} onBack={back} />;
+  }
+  if (screen === 'localTest') return <LocalTest onBack={back} />;
+  return <Welcome manager={manager} onSelect={open} onQuit={onQuit} />;
 }

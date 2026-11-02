@@ -20,7 +20,7 @@
 
 /**
  * @file uiUtils.test.ts
- * @description 验证交互界面的布局、输出窗口、翻页、任务切换、选择器窗口与说明滚动计算
+ * @description 验证交互界面的布局、输出窗口、翻页、任务切换、选择器窗口、说明滚动与 SMTC 展示计算
  * @author 鸡哥
  */
 
@@ -28,10 +28,12 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import { initI18n } from '../../../core/i18n';
 import {
-  computeLayout, dashboardActions, descriptionWidth, hiddenTaskCount, marqueeFrame, nextTaskIndex, outputRows,
-  pageDownAnchor, pageUpAnchor, pickerRowWidth, pickerWindowStart, statusText, windowStart,
+  computeLayout, dashboardActions, descriptionWidth, formatDuration, hiddenTaskCount, livePosition, marqueeFrame, moveCursor,
+  nextTaskIndex, outputRows, padDisplay, pageDownAnchor, pageUpAnchor, pickerRowWidth, pickerWindowStart, progressBar,
+  statusText, windowStart,
 } from '../uiUtils';
 
+import type { SmtcSession } from '../../../core/smtc';
 import type { Task } from '../../../core/taskManager';
 
 const task = (status: Task['status'], code: number | null = null): Task => ({ status, code, id: 1, name: 'dev', lines: [] });
@@ -83,9 +85,9 @@ describe('computeLayout', () => {
 
 describe('dashboardActions', () => {
   it('按当前任务状态提供结束或关闭', () => {
-    expect(dashboardActions(undefined)).toEqual(['run', 'quit']);
-    expect(dashboardActions(task('running'))).toEqual(['run', 'stop', 'quit']);
-    expect(dashboardActions(task('failed', 1))).toEqual(['run', 'close', 'quit']);
+    expect(dashboardActions(undefined)).toEqual(['run', 'menu', 'quit']);
+    expect(dashboardActions(task('running'))).toEqual(['run', 'stop', 'menu', 'quit']);
+    expect(dashboardActions(task('failed', 1))).toEqual(['run', 'close', 'menu', 'quit']);
   });
 });
 
@@ -143,5 +145,40 @@ describe('说明列宽与滚动', () => {
   it('中日文字符按两列计算', () => {
     expect(marqueeFrame('上传发布产物', 4, 0)).toBe('上传');
     expect(marqueeFrame('上传发布产物', 4, 2)).toBe('传发');
+  });
+});
+
+describe('菜单与 SMTC 展示', () => {
+  const session = (overrides: Partial<SmtcSession>): SmtcSession => ({
+    app: 'app', title: 't', artist: '', album: '', status: 'Playing', position: 10, duration: 100, updated: 1_000, ...overrides,
+  });
+
+  it('光标限制在列表范围内', () => {
+    expect(moveCursor(0, 2, -1)).toBe(0);
+    expect(moveCursor(0, 2, 1)).toBe(1);
+    expect(moveCursor(1, 2, 1)).toBe(1);
+  });
+
+  it('按显示宽度补齐', () => {
+    expect(padDisplay('ab', 4)).toBe('ab  ');
+    expect(padDisplay('仓库', 6)).toBe('仓库  ');
+    expect(padDisplay('toolong', 3)).toBe('toolong');
+  });
+
+  it('播放中按经过时间推算位置并限制在总时长内', () => {
+    expect(livePosition(session({}), 6_000)).toBe(15);
+    expect(livePosition(session({}), 500_000)).toBe(100);
+    expect(livePosition(session({ status: 'Paused' }), 6_000)).toBe(10);
+    expect(livePosition(session({ updated: -1 }), 6_000)).toBe(10);
+    expect(livePosition(session({ duration: 0 }), 6_000)).toBe(0);
+  });
+
+  it('格式化时长与进度条', () => {
+    expect(formatDuration(65.9)).toBe('1:05');
+    expect(formatDuration(3_725)).toBe('1:02:05');
+    expect(formatDuration(-3)).toBe('0:00');
+    expect(progressBar(50, 100, 10)).toBe('━━━━━─────');
+    expect(progressBar(500, 100, 4)).toBe('━━━━');
+    expect(progressBar(5, 0, 4)).toBe('────');
   });
 });

@@ -4913,7 +4913,17 @@
     },
     "welcome": {
       "subtitle": "儲存庫腳本控制台",
-      "hint": "按 Enter 進入 · Esc 離開"
+      "hint": "↑↓ 選擇 · Enter 進入 · Esc 離開",
+      "menu": {
+        "repo": {
+          "label": "倉庫管理",
+          "description": "執行並管理倉庫 package.json 腳本"
+        },
+        "localTest": {
+          "label": "本機測試",
+          "description": "檢測本機系統能力，不依賴倉庫程式碼"
+        }
+      }
     },
     "dashboard": {
       "noTasks": "還沒有任務，在下方選擇「執行腳本...」開始。",
@@ -4925,7 +4935,8 @@
         "run": "執行腳本...",
         "stop": "結束目前任務",
         "close": "關閉目前任務",
-        "quit": "離開"
+        "quit": "離開",
+        "menu": "返回主選單"
       },
       "actionsHint": "↑↓ 選擇 · Enter 確認 · Ctrl+C 離開",
       "hint": "Tab 切換任務 · PgUp/PgDn 翻看 · Home/End 頂部/最新",
@@ -5037,6 +5048,42 @@
       "test:e2e:windows": "建置並執行 Windows E2E 測試",
       "test:e2e:run": "基於既有建置執行 Playwright E2E 測試",
       "typecheck:e2e": "型別檢查 E2E 測試"
+    },
+    "localTest": {
+      "title": "本機測試",
+      "hint": "↑↓ 選擇 · Enter 執行 · Esc 返回主選單",
+      "items": {
+        "smtc": {
+          "label": "SMTC",
+          "description": "即時讀取系統媒體傳輸控制項的目前播放資訊"
+        }
+      },
+      "smtc": {
+        "title": "SMTC 媒體資訊",
+        "loading": "正在讀取本機播放資訊...",
+        "unsupported": "SMTC 僅支援 Windows。",
+        "error": "讀取失敗：{{message}}",
+        "empty": "目前沒有媒體工作階段，請先在任意播放器中播放內容。",
+        "unknown": "未提供",
+        "noTimeline": "應用程式未提供播放進度",
+        "hint": "Esc 返回 · 每秒重新整理",
+        "fields": {
+          "title": "標題",
+          "artist": "演出者",
+          "album": "專輯",
+          "status": "狀態",
+          "progress": "進度",
+          "app": "來源應用程式"
+        },
+        "status": {
+          "playing": "播放中",
+          "paused": "已暫停",
+          "stopped": "已停止",
+          "closed": "已關閉",
+          "opened": "已開啟",
+          "changing": "切換中"
+        }
+      }
     }
   }
 }

@@ -4913,7 +4913,17 @@
     },
     "welcome": {
       "subtitle": "リポジトリスクリプトコンソール",
-      "hint": "Enter で開始 · Esc で終了"
+      "hint": "↑↓ 選択 · Enter 開く · Esc 終了",
+      "menu": {
+        "repo": {
+          "label": "リポジトリ",
+          "description": "ルートの package.json スクリプトを実行・管理"
+        },
+        "localTest": {
+          "label": "ローカルテスト",
+          "description": "このマシンのシステム機能を確認（リポジトリのコード不要）"
+        }
+      }
     },
     "dashboard": {
       "noTasks": "タスクはまだありません。下の「スクリプトを実行...」を選んでください。",
@@ -4925,7 +4935,8 @@
         "run": "スクリプトを実行...",
         "stop": "現在のタスクを終了",
         "close": "現在のタスクを閉じる",
-        "quit": "終了"
+        "quit": "終了",
+        "menu": "メインメニューに戻る"
       },
       "actionsHint": "↑↓ 選択 · Enter 決定 · Ctrl+C 終了",
       "hint": "Tab タスク切替 · PgUp/PgDn スクロール · Home/End 先頭/最新",
@@ -5037,6 +5048,42 @@
       "test:e2e:windows": "ビルドして Windows E2E テストを実行",
       "test:e2e:run": "既存のビルドで Playwright E2E テストを実行",
       "typecheck:e2e": "E2E テストを型チェック"
+    },
+    "localTest": {
+      "title": "ローカルテスト",
+      "hint": "↑↓ 選択 · Enter 実行 · Esc メインメニュー",
+      "items": {
+        "smtc": {
+          "label": "SMTC",
+          "description": "システムメディアトランスポートコントロールから再生中の情報をリアルタイムで取得"
+        }
+      },
+      "smtc": {
+        "title": "SMTC メディア情報",
+        "loading": "再生情報を読み取り中...",
+        "unsupported": "SMTC は Windows でのみ利用できます。",
+        "error": "読み取りに失敗しました：{{message}}",
+        "empty": "メディアセッションがありません。任意のプレーヤーで再生してください。",
+        "unknown": "未提供",
+        "noTimeline": "アプリが再生位置を提供していません",
+        "hint": "Esc 戻る · 毎秒更新",
+        "fields": {
+          "title": "タイトル",
+          "artist": "アーティスト",
+          "album": "アルバム",
+          "status": "状態",
+          "progress": "進行",
+          "app": "提供元アプリ"
+        },
+        "status": {
+          "playing": "再生中",
+          "paused": "一時停止",
+          "stopped": "停止",
+          "closed": "終了",
+          "opened": "起動済み",
+          "changing": "切り替え中"
+        }
+      }
     }
   }
 }

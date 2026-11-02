@@ -68,7 +68,16 @@ Arguments meant for the script must come after `--`. Unknown options before `--`
 
 ### Interactive Dashboard
 
-Running `eisland` with no arguments opens a full-screen welcome screen with the eIsland logo. Press `Enter` to open the task view, or `Esc` to quit. Your previous terminal content comes back when you quit.
+Running `eisland` with no arguments opens a full-screen welcome screen with the eIsland logo and the main menu. Use `↑` / `↓` and `Enter` to open a feature, or `Esc` to quit. Your previous terminal content comes back when you quit.
+
+| Menu entry | Description |
+|------------|-------------|
+| Repository | The task view for root `package.json` scripts (the CLI's first feature) |
+| Local tests | Self-contained checks of system features on this machine; see [Local Tests](#local-tests) |
+
+:::important
+Going back to the main menu does not stop running tasks. They keep running and are still listed when you open Repository again. Quitting from the main menu asks first if any task is still running.
+:::
 
 The task view uses a top/bottom layout:
 
@@ -87,6 +96,7 @@ The bottom panel takes 40% of the terminal height (at least 10 rows), and the ou
 | Run script... | Open the picker. Type to filter by name or description; several space-separated keywords must all match. The `[dangerous]` tag comes first in the description column, and the selected row's description scrolls when it does not fit |
 | End current task | Kill the current task's whole process tree (shown while it is running) |
 | Close current task | Remove a finished task from the list |
+| Back to main menu | Return to the welcome screen; running tasks keep running |
 | Quit | End all running tasks (asks first if any are running) and restore the terminal |
 
 | Key | Effect |
@@ -106,6 +116,22 @@ In the dashboard, scripts write to a pipe, not the terminal. Colors are forced o
 
 :::tip
 "End current task" uses `taskkill /T /F` on Windows and signals the process group elsewhere, so grandchild processes such as the Electron window from `dev` also stop. Direct commands such as `eisland test main` keep the plain terminal output and exit after one run, so they stay safe to chain in shells and CI.
+:::
+
+### Local Tests
+
+The Local tests screen lists tests that check system features of this machine. Pick one with `Enter`, press `Esc` to leave a running test, and press `Esc` again (or choose "Back to main menu") to return to the welcome screen.
+
+| Test | Description |
+|------|-------------|
+| SMTC | Reads the current media session from Windows System Media Transport Controls and refreshes it every second: title, artist, album, playback status, progress, and source app |
+
+:::info
+The SMTC test is fully self-contained. It does not load the repository's SMTC plugin or any native module. It starts the built-in Windows PowerShell with an embedded script (passed via `-EncodedCommand`) that calls the WinRT `GlobalSystemMediaTransportControlsSessionManager` API and prints one JSON line per second. The reader process stops when you leave the test.
+:::
+
+:::note
+Some apps do not report a timeline. For those, the progress row says so instead of drawing a bar. While media is playing, the position is extrapolated from the last timeline update, so the bar keeps moving between updates. On macOS and Linux the test shows that SMTC is Windows-only and starts nothing.
 :::
 
 ### Name Resolution
@@ -179,6 +205,7 @@ Change CLI test settings only in `cli/vitest.config.ts`. The root config does no
 | `cli/src/core/taskManager.ts` | Concurrent dashboard tasks: output capture, process tree kill, change subscription |
 | `cli/src/core/outputBuffer.ts` | Split piped output into lines and strip cursor control sequences |
 | `cli/src/core/i18n.ts` | Locale detection and i18next setup for the `devCli` namespace |
+| `cli/src/core/smtc.ts` | Self-contained SMTC reader: embedded PowerShell script, JSON line parsing, process lifecycle |
 
 The Ink UI in `cli/src/ui/` follows the project's module layout:
 
@@ -190,11 +217,14 @@ The Ink UI in `cli/src/ui/` follows the project's module layout:
 | `ui/utils/uiUtils.ts` | Pure layout, output window, paging, task switching, and picker window math |
 | `ui/hooks/useDashboard.ts` | Task subscription, current task, panel mode, scrolling, and keyboard handling |
 | `ui/hooks/useScriptPicker.ts` | Picker filtering, cursor, and keyboard handling |
-| `ui/hooks/useConfirmInput.ts`, `useWelcome.ts`, `useWelcomeGate.ts` | Confirm keys, welcome keys and size, welcome-to-dashboard switch |
+| `ui/hooks/useConfirmInput.ts`, `useWelcome.ts`, `useAppScreen.ts` | Confirm keys, main menu cursor and quit confirmation, screen switching |
+| `ui/hooks/useLocalTest.ts`, `useSmtc.ts` | Local test list, SMTC reader lifecycle and live state |
 | `ui/components/launchers.tsx` | Mount Ink for the full-screen dashboard and for direct-command confirmation |
-| `ui/components/interactiveApp.tsx` | Welcome screen first, then the dashboard |
+| `ui/components/interactiveApp.tsx` | Switches between the main menu, the dashboard, and local tests |
 | `ui/components/dashboard.tsx` | Top/bottom task view composed from the components below |
-| `ui/components/welcome.tsx` | Welcome screen with the eIsland logo |
+| `ui/components/welcome.tsx` | Welcome screen with the eIsland logo and main menu |
+| `ui/components/localTest.tsx` | Local test list |
+| `ui/components/smtcView.tsx`, `smtcSessionInfo.tsx`, `smtcField.tsx` | SMTC test screen, session fields, and progress |
 | `ui/components/outputPanel.tsx`, `taskList.tsx`, `actionMenu.tsx` | Output panel with paging, task list, action list |
 | `ui/components/scriptPicker.tsx`, `pickerRow.tsx` | Searchable script picker and its rows |
 | `ui/components/confirmPrompt.tsx` | `(y/N)` confirmation prompt |

@@ -36,7 +36,7 @@ import OutputPanel from './outputPanel';
 import ScriptPicker from './scriptPicker';
 import TaskList from './taskList';
 
-import type { DashboardProps } from '../types/uiTypes';
+import type { RepoDashboardProps } from '../types/uiTypes';
 
 /**
  * 任务界面
@@ -46,12 +46,17 @@ import type { DashboardProps } from '../types/uiTypes';
  * @param props.skipConfirm - 是否跳过危险脚本确认
  * @param props.passthrough - 透传给脚本的参数
  * @param props.onQuit - 确认退出时回调
+ * @param props.onBack - 返回主菜单回调
  * @returns 全屏任务界面
  */
-export default function Dashboard({ manager, root, skipConfirm, passthrough, onQuit }: DashboardProps): React.JSX.Element {
+export default function Dashboard({
+  manager, root, skipConfirm, passthrough, onQuit, onBack,
+}: RepoDashboardProps): React.JSX.Element {
   const {
     tasks, current, currentIndex, mode, actions, actionIndex, anchor, columns, layout, handlePick, handleConfirmRun, handleConfirmQuit,
-  } = useDashboard({ manager, root, skipConfirm, passthrough, onQuit });
+  } = useDashboard({
+    manager, root, skipConfirm, passthrough, onQuit, onBack,
+  });
   return (
     <Box flexDirection="column" width={columns} height={layout.rows}>
       <OutputPanel task={current} index={currentIndex + 1} total={tasks.length} height={layout.outputHeight} anchor={anchor} />

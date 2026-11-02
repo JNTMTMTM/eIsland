@@ -32,7 +32,9 @@ import {
 } from '../utils/uiUtils';
 import { loadScripts } from '../../core/scripts';
 
-import type { Action, DashboardProps, Mode, UseDashboardReturn } from '../types/uiTypes';
+import type {
+  Action, Mode, RepoDashboardProps, UseDashboardReturn,
+} from '../types/uiTypes';
 import type { ScriptEntry } from '../../core/scripts';
 
 /**
@@ -45,9 +47,12 @@ import type { ScriptEntry } from '../../core/scripts';
  * @param props.skipConfirm - 是否跳过危险脚本确认
  * @param props.passthrough - 透传给脚本的参数
  * @param props.onQuit - 确认退出时回调
+ * @param props.onBack - 返回主菜单回调
  * @returns 渲染任务界面所需的状态与回调
  */
-export default function useDashboard({ manager, root, skipConfirm, passthrough, onQuit }: DashboardProps): UseDashboardReturn {
+export default function useDashboard({
+  manager, root, skipConfirm, passthrough, onQuit, onBack,
+}: RepoDashboardProps): UseDashboardReturn {
   const tasks = useSyncExternalStore(manager.subscribe, manager.getSnapshot);
   const { columns, rows: windowRows } = useWindowSize();
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -115,6 +120,9 @@ export default function useDashboard({ manager, root, skipConfirm, passthrough, 
       manager.remove(current.id);
       setSelectedId(null);
       setAnchor(null);
+    } else if (action === 'menu') {
+      // 运行中的任务由共享的任务管理器保留，再次进入仓库管理时仍可查看。
+      onBack();
     } else if (action === 'quit') {
       // 退出会结束全部运行中的任务，需二次确认。
       if (running > 0) {
