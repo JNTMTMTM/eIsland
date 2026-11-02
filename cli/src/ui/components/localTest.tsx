@@ -31,6 +31,7 @@ import useLocalTest from '../hooks/useLocalTest';
 import { padDisplay } from '../utils/uiUtils';
 import { t } from '../../core/i18n';
 import SmtcView from './smtcView';
+import StorageView from './storageView';
 
 import type { LocalTestProps } from '../types/uiTypes';
 
@@ -46,6 +47,7 @@ export default function LocalTest({ root, onBack }: LocalTestProps): React.JSX.E
     columns, rows, activeIndex, running, closeTest,
   } = useLocalTest({ onBack });
   if (running === 'smtc') return <SmtcView root={root} onBack={closeTest} />;
+  if (running === 'storage') return <StorageView onBack={closeTest} />;
   return (
     <Box flexDirection="column" width={columns} height={rows} borderStyle="round" paddingX={1}>
       <Text bold color="cyan">{t('devCli.localTest.title')}</Text>

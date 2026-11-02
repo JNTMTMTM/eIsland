@@ -5056,6 +5056,10 @@
         "smtc": {
           "label": "SMTC",
           "description": "即時讀取本機全部 SMTC 播放實例"
+        },
+        "storage": {
+          "label": "本機儲存",
+          "description": "唯讀檢視本機 eIsland 應用程式的全部儲存項目，敏感內容已遮蔽"
         }
       },
       "smtc": {
@@ -5082,6 +5086,27 @@
           "opened": "已開啟",
           "changing": "切換中",
           "unknown": "未知"
+        }
+      },
+      "storage": {
+        "title": "eIsland 本機儲存",
+        "count": "{{count}} 項",
+        "missing": "找不到儲存目錄，eIsland 可能尚未在本機執行過。",
+        "error": "讀取儲存目錄失敗：{{message}}",
+        "empty": "儲存目錄為空。",
+        "hint": "↑↓ 選擇 · PgUp/PgDn 翻閱 · R 重新整理 · Esc 返回",
+        "items": "{{count}} 個成員",
+        "masked": "已遮蔽敏感內容（權杖、密碼、電子郵件等）",
+        "invalid": "無效 JSON",
+        "parseError": "解析失敗：{{message}}",
+        "more": "... 還有 {{count}} 行",
+        "types": {
+          "object": "物件",
+          "array": "陣列",
+          "string": "字串",
+          "number": "數字",
+          "boolean": "布林值",
+          "null": "空值"
         }
       }
     }

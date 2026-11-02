@@ -28,7 +28,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import { initI18n } from '../../../core/i18n';
 import {
-  computeLayout, dashboardActions, descriptionWidth, formatDuration, hiddenTaskCount, livePosition, marqueeFrame, moveCursor,
+  computeLayout, dashboardActions, descriptionWidth, formatBytes, formatTime, jsonLines, storageLayout, storeItemCount, storeValueType, formatDuration, hiddenTaskCount, livePosition, marqueeFrame, moveCursor,
   nextTaskIndex, outputRows, padDisplay, pageDownAnchor, pageUpAnchor, pickerRowWidth, pickerWindowStart, progressBar,
   statusText, windowStart,
 } from '../uiUtils';
@@ -180,5 +180,29 @@ describe('菜单与 SMTC 展示', () => {
     expect(progressBar(50, 100, 10)).toBe('━━━━━─────');
     expect(progressBar(500, 100, 4)).toBe('━━━━');
     expect(progressBar(5, 0, 4)).toBe('────');
+  });
+});
+
+describe('本地存储展示', () => {
+  it('扣除外框、标题、路径、提示与内框后分配行数', () => {
+    expect(storageLayout(24)).toEqual({ listRows: 17, detailRows: 13 });
+    expect(storageLayout(5)).toEqual({ listRows: 1, detailRows: 1 });
+  });
+
+  it('区分值类型并统计成员数', () => {
+    expect([{}, [], 'a', 1, true, null].map(storeValueType)).toEqual(['object', 'array', 'string', 'number', 'boolean', 'null']);
+    expect(storeItemCount({ a: 1, b: 2 })).toBe(2);
+    expect(storeItemCount([1, 2, 3])).toBe(3);
+    expect(storeItemCount('abc')).toBeNull();
+    expect(storeItemCount(null)).toBeNull();
+  });
+
+  it('格式化 JSON 行、字节数与时刻', () => {
+    expect(jsonLines({ a: [1] })).toEqual(['{', '  "a": [', '    1', '  ]', '}']);
+    expect(jsonLines('x')).toEqual(['"x"']);
+    expect(formatBytes(512)).toBe('512 B');
+    expect(formatBytes(1536)).toBe('1.5 KB');
+    expect(formatBytes(3 * 1024 * 1024)).toBe('3.0 MB');
+    expect(formatTime(new Date(2026, 0, 2, 3, 4, 5).getTime())).toBe('2026-01-02 03:04:05');
   });
 });

@@ -5056,6 +5056,10 @@
         "smtc": {
           "label": "SMTC",
           "description": "このマシンのすべての SMTC 再生セッションをリアルタイムで取得"
+        },
+        "storage": {
+          "label": "ストレージ",
+          "description": "このマシンの eIsland アプリの保存項目をすべて読み取り専用で表示（機密情報は伏せ字）"
         }
       },
       "smtc": {
@@ -5082,6 +5086,27 @@
           "opened": "起動済み",
           "changing": "切り替え中",
           "unknown": "不明"
+        }
+      },
+      "storage": {
+        "title": "eIsland ローカルストレージ",
+        "count": "{{count}} 件",
+        "missing": "保存ディレクトリが見つかりません。このマシンで eIsland がまだ起動されていない可能性があります。",
+        "error": "保存ディレクトリの読み取りに失敗しました：{{message}}",
+        "empty": "保存ディレクトリは空です。",
+        "hint": "↑↓ 選択 · PgUp/PgDn スクロール · R 再読み込み · Esc 戻る",
+        "items": "{{count}} 個のメンバー",
+        "masked": "機密情報は伏せ字で表示しています",
+        "invalid": "無効な JSON",
+        "parseError": "解析に失敗しました：{{message}}",
+        "more": "... 残り {{count}} 行",
+        "types": {
+          "object": "オブジェクト",
+          "array": "配列",
+          "string": "文字列",
+          "number": "数値",
+          "boolean": "真偽値",
+          "null": "null"
         }
       }
     }

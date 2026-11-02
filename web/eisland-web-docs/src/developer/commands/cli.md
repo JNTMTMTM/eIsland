@@ -125,6 +125,7 @@ The Local tests screen lists tests that check system features of this machine. P
 | Test | Description |
 |------|-------------|
 | SMTC | Lists every media session from Windows System Media Transport Controls and refreshes them every second: source app, playback status, title, artist, album, and progress |
+| Storage | Read-only view of every entry the eIsland app keeps in `eIsland_store`, with size, modified time, and formatted JSON |
 
 :::info
 The SMTC test uses the repository's own plugin, `plugins/windows/eisland-windows-smtc-helper`. The CLI loads it at runtime from the repository root (it is a CommonJS package that loads a native DLL through koffi, so it is not bundled into the CLI). The test starts the plugin's `SmtcMonitor`, calls `getMediaSessions()` once per second, and stops the monitor when you leave the test.
@@ -136,6 +137,20 @@ The plugin's DLL must be built first. If the test reports `Unable to find eIslan
 
 :::note
 Some apps do not report a timeline. For those, the progress row says so instead of drawing a bar. While media is playing, the position is extrapolated from the plugin's sample time (`sampledAtMs`), so the bar keeps moving between updates. Sessions that do not fit on the screen are cut off at the bottom. On macOS and Linux the test shows that SMTC is Windows-only and starts nothing.
+:::
+
+The Storage test reads the app's own store: one `<key>.json` file per setting under Electron's `userData` directory, the same files `src/main/config/storeConfig.ts` reads and writes.
+
+| Platform | Store directory |
+|----------|-----------------|
+| Windows | `%APPDATA%\eisland\eIsland_store` |
+| macOS | `~/Library/Application Support/eisland/eIsland_store` |
+| Linux | `$XDG_CONFIG_HOME/eisland/eIsland_store` (default `~/.config/...`) |
+
+Use `↑` / `↓` to pick a key, `PgUp` / `PgDn` to scroll a long value, and `R` to read the directory again. Entries that fail to parse are shown in red with the parse error.
+
+:::danger
+The test never writes to the store, but the store holds credentials and personal data. Values are masked as `******` when they are read: whole files whose key looks like a credential (such as `user-account-token`), and any field whose name ends in `password`, `token`, `secret`, `credential`, `cookie`, `apiKey`, `privateKey`, `authorization`, `email`, or `phone`. Keys with masked content are marked with a yellow `*`. Masking is name-based, so check the screen before you share it.
 :::
 
 ### Name Resolution
@@ -209,6 +224,7 @@ Change CLI test settings only in `cli/vitest.config.ts`. The root config does no
 | `cli/src/core/taskManager.ts` | Concurrent dashboard tasks: output capture, process tree kill, change subscription |
 | `cli/src/core/outputBuffer.ts` | Split piped output into lines and strip cursor control sequences |
 | `cli/src/core/i18n.ts` | Locale detection and i18next setup for the `devCli` namespace |
+| `cli/src/core/storage.ts` | Locates the app store, reads every entry, and masks secrets |
 | `cli/src/core/smtc.ts` | Loads the SMTC helper plugin from the repository, converts its session snapshots, and polls all sessions |
 
 The Ink UI in `cli/src/ui/` follows the project's module layout:
@@ -223,12 +239,14 @@ The Ink UI in `cli/src/ui/` follows the project's module layout:
 | `ui/hooks/useScriptPicker.ts` | Picker filtering, cursor, and keyboard handling |
 | `ui/hooks/useConfirmInput.ts`, `useWelcome.ts`, `useAppScreen.ts` | Confirm keys, main menu cursor and quit confirmation, screen switching |
 | `ui/hooks/useLocalTest.ts`, `useSmtc.ts` | Local test list, SMTC monitor lifecycle and live session state |
+| `ui/hooks/useStorage.ts` | Storage test reading, reloading, key selection, and detail scrolling |
 | `ui/components/launchers.tsx` | Mount Ink for the full-screen dashboard and for direct-command confirmation |
 | `ui/components/interactiveApp.tsx` | Switches between the main menu, the dashboard, and local tests |
 | `ui/components/dashboard.tsx` | Top/bottom task view composed from the components below |
 | `ui/components/welcome.tsx` | Welcome screen with the eIsland logo and main menu |
 | `ui/components/localTest.tsx` | Local test list |
 | `ui/components/smtcView.tsx`, `smtcSessionInfo.tsx`, `smtcField.tsx` | SMTC test screen, one block per session, session fields and progress |
+| `ui/components/storageView.tsx`, `storageList.tsx`, `storageDetail.tsx` | Storage test screen, key list, and entry detail |
 | `ui/components/outputPanel.tsx`, `taskList.tsx`, `actionMenu.tsx` | Output panel with paging, task list, action list |
 | `ui/components/scriptPicker.tsx`, `pickerRow.tsx` | Searchable script picker and its rows |
 | `ui/components/confirmPrompt.tsx` | `(y/N)` confirmation prompt |

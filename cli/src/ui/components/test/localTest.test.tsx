@@ -96,18 +96,21 @@ beforeEach(() => {
 });
 
 describe('LocalTest', () => {
-  it('列出 SMTC 测试项与返回主菜单', () => {
+  it('列出 SMTC、本地存储测试项与返回主菜单', () => {
     const { lastFrame, unmount } = render(<LocalTest root={ROOT} onBack={vi.fn()} />);
     const frame = lastFrame() ?? '';
     expect(frame).toContain('Local tests');
     expect(frame).toContain('SMTC');
-    expect(frame).toContain('Back to main menu');
+    expect(frame).toContain('Storage');
+    expect(frame.indexOf('Storage')).toBeLessThan(frame.indexOf('Back to main menu'));
     unmount();
   });
 
   it('选中返回主菜单或按 Esc 时回调', async () => {
     const onBack = vi.fn();
     const { stdin, unmount } = render(<LocalTest root={ROOT} onBack={onBack} />);
+    await flush();
+    stdin.write(DOWN);
     await flush();
     stdin.write(DOWN);
     await flush();

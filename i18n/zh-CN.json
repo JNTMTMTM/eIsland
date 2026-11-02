@@ -5056,6 +5056,10 @@
         "smtc": {
           "label": "SMTC",
           "description": "实时读取本机全部 SMTC 播放实例"
+        },
+        "storage": {
+          "label": "本地存储",
+          "description": "只读查看本机 eIsland 应用的全部存储项，敏感内容已遮蔽"
         }
       },
       "smtc": {
@@ -5082,6 +5086,27 @@
           "opened": "已打开",
           "changing": "切换中",
           "unknown": "未知"
+        }
+      },
+      "storage": {
+        "title": "eIsland 本地存储",
+        "count": "{{count}} 项",
+        "missing": "未找到存储目录，eIsland 可能尚未在本机运行过。",
+        "error": "读取存储目录失败：{{message}}",
+        "empty": "存储目录为空。",
+        "hint": "↑↓ 选择 · PgUp/PgDn 翻看 · R 刷新 · Esc 返回",
+        "items": "{{count}} 个成员",
+        "masked": "已遮蔽敏感内容（令牌、密码、邮箱等）",
+        "invalid": "无效 JSON",
+        "parseError": "解析失败：{{message}}",
+        "more": "... 还有 {{count}} 行",
+        "types": {
+          "object": "对象",
+          "array": "数组",
+          "string": "字符串",
+          "number": "数字",
+          "boolean": "布尔值",
+          "null": "空值"
         }
       }
     }

@@ -64,12 +64,18 @@ export const MARQUEE_GAP = '   ';
 // 主菜单功能顺序：仓库管理为 CLI 的第一个功能。
 export const MENU_ENTRIES: readonly MenuEntry[] = ['repo', 'localTest'];
 // 本机测试列表，末尾固定为返回主菜单。
-export const LOCAL_TEST_ITEMS: readonly LocalTestItem[] = ['smtc', 'menu'];
+export const LOCAL_TEST_ITEMS: readonly LocalTestItem[] = ['smtc', 'storage', 'menu'];
 // 本机测试与主菜单列表项的名称列宽，用于对齐说明。
 export const MENU_LABEL_WIDTH = 12;
 // SMTC 信息标签列宽与播放进度条宽度。
 export const SMTC_LABEL_WIDTH = 10;
 export const SMTC_PROGRESS_WIDTH = 30;
+// 本地存储界面的键名列表宽度。
+export const STORAGE_LIST_WIDTH = 36;
+// 本地存储界面除内容外的行：外框上下边框、标题、路径、按键提示与两个内框的上下边框。
+export const STORAGE_CHROME_ROWS = 7;
+// 详情中 JSON 之前的行：键名、类型与大小、遮蔽提示或空行；之后的剩余行数提示。
+export const STORAGE_DETAIL_CHROME_ROWS = 4;
 // 播放状态颜色，未列出的状态使用灰色。
 export const SMTC_STATUS_COLOR: Readonly<Partial<Record<SmtcStatus, string>>> = { playing: 'green', paused: 'yellow' };
 

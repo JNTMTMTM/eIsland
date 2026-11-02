@@ -5056,6 +5056,10 @@
         "smtc": {
           "label": "SMTC",
           "description": "Read every SMTC playback session on this machine in real time"
+        },
+        "storage": {
+          "label": "Storage",
+          "description": "Read-only view of every eIsland app store entry on this machine, with secrets masked"
         }
       },
       "smtc": {
@@ -5082,6 +5086,27 @@
           "opened": "opened",
           "changing": "changing",
           "unknown": "unknown"
+        }
+      },
+      "storage": {
+        "title": "eIsland local storage",
+        "count": "{{count}} entries",
+        "missing": "Store directory not found. eIsland may not have run on this machine yet.",
+        "error": "Failed to read the store directory: {{message}}",
+        "empty": "The store directory is empty.",
+        "hint": "↑↓ select · PgUp/PgDn scroll · R reload · Esc back",
+        "items": "{{count}} members",
+        "masked": "Secrets and personal info are masked",
+        "invalid": "invalid JSON",
+        "parseError": "Failed to parse: {{message}}",
+        "more": "... {{count}} more lines",
+        "types": {
+          "object": "object",
+          "array": "array",
+          "string": "string",
+          "number": "number",
+          "boolean": "boolean",
+          "null": "null"
         }
       }
     }

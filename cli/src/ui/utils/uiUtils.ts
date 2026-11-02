@@ -29,11 +29,13 @@ import stringWidth from 'string-width';
 
 import {
   ACTION_BOX_CHROME_COLUMNS, BOTTOM_CHROME_ROWS, BOTTOM_RATIO, FALLBACK_ROWS, MARQUEE_GAP, MIN_BOTTOM_ROWS,
-  OUTPUT_CHROME_ROWS, PICKER_ROW_CHROME_COLUMNS, TASK_BOX_WIDTH,
+  OUTPUT_CHROME_ROWS, PICKER_ROW_CHROME_COLUMNS, STORAGE_CHROME_ROWS, STORAGE_DETAIL_CHROME_ROWS, TASK_BOX_WIDTH,
 } from '../config/uiConfig';
 import { t } from '../../core/i18n';
 
-import type { Action, DashboardLayout, OutputRow } from '../types/uiTypes';
+import type {
+  Action, DashboardLayout, OutputRow, StorageLayout, StoreValueType,
+} from '../types/uiTypes';
 import type { SmtcSession } from '../../core/smtc';
 import type { Task } from '../../core/taskManager';
 
@@ -238,6 +240,69 @@ export function formatDuration(seconds: number): string {
 export function progressBar(position: number, duration: number, width: number): string {
   const filled = duration > 0 ? Math.round((Math.min(position, duration) / duration) * width) : 0;
   return `${'━'.repeat(filled)}${'─'.repeat(width - filled)}`;
+}
+
+/**
+ * 计算本地存储界面的可用行数
+ * @param rows - 终端行数
+ * @returns 键名列表与 JSON 内容的可见行数，均不少于 1
+ */
+export function storageLayout(rows: number): StorageLayout {
+  const body = Math.max(1, rows - STORAGE_CHROME_ROWS);
+  return { listRows: body, detailRows: Math.max(1, body - STORAGE_DETAIL_CHROME_ROWS) };
+}
+
+/**
+ * 判断存储值的类型
+ * @param value - 存储值
+ * @returns 类型，数组与 null 单独区分
+ */
+export function storeValueType(value: unknown): StoreValueType {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  const type = typeof value;
+  return type === 'object' || type === 'string' || type === 'number' || type === 'boolean' ? type : 'null';
+}
+
+/**
+ * 获取对象或数组的成员数
+ * @param value - 存储值
+ * @returns 数组长度或对象键数，其余类型为 null
+ */
+export function storeItemCount(value: unknown): number | null {
+  if (Array.isArray(value)) return value.length;
+  return value !== null && typeof value === 'object' ? Object.keys(value).length : null;
+}
+
+/**
+ * 将存储值格式化为缩进的 JSON 行
+ * @param value - 存储值
+ * @returns JSON 行
+ */
+export function jsonLines(value: unknown): string[] {
+  return (JSON.stringify(value, null, 2) ?? '').split('\n');
+}
+
+/**
+ * 格式化字节数
+ * @param bytes - 字节数
+ * @returns 如 512 B、1.5 KB、2.0 MB
+ */
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+/**
+ * 按本地时区格式化时刻
+ * @param ms - Unix 毫秒
+ * @returns YYYY-MM-DD HH:mm:ss
+ */
+export function formatTime(ms: number): string {
+  const date = new Date(ms);
+  const pad = (value: number): string => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
 /**

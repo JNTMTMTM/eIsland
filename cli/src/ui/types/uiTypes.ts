@@ -26,6 +26,7 @@
 
 import type { ScriptEntry } from '../../core/scripts';
 import type { SmtcSession } from '../../core/smtc';
+import type { StoreEntry, StoreSnapshot } from '../../core/storage';
 import type { Task, TaskManager } from '../../core/taskManager';
 
 /** 交互模式的界面：主菜单、仓库管理、本机测试 */
@@ -35,10 +36,21 @@ export type Screen = 'menu' | 'repo' | 'localTest';
 export type MenuEntry = Exclude<Screen, 'menu'>;
 
 /** 本机测试列表项：测试项或返回主菜单 */
-export type LocalTestItem = 'smtc' | 'menu';
+export type LocalTestItem = 'smtc' | 'storage' | 'menu';
 
 /** SMTC 读取状态 */
 export type SmtcState = 'loading' | 'ready' | 'unsupported' | 'error';
+
+/** 存储值的类型 */
+export type StoreValueType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
+
+/** 本地存储界面各区域的可用行数 */
+export interface StorageLayout {
+  /** 键名列表可见行数 */
+  listRows: number;
+  /** 详情中 JSON 内容可见行数 */
+  detailRows: number;
+}
 
 /** 带推算播放位置的媒体会话 */
 export interface SmtcEntry {
@@ -217,6 +229,30 @@ export interface SmtcFieldProps {
   color?: string;
 }
 
+/** StorageView 组件与 useStorage hook 入参 */
+export interface StorageViewProps {
+  /** 返回本机测试列表 */
+  onBack: () => void;
+}
+
+/** StorageList 组件入参 */
+export interface StorageListProps {
+  /** 当前窗口内可见的存储项 */
+  visible: StoreEntry[];
+  /** 光标所在的存储项 */
+  activeEntry: StoreEntry | undefined;
+}
+
+/** StorageDetail 组件入参 */
+export interface StorageDetailProps {
+  /** 光标所在的存储项 */
+  entry: StoreEntry;
+  /** 当前可见的 JSON 行，以绝对行号标识 */
+  lines: OutputRow[];
+  /** 可见行之外剩余的行数 */
+  remaining: number;
+}
+
 /** SmtcView 组件与 useSmtc hook 入参 */
 export interface SmtcViewProps {
   /** 仓库根目录，用于加载 SMTC 插件 */
@@ -327,4 +363,24 @@ export interface UsePickerRowReturn {
   tag: string;
   /** 当前展示的说明，光标行放不下时为滚动中的片段 */
   description: string;
+}
+
+/** useStorage hook 返回值类型 */
+export interface UseStorageReturn {
+  /** 终端列数 */
+  columns: number;
+  /** 终端行数 */
+  rows: number;
+  /** 存储目录 */
+  dir: string;
+  /** 最近一次读取结果 */
+  snapshot: StoreSnapshot;
+  /** 当前窗口内可见的存储项 */
+  visible: StoreEntry[];
+  /** 光标所在的存储项 */
+  activeEntry: StoreEntry | undefined;
+  /** 详情中当前可见的 JSON 行，以绝对行号标识 */
+  lines: OutputRow[];
+  /** 详情可见行之外剩余的行数 */
+  remaining: number;
 }
