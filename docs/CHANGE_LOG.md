@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-03T15:08:04.634Z
+> 生成时间：2026-11-03T19:40:39.420Z
 
 ## 27.0.1
 
@@ -4247,6 +4247,10 @@
 
 ## Unreleased
 
+- 2026-11-03 | 5eede24c | JNTMTMTM | Merge pull request #308 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-7716e99581
+- 2026-11-03 | e9ec9c4a | 鸡哥 | Merge main into dependency updates and preserve docs Git plugin override
+- 2026-11-03 | 77ebe439 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 17 directories with 17 updates
+- 2026-11-03 | d576c033 | eislandBot | docs: auto update CHANGE_LOG.md for #306 by @dependabot[bot] [skip ci]
 - 2026-11-03 | 6cfb803a | JNTMTMTM | Merge pull request #306 from JNTMTMTM/dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.132
 - 2026-11-03 | b5d391c9 | 鸡哥 | fix(docs): use upgraded git plugin in Hope theme
 - 2026-11-03 | 686f8720 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
