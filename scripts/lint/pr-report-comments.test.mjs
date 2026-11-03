@@ -38,8 +38,11 @@ const workflows = [
   'test.yml',
 ];
 
+// 与 test.yml 的矩阵 project 列表保持一致。
+const PROJECTS = ['main', 'preload', 'shared', 'plugins', 'renderer', 'cli'];
+
 /**
- * 执行工作流实际的报告生成代码，模拟五个矩阵任务的 JSON 附件。
+ * 执行工作流实际的报告生成代码，模拟六个矩阵任务的 JSON 附件。
  * @param overrides - 按 project 替换附件；null 模拟整个任务未能上传附件。
  * @param outcome - GitHub 聚合矩阵结果，包含报告之外的安装或上传失败。
  * @returns 实际生成的 PR 评论文本。
@@ -50,7 +53,7 @@ async function renderMatrixReport(overrides = {}, outcome = 'success') {
   const script = block.split('// ==================== Post Comment')[0].split(/\r?\n/u)
     .map((line) => line.replace(/^ {12}/u, '')).join('\n');
   const artifacts = new Map();
-  ['main', 'preload', 'shared', 'plugins', 'renderer'].forEach((project) => {
+  PROJECTS.forEach((project) => {
     const files = Object.hasOwn(overrides, project) ? overrides[project] : {
       'test-metadata.json': { exit_code: 0, duration_seconds: 5 },
       'vitest-results.json': {
@@ -82,11 +85,11 @@ async function renderMatrixReport(overrides = {}, outcome = 'success') {
   });
 }
 
-test('矩阵报告汇总五个 project 的真实测试数量和独立耗时', async () => {
+test('矩阵报告汇总六个 project 的真实测试数量和独立耗时', async () => {
   const body = await renderMatrixReport();
   assert.match(body, /\*\*PASS\*\*/u);
-  assert.match(body, /10 passed, 0 failed, 0 skipped\/todo/u);
-  ['main', 'preload', 'shared', 'plugins', 'renderer'].forEach((project) => {
+  assert.match(body, /12 passed, 0 failed, 0 skipped\/todo/u);
+  PROJECTS.forEach((project) => {
     assert.ok(body.includes(`| ${project} | PASS | 2 | 0 | 0 | 5s |`));
     assert.ok(body.includes(`| src/${project}/test | 2 | 0 | 0 |`));
   });
@@ -156,7 +159,7 @@ test('失败日志转义 HTML 和提及符号并限制评论长度', async () =>
   assert.ok(body.includes('&#60;script&#62;&#64;someone&#124;broken'));
   assert.ok(body.length < 10_000);
   const expanded = await renderMatrixReport(Object.fromEntries(
-    ['main', 'preload', 'shared', 'plugins', 'renderer'].map((project) => [project, {
+    PROJECTS.map((project) => [project, {
       'vitest.log': '@'.repeat(70_000),
     }]),
   ), 'failure');
