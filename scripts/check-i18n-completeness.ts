@@ -34,6 +34,8 @@ const LOCALE_FILES = readdirSync(LOCALE_DIR)
   .sort()
   .map((file) => ({ path: join(LOCALE_DIR, file), label: file.slice(0, -'.json'.length) }));
 const SRC_DIR = join(ROOT, 'src');
+// CLI 文案位于同一套翻译文件的 devCli 命名空间；其终端输出全部写在 .ts 字符串中，需一并检测硬编码中文。
+const CLI_SRC_DIR = join(ROOT, 'cli', 'src');
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', 'out', 'test', '__tests__']);
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
@@ -147,7 +149,8 @@ if (translationIssues.length > 0) {
 
 // ── Check 2: 源码 t() 调用的键是否存在于翻译文件中 ──
 
-const sourceFiles = collectSourceFiles(SRC_DIR);
+const cliSourceFiles = collectSourceFiles(CLI_SRC_DIR);
+const sourceFiles = [...collectSourceFiles(SRC_DIR), ...cliSourceFiles];
 const missingKeyIssues: Issue[] = [];
 
 const T_CALL_RE = /\bt\(\s*['"]([^'"]+)['"]/g;
@@ -178,7 +181,7 @@ if (missingKeyIssues.length > 0) {
   console.log('[PASS] 源码中所有 t() 调用的键均存在于翻译文件中。');
 }
 
-// ── Check 3: TSX 文件中硬编码中文检测 ──
+// ── Check 3: 源码硬编码中文检测（应用 TSX、CLI TS/TSX） ──
 
 const CHINESE_RE = /[一-鿿]/;
 const SKIP_RE = /^import\s|^export\s|^from\s|^type\s|^interface\s|^const\s+\w+\s*=\s*vi\.|^\/\/|^\/\*|^\s*\*/;
@@ -189,7 +192,7 @@ const T_WRAPPED_RE = /\bt\(\s*['"][^'"]*['"]|tr\(\s*['"][^'"]*['"]/;
 const hardcodedIssues: Issue[] = [];
 
 for (const filePath of sourceFiles) {
-  if (!filePath.endsWith('.tsx')) continue;
+  if (!filePath.endsWith('.tsx') && !cliSourceFiles.includes(filePath)) continue;
   const content = readFileSync(filePath, 'utf-8');
   const relPath = relative(ROOT, filePath).replace(/\\/g, '/');
   const lines = content.split('\n');
@@ -267,7 +270,7 @@ if (hardcodedIssues.length > 0) {
     console.log(`  - ${issue.file}:${issue.line} ${issue.message}`);
   }
 } else {
-  console.log('[PASS] TSX 文件中未检测到硬编码中文。');
+  console.log('[PASS] 源码中未检测到硬编码中文。');
 }
 
 // ── Summary ──

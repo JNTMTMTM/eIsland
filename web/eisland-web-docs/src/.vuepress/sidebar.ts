@@ -1047,6 +1047,7 @@ export default sidebar({
         "commands/release-commands.md",
         "commands/esa-commands.md",
         "commands/plugin-commands.md",
+        "commands/cli.md",
       ],
     },
     {

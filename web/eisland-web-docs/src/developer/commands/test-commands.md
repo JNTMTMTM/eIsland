@@ -39,6 +39,7 @@ npm run test
 | `shared` | `src/shared/**/*.test.{ts,tsx}` | None configured | Green |
 | `plugins` | Native plugin runtime and loader tests | None configured | Blue |
 | `renderer` | `src/renderer/**/*.test.{ts,tsx}` | None configured | Magenta |
+| `cli` | `cli/src/**/*.test.{ts,tsx}` (defined in `cli/vitest.config.ts`) | None configured | White |
 
 :::important
 These labels identify test projects. They run in the Node.js environment; naming a project `renderer` does not provide a DOM or launch Electron. Tests that require DOM interaction need a configured environment such as `jsdom` or `happy-dom` and its dependency.
@@ -124,6 +125,20 @@ npm run test:preload
 
 :::note
 This is a subset of `npm run test`. Use it when modifying preload code for faster feedback — it skips all other test files.
+:::
+
+## `npm run test:cli`
+
+Runs the [eIsland CLI](cli.md) tests (`cli/src/**/*.test.{ts,tsx}`).
+
+```bash
+npm run test:cli
+```
+
+**Under the hood:** `vitest run --project cli`. The project is loaded from `cli/vitest.config.ts`, so `npm test` inside `cli/` runs the same tests on their own.
+
+:::warning
+The CLI is a separate package. Run `npm install` inside `cli/` first, or Ink and the other CLI dependencies will not resolve.
 :::
 
 ## `npm run test:coverage`

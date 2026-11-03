@@ -41,6 +41,7 @@ test('Windows root Vitest projects discover every source and plugin test exactly
   const expected = globSync([
     'src/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}',
     'plugins/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}',
+    'cli/src/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}',
   ], { cwd: root, exclude: ['**/node_modules/**', '**/build/**', '**/bin/**', '**/obj/**'] }).map((file) => resolve(root, file));
   const included = new Set(discovered);
   const missing = expected.filter((file) => !included.has(file));
