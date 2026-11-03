@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-03T14:57:21.664Z
+> 生成时间：2026-11-03T15:03:32.505Z
 
 ## 27.0.1
 
@@ -4247,6 +4247,8 @@
 
 ## Unreleased
 
+- 2026-11-03 | 0d19f900 | JNTMTMTM | Merge pull request #305 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-f1957af932
+- 2026-11-03 | c134807a | eislandBot | docs: auto update CHANGE_LOG.md for #307 by @JNTMTMTM [skip ci]
 - 2026-11-03 | 034cfe91 | JNTMTMTM | Merge pull request #307 from JNTMTMTM/dev
 - 2026-11-02 | f80951b1 | 鸡哥 | feat(cli): enhance task management and output handling
 - 2026-11-02 | f6743194 | 鸡哥 | feat(test): update matrix report to include six projects and adjust related tests
@@ -4264,6 +4266,7 @@
 - 2026-11-01 | 71a52305 | 鸡哥 | feat: implement task manager and dashboard UI for concurrent script execution
 - 2026-11-01 | 1330c3de | 鸡哥 | feat(cli): add Vitest configuration and testing scripts for CLI
 - 2026-11-01 | 8dedbc11 | 鸡哥 | feat(cli): add interactive script picker and confirmation prompt
+- 2026-11-01 | fe8b8b18 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 16 directories with 16 updates
 - 2026-11-01 | fde78e40 | eislandBot | docs: auto update CHANGE_LOG.md for #304 by @JNTMTMTM [skip ci]
 - 2026-11-01 | 4dfb5bd7 | JNTMTMTM | Merge pull request #304 from JNTMTMTM/dev
 - 2026-11-01 | 4b982b8e | 鸡哥 | feat(tests): enhance startup tests with conditional execution based on helper availability
