@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-01T20:03:57.616Z
+> 生成时间：2026-11-03T14:57:21.664Z
 
 ## 27.0.1
 
@@ -4247,6 +4247,24 @@
 
 ## Unreleased
 
+- 2026-11-03 | 034cfe91 | JNTMTMTM | Merge pull request #307 from JNTMTMTM/dev
+- 2026-11-02 | f80951b1 | 鸡哥 | feat(cli): enhance task management and output handling
+- 2026-11-02 | f6743194 | 鸡哥 | feat(test): update matrix report to include six projects and adjust related tests
+- 2026-11-02 | 03b60fca | 鸡哥 | feat(storage): implement delete functionality for storage entries and update UI components
+- 2026-11-01 | 4d02b8ab | 鸡哥 | feat(storage): add read-only storage view for eIsland app entries
+- 2026-11-01 | fee017ad | 鸡哥 | feat: rename CLI command to eisland-cli and update related documentation
+- 2026-11-01 | ecf7f72e | 鸡哥 | feat: enhance SMTC test functionality and UI
+- 2026-11-01 | 67130840 | 鸡哥 | feat: add SMTC (System Media Transport Controls) support and local testing interface
+- 2026-11-01 | 9cdf80ee | 鸡哥 | refactor: remove unused useWelcomeGate hook
+- 2026-11-01 | baec9837 | 鸡哥 | feat: enhance script picker with scrolling descriptions and dangerous tag positioning
+- 2026-11-01 | 6b109c1e | 鸡哥 | refactor(dashboard): update task box width and improve layout descriptions in documentation
+- 2026-11-01 | fff0b250 | 鸡哥 | refactor(cli): split ui into module structure and merge i18n into root locales
+- 2026-11-01 | 3da63873 | 鸡哥 | feat: update version to 26.0.0 in package.json and package-lock.json
+- 2026-11-01 | 6e37f916 | 鸡哥 | feat: add welcome screen and interactive dashboard layout with task management
+- 2026-11-01 | 71a52305 | 鸡哥 | feat: implement task manager and dashboard UI for concurrent script execution
+- 2026-11-01 | 1330c3de | 鸡哥 | feat(cli): add Vitest configuration and testing scripts for CLI
+- 2026-11-01 | 8dedbc11 | 鸡哥 | feat(cli): add interactive script picker and confirmation prompt
+- 2026-11-01 | fde78e40 | eislandBot | docs: auto update CHANGE_LOG.md for #304 by @JNTMTMTM [skip ci]
 - 2026-11-01 | 4dfb5bd7 | JNTMTMTM | Merge pull request #304 from JNTMTMTM/dev
 - 2026-11-01 | 4b982b8e | 鸡哥 | feat(tests): enhance startup tests with conditional execution based on helper availability
 - 2026-11-01 | 35f33052 | 鸡哥 | feat: enhance startup helper with error handling and async support for queries
