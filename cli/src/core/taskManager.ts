@@ -55,13 +55,16 @@ export interface TaskManager {
   kill: (id: number) => void;
   /** 移除已结束的任务 */
   remove: (id: number) => void;
-  /** 结束全部运行中的任务，等待其退出或超时 */
+  /** 结束全部运行中的任务，超时后强制结束仍未退出的进程树 */
   killAll: () => Promise<void>;
   /** 订阅任务变化，返回取消订阅函数 */
   subscribe: (listener: () => void) => () => void;
   /** 获取当前任务快照，变化前返回同一引用以供 useSyncExternalStore 比较 */
   getSnapshot: () => readonly Task[];
 }
+
+/** 子进程输出流 */
+type OutputStream = 'stdout' | 'stderr';
 
 /** 任务内部记录 */
 interface TaskRecord {
@@ -70,7 +73,8 @@ interface TaskRecord {
   status: TaskStatus;
   code: number | null;
   lines: string[];
-  partial: string;
+  /** 各输出流尚未换行的末尾片段，分开保存以免两路输出拼进同一行 */
+  partials: Record<OutputStream, string>;
   child: ChildProcess;
   killRequested: boolean;
   closed: Promise<void>;
@@ -91,7 +95,12 @@ const SIGNAL_EXIT_CODE = 130;
 function killProcessTree(child: ChildProcess): void {
   if (child.pid === undefined) return;
   if (process.platform === 'win32') {
-    spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+    const killer = spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+    // taskkill 无法启动或执行失败时，至少结束 npm 本身。
+    killer.once('error', () => child.kill());
+    killer.once('exit', (code) => {
+      if (code !== 0) child.kill();
+    });
     return;
   }
   try {
@@ -100,6 +109,26 @@ function killProcessTree(child: ChildProcess): void {
     // 进程组已不存在时退回只结束 npm 本身。
     child.kill('SIGTERM');
   }
+}
+
+/**
+ * 强制结束仍未退出的进程树
+ * @description 正常结束超时后使用：类 Unix 平台向进程组发送 SIGKILL，Windows 上 taskkill /F 已是强制结束，
+ * 只能再强制结束 npm 本身；最后断开管道并解除引用，保证即使有进程残留，CLI 自身也能退出
+ * @param child - npm 子进程
+ */
+function forceKillProcessTree(child: ChildProcess): void {
+  if (child.pid !== undefined && process.platform !== 'win32') {
+    try {
+      process.kill(-child.pid, 'SIGKILL');
+    } catch {
+      // 进程组已退出。
+    }
+  }
+  child.kill('SIGKILL');
+  child.stdout?.destroy();
+  child.stderr?.destroy();
+  child.unref();
 }
 
 /**
@@ -116,7 +145,7 @@ function exitStatus(killRequested: boolean, code: number): TaskStatus {
 /**
  * 创建任务管理器
  * @param root - 仓库根目录，脚本在此执行
- * @param maxLines - 每个任务保留的最大输出行数，超出后丢弃最早的行
+ * @param maxLines - 每个任务保留的最大输出行数，超出后丢弃最早的行，默认 5000
  * @returns 任务管理器
  */
 export default function createTaskManager(root: string, maxLines: number = DEFAULT_MAX_LINES): TaskManager {
@@ -131,7 +160,7 @@ export default function createTaskManager(root: string, maxLines: number = DEFAU
     name: record.name,
     status: record.status,
     code: record.code,
-    lines: record.partial ? [...record.lines, sanitizeLine(record.partial)] : [...record.lines],
+    lines: [...record.lines, ...[record.partials.stdout, record.partials.stderr].filter(Boolean).map(sanitizeLine)],
   });
 
   const flush = (): void => {
@@ -161,32 +190,34 @@ export default function createTaskManager(root: string, maxLines: number = DEFAU
     });
     const { promise: closed, resolve } = Promise.withResolvers<void>();
     const record: TaskRecord = {
-      child, closed, name, id: nextId, status: 'running', code: null, lines: [], partial: '', killRequested: false,
+      child, closed, name, id: nextId, status: 'running', code: null, lines: [], partials: { stdout: '', stderr: '' }, killRequested: false,
     };
     nextId += 1;
     records.push(record);
 
-    const append = (chunk: string): void => {
-      const { complete, partial } = splitChunk(record.partial, chunk);
+    const append = (stream: OutputStream, chunk: string): void => {
+      const { complete, partial } = splitChunk(record.partials[stream], chunk);
       record.lines.push(...complete);
       if (record.lines.length > maxLines) record.lines.splice(0, record.lines.length - maxLines);
-      record.partial = partial;
+      record.partials[stream] = partial;
       schedule();
     };
     // error 与 close 可能先后触发，仅以首次结束为准。
     const finish = (code: number, status: TaskStatus): void => {
       if (record.status !== 'running') return;
-      if (record.partial) append('\n');
+      (['stdout', 'stderr'] as const).forEach((stream) => {
+        if (record.partials[stream]) append(stream, '\n');
+      });
       record.code = code;
       record.status = status;
       schedule(true);
       resolve();
     };
 
-    child.stdout?.setEncoding('utf8').on('data', append);
-    child.stderr?.setEncoding('utf8').on('data', append);
+    child.stdout?.setEncoding('utf8').on('data', (chunk: string) => append('stdout', chunk));
+    child.stderr?.setEncoding('utf8').on('data', (chunk: string) => append('stderr', chunk));
     child.once('error', (error) => {
-      append(`${error.message}\n`);
+      append('stderr', `${error.message}\n`);
       finish(1, 'failed');
     });
     child.once('close', (code) => {
@@ -219,6 +250,8 @@ export default function createTaskManager(root: string, maxLines: number = DEFAU
       setTimeout(resolve, KILL_TIMEOUT_MS).unref();
     });
     await Promise.race([Promise.all(running.map((record) => record.closed)), timeout]);
+    // 超时仍未退出的任务强制结束，否则残留的子进程会让 CLI 无法退出。
+    running.filter((record) => record.status === 'running').forEach((record) => forceKillProcessTree(record.child));
   };
 
   const subscribe = (listener: () => void): (() => void) => {

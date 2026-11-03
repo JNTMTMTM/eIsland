@@ -56,7 +56,7 @@ export default function SmtcView({ root, onBack }: SmtcViewProps): React.JSX.Ele
         {state === 'error' ? <Text color="red" wrap="wrap">{t('devCli.localTest.smtc.error', { message: error })}</Text> : null}
         {state === 'ready' && entries.length === 0 ? <Text dimColor>{t('devCli.localTest.smtc.empty')}</Text> : null}
         {state === 'ready' ? entries.map((entry, index) => (
-          <SmtcSessionInfo key={entry.session.app} entry={entry} index={index + 1} />
+          <SmtcSessionInfo key={entry.id} entry={entry} index={index + 1} />
         )) : null}
       </Box>
       <Text dimColor wrap="truncate-end">{t('devCli.localTest.smtc.hint')}</Text>

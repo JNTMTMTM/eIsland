@@ -40,6 +40,7 @@ interface FakeChild extends EventEmitter {
   stdout: PassThrough;
   stderr: PassThrough;
   kill: ReturnType<typeof vi.fn>;
+  unref: ReturnType<typeof vi.fn>;
 }
 
 const spawnMock = vi.mocked(spawn);
@@ -66,7 +67,7 @@ beforeEach(() => {
   children = [];
   spawnMock.mockImplementation((command) => {
     const child = Object.assign(new EventEmitter(), {
-      pid: 1000 + children.length, stdout: new PassThrough(), stderr: new PassThrough(), kill: vi.fn(),
+      pid: 1000 + children.length, stdout: new PassThrough(), stderr: new PassThrough(), kill: vi.fn(), unref: vi.fn(),
     });
     // taskkill 本身不是被管理的任务，不计入 children。
     if (command === 'npm') children.push(child);
@@ -86,14 +87,17 @@ describe('createTaskManager', () => {
     expect(options?.env?.FORCE_COLOR).toBe('1');
   });
 
-  it('合并 stdout 与 stderr 输出，并包含未换行的末尾片段', async () => {
+  it('stdout 与 stderr 分别拼接各自的未完成行，并包含未换行的末尾片段', async () => {
     const manager = createTaskManager('/repo');
     const { id } = manager.start('dev', []);
     children[0].stdout.write('line 1\nline ');
     children[0].stderr.write('err\n');
     children[0].stdout.write('2');
+    children[0].stderr.write('warn');
     await flush();
-    expect(manager.getSnapshot().find((task) => task.id === id)?.lines).toEqual(['line 1', 'line err', '2']);
+    expect(manager.getSnapshot().find((task) => task.id === id)?.lines).toEqual(['line 1', 'err', 'line 2', 'warn']);
+    children[0].emit('close', 0);
+    expect(manager.getSnapshot()[0].lines).toEqual(['line 1', 'err', 'line 2', 'warn']);
   });
 
   it('退出码决定成功或失败状态', () => {
@@ -118,6 +122,16 @@ describe('createTaskManager', () => {
     expect(spawnMock.mock.calls.filter(([command]) => command === 'taskkill')).toHaveLength(1);
     children[0].emit('close', 1);
     expect(manager.getSnapshot()[0].status).toBe('killed');
+  });
+
+  it('Windows 上 taskkill 失败时退回结束 npm 本身', () => {
+    setPlatform('win32');
+    const manager = createTaskManager('/repo');
+    const { id } = manager.start('dev', []);
+    manager.kill(id);
+    const killer = spawnMock.mock.results.at(-1)?.value as EventEmitter;
+    killer.emit('exit', 1);
+    expect(children[0].kill).toHaveBeenCalledTimes(1);
   });
 
   it('类 Unix 平台向进程组发送 SIGTERM', () => {
@@ -163,6 +177,24 @@ describe('createTaskManager', () => {
     children.forEach((child) => child.emit('close', 1));
     await pending;
     expect(manager.getSnapshot().map((task) => task.status)).toEqual(['killed', 'killed']);
+  });
+
+  it('killAll 超时后强制结束残留进程树并断开管道，保证 CLI 能退出', async () => {
+    vi.useFakeTimers();
+    setPlatform('linux');
+    const killSpy = vi.spyOn(process, 'kill').mockReturnValue(true);
+    const manager = createTaskManager('/repo');
+    manager.start('dev', []);
+    const pending = manager.killAll();
+    expect(killSpy).not.toHaveBeenCalledWith(-1000, 'SIGKILL');
+    await vi.advanceTimersByTimeAsync(5000);
+    await pending;
+    expect(killSpy).toHaveBeenCalledWith(-1000, 'SIGKILL');
+    expect(children[0].kill).toHaveBeenCalledWith('SIGKILL');
+    expect(children[0].stdout.destroyed).toBe(true);
+    expect(children[0].unref).toHaveBeenCalledTimes(1);
+    killSpy.mockRestore();
+    vi.useRealTimers();
   });
 
   it('状态变化通知订阅者，取消订阅后不再通知', () => {

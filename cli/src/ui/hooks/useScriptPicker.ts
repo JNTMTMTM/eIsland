@@ -40,7 +40,7 @@ import type { ScriptPickerProps, UseScriptPickerReturn } from '../types/uiTypes'
  * @param props - 选择器入参
  * @param props.entries - 全部脚本
  * @param props.onSubmit - 选中或返回时的回调
- * @param props.pageSize - 列表可见行数
+ * @param props.pageSize - 列表可见行数，默认 DEFAULT_PAGE_SIZE（12）
  * @returns 渲染选择器所需的状态
  */
 export default function useScriptPicker({ entries, onSubmit, pageSize = DEFAULT_PAGE_SIZE }: ScriptPickerProps): UseScriptPickerReturn {

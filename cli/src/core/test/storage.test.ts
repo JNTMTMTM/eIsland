@@ -25,7 +25,7 @@
  */
 
 import {
-  mkdirSync, mkdtempSync, rmSync, writeFileSync,
+  existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -33,7 +33,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 
 import {
-  deleteStoreEntry, loadStoreSnapshot, MASK, maskSecrets, readStore, resolveStoreDir,
+  deleteStoreEntry, isSecretField, loadStoreSnapshot, MASK, maskSecrets, readStore, resolveStoreDir,
 } from '../storage';
 
 const sandbox = mkdtempSync(path.join(tmpdir(), 'eisland-cli-storage-'));
@@ -50,17 +50,23 @@ afterAll(() => {
 });
 
 describe('resolveStoreDir', () => {
-  it('按 Electron userData 规则定位各平台目录', () => {
-    expect(resolveStoreDir({ platform: 'win32', env: { APPDATA: 'C:\\Roaming' }, home: 'C:\\Users\\me' }))
-      .toBe(path.join('C:\\Roaming', 'eisland', 'eIsland_store'));
-    expect(resolveStoreDir({ platform: 'win32', env: {}, home: '/home' }))
-      .toBe(path.join('/home', 'AppData', 'Roaming', 'eisland', 'eIsland_store'));
-    expect(resolveStoreDir({ platform: 'darwin', env: {}, home: '/Users/me' }))
-      .toBe(path.join('/Users/me', 'Library', 'Application Support', 'eisland', 'eIsland_store'));
-    expect(resolveStoreDir({ platform: 'linux', env: { XDG_CONFIG_HOME: '/cfg' }, home: '/home/me' }))
-      .toBe(path.join('/cfg', 'eisland', 'eIsland_store'));
-    expect(resolveStoreDir({ platform: 'linux', env: {}, home: '/home/me' }))
-      .toBe(path.join('/home/me', '.config', 'eisland', 'eIsland_store'));
+  it('按 Electron userData 规则定位各平台目录，默认使用打包版的 productName', () => {
+    const none = (): boolean => false;
+    expect(resolveStoreDir({ platform: 'win32', env: { APPDATA: 'C:\\Roaming' }, home: 'C:\\Users\\me', exists: none }))
+      .toBe(path.join('C:\\Roaming', 'eIsland', 'eIsland_store'));
+    expect(resolveStoreDir({ platform: 'win32', env: {}, home: '/home', exists: none }))
+      .toBe(path.join('/home', 'AppData', 'Roaming', 'eIsland', 'eIsland_store'));
+    expect(resolveStoreDir({ platform: 'darwin', env: {}, home: '/Users/me', exists: none }))
+      .toBe(path.join('/Users/me', 'Library', 'Application Support', 'eIsland', 'eIsland_store'));
+    expect(resolveStoreDir({ platform: 'linux', env: { XDG_CONFIG_HOME: '/cfg' }, home: '/home/me', exists: none }))
+      .toBe(path.join('/cfg', 'eIsland', 'eIsland_store'));
+    expect(resolveStoreDir({ platform: 'linux', env: {}, home: '/home/me', exists: none }))
+      .toBe(path.join('/home/me', '.config', 'eIsland', 'eIsland_store'));
+  });
+
+  it('大小写敏感的文件系统上只有开发版目录存在时使用它', () => {
+    const devDir = path.join('/home/me', '.config', 'eisland', 'eIsland_store');
+    expect(resolveStoreDir({ platform: 'linux', env: {}, home: '/home/me', exists: (dir) => dir === devDir })).toBe(devDir);
   });
 });
 
@@ -90,6 +96,15 @@ describe('maskSecrets', () => {
     });
   });
 
+  it('字段名按单词匹配，覆盖驼峰与下划线写法', () => {
+    ['emailAddress', 'phoneNumber', 'mobile', 'ACCESS_TOKEN', 'api_key', 'APIKey', 'privateKey', 'user-password'].forEach((field) => {
+      expect(isSecretField(field), field).toBe(true);
+    });
+    ['author', 'inputTokens', 'passengers', 'keyboard', 'username'].forEach((field) => {
+      expect(isSecretField(field), field).toBe(false);
+    });
+  });
+
   it('没有敏感内容时原样返回', () => {
     expect(maskSecrets('theme-mode', 'dark')).toEqual({ value: 'dark', masked: false });
   });
@@ -108,12 +123,32 @@ describe('readStore', () => {
     expect(theme.modified).toBeGreaterThan(0);
   });
 
+  it('单个文件读取失败只影响该项，其余存储项照常列出', () => {
+    const isolated = path.join(sandbox, 'isolated');
+    mkdirSync(isolated);
+    writeFileSync(path.join(isolated, 'ok.json'), JSON.stringify(1));
+    mkdirSync(path.join(isolated, 'folder.json'));
+    const entries = readStore(isolated) ?? [];
+    expect(entries.map((entry) => entry.key)).toEqual(['folder', 'ok']);
+    expect(entries[0].error).toEqual(expect.any(String));
+    expect(entries[1]).toEqual(expect.objectContaining({ value: 1, error: null }));
+  });
+
   it('目录不存在时返回 null', () => {
     expect(readStore(path.join(sandbox, 'missing'))).toBeNull();
   });
 });
 
 describe('deleteStoreEntry', () => {
+  it('删除 claude-code-status 时一并删除其事件详情目录', () => {
+    writeFileSync(path.join(storeDir, 'claude-code-status.json'), JSON.stringify({}));
+    mkdirSync(path.join(storeDir, 'cli-details'));
+    writeFileSync(path.join(storeDir, 'cli-details', 'event.json'), 'raw');
+    deleteStoreEntry(storeDir, 'claude-code-status');
+    expect(existsSync(path.join(storeDir, 'claude-code-status.json'))).toBe(false);
+    expect(existsSync(path.join(storeDir, 'cli-details'))).toBe(false);
+  });
+
   it('删除对应的 JSON 文件，不存在时抛出', () => {
     writeFileSync(path.join(storeDir, 'to-delete.json'), JSON.stringify(1));
     deleteStoreEntry(storeDir, 'to-delete');

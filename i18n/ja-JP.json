@@ -4986,7 +4986,7 @@
       "test:discovery": "Vitest のテストファイル検出を検証",
       "test:coverage": "すべてのテストをカバレッジ付きで実行",
       "test:cli": "eIsland CLI のテストを実行",
-      "postinstall": "Electron 向けにネイティブ依存を再ビルド（インストール後に自動実行）",
+      "postinstall": "Electron 向けにネイティブ依存を再ビルドし、CLI の依存をインストール（インストール後に自動実行）",
       "package": "ビルドして electron-builder でインストーラーを作成",
       "changelog:generate": "docs/CHANGE_LOG.md を生成",
       "release:notes": "前回のタグ以降のリリースノートを生成",

@@ -4986,7 +4986,7 @@
       "test:discovery": "校验 Vitest 测试文件发现规则",
       "test:coverage": "运行全部测试并生成覆盖率报告",
       "test:cli": "运行 eIsland CLI 测试",
-      "postinstall": "为 Electron 重建原生依赖（安装后自动执行）",
+      "postinstall": "为 Electron 重建原生依赖并安装 CLI 依赖（安装后自动执行）",
       "package": "构建并使用 electron-builder 打包安装程序",
       "changelog:generate": "生成 docs/CHANGE_LOG.md",
       "release:notes": "生成自上个标签以来的发布说明",

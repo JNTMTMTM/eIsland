@@ -4986,7 +4986,7 @@
       "test:discovery": "Verify Vitest test file discovery",
       "test:coverage": "Run all tests with a coverage report",
       "test:cli": "Run eIsland CLI tests",
-      "postinstall": "Rebuild native dependencies for Electron (runs after install)",
+      "postinstall": "Rebuild native dependencies for Electron and install CLI dependencies (runs after install)",
       "package": "Build and package the installer with electron-builder",
       "changelog:generate": "Generate docs/CHANGE_LOG.md",
       "release:notes": "Generate release notes since the last tag",

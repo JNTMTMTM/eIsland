@@ -64,6 +64,8 @@ export interface StorageLayout {
 
 /** 带推算播放位置的媒体会话 */
 export interface SmtcEntry {
+  /** 渲染 key：来源应用加同一应用内的序号，同一应用暴露多个会话时仍唯一 */
+  id: string;
   /** 媒体会话 */
   session: SmtcSession;
   /** 按经过时间推算的当前播放位置（秒） */

@@ -159,6 +159,21 @@ describe('SMTC 测试', () => {
     unmount();
   });
 
+  it('同一应用的多个会话都单独渲染', async () => {
+    const { lastFrame, unmount } = await openSmtc();
+    callbacks().update([
+      session({ app: 'Chrome.exe', title: 'First tab' }),
+      session({ app: 'Chrome.exe', title: 'Second tab' }),
+    ]);
+    await flush();
+    const frame = lastFrame() ?? '';
+    expect(frame).toContain('#1 Chrome.exe');
+    expect(frame).toContain('#2 Chrome.exe');
+    expect(frame).toContain('First tab');
+    expect(frame).toContain('Second tab');
+    unmount();
+  });
+
   it('读取失败时显示原因', async () => {
     const { lastFrame, unmount } = await openSmtc();
     callbacks().fail('access denied');

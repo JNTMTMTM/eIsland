@@ -47,14 +47,35 @@ export function sanitizeLine(line: string): string {
   return (segments.at(-1) ?? '').replace(CONTROL_SEQUENCE, '').replace(/\t/g, '  ');
 }
 
+/** 残留片段的最大长度，超出后强制断行，避免长时间不换行的输出无限占用内存 */
+export const MAX_PARTIAL_LENGTH = 64 * 1024;
+
+/**
+ * 压缩残留片段
+ * @description 进度条以 `\r` 反复覆盖同一行，只需保留最后一次覆盖；
+ * 末尾的 `\r` 可能是被数据块切开的 `\r\n`，需连同它之前的一段一起保留
+ * @param partial - 未遇到换行符的末尾片段
+ * @returns 渲染结果相同但不含已被覆盖内容的片段
+ */
+function compactPartial(partial: string): string {
+  const searchFrom = partial.endsWith('\r') ? partial.length - 2 : partial.length - 1;
+  const index = searchFrom < 0 ? -1 : partial.lastIndexOf('\r', searchFrom);
+  return index > 0 ? partial.slice(index) : partial;
+}
+
 /**
  * 将新到达的数据块与上次残留片段拼接后按行切分
  * @param partial - 上次残留的未完成片段
  * @param chunk - 新到达的数据块
- * @returns 完整行（已清理）与新的残留片段（未清理）
+ * @returns 完整行（已清理）与新的残留片段（未清理，长度不超过 MAX_PARTIAL_LENGTH）
  */
 export function splitChunk(partial: string, chunk: string): SplitResult {
   const parts = `${partial}${chunk}`.split(/\r?\n/);
-  const rest = parts.pop() ?? '';
-  return { complete: parts.map(sanitizeLine), partial: rest };
+  let rest = compactPartial(parts.pop() ?? '');
+  const complete = parts.map(sanitizeLine);
+  while (rest.length > MAX_PARTIAL_LENGTH) {
+    complete.push(sanitizeLine(rest.slice(0, MAX_PARTIAL_LENGTH)));
+    rest = rest.slice(MAX_PARTIAL_LENGTH);
+  }
+  return { complete, partial: rest };
 }

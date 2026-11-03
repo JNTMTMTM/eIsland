@@ -59,8 +59,8 @@ function normalizeLocale(tag: string | undefined): Locale | null {
 /**
  * 按优先级检测输出语言
  * @param explicit - `--lang` 参数值
- * @param envLocale - `EISLAND_LANG` 环境变量值
- * @param systemLocale - 系统语言标签
+ * @param envLocale - `EISLAND_LANG` 环境变量值，默认读取 process.env.EISLAND_LANG
+ * @param systemLocale - 系统语言标签，默认取 Intl.DateTimeFormat 解析出的系统语言
  * @returns 最终使用的语言
  */
 export function detectLocale(

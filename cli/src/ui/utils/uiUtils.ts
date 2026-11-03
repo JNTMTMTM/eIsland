@@ -313,3 +313,18 @@ export function formatTime(ms: number): string {
 export function statusText(task: Task): string {
   return task.status === 'failed' ? t('devCli.dashboard.status.failed', { code: task.code }) : t(`devCli.dashboard.status.${task.status}`);
 }
+
+/**
+ * 为媒体会话生成渲染 key
+ * @description 同一应用可能同时暴露多个会话，来源应用 ID 不唯一，按出现顺序追加序号
+ * @param sessions - 全部媒体会话
+ * @returns 与会话一一对应的 key，如 Spotify.exe#0、Spotify.exe#1
+ */
+export function sessionIds(sessions: readonly SmtcSession[]): string[] {
+  const seen = new Map<string, number>();
+  return sessions.map(({ app }) => {
+    const count = seen.get(app) ?? 0;
+    seen.set(app, count + 1);
+    return `${app}#${count}`;
+  });
+}

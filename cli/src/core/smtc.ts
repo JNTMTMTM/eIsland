@@ -87,7 +87,7 @@ const PLAYBACK_STATUS: readonly SmtcStatus[] = ['closed', 'opened', 'changing', 
 
 /**
  * 是否支持读取 SMTC
- * @param platform - 运行平台
+ * @param platform - 运行平台，默认 process.platform
  * @returns 仅 Windows 支持
  */
 export function isSmtcSupported(platform: NodeJS.Platform = process.platform): boolean {
@@ -128,7 +128,7 @@ export function toSmtcSession(raw: HelperSession): SmtcSession {
  * @param root - 仓库根目录
  * @param onUpdate - 每次读取到全部会话时回调
  * @param onError - 插件加载、启动或读取失败时回调
- * @param load - 插件加载函数，测试时可替换
+ * @param load - 插件加载函数，默认 loadSmtcHelper，测试时可替换
  * @returns 读取句柄
  */
 export function watchSmtc(

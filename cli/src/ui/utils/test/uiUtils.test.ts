@@ -30,7 +30,7 @@ import { initI18n } from '../../../core/i18n';
 import {
   computeLayout, dashboardActions, descriptionWidth, formatBytes, formatTime, jsonLines, storageLayout, storeItemCount, storeValueType, formatDuration, hiddenTaskCount, livePosition, marqueeFrame, moveCursor,
   nextTaskIndex, outputRows, padDisplay, pageDownAnchor, pageUpAnchor, pickerRowWidth, pickerWindowStart, progressBar,
-  statusText, windowStart,
+  sessionIds, statusText, windowStart,
 } from '../uiUtils';
 
 import type { SmtcSession } from '../../../core/smtc';
@@ -204,5 +204,12 @@ describe('本地存储展示', () => {
     expect(formatBytes(1536)).toBe('1.5 KB');
     expect(formatBytes(3 * 1024 * 1024)).toBe('3.0 MB');
     expect(formatTime(new Date(2026, 0, 2, 3, 4, 5).getTime())).toBe('2026-01-02 03:04:05');
+  });
+});
+
+describe('sessionIds', () => {
+  it('同一应用的多个会话按出现顺序追加序号', () => {
+    const sessions = ['Chrome.exe', 'Spotify.exe', 'Chrome.exe'].map((app) => ({ app }) as SmtcSession);
+    expect(sessionIds(sessions)).toEqual(['Chrome.exe#0', 'Spotify.exe#0', 'Chrome.exe#1']);
   });
 });

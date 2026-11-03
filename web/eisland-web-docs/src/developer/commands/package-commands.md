@@ -50,11 +50,16 @@ Runs automatically after `npm install`. You should never run this manually.
 npm run postinstall
 ```
 
-**Under the hood:** `electron-builder install-app-deps`
+**Under the hood:** `electron-builder install-app-deps && npm ci --prefix cli --ignore-scripts`
 
 **What it does:**
 - Rebuilds native modules (e.g., `eisland-windows-smtc-helper`, `eisland-windows-fullscreen-detector`) for Electron's Node.js version
 - Ensures native addons are ABI-compatible with the Electron runtime
+- Installs the dependencies of the `cli/` package, so the root `npm test` can run the CLI test project without a separate install
+
+:::note
+CI installs with `npm ci --ignore-scripts`, so this hook does not run there. The test workflow installs `cli/` dependencies only in the `cli` matrix job.
+:::
 
 :::warning
 If you see native module errors after `npm install`, the `postinstall` hook may have failed. Run `npx electron-builder install-app-deps` manually to rebuild. See [Frontend Setup — Native Module Errors](/developer/environment-setup/frontend-setup.md#native-module-errors).

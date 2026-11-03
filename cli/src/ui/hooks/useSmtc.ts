@@ -28,7 +28,7 @@ import { useInput, useWindowSize } from 'ink';
 import { useEffect, useState } from 'react';
 
 import { FALLBACK_ROWS } from '../config/uiConfig';
-import { livePosition } from '../utils/uiUtils';
+import { livePosition, sessionIds } from '../utils/uiUtils';
 import { isSmtcSupported, watchSmtc } from '../../core/smtc';
 
 import type { SmtcState, SmtcViewProps, UseSmtcReturn } from '../types/uiTypes';
@@ -77,6 +77,9 @@ export default function useSmtc({ root, onBack }: SmtcViewProps): UseSmtcReturn 
     state,
     error,
     rows: rows || FALLBACK_ROWS,
-    entries: reading.sessions.map((session) => ({ session, position: livePosition(session, reading.receivedAt) })),
+    entries: sessionIds(reading.sessions).map((id, index) => {
+      const session = reading.sessions[index];
+      return { id, session, position: livePosition(session, reading.receivedAt) };
+    }),
   };
 }

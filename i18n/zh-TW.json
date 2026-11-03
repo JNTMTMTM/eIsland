@@ -4986,7 +4986,7 @@
       "test:discovery": "驗證 Vitest 測試檔案探索規則",
       "test:coverage": "執行全部測試並產生覆蓋率報告",
       "test:cli": "執行 eIsland CLI 測試",
-      "postinstall": "為 Electron 重建原生相依套件（安裝後自動執行）",
+      "postinstall": "為 Electron 重建原生相依套件並安裝 CLI 相依套件（安裝後自動執行）",
       "package": "建置並使用 electron-builder 封裝安裝程式",
       "changelog:generate": "產生 docs/CHANGE_LOG.md",
       "release:notes": "產生自上個標籤以來的發布說明",

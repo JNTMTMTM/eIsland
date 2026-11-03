@@ -11,14 +11,15 @@ This document covers the `eisland-cli` command line tool in `cli/`. It reads the
 
 ## Installation
 
-The CLI is a private local package. It is not published to npm.
+The CLI is a private local package. It is not published to npm. Its dependencies are installed by the root `postinstall` hook, so after `npm install` at the repository root you only need to build and link it:
 
 ```bash
 cd cli
-npm install
 npm run build
 npm link
 ```
+
+If you skipped install scripts (for example with `--ignore-scripts`), run `npm ci` inside `cli/` first.
 
 After `npm link`, the `eisland-cli` command is available globally. It works from any directory inside the repository because it walks up to find the root `package.json` (`name: "eisland"`).
 
@@ -143,16 +144,18 @@ The Storage test reads the app's own store: one `<key>.json` file per setting un
 
 | Platform | Store directory |
 |----------|-----------------|
-| Windows | `%APPDATA%\eisland\eIsland_store` |
-| macOS | `~/Library/Application Support/eisland/eIsland_store` |
-| Linux | `$XDG_CONFIG_HOME/eisland/eIsland_store` (default `~/.config/...`) |
+| Windows | `%APPDATA%\eIsland\eIsland_store` |
+| macOS | `~/Library/Application Support/eIsland/eIsland_store` |
+| Linux | `$XDG_CONFIG_HOME/eIsland/eIsland_store` (default `~/.config/...`) |
 
-Use `↑` / `↓` to pick a key, `PgUp` / `PgDn` to scroll a long value, `D` to delete the selected entry, and `R` to read the directory again. Entries that fail to parse are shown in red with the parse error.
+Electron names the `userData` folder after the product name. The packaged app gets `eIsland` from `electron-builder.json`, while a development run (`npm run dev`) only has the `package.json` name, `eisland`. On Windows and macOS these are the same folder. On case-sensitive Linux file systems they differ, so the CLI uses whichever exists, preferring `eIsland`.
+
+Use `↑` / `↓` to pick a key, `PgUp` / `PgDn` to scroll a long value, `D` to delete the selected entry, and `R` to read the directory again. Entries that fail to parse are shown in red with the parse error. A file that fails to read is retried twice, 30 ms apart, before it is shown as broken, because the app may be rewriting it at that moment. One unreadable file never hides the other entries.
 
 :::danger
-`D` deletes the selected `<key>.json` file after you press `Y` to confirm; any other key cancels. The app falls back to the default value the next time it reads that key, and a running app may write the file again, so quit eIsland first. Deleting cannot be undone.
+`D` deletes the selected `<key>.json` file after you press `Y` to confirm; any other key cancels. The app falls back to the default value the next time it reads that key, and a running app may write the file again, so quit eIsland first. Deleting cannot be undone. Deleting `claude-code-status` also deletes the `cli-details` folder, which holds the event details that only that snapshot indexes.
 
-The store holds credentials and personal data. Values are masked as `******` when they are read: whole files whose key looks like a credential (such as `user-account-token`), and any field whose name ends in `password`, `token`, `secret`, `credential`, `cookie`, `apiKey`, `privateKey`, `authorization`, `email`, or `phone`. Keys with masked content are marked with a yellow `*`. Masking is name-based, so check the screen before you share it.
+The store holds credentials and personal data. Values are masked as `******` when they are read: whole files whose key looks like a credential (such as `user-account-token`), and any field whose name contains one of these words: `pass`, `password`, `passwd`, `pwd`, `token`, `secret`, `credential`, `cookie`, `authorization`, `api key`, `private key`, `email`, `phone`, or `mobile`. Field names are split into words at camelCase, `_`, and `-`, so `emailAddress`, `phone_number`, and `ACCESS_TOKEN` are masked while `author` and `inputTokens` are not. Keys with masked content are marked with a yellow `*`. Masking is name-based, so check the screen before you share it.
 :::
 
 ### Name Resolution
@@ -207,7 +210,7 @@ Every root `package.json` script needs a `devCli.scripts.<name>` description in 
 | `npm test` (inside `cli/`) | `vitest run` | Run CLI tests on their own |
 | `npm run test:cli` | `vitest run --project cli` | Run CLI tests from the repository root |
 
-`cli/vitest.config.ts` is the single source of the CLI test settings (`src/**/*.test.{ts,tsx}`, Node environment, mocks cleared and restored). The root `vitest.config.mts` references that file as a project path, so `npm test` at the root also runs the CLI tests. In CI, the CLI runs as its own matrix job, which installs `cli/` dependencies with `npm ci --prefix cli`.
+`cli/vitest.config.ts` is the single source of the CLI test settings (`src/**/*.test.{ts,tsx}`, Node environment, mocks cleared and restored). The root `vitest.config.mts` references that file as a project path, so `npm test` at the root also runs the CLI tests; the root `postinstall` hook installs the `cli/` dependencies those tests need. In CI, the CLI runs as its own matrix job, which installs `cli/` dependencies with `npm ci --prefix cli`.
 
 :::tip
 Change CLI test settings only in `cli/vitest.config.ts`. The root config does not use `extends: true` for this project, so root-level options such as coverage settings do not apply to it.
