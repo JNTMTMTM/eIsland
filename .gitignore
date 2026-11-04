@@ -34,3 +34,7 @@ Thumbs.db
 /e2e/test-results/
 /e2e/fixtures/icon-probe/bin/
 /e2e/fixtures/icon-probe/obj/
+
+/src-tauri/target/
+/src-tauri/generated/
+/src-tauri/gen/

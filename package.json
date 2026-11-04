@@ -86,7 +86,14 @@
     "test:e2e": "npm run build:e2e && npm run test:e2e:run",
     "test:e2e:windows": "npm run build:e2e:windows && npm run test:e2e:run",
     "test:e2e:run": "playwright test --config e2e/playwright.config.ts",
-    "typecheck:e2e": "tsc --noEmit -p e2e/tsconfig.json"
+    "typecheck:e2e": "tsc --noEmit -p e2e/tsconfig.json",
+    "dev:web": "vite --config vite.config.ts",
+    "build:web": "vite build --config vite.config.ts",
+    "tauri": "tauri",
+    "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "dev:tauri": "tauri dev",
+    "build:tauri": "tauri build"
   },
   "dependencies": {
     "@eisland/windows-application-icon-helper": "file:plugins/windows/eisland-windows-application-icon-helper",
@@ -145,6 +152,7 @@
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron-toolkit/utils": "^4.0.0",
     "@playwright/test": "^1.64.1",
+    "@tauri-apps/cli": "^2.12.4",
     "@types/dompurify": "^3.2.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
