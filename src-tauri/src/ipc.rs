@@ -17,7 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
- 
+
 use crate::{
     capture,
     geometry::{Point, Rect},
@@ -141,6 +141,49 @@ pub async fn desktop_ipc(
         }
     }
     match channel.as_str() {
+        #[cfg(debug_assertions)]
+        "debug:transparency-underlay" => {
+            source(&window, "main")?;
+            let underlay = app
+                .get_webview_window("standalone")
+                .ok_or("Missing test underlay")?;
+            let rect = app.state::<Desktop>().inner.lock().unwrap().backing;
+            underlay
+                .set_position(tauri::LogicalPosition::new(rect.x, rect.y))
+                .map_err(|e| e.to_string())?;
+            underlay
+                .set_always_on_top(true)
+                .map_err(|e| e.to_string())?;
+            windows::raise_main(&app)?;
+        }
+        #[cfg(debug_assertions)]
+        "debug:transparency-sample" => {
+            source(&window, "main")?;
+            let monitor = xcap::Monitor::all()
+                .map_err(|e| e.to_string())?
+                .into_iter()
+                .find(|m| m.is_primary().unwrap_or(false))
+                .ok_or("No primary monitor")?;
+            let image = monitor.capture_image().map_err(|e| e.to_string())?;
+            let rect = app.state::<Desktop>().inner.lock().unwrap().visible;
+            let factor = window.scale_factor().map_err(|e| e.to_string())?;
+            let points = [
+                rect.x + 1.,
+                rect.x + rect.width - 2.,
+                rect.x + rect.width / 2.,
+            ];
+            let y = ((rect.y + rect.height - 2.) * factor) as i32
+                - monitor.y().map_err(|e| e.to_string())?;
+            let origin = monitor.x().map_err(|e| e.to_string())?;
+            let colors = points
+                .iter()
+                .map(|x| {
+                    let x = (*x * factor) as i32 - origin;
+                    image.get_pixel_checked(x as u32, y as u32).map(|p| p.0)
+                })
+                .collect::<Vec<_>>();
+            return Ok(json!(colors));
+        }
         #[cfg(debug_assertions)]
         "debug:windows" => {
             return Ok(json!(app

@@ -22,7 +22,7 @@
  * @description 在真实 WebView2 中验证全部窗口和动画握手，使用隔离的数据目录。
  * @author 鸡哥
  */
-/* global window, bgImage -- Playwright 回调在被测 WebView 中运行。 */
+/* global window, document, bgImage -- Playwright 回调在被测 WebView 中运行。 */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -38,7 +38,7 @@ mkdirSync(resolve(output, 'store'), { recursive: true });
 writeFileSync(resolve(output, 'store/island-shape-mode.json'), JSON.stringify('notch'));
 writeFileSync(resolve(output, 'store/island-scale.json'), '100');
 const port = 9224;
-const app = spawn(resolve(root, 'src-tauri/target/debug/eisland.exe'), [], {
+const app = spawn(process.env.EISLAND_SMOKE_BINARY ?? resolve(root, 'src-tauri/target/debug/eisland.exe'), [], {
   cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'],
   env: { ...process.env, EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
     EISLAND_DATA_DIR: resolve(output, 'store'), WEBVIEW2_USER_DATA_FOLDER: resolve(output, 'webview') },
@@ -134,6 +134,21 @@ try {
   await ipc(standalone, 'window:maximize');
   await ipc(standalone, 'window:minimize');
   await ipc(main, 'app:open-standalone-window');
+  if (process.argv.includes('--transparency')) {
+    await standalone.evaluate(() => {
+      document.documentElement.style.background = '#e020d0';
+      document.body.style.background = '#e020d0';
+      document.getElementById('root').style.display = 'none';
+    });
+    await ipc(main, 'window:collapse');
+    await ipc(main, 'debug:transparency-underlay');
+    await delay(1000);
+    const colors = await ipc(main, 'debug:transparency-sample');
+    console.log('Native transparency pixels (left corner, right corner, island):', colors);
+    assert.deepEqual(colors[0], [224, 32, 208, 255], 'left corner must reveal the background window');
+    assert.deepEqual(colors[1], [224, 32, 208, 255], 'right corner must reveal the background window');
+    assert.deepEqual(colors[2], [0, 0, 0, 255], 'island itself must stay opaque');
+  }
   await ipc(standalone, 'window:close');
   await ipc(main, 'cli-glow:show');
   const glow = await pageFor('cli-glow');

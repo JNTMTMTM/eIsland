@@ -17,7 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
- 
+
 use crate::{
     geometry::{self, Point, Rect},
     native,
@@ -108,6 +108,10 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
     };
     let effect = matches!(label, "agent-voice-input" | "cli-glow");
     let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App(page.into()));
+    // Transparent WebView2 content must not expose the HWND's redirected background
+    // when SetWindowRgn changes the visible area during an island transition.
+    #[cfg(windows)]
+    let builder = builder.no_redirection_bitmap(label != "standalone");
     #[cfg(debug_assertions)]
     let builder = if let Ok(args) = std::env::var("EISLAND_WEBVIEW_DEBUG_ARGS") {
         builder.additional_browser_args(&args)
@@ -121,6 +125,11 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         .visible(false)
         .decorations(false)
         .transparent(label != "standalone")
+        .background_color(if label == "standalone" {
+            tauri::webview::Color(0, 0, 0, 255)
+        } else {
+            tauri::webview::Color(0, 0, 0, 0)
+        })
         .shadow(label == "splash")
         .resizable(label == "standalone")
         .skip_taskbar(label != "standalone" && label != "guide")
