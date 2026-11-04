@@ -15,6 +15,7 @@
  * @file mp4.ts
  * @description 汽水加密音频 MP4 容器盒定位工具。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 export interface Mp4Box {
@@ -38,6 +39,7 @@ const EMPTY_BOX: Mp4Box = {
  * @param offset - 搜索起始偏移
  * @param end - 搜索结束偏移
  * @returns 匹配的 MP4 盒；未找到时返回空盒
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function findMp4Box(
   buffer: Buffer,

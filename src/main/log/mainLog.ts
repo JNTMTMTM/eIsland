@@ -23,6 +23,7 @@
  * @description 主进程日志模块
  * @description 提供日志目录管理、日志清理和会话日志记录功能
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app } from 'electron';
@@ -35,6 +36,7 @@ export type MainLogLevel = 'info' | 'warn' | 'error';
  * 确保日志目录存在
  * @description 创建日志目录（如不存在），返回目录路径
  * @returns 日志目录绝对路径
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function ensureLogsDir(): string {
   const logDir = join(app.getPath('userData'), 'logs');
@@ -48,6 +50,7 @@ export function ensureLogsDir(): string {
  * 清理日志缓存文件
  * @description 删除日志目录下的所有文件，释放磁盘空间
  * @returns 清理结果，包含是否成功、释放字节数和删除文件数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function clearLogsCacheFiles(): { success: boolean; freedBytes: number; fileCount: number } {
   try {
@@ -77,6 +80,7 @@ export function clearLogsCacheFiles(): { success: boolean; freedBytes: number; f
  * 创建会话日志记录器
  * @description 创建一个新的会话日志文件，返回日志写入函数
  * @returns 日志写入函数，接受日志级别和消息
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createSessionMainLogger(): (level: MainLogLevel, message: string) => void {
   const logDir = ensureLogsDir();

@@ -22,6 +22,7 @@
  * @file index.types.test.ts
  * @description 预加载类型聚合门面的公共导出身份及跨模块基础值契约测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { describe, expect, expectTypeOf, it } from 'vitest';

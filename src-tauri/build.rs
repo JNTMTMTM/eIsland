@@ -17,19 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
- 
+
 fn main() {
-    println!("cargo:rerun-if-changed=../src/preload");
-    println!("cargo:rerun-if-changed=../src/shared");
-    println!("cargo:rerun-if-changed=../src/tauri");
-    println!("cargo:rerun-if-changed=../scripts/tauri/build-bridge.mjs");
-    let result = std::process::Command::new("node")
-        .arg("../scripts/tauri/build-bridge.mjs")
-        .status()
-        .expect("Node.js is required to build the renderer bridge");
-    assert!(
-        result.success(),
-        "Failed to build the Tauri renderer bridge"
-    );
     tauri_build::build();
 }

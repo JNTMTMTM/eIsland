@@ -23,6 +23,7 @@
  * @description 壁纸相关 IPC 处理模块
  * @description 处理壁纸选择、加载和缓存清理的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow, dialog, ipcMain, nativeImage } from 'electron';
@@ -154,6 +155,7 @@ async function clearWindowsDesktopWallpaper(wallpaperCacheDir: string): Promise<
 /**
  * 注册壁纸相关 IPC 处理器
  * @description 注册壁纸选择、加载和缓存清理的 IPC 事件处理器
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerWallpaperIpcHandlers(): void {
   const wallpaperCacheDir = join(app.getPath('userData'), 'wallpapers');

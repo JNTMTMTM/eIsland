@@ -28,7 +28,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nodes, render, text, value } from '../../../../test/componentHarness';
 import { FormatFactoryToolSection } from '../FormatFactoryToolSection';
 import { fire, fireAsync } from './toolTestEvents';
-import type { ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult } from '../../../../../../../../preload/types';
+import type { ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult } from '../../../../../../../../tauri/types';
 import type { convertImageInRenderer, ConvertImageInRendererResult } from '../../utils/imageConverter';
 
 const mocks = vi.hoisted(() => ({

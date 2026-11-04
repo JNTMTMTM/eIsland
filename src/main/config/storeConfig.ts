@@ -23,6 +23,7 @@
  * @description 应用配置存储模块
  * @description 定义常量、类型和读写配置的辅助函数
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app } from 'electron';
@@ -45,6 +46,7 @@ export type { IslandPositionOffset };
  * 规范化灵动岛显示器选择配置
  * @param raw - 原始配置数据
  * @returns primary 或显示器 id 字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function sanitizeIslandDisplaySelection(raw: unknown): string {
   if (raw === 'primary') return 'primary';
@@ -344,6 +346,7 @@ function readJsonFile(storeKey: string): unknown | undefined {
  * 规范化灵动岛位置偏移配置
  * @param raw - 原始配置数据
  * @returns 规范化后的位置偏移对象
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function sanitizeIslandPositionOffset(raw: unknown): IslandPositionOffset {
   if (!raw || typeof raw !== 'object') {
@@ -364,6 +367,7 @@ export function sanitizeIslandPositionOffset(raw: unknown): IslandPositionOffset
  * 规范化 SMTC 取消订阅时间配置
  * @param value - 原始配置值
  * @returns 规范化后的毫秒数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function sanitizeSmtcUnsubscribeMs(value: unknown): number {
   if (value === SMTC_UNSUBSCRIBE_NEVER) return SMTC_UNSUBSCRIBE_NEVER;
@@ -378,6 +382,7 @@ export function sanitizeSmtcUnsubscribeMs(value: unknown): number {
 /**
  * 读取隐藏快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readHotkeyConfig(): string {
   const data = readJsonFile(HOTKEY_STORE_KEY);
@@ -387,6 +392,7 @@ export function readHotkeyConfig(): string {
 /**
  * 读取退出快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readQuitHotkeyConfig(): string {
   const data = readJsonFile(QUIT_HOTKEY_STORE_KEY);
@@ -396,6 +402,7 @@ export function readQuitHotkeyConfig(): string {
 /**
  * 读取截图快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readScreenshotHotkeyConfig(): string {
   const data = readJsonFile(SCREENSHOT_HOTKEY_STORE_KEY);
@@ -405,6 +412,7 @@ export function readScreenshotHotkeyConfig(): string {
 /**
  * 读取截图引擎偏好配置
  * @returns 'plugin'（原生插件优先）或 'js'（JS 回退优先），默认 'plugin'
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readScreenshotEngineConfig(): ScreenshotEngine {
   const data = readJsonFile(SCREENSHOT_ENGINE_STORE_KEY);
@@ -414,6 +422,7 @@ export function readScreenshotEngineConfig(): ScreenshotEngine {
 /**
  * 读取下一首快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readNextSongHotkeyConfig(): string {
   const data = readJsonFile(NEXT_SONG_HOTKEY_STORE_KEY);
@@ -423,6 +432,7 @@ export function readNextSongHotkeyConfig(): string {
 /**
  * 读取播放/暂停快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readPlayPauseSongHotkeyConfig(): string {
   const data = readJsonFile(PLAY_PAUSE_SONG_HOTKEY_STORE_KEY);
@@ -432,6 +442,7 @@ export function readPlayPauseSongHotkeyConfig(): string {
 /**
  * 读取还原位置快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readResetPositionHotkeyConfig(): string {
   const data = readJsonFile(RESET_POSITION_HOTKEY_STORE_KEY);
@@ -441,6 +452,7 @@ export function readResetPositionHotkeyConfig(): string {
 /**
  * 读取切换托盘图标快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readToggleTrayHotkeyConfig(): string {
   const data = readJsonFile(TOGGLE_TRAY_HOTKEY_STORE_KEY);
@@ -450,6 +462,7 @@ export function readToggleTrayHotkeyConfig(): string {
 /**
  * 读取显示配置窗口快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readShowSettingsWindowHotkeyConfig(): string {
   const data = readJsonFile(SHOW_SETTINGS_WINDOW_HOTKEY_STORE_KEY);
@@ -459,6 +472,7 @@ export function readShowSettingsWindowHotkeyConfig(): string {
 /**
  * 读取打开剪贴板历史快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readOpenClipboardHistoryHotkeyConfig(): string {
   const data = readJsonFile(OPEN_CLIPBOARD_HISTORY_HOTKEY_STORE_KEY);
@@ -468,6 +482,7 @@ export function readOpenClipboardHistoryHotkeyConfig(): string {
 /**
  * 读取切换鼠标穿透快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readTogglePassthroughHotkeyConfig(): string {
   const data = readJsonFile(TOGGLE_PASSTHROUGH_HOTKEY_STORE_KEY);
@@ -477,6 +492,7 @@ export function readTogglePassthroughHotkeyConfig(): string {
 /**
  * 读取切换 UI 状态锁定快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readToggleUiLockHotkeyConfig(): string {
   const data = readJsonFile(TOGGLE_UI_LOCK_HOTKEY_STORE_KEY);
@@ -486,6 +502,7 @@ export function readToggleUiLockHotkeyConfig(): string {
 /**
  * 读取 Agent 语音输入快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readAgentVoiceInputHotkeyConfig(): string {
   const data = readJsonFile(AGENT_VOICE_INPUT_HOTKEY_STORE_KEY);
@@ -495,6 +512,7 @@ export function readAgentVoiceInputHotkeyConfig(): string {
 /**
  * 读取切换形态模式快捷键配置
  * @returns 快捷键字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readToggleShapeModeHotkeyConfig(): string {
   const data = readJsonFile(TOGGLE_SHAPE_MODE_HOTKEY_STORE_KEY);
@@ -504,6 +522,7 @@ export function readToggleShapeModeHotkeyConfig(): string {
 /**
  * 读取播放器白名单配置
  * @returns 播放器名称数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readWhitelistConfig(): string[] {
   const data = readJsonFile(WHITELIST_STORE_KEY);
@@ -513,6 +532,7 @@ export function readWhitelistConfig(): string[] {
 /**
  * 读取歌词源配置
  * @returns 歌词源字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readLyricsSourceConfig(): string {
   const data = readJsonFile(LYRICS_SOURCE_STORE_KEY);
@@ -522,6 +542,7 @@ export function readLyricsSourceConfig(): string {
 /**
  * 读取 SMTC 取消订阅时间配置
  * @returns 毫秒数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readSmtcUnsubscribeMsConfig(): number {
   const data = readJsonFile(SMTC_UNSUBSCRIBE_MS_STORE_KEY);
@@ -531,6 +552,7 @@ export function readSmtcUnsubscribeMsConfig(): number {
 /**
  * 读取隐藏进程名单配置
  * @returns 进程名称数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readHideProcessListConfig(): string[] {
   const data = readJsonFile(HIDE_PROCESS_LIST_STORE_KEY);
@@ -540,6 +562,7 @@ export function readHideProcessListConfig(): string[] {
 /**
  * 读取灵动岛位置偏移配置
  * @returns 位置偏移对象
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readIslandPositionOffsetConfig(): IslandPositionOffset {
   const data = readJsonFile(ISLAND_POSITION_STORE_KEY);
@@ -549,6 +572,7 @@ export function readIslandPositionOffsetConfig(): IslandPositionOffset {
 /**
  * 读取灵动岛显示器选择配置
  * @returns primary 或显示器 id 字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readIslandDisplaySelectionConfig(): string {
   const data = readJsonFile(ISLAND_DISPLAY_STORE_KEY);
@@ -559,6 +583,7 @@ export function readIslandDisplaySelectionConfig(): string {
  * 写入灵动岛位置偏移配置
  * @param offset - 位置偏移对象
  * @returns 是否写入成功
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): boolean {
   try {
@@ -577,6 +602,7 @@ export function writeIslandPositionOffsetConfig(offset: IslandPositionOffset): b
  * 写入灵动岛显示器选择配置
  * @param selection - primary 或显示器 id 字符串
  * @returns 是否写入成功
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function writeIslandDisplaySelectionConfig(selection: string): boolean {
   try {
@@ -594,6 +620,7 @@ export function writeIslandDisplaySelectionConfig(selection: string): boolean {
 /**
  * 读取灵动岛形态模式配置
  * @returns 形态模式字符串（notch 或 pill）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readIslandShapeModeConfig(): string {
   const data = readJsonFile(ISLAND_SHAPE_MODE_STORE_KEY);
@@ -604,6 +631,7 @@ export function readIslandShapeModeConfig(): string {
  * 读取是否处于独立窗口模式
  * @description 当前键缺失或非字符串时回退旧键，托盘与快捷键共用同一判断
  * @returns 是否为独立窗口模式
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readStandaloneWindowModeEnabledConfig(): boolean {
   const readMode = (key: string): string | null => {
@@ -618,6 +646,7 @@ export function readStandaloneWindowModeEnabledConfig(): boolean {
  * 读取界面语言
  * @description 与渲染进程规则一致：未保存时跟随系统语言，未知语言回退简体中文
  * @returns 规范化后的语言代码
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readAppLanguageConfig(): 'zh-CN' | 'en-US' | 'zh-TW' | 'ja-JP' {
   const stored = readJsonFile(APP_LANGUAGE_STORE_KEY);
@@ -632,6 +661,7 @@ export function readAppLanguageConfig(): 'zh-CN' | 'en-US' | 'zh-TW' | 'ja-JP' {
 /**
  * 读取主题模式
  * @returns 主题模式，缺失或非法时为 dark（与 theme:mode:get 一致）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readThemeModeConfig(): 'dark' | 'light' | 'system' {
   const data = readJsonFile(THEME_MODE_STORE_KEY);
@@ -642,6 +672,7 @@ export function readThemeModeConfig(): 'dark' | 'light' | 'system' {
  * 写入灵动岛形态模式配置
  * @param mode - 形态模式字符串（notch 或 pill）
  * @returns 是否写入成功
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function writeIslandShapeModeConfig(mode: string): boolean {
   try {
@@ -660,6 +691,7 @@ export function writeIslandShapeModeConfig(mode: string): boolean {
 /**
  * 读取全屏窗口自动隐藏开关配置
  * @returns 是否启用全屏窗口自动隐藏
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readAutoHideFullscreenWindowsConfig(): boolean {
   const data = readJsonFile(AUTO_HIDE_FULLSCREEN_WINDOWS_STORE_KEY);
@@ -669,6 +701,7 @@ export function readAutoHideFullscreenWindowsConfig(): boolean {
 /**
  * 读取剪贴板 URL 监听开关配置
  * @returns 是否启用监听
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readClipboardUrlMonitorEnabledConfig(): boolean {
   const data = readJsonFile(CLIPBOARD_URL_MONITOR_ENABLED_STORE_KEY);
@@ -678,6 +711,7 @@ export function readClipboardUrlMonitorEnabledConfig(): boolean {
 /**
  * 读取剪贴板 URL 检测模式配置
  * @returns 检测模式字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
   const data = readJsonFile(CLIPBOARD_URL_DETECT_MODE_STORE_KEY);
@@ -688,6 +722,7 @@ export function readClipboardUrlDetectModeConfig(): ClipboardUrlDetectMode {
 /**
  * 读取剪贴板 URL 黑名单配置
  * @returns 域名数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readClipboardUrlBlacklistConfig(): string[] {
   const data = readJsonFile(CLIPBOARD_URL_BLACKLIST_STORE_KEY);
@@ -697,6 +732,7 @@ export function readClipboardUrlBlacklistConfig(): string[] {
 /**
  * 读取自动提示版本更新开关配置
  * @returns 是否启用自动提示
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readUpdateAutoPromptConfig(): boolean {
   const data = readJsonFile(UPDATE_AUTO_PROMPT_STORE_KEY);
@@ -706,6 +742,7 @@ export function readUpdateAutoPromptConfig(): boolean {
 /**
  * 读取启动动画显示开关配置
  * @returns 是否显示启动动画
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readStartupAnimationEnabledConfig(): boolean {
   const data = readJsonFile(STARTUP_ANIMATION_ENABLED_STORE_KEY);
@@ -715,6 +752,7 @@ export function readStartupAnimationEnabledConfig(): boolean {
 /**
  * 读取启动画面背景颜色配置
  * @returns 背景颜色十六进制值
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readSplashBgColorConfig(): string {
   const data = readJsonFile(SPLASH_BG_COLOR_STORE_KEY);
@@ -724,6 +762,7 @@ export function readSplashBgColorConfig(): string {
 /**
  * 读取解除帧率限制开关配置
  * @returns 是否解除帧率限制
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readDisableFrameRateLimitConfig(): boolean {
   const data = readJsonFile(DISABLE_FRAME_RATE_LIMIT_STORE_KEY);
@@ -733,6 +772,7 @@ export function readDisableFrameRateLimitConfig(): boolean {
 /**
  * 读取首次启动标记配置
  * @returns 是否为首次启动（文件不存在时返回 true）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readFirstLaunchConfig(): boolean {
   const data = readJsonFile(FIRST_LAUNCH_STORE_KEY);
@@ -742,6 +782,7 @@ export function readFirstLaunchConfig(): boolean {
 /**
  * 写入首次启动标记配置（标记为已启动过）
  * @returns 是否写入成功
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function writeFirstLaunchConfig(): boolean {
   try {
@@ -759,6 +800,7 @@ export function writeFirstLaunchConfig(): boolean {
 /**
  * 删除首次启动标记配置
  * @returns 是否删除成功
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function deleteFirstLaunchConfig(): boolean {
   try {

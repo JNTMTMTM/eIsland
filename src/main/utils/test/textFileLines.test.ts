@@ -22,6 +22,7 @@
  * @file textFileLines.test.ts
  * @description 日志分块读取的边界、句柄释放与读取量回归测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import * as fs from 'fs';

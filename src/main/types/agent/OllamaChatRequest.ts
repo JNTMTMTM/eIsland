@@ -22,6 +22,7 @@
  * @file OllamaChatRequest.ts
  * @description Ollama 聊天请求类型定义
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import type { OllamaChatMessage } from './OllamaChatMessage';

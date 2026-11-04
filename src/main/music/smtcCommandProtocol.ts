@@ -22,6 +22,7 @@
  * @file smtcCommandProtocol.ts
  * @description SMTC 隔离命令请求和回应类型。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import type { CommandResult, TimestampInfo } from '@eisland/windows-smtc-helper';
@@ -47,6 +48,7 @@ export interface SmtcCommandResponse {
  * @param command - 原命令
  * @param reason - 失败原因
  * @returns 可安全传递至渲染进程的结果
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function failedSmtcCommand(command: SmtcCommandName, reason: string): SmtcCommandResult {
   return command === 'getTimestamp'

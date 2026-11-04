@@ -22,6 +22,7 @@
  * @file windowMock.ts
  * @description 窗口模块测试使用的隔离 Electron 窗口事件与调用记录工具。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'node:events';

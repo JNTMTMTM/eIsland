@@ -22,6 +22,7 @@
  * @file screenshotProcess.test.ts
  * @description 真实子进程配合可控截止时钟验证截图硬杀、取消、恢复与字节上限，不读取屏幕。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { mkdtempSync, readFileSync, rmSync, watch, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

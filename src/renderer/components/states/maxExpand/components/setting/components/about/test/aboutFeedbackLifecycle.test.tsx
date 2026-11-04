@@ -645,7 +645,9 @@ describe('公开配置边界的剩余反馈分支', () => {
     const dependencies = elements(view()).filter((node) => node.props.className === 'settings-about-dep');
     expect(dependencies.some((node) => node.type === 'a')).toBe(true);
     expect(dependencies.some((node) => node.type === 'span')).toBe(true);
-    expect(text(view())).toContain('Electron');
+    expect(text(view())).toContain('Tauri');
+    expect(text(view())).toContain('Rust');
+    expect(text(view())).toContain('WebView2');
   });
   it('公开群配置在渲染后失去邀请地址时点击真实旧按钮忽略打开', async () => {
     const config: FeedbackQqGroupConfig = { qqInviteUrl: 'https://qq.test/invite' };

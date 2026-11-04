@@ -22,6 +22,7 @@
  * @file fixtures.ts
  * @description 隔离 Electron 测试实例，支持重启并收集窗口错误、截图和 trace。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';

@@ -22,6 +22,7 @@
  * @file smtcCommandWorker.ts
  * @description 仅在媒体控制期间存在的可终止 SMTC 命令进程。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { play, pause, next, previous, seek, getTimestamp, setCommandSource } from '@eisland/windows-smtc-helper';

@@ -22,6 +22,7 @@
  * @file formatFactorySupplement.test.ts
  * @description 格式工厂真实 IPC 的各编码格式、进程失败、窗口与对话框边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'node:events';

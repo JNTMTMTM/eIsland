@@ -21,6 +21,7 @@
  * @file extensionManagerSupplement.test.ts
  * @description 扩展清单忽略字段、无长度下载与系统缓冲分配失败边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { EventEmitter } from 'node:events';
 import { join } from 'node:path';

@@ -1,3 +1,4 @@
+/** @deprecated 仅 Electron 宿主路径已弃用；保留函数与签名，由 Tauri 适配层继续复用。 */
 'use strict';
 
 // Focused authentication bridge ported from

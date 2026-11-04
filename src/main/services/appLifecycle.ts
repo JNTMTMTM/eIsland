@@ -23,6 +23,7 @@
  * @description 应用生命周期管理模块
  * @description 处理应用实例、窗口事件和应用退出等生命周期事件
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow } from 'electron';
@@ -37,6 +38,7 @@ interface RegisterAppLifecycleHandlersOptions {
  * 注册应用生命周期处理器
  * @description 注册多实例、应用退出和窗口关闭等生命周期事件处理器
  * @param options - 配置选项，包含窗口获取和回调函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerAppLifecycleHandlers(options: RegisterAppLifecycleHandlersOptions): void {
   app.on('second-instance', () => {

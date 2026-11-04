@@ -22,6 +22,7 @@
  * @file claudeCodeStatusService.test.ts
  * @description Claude hook 服务的 HTTP 输入、授权生命周期、持久化与配置保留测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'events';

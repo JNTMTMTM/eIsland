@@ -1,107 +1,55 @@
-name: eisland CI Release Build & Upload to R2/COS/OSS
+name: Tauri Release Build
 
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-upload:
-    # Keep native addon builds on VS2022 while using node-gyp 11.
+  build:
     runs-on: windows-2022
-
+    timeout-minutes: 45
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '24.22.1'
           cache: npm
-
-      - name: Install Visual Studio Build Tools
-        shell: pwsh
-        run: |
-          # Install VS Build Tools with C++ Desktop workload (required by node-gyp for native modules)
-          $installerPath = "${{ runner.temp }}\vs_buildtools.exe"
-          Invoke-WebRequest -Uri 'https://aka.ms/vs/17/release/vs_buildtools.exe' -OutFile $installerPath
-          Start-Process -FilePath $installerPath -ArgumentList '--quiet', '--norestart', '--nocache', '--add', 'Microsoft.VisualStudio.Workload.VCTools', '--includeRecommended' -Wait
-          Remove-Item $installerPath
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
-
-      - name: Install dependencies
+      - name: Install build dependencies without legacy lifecycle scripts
         run: npm ci --ignore-scripts
-
-      - name: Install Electron binary
-        run: node node_modules/electron/install.js
-
-      - name: Install and verify FFmpeg binary
-        run: |
-          node node_modules/ffmpeg-static/install.js
-          node -e "const fs = require('node:fs'); const binary = require('ffmpeg-static'); if (!binary || !fs.existsSync(binary)) throw new Error('FFmpeg binary is missing');"
-
-      - name: Build plugins
-        run: npm run plugins:build
-
-      - name: Build & Package
+      - name: Prepare native FFmpeg binary
+        run: node node_modules/ffmpeg-static/install.js
+      - name: Publish native plugin resources
+        run: npm run plugins:build:tauri
+      - name: Test native application services
+        run: npm run test:tauri
+      - name: Build Tauri NSIS installer
         run: npm run package
-        env:
-          GH_TOKEN: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
-
-      - name: Generate Release Notes
+      - name: Generate release notes
         run: node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES.md
-
-      - name: Upload to Cloudflare R2
-        shell: bash
+      - name: Generate native update manifest
+        run: node scripts/tauri/create-update-manifest.mjs
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
-          R2_BUCKET: ${{ secrets.R2_BUCKET_NAME }}
-        run: |
-          aws configure set default.s3.addressing_style auto
-          aws configure set default.s3.payload_signing_enabled false
-          for f in dist/*.exe dist/*.blockmap dist/latest.yml; do
-            [ -f "$f" ] || continue
-            echo "Uploading $f ..."
-            aws s3 cp "$f" "s3://$R2_BUCKET/$(basename $f)" \
-              --endpoint-url "$R2_ENDPOINT" \
-              --region auto
-          done
-
-      # - name: Upload to Tencent COS and Aliyun OSS
-      #   shell: pwsh
-      #   env:
-      #     COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
-      #     COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
-      #     COS_REGION: ${{ secrets.COS_REGION }}
-      #     COS_BUCKET_NAME: ${{ secrets.COS_BUCKET_NAME }}
-      #     OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
-      #     OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-      #     OSS_REGION: ${{ secrets.OSS_REGION }}
-      #     OSS_BUCKET_NAME: ${{ secrets.OSS_BUCKET_NAME }}
-      #   run: |
-      #     node --experimental-strip-types scripts/upload-release-to-cos-oss.ts --dist dist
-      #     Write-Host "COS update source: https://download-cos.eisland.pyisland.com/"
-      #     Write-Host "OSS update source: https://download-oss.eisland.pyisland.com/"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+          EISLAND_TAURI_RELEASE_BASE_URL: ${{ vars.TAURI_RELEASE_BASE_URL }}
+      # Electron latest.yml/blockmap uploads are retired; Tauri distribution is a separate pipeline.
+      - name: Upload Tauri installer for review
+        uses: actions/upload-artifact@v7
         with:
-          files: |
-            dist/*.exe
-            dist/*.blockmap
-            dist/latest.yml
-          body_path: RELEASE_NOTES.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
+          name: eisland-tauri-windows-x64-${{ github.ref_name }}
+          path: |
+            src-tauri/target/release/bundle/nsis/*-setup.exe
+            src-tauri/target/release/bundle/tauri-latest.json
+            RELEASE_NOTES.md
+          if-no-files-found: error

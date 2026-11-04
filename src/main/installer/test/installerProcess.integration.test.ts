@@ -22,6 +22,7 @@
  * @file installerProcess.integration.test.ts
  * @description 编译真实 NSIS 探针，回归 Windows 安装器的进程识别与安全终止。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { spawn, type ChildProcess } from 'node:child_process';

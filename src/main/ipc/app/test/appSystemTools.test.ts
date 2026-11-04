@@ -22,6 +22,7 @@
  * @file appSystemTools.test.ts
  * @description Agent系统工具的命令路由、结果解析、系统元数据与叶依赖失败契约测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

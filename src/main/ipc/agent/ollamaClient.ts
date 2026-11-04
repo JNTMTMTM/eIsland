@@ -22,6 +22,7 @@
  * @file ollamaClient.ts
  * @description 本地 Ollama OpenAI 兼容 HTTP 流式客户端，供主进程调用。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import http from 'http';
@@ -47,6 +48,7 @@ const REQUEST_TIMEOUT_MS = 120_000;
 
 /**
  * 检测本地 Ollama 服务是否可用。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function pingOllama(baseUrl?: string): Promise<boolean> {
   const base = baseUrl || DEFAULT_OLLAMA_BASE;
@@ -77,6 +79,7 @@ export async function pingOllama(baseUrl?: string): Promise<boolean> {
 /**
  * 自动检测本地运行的 Ollama 服务端口。
  * 探测常用端口（11434 默认 / 11435 / 11436），返回可用的 baseUrl，找不到时返回 null。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function detectOllamaBaseUrl(): Promise<string | null> {
   const candidates = [
@@ -95,6 +98,7 @@ export async function detectOllamaBaseUrl(): Promise<string | null> {
 
 /**
  * 获取 Ollama 本地可用模型列表。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function listOllamaModels(baseUrl?: string): Promise<string[]> {
   const base = baseUrl || DEFAULT_OLLAMA_BASE;
@@ -139,6 +143,7 @@ export async function listOllamaModels(baseUrl?: string): Promise<string[]> {
 /**
  * 向本地 Ollama 发起流式 Chat Completion 请求。
  * 使用 OpenAI 兼容接口 /v1/chat/completions。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function streamOllamaChat(
   request: OllamaChatRequest,
@@ -288,6 +293,7 @@ export function streamOllamaChat(
 
 /**
  * 向本地 Ollama 发起非流式 Chat Completion 请求（Promise 版）。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function chatOllama(request: OllamaChatRequest): Promise<{
   text: string;

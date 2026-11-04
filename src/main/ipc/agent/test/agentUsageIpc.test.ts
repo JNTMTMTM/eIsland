@@ -22,6 +22,7 @@
  * @file agentUsageIpc.test.ts
  * @description Agent 用量 IPC 注册、快照转发与服务失败传播。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerAgentUsageIpcHandlers } from '../agentUsageIpc';

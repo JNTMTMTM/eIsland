@@ -23,6 +23,7 @@
  * @description 启动画面窗口服务模块
  * @description 管理应用启动画面的创建、显示和关闭，在主窗口加载期间提供视觉反馈
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, ipcMain } from 'electron';
@@ -90,6 +91,7 @@ function waitForSplashReady(): Promise<void> {
 /**
  * 创建并显示启动画面窗口
  * @description 创建一个无边框、居中的启动画面窗口，播放开场视频
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function showSplashWindow(): void {
   if (splashWindow && !splashWindow.isDestroyed()) {
@@ -180,6 +182,7 @@ function showSplashWindow(): void {
  * 关闭启动画面窗口
  * @description 触发开场视频播放，等待视频播完 + 1 秒停留，然后淡出并关闭窗口。
  *   返回 Promise，在窗口完全关闭后 resolve，供主窗口等待后再显示。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function closeSplashWindow(): Promise<void> {
   return new Promise<void>((resolve) => {
@@ -241,6 +244,7 @@ function closeSplashWindow(): Promise<void> {
 
 /**
  * 获取启动画面窗口实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function getSplashWindow(): BrowserWindow | null {
   return splashWindow;

@@ -65,7 +65,7 @@ fn cursor(app: &AppHandle) -> Result<Point> {
     })
 }
 
-/// Route only explicitly supported desktop capabilities; remaining services fail clearly.
+/// Route registered native desktop operations and reject unknown commands.
 #[tauri::command]
 pub async fn desktop_ipc(
     app: AppHandle,
@@ -76,8 +76,32 @@ pub async fn desktop_ipc(
     if !windows::LABELS.contains(&window.label()) {
         return Err("Unknown command sender".into());
     }
+    if matches!(
+        channel.as_str(),
+        "capture-ocr" | "capture-ocr-local" | "capture-translate"
+    ) {
+        source(&window, "capture")?;
+    }
+    if matches!(
+        channel.as_str(),
+        "updater:startup-auto-check-ready" | "updater:startup-auto-check-received"
+    ) {
+        source(&window, "main")?;
+    }
+    if crate::services::agent::handles(&channel) {
+        return crate::services::agent::handle(&app, window.label(), &channel, &args).await;
+    }
+    if channel == "runtime:schedule-wakeup" {
+        return crate::services::runtime::schedule(&app, window.label(), &args);
+    }
     let a = args.first().unwrap_or(&Value::Null);
     let b = args.get(1).unwrap_or(&Value::Null);
+    if matches!(
+        channel.as_str(),
+        "island:autostart:get" | "island:autostart:set"
+    ) {
+        return crate::autostart::handle(&app, &channel, a).await;
+    }
     if let Some(result) = crate::services::handle(&app, &channel, &args).await {
         return result;
     }
@@ -368,7 +392,16 @@ pub async fn desktop_ipc(
         }
         "settings:preview" => {
             let channel = text(a)?;
-            if crate::settings::definition(channel).is_none() && !channel.starts_with("store:") {
+            if crate::settings::definition(channel).is_none()
+                && !channel.starts_with("store:")
+                && !matches!(
+                    channel,
+                    "i18n:language"
+                        | "notification:show"
+                        | "settings:maxexpand-tab-animation"
+                        | "settings:expand-tab-animation"
+                )
+            {
                 return Err("Unknown window preview setting".into());
             }
             windows::broadcast(&app, channel, b.clone())?;
@@ -526,6 +559,7 @@ pub async fn desktop_ipc(
             capture::start(&app).await?;
             return Ok(json!(true));
         }
+        "system:screenshot" => return capture::primary().await,
         "capture-cancel" => {
             source(&window, "capture")?;
             capture::close(&app)?;
@@ -594,7 +628,7 @@ pub async fn desktop_ipc(
                 .map_err(|e| e.to_string())?;
             return Ok(json!(true));
         }
-        _ => return Err(format!("Service not migrated to Tauri yet: {channel}")),
+        _ => return Err(format!("Unknown native desktop operation: {channel}")),
     }
     Ok(Value::Null)
 }

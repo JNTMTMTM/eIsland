@@ -22,6 +22,7 @@
  * @file tray.ts
  * @description 系统托盘模块：托盘图标加载、托盘实例创建、菜单动作及右键菜单（自绘窗口 / Linux 原生菜单）
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'path';
@@ -68,6 +69,7 @@ const TRAY_ICON_PATH = is.dev
 /**
  * 刷新托盘菜单
  * @description Linux 托盘无法在弹出前重建菜单，菜单依赖的状态变化后需重新设置；其他平台每次弹出时已重建
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function refreshTrayMenu(): void {
   if (process.platform !== 'linux' || !tray || !buildCurrentMenu) return;
@@ -80,6 +82,7 @@ function refreshTrayMenu(): void {
  * @param getMainWindow - 读取托盘控制的主窗口，主窗口重建后仍指向新窗口。
  * @param options - 手动可见性与现有设置入口的回调。
  * @returns 当前托盘实例。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function createTray(getMainWindow: () => BrowserWindow | null, options: TrayOptions = {}): Tray {
   tray?.destroy();
@@ -206,6 +209,7 @@ function createTray(getMainWindow: () => BrowserWindow | null, options: TrayOpti
 /**
  * 销毁系统托盘
  * @description 应用退出时调用，释放托盘资源
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function destroyTray(): void {
   destroyTrayMenuWindow();
@@ -218,6 +222,7 @@ function destroyTray(): void {
 /**
  * 切换系统托盘图标显示/隐藏
  * @description 隐藏时销毁托盘；显示时重建托盘
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function toggleTray(): void {
   if (tray) {

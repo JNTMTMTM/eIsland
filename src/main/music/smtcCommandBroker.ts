@@ -22,6 +22,7 @@
  * @file smtcCommandBroker.ts
  * @description SMTC 命令进程的有界队列、硬截止时间和空闲回收。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { spawn, type ChildProcess } from 'node:child_process';
@@ -33,6 +34,7 @@ interface PendingCommand { request: SmtcCommandRequest; reply: (response: SmtcCo
  * 创建按需命令进程；原生挂起时真正终止进程，下次请求重新创建。
  * @param entryPath - 打包后的命令进程入口
  * @returns 提交、取消及退出清理接口
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createSmtcCommandBroker(entryPath: string) {
   let child: ChildProcess | null = null;
@@ -110,7 +112,9 @@ export function createSmtcCommandBroker(entryPath: string) {
     } catch { retire(); finish(); }
   };
   return {
-    /** 提交命令，连续排队的 seek 只保留最新位置。 */
+    /** 提交命令，连续排队的 seek 只保留最新位置。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
     execute(request: SmtcCommandRequest, reply: PendingCommand['reply']): void {
       const pending = { request, reply };
       if (disposed) { fail(pending, 'Broker disposed'); return; }
@@ -122,7 +126,9 @@ export function createSmtcCommandBroker(entryPath: string) {
       queue.push(pending);
       drain();
     },
-    /** 取消过期请求；正在执行的调用通过杀进程停止。 */
+    /** 取消过期请求；正在执行的调用通过杀进程停止。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
     cancel(requestId: number): void {
       const index = queue.findIndex((item) => item.request.requestId === requestId);
       if (index >= 0) { const [pending] = queue.splice(index, 1); fail(pending, 'Command cancelled'); }
@@ -132,7 +138,9 @@ export function createSmtcCommandBroker(entryPath: string) {
         timer = null; retire(); fail(pending, 'Command cancelled'); drain();
       }
     },
-    /** 退出时终止辅助进程并结算所有请求。 */
+    /** 退出时终止辅助进程并结算所有请求。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
     dispose(): void {
       disposed = true;
       if (timer) clearTimeout(timer);

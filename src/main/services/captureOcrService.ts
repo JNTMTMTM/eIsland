@@ -17,6 +17,7 @@
  * @file captureOcrService.ts
  * @description 主进程截图 OCR 客户端，通过 eIsland 服务端转发阿里云文字识别请求。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, nativeImage } from 'electron';
@@ -75,6 +76,7 @@ function hasSupportedDimensions(width: number, height: number): boolean {
  * @param dataUrl - PNG 等支持格式的图片 data URL。
  * @param signal - 截图窗口关闭时用于中止请求的信号。
  * @returns OCR 识别结果。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function recognizeCaptureText(
   token: string,

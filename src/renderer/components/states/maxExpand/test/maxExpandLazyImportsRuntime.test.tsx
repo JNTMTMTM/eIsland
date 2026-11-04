@@ -33,7 +33,7 @@ let lazyContent: typeof import('../MaxExpandContentLazy');
 beforeAll(async () => {
   vi.stubGlobal('Element', class extends EventTarget { matches = () => false; });
   vi.stubGlobal('localStorage', { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() });
-  vi.stubGlobal('window', Object.assign(new EventTarget(), { matchMedia: () => Object.assign(new EventTarget(), { matches: false }), location: { hostname: 'localhost' }, api: { storeRead: () => Promise.resolve(null), onSettingsChanged: () => () => undefined }, electron: { ipcRenderer: { send: vi.fn(), on: vi.fn(), removeListener: vi.fn() } } }));
+  vi.stubGlobal('window', Object.assign(new EventTarget(), { matchMedia: () => Object.assign(new EventTarget(), { matches: false }), location: { hostname: 'localhost' }, api: { storeRead: () => Promise.resolve(null), onSettingsChanged: () => () => undefined }, desktop: { send: vi.fn(), on: vi.fn(), removeListener: vi.fn() } }));
   lazyContent = await import('../MaxExpandContentLazy');
 });
 afterAll(() => vi.unstubAllGlobals());

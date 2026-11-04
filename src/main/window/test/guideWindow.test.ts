@@ -22,6 +22,7 @@
  * @file guideWindow.test.ts
  * @description 验证首次引导窗口资源、一次性完成事件、复用和意外关闭解除等待。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

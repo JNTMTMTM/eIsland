@@ -22,6 +22,7 @@
  * @file decrypt.test.ts
  * @description 验证汽水样本解密输出及损坏 MP4 计数字段的内存保护。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createCipheriv } from 'crypto';

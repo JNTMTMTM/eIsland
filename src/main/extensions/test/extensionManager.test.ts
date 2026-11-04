@@ -21,6 +21,7 @@
  * @file extensionManager.test.ts
  * @description 扩展安装状态、CDN版本解析、下载进度、解压验证、失败清理和卸载回归。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { EventEmitter } from 'node:events';
 import { join } from 'node:path';

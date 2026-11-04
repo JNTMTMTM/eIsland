@@ -21,6 +21,7 @@
  * @file app.test.ts
  * @description 本地工具安全容量及设置广播映射契约测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { describe, expect, it } from 'vitest';
 import { MAX_LOCAL_FILE_READ_BYTES, MAX_LOCAL_CMD_OUTPUT_BYTES, ISLAND_SETTINGS_REGISTRY, ISLAND_SETTING_BROADCAST_CHANNELS } from '../app';

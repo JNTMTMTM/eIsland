@@ -1,18 +1,23 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+  "extends": "./tsconfig.base.json",
   "include": [
-    "electron.vite.config.*",
-    "src/main/**/*",
-    "src/preload/**/*",
-    "src/shared/**/*",
-    "plugins/**/test/ffiLoader.test.ts",
-    "plugins/test/ffiLoaderHarness.ts",
-    "scripts/**/*"
+    "vite.config.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": [
+    "scripts/fixtures/**"
   ],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,
-    "moduleResolution": "bundler",
-    "types": ["electron-vite/node"]
+    "types": [
+      "node"
+    ],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "allowImportingTsExtensions": true
   }
 }

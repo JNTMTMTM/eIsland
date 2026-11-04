@@ -17,6 +17,7 @@
  * @file codexStatusIpc.ts
  * @description Codex CLI 状态监视 IPC 处理模块。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { getCliEventDetail } from './cliEventDetail';
@@ -26,6 +27,7 @@ import type { CodexStatusService } from '../../types/system/CodexStatusService';
 /**
  * 注册 Codex 状态相关 IPC 处理器
  * @param service - Codex 状态服务实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerCodexStatusIpcHandlers(service: CodexStatusService): void {
   ipcMain.handle('codex:event:detail', (_event, id: string, offset?: number) => getCliEventDetail(service.getSnapshot(), id, offset));

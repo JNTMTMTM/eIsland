@@ -21,6 +21,7 @@
  * @file tray.test.ts
  * @description 托盘菜单（自绘菜单窗口与 Linux 原生菜单）、独立模式配置、窗口切换和托盘资源生命周期测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

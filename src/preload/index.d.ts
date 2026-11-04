@@ -22,6 +22,7 @@
  * @file index.d.ts
  * @description 渲染进程全局类型声明，扩展 Window 接口以包含 Electron API 和自定义 API
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ElectronAPI } from '@electron-toolkit/preload';

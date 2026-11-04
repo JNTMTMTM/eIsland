@@ -20,6 +20,7 @@
 /** @file cliEventDetails.ts
  * @description 将 CLI 正文移出常驻快照，并以固定大小分页读取。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { createHash } from 'crypto';
 import { mkdir, open, rename, writeFile, appendFile, unlink } from 'fs/promises';
@@ -32,7 +33,9 @@ let queuedBytes = 0;
 let queuedWrites = 0;
 const pending = new Map<string, Promise<void>>();
 
-/** 限制摘要字段；全文保留在原日志或详情文件，不在快照中重复编码。 */
+/** 限制摘要字段；全文保留在原日志或详情文件，不在快照中重复编码。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function summarizeCliEvent(event: ClaudeCodeHookEvent): ClaudeCodeHookEvent {
   const clip = (value: string | null, limit = 256): string | null => value && value.length > limit ? `${value.slice(0, limit)}…` : value;
   return {
@@ -43,12 +46,16 @@ export function summarizeCliEvent(event: ClaudeCodeHookEvent): ClaudeCodeHookEve
   };
 }
 
-/** 由事件 ID 生成固定目录内的文件名，不接受调用方提供文件路径。 */
+/** 由事件 ID 生成固定目录内的文件名，不接受调用方提供文件路径。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function cliDetailPath(directory: string, id: string): string {
   return join(directory, `${createHash('sha256').update(id).digest('hex')}.txt`);
 }
 
-/** 异步串行保存正文；队列也以字节限制，防止磁盘慢时积累整个事件流。 */
+/** 异步串行保存正文；队列也以字节限制，防止磁盘慢时积累整个事件流。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function saveCliEventDetails(directory: string, event: ClaudeCodeHookEvent, append = false): void {
   const path = cliDetailPath(directory, event.id);
   const text = JSON.stringify({ details: (event.detailItems ?? []).filter((item) => item.label !== 'rawEvent'), raw: event.raw }, null, 2);
@@ -72,7 +79,9 @@ export function saveCliEventDetails(directory: string, event: ClaudeCodeHookEven
   void request.catch(() => {});
 }
 
-/** 分页只分配 64 KiB，UTF-8 多字节字符不会被拆开；offset 是上一页返回的 nextOffset。 */
+/** 分页只分配 64 KiB，UTF-8 多字节字符不会被拆开；offset 是上一页返回的 nextOffset。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export async function readCliDetailPage(path: string, offset = 0, source?: { offset: number; bytes: number }) {
   await pending.get(path);
   const file = await open(path, 'r');
@@ -90,7 +99,9 @@ export async function readCliDetailPage(path: string, offset = 0, source?: { off
   } finally { await file.close(); }
 }
 
-/** 对小型摘要快照合并异步原子写入；任何时刻只保留最新待写版本。 */
+/** 对小型摘要快照合并异步原子写入；任何时刻只保留最新待写版本。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function createCliSnapshotWriter(path: string) {
   let latest: string | null = null;
   let writing: Promise<boolean> | null = null;
@@ -118,7 +129,9 @@ export function createCliSnapshotWriter(path: string) {
   };
 }
 
-/** 索引原子写入成功后回收不再引用的详情；只删除由事件 ID 派生的单个文件。 */
+/** 索引原子写入成功后回收不再引用的详情；只删除由事件 ID 派生的单个文件。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export async function removeCliEventDetails(directory: string, ids: string[]): Promise<void> {
   await ids.reduce(async (previous, id) => {
     await previous;

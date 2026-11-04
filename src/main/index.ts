@@ -22,6 +22,7 @@
  * @file index.ts
  * @description Electron 主进程入口，负责任务栏窗口创建、透明窗口配置及系统级交互
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow, globalShortcut, protocol, net, ipcMain } from 'electron';
@@ -187,13 +188,17 @@ function isIslandInExpandedOrMaxExpandState(): boolean {
   return inExpanded || inMaxExpand;
 }
 
-/** 统一恢复主窗口层级，避免非置顶背景反而盖住主窗口。 */
+/** 统一恢复主窗口层级，避免非置顶背景反而盖住主窗口。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function raiseIslandAboveBackground(): void {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   restoreIslandAlwaysOnTop(mainWindow);
 }
 
-/** 托盘切换置顶时，将已显示的背景窗口同步到相同层级；无背景时不调整主窗口层级。 */
+/** 托盘切换置顶时，将已显示的背景窗口同步到相同层级；无背景时不调整主窗口层级。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function syncIslandBackgroundLayers(): void {
   let hasVisibleBackground = false;
   [agentVoiceInputWindow, cliGlowWindow].forEach((background) => {
@@ -208,6 +213,7 @@ function syncIslandBackgroundLayers(): void {
 /**
  * 创建全屏透明 Agent 语音输入窗口
  * @description 加载 DynamicIslandAibackground/index.html，显示 Agent 语音输入背景光效
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function showAgentVoiceInputWindow(): void {
   if (isIslandInExpandedOrMaxExpandState()) {
@@ -282,6 +288,7 @@ function showAgentVoiceInputWindow(): void {
 
 /**
  * 关闭 Agent 语音输入窗口（先播放淡出动画再关闭）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function hideAgentVoiceInputWindow(): void {
   if (agentVoiceInputWindow && !agentVoiceInputWindow.isDestroyed()) {
@@ -302,6 +309,7 @@ function hideAgentVoiceInputWindow(): void {
 /**
  * 显示 CLI 检测全屏边缘光效窗口
  * @description 独立于 Agent 语音输入窗口，加载 DynamicIslandAibackground/index.html，常驻直到用户响应弹窗后关闭
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function showCliGlowWindow(): void {
   if (cliGlowWindow && !cliGlowWindow.isDestroyed()) {
@@ -370,6 +378,7 @@ function showCliGlowWindow(): void {
 
 /**
  * 关闭 CLI 检测光效窗口（先播放淡出动画再关闭）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function hideCliGlowWindow(): void {
   if (cliGlowWindow && !cliGlowWindow.isDestroyed()) {
@@ -467,7 +476,9 @@ const smtcService = createSmtcService({
   cleanupIntervalMs: SMTC_RUNTIME_CLEANUP_INTERVAL_MS,
 });
 
-/** 打开现有独立设置页，并同步已打开窗口的当前标签。 */
+/** 打开现有独立设置页，并同步已打开窗口的当前标签。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function showSettingsWindow(): void {
   if (!readStandaloneWindowModeEnabledConfig()) return;
 
@@ -557,7 +568,9 @@ const hotkeyService = createHotkeyService({
   },
 });
 
-/** 注册 IPC 处理器 */
+/** 注册 IPC 处理器
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function registerIpcHandlers(): void {
   // CLI 检测：显示/关闭全屏边缘光效（独立窗口，由用户响应弹窗后关闭）
   ipcMain.handle('cli-glow:show', () => { showCliGlowWindow(); return true; });

@@ -23,7 +23,10 @@
  * @author 鸡哥
  */
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -46,11 +49,50 @@ if (process.platform === 'win32') {
   };
   publish('volume-helper', 'eIslandVolumeHelper.csproj', resolve(output, 'volume'));
   publish('brightness-helper', 'eIslandBrightnessReader.csproj', resolve(output, 'brightness'));
+  // Reuse the volume helper's self-contained .NET runtime instead of bundling a third copy.
+  // Intermediate/publish files live on the OS temp drive, where space is independent of the checkout.
+  const temperatureStage = resolve(process.env.EISLAND_NATIVE_STAGING_DIR || tmpdir(), 'eisland-native-publish', rid, 'temperature');
+  const temperatureSource = resolve(temperatureStage, 'source');
+  mkdirSync(temperatureSource, { recursive: true });
+  const temperatureProject = resolve(root, 'plugins/windows/eisland-windows-performance-monitor/temperature-helper');
+  readdirSync(temperatureProject, { withFileTypes: true }).filter((file) => file.isFile() && /\.(cs|csproj)$/.test(file.name))
+    .forEach((file) => copyFileSync(resolve(temperatureProject, file.name), resolve(temperatureSource, file.name)));
+  const temperature = spawnSync('dotnet', ['publish', resolve(temperatureSource, 'eIslandTemperatureReader.csproj'),
+    '-c', 'Release', '-r', rid, '--self-contained', 'true', '-o', resolve(temperatureStage, 'publish'),
+    `-p:BaseIntermediateOutputPath=${resolve(temperatureStage, 'obj')}/`, `-p:BaseOutputPath=${resolve(temperatureStage, 'bin')}/`],
+  { cwd: root, stdio: 'inherit', windowsHide: true });
+  if (temperature.error) throw temperature.error;
+  if (temperature.status !== 0) throw new Error('Native temperature collector publish failed');
+  const shared = resolve(output, 'volume');
+  const volumeDependencies = JSON.parse(readFileSync(resolve(shared, 'eIslandVolumeHelper.deps.json'), 'utf8'));
+  const runtimeFiles = new Set(Object.values(volumeDependencies.targets).flatMap((target) =>
+    Object.entries(target).filter(([name]) => name.startsWith('runtimepack.')).flatMap(([, dependency]) =>
+      ['runtime', 'native', 'resources'].flatMap((kind) => Object.keys(dependency[kind] || {})))));
+  const digest = (file) => createHash('sha256').update(readFileSync(file)).digest('hex');
+  const copyShared = (source, destination) => {
+    mkdirSync(destination, { recursive: true });
+    readdirSync(source, { withFileTypes: true }).forEach((file) => {
+      const from = resolve(source, file.name);
+      const to = resolve(destination, file.name);
+      if (file.isDirectory()) copyShared(from, to);
+      else if (!existsSync(to) || !runtimeFiles.has(file.name)) copyFileSync(from, to);
+      else if (digest(from) !== digest(to)) throw new Error(`Shared .NET runtime mismatch: ${file.name}; rebuild the volume runtime and temperature collector together`);
+    });
+  };
+  copyShared(resolve(temperatureStage, 'publish'), shared);
   const smtc = resolve(output, 'smtc');
   const staging = resolve(root, 'src-tauri/target/native-publish', rid, 'smtc');
   publish('smtc-helper', 'eIslandSmtcHelper.csproj', staging);
   mkdirSync(smtc, { recursive: true });
   // dotnet publish's output contains the Native AOT library, not the intermediate managed DLL.
   copyFileSync(resolve(staging, 'eIslandSmtcHelper.dll'), resolve(smtc, 'eIslandSmtcHelper.dll'));
+  const ffmpeg = resolve(root, 'src-tauri/resources/native/ffmpeg');
+  mkdirSync(ffmpeg, { recursive: true });
+  const ffmpegBinary = createRequire(import.meta.url)('ffmpeg-static');
+  if (!ffmpegBinary || !existsSync(ffmpegBinary)) throw new Error('FFmpeg binary is missing; run node node_modules/ffmpeg-static/install.js before preparing native resources');
+  copyFileSync(ffmpegBinary, resolve(ffmpeg, 'ffmpeg.exe'));
+  ['LICENSE', 'README'].forEach((suffix) => {
+    if (existsSync(`${ffmpegBinary}.${suffix}`)) copyFileSync(`${ffmpegBinary}.${suffix}`, resolve(ffmpeg, `ffmpeg.${suffix}`));
+  });
   console.log(`Tauri native resources prepared: ${rid}`);
 }

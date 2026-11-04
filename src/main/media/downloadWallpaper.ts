@@ -22,6 +22,7 @@
  * @file downloadWallpaper.ts
  * @description 有截止时间和实际字节上限的流式壁纸下载。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { mkdir, open, rename, unlink } from 'node:fs/promises';
@@ -35,6 +36,7 @@ import { net } from 'electron';
  * @param destination - 从响应头计算最终文件路径。
  * @param maxBytes - 实际接收字节上限。
  * @returns 已完成文件路径。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export default async function downloadWallpaper(url: string, destination: (response: Response) => string, maxBytes: number): Promise<string> {
   const controller = new AbortController();

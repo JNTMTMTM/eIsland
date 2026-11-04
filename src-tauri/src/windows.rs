@@ -142,7 +142,6 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         .always_on_top(label != "standalone" && label != "guide")
         .focused(false)
         .focusable(!effect && label != "splash")
-        .initialization_script(include_str!("../generated/bridge.js"))
         .on_new_window(move |url, _features| {
             if matches!(url.scheme(), "http" | "https") {
                 if let Err(error) = external_app.opener().open_url(url.as_str(), None::<&str>) {
@@ -189,6 +188,10 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
     let handle = app.clone();
     let kind = label.to_owned();
     window.on_window_event(move |event| {
+        if matches!(event, tauri::WindowEvent::Destroyed) {
+            crate::services::agent::cancel_window(&kind);
+            crate::services::runtime::cancel_window(&handle, &kind);
+        }
         let result = match event {
             tauri::WindowEvent::Focused(false) if kind == "tray-menu" => hide_menu(&handle),
             tauri::WindowEvent::Destroyed if kind == "capture" => {

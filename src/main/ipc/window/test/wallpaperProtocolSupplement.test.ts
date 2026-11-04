@@ -22,6 +22,7 @@
  * @file wallpaperProtocolSupplement.test.ts
  * @description 壁纸本地与网络来源、字体限制、缓存路径和系统命令失败边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join, resolve } from 'node:path';

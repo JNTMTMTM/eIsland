@@ -22,6 +22,7 @@
  * @file virtualChatResizingBrowser.test.ts
  * @description 真实 Electron 长消息宽度变化的行内阅读锚点、可见区域与选区连续滚动回归。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { execFile } from 'node:child_process';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -32,7 +33,7 @@ import { promisify } from 'node:util';
 import { build } from 'esbuild';
 import { expect, it } from 'vitest';
 
-it('preserves an anchor inside a tall message when widening and keeps rendering while text is selected', async () => {
+it.skip('preserves an anchor inside a tall message when widening and keeps rendering while text is selected', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'eisland-chat-resize-'));
   try {
     const entry = `import React from 'react';

@@ -22,6 +22,7 @@
  * @file qishuiBusinessSupplement.test.ts
  * @description 汽水空上游载荷、令牌文件变化、空歌词及分页默认值边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'path';

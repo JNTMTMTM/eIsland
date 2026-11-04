@@ -20,6 +20,7 @@
 /** @file cliStatusSubscription.test.ts
  * @description 验证增量传输、缺帧补全以及取消订阅后的异步竞态。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createCliSnapshotDelta } from '../../main/system/cliSnapshotDelta';

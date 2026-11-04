@@ -22,6 +22,7 @@
  * @file ollamaIpc.ts
  * @description Ollama 本地直连 IPC handler，桥接渲染进程与主进程 Ollama 编排器。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain, type WebContents } from 'electron';
@@ -59,6 +60,7 @@ const activeAbortControllers = new Map<string, AbortController>();
  * @param sender - 发起生成的渲染进程。
  * @param sessionId - 生成会话标识。
  * @returns 取消控制器和幂等清理函数。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function trackChatRequest(sender: WebContents, sessionId: string): { controller: AbortController; release: () => void } {
   activeAbortControllers.get(sessionId)?.abort();
@@ -80,6 +82,7 @@ function trackChatRequest(sender: WebContents, sessionId: string): { controller:
  * 模型输出的工具名可能带大小写或空白差异，按规范化名称识别联网搜索。
  * @param tool - 模型请求的工具名。
  * @returns 是否应交给后端联网搜索。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function isWebSearchTool(tool: unknown): boolean {
   return typeof tool === 'string' && tool.trim().toLowerCase() === 'web.search';
@@ -92,6 +95,7 @@ interface RegisterOllamaIpcHandlersOptions {
 /**
  * 注册 Ollama 相关 IPC 处理器。
  * @param options - 注册所需依赖（本地工具执行器）。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerOllamaIpcHandlers(options: RegisterOllamaIpcHandlersOptions): void {
   ipcMain.handle('ollama:ping', async (_event, baseUrl?: string) => {

@@ -7,6 +7,7 @@
  * @file codexLogScanner.test.ts
  * @description 使用隔离真实日志验证增量读取、半行、轮换及乱序兼容性。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { mkdtempSync, writeFileSync, appendFileSync, rmSync, readFileSync, renameSync, statSync } from 'fs';
 import { join } from 'path';

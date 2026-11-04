@@ -24,6 +24,7 @@
  * @description 管理首次启动引导窗口的创建和关闭，splash 动画结束后显示，
  *   用户完成配置后通过 IPC 通知关闭，随后显示主窗口
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, ipcMain } from 'electron';
@@ -44,6 +45,7 @@ const GUIDE_HEIGHT = 500;
  * @description 创建引导窗口，窗口独立运行，不阻塞调用方。
  *              当用户完成配置（renderer 发送 guide:complete）后 Promise resolve。
  * @returns Promise<void> 引导完成后 resolve
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function showGuideWindow(): Promise<void> {
   return new Promise<void>((resolve) => {
@@ -120,6 +122,7 @@ function showGuideWindow(): Promise<void> {
 
 /**
  * 获取引导窗口实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function getGuideWindow(): BrowserWindow | null {
   return guideWindow;

@@ -22,11 +22,14 @@
  * @file screenshotWorker.ts
  * @description 一次性原生截图子进程，stdout 只传 PNG/窗口 JSON 原始字节。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { encodeScreenshotBitmap } from './window/screenshotEncoding';
 import { captureAllDisplaysPng, capturePrimaryDisplayPng, getVisibleWindows } from './window/screenshotNative';
 
-/** 执行一次任务，响应完毕即退出以释放 native 位图和编码缓冲。 */
+/** 执行一次任务，响应完毕即退出以释放 native 位图和编码缓冲。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 async function run(): Promise<void> {
   try {
     const operation = process.argv[2];

@@ -22,6 +22,7 @@
  * @file screenshotEncoding.test.ts
  * @description 原始 BGRA 到 PNG 的颜色、透明度、尺寸、CRC 和边界验证。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { crc32, inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';

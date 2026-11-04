@@ -22,6 +22,7 @@
  * @file captureLocalOcrService.test.ts
  * @description 本地 OCR 模型共享、取消与空闲资源释放回归测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { getEventListeners } from 'node:events';

@@ -22,6 +22,7 @@
  * @file islandCornerStyle.ts
  * @description 统一提交 UI 与 Agent 的边角设置，确保写入及广播按主进程调用顺序完成
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { mkdirSync, writeFileSync } from 'fs';
@@ -33,6 +34,7 @@ import { broadcastSettingChange } from '../../utils/broadcast';
  * @param storeDir - 配置存储目录。
  * @param value - 待持久化的设置值。
  * @returns 写入及广播是否成功。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export default function writeIslandCornerStyle(storeDir: string, value: unknown): boolean {
   try {

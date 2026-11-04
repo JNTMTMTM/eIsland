@@ -1,305 +1,76 @@
-name: eisland CI Test
+name: eIsland Unit Tests
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/**'
+      - 'src-tauri/**'
       - 'plugins/**'
       - 'cli/**'
-      - 'package.json'
-      - 'package-lock.json'
+      - 'i18n/**'
+      - 'package*.json'
       - 'vitest.config.mts'
       - 'tsconfig*.json'
-      - 'eslint.config.mjs'
-      - 'scripts/lint/**'
-      - 'scripts/test/**'
-      - 'web/eisland-web-issue-report/eslint.config.js'
-      - 'web/eisland-web-issue-report/package*.json'
+      - 'scripts/**'
       - '.github/workflows/test.yml'
   workflow_dispatch:
     inputs:
       project:
-        description: 'Vitest project to run'
+        description: Active unit test project
         type: choice
         default: all
-        options: [all, main, preload, shared, plugins, renderer, cli]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+        options: [all, shared, plugins, renderer, cli]
 
 permissions:
   contents: read
-  pull-requests: write
+
+concurrency:
+  group: tauri-unit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint-config:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '24.22.1'
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            web/eisland-web-issue-report/package-lock.json
-
-      - name: Install lint dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Install web lint dependencies
-        run: npm ci --prefix web/eisland-web-issue-report --ignore-scripts
-
-      - name: Lint issue report site
-        run: npm --prefix web/eisland-web-issue-report run lint
-
-      - name: Test lint configuration and PR reporting
-        run: npm run lint:config:test
-
-  vitest:
-    name: Vitest (${{ matrix.project }})
-    # node-gyp 11 与 Native AOT 使用 VS2022 工具链。
+  unit:
+    name: Unit (${{ matrix.project }})
     runs-on: windows-2022
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
       matrix:
-        project: ${{ fromJSON(inputs.project && inputs.project != 'all' && format('["{0}"]', inputs.project) || '["main","preload","shared","plugins","renderer","cli"]') }}
-    defaults:
-      run:
-        shell: bash
-    env:
-      VITEST_PROJECT: ${{ matrix.project }}
-
+        project: ${{ fromJSON(inputs.project && inputs.project != 'all' && format('["{0}"]', inputs.project) || '["shared","plugins","renderer","cli"]') }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '24.22.1'
           cache: npm
-
-      - name: Install dependencies
+      - name: Install dependencies without legacy lifecycle scripts
         run: npm ci --ignore-scripts
-
-      - name: Install Electron binary
-        run: node node_modules/electron/install.js
-
-      # CLI 是独立包，Ink 等运行时依赖不在根 node_modules 中。
       - name: Install CLI dependencies
         if: matrix.project == 'cli'
         run: npm ci --prefix cli --ignore-scripts
-
-      - name: Setup .NET SDK for native plugin tests
+      - uses: actions/setup-dotnet@v6
         if: matrix.project == 'plugins'
-        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
-
-      - name: Build native plugin test dependencies
+      - name: Prepare plugin test dependencies
         if: matrix.project == 'plugins'
         run: npm run test:plugins:build
-
-      - name: Verify complete Vitest discovery
+      - name: Verify active and preserved test discovery
         if: matrix.project == 'plugins'
         run: npm run test:discovery
-
-      - name: Run project tests
-        run: |
-          START=$(date +%s)
-          EXIT_CODE=0
-          PROJECT_ARGS=(--project "$VITEST_PROJECT")
-          if [ "$VITEST_PROJECT" = main ]; then
-            PROJECT_ARGS+=(--project main-integration)
-          fi
-          if [ "$VITEST_PROJECT" = plugins ]; then
-            PROJECT_ARGS+=(--project plugins-integration)
-          fi
-          FORCE_COLOR=0 NO_COLOR=1 npm test -- "${PROJECT_ARGS[@]}" --reporter=default --reporter=json --outputFile=vitest-results.json > vitest.log 2>&1 || EXIT_CODE=$?
-          END=$(date +%s)
-          printf '{"exit_code":%s,"duration_seconds":%s}\n' "$EXIT_CODE" "$((END - START))" > test-metadata.json
-          cat vitest.log
-          exit "$EXIT_CODE"
-
-      - name: Upload test logs
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-logs-${{ matrix.project }}
-          path: |
-            vitest.log
-            vitest-results.json
-            test-metadata.json
-          if-no-files-found: warn
-
-  comment-test-report:
-    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    needs: vitest
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-
+      - name: Run selected tests
+        run: npm run test:${{ matrix.project }}
+  native-api:
+    runs-on: windows-2022
     steps:
-      - name: Download test logs
-        uses: actions/download-artifact@v8
-        continue-on-error: true
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          pattern: test-logs-*
-          path: test-reports
-
-      - name: Comment test results on PR
-        uses: actions/github-script@v9
-        env:
-          VITEST_RESULT: ${{ needs.vitest.result }}
-        with:
-          github-token: ${{ secrets.BOT_PAT || secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('node:fs');
-            const marker = '<!-- test-workflow-report -->';
-
-            // 各矩阵任务使用独立附件；报告缺失或测试进程异常退出都不能显示为通过。
-            const projects = ['main', 'preload', 'shared', 'plugins', 'renderer', 'cli'];
-            const readFile = (path) => {
-              try { return fs.readFileSync(path, 'utf8').trim(); } catch { return ''; }
-            };
-            const readJson = (path) => {
-              try { return JSON.parse(readFile(path)); } catch { return null; }
-            };
-            const escape = (value) => String(value ?? '')
-              .replace(/[&<>|`@\r\n]/g, (character) => `&#${character.charCodeAt(0)};`);
-            const results = projects.map((project) => {
-              const directory = `test-reports/test-logs-${project}`;
-              const metadata = readJson(`${directory}/test-metadata.json`);
-              const json = readJson(`${directory}/vitest-results.json`);
-              const report = Array.isArray(json?.testResults) && Number.isInteger(json?.numTotalTests) ? json : null;
-              const status = !metadata || !report ? 'ERROR'
-                : metadata.exit_code === 0 && report.success === true ? 'PASS' : 'FAIL';
-              return { project, directory, metadata, report, status };
-            });
-            const overallPass = process.env.VITEST_RESULT === 'success' && results.every((result) => result.status === 'PASS');
-            const totals = results.reduce((total, { report }) => ({
-              passed: total.passed + (report?.numPassedTests ?? 0),
-              failed: total.failed + (report?.numFailedTests ?? 0),
-              skipped: total.skipped + (report?.numPendingTests ?? 0) + (report?.numTodoTests ?? 0),
-            }), { passed: 0, failed: 0, skipped: 0 });
-            const sha = context.payload.pull_request.head.sha;
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-
-            let body = `${marker}\n## Test Report\n\n`;
-            body += `**${overallPass ? 'PASS' : 'FAIL'}** · Commit: \`${sha.slice(0, 7)}\`\n\n`;
-            body += `${totals.passed} passed, ${totals.failed} failed, ${totals.skipped} skipped/todo\n\n`;
-            body += '| Project | Status | Passed | Failed | Skipped / Todo | Duration |\n';
-            body += '|---------|--------|--------|--------|----------------|----------|\n';
-            for (const { project, report, metadata, status } of results) {
-              body += `| ${project} | ${status} | ${report?.numPassedTests ?? '-'} | ${report?.numFailedTests ?? '-'} | ${report ? report.numPendingTests + report.numTodoTests : '-'} | ${metadata ? `${metadata.duration_seconds}s` : '-'} |\n`;
-            }
-            body += '\nProjects run in parallel; durations are per project. ERROR means its report or execution metadata is unavailable.\n\n';
-
-            for (const { project, directory, report, status } of results) {
-              if (report) {
-                const groups = new Map();
-                for (const file of report.testResults) {
-                  const name = file.name.replace(/\\/g, '/').replace(/^.*?\/(?=src\/|plugins\/)/, '');
-                  const module = name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : '(root)';
-                  const group = groups.get(module) ?? { passed: 0, failed: 0, skipped: 0 };
-                  for (const assertion of file.assertionResults) {
-                    if (assertion.status === 'passed') group.passed++;
-                    else if (assertion.status === 'failed') group.failed++;
-                    else group.skipped++;
-                  }
-                  groups.set(module, group);
-                }
-                body += `<details>\n<summary>${project}: module breakdown</summary>\n\n`;
-                body += '| Module | Passed | Failed | Skipped / Todo |\n|--------|--------|--------|----------------|\n';
-                let tableLength = 0;
-                for (const [module, group] of [...groups].sort(([left], [right]) => left.localeCompare(right))) {
-                  const row = `| ${escape(module)} | ${group.passed} | ${group.failed} | ${group.skipped} |\n`;
-                  if (tableLength + row.length > 4000) {
-                    body += '\nModule breakdown truncated; see the JSON artifact for all files.\n';
-                    break;
-                  }
-                  body += row;
-                  tableLength += row.length;
-                }
-                body += '\n</details>\n\n';
-              }
-              if (status !== 'PASS') {
-                const failures = (report?.testResults ?? []).filter((file) => file.status === 'failed')
-                  .map((file) => [file.name, file.message, ...file.assertionResults
-                    .filter((assertion) => assertion.status === 'failed')
-                    .map((assertion) => `${assertion.fullName}\n${assertion.failureMessages.join('\n')}`)]
-                    .filter(Boolean).join('\n')).join('\n\n');
-                const log = readFile(`${directory}/vitest.log`);
-                const details = failures || log || 'No report or log available. Check job setup and dependency installation.';
-                body += `<details>\n<summary>${project}: failure details</summary>\n\n<pre>${escape(details.slice(-3000)).slice(0, 6000)}</pre>\n\n</details>\n\n`;
-              }
-            }
-            body += `[View workflow run and project artifacts](${runUrl})`;
-
-            // ==================== Post Comment ====================
-
-            const { owner, repo } = context.repo;
-            const issue_number = context.payload.pull_request.number;
-
-            // Queued runs for older commits must not overwrite the current report.
-            const { data: currentPr } = await github.rest.pulls.get({
-              owner,
-              repo,
-              pull_number: context.payload.pull_request.number,
-            });
-            if (currentPr.head.sha !== context.payload.pull_request.head.sha) {
-              core.notice('Skipping report for an outdated PR commit.');
-              return;
-            }
-
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number,
-              per_page: 100,
-            });
-
-            // BOT_PAT posts as a regular User account; accept only known CI authors.
-            const reports = comments.filter((comment) =>
-              ['eislandBot', 'github-actions[bot]'].includes(comment.user?.login)
-                && comment.body?.startsWith(marker)
-            );
-            const existing = reports[0];
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body,
-              });
-            }
-
-            // Collapse historical duplicates only after the latest report is published.
-            for (const duplicate of reports.slice(1)) {
-              await github.rest.issues.deleteComment({
-                owner,
-                repo,
-                comment_id: duplicate.id,
-              });
-            }
+          node-version: '24.22.1'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Test native API and retired Electron command guards
+        run: npm run test:tauri:api
+      - name: Check translation consistency
+        run: npm run i18n:check
+      - name: Test lint configuration
+        run: npm run lint:config:test

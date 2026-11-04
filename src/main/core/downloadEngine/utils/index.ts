@@ -22,6 +22,7 @@
  * @file index.ts
  * @description 下载引擎通用工具函数。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createReadStream, createWriteStream } from 'fs';
@@ -37,6 +38,7 @@ export type { ChunkInfo };
  * 标准化并限制下载线程数。
  * @param value - 输入线程数。
  * @returns 合法范围内的线程数。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function normalizeThreads(value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_THREADS;
@@ -47,6 +49,7 @@ export function normalizeThreads(value: unknown): number {
  * 从 Content-Disposition 响应头中解析文件名。
  * @param headerValue - 响应头原始值。
  * @returns 解析后的文件名，失败时返回空字符串。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function parseContentDispositionFileName(headerValue: string): string {
   const utf8Match = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(headerValue);
@@ -68,6 +71,7 @@ export function parseContentDispositionFileName(headerValue: string): string {
  * 根据 URL 推断默认文件名。
  * @param url - 下载地址。
  * @returns 推断得到的文件名。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function inferFileNameFromUrl(url: URL): string {
   const fromPath = basename(decodeURIComponent(url.pathname || ''));
@@ -81,6 +85,7 @@ export function inferFileNameFromUrl(url: URL): string {
  * 将文件名清洗为跨平台安全格式。
  * @param input - 原始文件名。
  * @returns 清洗后的文件名。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function safeFileName(input: string): string {
   const safe = input.trim().replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
@@ -92,6 +97,7 @@ export function safeFileName(input: string): string {
  * 判断错误是否为中止下载导致的异常。
  * @param error - 任意异常对象。
  * @returns 是否为 AbortError。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function isAbortError(error: unknown): boolean {
   if (error instanceof DOMException && error.name === 'AbortError') return true;
@@ -105,6 +111,7 @@ export function isAbortError(error: unknown): boolean {
  * @param threads - 线程数。
  * @param tempDir - 分片临时目录。
  * @returns 分片信息列表。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function buildChunks(totalBytes: number, threads: number, tempDir: string): ChunkInfo[] {
   const targetThreads = Math.max(1, Math.min(threads, Math.floor(totalBytes / MIN_CHUNK_BYTES) || 1));

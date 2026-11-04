@@ -20,6 +20,7 @@
 /** @file cliEventDetails.test.ts
  * @description 真实隔离文件验证摘要预算、UTF-8 分页、迁移备份与异步索引。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync, truncateSync } from 'fs';
 import { join } from 'path';

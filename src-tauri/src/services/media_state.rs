@@ -41,6 +41,9 @@ pub struct Sessions {
     pub pending: String,
     pub whitelist: Vec<String>,
     pub error: Option<String>,
+    last_seen: BTreeMap<String, u64>,
+    unsubscribe_ms: u64,
+    last_cleanup_at: u64,
 }
 impl Sessions {
     pub fn new(whitelist: Vec<String>) -> Self {
@@ -50,6 +53,9 @@ impl Sessions {
             pending: String::new(),
             whitelist,
             error: None,
+            last_seen: BTreeMap::new(),
+            unsubscribe_ms: 0,
+            last_cleanup_at: 0,
         }
     }
     fn allowed(&self, id: &str) -> bool {
@@ -57,9 +63,34 @@ impl Sessions {
             .iter()
             .any(|s| !s.is_empty() && id.to_lowercase().contains(&s.to_lowercase()))
     }
+    pub fn set_unsubscribe_ms(&mut self, milliseconds: u64) {
+        self.unsubscribe_ms = milliseconds;
+    }
     pub fn apply(&mut self, changes: &[Value], full: bool) {
+        self.apply_at(changes, full, now_ms());
+    }
+    pub fn apply_at(&mut self, changes: &[Value], full: bool, now: u64) {
         if full {
             self.entries.clear();
+            self.last_seen.clear();
+            self.last_cleanup_at = now;
+        } else if self.unsubscribe_ms > 0 && now.saturating_sub(self.last_cleanup_at) >= 30_000 {
+            // Match the original runtime cache TTL. The DLL remains subscribed, and no
+            // wall-clock timer clears a paused track while no media event is arriving.
+            self.last_cleanup_at = now;
+            let refreshed: std::collections::BTreeSet<_> = changes
+                .iter()
+                .filter(|change| change["removed"] != true)
+                .filter_map(|change| change["sourceAppId"].as_str())
+                .collect();
+            self.entries.retain(|id, _| {
+                refreshed.contains(id.as_str())
+                    || self
+                        .last_seen
+                        .get(id)
+                        .is_some_and(|seen| now.saturating_sub(*seen) <= self.unsubscribe_ms)
+            });
+            self.last_seen.retain(|id, _| self.entries.contains_key(id));
         }
         for change in changes {
             let Some(id) = change["sourceAppId"].as_str() else {
@@ -67,8 +98,10 @@ impl Sessions {
             };
             if change["removed"] == true {
                 self.entries.remove(id);
+                self.last_seen.remove(id);
                 continue;
             }
+            self.last_seen.insert(id.to_owned(), now);
             if full {
                 self.entries.insert(id.into(), change.clone());
                 continue;
@@ -223,5 +256,65 @@ mod tests {
         s.apply(&[json!({"sourceAppId":"music-a","removed":true})], false);
         assert_eq!(s.current, "music-b");
         assert!(s.pending.is_empty());
+    }
+    #[test]
+    fn zero_ttl_keeps_other_sessions_without_activity() {
+        let mut sessions = Sessions::new(vec!["music".into()]);
+        sessions.apply_at(&[session("music-a", 5), session("music-b", 5)], true, 1_000);
+        sessions.apply_at(
+            &[json!({"sourceAppId":"music-a","playback":{"playbackStatus":5}})],
+            false,
+            100_000_000,
+        );
+        assert_eq!(sessions.entries.len(), 2);
+        assert_eq!(sessions.payload()["title"], "Track");
+    }
+    #[test]
+    fn ttl_prunes_stale_cache_but_preserves_refreshed_paused_metadata() {
+        let mut sessions = Sessions::new(vec!["music".into()]);
+        sessions.set_unsubscribe_ms(1_000);
+        sessions.apply_at(&[session("music-a", 5), session("music-b", 4)], true, 1_000);
+        sessions.current = "music-a".into();
+        sessions.pending = "music-b".into();
+        sessions.apply_at(&[json!({"sourceAppId":"music-a","mediaChanged":false,"artworkChanged":false,"playback":{"playbackStatus":5}})],false,31_001);
+        assert_eq!(sessions.entries.len(), 1);
+        assert_eq!(sessions.current, "music-a");
+        assert!(sessions.pending.is_empty());
+        assert_eq!(sessions.payload()["title"], "Track");
+        assert_eq!(sessions.payload()["thumbnail"], "cover");
+        assert_eq!(sessions.payload()["position_ms"], 2000.);
+    }
+    #[test]
+    fn ttl_obeys_cleanup_interval_and_setting_can_be_disabled() {
+        let mut sessions = Sessions::new(vec!["music".into()]);
+        sessions.set_unsubscribe_ms(1_000);
+        sessions.apply_at(&[session("music-a", 5), session("music-b", 4)], true, 1_000);
+        let delta = json!({"sourceAppId":"music-a","playback":{"playbackStatus":5}});
+        sessions.apply_at(std::slice::from_ref(&delta), false, 30_000);
+        assert_eq!(sessions.entries.len(), 2);
+        sessions.set_unsubscribe_ms(0);
+        sessions.apply_at(&[delta], false, 99_000);
+        assert_eq!(sessions.entries.len(), 2);
+    }
+    #[test]
+    fn expired_current_source_can_return_with_recovered_metadata() {
+        let mut sessions = Sessions::new(vec!["music".into()]);
+        sessions.set_unsubscribe_ms(1_000);
+        sessions.apply_at(&[session("music-a", 4)], true, 1_000);
+        let mut second = session("music-b", 4);
+        second["mediaChanged"] = json!(true);
+        second["artworkChanged"] = json!(true);
+        second["thumbnail"] = json!("cover-b");
+        sessions.apply_at(&[second], false, 31_001);
+        assert_eq!(sessions.current, "music-b");
+        assert!(!sessions.entries.contains_key("music-a"));
+        let mut recovered = session("music-a", 4);
+        recovered["mediaChanged"] = json!(true);
+        recovered["artworkChanged"] = json!(true);
+        recovered["thumbnail"] = json!("cover");
+        sessions.apply_at(&[recovered], false, 61_002);
+        assert_eq!(sessions.current, "music-a");
+        assert_eq!(sessions.payload()["title"], "Track");
+        assert_eq!(sessions.payload()["thumbnail"], "cover");
     }
 }

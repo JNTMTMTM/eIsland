@@ -22,6 +22,7 @@
  * @file desktop.spec.ts
  * @description 验证真实 Electron 启动、待办 UI 的持久化和跨窗口 IPC 同步。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { readFile } from 'node:fs/promises';

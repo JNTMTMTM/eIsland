@@ -22,6 +22,7 @@
  * @file workerBuild.test.ts
  * @description 验证真实多入口构建的 Worker 隔离及 FFmpeg 安装目录定位。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -76,7 +77,7 @@ function assertWorkerIsolation(chunks: BuildChunk[], outDir: string): void {
   });
 }
 
-it.each(['production', 'development'])('%s worker bundles cannot reach the main-process entry', async (mode) => {
+it.skip.each(['production', 'development'])('%s worker bundles cannot reach the main-process entry', async (mode) => {
   const { config } = await resolveConfig({ mode, configFile: resolve(root, 'electron.vite.config.ts') }, 'build', mode);
   if (!config?.main) throw new Error('Missing Electron main build configuration');
   const mainConfig = { ...config.main };
@@ -98,7 +99,7 @@ it.each(['production', 'development'])('%s worker bundles cannot reach the main-
   assertWorkerIsolation(chunks, resolve(root, config.main.build?.outDir ?? 'out/main'));
 }, 30_000);
 
-it.each([
+it.skip.each([
   ['static', resolve(root, 'src/main/index.ts')],
   ['static', './index.js'],
   ['dynamic', '../main/index.js'],

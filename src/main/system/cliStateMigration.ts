@@ -20,6 +20,7 @@
 /** @file cliStateMigration.ts
  * @description 在短生命周期 Worker 内迁移旧 CLI 正文，成功后原子发布摘要索引。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, copyFileSync, statSync } from 'fs';
 import type { ClaudeCodeHookEvent } from '../types/system/ClaudeCodeHookEvent';
@@ -27,7 +28,9 @@ import type { ClaudeCodeSessionSnapshot } from '../types/system/ClaudeCodeSessio
 import { cliDetailPath, summarizeCliEvent } from './cliEventDetails';
 import { limitRecentSessions } from './sessionLimits';
 
-/** 只由 Worker 调用；保留旧索引备份，全部详情写入成功前不覆盖旧文件。 */
+/** 只由 Worker 调用；保留旧索引备份，全部详情写入成功前不覆盖旧文件。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function migrateCliState(path: string, directory: string): Record<string, unknown> {
   if (!existsSync(path)) return {};
   // Worker 的 V8 上限不包含文件 Buffer；读取前再约束外部内存，失败时原件不动。

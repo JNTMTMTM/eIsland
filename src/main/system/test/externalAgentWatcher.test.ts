@@ -22,6 +22,7 @@
  * @file externalAgentWatcher.test.ts
  * @description 外部 Agent 轮询、通知去重、并发保护及定时器清理测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

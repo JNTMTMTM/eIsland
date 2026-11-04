@@ -22,6 +22,7 @@
  * @file windowGeometrySupplement.test.ts
  * @description 窗口各形态几何、延迟取消、销毁保护及配置失败传播的真实 IPC 测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

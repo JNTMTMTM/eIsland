@@ -23,6 +23,7 @@
  * @description 媒体按键模拟模块
  * @description 通过 PowerShell 向系统发送媒体虚拟按键
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { exec } from 'child_process';
@@ -31,6 +32,7 @@ import { exec } from 'child_process';
  * 通过 PowerShell P/Invoke 向系统发送媒体虚拟按键
  * 使用 -EncodedCommand 传递 Base64(UTF-16LE) 编码脚本，避免内联引号转义问题
  * @param vkCode - Windows 虚拟键代码（VK_MEDIA_*）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function sendMediaVirtualKey(vkCode: number): void {
   const script = [

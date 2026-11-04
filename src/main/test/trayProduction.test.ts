@@ -22,6 +22,7 @@
  * @file trayProduction.test.ts
  * @description 生产托盘实际图标路径与原生资源释放测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'node:path';

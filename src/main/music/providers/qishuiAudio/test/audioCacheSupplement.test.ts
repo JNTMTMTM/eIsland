@@ -22,6 +22,7 @@
  * @file audioCacheSupplement.test.ts
  * @description 汽水音频真实解密、缓存范围、磁盘失败、取消与队列限额边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createCipheriv } from 'node:crypto';

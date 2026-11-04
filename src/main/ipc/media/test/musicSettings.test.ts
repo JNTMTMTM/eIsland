@@ -22,6 +22,7 @@
  * @file musicSettings.test.ts
  * @description 音乐偏好读取、缺失与损坏配置回退及持久化失败测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'path';

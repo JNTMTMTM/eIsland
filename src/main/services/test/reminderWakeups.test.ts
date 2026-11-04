@@ -22,6 +22,7 @@
  * @file reminderWakeups.test.ts
  * @description 主进程统一管理到期唤醒，不依赖隐藏页面定时器。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'node:events';

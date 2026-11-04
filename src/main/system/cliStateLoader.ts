@@ -20,11 +20,14 @@
 /** @file cliStateLoader.ts
  * @description 用短生命周期 Worker 加载/迁移 CLI 索引，避免主线程解析历史大 JSON。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { Worker } from 'worker_threads';
 import { join } from 'path';
 
-/** 迁移出错时拒绝 Promise，让调用方保持原文件且停止覆盖持久化。 */
+/** 迁移出错时拒绝 Promise，让调用方保持原文件且停止覆盖持久化。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function loadCliState(path: string, directory: string, signal?: AbortSignal): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) { reject(new Error('CLI migration cancelled')); return; }

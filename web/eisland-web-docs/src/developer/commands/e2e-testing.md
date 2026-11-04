@@ -5,6 +5,11 @@ icon: desktop
 
 # Electron E2E Testing
 
+:::warning Tauri migration
+Electron Playwright E2E has been retired. Run `npm run test:e2e:tauri` against a debug Tauri binary built with embedded pages, after separately preparing native plugins. GitHub CI builds the app with `npm run build:tauri -- --debug --no-bundle` and runs the same real WebView2 smoke suite. The old Electron fixtures below are preserved but disabled.
+:::
+
+
 :::info
 The Playwright suite launches the real Electron main process and built React UI on Windows and macOS. It exercises the preload bridge, IPC handlers, and file storage. See [Testing Commands](test-commands.md) for the separate Vitest suite.
 :::

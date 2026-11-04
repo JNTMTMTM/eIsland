@@ -34,14 +34,13 @@ export interface DependencyItem {
 
 /** 全部开源框架、依赖 & 项目 */
 export const ALL_DEPENDENCIES: DependencyItem[] = [
-  { name: 'Electron' },
+  { name: 'Tauri' },
+  { name: 'Rust' },
+  { name: 'WebView2' },
   { name: 'React' },
   { name: 'React DOM' },
   { name: 'TypeScript' },
   { name: 'Vite' },
-  { name: 'electron-vite' },
-  { name: 'electron-builder' },
-  { name: 'electron-updater' },
   { name: 'Zustand' },
   { name: 'i18next' },
   { name: 'react-i18next' },
@@ -60,9 +59,6 @@ export const ALL_DEPENDENCIES: DependencyItem[] = [
   { name: 'get-windows' },
   { name: 'uapi-sdk-typescript' },
   { name: 'lucide-react' },
-  { name: '@electron-toolkit/preload' },
-  { name: '@electron-toolkit/utils' },
-  { name: '@electron-toolkit/tsconfig' },
   { name: '@vitejs/plugin-react' },
   { name: 'PostCSS' },
   { name: 'Autoprefixer' },

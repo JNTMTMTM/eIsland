@@ -21,6 +21,7 @@
  * @file captureOcrService.test.ts
  * @description 云端OCR输入校验、尺寸容量边界、请求协议、失败与取消清理回归。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { recognizeCaptureText } from '../captureOcrService';

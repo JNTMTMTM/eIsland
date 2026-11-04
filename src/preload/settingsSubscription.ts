@@ -22,6 +22,7 @@
  * @file settingsSubscription.ts
  * @description 设置订阅共享一个 IPC 监听器，并独立管理各回调的生命周期。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcRenderer } from 'electron';
@@ -43,6 +44,7 @@ const handler = (event: Electron.IpcRendererEvent, channel: string, value: unkno
  * 订阅设置变化；最后一个订阅取消时释放共享 IPC 监听器。
  * @param callback - 接收设置通道和业务值的回调。
  * @returns 可重复调用的独立取消订阅函数。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export default function subscribeSettings(callback: (channel: string, value: unknown) => void): () => void {
   const subscriber = (channel: string, value: unknown): void => { callback(channel, value); };

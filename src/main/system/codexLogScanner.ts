@@ -7,6 +7,7 @@
  * @file codexLogScanner.ts
  * @description 在扫描 Worker 内按文件身份与偏移增量读取会话。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { closeSync, openSync, readSync, statSync } from 'fs';
 import { createCodexAppendParser, parseCodexSessionLines, type ParsedCodexSession } from './codexSessionParser';
@@ -25,7 +26,9 @@ interface Cursor {
   anchor: Buffer;
 }
 
-/** 超大行只读取路由字段；完整原文通过字节范围分页，避免解析 base64 正文。 */
+/** 超大行只读取路由字段；完整原文通过字节范围分页，避免解析 base64 正文。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function largeRecord(prefix: string): Record<string, unknown> {
   const field = (text: string, name: string): unknown => {
     const match = text.match(new RegExp(`"${name}"\\s*:\\s*("(?:\\\\.|[^"\\\\])*"|[0-9]+)`));
@@ -46,6 +49,7 @@ function largeRecord(prefix: string): Record<string, unknown> {
 /**
  * 建立仅在 Worker 使用的增量日志缓存。
  * @returns 扫描文件、淘汰文件与清理缓存的操作。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createCodexLogScanner() {
   const cursors = new Map<string, Cursor>();

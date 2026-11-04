@@ -20,10 +20,13 @@
 /** @file cliSnapshotDelta.ts
  * @description 按会话变更发送轻量 CLI 增量，保留单调版本供订阅者检测丢帧。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import type { ClaudeCodeStatusSnapshot } from '../types/system/ClaudeCodeStatusSnapshot';
 
-/** 创建单个提供者的增量发布器；force 标记日志文件修改但事件 ID 未变的会话。 */
+/** 创建单个提供者的增量发布器；force 标记日志文件修改但事件 ID 未变的会话。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function createCliSnapshotDelta() {
   let previous: ClaudeCodeStatusSnapshot | null = null;
   let revision = 0;

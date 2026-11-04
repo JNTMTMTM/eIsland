@@ -22,6 +22,7 @@
  * @file index.types.test.ts
  * @description Window 全局预加载 API 的完整方法签名、参数和异步返回契约测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference -- index.ts 同名遮蔽类型导入，必须显式引用真实全局声明。

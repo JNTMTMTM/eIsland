@@ -21,6 +21,7 @@
  * @file capture.js
  * @description 截图选区与涂鸦交互逻辑，负责选区绘制、马赛克/线条/矩形/画笔标注及结果导出
  * @author 鸡哥
+ * @deprecated 仅 Electron 宿主路径已弃用；保留函数与签名，由 Tauri 适配层继续复用。
  */
 
 const { ipcRenderer, clipboard } = require('electron');

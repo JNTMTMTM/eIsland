@@ -25,13 +25,16 @@ use crate::{
 };
 use serde_json::{json, Value};
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
+    atomic::{AtomicBool, AtomicU64, Ordering},
     Arc, Mutex,
 };
 use tauri::{AppHandle, Emitter, Manager};
 
 pub struct Media {
     sessions: Mutex<Sessions>,
+    unsubscribe_ms: AtomicU64,
+    #[cfg(windows)]
+    recovery: Mutex<std::collections::BTreeMap<String, Value>>,
     #[cfg(windows)]
     api: Mutex<Option<Arc<super::smtc::Api>>>,
     #[cfg(windows)]
@@ -47,11 +50,14 @@ impl Media {
         #[cfg(not(windows))]
         let ready = false;
         let sessions = self.sessions.lock().unwrap();
-        json!({"ready":ready,"error":sessions.error,"sessionCount":sessions.entries.len()})
+        json!({"ready":ready,"error":sessions.error,"sessionCount":sessions.entries.len(),"unsubscribeMs":self.unsubscribe_ms.load(Ordering::Acquire)})
     }
     pub fn new() -> Self {
         Self {
             sessions: Mutex::new(Sessions::new(Vec::new())),
+            unsubscribe_ms: AtomicU64::new(0),
+            #[cfg(windows)]
+            recovery: Mutex::new(std::collections::BTreeMap::new()),
             #[cfg(windows)]
             api: Mutex::new(None),
             #[cfg(windows)]
@@ -60,12 +66,70 @@ impl Media {
             command_slots: Arc::new(tokio::sync::Semaphore::new(16)),
         }
     }
+    pub fn set_unsubscribe_ms(&self, milliseconds: u64) {
+        self.unsubscribe_ms.store(milliseconds, Ordering::Release);
+    }
     fn update(&self, app: &AppHandle, changes: &[Value], full: bool) -> Result<()> {
+        // A pruned session can emit a timeline-only delta. Resolve it from the DLL's
+        // retained snapshot; retry a busy snapshot on native wait timeouts as well.
+        #[cfg(windows)]
+        let changes = {
+            let sessions = self.sessions.lock().unwrap();
+            let mut recovery = self.recovery.lock().unwrap();
+            if full {
+                recovery.clear();
+            }
+            let mut incoming = Vec::new();
+            for change in changes {
+                let Some(id) = change["sourceAppId"].as_str() else {
+                    continue;
+                };
+                if !full
+                    && change["removed"] != true
+                    && change["mediaChanged"] != true
+                    && !sessions.entries.contains_key(id)
+                {
+                    recovery.insert(id.to_owned(), change.clone());
+                } else {
+                    recovery.remove(id);
+                    incoming.push(change.clone());
+                }
+            }
+            drop(sessions);
+            if !recovery.is_empty() {
+                let api = self.api.lock().unwrap().clone();
+                if let Some(Ok(snapshots)) = api.map(|api| api.snapshot(true)) {
+                    for (id, delta) in recovery.iter() {
+                        if let Some(snapshot) = snapshots
+                            .iter()
+                            .find(|value| value["sourceAppId"].as_str() == Some(id.as_str()))
+                        {
+                            let mut delta = delta.clone();
+                            delta["mediaChanged"] = json!(true);
+                            delta["artworkChanged"] = json!(true);
+                            delta["media"] = snapshot["media"].clone();
+                            delta["thumbnail"] = snapshot["media"]["thumbnail"].clone();
+                            delta["playback"] = snapshot["playback"].clone();
+                            delta["timeline"] = snapshot["timeline"].clone();
+                            incoming.push(delta);
+                        }
+                    }
+                    recovery.clear();
+                }
+            }
+            incoming
+        };
+        #[cfg(not(windows))]
+        let changes = changes.to_vec();
+        if changes.is_empty() && !full {
+            return Ok(());
+        }
         let (outbound, pending_before, pending_after) = {
             let mut sessions = self.sessions.lock().unwrap();
+            sessions.set_unsubscribe_ms(self.unsubscribe_ms.load(Ordering::Acquire));
             let before = sessions.summary();
             let pending_before = sessions.pending.clone();
-            sessions.apply(changes, full);
+            sessions.apply(&changes, full);
             let after = sessions.summary();
             let media_changed = full
                 || changes.iter().any(|c| {
@@ -101,6 +165,22 @@ impl Media {
     }
     pub fn start(self: &Arc<Self>, app: &AppHandle, stopped: Arc<AtomicBool>) {
         self.sessions.lock().unwrap().whitelist = whitelist(app);
+        let ttl = app
+            .state::<Desktop>()
+            .store
+            .lock()
+            .unwrap()
+            .value("music-smtc-unsubscribe-ms", json!(0));
+        let ttl = ttl
+            .as_f64()
+            .filter(|value| value.is_finite())
+            .unwrap_or(0.)
+            .round();
+        self.set_unsubscribe_ms(if ttl <= 0. {
+            0
+        } else {
+            ttl.clamp(1000., 1_800_000.) as u64
+        });
         #[cfg(windows)]
         {
             let media = self.clone();
@@ -123,7 +203,12 @@ impl Media {
                                             media.update(&app, &changes, false)?;
                                         }
                                     }
-                                    1 => {}
+                                    1 => {
+                                        let recover = !media.recovery.lock().unwrap().is_empty();
+                                        if recover {
+                                            media.update(&app, &[], false)?;
+                                        }
+                                    }
                                     _ => return Err("SMTC change wait failed".into()),
                                 }
                             }
@@ -255,6 +340,30 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
         "media:current-info:get" => Ok(media.sessions.lock().unwrap().payload()),
         "smtc:get-timestamp" => Ok(media.sessions.lock().unwrap().timestamp()),
         "music:detect-source-app-id" => {
+            #[cfg(windows)]
+            let api = media.api.lock().unwrap().clone();
+            #[cfg(windows)]
+            if let Some(api) = api {
+                let snapshots = tauri::async_runtime::spawn_blocking(move || {
+                    let mut last_error = "SMTC snapshot unavailable".to_owned();
+                    for _ in 0..3 {
+                        match api.snapshot(true) {
+                            Ok(snapshots) => return Ok(snapshots),
+                            Err(error) => last_error = error,
+                        }
+                        std::thread::sleep(std::time::Duration::from_millis(20));
+                    }
+                    Err(last_error)
+                })
+                .await
+                .map_err(|e| e.to_string())??;
+                let sources = snapshots.iter().map(|session| json!({
+                    "sourceAppId":session["sourceAppId"],"isPlaying":super::media_state::playing(session),
+                    "hasTitle":session["media"]["title"].as_str().is_some_and(|title| !title.is_empty()),
+                    "thumbnail":session["media"]["thumbnail"],
+                })).collect::<Vec<_>>();
+                return Ok(json!({"ok":!sources.is_empty(),"sources":sources,"message":""}));
+            }
             let s = media.sessions.lock().unwrap();
             if let Some(error) = &s.error {
                 return Err(error.clone());

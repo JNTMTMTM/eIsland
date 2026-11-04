@@ -22,6 +22,7 @@
  * @file ollamaOrchestratorCallbacks.types.test.ts
  * @description OllamaOrchestratorCallbacks.ts 的完整公开形状、合法样例、必需可选字段及非法状态契约测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { describe, expect, expectTypeOf, it } from 'vitest';

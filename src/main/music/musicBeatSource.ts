@@ -22,6 +22,7 @@
  * @file musicBeatSource.ts
  * @description 将 SMTC 播放源标识解析为对应的活动音频进程。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 export interface MusicAudioProcess {
@@ -48,6 +49,7 @@ const MUSIC_SOURCE_ALIAS_GROUPS: readonly (readonly string[])[] = [
  * 标准化播放器标识。
  * @param value - SMTC 源、进程名或音频会话显示名。
  * @returns 仅包含小写字母和数字的标识。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function normalizeMusicSourceId(value: string): string {
   return value.toLowerCase().replace(/\.exe\b/g, '').replace(/[^a-z0-9]/g, '');
@@ -67,6 +69,7 @@ function matchesAliasGroup(sourceId: string, candidateId: string): boolean {
  * @param sourceAppId - SMTC 当前锁定的 Source App ID 或 AUMID。
  * @param processes - 当前活动音频进程列表。
  * @returns 匹配到的音频进程；无法安全确定时返回 undefined。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function resolveMusicAudioProcess(
   sourceAppId: string,

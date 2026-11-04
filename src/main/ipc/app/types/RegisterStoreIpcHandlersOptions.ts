@@ -22,6 +22,7 @@
  * @file RegisterStoreIpcHandlersOptions.ts
  * @description 存储模块 IPC 处理器注册选项类型定义
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 /** 存储模块 IPC 处理器注册选项 */

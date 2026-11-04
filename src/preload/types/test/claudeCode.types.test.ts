@@ -22,6 +22,7 @@
  * @file claudeCode.types.test.ts
  * @description claudeCode 的跨进程类型契约、合法配置与非法字段约束测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { describe, expect, expectTypeOf, it } from 'vitest';

@@ -45,10 +45,12 @@ jobs:
             // ========== 3. Group by module ==========
             const moduleRules = [
               { label: 'Renderer',       re: /^src\/renderer\//  },
-              { label: 'Main Process',   re: /^src\/main\//     },
-              { label: 'Preload',        re: /^src\/preload\//  },
+              { label: 'Legacy Electron Main', re: /^src\/main\// },
+              { label: 'Legacy Electron Preload', re: /^src\/preload\// },
+              { label: 'Legacy Electron Config', re: /^(electron[.-].*|tsconfig\.electron-deprecated\.json)$/ },
               { label: 'CI / Workflow',  re: /^\.github\//      },
-              { label: 'Build / Config', re: /^(electron\..*|package\.json|tsconfig.*|\.eslintrc.*)$/ },
+              { label: 'Build / Config', re: /^(package(?:-lock)?\.json|vite\.config\.[cm]?[jt]s|tsconfig.*|\.eslintrc.*|src-tauri\/(Cargo\.(toml|lock)|tauri\.conf(?:\.[^.]+)?\.json|build\.rs))$/ },
+              { label: 'Tauri Core',     re: /^(src-tauri|src\/tauri|scripts\/tauri|plugins)\// },
               { label: 'Docs',           re: /\.(md|txt)$/i     },
               { label: 'Assets',         re: /\.(png|jpg|jpeg|gif|svg|webp|ico|css)$/i },
             ];

@@ -22,6 +22,7 @@
  * @file trayMenuWindow.test.ts
  * @description 自绘托盘菜单窗口的后台预加载、创建、首次打开骨架屏显示、透明预显示、定位、失焦关闭与 IPC 校验测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

@@ -22,6 +22,7 @@
  * @file localAssets.ts
  * @description 为受控本地图片和字体提供有界授权 URL 与文件流。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { randomUUID } from 'node:crypto';
@@ -42,6 +43,7 @@ const MIME: Record<string, string> = {
  * @param filePath - 用户选择或已保存的资源路径。
  * @param maxBytes - 压缩文件大小上限。
  * @returns 协议地址；资源无效时抛出错误。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function createLocalAssetUrl(filePath: string, maxBytes: number): Promise<string> {
   if (!isAbsolute(filePath) || !MIME[extname(filePath).toLowerCase()]) throw new Error('Unsupported local asset');
@@ -56,7 +58,9 @@ export async function createLocalAssetUrl(filePath: string, maxBytes: number): P
   return PREFIX + token;
 }
 
-/** 通过有界文件流提供令牌授权资源，拒绝猜测路径和已替换的大文件。 */
+/** 通过有界文件流提供令牌授权资源，拒绝猜测路径和已替换的大文件。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export async function handleLocalAssetRequest(request: Request): Promise<Response> {
   const token = request.url.slice(PREFIX.length).split(/[?#]/, 1)[0];
   const grant = request.url.startsWith(PREFIX) ? grants.get(token) : undefined;

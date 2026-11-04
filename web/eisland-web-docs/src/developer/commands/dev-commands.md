@@ -5,6 +5,11 @@ icon: code
 
 # Development Commands
 
+:::warning Tauri migration
+Application commands now run Tauri. `dev` aliases `dev:tauri`, `build` builds the native app without an installer, and `package` produces the Tauri NSIS installer. The Electron execution details retained below are deprecated reference material; old Electron preview/debug commands cannot run. Native plugins are prepared separately with `plugins:build:tauri`. The Node music helper and preload bridge have been retired; application hooks only build or serve the renderer.
+:::
+
+
 :::info
 This document covers the core development commands for building, running, and previewing the eIsland application. For environment setup and prerequisites, see [Frontend Setup](/developer/environment-setup/frontend-setup.md).
 :::
@@ -46,7 +51,7 @@ The renderer uses **React Fast Refresh** — component state is preserved across
 
 ## Tauri Development and Builds
 
-`npm run dev` continues to launch Electron. Use `npm run dev:tauri` to launch Tauri.
+`npm run dev` now launches Tauri through `dev:tauri`. The Electron launcher is retired.
 
 Native plugins are built separately from application startup and packaging, following the Electron workflow:
 
@@ -63,7 +68,7 @@ npm run build:tauri
 
 Neither `dev:tauri` nor `build:tauri` invokes .NET or rebuilds native plugins. Both consume the prepared files in `src-tauri/resources/native/<RID>`; run `plugins:build:tauri` first on a clean checkout and again whenever those native sources or the target architecture change. The standalone plugin command requires .NET 10 and the Windows NativeAOT build tools.
 
-The music helper is application code: `music:build:tauri` bundles the existing music services and stages their Node runtime, so it remains in the application hooks. It does not compile native plugins. `native:tauri` remains an alias for `plugins:build:tauri` and no longer builds the music helper.
+Music services execute in Rust. `music:build:tauri` is retired; `native:tauri` remains an alias for the independent `plugins:build:tauri` command.
 
 ## `npm run build`
 

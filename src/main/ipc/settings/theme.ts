@@ -23,6 +23,7 @@
  * @description 主题相关 IPC 处理模块
  * @description 处理主题模式获取和设置的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -39,6 +40,7 @@ interface RegisterThemeIpcHandlersOptions {
  * 注册主题相关 IPC 处理器
  * @description 注册主题模式获取和设置的 IPC 事件处理器
  * @param options - 配置选项，包含存储目录和键名
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerThemeIpcHandlers(options: RegisterThemeIpcHandlersOptions): void {
   ipcMain.handle('theme:mode:get', () => {

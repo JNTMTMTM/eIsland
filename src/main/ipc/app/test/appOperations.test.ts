@@ -22,6 +22,7 @@
  * @file appOperations.test.ts
  * @description 应用IPC与Agent本地工具的目录筛选、工作区边界、文件读写、窗口和哈希行为测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { Readable } from 'node:stream';

@@ -22,6 +22,7 @@
  * @file smtcCommandProcess.test.ts
  * @description 使用离线 Node 子进程验证挂起调用的硬终止和后续重建，不加载原生控制。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

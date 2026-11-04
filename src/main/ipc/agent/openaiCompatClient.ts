@@ -22,6 +22,7 @@
  * @file openaiCompatClient.ts
  * @description 通用 OpenAI 兼容流式 HTTP/HTTPS 客户端，供自定义 API 直连模式使用。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import http from 'http';
@@ -48,6 +49,7 @@ const REQUEST_TIMEOUT_MS = 120_000;
 /**
  * 解析 baseUrl，确定正确的 completions 路径。
  * 如果 baseUrl 已包含路径（如 /v1），则追加 /chat/completions。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function resolveCompletionsUrl(baseUrl: string): URL {
   const trimmed = baseUrl.replace(/\/+$/, '');
@@ -64,6 +66,7 @@ function resolveCompletionsUrl(baseUrl: string): URL {
 /**
  * 向 OpenAI 兼容 API 发起流式 Chat Completion 请求。
  * 支持 http 和 https 协议，支持 API Key 认证。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function streamOpenAIChat(
   request: OpenAIChatRequest,

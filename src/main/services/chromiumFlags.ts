@@ -23,6 +23,7 @@
  * @description Chromium 性能优化标志模块
  * @description 应用 Electron/Chromium 性能优化命令行开关
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import type { App } from 'electron';
@@ -32,6 +33,7 @@ import { readDisableFrameRateLimitConfig } from '../config/storeConfig';
  * 应用 Chromium 性能优化标志
  * @description 配置 Electron/Chromium 命令行开关以优化性能和资源使用
  * @param app - Electron 应用实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function applyChromiumPerformanceFlags(app: App): void {
   app.commandLine.appendSwitch('disable-software-rasterizer');

@@ -17,15 +17,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
- 
+
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod auto_hide;
+mod autostart;
 mod capture;
+mod data_directory;
 mod geometry;
 mod ipc;
 mod native;
-mod settings;
 mod services;
+mod settings;
 mod state;
 mod windows;
 
@@ -35,6 +37,9 @@ use tauri::{
 };
 
 fn main() {
+    if services::agent::run_hook_cli() {
+        return;
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let handle = app.clone();
@@ -64,11 +69,16 @@ fn main() {
         )
         .invoke_handler(tauri::generate_handler![ipc::desktop_ipc])
         .setup(|app| {
-            let directory = app.path().app_data_dir()?.join("eIsland_store");
             #[cfg(debug_assertions)]
-            let directory = std::env::var_os("EISLAND_DATA_DIR")
-                .map(std::path::PathBuf::from)
-                .unwrap_or(directory);
+            let debug_directory =
+                std::env::var_os("EISLAND_DATA_DIR").map(std::path::PathBuf::from);
+            #[cfg(not(debug_assertions))]
+            let debug_directory: Option<std::path::PathBuf> = None;
+            let directory = data_directory::select(
+                &app.path().app_data_dir()?,
+                &app.path().config_dir()?,
+                debug_directory.as_deref(),
+            );
             app.manage(state::Desktop::new(directory));
             services::Services::start(app.handle());
             windows::create(app.handle(), "main")?;
@@ -156,6 +166,9 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("Failed to initialize eIsland")
         .run(|app, event| {
+            if matches!(event, tauri::RunEvent::Resumed) {
+                services::runtime::changed(app);
+            }
             if matches!(event, tauri::RunEvent::Exit) {
                 app.state::<services::Services>().stop();
             }

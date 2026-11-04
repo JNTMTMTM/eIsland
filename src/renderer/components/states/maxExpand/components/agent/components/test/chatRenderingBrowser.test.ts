@@ -22,6 +22,7 @@
  * @file chatRenderingBrowser.test.ts
  * @description 在真实 Electron/React 中验证聊天渲染复用、授权侧拉布局与模型卡片互斥。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -32,7 +33,7 @@ import { promisify } from 'node:util';
 import { build } from 'esbuild';
 import { expect, it } from 'vitest';
 
-it('reuses historical rows and keeps authorization drawers above the chat without model-card overlap', async () => {
+it.skip('reuses historical rows and keeps authorization drawers above the chat without model-card overlap', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'eisland-chat-render-'));
   try {
     const entry = `import React from 'react';

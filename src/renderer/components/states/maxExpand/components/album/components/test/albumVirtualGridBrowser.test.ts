@@ -22,6 +22,7 @@
  * @file albumVirtualGridBrowser.test.ts
  * @description 在临时隔离 Electron 中验证真实 React 网格 DOM 的万项滚动、分组与缩放布局。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -32,7 +33,7 @@ import { promisify } from 'node:util';
 import { build } from 'esbuild';
 import { expect, it } from 'vitest';
 
-it('keeps real grid DOM bounded while scrolling and resizing 10,000 items', async () => {
+it.skip('keeps real grid DOM bounded while scrolling and resizing 10,000 items', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'eisland-album-grid-'));
   try {
     const entry = `import React from 'react';

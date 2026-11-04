@@ -23,6 +23,7 @@
  * @description 剪贴板 URL 相关 IPC 处理模块
  * @description 处理剪贴板 URL 黑名单、检测模式和监听开关的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { clipboard, ipcMain, shell } from 'electron';
@@ -56,6 +57,7 @@ interface RegisterClipboardIpcHandlersOptions {
  * 注册剪贴板 URL 相关 IPC 处理器
  * @description 注册剪贴板 URL 黑名单、检测模式、监听开关的 IPC 事件处理器
  * @param options - 配置选项，包含存储目录、键名和状态管理函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerClipboardIpcHandlers(options: RegisterClipboardIpcHandlersOptions): void {
   ipcMain.handle('clipboard:read-text', async () => {

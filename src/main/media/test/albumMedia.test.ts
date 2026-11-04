@@ -22,6 +22,7 @@
  * @file albumMedia.test.ts
  * @description 相册视频流式读取与路径边界回归测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';

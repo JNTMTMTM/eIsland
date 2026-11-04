@@ -22,10 +22,10 @@
  * @description 在真实 WebView2 中验证全部窗口和动画握手，使用隔离的数据目录。
  * @author 鸡哥
  */
-/* global window, document, bgImage -- Playwright 回调在被测 WebView 中运行。 */
+/* global window, document -- Playwright 回调在被测 WebView 中运行。 */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -33,7 +33,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const output = resolve(root, 'src-tauri/target/smoke');
+const output = process.env.EISLAND_SMOKE_OUTPUT ?? resolve(root, 'src-tauri/target/smoke');
 mkdirSync(output, { recursive: true });
 mkdirSync(resolve(output, 'store'), { recursive: true });
 writeFileSync(resolve(output, 'store/island-shape-mode.json'), JSON.stringify('notch'));
@@ -89,7 +89,7 @@ async function pageFor(label, attempts = 80) {
 async function ipc(page, channel, ...args) {
   if (channel === 'window:close' || channel === 'capture-cancel') {
     const closed = page.waitForEvent('close');
-    await page.evaluate(({ channel, args }) => window.electron.ipcRenderer.send(channel, ...args), { channel, args });
+    await page.evaluate(({ channel, args }) => window.desktop.send(channel, ...args), { channel, args });
     await closed;
     return null;
   }
@@ -104,6 +104,49 @@ try {
   await guide.waitForSelector('#root > *');
   await ipc(guide, 'window:close');
   await main.waitForSelector('#root > *');
+  if (process.argv.includes('--agent')) {
+    const fixture = createServer((request, response) => {
+      if (request.url === '/') { response.end('Ollama is running'); return; }
+      if (request.url === '/api/tags') { response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ models: [{ name: 'native-fixture' }] })); return; }
+      request.resume();
+      request.once('end', () => {
+        response.writeHead(200, { 'Content-Type': 'text/event-stream' });
+        response.write(`data: ${JSON.stringify({ choices: [{ delta: { reasoning_content: 'local thought' } }] })}\n\n`);
+        const payload = Buffer.from(`data: ${JSON.stringify({ choices: [{ delta: { content: '{"type":"final","answer":"原生 AI"}' } }], usage: { prompt_tokens: 4, completion_tokens: 3 } })}\n\ndata: [DONE]\n\n`);
+        const boundary = payload.indexOf(Buffer.from('原')) + 1;
+        response.write(payload.subarray(0, boundary)); response.end(payload.subarray(boundary));
+      });
+    });
+    await new Promise((resolve) => fixture.listen(0, '127.0.0.1', resolve));
+    const baseUrl = `http://127.0.0.1:${fixture.address().port}`;
+    try {
+      assert.equal(await ipc(main, 'ollama:ping', baseUrl), true);
+      assert.deepEqual(await ipc(main, 'ollama:models', baseUrl), ['native-fixture']);
+      await main.evaluate(() => {
+        window.nativeAgentEvents = [];
+        window.nativeAgentUnsubscribe = window.desktop.on('customDirect:chat:event:native-smoke', (event) => window.nativeAgentEvents.push(event));
+      });
+      await ipc(main, 'customDirect:chat:start', 'native-smoke', { baseUrl, model: 'native-fixture', systemPrompt: '', userMessage: 'fixture', apiKey: 'local-fixture-only' });
+      await main.waitForFunction(() => window.nativeAgentEvents.some((event) => event.type === 'final' || event.type === 'error'));
+      const events = await main.evaluate(() => { window.nativeAgentUnsubscribe(); return window.nativeAgentEvents; });
+      assert(!events.some((event) => event.type === 'error'), JSON.stringify(events));
+      assert(events.some((event) => event.type === 'think'));
+      assert.equal(events.filter((event) => event.type === 'chunk').map((event) => event.payload.text).join(''), '原生 AI');
+      assert.equal(events.find((event) => event.type === 'final').payload.billedTokenTotal, 7);
+      const workspace = resolve(output, 'agent-workspace'); mkdirSync(workspace, { recursive: true });
+      const file = resolve(workspace, 'idempotency.txt'); writeFileSync(file, 'base');
+      const request = { requestId: `native-smoke-${Date.now()}`, tool: 'file.append', arguments: { path: file, content: ' once' }, workspaces: [workspace] };
+      const duplicates = await Promise.all([0, 1, 2].map(() => ipc(main, 'agent:local-tool:execute', request)));
+      assert(duplicates.every((result) => result.success)); assert.equal(readFileSync(file, 'utf8'), 'base once');
+      const conflict = await ipc(main, 'agent:local-tool:execute', { ...request, arguments: { ...request.arguments, content: ' twice' } });
+      assert.equal(conflict.error, 'TOOL_REQUEST_ID_CONFLICT');
+      const escaped = await ipc(main, 'agent:local-tool:execute', { tool: 'file.read', arguments: { path: resolve(workspace, '../outside') }, workspaces: [workspace] });
+      assert.equal(escaped.success, false);
+      const codex = await ipc(main, 'codex:status:get');
+      assert(Array.isArray(codex.sessions) && Array.isArray(codex.events));
+      console.log('PASS: native model SSE/UTF-8/thinking, token totals, local tool idempotency and workspace boundaries');
+    } finally { fixture.closeAllConnections(); fixture.close(); }
+  }
   if (process.argv.includes('--music')) {
     const fixture = createServer((_request, response) => response.end('[00:01.00]Tauri 歌词链路'));
     await new Promise((resolve) => fixture.listen(0, '127.0.0.1', resolve));
@@ -119,7 +162,7 @@ try {
       assert.equal(auth.loggedIn, false);
       assert.equal((await ipc(main, 'qishui:status')).provider, 'qishui');
       await assert.rejects(ipc(main, 'qishui:lyrics', ''), /QISHUI_TRACK_ID_REQUIRED/);
-      console.log('PASS: Rust/Node lyrics network, shared preferences and original platform services');
+      console.log('PASS: native Rust lyrics network, shared preferences and original platform services');
       if (process.argv.includes('--music-network')) {
         const results = await ipc(main, 'qishui:search', '晴天', { limit: 2 });
         assert(results.songs?.length > 0, 'Public catalog must return tracks');
@@ -261,16 +304,16 @@ try {
   await ipc(menu, 'tray-menu:close');
   await ipc(main, 'system:screenshot:region:start');
   const capture = await pageFor('capture');
-  await capture.waitForFunction(() => typeof bgImage !== 'undefined' && bgImage?.width > 0);
+  await capture.waitForFunction(() => document.getElementById('bg-canvas').width > 300);
   await ipc(capture, 'capture-cancel');
   await assert.rejects(ipc(main, 'store:read', '../secrets'), /Invalid store key/);
-  await assert.rejects(ipc(main, 'system:performance-snapshot:get'), /not migrated/);
+  assert.equal(typeof await ipc(main, 'system:performance-snapshot:get'), 'object');
   assert.deepEqual(errors, [], 'main page must remain mounted without runtime exceptions');
   await main.screenshot({ path: resolve(output, 'main.png'), omitBackground: true });
   console.log('PASS: real WebView2 main, guide, standalone, tray, capture, voice, glow, transitions, scale, shortcut suspend/save/resume, sender checks');
   console.log(JSON.stringify(await ipc(main, 'debug:windows')));
   const exited = new Promise((resolve) => app.once('exit', resolve));
-  await main.evaluate(() => window.electron.ipcRenderer.send('app:quit'));
+  await main.evaluate(() => window.desktop.send('app:quit'));
   await Promise.race([exited, delay(3000).then(() => { throw new Error('Application did not quit'); })]);
 } catch (error) {
   console.error(stderr);

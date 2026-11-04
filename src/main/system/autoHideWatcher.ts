@@ -23,6 +23,7 @@
  * @description 自动隐藏监听器模块
  * @description 监控指定窗口标题名单，仅焦点窗口命中时自动隐藏灵动岛
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow } from 'electron';
@@ -58,6 +59,7 @@ interface AutoHideWatcherService {
  * @description 初始化并返回自动隐藏监控服务，根据进程列表控制窗口显示/隐藏
  * @param options - 服务配置选项，包含窗口获取和进程列表配置
  * @returns 自动隐藏监听器服务对象
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): AutoHideWatcherService {
   const pollIntervalMs = options.pollIntervalMs ?? 2500;
@@ -75,7 +77,9 @@ export function createAutoHideWatcher(options: CreateAutoHideWatcherOptions): Au
   /**
    * 读取当前主窗口的手动可见性；主窗口重建后旧选择不再生效。
    * @returns 手动显示为 true，手动隐藏为 false，未手动操作为 null。
-   */
+
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   function getManualVisibility(): boolean | null {
     if (manualVisibility !== null && manualVisibilityWindow !== options.getMainWindow()) {
       manualVisibility = null;

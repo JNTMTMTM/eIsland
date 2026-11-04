@@ -17,7 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
- 
+
 use crate::geometry::{Point, Rect};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Mutex};

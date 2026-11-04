@@ -22,6 +22,7 @@
  * @file broadcast.ts
  * @description 跨窗口设置同步广播工具
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, ipcMain } from 'electron';
@@ -31,6 +32,7 @@ import { BrowserWindow, ipcMain } from 'electron';
  * @param senderWebContentsId - 发起变更的 webContents ID（-1 表示无发送者，广播给所有窗口）
  * @param channel - 设置变更频道标识
  * @param value - 新值
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function broadcastSettingChange(senderWebContentsId: number, channel: string, value: unknown): void {
   BrowserWindow.getAllWindows().forEach((win) => {
@@ -43,6 +45,7 @@ export function broadcastSettingChange(senderWebContentsId: number, channel: str
 /**
  * 注册 settings:preview IPC 处理器
  * @description 仅广播不持久化，用于拖动条等实时预览场景
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerSettingsPreviewHandler(): void {
   ipcMain.handle('settings:preview', (event, channel: string, value: unknown) => {

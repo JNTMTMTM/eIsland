@@ -43,7 +43,7 @@ export const ipc = {
  */
 export function resetSplashBoundary(): void {
   resetLifecycle(); vi.clearAllMocks(); removals.clear(); events = new EventTarget();
-  vi.stubGlobal('window', { electron: { ipcRenderer: ipc } });
+  vi.stubGlobal('window', { desktop: ipc });
 }
 
 /**

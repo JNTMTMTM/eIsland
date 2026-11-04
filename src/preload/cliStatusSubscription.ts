@@ -17,15 +17,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-/** @file cliStatusSubscription.ts
+
+/**
+ * @file cliStatusSubscription.ts
  * @description 合并 CLI 增量并在订阅中断或版本缺口后重新获取完整摘要。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
+
 import { ipcRenderer } from 'electron';
 import type { ClaudeCodeStatusSnapshot } from './types/claudeCode';
 type Delta = ClaudeCodeStatusSnapshot & { kind: 'cli-delta'; baseRevision: number; revision: number; sessionIds: string[]; eventIds: string[] };
 
-/** 每个订阅只保留一份摘要；取消订阅后拒绝异步补帧结果。 */
+/** 每个订阅只保留一份摘要；取消订阅后拒绝异步补帧结果。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function subscribeCliStatus(channel: string, getChannel: string, callback: (snapshot: ClaudeCodeStatusSnapshot) => void): () => void {
   let current: ClaudeCodeStatusSnapshot | null = null;
   let loading = false;

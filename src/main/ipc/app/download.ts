@@ -22,6 +22,7 @@
  * @file download.ts
  * @description 下载相关主进程 IPC 处理器注册。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
@@ -149,6 +150,7 @@ function normalizeStartPayload(payload: unknown): { url: string; savePath?: stri
 /**
  * 注册下载模块相关的 IPC 处理器。
  * @param options - IPC 注册配置项。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerDownloadIpcHandlers(options: RegisterDownloadIpcHandlersOptions): void {
   if (registered) return;

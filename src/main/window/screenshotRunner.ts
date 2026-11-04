@@ -22,6 +22,7 @@
  * @file screenshotRunner.ts
  * @description 单任务截图进程：有界等待、二进制 stdout、取消和硬超时。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { spawn, type ChildProcess } from 'node:child_process';
 
@@ -33,6 +34,7 @@ interface ScreenshotBitmap { data: Buffer; width: number; height: number }
  * @param entryPath - 打包后的子进程入口
  * @param timeoutMs - 包含排队时间的硬截止时间
  * @returns 截图执行与退出清理接口
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createScreenshotRunner(entryPath: string, timeoutMs = 8000) {
   let child: ChildProcess | null = null;
@@ -46,7 +48,8 @@ export function createScreenshotRunner(entryPath: string, timeoutMs = 8000) {
      * @param signal - 取消信号
      * @param prepareBitmap - 获得槽位后读取位图，等待期间不持有额外像素副本
      * @returns 二进制响应或 null
-     */
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
     run(operation: ScreenshotOperation, signal?: AbortSignal, prepareBitmap?: () => ScreenshotBitmap): Promise<Buffer | null> {
       if (disposed || (child && waiting.length >= 1) || signal?.aborted) return Promise.resolve(null);
       return new Promise((resolve) => {
@@ -104,7 +107,9 @@ export function createScreenshotRunner(entryPath: string, timeoutMs = 8000) {
         if (child) waiting.push(entry); else start();
       });
     },
-    /** 退出时终止进行中的任务并取消等待请求。 */
+    /** 退出时终止进行中的任务并取消等待请求。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
     dispose(): void {
       disposed = true;
       waiting.splice(0).forEach((entry) => entry.abort());

@@ -1,0 +1,305 @@
+/*
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+  user-select: none;
+  cursor: crosshair;
+  background: #000;
+}
+
+.capture-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.capture-bg-canvas {
+  z-index: 0;
+}
+
+.capture-draw-canvas {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.capture-temp-canvas {
+  z-index: 2;
+}
+
+.capture-mask-canvas {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.capture-size-info {
+  position: fixed;
+  z-index: 20;
+  display: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font: 12px/1.5 monospace;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  background: rgba(0, 0, 0, .75);
+}
+
+.capture-translate-overlay {
+  position: fixed;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 8px;
+  min-width: 3px;
+  min-height: 3px;
+  overflow: hidden;
+  color: #fff;
+  font: 14px/1.5 system-ui, sans-serif;
+  text-align: center;
+  pointer-events: auto;
+  background: rgba(10, 14, 22, .78);
+  backdrop-filter: blur(6px);
+}
+
+.capture-translate-overlay.is-error {
+  background: rgba(72, 14, 18, .88);
+}
+
+.capture-translate-overlay.is-error .capture-translate-spinner {
+  display: none;
+}
+
+.capture-translate-spinner {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, .24);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: capture-translate-spin .8s linear infinite;
+}
+
+.capture-translate-message {
+  max-width: min(360px, calc(100% - 24px));
+  text-wrap: balance;
+}
+
+.capture-ocr-panel {
+  position: fixed;
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  width: min(520px, calc(100vw - 24px));
+  min-width: 0;
+  height: min(420px, calc(100vh - 24px));
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(0, 0, 0, .96);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .55);
+}
+
+.capture-ocr-header,
+.capture-ocr-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.capture-ocr-header {
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  font: 14px/1.4 system-ui, sans-serif;
+}
+
+.capture-ocr-close,
+.capture-ocr-actions button {
+  border: 0;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, .12);
+}
+
+.capture-ocr-close {
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.capture-ocr-text {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 12px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  font: 13px/1.65 system-ui, sans-serif;
+  background: rgba(0, 0, 0, .2);
+  user-select: text;
+}
+
+.capture-ocr-text::-webkit-scrollbar {
+  width: 4px;
+}
+
+.capture-ocr-text::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, .12);
+  border-radius: 2px;
+}
+
+.capture-ocr-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.capture-ocr-actions {
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+}
+
+.capture-ocr-actions button {
+  padding: 6px 12px;
+}
+
+.capture-ocr-actions button:disabled {
+  cursor: default;
+  opacity: .45;
+}
+
+.capture-ocr-actions .primary {
+  background: rgba(56, 176, 0, .9);
+}
+
+.capture-ocr-button-mark {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+@keyframes capture-translate-spin {
+  to { transform: rotate(360deg); }
+}
+
+.capture-toolbar {
+  position: fixed;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: min(98vw, 1280px);
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(30, 30, 30, .92);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, .5);
+}
+
+.capture-toolbar button,
+.capture-toolbar select,
+.capture-toolbar input[type="color"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  font: 12px/1.4 system-ui, sans-serif;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, .12);
+}
+
+.capture-toolbar button:hover,
+.capture-toolbar select:hover {
+  background: rgba(255, 255, 255, .24);
+}
+
+.capture-toolbar select option {
+  color: #111;
+  background: #fff;
+}
+
+.capture-toolbar button.tool.active {
+  background: rgba(64, 156, 255, .9);
+}
+
+.capture-toolbar .primary {
+  background: rgba(56, 176, 0, .9);
+}
+
+.capture-toolbar .danger {
+  background: rgba(220, 53, 69, .85);
+}
+
+.capture-toolbar .sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 2px;
+  background: rgba(255, 255, 255, .22);
+}
+
+.capture-toolbar .label {
+  font: 12px/1.2 system-ui, sans-serif;
+  color: rgba(255, 255, 255, .85);
+}
+
+.capture-source-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font: 12px/1.2 system-ui, sans-serif;
+  color: #d8ecff;
+  white-space: nowrap;
+  background: rgba(64, 156, 255, .18);
+}
+
+.capture-btn-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.capture-pro-icon {
+  filter: none;
+  opacity: 1;
+}

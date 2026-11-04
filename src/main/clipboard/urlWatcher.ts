@@ -23,6 +23,7 @@
  * @description 剪贴板 URL 监听器模块
  * @description 监控剪贴板内容变化，检测 URL 并获取页面标题
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, clipboard, net } from 'electron';
@@ -113,6 +114,7 @@ async function fetchPageTitle(url: string, signal: AbortSignal, timeoutMs = 3000
  * 启动剪贴板 URL 监听器
  * @description 开始监控剪贴板变化，当检测到新 URL 时获取页面标题并通知渲染进程
  * @param options - 监听器配置选项，包含窗口获取函数和状态获取函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): void {
   if (!options.getEnabled() || clipboardPollTimer) return;
@@ -173,6 +175,7 @@ export function startClipboardUrlWatcher(options: ClipboardUrlWatcherOptions): v
 /**
  * 停止剪贴板 URL 监听器
  * @description 停止剪贴板监控定时器，清理监听状态
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function stopClipboardUrlWatcher(): void {
   if (clipboardPollTimer) clearInterval(clipboardPollTimer);

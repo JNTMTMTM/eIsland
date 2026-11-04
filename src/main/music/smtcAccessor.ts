@@ -22,6 +22,7 @@
  * @file smtcAccessor.ts
  * @description SMTC 会话共享访问器，供 agent 工具等非 IPC 上下文读取当前播放信息
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 interface SmtcSessionPayload {
@@ -48,6 +49,7 @@ let _getCurrentDeviceId: CurrentDeviceIdGetter | null = null;
 
 /**
  * 由 index.ts 在 smtcService 创建后调用，注入访问器
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function setSmtcAccessor(
   getSmtcSessionRuntime: SmtcSessionRuntimeGetter,
@@ -60,6 +62,7 @@ export function setSmtcAccessor(
 /**
  * 获取当前正在播放的媒体信息（不含专辑封面 thumbnail）
  * @returns 当前播放信息或 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getSmtcNowPlaying(): Omit<SmtcSessionPayload, 'thumbnail'> | null {
   if (!_getSmtcSessionRuntime || !_getCurrentDeviceId) return null;

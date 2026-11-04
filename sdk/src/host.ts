@@ -23,6 +23,7 @@
  * @description eIsland 插件宿主最小 runtime
  * @description 提供插件挂载、卸载与切换的基础生命周期控制
  * @author 鸡哥
+ * @deprecated Electron/Node extension host retained for reference; the desktop runtime uses native Tauri services.
  */
 
 import type { EIslandPluginApi, EIslandPluginContext, EIslandPluginModule, PluginManifest } from './types';

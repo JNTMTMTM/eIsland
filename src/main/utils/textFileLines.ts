@@ -22,6 +22,7 @@
  * @file textFileLines.ts
  * @description 分块读取日志，避免为历史会话分配整份文件及其行数组。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { closeSync, fstatSync, openSync, readSync } from 'fs';
@@ -33,6 +34,7 @@ const READ_CHUNK_BYTES = 64 * 1024;
  * 逐行读取 UTF-8 文件，提前结束迭代时也会关闭文件句柄。
  * @param filePath - 日志文件路径
  * @returns 不含换行符的文本行
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function* readTextLinesSync(filePath: string, maxLineBytes = Infinity, onLine?: (source: { offset: number; bytes: number }) => void, onOversize?: (prefix: string) => string): Generator<string> {
   const fd = openSync(filePath, 'r');
@@ -88,6 +90,7 @@ export function* readTextLinesSync(filePath: string, maxLineBytes = Infinity, on
  * @param filePath - UTF-8 日志文件路径
  * @param limit - 最多保留的行数
  * @returns 最近的文本行，忽略文件末尾空白
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readLastTextLinesSync(filePath: string, limit: number, maxBytes = Infinity): string[] {
   if (limit <= 0) return [];

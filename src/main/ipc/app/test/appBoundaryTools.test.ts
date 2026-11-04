@@ -22,6 +22,7 @@
  * @file appBoundaryTools.test.ts
  * @description 验证本地工具必填参数、文件属性、搜索队列上限与叶依赖失败响应。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

@@ -29,7 +29,7 @@ import type {
   AgentUsageProviderSnapshot,
   AgentUsageRateLimitWindow,
   AgentUsageSnapshot,
-} from '../../../../../../../preload/types/agentUsage';
+} from '../../../../../../../tauri/types/agentUsage';
 
 /** 翻译函数 */
 export type Translate = (key: string, options?: Record<string, unknown>) => string;

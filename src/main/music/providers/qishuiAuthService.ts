@@ -17,6 +17,7 @@
  * @file qishuiAuthService.ts
  * @description 汽水音乐官方 Passport 二维码登录服务
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app } from 'electron';
@@ -87,6 +88,7 @@ function baseStatus(state: MusicProviderAuthStatus['state']): MusicProviderAuthS
 /**
  * 创建汽水音乐登录二维码
  * @returns 二维码内容、轮询 token 与过期时间
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function createQishuiQrCode(): Promise<MusicProviderQrCodeResult> {
   const result = await getBridge().createQrCode();
@@ -106,6 +108,7 @@ export async function createQishuiQrCode(): Promise<MusicProviderQrCodeResult> {
  * 检查汽水音乐二维码登录状态
  * @param token - 创建二维码时返回的轮询 token
  * @returns 标准化后的登录状态
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function checkQishuiQrCode(token: string): Promise<MusicProviderAuthStatus> {
   let result: QishuiQrEnvelope;
@@ -139,6 +142,7 @@ export async function checkQishuiQrCode(token: string): Promise<MusicProviderAut
 /**
  * 获取汽水音乐本地登录状态
  * @returns 当前是否已持久化有效会话
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getQishuiAuthStatus(): MusicProviderAuthStatus {
   return baseStatus(getBridge().getStatus().loggedIn ? 'confirmed' : 'idle');
@@ -147,6 +151,7 @@ export function getQishuiAuthStatus(): MusicProviderAuthStatus {
 /**
  * 清除汽水音乐登录会话
  * @returns 清理后的登录状态
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function clearQishuiAuth(): Promise<MusicProviderAuthStatus> {
   await getBridge().clear();

@@ -22,6 +22,7 @@
  * @file island-corners.spec.ts
  * @description 真实 Electron 边角配置、轮廓裁切、跨窗口同步、缩放与持久化回归。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { mkdir, readFile, rmdir } from 'node:fs/promises';

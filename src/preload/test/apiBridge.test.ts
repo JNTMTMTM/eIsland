@@ -21,6 +21,7 @@
  * @file apiBridge.test.ts
  * @description 固定250个公开预加载API的IPC协议清单，覆盖参数转发、默认值、业务载荷与逐监听器取消订阅。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';

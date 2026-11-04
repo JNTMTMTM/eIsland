@@ -20,7 +20,7 @@
 
 /**
  * @file pr-report-comments.test.mjs
- * @description 执行六类 CI 报告的实际发布脚本，验证评论复用、去重及旧提交保护。
+ * @description 验证当前 CI 评论和原生构建附件策略，并保留旧报告纯文本生成回归。
  * @author 鸡哥
  */
 
@@ -34,11 +34,68 @@ const workflows = [
   'pr-comment-report.yml',
   'pr-code-quality-review.yml',
   'i18n-check.yml',
-  'build-size-report.yml',
-  'test.yml',
 ];
 
-// 与 test.yml 的矩阵 project 列表保持一致。
+/**
+ * 从工作流读取实际分类脚本，只运行不涉及 GitHub 写入的分类片段。
+ * @param file - 工作流文件名。
+ * @param start - 片段开始标记。
+ * @param end - 片段结束标记。
+ * @returns 保留实际正则和判断的分类源码。
+ */
+function classificationScript(file, start, end) {
+  const workflow = readFileSync(new URL(`../../.github/workflows/${file}`, import.meta.url), 'utf8');
+  const script = workflow.split(/^ {10}script: \|\r?\n/mu)[1].split(/\r?\n/u)
+    .map((line) => line.replace(/^ {12}/u, '')).join('\n');
+  assert(script.includes(start) && script.includes(end), file);
+  return script.slice(script.indexOf(start), script.indexOf(end));
+}
+
+test('issue 分类识别原生 Tauri 与遗留 Electron，保留功能及类型类别', () => {
+  const script = classificationScript('issue-auto-label.yml', 'const text =', 'const labels =');
+  const classify = (title) => Array.from(runInNewContext(`${script}\n[...labelsToApply]`, { issue: { title } }));
+  const native = classify('Tauri Rust WebView2 原生窗口 crash');
+  assert(native.includes('area: tauri-core'));
+  assert(native.includes('type: bug'));
+  assert(!native.includes('area: legacy-electron'));
+  assert(classify('Electron preload BrowserWindow migration').includes('area: legacy-electron'));
+  const stock = classify('股票 chart feature');
+  assert(stock.includes('area: stock'));
+  assert(stock.includes('area: chart'));
+  assert(stock.includes('type: feature'));
+});
+
+test('PR 路径分类覆盖 Rust、Tauri API、插件和遗留源码', () => {
+  const script = classificationScript('pr-auto-label.yml', 'const filenames =', 'const labels =');
+  const classify = (names) => Array.from(runInNewContext(`${script}\n[...labelsToApply]`, { files: names.map((filename) => ({ filename })) }));
+  ['src-tauri/src/main.rs', 'src/tauri/api.ts', 'plugins/windows/helper/src/lib.rs', 'scripts/tauri/smoke.mjs'].forEach((path) => {
+    assert(classify([path]).includes('tauri-core'), path);
+  });
+  assert.deepEqual(classify(['src/main/index.ts', 'src/preload/index.ts']), ['legacy-electron']);
+  const existing = classify(['src/renderer/App.tsx', 'README.md', 'assets/icon.svg']);
+  ['frontend', 'documentation', 'assets'].forEach((label) => assert(existing.includes(label)));
+});
+
+test('PR 摘要按 Tauri 构建配置、原生服务和遗留模块分组', () => {
+  const script = classificationScript('pr-summary-comment.yml', 'const moduleRules =', '// ========== 4. Statistics');
+  const groups = runInNewContext(`${script}\ngroups`, { files: [
+    'src-tauri/Cargo.toml', 'src-tauri/tauri.conf.json', 'src-tauri/build.rs', 'vite.config.ts', 'package-lock.json',
+    'src-tauri/src/main.rs', 'src/tauri/api.ts', 'src/main/index.ts', 'src/preload/index.ts', 'src/renderer/App.tsx',
+  ].map((filename) => ({ filename })) });
+  assert.equal(groups['Build / Config'].length, 5);
+  assert.equal(groups['Tauri Core'].length, 2);
+  assert.equal(groups['Legacy Electron Main'].length, 1);
+  assert.equal(groups['Legacy Electron Preload'].length, 1);
+  assert.equal(groups.Renderer.length, 1);
+});
+
+test('原生测试工作流只提供可执行的 dispatch 项目', () => {
+  const workflow = readFileSync(new URL('../../.github/workflows/test.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /options: \[all, shared, plugins, renderer, cli\]/u);
+  assert.doesNotMatch(workflow, /legacy is available|options:.*legacy/u);
+});
+
+// 弃用工作流的报告协议，仅作为纯文本生成回归夹具；不安装或运行 Electron。
 const PROJECTS = ['main', 'preload', 'shared', 'plugins', 'renderer', 'cli'];
 
 /**
@@ -46,9 +103,10 @@ const PROJECTS = ['main', 'preload', 'shared', 'plugins', 'renderer', 'cli'];
  * @param overrides - 按 project 替换附件；null 模拟整个任务未能上传附件。
  * @param outcome - GitHub 聚合矩阵结果，包含报告之外的安装或上传失败。
  * @returns 实际生成的 PR 评论文本。
+ * @deprecated 原 Electron 矩阵报告已归档；保留其纯文本生成函数与回归，当前原生工作流使用 Actions 状态和附件。
  */
 async function renderMatrixReport(overrides = {}, outcome = 'success') {
-  const workflow = readFileSync(new URL('../../.github/workflows/test.yml', import.meta.url), 'utf8');
+  const workflow = readFileSync(new URL('../../.github/legacy-workflows/test.yml.disabled', import.meta.url), 'utf8');
   const [, block] = workflow.split(/^ {10}script: \|\r?\n/mu);
   const script = block.split('// ==================== Post Comment')[0].split(/\r?\n/u)
     .map((line) => line.replace(/^ {12}/u, '')).join('\n');
@@ -164,6 +222,28 @@ test('失败日志转义 HTML 和提及符号并限制评论长度', async () =>
     }]),
   ), 'failure');
   assert.ok(expanded.length < 65_536);
+});
+
+['test.yml', 'build-size-report.yml', 'e2e.yml', 'release-build-upload.yml'].forEach((file) => {
+  test(`${file}: 原生工作流保留失败状态且不依赖 PR 写权限`, () => {
+    const workflow = readFileSync(new URL(`../../.github/workflows/${file}`, import.meta.url), 'utf8');
+    assert.match(workflow, /contents: read/u);
+    assert.doesNotMatch(workflow, /issues\.createComment|pull_request_target:|continue-on-error:\s*true/u);
+    assert.doesNotMatch(workflow, /(?:electron-vite|electron-builder|install-electron)/u);
+  });
+});
+
+test('原生桌面和安装器工作流上传实际产物', () => {
+  const renderer = readFileSync(new URL('../../.github/workflows/build-size-report.yml', import.meta.url), 'utf8');
+  const desktop = readFileSync(new URL('../../.github/workflows/e2e.yml', import.meta.url), 'utf8');
+  const release = readFileSync(new URL('../../.github/workflows/release-build-upload.yml', import.meta.url), 'utf8');
+  assert.match(renderer, /npm run build:web/u);
+  assert.match(renderer, /path: renderer-sizes\.json/u);
+  assert.match(desktop, /npm run test:e2e:tauri/u);
+  assert.match(desktop, /EISLAND_SMOKE_BINARY:/u);
+  assert.match(release, /create-update-manifest\.mjs/u);
+  assert.match(release, /bundle\/tauri-latest\.json/u);
+  assert.match(release, /if-no-files-found: error/u);
 });
 
 workflows.forEach((file) => {

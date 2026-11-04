@@ -17,6 +17,7 @@
  * @file codexStatusService.ts
  * @description 轮询 Codex rollout 文件并发布统一 CLI 状态快照。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, type BrowserWindow } from 'electron';
@@ -122,6 +123,7 @@ function phaseForVisibleEvents(events: ClaudeCodeHookEvent[], now: number): Clau
  * 创建 Codex CLI 状态服务
  * @param options - 主窗口访问器与可选轮询周期
  * @returns Codex 状态服务实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createCodexStatusService(options: CreateCodexStatusServiceOptions): CodexStatusService {
   const sessionsPath = join(app.getPath('home'), '.codex', 'sessions');

@@ -17,6 +17,7 @@
  * @file calculator.spec.ts
  * @description 在真实 Electron 中验证计算器排版、历史与剪贴板、绘图及新增数学功能。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import en from '../i18n/en-US.json';

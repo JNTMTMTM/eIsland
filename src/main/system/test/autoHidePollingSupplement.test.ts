@@ -22,6 +22,7 @@
  * @file autoHidePollingSupplement.test.ts
  * @description 自动隐藏定时检测错误隔离及轮询恢复测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, expect, it, vi } from 'vitest';

@@ -23,6 +23,7 @@
  * @description 系统相关 IPC 处理模块
  * @description 处理任务管理器打开和运行进程查询的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -38,6 +39,7 @@ let performanceMonitorPromise: Promise<typeof WindowsPerformanceMonitor | null> 
 /**
  * Windows 按需加载采集插件；未安装或跨平台时保留系统采集回退。
  * @returns 可用的原生采集插件
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function loadPerformanceMonitor(): Promise<typeof WindowsPerformanceMonitor | null> {
   if (process.platform !== 'win32' || process.env.EISLAND_E2E === '1') return Promise.resolve(null);
@@ -56,6 +58,7 @@ function loadPerformanceMonitor(): Promise<typeof WindowsPerformanceMonitor | nu
  * 单项原生采集失败时独立回退，避免拖累其他指标。
  * @param collect - 原生采集函数
  * @returns 采集结果，失败时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function readNativeMetric<T>(collect: () => T): T | null {
   try {
@@ -190,6 +193,7 @@ interface ThrottledCache<T> {
 /**
  * 构造带 TTL 和并发去重的异步缓存
  * @description 仅在 fetcher 返回非 null/undefined 时延长 TTL；并发调用共享同一次请求
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function createThrottledCache<T>(fetcher: () => Promise<T>, ttlMs: number): ThrottledCache<T> {
   let value: T | undefined;
@@ -243,6 +247,7 @@ const nativeCpuCache = createThrottledCache(async () => {
 /**
  * 重置性能快照缓存
  * @description 仅供测试代码在每个用例前隔离状态，业务代码不应调用
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function resetPerformanceCachesForTesting(): void {
   performanceMonitorPromise = null;
@@ -395,6 +400,7 @@ async function collectPerformanceSnapshot(
  * 注册系统相关 IPC 处理器
  * @description 注册任务管理器和运行进程查询的 IPC 事件处理器
  * @param options - 配置选项，包含进程查询函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerSystemIpcHandlers(options: RegisterSystemIpcHandlersOptions): void {
   ipcMain.on('system:open-task-manager', () => {

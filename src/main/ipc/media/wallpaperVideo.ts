@@ -27,6 +27,7 @@
  *              - 抽取首帧封面
  *              无 ffmpeg 时优雅回退：仅复制源文件，封面由渲染端兜底生成
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, ipcMain, WebContents } from 'electron';
@@ -75,6 +76,7 @@ const FFPROBE_BINARY = process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe';
 /**
  * 执行命令并收集 stdout/stderr
  * @description 简单的 child_process 封装；cmd 不存在时抛出
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function runCommand(cmd: string, args: string[], onProgress?: (line: string) => void): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -113,6 +115,7 @@ function runCommand(cmd: string, args: string[], onProgress?: (line: string) => 
 /**
  * 使用 ffprobe 探测视频元数据
  * @description 失败（含 ffprobe 不存在）时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function probeVideo(sourcePath: string): Promise<VideoProbeResult | null> {
   try {
@@ -170,6 +173,7 @@ async function probeVideo(sourcePath: string): Promise<VideoProbeResult | null> 
 
 /**
  * 计算视频转码 / remux 策略
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function shouldRemux(probe: VideoProbeResult | null): boolean {
   if (!probe) return false;
@@ -180,6 +184,7 @@ function shouldRemux(probe: VideoProbeResult | null): boolean {
 
 /**
  * 发送 IPC 进度事件到发起方 WebContents
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function emitProgress(sender: WebContents | undefined, progressChannel: string | undefined, payload: Record<string, unknown>): void {
   if (!sender || !progressChannel) return;
@@ -192,6 +197,7 @@ function emitProgress(sender: WebContents | undefined, progressChannel: string |
 
 /**
  * 基于源文件生成唯一的工作目录
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function ensureVideoWorkspace(): { root: string; videoDir: string; coverDir: string } {
   const wallpaperDir = resolvePath(join(app.getPath('userData'), 'wallpapers'));
@@ -205,6 +211,7 @@ function ensureVideoWorkspace(): { root: string; videoDir: string; coverDir: str
 
 /**
  * 清理给定目录下早于 24 小时的文件
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function sweepStaleFiles(dir: string, maxAgeMs = 24 * 60 * 60 * 1000): void {
   try {
@@ -228,6 +235,7 @@ function sweepStaleFiles(dir: string, maxAgeMs = 24 * 60 * 60 * 1000): void {
 
 /**
  * 注册壁纸视频 IPC 处理器
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerWallpaperVideoIpcHandlers(): void {
   const { videoDir, coverDir } = ensureVideoWorkspace();

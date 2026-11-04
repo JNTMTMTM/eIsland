@@ -1,3 +1,4 @@
+; @deprecated Electron installer retained for migration reference; Tauri uses its native NSIS bundle.
 !ifndef EISLAND_INSTALLER_INCLUDED
 !define EISLAND_INSTALLER_INCLUDED
 

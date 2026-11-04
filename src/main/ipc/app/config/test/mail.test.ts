@@ -21,6 +21,7 @@
  * @file mail.test.ts
  * @description mail 配置契约：任务容量、超时及持久化默认值。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { describe, expect, it } from 'vitest';
 import { IMAP_TIMEOUT_MS, MAIL_INBOX_CACHE_STORE_KEY, MAIL_INBOX_CACHE_MAX_ITEMS } from '../mail';

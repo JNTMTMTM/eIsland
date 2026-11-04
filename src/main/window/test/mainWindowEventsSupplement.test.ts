@@ -22,6 +22,7 @@
  * @file mainWindowEventsSupplement.test.ts
  * @description 主窗口位置、形态通知、显示钩子和外部链接事件测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

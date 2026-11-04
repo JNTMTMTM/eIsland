@@ -22,6 +22,7 @@
  * @file hotkeyServiceSupplement.test.ts
  * @description 全部快捷键真实服务的注册替换、叶依赖失败、窗口动作、挂起恢复和语音防抖测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

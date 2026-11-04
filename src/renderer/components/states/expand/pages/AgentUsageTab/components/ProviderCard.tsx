@@ -28,7 +28,7 @@ import { AGENT_USAGE_PROVIDER_ICONS, TOKEN_BREAKDOWN_KEYS } from '../config/agen
 import { formatTokens } from '../utils/agentUsageUtils';
 import { QuotaBar } from './QuotaBar';
 import type { ReactElement } from 'react';
-import type { AgentUsageRateLimitWindow } from '../../../../../../../preload/types/agentUsage';
+import type { AgentUsageRateLimitWindow } from '../../../../../../../tauri/types/agentUsage';
 import type { ProviderCardProps } from '../types/agentUsageTypes';
 
 /**

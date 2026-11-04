@@ -29,7 +29,7 @@ import { byClass, elements, find, invoke, text } from '../../../../../test/tree'
 import { createHookReactMock, flushHookEffects, renderHook, resetHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 import { formatTime, phaseLabel, permissionProjectLabel, matchesFilter } from '../../utils/cliFormatters';
 import type { ReactNode, RefObject } from 'react';
-import type { ClaudeCodeHookEvent, ClaudeCodeSessionSnapshot, ClaudeCodeStatusSnapshot } from '../../../../../../../../preload/types';
+import type { ClaudeCodeHookEvent, ClaudeCodeSessionSnapshot, ClaudeCodeStatusSnapshot } from '../../../../../../../../tauri/types';
 let row: typeof import('../EventRow').EventRow;
 let stream: typeof import('../EventStreamPanel').EventStreamPanel;
 let sidebar: typeof import('../SessionSidebar').SessionSidebar;

@@ -22,6 +22,7 @@
  * @file externalAgentWatcher.ts
  * @description 桌面 Agent 进程检测模块 — 轮询检测外部 AI Agent 进程启动与关闭并发送通知
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow } from 'electron';
@@ -53,6 +54,7 @@ interface ExternalAgentWatcherService {
  * @description 轮询检测桌面 Agent 进程启动与关闭，通过 IPC 通知渲染进程
  * @param options - 服务配置选项
  * @returns 外部 Agent 检测服务对象
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createExternalAgentWatcher(options: CreateExternalAgentWatcherOptions): ExternalAgentWatcherService {
   const pollIntervalMs = options.pollIntervalMs ?? 4000;

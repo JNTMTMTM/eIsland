@@ -1,17 +1,23 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "extends": "./tsconfig.base.json",
   "include": [
     "src/renderer/**/*",
     "src/shared/**/*",
-    "src/preload/index.d.ts",
-    "src/preload/types/**/*"
+    "src/tauri/**/*.ts"
   ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
     "moduleResolution": "bundler",
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "paths": {
-      "@/*": ["./src/renderer/*"]
+      "@/*": [
+        "./src/renderer/*"
+      ]
     }
   }
 }

@@ -27,7 +27,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { dominantColorCache, runtime } from '../smtcStore';
 import { dispose, ensureInitialized, handleNowPlaying } from '../smtcActions';
-import type { NowPlayingInfo } from '../../../../../../../preload/types/media';
+import type { NowPlayingInfo } from '../../../../../../../tauri/types/media';
 const { extractColor } = vi.hoisted(() => ({ extractColor: vi.fn() }));
 vi.mock('../smtcUtils', () => ({ extractDominantColor: extractColor }));
 const song: NowPlayingInfo = {

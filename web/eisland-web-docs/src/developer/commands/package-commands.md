@@ -5,6 +5,11 @@ icon: box-archive
 
 # Package Commands
 
+:::warning Tauri migration
+`package` now runs the Tauri build and creates NSIS installers under `src-tauri/target/release/bundle/nsis`. `postinstall` only installs CLI dependencies. Use `npm ci --ignore-scripts` and prepare plugins explicitly with `plugins:build:tauri`. The Electron builder, ASAR and updater details below are deprecated reference material.
+:::
+
+
 :::info
 This document covers the packaging and lifecycle commands for building distributable installers and managing native modules. For development commands (dev, build, preview), see [Development Commands](dev-commands.md).
 :::

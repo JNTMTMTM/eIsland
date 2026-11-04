@@ -36,14 +36,14 @@ const root = mkdtempSync(join(tmpdir(), 'eisland-cli-scripts-'));
 writeFileSync(join(root, 'package.json'), JSON.stringify({
   name: 'eisland',
   scripts: {
-    dev: 'electron-vite dev',
+    dev: 'npm run dev:tauri',
     test: 'vitest run',
-    'test:main': 'vitest run --project main',
+    'test:main': 'npm run test:rust',
     'plugin:build:smtc': 'cd smtc && npm run build',
     'plugin:build:wifi': 'cd wifi && npm run build',
     'release:upload': 'node upload.ts',
     'esa:purge-all': 'node purge.ts --purge-all',
-    postinstall: 'electron-builder install-app-deps',
+    postinstall: 'npm ci --prefix cli --ignore-scripts',
   },
 }));
 const entries = loadScripts(root);

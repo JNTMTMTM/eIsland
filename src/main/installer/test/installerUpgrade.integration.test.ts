@@ -17,6 +17,7 @@
  * @file installerUpgrade.integration.test.ts
  * @description 通过真实 NSIS 旧卸载器验证直接升级的长路径兼容、环境恢复和失败回滚。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { execFileSync, spawnSync } from 'node:child_process';

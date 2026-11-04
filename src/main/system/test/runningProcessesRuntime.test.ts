@@ -22,6 +22,7 @@
  * @file runningProcessesRuntime.test.ts
  * @description 真实进程与窗口查询链的CSV、WMI、图标缓存、失败降级与平台边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

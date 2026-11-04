@@ -22,6 +22,7 @@
  * @file downloadEngineSupplement.test.ts
  * @description 下载引擎真实拆片、恢复、取消、流读取与文件清理边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { Readable, Writable } from 'node:stream';

@@ -22,6 +22,7 @@
  * @file imageTranslationProtocolSupplement.test.ts
  * @description 图片翻译提交与轮询失败、结果下载 MIME、超时和取消竞态协议测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { getEventListeners } from 'node:events';

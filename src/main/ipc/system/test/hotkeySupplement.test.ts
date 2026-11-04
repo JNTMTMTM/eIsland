@@ -22,6 +22,7 @@
  * @file hotkeySupplement.test.ts
  * @description 全部快捷键 IPC 的当前值与存储回退、逐项冲突、注册及持久化失败测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'node:path';

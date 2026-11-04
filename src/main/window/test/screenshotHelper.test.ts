@@ -22,6 +22,7 @@
  * @file screenshotHelper.test.ts
  * @description 验证截图插件加载缓存、候选回退、PNG 校验及枚举失败；原生调用全部隔离。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import Module from 'node:module';

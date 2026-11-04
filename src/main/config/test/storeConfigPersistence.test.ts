@@ -22,6 +22,7 @@
  * @file storeConfigPersistence.test.ts
  * @description 验证全部配置读取默认值、坏 JSON、非法值、规范化和持久化成功失败分支。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'node:path';

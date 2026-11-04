@@ -17,6 +17,7 @@
  * @file agentWebSearchService.test.ts
  * @description 验证鉴权搜索、参数隔离、取消和失败传播，不允许旧搜索回退。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

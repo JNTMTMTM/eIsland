@@ -1,3 +1,4 @@
+; @deprecated Electron installer retained for migration reference; Tauri uses its native NSIS bundle.
 # The extraction function needs these upstream helpers before the install
 # section. Guard the later template include so each helper is defined once.
 !ifndef EISLAND_INSTALL_UTIL_INCLUDED

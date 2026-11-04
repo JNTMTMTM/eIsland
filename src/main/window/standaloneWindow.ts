@@ -22,6 +22,7 @@
  * @file standaloneWindow.ts
  * @description 倒数日/TODOs/设置 独立窗口服务模块
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, shell } from 'electron';
@@ -32,6 +33,7 @@ let standaloneWindow: BrowserWindow | null = null;
 
 /**
  * 打开独立窗口（若已打开则聚焦）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function openStandaloneWindow(): void {
   if (standaloneWindow && !standaloneWindow.isDestroyed()) {
@@ -85,6 +87,7 @@ function openStandaloneWindow(): void {
 
 /**
  * 关闭独立窗口
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function closeStandaloneWindow(): void {
   if (standaloneWindow && !standaloneWindow.isDestroyed()) {
@@ -94,6 +97,7 @@ function closeStandaloneWindow(): void {
 
 /**
  * 获取独立窗口实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function getStandaloneWindow(): BrowserWindow | null {
   return standaloneWindow;

@@ -22,6 +22,7 @@
  * @file native.ts
  * @description E2E 构建专用原生模块替身；查询返回不可用，原生控制明确失败。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 /**
@@ -34,7 +35,7 @@ function unavailable(): null {
 
 /**
  * 阻止 UI 测试意外调用真实硬件控制。
- * @returns 不会返回，直接抛出错误。
+ * @returns 不会返回，直接抛出错误。 * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function rejectControl(): never {
   throw new Error('Native controls are outside the cross-platform E2E suite.');
@@ -42,7 +43,7 @@ function rejectControl(): never {
 
 /**
  * 返回无媒体会话的时间戳。
- * @returns 未播放的媒体会话信息。
+ * @returns 未播放的媒体会话信息。 * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getTimestamp() {
   return { isAvailable: false, playbackStatus: 'unknown', timeline: null };

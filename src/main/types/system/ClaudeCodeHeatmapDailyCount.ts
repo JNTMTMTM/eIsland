@@ -22,6 +22,7 @@
  * @file ClaudeCodeHeatmapDailyCount.ts
  * @description Claude Code 热力图每日计数类型定义
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 /** 单日热力图计数：按指标分别统计 */

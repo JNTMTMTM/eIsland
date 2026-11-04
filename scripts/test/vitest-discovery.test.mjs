@@ -50,12 +50,17 @@ test('Windows root Vitest projects discover every source and plugin test exactly
   const workflow = readFileSync(resolve(root, '.github/workflows/test.yml'), 'utf8');
   const matrix = workflow.match(/project:.*\|\| '(\[[^'\r\n]*\])'/u);
   assert.ok(matrix, 'No default CI project matrix found');
+  const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
+  const matrixProjects = JSON.parse(matrix[1]);
   const ciProjects = new Set([
-    ...JSON.parse(matrix[1]),
+    ...matrixProjects,
+    ...matrixProjects.flatMap((name) => Array.from((packageJson.scripts[`test:${name}`] ?? '')
+      .matchAll(/--project ([\w-]+)/gu), (match) => match[1])),
     ...Array.from(workflow.matchAll(/PROJECT_ARGS\+=\(--project ([\w-]+)\)/gu), (match) => match[1]),
   ]);
   const untestedProjects = Array.from(new Set(entries.map(({ projectName }) => projectName)))
-    .filter((name) => !ciProjects.has(name));
+    .filter((name) => !ciProjects.has(name)
+      && !packageJson.deprecatedElectron.legacyTestProjects.includes(name));
   assert.deepEqual(untestedProjects, [], 'Collected projects are missing from CI execution');
   console.log(`All ${expected.length} source and plugin test files are collected exactly once.`);
 });

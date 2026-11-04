@@ -22,6 +22,7 @@
  * @file ocrWorkerSupplement.test.ts
  * @description 本地 OCR 模型错误、初始化完成取消竞态及云 OCR 开发地址边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { getEventListeners } from 'node:events';

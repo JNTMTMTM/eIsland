@@ -22,6 +22,7 @@
  * @file animation-settings.spec.ts
  * @description 动画设置即时选中状态、跨窗口生效与持久化回归。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import en from '../i18n/en-US.json';

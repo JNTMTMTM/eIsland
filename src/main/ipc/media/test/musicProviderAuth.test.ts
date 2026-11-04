@@ -21,6 +21,7 @@
  * @file musicProviderAuth.test.ts
  * @description 音乐认证IPC通道、提供方校验、token和异步错误转发。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerMusicProviderAuthIpcHandlers } from '../musicProviderAuth';

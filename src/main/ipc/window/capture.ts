@@ -23,6 +23,7 @@
  * @description 截图相关 IPC 处理模块
  * @description 处理截图、保存和复制到剪贴板等 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, clipboard, ClipboardItem, desktopCapturer, dialog, ipcMain, nativeImage, type BrowserWindow } from 'electron';
@@ -43,6 +44,7 @@ interface RegisterCaptureIpcHandlersOptions {
  * 注册截图相关 IPC 处理器
  * @description 注册截图、保存、取消等 IPC 事件处理器
  * @param options - 配置选项，包含获取和关闭截图窗口的函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerCaptureIpcHandlers(options: RegisterCaptureIpcHandlersOptions): void {
   ipcMain.handle('system:screenshot:region:start', async () => {

@@ -22,6 +22,7 @@
  * @file mainWindowBounds.ts
  * @description 按窗口实例保留主动设置的外框尺寸，避免 Windows 透明窗口回读尺寸放大。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import type { BrowserWindow, Rectangle } from 'electron';
@@ -32,6 +33,7 @@ const backingSizes = new WeakMap<BrowserWindow, Pick<Rectangle, 'width' | 'heigh
  * 读取实时位置及与裁剪区域匹配的外框尺寸。
  * @param win - 灵动岛主窗口实例。
  * @returns 已记录尺寸的窗口边界；尚未设置过边界时使用原生值。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readMainWindowBounds(win: BrowserWindow): Rectangle {
   return { ...win.getBounds(), ...backingSizes.get(win) };
@@ -41,6 +43,7 @@ export function readMainWindowBounds(win: BrowserWindow): Rectangle {
  * 设置边界并在原生调用成功后记录尺寸，供拖动、展开和命中范围计算使用。
  * @param win - 灵动岛主窗口实例，新窗口拥有独立的尺寸记录。
  * @param bounds - 与随后设置的裁剪区域对应的屏幕位置及外框尺寸。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function setMainWindowBounds(win: BrowserWindow, bounds: Rectangle): void {
   win.setBounds(bounds);

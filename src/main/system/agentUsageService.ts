@@ -23,6 +23,7 @@
  * @description 读取本机 Claude Code 与 Codex 的 jsonl 日志，汇总最近 7 天 token 用量及 Codex 额度
  * @description 只读本地日志、不读取任何凭据；按文件缓存解析结果，文件追加时只解析新增部分
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createReadStream } from 'fs';
@@ -125,6 +126,7 @@ function parseJson(line: string): Record<string, unknown> | null {
  * @description 同一条 assistant 消息按内容块拆成多行且重复携带 usage，调用方需按 key 去重。
  * @param line - jsonl 原始行
  * @returns 用量记录，非 assistant 用量行返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function parseClaudeUsageLine(line: string): AgentUsageRecord | null {
   if (!line.includes('"usage"')) return null;
@@ -193,6 +195,7 @@ function codexRateLimits(value: unknown, timestamp: number): AgentUsageRateLimit
  * @param total - 本次累计值
  * @param last - 本次上报的单轮用量
  * @returns 新增用量
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function codexDelta(previous: AgentUsageTokens | null, total: AgentUsageTokens, last: AgentUsageTokens | null): AgentUsageTokens | null {
   if (!previous) return total;
@@ -209,6 +212,7 @@ function codexDelta(previous: AgentUsageTokens | null, total: AgentUsageTokens, 
  * 创建 Codex 解析状态。
  * @param sessionId - 默认会话标识，读到 session_meta 后会被替换
  * @returns 初始解析状态
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createCodexParseState(sessionId: string): CodexParseState {
   return { sessionId, model: null, previousTotal: null, rateLimits: null };
@@ -220,6 +224,7 @@ export function createCodexParseState(sessionId: string): CodexParseState {
  * @param state - 当前文件的解析状态
  * @param key - 记录去重键
  * @returns 下一个解析状态及用量记录，非用量行的记录为 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function parseCodexUsageLine(line: string, state: CodexParseState, key: string): CodexParseResult {
   const unchanged = { state, record: null };
@@ -284,6 +289,7 @@ async function directoryExists(path: string): Promise<boolean> {
  * @param start - 起始字节偏移
  * @param onLine - 每个完整行的回调，参数为行文本及其起始偏移
  * @returns 下次读取的起始偏移
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function readCompleteLines(path: string, start: number, onLine: (line: string, offset: number) => void): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -346,6 +352,7 @@ function summarize(
  * 创建 Agent 用量服务。
  * @param options - 日志目录及可注入的当前时间
  * @returns 用量服务实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createAgentUsageService(options: CreateAgentUsageServiceOptions): AgentUsageService {
   const now = options.now ?? Date.now;

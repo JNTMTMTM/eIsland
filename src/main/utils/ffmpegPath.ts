@@ -24,6 +24,7 @@
  *              打包后：extraResources/ffmpeg/ffmpeg.exe
  *              开发时：node_modules/ffmpeg-static/ffmpeg.exe
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app } from 'electron';
@@ -33,6 +34,7 @@ import { join, resolve } from 'path';
 /**
  * 获取 ffmpeg 可执行文件绝对路径
  * @returns ffmpeg.exe 路径，不存在时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getFfmpegPath(): string | null {
   // 打包后：process.resourcesPath 指向 resources/
@@ -57,6 +59,7 @@ export function getFfmpegPath(): string | null {
 /**
  * 获取 ffmpeg 二进制名称，供 spawn 使用
  * 如果有打包/本地路径则返回绝对路径，否则返回 'ffmpeg.exe' 依赖系统 PATH
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getFfmpegBinary(): string {
   return getFfmpegPath() ?? (process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg');

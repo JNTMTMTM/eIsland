@@ -20,6 +20,7 @@
 /** @file cliPersistenceLifecycle.test.ts
  * @description 覆盖写泵微任务尾窗与迁移 Worker 的超时/取消归属。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { EventEmitter } from 'events';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

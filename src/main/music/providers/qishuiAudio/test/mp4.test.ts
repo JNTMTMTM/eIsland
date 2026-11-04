@@ -21,6 +21,7 @@
  * @file mp4.test.ts
  * @description MP4 box查找：多区块、范围限制、截断和不存在的边界。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { describe, expect, it } from 'vitest';
 import { findMp4Box } from '../mp4';

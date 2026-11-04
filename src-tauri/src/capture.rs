@@ -17,7 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
- 
+
 use crate::{
     state::Desktop,
     windows::{self, Result},
@@ -26,6 +26,36 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use image::{DynamicImage, RgbaImage};
 use serde_json::{json, Value};
 use tauri::{AppHandle, Manager};
+
+/// Capture the primary display through the native backend without opening a WebView.
+pub async fn primary() -> Result<Value> {
+    static BUSY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    if BUSY.swap(true, std::sync::atomic::Ordering::AcqRel) {
+        return Ok(Value::Null);
+    }
+    let result = tauri::async_runtime::spawn_blocking(|| {
+        let monitors = xcap::Monitor::all().map_err(|e| e.to_string())?;
+        let monitor = monitors
+            .iter()
+            .find(|m| m.is_primary().unwrap_or(false))
+            .or_else(|| monitors.first())
+            .ok_or("No monitors available")?;
+        let image = monitor.capture_image().map_err(|e| e.to_string())?;
+        let mut bytes = std::io::Cursor::new(Vec::new());
+        DynamicImage::ImageRgba8(image)
+            .write_to(&mut bytes, image::ImageFormat::Png)
+            .map_err(|e| e.to_string())?;
+        Ok(json!(format!(
+            "data:image/png;base64,{}",
+            STANDARD.encode(bytes.into_inner())
+        )))
+    })
+    .await
+    .map_err(|e| e.to_string())
+    .and_then(|value| value);
+    BUSY.store(false, std::sync::atomic::Ordering::Release);
+    result
+}
 
 /// Capture every monitor before showing the overlay; bitmap coordinates are physical pixels.
 pub async fn start(app: &AppHandle) -> Result<()> {

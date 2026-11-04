@@ -22,6 +22,7 @@
  * @file wallpaperVideoSupplement.test.ts
  * @description 壁纸视频无回调进度、无效时长与非 Error 文件/进程失败边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'events';

@@ -17,6 +17,7 @@
  * @file codexSessionParser.ts
  * @description 将 Codex rollout JSONL 转换为 CLI 面板统一快照数据。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createHash } from 'crypto';
@@ -214,6 +215,7 @@ function incrementHeatmap(heatmap: ClaudeCodeHeatmapDaily, event: ClaudeCodeHook
  * @param transcriptPath - 原始会话路径。
  * @param fallbackTimestamp - 缺少时间字段时使用的稳定起点。
  * @returns 增量行消费、快照及完整解析结果恢复方法。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createCodexAppendParser(transcriptPath: string, fallbackTimestamp: number) {
   let context: CodexParserContext | null = null;
@@ -305,6 +307,7 @@ export function createCodexAppendParser(transcriptPath: string, fallbackTimestam
  * 迭代文本行，避免 split 额外保留整份日志的行数组。
  * @param content - 完整日志文本
  * @returns 按原顺序迭代的文本行
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function* textLines(content: string): Generator<string> {
   let start = 0;
@@ -323,6 +326,7 @@ function* textLines(content: string): Generator<string> {
  * 仅在消费当前行时解析 JSON，跳过未写完的日志行。
  * @param readLines - 从头迭代日志行的读取函数
  * @returns 有效 JSON 记录的迭代器
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function* jsonLines(readLines: () => Iterable<string>): Generator<Record<string, unknown>> {
   const iterator = readLines()[Symbol.iterator]();
@@ -349,6 +353,7 @@ function* jsonLines(readLines: () => Iterable<string>): Generator<Record<string,
  * @param fallbackTimestamp - 缺失时间字段时采用的时间戳
  * @param now - 判断会话活跃状态的当前时间
  * @returns 会话快照；缺少会话标识时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function parseCodexSessionLines(
   readLines: () => Iterable<string>,
@@ -515,6 +520,7 @@ export function parseCodexSessionLines(
  * @param fallbackTimestamp - 缺失时间字段时采用的文件时间戳
  * @param now - 当前时间，用于判断会话是否仍活跃
  * @returns 会话、事件与热力图数据；无有效元数据时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function parseCodexSessionContent(
   content: string,

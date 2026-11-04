@@ -22,6 +22,7 @@
  * @file qishuiAuthService.test.ts
  * @description 汽水 QR 登录桥接、过期时间与登录状态规范化测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { Module } from 'module';

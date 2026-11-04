@@ -23,6 +23,7 @@
  * @description 全局快捷键服务模块
  * @description 管理应用全局快捷键的注册、注销和冲突检测
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow, globalShortcut } from 'electron';
@@ -96,6 +97,7 @@ interface HotkeyService {
  * @description 初始化并返回全局快捷键管理服务
  * @param options - 服务配置选项，包含窗口获取和回调函数
  * @returns 快捷键服务对象，包含注册和管理方法
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createHotkeyService(options: CreateHotkeyServiceOptions): HotkeyService {
   let currentHideHotkey = '';

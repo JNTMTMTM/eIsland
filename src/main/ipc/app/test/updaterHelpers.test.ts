@@ -23,6 +23,7 @@
  * @description updater.ts 纯辅助函数单元测试 (normalizeUpdateSource, applyUpdateSource)
  * @description 通过 registerUpdaterIpcHandlers IPC handler 间接测试模块内部的纯函数
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';

@@ -22,6 +22,7 @@
  * @file clipboardUrlState.test.ts
  * @description clipboardUrlState 单元测试
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { describe, expect, it } from 'vitest';

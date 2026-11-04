@@ -22,6 +22,7 @@
  * @file agent-scroll.spec.ts
  * @description 真实 Electron 长会话的无按钮虚拟滚动、动态行高、会话切换和流式跟随回归。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import en from '../i18n/en-US.json';

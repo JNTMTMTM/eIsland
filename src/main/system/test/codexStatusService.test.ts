@@ -22,6 +22,7 @@
  * @file codexStatusService.test.ts
  * @description Codex 状态服务的真实 rollout、缓存、监视切换与删除阈值测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'path';

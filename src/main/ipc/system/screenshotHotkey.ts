@@ -23,6 +23,7 @@
  * @description 截图快捷键 IPC 处理模块
  * @description 处理截图快捷键的获取、设置和持久化
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -42,6 +43,7 @@ interface RegisterScreenshotHotkeyIpcHandlersOptions {
  * 注册截图快捷键 IPC 处理器
  * @description 注册截图快捷键获取和设置的 IPC 事件处理器
  * @param options - 配置选项，包含存储目录、键名和热键服务函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerScreenshotHotkeyIpcHandlers(options: RegisterScreenshotHotkeyIpcHandlersOptions): void {
   ipcMain.handle('screenshot-hotkey:get', () => {

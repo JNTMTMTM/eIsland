@@ -22,6 +22,7 @@
  * @file islandVisibility.test.ts
  * @description 灵动岛淡入淡出过渡的透明度、反向切换与外部隐藏中断测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

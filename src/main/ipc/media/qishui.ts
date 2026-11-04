@@ -15,6 +15,7 @@
  * @file qishui.ts
  * @description 汽水音乐非扫码业务 IPC 处理器。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -27,7 +28,9 @@ function required(value: unknown, code: string): string {
   return normalized;
 }
 
-/** 注册汽水音乐业务 IPC；扫码登录由 musicProviderAuth 独立维护。 */
+/** 注册汽水音乐业务 IPC；扫码登录由 musicProviderAuth 独立维护。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function registerQishuiBusinessIpcHandlers(): void {
   ipcMain.handle('qishui:status', () => qishuiBusiness.status());
   ipcMain.handle('qishui:search', (_event, keyword: string, options?: QishuiBusinessRequestOptions) => {

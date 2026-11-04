@@ -23,6 +23,7 @@
  * @description 媒体控制相关 IPC 处理模块
  * @description 处理播放控制、音源切换等媒体相关的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, ipcMain } from 'electron';
@@ -51,6 +52,7 @@ interface RegisterMediaIpcHandlersOptions {
  * 注册媒体控制相关 IPC 处理器
  * @description 注册播放、暂停、切歌、音源切换等媒体控制的 IPC 事件处理器
  * @param options - 配置选项，包含窗口获取和媒体控制函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerMediaIpcHandlers(options: RegisterMediaIpcHandlersOptions): void {
   ipcMain.handle('media:current-info:get', () => {

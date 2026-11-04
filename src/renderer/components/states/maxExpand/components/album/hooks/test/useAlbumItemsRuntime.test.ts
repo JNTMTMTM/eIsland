@@ -53,6 +53,7 @@ const io = {
   head: vi.fn<typeof fetch>(),
   buffer: vi.fn<(path: string) => Promise<Uint8Array | null>>(),
   path: vi.fn<(file: File) => string>(),
+  pick: vi.fn<() => Promise<File[]>>(),
   get: vi.fn<(key: string) => string | null>(),
   set: vi.fn<(key: string, value: string) => void>(),
   revoke: vi.fn<(url: string) => void>()
@@ -136,6 +137,7 @@ beforeEach(() => {
   probe.mockReset();
   io.read.mockImplementation((key) => Promise.resolve(cache.get(key) ?? null));
   io.write.mockResolvedValue(true);
+  io.pick.mockResolvedValue([]);
   io.info.mockImplementation((path) => Promise.resolve({
     url: `blob:${  path}`,
     sizeBytes: 100
@@ -168,7 +170,8 @@ beforeEach(() => {
       loadAlbumThumbnail: io.thumbnail,
       loadWallpaperFile: io.full,
       readLocalFileAsBuffer: io.buffer,
-      getPathForFile: io.path
+      getPathForFile: io.path,
+      selectFiles: io.pick
     }
   });
 });
@@ -248,7 +251,7 @@ describe('album initialization and file import', () => {
     await vi.advanceTimersByTimeAsync(2400);
     expect(view().statusMessage).toBe('');
   });
-  it('resets file input and invokes the file picker only when mounted', async () => {
+  it('uses the native file picker and retains file-input reset behavior', async () => {
     await commit();
     view().handlePickFiles();
     const click = vi.fn();
@@ -256,7 +259,8 @@ describe('album initialization and file import', () => {
       click
     } as unknown as HTMLInputElement;
     view().handlePickFiles();
-    expect(click).toHaveBeenCalledOnce();
+    expect(io.pick).toHaveBeenCalledTimes(2);
+    expect(click).not.toHaveBeenCalled();
     const target = {
       files: [new File(['x'], 'a.jpg')],
       value: 'chosen'

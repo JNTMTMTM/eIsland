@@ -22,6 +22,7 @@
  * @file trayMenuWindow.ts
  * @description 自绘托盘菜单窗口：启动后在后台预加载，在光标附近弹出（页面未就绪时先显示骨架屏）、失焦隐藏，并转发菜单动作
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'path';
@@ -55,6 +56,7 @@ let preloadTimer: ReturnType<typeof setTimeout> | null = null;
  * 判断 IPC 是否来自当前菜单窗口，忽略其他窗口伪造的菜单消息
  * @param sender - IPC 发送方
  * @returns 是否来自菜单窗口
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function isFromMenuWindow(sender: Electron.WebContents): boolean {
   return Boolean(menuWindow && !menuWindow.isDestroyed() && sender === menuWindow.webContents);
@@ -65,6 +67,7 @@ function isFromMenuWindow(sender: Electron.WebContents): boolean {
  * @description 默认向右下展开，超出工作区时向左/向上翻转（Windows 任务栏托盘通常在右下角）
  * @param height - 菜单内容高度（DIP）
  * @returns 菜单窗口边界
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function getMenuBounds(height: number): Electron.Rectangle {
   const area = screen.getDisplayNearestPoint(anchor).workArea;
@@ -81,6 +84,7 @@ function getMenuBounds(height: number): Electron.Rectangle {
  * 解析菜单首屏使用的视觉主题
  * @description 骨架屏在渲染脚本加载前绘制，无法异步读取主题，由主进程通过页面参数传入
  * @returns 视觉主题
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function resolveMenuTheme(): 'dark' | 'light' {
   const mode = readThemeModeConfig();
@@ -91,6 +95,7 @@ function resolveMenuTheme(): 'dark' | 'light' {
 /**
  * 首次打开时页面完成首帧（骨架屏）绘制后立即显示菜单
  * @description 不必等待渲染脚本加载与挂载，数据就绪后由渲染层替换为真实内容
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function revealSkeleton(): void {
   if (!pendingState || menuMounted || !menuWindow || menuWindow.isDestroyed()) return;
@@ -105,6 +110,7 @@ function revealSkeleton(): void {
  * 显示菜单窗口并下发状态
  * @description 骨架屏已显示时直接下发；否则以完全透明的状态显示——隐藏过的透明窗口再次显示时
  * 会先露出上次的缓存画面和系统显示动画，造成闪烁，等渲染层绘制完新内容（ready）后再显现。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function flushPendingState(): void {
   if (!pendingState || !menuMounted || !menuWindow || menuWindow.isDestroyed()) return;
@@ -121,6 +127,7 @@ function flushPendingState(): void {
 /**
  * 按真实内容高度定位并显现菜单
  * @param height - 渲染层上报的内容高度（DIP）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function revealMenu(height: number): void {
   if (!menuWindow || menuWindow.isDestroyed() || !menuWindow.isVisible()) return;
@@ -132,7 +139,9 @@ function revealMenu(height: number): void {
   menuWindow.focus();
 }
 
-/** 收起托盘菜单，窗口保留以便下次快速弹出。 */
+/** 收起托盘菜单，窗口保留以便下次快速弹出。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function hideTrayMenuWindow(): void {
   // 渲染层尚未挂载时用户已关闭菜单，挂载后不应再弹出。
   pendingState = null;
@@ -142,7 +151,9 @@ export function hideTrayMenuWindow(): void {
   menuWindow.hide();
 }
 
-/** 注册菜单 IPC，只注册一次，菜单窗口重建后继续沿用。 */
+/** 注册菜单 IPC，只注册一次，菜单窗口重建后继续沿用。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function registerTrayMenuIpc(): void {
   if (ipcRegistered) return;
   ipcRegistered = true;
@@ -170,6 +181,7 @@ function registerTrayMenuIpc(): void {
 /**
  * 创建隐藏的菜单窗口并加载渲染入口
  * @returns 菜单窗口
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function createMenuWindow(): BrowserWindow {
   const window = new BrowserWindow({
@@ -229,6 +241,7 @@ function createMenuWindow(): BrowserWindow {
 
 /**
  * 创建菜单窗口并重置页面就绪状态
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function openMenuWindow(): void {
   registerTrayMenuIpc();
@@ -241,6 +254,7 @@ function openMenuWindow(): void {
  * 延迟在后台预创建隐藏的菜单窗口
  * @description 首次右键时页面与脚本已加载完成，无需现建窗口；用户在预加载前右键时由 showTrayMenuWindow 直接创建
  * @param delayMs - 延迟毫秒数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function scheduleTrayMenuPreload(delayMs = TRAY_MENU_PRELOAD_DELAY_MS): void {
   if (preloadTimer) clearTimeout(preloadTimer);
@@ -254,6 +268,7 @@ export function scheduleTrayMenuPreload(delayMs = TRAY_MENU_PRELOAD_DELAY_MS): v
  * 在光标位置弹出托盘菜单
  * @param state - 本次打开时的菜单状态快照
  * @param onAction - 用户选择菜单项后的处理函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function showTrayMenuWindow(state: TrayMenuState, onAction: (action: TrayMenuAction) => void): void {
   registerTrayMenuIpc();
@@ -269,7 +284,9 @@ export function showTrayMenuWindow(state: TrayMenuState, onAction: (action: Tray
   flushPendingState();
 }
 
-/** 销毁托盘菜单窗口，托盘销毁或应用退出时调用。 */
+/** 销毁托盘菜单窗口，托盘销毁或应用退出时调用。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function destroyTrayMenuWindow(): void {
   if (preloadTimer) clearTimeout(preloadTimer);
   preloadTimer = null;

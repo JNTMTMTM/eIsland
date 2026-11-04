@@ -21,6 +21,7 @@
  * @file extensionRegistry.test.ts
  * @description 可选扩展目录契约、发布版本地址及返回值隔离。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { describe, expect, it, vi } from 'vitest';
 import { getExtensionRegistry } from '../extensionRegistry';

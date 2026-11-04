@@ -22,6 +22,7 @@
  * @file captureLifecycleSupplement.test.ts
  * @description 截图保存失败、OCR来源验证及发送窗口销毁时的取消与监听清理测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'node:events';

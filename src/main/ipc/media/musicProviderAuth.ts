@@ -17,6 +17,7 @@
  * @file musicProviderAuth.ts
  * @description 音乐提供商登录 IPC 处理模块
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -48,7 +49,9 @@ function providerHandler(provider: MusicProviderId) {
   return handler;
 }
 
-/** 注册音乐提供商认证 IPC 处理器 */
+/** 注册音乐提供商认证 IPC 处理器
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function registerMusicProviderAuthIpcHandlers(): void {
   ipcMain.handle('music-provider-auth:status', (_event, provider: MusicProviderId) => {
     return providerHandler(provider).getStatus();

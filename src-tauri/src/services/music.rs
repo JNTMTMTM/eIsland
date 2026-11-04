@@ -18,239 +18,197 @@
  * GNU General Public License for more details.
  */
 
+#[path = "music_audio.rs"]
+mod audio;
+#[path = "music_auth.rs"]
+mod auth;
+#[path = "music_business.rs"]
+mod business;
+#[path = "music_network.rs"]
+pub(crate) mod network;
+
 use super::music_window::AuthWindow;
 use crate::{state::Desktop, windows::Result};
 use serde_json::{json, Value};
-use std::{
-    collections::HashMap,
-    process::Stdio,
-    sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
-        Arc, Mutex,
-    },
-    time::Duration,
-};
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager};
-use tokio::{
-    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-    process::Command,
-    sync::{oneshot, watch},
-};
+use tokio::sync::watch;
 
-type Pending = Arc<Mutex<HashMap<u64, oneshot::Sender<Result<Value>>>>>;
-struct Runner {
-    input: Arc<tokio::sync::Mutex<tokio::process::ChildStdin>>,
-    pending: Pending,
-    alive: Arc<AtomicBool>,
-}
 pub struct Music {
-    runner: tokio::sync::Mutex<Option<Arc<Runner>>>,
-    sequence: AtomicU64,
     pub window: AuthWindow,
     pub shutdown: watch::Sender<bool>,
+    pub(crate) client: reqwest::Client,
+    server: Mutex<Option<Arc<audio::LocalServer>>>,
+    auth: tokio::sync::Mutex<auth::AuthState>,
 }
+
 pub fn handles(channel: &str) -> bool {
     channel == "net:fetch"
         || channel.starts_with("qishui:")
         || channel.starts_with("music-provider-auth:")
-        || matches!(
-            channel,
-            "music:lyrics-source:get"
-                | "music:lyrics-source:set"
-                | "music:provider-mode:get"
-                | "music:provider-mode:set"
-                | "music:lyrics-enabled:get"
-                | "music:lyrics-enabled:set"
-                | "music:lyrics-translation-enabled:get"
-                | "music:lyrics-translation-enabled:set"
-                | "music:lyrics-karaoke:get"
-                | "music:lyrics-karaoke:set"
-                | "music:lyrics-clock:get"
-                | "music:lyrics-clock:set"
-                | "music:lyrics-calibrate-enabled:get"
-                | "music:lyrics-calibrate-enabled:set"
-                | "music:lyrics-calibrate-delay:get"
-                | "music:lyrics-calibrate-delay:set"
-                | "music:smtc-unsubscribe-ms:get"
-                | "music:smtc-unsubscribe-ms:set"
-        )
+        || setting(channel).is_some()
 }
+
+fn setting(channel: &str) -> Option<(&str, Value)> {
+    let base = channel
+        .strip_suffix(":get")
+        .or_else(|| channel.strip_suffix(":set"))?;
+    Some(match base {
+        "music:lyrics-source" => ("lyrics-source", json!("auto")),
+        "music:provider-mode" => ("music-provider-mode", json!("guest")),
+        "music:lyrics-enabled" => ("lyrics-enabled", json!(true)),
+        "music:lyrics-translation-enabled" => ("lyrics-translation-enabled", json!(true)),
+        "music:lyrics-karaoke" => ("lyrics-karaoke", json!(false)),
+        "music:lyrics-clock" => ("lyrics-clock", json!(true)),
+        "music:lyrics-calibrate-enabled" => ("lyrics-calibrate-enabled", json!(true)),
+        "music:lyrics-calibrate-delay" => ("lyrics-calibrate-delay", json!(20)),
+        "music:smtc-unsubscribe-ms" => ("music-smtc-unsubscribe-ms", json!(0)),
+        _ => return None,
+    })
+}
+
+fn normalize(key: &str, value: &Value, fallback: Value) -> Value {
+    match key {
+        "music-provider-mode" => json!(if value == "logged-in" {
+            "logged-in"
+        } else {
+            "guest"
+        }),
+        "lyrics-calibrate-delay" => json!(value
+            .as_f64()
+            .filter(|v| v.is_finite() && *v >= 0.)
+            .unwrap_or(20.)
+            .floor()),
+        "music-smtc-unsubscribe-ms" => {
+            let value = value
+                .as_f64()
+                .filter(|v| v.is_finite())
+                .unwrap_or(0.)
+                .round();
+            json!(if value <= 0. {
+                0.
+            } else {
+                value.clamp(1000., 1800000.)
+            })
+        }
+        "lyrics-source" => value.as_str().map_or(fallback, |value| json!(value)),
+        _ => value.as_bool().map_or(fallback, |value| json!(value)),
+    }
+}
+
 impl Music {
     pub fn new() -> Self {
         let (shutdown, _) = watch::channel(false);
         Self {
-            runner: tokio::sync::Mutex::new(None),
-            sequence: AtomicU64::new(1),
             window: AuthWindow::new(),
             shutdown,
+            client: reqwest::Client::builder()
+                .redirect(reqwest::redirect::Policy::limited(10))
+                .build()
+                .expect("HTTP client initialization failed"),
+            server: Mutex::new(None),
+            auth: tokio::sync::Mutex::new(auth::AuthState::default()),
         }
     }
-    fn resources(app: &AppHandle) -> Result<std::path::PathBuf> {
-        let path = app
-            .path()
-            .resource_dir()
-            .map_err(|e| e.to_string())?
-            .join("music");
-        if path.join("entry.cjs").is_file() {
-            return Ok(path);
+
+    pub(crate) fn server(&self, app: &AppHandle) -> Result<Arc<audio::LocalServer>> {
+        let mut current = self.server.lock().unwrap();
+        if let Some(server) = current.as_ref() {
+            return Ok(server.clone());
         }
-        #[cfg(debug_assertions)]
-        {
-            let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/music");
-            if path.join("entry.cjs").is_file() {
-                return Ok(path);
-            }
-        }
-        Err("Music runtime missing; run npm run music:build:tauri".into())
+        let server = audio::LocalServer::start(app, self.shutdown.subscribe())?;
+        *current = Some(server.clone());
+        Ok(server)
     }
-    async fn start(&self, app: &AppHandle) -> Result<Arc<Runner>> {
-        let mut slot = self.runner.lock().await;
-        if let Some(runner) = slot.as_ref() {
-            if runner.alive.load(Ordering::Acquire) {
-                return Ok(runner.clone());
-            }
-        }
-        let resources = Self::resources(app)?;
-        let store = app
-            .state::<Desktop>()
-            .store
-            .lock()
-            .unwrap()
-            .directory
-            .clone();
-        let data = store
-            .parent()
-            .ok_or("Missing music data directory")?
-            .to_path_buf();
-        let mut command =
-            Command::new(resources.join(if cfg!(windows) { "node.exe" } else { "node" }));
-        command
-            .arg(resources.join("entry.cjs"))
-            .env("EISLAND_MUSIC_DATA", data)
-            .env("EISLAND_MUSIC_STORE", store)
-            .env_remove("NODE_OPTIONS")
-            .env_remove("NODE_PATH")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .kill_on_drop(true);
-        #[cfg(windows)]
-        command.creation_flags(0x08000000);
-        let mut child = command.spawn().map_err(|e| e.to_string())?;
-        let input = Arc::new(tokio::sync::Mutex::new(
-            child.stdin.take().ok_or("Music stdin unavailable")?,
-        ));
-        let output = child.stdout.take().ok_or("Music stdout unavailable")?;
-        let errors = child.stderr.take().ok_or("Music stderr unavailable")?;
-        let alive = Arc::new(AtomicBool::new(true));
-        let runner = Arc::new(Runner {
-            input: input.clone(),
-            pending: Arc::new(Mutex::new(HashMap::new())),
-            alive: alive.clone(),
-        });
-        let pending = runner.pending.clone();
-        let app = app.clone();
-        let mut shutdown = self.shutdown.subscribe();
-        tauri::async_runtime::spawn(async move {
-            let mut output = BufReader::new(output).lines();
-            loop {
-                tokio::select! {
-                    _ = shutdown.changed() => break,
-                    line = output.next_line() => {
-                        let Ok(Some(line)) = line else { break; };
-                        if line.len() > 33554432 { break; }
-                        let Ok(message) = serde_json::from_str::<Value>(&line) else { break; };
-                        match message["kind"].as_str() {
-                            Some("result") => {
-                                let id = message["id"].as_u64().unwrap_or(0);
-                                if let Some(sender) = pending.lock().unwrap().remove(&id) {
-                                    let result = if let Some(error) = message["error"].as_str() { Err(error.to_owned()) } else { Ok(message["result"].clone()) };
-                                    let _ = sender.send(result);
-                                }
-                            },
-                            Some("event") => {
-                                if matches!(message["channel"].as_str(),Some("settings:changed")) {
-                                    let _ = app.emit("eisland-ipc",json!({"channel":message["channel"],"args":message["args"]}));
-                                }
-                            },
-                            Some("host") => {
-                                let app = app.clone(); let input = input.clone();
-                                tauri::async_runtime::spawn(async move {
-                                    let operation = message["operation"].as_str().unwrap_or("");
-                                    let services = app.state::<super::Services>();
-                                    let result = if operation == "sources" { super::media::handle(&app,"music:detect-source-app-id",&[]).await }
-                                        else { services.music.window.handle(&app,operation,&message["args"]).await };
-                                    let response = match result { Ok(result)=>json!({"kind":"host-result","id":message["id"],"result":result}), Err(error)=>json!({"kind":"host-result","id":message["id"],"error":error}) };
-                                    let _ = send(&input,&response).await;
-                                });
-                            },
-                            _ => break,
-                        }
-                    }
-                }
-            }
-            // Let the original audio service remove its temporary cache before killing a
-            // stuck helper. Parent-process termination also closes stdin on Windows.
-            let _ = send(&input, &json!({"kind":"shutdown"})).await;
-            if tokio::time::timeout(Duration::from_secs(2), child.wait())
-                .await
-                .is_err()
-            {
-                let _ = child.kill().await;
-            }
-            if let Some(window) = app.get_webview_window("qishui-auth") {
-                let _ = window.destroy();
-            }
-            alive.store(false, Ordering::Release);
-            pending.lock().unwrap().drain().for_each(|(_, sender)| {
-                let _ = sender.send(Err("Music helper stopped".into()));
-            });
-        });
-        tauri::async_runtime::spawn(async move {
-            let mut lines = BufReader::new(errors).lines();
-            while let Ok(Some(line)) = lines.next_line().await {
-                eprintln!("[Music] {line}");
-            }
-        });
-        *slot = Some(runner.clone());
-        Ok(runner)
-    }
+
     pub async fn request(&self, app: &AppHandle, channel: &str, args: &[Value]) -> Result<Value> {
-        let runner = self.start(app).await?;
-        let id = self.sequence.fetch_add(1, Ordering::Relaxed);
-        let (sender, receiver) = oneshot::channel();
-        runner.pending.lock().unwrap().insert(id, sender);
-        let result = send(
-            &runner.input,
-            &json!({"id":id,"channel":channel,"args":args}),
-        )
-        .await;
-        if let Err(error) = result {
-            runner.pending.lock().unwrap().remove(&id);
-            return Err(error);
+        if channel == "net:fetch" {
+            return Ok(network::fetch(&self.client, args).await);
         }
-        let wait = if channel == "music-provider-auth:check-qr" {
-            310
-        } else {
-            65
-        };
-        let result = tokio::time::timeout(Duration::from_secs(wait), receiver).await;
-        runner.pending.lock().unwrap().remove(&id);
-        result
-            .map_err(|_| "Music operation timed out".to_owned())?
-            .map_err(|_| "Music helper closed".to_owned())?
+        if let Some((key, fallback)) = setting(channel) {
+            if channel.ends_with(":get") {
+                let value = app
+                    .state::<Desktop>()
+                    .store
+                    .lock()
+                    .unwrap()
+                    .value(key, fallback.clone());
+                return Ok(normalize(key, &value, fallback));
+            }
+            let value = normalize(key, args.first().unwrap_or(&Value::Null), fallback);
+            app.state::<Desktop>()
+                .store
+                .lock()
+                .unwrap()
+                .write(key, &value)?;
+            if key == "music-smtc-unsubscribe-ms" {
+                app.state::<super::Services>()
+                    .media
+                    .set_unsubscribe_ms(value.as_f64().unwrap_or(0.) as u64);
+            }
+            if matches!(
+                key,
+                "lyrics-karaoke"
+                    | "lyrics-calibrate-enabled"
+                    | "lyrics-calibrate-delay"
+                    | "music-smtc-unsubscribe-ms"
+            ) {
+                app.emit("eisland-ipc",json!({"channel":"settings:changed","args":[channel.trim_end_matches(":set"),value]})).map_err(|e|e.to_string())?;
+            }
+            return Ok(json!(true));
+        }
+        if channel.starts_with("music-provider-auth:") {
+            return self.authentication(app, channel, args).await;
+        }
+        business::handle(self, app, channel, args).await
     }
 }
-async fn send(
-    input: &tokio::sync::Mutex<tokio::process::ChildStdin>,
-    message: &Value,
-) -> Result<()> {
-    let mut bytes = serde_json::to_vec(message).map_err(|e| e.to_string())?;
-    bytes.push(b'\n');
-    input
+
+pub(crate) fn data_directory(app: &AppHandle) -> std::path::PathBuf {
+    app.state::<Desktop>()
+        .store
         .lock()
-        .await
-        .write_all(&bytes)
-        .await
-        .map_err(|e| e.to_string())
+        .unwrap()
+        .directory
+        .parent()
+        .unwrap()
+        .to_path_buf()
+}
+pub(crate) fn text(value: &Value) -> String {
+    match value {
+        Value::String(v) => v.trim().to_owned(),
+        Value::Number(v) => v.to_string(),
+        Value::Bool(v) => v.to_string(),
+        _ => String::new(),
+    }
+}
+pub(crate) fn required(value: Option<&Value>, message: &str) -> Result<String> {
+    let value = value.map(text).unwrap_or_default();
+    if value.is_empty() {
+        Err(message.to_owned())
+    } else {
+        Ok(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn preferences_keep_previous_defaults_and_bounds() {
+        assert_eq!(
+            normalize("music-provider-mode", &json!("bad"), Value::Null),
+            "guest"
+        );
+        assert_eq!(
+            normalize("music-smtc-unsubscribe-ms", &json!(0.1), Value::Null),
+            0.
+        );
+        assert_eq!(
+            normalize("music-smtc-unsubscribe-ms", &json!(1), Value::Null),
+            1000.
+        );
+        assert_eq!(setting("music:lyrics-karaoke:get").unwrap().1, false);
+        assert!(setting("music:unknown:get").is_none());
+    }
 }

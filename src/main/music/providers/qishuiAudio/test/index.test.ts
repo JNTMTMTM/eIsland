@@ -22,6 +22,7 @@
  * @file index.test.ts
  * @description 汽水受限音频代理注册与 Range 响应测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';

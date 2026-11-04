@@ -61,7 +61,7 @@ Run from the **project root** to build or clean the Windows plugins at once. Bui
 `plugins:build` automatically uses `build:all` for Bluetooth, Power, SMTC, and WiFi Helpers (which include NativeAOT DLL targets). All other plugins use `build`.
 :::
 
-Tauri application commands consume these prepared native resources without compiling plugins. Run `plugins:build:tauri` on first setup and after changing the migrated plugin sources or target architecture. The existing Electron `plugins:build` flow remains separate. Music business bundling uses `music:build:tauri` and runs automatically before Tauri development and application builds.
+Tauri application commands consume these prepared native resources without compiling plugins. Run `plugins:build:tauri` on first setup and after changing the migrated plugin sources or target architecture. The broad `plugins:build` command remains available for plugin development. Music services run natively in Rust; no Node music helper is bundled.
 
 ### Individual Plugin Commands
 

@@ -22,6 +22,7 @@
  * @file extensionManager.ts
  * @description 可选扩展管理器 — 下载、解压、加载、卸载
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, net } from 'electron';
@@ -42,7 +43,9 @@ interface ExtensionRemoteVersion {
   size: number;
 }
 
-/** 扩展安装根目录 */
+/** 扩展安装根目录
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function getExtensionsDir(): string {
   return join(app.getPath('userData'), 'extensions');
 }
@@ -52,6 +55,7 @@ function getExtensionsDir(): string {
  * @param source - 更新源
  * @param resolvedUrl - COS/OSS 自定义 URL
  * @returns 基础 URL
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function resolveExtensionBaseUrl(source: UpdateSourceKey, resolvedUrl?: string): string {
   if (source === 'github') {
@@ -70,6 +74,7 @@ function resolveExtensionBaseUrl(source: UpdateSourceKey, resolvedUrl?: string):
  * 解析 latest_ext.yml 内容
  * @param content - YAML 文本内容
  * @returns 扩展版本信息数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function parseLatestExtYml(content: string): ExtensionRemoteVersion[] {
   const results: ExtensionRemoteVersion[] = [];
@@ -106,6 +111,7 @@ function parseLatestExtYml(content: string): ExtensionRemoteVersion[] {
  * @param source - 更新源
  * @param resolvedUrl - COS/OSS 自定义 URL
  * @returns 扩展版本信息数组，失败返回空数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function fetchRemoteExtensionVersions(source: UpdateSourceKey, resolvedUrl?: string): Promise<ExtensionRemoteVersion[]> {
   const baseUrl = resolveExtensionBaseUrl(source, resolvedUrl);
@@ -142,6 +148,7 @@ async function fetchRemoteExtensionVersions(source: UpdateSourceKey, resolvedUrl
  * 获取扩展的安装路径
  * @param extId - 扩展 ID
  * @returns 安装目录绝对路径，未安装返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getExtensionPath(extId: string): string | null {
   const dir = join(getExtensionsDir(), extId);
@@ -151,6 +158,7 @@ export function getExtensionPath(extId: string): string | null {
 /**
  * 检查扩展是否已安装
  * @param extId - 扩展 ID
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function isInstalled(extId: string): boolean {
   return existsSync(join(getExtensionsDir(), extId, 'index.js'));
@@ -160,6 +168,7 @@ function isInstalled(extId: string): boolean {
  * 获取已安装扩展的版本
  * @param extId - 扩展 ID
  * @returns 版本号，未安装返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function getInstalledVersion(extId: string): string | null {
   const versionFile = join(getExtensionsDir(), extId, '.version');
@@ -178,6 +187,7 @@ function getInstalledVersion(extId: string): string | null {
  * @param resolvedUrl - COS/OSS 自定义 URL
  * @param remoteVersion - 远程版本（来自 latest_ext.yml）
  * @returns 下载地址
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function resolveDownloadUrl(meta: ExtensionMeta, source: UpdateSourceKey, resolvedUrl?: string, remoteVersion?: string): string {
   const zipName = remoteVersion ? `${meta.id}-v${remoteVersion}.zip` : meta.zipName;
@@ -190,6 +200,7 @@ function resolveDownloadUrl(meta: ExtensionMeta, source: UpdateSourceKey, resolv
  * @param url - 下载地址
  * @param destPath - 目标文件路径
  * @param onProgress - 进度回调
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function downloadFile(
   url: string,
@@ -229,6 +240,7 @@ function downloadFile(
  * 解压 zip 文件到目标目录
  * @param zipPath - zip 文件路径
  * @param destDir - 目标目录
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function extractZip(zipPath: string, destDir: string): Promise<void> {
   const { execFile } = await import('child_process');
@@ -249,6 +261,7 @@ async function extractZip(zipPath: string, destDir: string): Promise<void> {
  * @param source - 更新源（用于获取远程版本）
  * @param resolvedUrl - COS/OSS 自定义 URL
  * @returns 扩展状态数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getExtensionStatusList(source?: UpdateSourceKey, resolvedUrl?: string): Promise<ExtensionStatus[]> {
   const registry = getExtensionRegistry();
@@ -280,6 +293,7 @@ export async function getExtensionStatusList(source?: UpdateSourceKey, resolvedU
  * @param source - 更新源
  * @param resolvedUrl - COS/OSS 自定义 URL
  * @param onProgress - 进度回调
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function installExtension(
   extId: string,
@@ -333,6 +347,7 @@ export async function installExtension(
 /**
  * 卸载已注册的扩展，拒绝未知 ID，避免删除扩展目录之外的文件。
  * @param extId - 已注册的扩展 ID。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function uninstallExtension(extId: string): void {
   const meta = getExtensionRegistry().find((entry) => entry.id === extId);

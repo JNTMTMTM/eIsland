@@ -23,6 +23,7 @@
  * @description 窗口控制相关 IPC 处理模块
  * @description 处理窗口尺寸调整、位置调整和鼠标穿透等 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, ipcMain, screen } from 'electron';
@@ -85,6 +86,7 @@ let mousePassthroughLocked = false;
  * 切换鼠标穿透锁定状态
  * @description 锁定时窗口始终穿透鼠标事件，解锁后恢复正常行为
  * @param getMainWindow - 获取主窗口函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | null): void {
   mousePassthroughLocked = !mousePassthroughLocked;
@@ -102,6 +104,7 @@ export function toggleMousePassthroughLock(getMainWindow: () => BrowserWindow | 
  * 注册窗口控制相关 IPC 处理器
  * @description 注册窗口尺寸调整、位置调整和鼠标穿透的 IPC 事件处理器
  * @param options - 配置选项，包含窗口获取和位置管理函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerWindowIpcHandlers(options: RegisterWindowIpcHandlersOptions): void {
   interface WindowTransition { win: BrowserWindow; id: number }

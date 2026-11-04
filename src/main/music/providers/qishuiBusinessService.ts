@@ -15,6 +15,7 @@
  * @file qishuiBusinessService.ts
  * @description 汽水音乐非扫码业务接口。认证会话由 qishuiAuthService 维护，本模块只消费已保存会话。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { existsSync, readFileSync } from 'fs';
@@ -311,6 +312,7 @@ function canPlayTier(tier: Exclude<QishuiMembership, 'unknown'>, membership: Qis
 /**
  * 获取汽水业务能力和当前会话状态。
  * @returns 不包含 Cookie 或 Token 的脱敏业务状态
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getQishuiBusinessStatus(): QishuiBusinessStatus {
   const session = readSession();
@@ -342,6 +344,7 @@ export function getQishuiBusinessStatus(): QishuiBusinessStatus {
  * @param keyword - 搜索关键词
  * @param options - 分页参数
  * @returns 标准化歌曲搜索结果
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function searchQishui(keyword: string, options: QishuiRequestOptions = {}): Promise<Record<string, unknown>> {
   const query = text(keyword);
@@ -387,6 +390,7 @@ export async function searchQishui(keyword: string, options: QishuiRequestOption
  * 获取汽水推荐歌曲。
  * @param limit - 返回歌曲数量，范围 1 到 18
  * @returns PC 会话或 OpenAPI 推荐结果
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getQishuiFeed(limit = 8): Promise<Record<string, unknown>> {
   const normalizedLimit = Math.max(1, Math.min(18, Number(limit) || 8));
@@ -425,6 +429,7 @@ export async function getQishuiFeed(limit = 8): Promise<Record<string, unknown>>
 /**
  * 获取当前汽水账号的歌单、喜欢歌曲和最近播放。
  * @returns 登录态下的个人音乐库数据
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getQishuiPlaylists(): Promise<Record<string, unknown>> {
   const session = readSession();
@@ -461,6 +466,7 @@ export async function getQishuiPlaylists(): Promise<Record<string, unknown>> {
  * @param id - 汽水歌单 ID
  * @param options - 游标和数量参数
  * @returns 标准化歌单曲目结果
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getQishuiPlaylistTracks(id: string, options: QishuiRequestOptions = {}): Promise<Record<string, unknown>> {
   const session = readSession();
@@ -474,6 +480,7 @@ export async function getQishuiPlaylistTracks(id: string, options: QishuiRequest
  * 获取汽水原文歌词和翻译歌词。
  * @param id - 汽水歌曲 ID
  * @returns 规范化后的歌词文本
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getQishuiLyrics(id: string): Promise<Record<string, unknown>> {
   const session = readSession();
@@ -536,6 +543,7 @@ export async function getQishuiLyrics(id: string): Promise<Record<string, unknow
  * @param id - 汽水歌曲 ID
  * @param quality - 可选目标音质
  * @returns 临时主进程代理地址或不可播放原因
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getQishuiSongUrl(id: string, quality = ''): Promise<Record<string, unknown>> {
   const session = readSession();

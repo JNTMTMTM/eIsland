@@ -22,6 +22,7 @@
  * @file downloadPersistenceSupplement.test.ts
  * @description 下载 IPC 持久化完整字段验证、真实引擎控制、窗口广播与文件选择边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { Readable, Writable } from 'node:stream';

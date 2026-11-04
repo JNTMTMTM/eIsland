@@ -27,7 +27,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { byClass, elements, find, invoke, text } from '../../../../../test/tree';
 import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 import type { RefObject } from 'react';
-import type { ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult } from '../../../../../../../../preload/types';
+import type { ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult } from '../../../../../../../../tauri/types';
 import type { FormatFactoryPageKey } from '../../config/formatFactoryToolConfig';
 let Component: typeof import('../FormatFactoryToolSection').FormatFactoryToolSection;
 let page: FormatFactoryPageKey;

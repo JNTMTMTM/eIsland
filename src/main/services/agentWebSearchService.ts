@@ -17,6 +17,7 @@
  * @file agentWebSearchService.ts
  * @description 本地与自定义模型通过用户鉴权接口调用服务端 SearXNG，不直连私有实例。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { randomUUID } from 'crypto';
@@ -33,6 +34,7 @@ const API_BASE = process.env.NODE_ENV === 'development'
  * @param argumentsValue - 模型提交的搜索词及数量。
  * @param signal - 会话取消信号。
  * @returns 与本地编排器兼容的工具结果。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export default async function executeAgentWebSearch(
   token: string | undefined,

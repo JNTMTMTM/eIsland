@@ -22,6 +22,7 @@
  * @file smtcWorker.ts
  * @description SMTC 媒体监听 Worker 线程，运行 SmtcMonitor 并将会话变更推送至主进程
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { parentPort } from 'worker_threads';
@@ -45,6 +46,7 @@ const sessionCache = new Map<string, CacheEntry>();
 /**
  * 序列化当前缓存中的会话并通过 parentPort 推送给主进程
  * @param sourceAppId - 应用会话 ID
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function postSessionUpdate(sourceAppId: string, includeThumbnail = true): void {
   const entry = sessionCache.get(sourceAppId);
@@ -79,6 +81,7 @@ let initialSessionsPending = true;
  * 首批新增会话推送完后通知主进程，使其在没有正在播放的源时也能选中暂停的源
  * @description 原生监控在一次会话锁内发布全部启动会话，增量摘取拿不到锁时整批延到下次轮询，因此启动会话必在同一批增量中；
  * 同批事件同步派发，微任务在整批会话推送完成后才执行
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function markInitialSessions(): void {
   if (!initialSessionsPending) return;

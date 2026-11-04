@@ -22,6 +22,7 @@
  * @file albumMediaBoundarySupplement.test.ts
  * @description 相册媒体异常数据、目录状态、协议与流预缓冲边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { Readable } from 'node:stream';

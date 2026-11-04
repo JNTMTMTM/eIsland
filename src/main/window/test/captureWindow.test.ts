@@ -22,6 +22,7 @@
  * @file captureWindow.test.ts
  * @description 验证隔离截图窗口的显示器布局、引擎回退、主窗口隐藏恢复与失败清理。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'node:path';

@@ -23,6 +23,7 @@
  * @description eIsland 插件 SDK 统一导出入口
  * @description 聚合导出插件类型定义与清单校验工具
  * @author 鸡哥
+ * @deprecated Electron/Node extension host retained for reference; the desktop runtime uses native Tauri services.
  */
 
 export * from './types';

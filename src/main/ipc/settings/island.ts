@@ -23,6 +23,7 @@
  * @description 灵动岛相关 IPC 处理模块
  * @description 处理透明度、鼠标移开行为、开机自启和导航顺序等 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, ipcMain } from 'electron';
@@ -47,6 +48,7 @@ interface RegisterIslandIpcHandlersOptions {
  * 注册灵动岛相关 IPC 处理器
  * @description 注册透明度、鼠标移开行为、开机自启和导航顺序的 IPC 事件处理器
  * @param options - 配置选项，包含存储目录和键名
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerIslandIpcHandlers(options: RegisterIslandIpcHandlersOptions): void {
   ipcMain.handle('island:opacity:get', () => {

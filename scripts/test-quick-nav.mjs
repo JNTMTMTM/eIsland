@@ -23,6 +23,7 @@
  * @description 在无网络、独立用户目录的隐藏 Electron 窗口验证快速导航行为与渲染成本。
  * @author 鸡哥
  * @example node scripts/test-quick-nav.mjs
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -49,7 +50,7 @@ async function cleanupFixture(fixtureDirectory) {
 
 /**
  * 运行独立测试页；不加载应用 preload、用户配置或网络。
- * @returns 测试完成后的 Promise。
+ * @returns 测试完成后的 Promise。 * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function runElectronFixture() {
   const { app, BrowserWindow } = await import('electron');
@@ -88,7 +89,7 @@ async function runElectronFixture() {
 
 /**
  * 打包真实导航组件；基线模式仅从 Git HEAD 读取旧源码，不修改工作树。
- * @returns 测试完成后的 Promise。
+ * @returns 测试完成后的 Promise。 * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function runFixture() {
   const { build } = await import('esbuild');

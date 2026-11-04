@@ -4,8 +4,8 @@
   "version": "27.0.1",
   "identifier": "com.pyisland.eisland",
   "build": {
-    "beforeDevCommand": "npm run music:build:tauri && npm run dev:web",
-    "beforeBuildCommand": "npm run music:build:tauri && npm run build:web",
+    "beforeDevCommand": "npm run dev:web",
+    "beforeBuildCommand": "npm run build:web",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../out/renderer"
   },
@@ -21,7 +21,7 @@
     "icon": ["../resources/icon/eisland_256x256.ico"],
     "resources": {
       "resources/native/": "native/",
-      "resources/music/": "music/"
+      "../resources/qishui-auth-v6/": "qishui-auth-v6/"
     }
   }
 }

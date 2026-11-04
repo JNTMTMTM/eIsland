@@ -21,6 +21,7 @@
  * @file localAssetsBrowser.test.ts
  * @description 隔离 Electron 验证资源跨源加载及实际图片转换的画布导出。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';

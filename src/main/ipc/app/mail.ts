@@ -22,6 +22,7 @@
  * @file mail.ts
  * @description 邮件收件箱 IPC 处理模块
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { existsSync, readFileSync } from 'fs';
@@ -97,6 +98,7 @@ function toIsoDateString(value: unknown): string {
  * @param message - IMAP 返回的消息包络
  * @param validity - 邮箱代次
  * @returns 摘要条目；消息不存在时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetchOne']>>, validity: string): MailInboxItem | null {
   if (!message) return null;
@@ -114,6 +116,7 @@ function toMailInboxItem(uid: number, message: Awaited<ReturnType<ImapFlow['fetc
 /** 找出正文 MIME 部分；不访问附件或作为附件的转发邮件。
  * @param node - 邮件 MIME 结构
  * @returns 可读取的正文部分
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function bodyParts(node: MessageStructureObject | undefined): MessageStructureObject[] {
   if (!node || node.disposition?.toLowerCase() === 'attachment' || node.type === 'message/rfc822') return [];
@@ -129,6 +132,7 @@ function bodyParts(node: MessageStructureObject | undefined): MessageStructureOb
 /** 对纯文本正文转义后包裹为 HTML，保持完整邮件可读。
  * @param text - 解码后的纯文本正文
  * @returns 转义后的 HTML 正文
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function plainHtml(text: string): string {
   return `<pre>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
@@ -170,6 +174,7 @@ async function withImapClient<T>(config: MailAccountConfig, task: (client: ImapF
  * @param config - 邮箱连接配置
  * @param limit - 最大摘要数量
  * @returns 按最新消息排序的摘要列表
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function listInbox(config: MailAccountConfig, limit: number): Promise<MailInboxItem[]> {
   return withImapClient(config, async (client) => {
@@ -198,6 +203,7 @@ async function listInbox(config: MailAccountConfig, limit: number): Promise<Mail
  * @param uid - 消息 UID
  * @param expectedValidity - 列表读取时的邮箱代次
  * @returns 包含正文的邮件条目
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function readMailBody(config: MailAccountConfig, uid: string, expectedValidity?: string): Promise<MailInboxItem> {
   return withImapClient(config, async (client) => {
@@ -234,6 +240,7 @@ function isMailAccountConfigLike(value: unknown): value is MailAccountConfig {
 
 /** 注册所有邮件相关的 IPC handler（收件箱列表、邮件详情、账户配置等）。
  * @param options - 邮件配置的存储位置
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerMailIpcHandlers(options: RegisterMailIpcHandlersOptions): void {
   // 详情独立的字节 LRU；超预算正文仍可完整阅读，但不会在列表/缓存重复驻留。

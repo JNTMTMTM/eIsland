@@ -22,6 +22,7 @@
  * @file systemPerformanceSupplement.test.ts
  * @description 系统原生亮度音量控制、性能缓存并发、硬件缺失与选择边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

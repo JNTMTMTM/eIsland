@@ -23,6 +23,7 @@
  * @description 自动更新相关 IPC 处理模块
  * @description 处理检查更新、下载更新和安装更新的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -76,6 +77,7 @@ function applyUpdateSource(updater: AppUpdater, source: UpdateSourceKey, resolve
  * 注册自动更新相关 IPC 处理器
  * @description 注册检查更新、下载更新、安装更新和版本查询的 IPC 事件处理器
  * @param options - 配置选项，包含更新器和版本信息获取函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerUpdaterIpcHandlers(options: RegisterUpdaterIpcHandlersOptions): void {
   ipcMain.handle('updater:check', async (_event, sourceRaw?: string, resolvedUrl?: string) => {

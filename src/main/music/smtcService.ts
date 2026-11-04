@@ -23,6 +23,7 @@
  * @description SMTC (System Media Transport Controls) 服务模块
  * @description 管理 Windows 系统媒体会话，处理播放状态和音源切换
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow } from 'electron';
@@ -95,6 +96,7 @@ interface SmtcService {
  * @description 初始化 SMTC 监控服务，管理媒体会话和音源切换
  * @param options - 服务配置选项，包含窗口获取和白名单配置
  * @returns SMTC 服务对象，包含初始化和清理方法
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createSmtcService(options: CreateSmtcServiceOptions): SmtcService {
   let smtcWorker: Worker | null = null;
@@ -110,7 +112,9 @@ export function createSmtcService(options: CreateSmtcServiceOptions): SmtcServic
   let commandId = 0;
   const pendingCommands = new Map<number, { command: SmtcCommandName; sourceAppId: string; timer: ReturnType<typeof setTimeout>; resolve: (result: SmtcCommandResult) => void }>();
 
-  /** 路由到监控 Worker；原生控制位于可硬终止的按需命令进程。 */
+  /** 路由到监控 Worker；原生控制位于可硬终止的按需命令进程。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   function requestCommand(command: SmtcCommandName, argument?: number): Promise<SmtcCommandResult> {
     if (!smtcWorker) initWorker();
     const worker = smtcWorker;

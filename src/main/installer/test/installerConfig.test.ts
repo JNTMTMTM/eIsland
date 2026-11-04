@@ -22,6 +22,7 @@
  * @file installerConfig.test.ts
  * @description NSIS 覆盖安装进程检测配置测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { readFileSync } from 'node:fs';

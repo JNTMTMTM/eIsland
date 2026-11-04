@@ -31,7 +31,7 @@ export function useSplashFadeOut() {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const removeListener = window.electron.ipcRenderer.on('splash:fade-out', () => {
+    const removeListener = window.desktop.on('splash:fade-out', () => {
       setFadeOut(true);
     });
     return removeListener;

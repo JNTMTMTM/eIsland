@@ -22,6 +22,7 @@
  * @file appSearchTools.test.ts
  * @description 防止 web.search 回退到无鉴权的客户端页面抓取。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';

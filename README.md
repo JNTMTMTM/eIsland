@@ -61,21 +61,26 @@ Grab the latest `eIsland-<version>-Setup.exe` from [Releases](https://github.com
 
 ### Build from source
 
-Requirements: Node.js `24.22.1` (see [`.nvmrc`](.nvmrc)), the .NET 10 SDK and the Visual Studio C++ build tools for the native plugins.
+Requirements: Node.js `24.22.1` (see [`.nvmrc`](.nvmrc)), Rust with the Windows MSVC toolchain, WebView2, the .NET 10 SDK and Visual Studio C++ build tools for the native plugins.
 
 ```sh
 git clone https://github.com/JNTMTMTM/eIsland.git
 cd eIsland
-npm ci
-npm run dev       # start with hot reload
-npm run package   # build the NSIS installer into dist/
+npm ci --ignore-scripts
+npm ci --prefix cli --ignore-scripts
+node node_modules/ffmpeg-static/install.js
+npm run plugins:build:tauri # build native plugins separately
+npm run dev                 # start Tauri with hot reload
+npm run package             # src-tauri/target/release/bundle/nsis/
 ```
+
+Electron runtime code remains in the repository with `@deprecated` annotations for migration reference. Active application entry points, tests and CI use Tauri; old Electron debugging, E2E and distribution commands are disabled. See [migration status](docs/ELECTRON_DEPRECATION.md).
 
 `npm run check` runs lint, type checks and tests. The [developer docs](https://eisland-dev.pyisland.com) cover the architecture, IPC APIs and plugins.
 
 ### Built with
 
-[![Electron](https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://v2.tauri.app/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)

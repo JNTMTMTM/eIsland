@@ -22,6 +22,7 @@
  * @file downloadEngine.ts
  * @description 多线程下载引擎核心实现。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { randomUUID } from 'crypto';
@@ -257,7 +258,8 @@ export class MultiThreadDownloadEngine {
    * 同一引擎的连接共享预算，排队请求也可随任务取消。
    * @param signal - 所属任务的取消信号。
    * @returns 释放连接槽位的函数。
-   */
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   private async acquireConnection(signal: AbortSignal): Promise<() => void> {
     signal.throwIfAborted();
     if (this.activeConnections >= 8) {
@@ -285,7 +287,8 @@ export class MultiThreadDownloadEngine {
    * 统一结束与资源释放；历史只保存有界轻量快照。
    * @param task - 运行中的任务。
    * @param probe - 服务端下载能力。
-   */
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   private runTask(task: InternalTask, probe: DownloadProbeResult): void {
     task.run = this.executeDownload(task, probe).catch((error) => this.handleTaskFailure(task, error)).finally(() => {
       if (task.status === 'paused' || this.tasks.get(task.id) !== task) return;

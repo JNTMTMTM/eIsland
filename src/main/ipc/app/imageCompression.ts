@@ -22,6 +22,7 @@
  * @file imageCompression.ts
  * @description 图片压缩 IPC 处理模块
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
@@ -212,6 +213,7 @@ async function compressImage(inputPath: string, outputPath: string, quality: num
 
 /**
  * 注册图片压缩模块 IPC
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerImageCompressionIpcHandlers(): void {
   if (registered) return;

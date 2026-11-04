@@ -5,6 +5,11 @@ icon: vial
 
 # Testing Commands
 
+:::warning Tauri migration
+Active tests use `test:unit` (shared, renderer, CLI and plugin unit tests), `test:tauri` (native frontend API and Rust services), and `test:e2e:tauri` (real WebView2). `test:main` now invokes Rust tests and `test:preload` invokes native API tests. Old Electron Playwright commands and `test:legacy` are disabled; their source functions remain deprecated migration references.
+:::
+
+
 :::info
 This document covers Vitest commands for running, filtering, and measuring test coverage, plus Playwright commands for Electron E2E testing.
 :::

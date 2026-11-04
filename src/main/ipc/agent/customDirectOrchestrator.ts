@@ -22,6 +22,7 @@
  * @file customDirectOrchestrator.ts
  * @description 自定义 API 直连 ReAct 编排器，复用 ollama 编排逻辑，通过 OpenAI 兼容客户端直调 LLM。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { AgentToolCallGuard } from '../../../shared/agentToolCallGuard';
@@ -142,6 +143,7 @@ function truncateObservation(obs: string): string {
 
 /**
  * 执行自定义 API 直连 ReAct 编排循环。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function orchestrateCustomDirectChat(
   request: CustomDirectOrchestratorRequest,
@@ -363,6 +365,7 @@ export async function orchestrateCustomDirectChat(
 
 /**
  * 流式 JSON 信封过滤器（与 ollamaOrchestrator 相同逻辑）。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 class JsonEnvelopeStreamFilter {
   private buf = '';
@@ -473,6 +476,7 @@ class JsonEnvelopeStreamFilter {
 /**
  * 流式 <think> 标签解析器（与 ollamaOrchestrator 相同逻辑）。
  * 额外支持 reasoning_content delta 直接推送。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 class ThinkStreamParser {
   private state: 'outside' | 'thinking' = 'outside';
@@ -480,7 +484,9 @@ class ThinkStreamParser {
   private thinkIndex = 0;
   streamedContent = '';
 
-  /** 处理来自 reasoning_content delta 的思考内容（已分离，无需解析标签） */
+  /** 处理来自 reasoning_content delta 的思考内容（已分离，无需解析标签）
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   feedThinkDirect(
     chunk: string,
     emit: { onThink: (text: string, index: number) => void; onContent: (text: string) => void },
@@ -570,6 +576,7 @@ class ThinkStreamParser {
 
 /**
  * 执行单轮 LLM 流式调用并收集完整输出。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function streamLlmTurn(
   model: string,

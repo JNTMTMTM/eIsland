@@ -22,12 +22,15 @@
  * @file reminderWakeups.ts
  * @description 主进程统一管理到期唤醒，不依赖隐藏页面定时器。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, ipcMain, powerMonitor } from 'electron';
 import type { WebContents } from 'electron';
 
-/** 注册每窗口有界、共享一个定时器的提醒调度。 */
+/** 注册每窗口有界、共享一个定时器的提醒调度。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function registerReminderWakeups(): void {
   const clients = new Map<WebContents, Map<string, number>>();
   let timer: ReturnType<typeof setTimeout> | undefined;

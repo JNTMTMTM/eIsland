@@ -22,6 +22,7 @@
  * @file extensionRegistry.ts
  * @description 可选扩展元数据注册表
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app } from 'electron';
@@ -45,6 +46,7 @@ export interface ExtensionMeta {
 /**
  * 获取扩展注册表（需要在 app ready 后调用）
  * @returns 所有可选扩展的元数据列表
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getExtensionRegistry(): ExtensionMeta[] {
   const version = app.getVersion();

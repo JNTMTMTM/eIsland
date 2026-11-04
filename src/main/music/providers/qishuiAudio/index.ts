@@ -15,6 +15,7 @@
  * @file index.ts
  * @description 汽水音乐受限播放地址注册与主进程音频代理。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { randomUUID } from 'crypto';
@@ -223,6 +224,7 @@ async function waitForAudio(entry: AudioEntry, signal: AbortSignal, upstream?: R
  * @param sourceUrl - 汽水音频上游 HTTPS 地址
  * @param playAuth - 可选的加密播放密钥
  * @returns 可由渲染进程加载的受限协议地址
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerQishuiAudioSource(sourceUrl: string, playAuth = ''): string {
   if (cleanupPromise) throw new Error('QISHUI_AUDIO_SHUTTING_DOWN');
@@ -246,6 +248,7 @@ export function registerQishuiAudioSource(sourceUrl: string, playAuth = ''): str
  * 处理 eisland-qishui 音频代理请求。
  * @param request - Chromium 协议请求
  * @returns 支持 Range 的音频响应
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function handleQishuiAudioRequest(request: Request): Promise<Response> {
   if (cleanupPromise) return new Response('Service Unavailable', { status: 503 });
@@ -303,6 +306,7 @@ export async function handleQishuiAudioRequest(request: Request): Promise<Respon
 /**
  * 停止音频代理下载并删除本次进程创建的临时音频缓存。
  * @returns 清理完成后的 Promise
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function cleanupQishuiAudioSources(): Promise<void> {
   if (cleanupPromise) return cleanupPromise;

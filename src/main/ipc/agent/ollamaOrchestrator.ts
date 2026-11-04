@@ -22,6 +22,7 @@
  * @file ollamaOrchestrator.ts
  * @description 本地 Ollama ReAct 编排器，管理 system prompt → LLM → 工具执行 → 循环。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { AgentToolCallGuard } from '../../../shared/agentToolCallGuard';
@@ -59,6 +60,7 @@ type ParsedLlmOutput =
 
 /**
  * 解析 LLM 输出的 JSON（tool_call 或 final）。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function parseLlmOutput(raw: string): ParsedLlmOutput {
   const trimmed = raw.trim();
@@ -122,6 +124,7 @@ function parseLlmOutput(raw: string): ParsedLlmOutput {
 
 /**
  * 修复 JSON 字符串值中的未转义换行。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function repairJsonNewlines(source: string): string {
   return source.replace(/(?<=:\s*")((?:[^"\\]|\\.)*)(?=")/g, (match) => {
@@ -131,6 +134,7 @@ function repairJsonNewlines(source: string): string {
 
 /**
  * 构建 ReAct 用户提示词。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function buildReActUserPrompt(
   userMessage: string,
@@ -157,6 +161,7 @@ function buildReActUserPrompt(
 
 /**
  * 截断工具观察结果到安全长度。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function truncateObservation(obs: string): string {
   if (obs.length <= MAX_OBSERVATION_CHARS) return obs;
@@ -165,6 +170,7 @@ function truncateObservation(obs: string): string {
 
 /**
  * 执行本地 Ollama ReAct 编排循环。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function orchestrateOllamaChat(
   request: OllamaOrchestratorRequest,
@@ -398,6 +404,7 @@ export async function orchestrateOllamaChat(
  * 检测 LLM 输出中的 {"type":"final","answer":"..."} 或 {"type":"tool_call",...} 信封，
  * 只将 answer 值（或纯文本）推送给下游，抑制 JSON 结构泄漏。
  * 逻辑参考服务端 MihtnelisAgentOrchestratorService 的 streamListener。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 class JsonEnvelopeStreamFilter {
   private buf = '';
@@ -520,6 +527,7 @@ class JsonEnvelopeStreamFilter {
 /**
  * 流式 <think> 标签解析器。
  * 将 LLM 输出拆分为思考内容（think）与正文内容（content）。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 class ThinkStreamParser {
   private state: 'outside' | 'thinking' = 'outside';
@@ -609,6 +617,7 @@ class ThinkStreamParser {
 /**
  * 执行单轮 LLM 流式调用并收集完整输出。
  * @param onStreamChunk 实时流式回调，每收到一个 delta 即调用。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function streamLlmTurn(
   model: string,

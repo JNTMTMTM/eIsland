@@ -23,6 +23,7 @@
  * @description 运行进程查询模块
  * @description 查询 Windows 运行中的非系统进程，支持获取进程图标
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, nativeImage } from 'electron';
@@ -54,6 +55,7 @@ interface RawWindowInfo {
  * @description 将进程名称转换为小写并去除首尾空格
  * @param name - 原始进程名称
  * @returns 规范化后的进程名称
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function normalizeProcessName(name: string): string {
   return name.trim().toLowerCase();
@@ -118,6 +120,7 @@ function parseTaskListProcessNames(raw: string): string[] {
 /**
  * 查询当前进程名称，同一轮并发请求共享系统快照。
  * @returns tasklist 返回的进程名称；查询结束后下一次调用会重新采集。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function queryRunningProcessNames(): Promise<string[]> {
   if (processNamesQuery) return processNamesQuery;
@@ -154,6 +157,7 @@ async function collectRunningProcessNames(): Promise<string[]> {
  * 查询运行中的非系统进程名称列表
  * @description 获取当前运行的非系统进程名称列表
  * @returns 进程名称数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function queryRunningNonSystemProcessNames(): Promise<string[]> {
   const all = await queryRunningProcessNames();
@@ -320,6 +324,7 @@ function toRunningWindowInfo(windowInfo: RawWindowInfo, iconDataUrl: string | nu
  * 查询运行中的非系统进程（包含图标）
  * @description 获取当前运行的非系统进程信息，包括进程图标
  * @returns 进程信息数组，包含名称和图标数据
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function queryRunningNonSystemProcessesWithIcons(): Promise<RunningProcessInfo[]> {
   const names = await queryRunningNonSystemProcessNames();
@@ -340,6 +345,7 @@ export async function queryRunningNonSystemProcessesWithIcons(): Promise<Running
  * 查询当前打开的窗口（包含图标）
  * @description 获取当前系统可见窗口列表，返回窗口标题和所属进程信息
  * @returns 窗口信息数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function queryOpenWindowsWithIcons(): Promise<RunningWindowInfo[]> {
   if (process.platform !== 'win32') return [];
@@ -373,6 +379,7 @@ export async function queryOpenWindowsWithIcons(): Promise<RunningWindowInfo[]> 
  * 查询当前前台焦点窗口
  * @description 获取当前处于焦点状态的窗口信息
  * @returns 焦点窗口信息，未命中时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function queryFocusedWindow(): Promise<RunningWindowInfo | null> {
   if (process.platform !== 'win32') return null;
@@ -400,6 +407,7 @@ export async function queryFocusedWindow(): Promise<RunningWindowInfo | null> {
  * @description 仅当名单中的进程名与当前焦点窗口进程名精确匹配时返回 true
  * @param processNames - 需要匹配的进程名列表
  * @returns 是否命中焦点窗口进程
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function hasAnyFocusedWindowTitle(processNames: string[]): Promise<boolean> {
   if (!processNames.length) return false;
@@ -424,6 +432,7 @@ export async function hasAnyFocusedWindowTitle(processNames: string[]): Promise<
  * @description 检查给定进程名称列表中是否有任意进程正在运行
  * @param names - 要检查的进程名称数组
  * @returns 是否有进程正在运行
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function hasAnyRunningProcess(names: string[]): Promise<boolean> {
   if (!names.length) return false;
@@ -438,6 +447,7 @@ export async function hasAnyRunningProcess(names: string[]): Promise<boolean> {
  * @description 去除重复项和空项，返回规范化后的进程名称列表
  * @param list - 原始进程名称数组
  * @returns 清理后的进程名称数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function sanitizeProcessNameList(list: string[]): string[] {
   const normalizedSet = new Set<string>();
@@ -460,6 +470,7 @@ export function sanitizeProcessNameList(list: string[]): string[] {
  * @description 去除重复项和空项，返回清理后的窗口标题列表
  * @param list - 原始窗口标题数组
  * @returns 清理后的窗口标题数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function sanitizeWindowTitleList(list: string[]): string[] {
   const normalizedSet = new Set<string>();

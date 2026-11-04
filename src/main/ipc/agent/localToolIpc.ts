@@ -22,6 +22,7 @@
  * @file localToolIpc.ts
  * @description Agent 本地工具 IPC handler 注册，将渲染进程的本地工具执行请求桥接到主进程。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -41,7 +42,9 @@ const MAX_CACHED_EXECUTIONS = 500;
 /** 单次执行时长上限，远超服务端 120 秒的结果等待，超时后的结果已无人接收。 */
 const LOCAL_TOOL_EXECUTION_TIMEOUT_MS = 10 * 60_000;
 
-/** 注册 Agent 本地工具执行的 IPC handler（agent:local-tool:execute）。 */
+/** 注册 Agent 本地工具执行的 IPC handler（agent:local-tool:execute）。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export function registerAgentLocalToolIpcHandlers(options: RegisterAgentLocalToolIpcHandlersOptions): void {
   const executions = new Map<string, { signature: string; result: Promise<AgentLocalToolResult>; expiresAt: number }>();
   const execute = async (request: AgentLocalToolRequest): Promise<AgentLocalToolResult> => {

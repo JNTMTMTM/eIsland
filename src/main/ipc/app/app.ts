@@ -23,6 +23,7 @@
  * @description 应用相关 IPC 处理模块
  * @description 处理应用退出、重启、日志管理和文件操作等 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
@@ -1955,6 +1956,7 @@ async function executeAgentLocalTool(request: AgentLocalToolRequest): Promise<{
 /**
  * 注册应用相关 IPC 处理器
  * @description 注册应用级别的 IPC 事件处理器，包括退出、重启、日志管理等
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerAppIpcHandlers(): void {
   ipcMain.on('app:quit', () => {

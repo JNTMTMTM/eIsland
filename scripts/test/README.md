@@ -1,6 +1,6 @@
 # 测试收集与 Windows 插件集成测试
 
-根目录 `npm test` 收集 `src` 与 `plugins` 的 Vitest 测试。在 Windows 上，插件测试分为两个项目：
+根目录 `npm test` 执行共享代码、渲染层、开发 CLI 和插件单元测试，以及原生 Tauri API 契约测试和 Rust 服务单元测试。已弃用的 Electron main/preload 测试保留在源码中，不再进入默认测试项目。在 Windows 上，插件测试分为两个项目：
 
 - `plugins`：不依赖真实设备的单元测试，包括 Runtime fixture、FFI loader、打包路径和模拟轮询测试。
 - `plugins-integration`：加载真实 Windows 插件的测试，串行执行，并在单元测试阶段结束后开始。需要 Windows x64、Node.js 24.22.1、.NET 10 SDK 和 Visual Studio 2022 C++ 构建工具。
@@ -27,4 +27,6 @@ CI 的 `plugins` 矩阵任务安装 .NET SDK、构建原生依赖、检查收集
 
 通知测试每次读取前都会检查访问权限。未授权时，原生 API 的 `Failed to get Windows notifications.` 错误记为不可读取（通知数量为 `null`），测试仍会验证权限和监听状态。已授权时的读取失败、其他异常及无效返回结构仍会使测试失败；CI 不弹出授权对话框。
 
-Playwright E2E 测试通过 `npm run test:e2e:run` 执行。`scripts/lint` 中的 `node:test` 测试通过 `npm run lint:config:test` 执行；它们使用独立运行器。
+原生桌面端到端测试通过 `npm run test:e2e:tauri` 执行，先构建 `npm run plugins:build:tauri` 和 `npm run build:tauri -- --debug --no-bundle`。该测试连接真实 WebView2，覆盖窗口、音乐、AI 流式响应、工具幂等、下载与本地资源范围请求。可设置 `EISLAND_SMOKE_BINARY` 指向另一个启用 custom-protocol 的 Tauri 可执行文件。旧 Electron Playwright 命令已停用。
+
+`npm run test:tauri:api` 验证原生前端 API 与 Electron 弃用规则；`npm run test:rust` 验证 Rust 原生服务。`scripts/lint` 中的 `node:test` 测试通过 `npm run lint:config:test` 执行，测试收集检查通过 `npm run test:discovery` 执行。

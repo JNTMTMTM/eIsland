@@ -22,6 +22,7 @@
  * @file islandAlwaysOnTop.ts
  * @description 保留托盘选择的灵动岛置顶状态，供窗口恢复路径统一应用。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import type { BrowserWindow } from 'electron';
@@ -31,6 +32,7 @@ let alwaysOnTop = true;
 
 /** 读取托盘的置顶选择，供同层辅助窗口保持一致。
  * @returns 是否置顶。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function isIslandAlwaysOnTop(): boolean {
   return alwaysOnTop;
@@ -38,6 +40,7 @@ export function isIslandAlwaysOnTop(): boolean {
 
 /** 应用置顶选择；窗口可见时移到同层最上方，避免被背景光效窗口遮挡。
  * @param window - 灵动岛主窗口。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function restoreIslandAlwaysOnTop(window: BrowserWindow): void {
   if (window.isDestroyed()) return;
@@ -49,6 +52,7 @@ export function restoreIslandAlwaysOnTop(window: BrowserWindow): void {
 /** 更新置顶选择，恢复显示时仍尊重这一选择。
  * @param window - 灵动岛主窗口。
  * @param enabled - 是否置顶。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function setIslandAlwaysOnTop(window: BrowserWindow, enabled: boolean): void {
   if (window.isDestroyed()) return;

@@ -22,6 +22,7 @@
  * @file standaloneWindow.test.ts
  * @description 验证独立窗口环境资源、复用、展示、外链策略和关闭生命周期。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

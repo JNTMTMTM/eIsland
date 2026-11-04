@@ -17,6 +17,7 @@
  * @file captureLocalOcrService.ts
  * @description 使用 Tesseract.js 在本机识别截图文字，不上传图片。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import type { Worker } from 'tesseract.js';
@@ -47,6 +48,7 @@ const WORKER_IDLE_TIMEOUT_MS = 60 * 1000;
  * 获取或创建 Tesseract 单例 worker。
  * 首次调用时初始化，后续调用直接复用。
  * @returns 包含共享初始化 Promise 和活动任务计数的 worker 槽位。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function getWorker(): WorkerSlot {
   if (idleTimer) {
@@ -65,6 +67,7 @@ function getWorker(): WorkerSlot {
 /**
  * 仅在最后一个识别任务结束后开始空闲倒计时。
  * @param slot - 等待空闲释放的 worker 槽位。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function scheduleIdleDispose(slot: WorkerSlot): void {
   if (idleTimer) clearTimeout(idleTimer);
@@ -79,6 +82,7 @@ function scheduleIdleDispose(slot: WorkerSlot): void {
  * 重置单例 worker（worker 出错或空闲超时后调用，下次请求会重新创建）。
  * @param slot - 待释放的 worker 槽位，默认当前缓存槽位。
  * @returns worker 初始化结束并完成释放后兑现的 Promise。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function resetWorker(slot = cachedWorker): Promise<void> {
   if (!slot) return;
@@ -94,7 +98,9 @@ async function resetWorker(slot = cachedWorker): Promise<void> {
   await slot.disposal;
 }
 
-/** 应用退出时清理 worker。 */
+/** 应用退出时清理 worker。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export async function disposeLocalOcrWorker(): Promise<void> {
   activeRequests.forEach((controller) => controller.abort());
   await resetWorker();
@@ -114,6 +120,7 @@ function dataUrlToBuffer(dataUrl: string): Buffer | null {
  * @param dataUrl - 待识别图片的 data URL。
  * @param signal - 截图窗口关闭时用于中止识别的信号。
  * @returns 本地 OCR 识别结果。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function recognizeCaptureTextLocally(
   dataUrl: string,

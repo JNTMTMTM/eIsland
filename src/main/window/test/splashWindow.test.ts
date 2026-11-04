@@ -22,6 +22,7 @@
  * @file splashWindow.test.ts
  * @description 验证启动画面渲染就绪、视频结束、超时兜底、淡出与关闭清理生命周期。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

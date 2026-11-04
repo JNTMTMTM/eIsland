@@ -23,6 +23,7 @@
  * @description 通用存储 IPC 处理模块
  * @description 处理通用键值存储的读取和写入操作
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -33,7 +34,9 @@ import { broadcastSettingChange } from '../../utils/broadcast';
 import writeIslandCornerStyle from './islandCornerStyle';
 import type { RegisterStoreIpcHandlersOptions } from './types';
 
-/** 合法的 store key：不含路径分隔符和 traversal 片段 */
+/** 合法的 store key：不含路径分隔符和 traversal 片段
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function isValidStoreKey(key: unknown): key is string {
   return typeof key === 'string' && key.length > 0 && !/[\\/]/.test(key) && !key.includes('..');
 }
@@ -42,6 +45,7 @@ function isValidStoreKey(key: unknown): key is string {
  * 注册通用存储 IPC 处理器
  * @description 注册通用键值存储读写 IPC 事件处理器
  * @param options - 配置选项，包含存储目录
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerStoreIpcHandlers(options: RegisterStoreIpcHandlersOptions): void {
   // 同步读改写单个闹钟，避免两个界面的开关操作用旧列表覆盖其他字段。

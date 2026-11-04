@@ -22,6 +22,7 @@
  * @file mediaSupplement.test.ts
  * @description 媒体真实 IPC 会话状态、白名单控制、单位转换与原生查询测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';

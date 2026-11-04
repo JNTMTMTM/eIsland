@@ -20,13 +20,16 @@
 /** @file cliEventDetail.ts
  * @description 只解析当前快照允许的事件引用，分页详情不接收外部文件路径。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { app } from 'electron';
 import { join } from 'path';
 import type { ClaudeCodeStatusSnapshot } from '../../types/system/ClaudeCodeStatusSnapshot';
 import { cliDetailPath, readCliDetailPage } from '../../system/cliEventDetails';
 
-/** 按 ID 查找被保留事件，并从其原始日志或详情文件读取一个有界页面。 */
+/** 按 ID 查找被保留事件，并从其原始日志或详情文件读取一个有界页面。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 export async function getCliEventDetail(snapshot: ClaudeCodeStatusSnapshot, id: string, offset = 0) {
   const event = snapshot.events.find((item) => item.id === id)
     ?? snapshot.sessions.flatMap((session) => session.events).find((item) => item.id === id);

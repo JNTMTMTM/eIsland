@@ -22,6 +22,7 @@
  * @file decryptBoundarySupplement.test.ts
  * @description CENC 标准容器、spade_a 协议授权、固定样本与损坏表长度的密码学行为测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createCipheriv } from 'node:crypto';

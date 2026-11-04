@@ -22,6 +22,7 @@
  * @file build-windows-native.mjs
  * @description 编译 Windows E2E 使用的真实插件并检查加载器要求的产物路径。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { spawnSync } from 'node:child_process';

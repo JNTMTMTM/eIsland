@@ -13,6 +13,7 @@
  * @file islandScaleConfig.ts
  * @description 灵动岛整体缩放配置的读取与持久化。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'fs';
@@ -23,6 +24,7 @@ import { ISLAND_SCALE_DEFAULT, ISLAND_SCALE_STORE_KEY, normalizeIslandScale } fr
 /**
  * 读取缩放配置，在窗口创建前恢复缩放。
  * @returns 缩放百分比，缺失或损坏时为 100%。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function readIslandScaleConfig(): number {
   try {
@@ -37,6 +39,7 @@ export function readIslandScaleConfig(): number {
  * 保存缩放配置。
  * @param scale - 缩放百分比。
  * @returns 是否成功写入。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function writeIslandScaleConfig(scale: number): boolean {
   let temporaryPath: string | undefined;

@@ -23,6 +23,7 @@
  * @description 隐藏进程名单 IPC 处理模块
  * @description 处理隐藏进程名单的读取、设置和持久化
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -47,6 +48,7 @@ interface RegisterHideProcessIpcHandlersOptions {
  * 注册隐藏进程名单 IPC 处理器
  * @description 注册隐藏进程名单获取和设置的 IPC 事件处理器
  * @param options - 配置选项，包含存储目录、键名和状态管理函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerHideProcessIpcHandlers(options: RegisterHideProcessIpcHandlersOptions): void {
   ipcMain.handle('hide-process-list:get', () => {

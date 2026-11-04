@@ -22,6 +22,7 @@
  * @file screenshotRunner.test.ts
  * @description 使用可控进程边界与时钟验证截图任务排队、取消和排队期间的硬截止时间。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';

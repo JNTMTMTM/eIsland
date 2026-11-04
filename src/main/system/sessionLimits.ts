@@ -17,6 +17,7 @@
  * @file sessionLimits.ts
  * @description CLI 会话读取与内存保留上限
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 /** 主进程最多读取并保留的单类 CLI 会话数量 */
@@ -26,6 +27,7 @@ export const MAX_CLI_SESSIONS = 40;
  * 按最近活动时间截取会话，避免持久化数据无限增长
  * @param sessions - 待限制的会话集合
  * @returns 最近活动的有限会话列表
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function limitRecentSessions<T extends { lastEventAt: number }>(sessions: Iterable<T>): T[] {
   return Array.from(sessions)

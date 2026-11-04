@@ -23,6 +23,7 @@
  * @description 自动更新服务模块
  * @description 初始化 electron-updater，处理更新检查和下载进度
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, ipcMain } from 'electron';
@@ -41,6 +42,7 @@ interface InitUpdaterServiceOptions {
  * 初始化自动更新服务
  * @description 配置 electron-updater，注册更新事件处理器，启动自动检查
  * @param options - 服务配置选项，包含更新器实例和窗口获取函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function initUpdaterService(options: InitUpdaterServiceOptions): void {
   const { updater } = options;

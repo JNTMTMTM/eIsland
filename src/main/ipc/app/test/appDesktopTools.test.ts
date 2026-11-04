@@ -22,6 +22,7 @@
  * @file appDesktopTools.test.ts
  * @description 桌面叶依赖、本地压缩与媒体工具、应用IPC及窗口生命周期边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

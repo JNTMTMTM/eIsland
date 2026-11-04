@@ -22,6 +22,7 @@
  * @file albumMedia.ts
  * @description 仅向相册已保存的视频提供按需文件流，避免完整文件跨 IPC 复制。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { open, readFile, stat } from 'node:fs/promises';
@@ -36,6 +37,7 @@ const VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov', '.m4v']);
  * 校验视频路径是否仍在用户保存的相册中。
  * @param filePath - 待校验的绝对文件路径
  * @returns 标准化的授权路径；相册外路径返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function resolveAlbumVideo(filePath: unknown): Promise<string | null> {
   if (typeof filePath !== 'string' || !isAbsolute(filePath)) return null;
@@ -54,6 +56,7 @@ async function resolveAlbumVideo(filePath: unknown): Promise<string | null> {
  * 获取已保存相册视频的流式地址和文件大小，不读取视频内容。
  * @param filePath - 相册视频的绝对路径
  * @returns 已授权的地址和大小；无效或不可用时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getAlbumMediaInfo(filePath: unknown): Promise<{ url: string; sizeBytes: number } | null> {
   try {
@@ -71,6 +74,7 @@ export async function getAlbumMediaInfo(filePath: unknown): Promise<{ url: strin
  * 按请求流式读取已保存的视频，保留 Range/HEAD 以支持元数据读取和拖动进度。
  * @param request - 相册媒体协议请求
  * @returns 文件流响应；相册外路径返回 403
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function handleAlbumMediaRequest(request: Request): Promise<Response> {
   try {

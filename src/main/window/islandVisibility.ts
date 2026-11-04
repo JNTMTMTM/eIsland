@@ -22,6 +22,7 @@
  * @file islandVisibility.ts
  * @description 灵动岛主窗口显示与隐藏的淡入淡出过渡，供快捷键、托盘、自动隐藏等入口统一使用。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import type { BrowserWindow } from 'electron';
@@ -50,6 +51,7 @@ function stopFade(window: BrowserWindow): void {
  * @description 中途反向切换时从当前透明度继续，时长按剩余距离折算，避免跳变。
  * @param window - 灵动岛主窗口。
  * @param visible - true 淡入，false 淡出后隐藏窗口。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function startFade(window: BrowserWindow, visible: boolean): void {
   stopFade(window);
@@ -92,6 +94,7 @@ function startFade(window: BrowserWindow, visible: boolean): void {
  * @description 淡出过程中窗口仍可见，切换类入口需按目标状态判断，连按时才能正确反向。
  * @param window - 灵动岛主窗口。
  * @returns 正在淡入或已显示为 true，正在淡出或已隐藏为 false。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function isIslandShown(window: BrowserWindow): boolean {
   return fades.get(window)?.visible ?? window.isVisible();
@@ -101,6 +104,7 @@ export function isIslandShown(window: BrowserWindow): boolean {
  * 淡入显示灵动岛
  * @description 隐藏的窗口先置为全透明再显示，避免露出上次的缓存画面；正在淡出时就地反向。
  * @param window - 灵动岛主窗口。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function showIsland(window: BrowserWindow): void {
   if (window.isDestroyed()) return;
@@ -114,6 +118,7 @@ export function showIsland(window: BrowserWindow): void {
  * 淡出隐藏灵动岛
  * @description 过渡结束后才真正隐藏窗口，已隐藏或正在淡出时不重复处理。
  * @param window - 灵动岛主窗口。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function hideIsland(window: BrowserWindow): void {
   if (window.isDestroyed() || !isIslandShown(window)) return;

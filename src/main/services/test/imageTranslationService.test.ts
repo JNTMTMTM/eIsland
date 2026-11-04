@@ -22,6 +22,7 @@
  * @file imageTranslationService.test.ts
  * @description 图片翻译轮询监听器与响应体取消、超时释放回归测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { getEventListeners } from 'node:events';

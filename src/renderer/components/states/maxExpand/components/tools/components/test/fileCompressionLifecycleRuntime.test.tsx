@@ -27,7 +27,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { byClass, elements, find, invoke, text } from '../../../../../test/tree';
 import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 import type { RefObject } from 'react';
-import type { ImageCompressionTask, ImageCompressionStartPayload, ImageCompressionStartResult } from '../../../../../../../../preload/types';
+import type { ImageCompressionTask, ImageCompressionStartPayload, ImageCompressionStartResult } from '../../../../../../../../tauri/types';
 import type { FileCompressionPageKey } from '../../config/fileCompressionToolConfig';
 let Component: typeof import('../FileCompressionToolSection').FileCompressionToolSection;
 let page: FileCompressionPageKey;

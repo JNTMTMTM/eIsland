@@ -22,6 +22,7 @@
  * @file clipboard.spec.ts
  * @description 使用真实 Electron 剪贴板验证文本 IPC、Agent 图片读取、截图复制及异步 URL 监听。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { test, expect } from './fixtures';

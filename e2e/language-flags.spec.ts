@@ -22,6 +22,7 @@
  * @file language-flags.spec.ts
  * @description 验证打包后的国旗 SVG 资源、旗面完整性及明暗主题显示。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import en from '../i18n/en-US.json';

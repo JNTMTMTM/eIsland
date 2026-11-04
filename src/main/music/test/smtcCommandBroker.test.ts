@@ -22,6 +22,7 @@
  * @file smtcCommandBroker.test.ts
  * @description 验证命令截止时真正杀进程、重新创建、空闲回收和 seek 末值队列。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { EventEmitter } from 'node:events';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

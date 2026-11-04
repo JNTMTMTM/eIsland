@@ -23,6 +23,7 @@
  * @description 在隔离的隐藏 Electron 窗口中验证真实 React 内容切换与 CSS 布局。
  * @author 鸡哥
  * @example node scripts/test-island-content-transition.mjs
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -48,7 +49,7 @@ async function cleanupFixture(fixtureDirectory) {
 
 /**
  * 只启动独立测试页，不加载真实应用或用户数据。
- * @returns 测试完成后的 Promise。
+ * @returns 测试完成后的 Promise。 * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function runElectronFixture() {
   const { app, BrowserWindow } = await import('electron');
@@ -93,7 +94,7 @@ async function runElectronFixture() {
 
 /**
  * 打包当前业务组件并启动真实 Chromium 回归测试。
- * @returns 测试完成后的 Promise。
+ * @returns 测试完成后的 Promise。 * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function runFixture() {
   const { build } = await import('esbuild');

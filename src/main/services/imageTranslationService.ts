@@ -22,6 +22,7 @@
  * @file imageTranslationService.ts
  * @description 主进程图片翻译任务客户端，负责提交、轮询并返回可直接绘制的译图。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app } from 'electron';
@@ -104,6 +105,7 @@ async function parseApiResponse(response: Response): Promise<ApiResult> {
  * @param signal - 调用方取消信号。
  * @param consume - 在超时保护下读取响应体的回调。
  * @returns 响应体回调产生的结果。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 async function requestWithTimeout<T>(
   url: string,
@@ -161,6 +163,7 @@ async function downloadAsDataUrl(url: string, signal: AbortSignal): Promise<stri
  * @param targetLanguage - 目标语言，为空时使用中文。
  * @param signal - 截图窗口关闭时用于取消任务的信号。
  * @returns 翻译结果和可显示的图片数据。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function translateCaptureImage(
   token: string,

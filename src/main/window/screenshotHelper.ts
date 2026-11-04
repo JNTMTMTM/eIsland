@@ -22,6 +22,7 @@
  * @file screenshotHelper.ts
  * @description 按需子进程截图门面；主线程不加载 FFI 或执行 PNG 编码。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { join } from 'node:path';
 import { createScreenshotRunner } from './screenshotRunner';
@@ -35,6 +36,7 @@ process.once('exit', () => runner.dispose());
  * 异步截取主显示器，失败时返回 null 供 desktopCapturer 回退。
  * @param signal - 关闭截图流程时终止 native 子进程
  * @returns 原始 PNG 字节
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function capturePrimaryDisplayPng(signal?: AbortSignal): Promise<Buffer | null> {
   return process.platform === 'win32' ? runner.run('primary', signal) : Promise.resolve(null);
@@ -44,6 +46,7 @@ export function capturePrimaryDisplayPng(signal?: AbortSignal): Promise<Buffer |
  * 异步截取虚拟桌面，原始图像和编码仅驻留在短生命周期进程。
  * @param signal - 取消信号
  * @returns 原始 PNG 字节或 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function captureAllDisplaysPng(signal?: AbortSignal): Promise<Buffer | null> {
   return process.platform === 'win32' ? runner.run('all', signal) : Promise.resolve(null);
@@ -53,6 +56,7 @@ export function captureAllDisplaysPng(signal?: AbortSignal): Promise<Buffer | nu
  * 异步读取可见窗口边界。
  * @param signal - 取消信号
  * @returns 窗口边界；不可用时为空数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export async function getVisibleWindows(signal?: AbortSignal): Promise<VisibleWindowBounds[]> {
   if (process.platform !== 'win32') return [];
@@ -66,6 +70,7 @@ export async function getVisibleWindows(signal?: AbortSignal): Promise<VisibleWi
  * @param image - Electron 原生缩略图
  * @param signal - 取消信号
  * @returns 编码后的 PNG 字节
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function encodeScreenshotPng(image: Pick<Electron.NativeImage, 'getSize' | 'toBitmap'>, signal?: AbortSignal): Promise<Buffer | null> {
   const { width, height } = image.getSize();

@@ -22,6 +22,7 @@
  * @file musicBeatSource.test.ts
  * @description SMTC 播放源与活动音频进程匹配测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { describe, expect, it } from 'vitest';

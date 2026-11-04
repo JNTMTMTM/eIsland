@@ -23,6 +23,7 @@
  * @description 网络请求相关 IPC 处理模块
  * @description 代理渲染进程的网络请求，处理超时和日志记录
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain, net } from 'electron';
@@ -130,6 +131,7 @@ function sanitizeRequestHeaders(headers: Record<string, string>, writeMainLog: M
  * 注册网络请求相关 IPC 处理器
  * @description 注册网络请求代理的 IPC 事件处理器，支持自定义方法和超时
  * @param options - 配置选项，包含日志写入函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerNetIpcHandlers(options: RegisterNetIpcHandlersOptions): void {
   ipcMain.handle('net:fetch', async (event, url: string, requestOptions?: {

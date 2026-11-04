@@ -22,6 +22,7 @@
  * @file qishuiIpcSupplement.test.ts
  * @description 汽水业务 IPC 全路由、参数规范化、默认状态与必填错误码测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';

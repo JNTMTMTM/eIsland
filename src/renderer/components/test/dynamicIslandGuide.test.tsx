@@ -63,7 +63,7 @@ describe('DynamicIslandGuide', () => {
     mocks.get.mockReturnValue(mocks.root);
     mocks.mount.mockReturnValue({ render: mocks.render });
     vi.stubGlobal('document', { getElementById: mocks.get });
-    vi.stubGlobal('window', { electron: { ipcRenderer: { send: mocks.send } } });
+    vi.stubGlobal('window', { desktop: { send: mocks.send } });
   });
   afterEach(() => { vi.unstubAllGlobals(); });
 

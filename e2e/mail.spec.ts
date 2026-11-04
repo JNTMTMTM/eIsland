@@ -17,6 +17,7 @@
  * @file mail.spec.ts
  * @description 通过本地 IMAP 服务验证真实邮件库、preload 与主进程 IPC 的协议兼容性。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createServer, type Socket } from 'node:net';

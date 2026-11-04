@@ -23,6 +23,7 @@
  * @description 音乐相关 IPC 处理模块
  * @description 处理播放器白名单、歌词设置和 SMTC 配置的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -59,6 +60,7 @@ interface RegisterMusicIpcHandlersOptions {
  * 注册音乐相关 IPC 处理器
  * @description 注册白名单、歌词源、歌词效果和 SMTC 设置的 IPC 事件处理器
  * @param options - 配置选项，包含存储目录、键名和配置管理函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerMusicIpcHandlers(options: RegisterMusicIpcHandlersOptions): void {
   ipcMain.handle('music:whitelist:get', () => {

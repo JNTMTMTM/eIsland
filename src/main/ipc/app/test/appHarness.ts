@@ -22,6 +22,7 @@
  * @file appHarness.ts
  * @description 应用IPC测试私有依赖边界，真实注册模块与虚构文件系统、命令和窗口交互。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { Readable } from 'node:stream';

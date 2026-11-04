@@ -22,6 +22,7 @@
  * @file index.test.ts
  * @description 验证真实主进程入口的启动接线、协议安全、快捷键、窗口和退出生命周期。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join, resolve } from 'node:path';

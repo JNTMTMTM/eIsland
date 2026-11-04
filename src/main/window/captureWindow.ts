@@ -23,6 +23,7 @@
  * @description 截图窗口服务模块
  * @description 管理截图窗口的创建、屏幕捕获和区域选择功能
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { app, BrowserWindow, desktopCapturer, screen } from 'electron';
@@ -50,6 +51,7 @@ interface CaptureWindowService {
  * @description 初始化并返回截图窗口管理服务，支持区域截图功能
  * @param options - 服务配置选项，包含主窗口获取函数
  * @returns 截图窗口服务对象
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createCaptureWindowService(options: CreateCaptureWindowServiceOptions): CaptureWindowService {
   let captureWindow: BrowserWindow | null = null;
@@ -102,7 +104,9 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
   /**
    * 计算所有显示器合并后的虚拟屏幕边界
    * @description 遍历全部显示器，返回包含所有屏幕的最小矩形和最大缩放因子
-   */
+
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   function getVirtualScreenBounds(): { x: number; y: number; width: number; height: number; scaleFactor: number } {
     const displays = screen.getAllDisplays();
     if (displays.length <= 1) {
@@ -149,7 +153,9 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
   /**
    * 获取所有显示器的布局信息
    * @returns 显示器布局数组与合并后的物理屏幕边界
-   */
+
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   function getDisplayLayouts(): { displayLayouts: DisplayLayout[]; physicalScreen: { x: number; y: number; width: number; height: number } } {
     const displays = screen.getAllDisplays();
     const displayLayouts = displays.map((display) => ({
@@ -192,7 +198,9 @@ export function createCaptureWindowService(options: CreateCaptureWindowServiceOp
    * @param vs - 虚拟屏幕边界
    * @param isMultiMonitor - 是否为多显示器环境
    * @returns 截图结果，JS 回退失败时返回 null
-   */
+
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
   async function tryCaptureScreenshot(vs: ReturnType<typeof getVirtualScreenBounds>, isMultiMonitor: boolean, signal: AbortSignal): Promise<CaptureResult | null> {
     const enginePref = readScreenshotEngineConfig();
     let nativeScreenshot: Buffer | null = null;

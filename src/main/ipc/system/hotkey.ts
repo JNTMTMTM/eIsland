@@ -23,6 +23,7 @@
  * @description 快捷键相关 IPC 处理模块
  * @description 处理各类快捷键的获取、设置和挂起/恢复的 IPC 请求
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { ipcMain } from 'electron';
@@ -102,6 +103,7 @@ function persistHotkey(storeDir: string, key: string, accelerator: string, label
  * 注册快捷键相关 IPC 处理器
  * @description 注册各类快捷键（隐藏、退出、截图、切歌等）的 IPC 事件处理器
  * @param options - 配置选项，包含存储目录、键名和热键服务函数
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerHotkeyIpcHandlers(options: RegisterHotkeyIpcHandlersOptions): void {
   ipcMain.handle('hotkey:get', () => {

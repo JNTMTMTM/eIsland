@@ -15,6 +15,7 @@
  * @file decrypt.ts
  * @description 汽水音乐 play_auth 密钥解析与 CENC 音频样本解密。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { createDecipheriv } from 'crypto';
@@ -71,6 +72,7 @@ function replaceEncryptedAudioType(buffer: Buffer, start: number, end: number): 
  * @param encryptedBuffer - 上游返回的 CENC MP4 音频
  * @param playAuth - 十六进制密钥或汽水 spade_a
  * @returns 解密后的音频数据和 MIME 类型
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function decryptQishuiAudio(
   encryptedBuffer: Buffer,

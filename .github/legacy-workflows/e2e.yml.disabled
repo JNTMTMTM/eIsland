@@ -1,0 +1,67 @@
+# DEPRECATED: Electron execution is retired; retain the workflow for migration reference.
+name: Electron E2E
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'i18n/**'
+      - 'resources/**'
+      - 'plugins/**'
+      - 'e2e/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'electron.vite.config.ts'
+      - 'tsconfig*.json'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    if: ${{ false }} # Electron workflow retained but disabled.
+    name: E2E (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # node-gyp 11 requires VS2022; windows-latest now selects VS2026.
+        os: [windows-2022, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      # 本地 Windows 插件声明 os/cpu 限制，macOS 测试构建使用替身；不执行原生安装脚本。
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --force
+      - name: Install Electron binary
+        run: node node_modules/electron/install.js
+      - uses: actions/setup-dotnet@v6
+        if: runner.os == 'Windows'
+        with:
+          dotnet-version: '10.0.x'
+      - name: Typecheck E2E
+        run: npm run typecheck:e2e
+      - name: Test process termination safety
+        if: runner.os == 'Windows'
+        run: npm run plugin:build:processes && npm --prefix plugins/windows/eisland-windows-processes-attacker run test:native
+      - name: Run E2E
+        if: runner.os != 'Windows'
+        run: npm run test:e2e
+      - name: Run Windows E2E with native helpers
+        if: runner.os == 'Windows'
+        run: npm run test:e2e:windows
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-${{ matrix.os }}
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          if-no-files-found: ignore

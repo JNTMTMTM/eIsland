@@ -22,6 +22,7 @@
  * @file claudeCodeStatusService.ts
  * @description Claude Code CLI hook 状态采集服务。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, app } from 'electron';
@@ -81,7 +82,9 @@ const HOOK_EVENTS: Array<{ name: string; matcher?: string; timeout?: number }> =
   { name: 'PreCompact' },
 ];
 
-/** 对身份及路径做整字段校验，不能截断后把不同会话或权限请求误合并。 */
+/** 对身份及路径做整字段校验，不能截断后把不同会话或权限请求误合并。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
+ */
 function validateHookMetadata(payload: Record<string, unknown>): void {
   const groups: Array<[string[], number]> = [
     [['session_id', 'sessionID', 'sessionId'], 512],
@@ -448,6 +451,7 @@ function removeManagedGroups(groups: unknown): Record<string, unknown>[] {
  * 创建 Claude Code 状态服务实例
  * @param options - 创建参数，包含主窗口获取函数和可选端口号
  * @returns 状态服务实例
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createClaudeCodeStatusService(options: CreateClaudeCodeStatusServiceOptions): ClaudeCodeStatusService {
   const port = options.port ?? DEFAULT_PORT;

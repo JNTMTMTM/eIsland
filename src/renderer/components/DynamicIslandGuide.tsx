@@ -53,7 +53,7 @@ function GuideApp(): ReactElement {
 
   /** 通知主进程引导完成，关闭引导窗口并显示主窗口 */
   const handleComplete = useCallback((): void => {
-    window.electron.ipcRenderer.send('guide:complete');
+    window.desktop.send('guide:complete');
   }, []);
 
   /** 语言选择完成，进入白名单配置 */

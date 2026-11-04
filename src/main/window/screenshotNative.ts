@@ -22,6 +22,7 @@
  * @file screenshotNative.ts
  * @description Windows 主屏幕截图辅助模块，优先加载原生插件，失败时回退到 desktopCapturer
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { join } from 'path';
@@ -86,6 +87,7 @@ function loadWindowsScreenshotHelper(): WindowsScreenshotHelper | null {
  * 截取主显示器画面并返回 PNG Buffer
  * @description 优先使用原生插件截屏，插件不可用时返回 null 以触发 desktopCapturer 回退
  * @returns PNG 格式的 Buffer，截屏失败或插件不可用时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function capturePrimaryDisplayPng(): Buffer | null {
   const helper = loadWindowsScreenshotHelper();
@@ -109,6 +111,7 @@ export function capturePrimaryDisplayPng(): Buffer | null {
  * 截取所有显示器画面（虚拟屏幕）并返回 PNG Buffer
  * @description 优先使用原生插件截取全部多显示器画面，插件不可用时返回 null
  * @returns PNG 格式的 Buffer，截屏失败或插件不可用时返回 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function captureAllDisplaysPng(): Buffer | null {
   const helper = loadWindowsScreenshotHelper();
@@ -132,6 +135,7 @@ export function captureAllDisplaysPng(): Buffer | null {
  * 获取所有可见窗口的位置和尺寸信息
  * @description 枚举桌面上所有可见的顶层窗口，返回其边界矩形和元数据，用于截图选区的窗口识别
  * @returns 可见窗口边界数组，插件不可用时返回空数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function getVisibleWindows(): VisibleWindowBounds[] {
   const helper = loadWindowsScreenshotHelper();

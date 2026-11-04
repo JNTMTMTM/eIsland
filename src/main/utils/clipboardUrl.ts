@@ -23,6 +23,7 @@
  * @description 剪贴板 URL 工具模块
  * @description 提供 URL 检测、提取、规范化和黑名单验证功能
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 export type ClipboardUrlDetectMode = 'https-only' | 'http-https' | 'domain-only';
@@ -36,6 +37,7 @@ const URL_REGEX_DOMAIN_ONLY = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z
  * @description 验证并返回有效的检测模式，无效时返回 null
  * @param mode - 原始模式值
  * @returns 有效的检测模式或 null
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function normalizeClipboardUrlDetectMode(mode: unknown): ClipboardUrlDetectMode | null {
   if (mode === 'https-only' || mode === 'http-https' || mode === 'domain-only') {
@@ -49,6 +51,7 @@ export function normalizeClipboardUrlDetectMode(mode: unknown): ClipboardUrlDete
  * @description 将域名格式化为标准的主机名格式
  * @param domain - 原始域名字符串
  * @returns 规范化后的主机名，无效时返回空字符串
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function normalizeClipboardUrlBlacklistDomain(domain: string): string {
   const trimmed = domain.trim().toLowerCase();
@@ -67,6 +70,7 @@ export function normalizeClipboardUrlBlacklistDomain(domain: string): string {
  * @description 规范化黑名单数组，去除重复和无效项
  * @param raw - 原始黑名单数据
  * @returns 清理后的域名数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function sanitizeClipboardUrlBlacklist(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -91,6 +95,7 @@ function normalizeDomainOnlyUrl(url: string): string {
  * @param text - 要搜索的文本
  * @param mode - URL 检测模式
  * @returns 提取的 URL 数组
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function extractUrls(text: string, mode: ClipboardUrlDetectMode): string[] {
   let matches: string[] = [];
@@ -119,6 +124,7 @@ export function extractUrls(text: string, mode: ClipboardUrlDetectMode): string[
  * @param url - 要检查的 URL
  * @param blacklist - 黑名单域名数组
  * @returns 是否被阻止
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function isUrlBlacklisted(url: string, blacklist: string[]): boolean {
   if (blacklist.length === 0) return false;

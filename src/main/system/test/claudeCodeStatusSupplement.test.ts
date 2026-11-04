@@ -22,6 +22,7 @@
  * @file claudeCodeStatusSupplement.test.ts
  * @description Claude 状态服务的结构化预览、转录富化、历史恢复、配置迁移及身份边界测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'events';

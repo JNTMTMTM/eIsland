@@ -22,6 +22,7 @@
  * @file claudeCodeStatusIpc.ts
  * @description Claude Code CLI 状态面板 IPC 处理模块。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { getCliEventDetail } from './cliEventDetail';
@@ -36,6 +37,7 @@ interface RegisterClaudeCodeStatusIpcHandlersOptions {
  * 注册 Claude Code 状态相关的 IPC 处理器
  * @param options - 注册参数，包含状态服务实例
  * @returns void
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerClaudeCodeStatusIpcHandlers(options: RegisterClaudeCodeStatusIpcHandlersOptions): void {
   ipcMain.handle('claude-code:event:detail', (_event, id: string, offset?: number) => getCliEventDetail(options.service.getSnapshot(), id, offset));

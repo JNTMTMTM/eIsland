@@ -1,3 +1,4 @@
+; @deprecated Electron installer retained for migration reference; Tauri uses its native NSIS bundle.
 # Keep electron-builder's extraction and registry logic intact. Wrapping its
 # macro in a function lets the installer recheck after the old uninstaller has
 # finished, at the actual file replacement boundary.

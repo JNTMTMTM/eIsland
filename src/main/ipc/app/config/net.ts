@@ -22,6 +22,7 @@
  * @file net.ts
  * @description 网络模块常量配置
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 /** 文本代理用于 JSON/歌词，限制缓冲大小，二进制下载由下载服务流式处理。 */

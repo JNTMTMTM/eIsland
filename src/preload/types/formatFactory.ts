@@ -22,6 +22,7 @@
  * @file formatFactory.ts
  * @description 格式工厂（视频/音频提取）相关类型定义
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 /** 视频提取选项 */

@@ -22,6 +22,7 @@
  * @file storeUpdaterSupplement.test.ts
  * @description 存储严格读取、非法比较键、更新拒绝与引导重置 IPC 回归测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

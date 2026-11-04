@@ -22,6 +22,7 @@
  * @file index.ts
  * @description 预加载脚本共享类型定义桶文件，聚合所有子模块导出
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 export * from './common';

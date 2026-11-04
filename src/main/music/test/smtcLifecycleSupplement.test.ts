@@ -22,6 +22,7 @@
  * @file smtcLifecycleSupplement.test.ts
  * @description SMTC 旧 Worker 事件隔离、异步终止失败、源请求窗口变化和缩略图保留测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { EventEmitter } from 'node:events';

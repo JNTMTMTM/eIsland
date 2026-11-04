@@ -22,6 +22,7 @@
  * @file index.types.test.ts
  * @description 验证公共类型门面的每个导出都保留原定义身份，防止漏导出和错误映射。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { describe, expectTypeOf, it } from 'vitest';

@@ -32,15 +32,15 @@ export function useSplashVideo() {
 
   /** 视频播放完成，通知主进程 */
   const handleVideoEnded = useCallback(() => {
-    window.electron.ipcRenderer.send('splash:video-ended');
+    window.desktop.send('splash:video-ended');
   }, []);
 
   /** 监听主进程指令：开始播放视频 */
   useEffect(() => {
-    const removeListener = window.electron.ipcRenderer.on('splash:play-video', () => {
+    const removeListener = window.desktop.on('splash:play-video', () => {
       videoRef.current?.play().catch(() => {});
     });
-    window.electron.ipcRenderer.send('splash:renderer-ready');
+    window.desktop.send('splash:renderer-ready');
     return removeListener;
   }, []);
 

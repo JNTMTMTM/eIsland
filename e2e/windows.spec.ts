@@ -22,6 +22,7 @@
  * @file windows.spec.ts
  * @description 验证 Windows 原生窗口裁剪、真实光标悬停与全局快捷键。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { execFile } from 'node:child_process';

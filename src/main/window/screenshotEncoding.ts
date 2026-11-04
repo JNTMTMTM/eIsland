@@ -22,6 +22,7 @@
  * @file screenshotEncoding.ts
  * @description 子进程内将 Chromium N32 premultiplied BGRA 位图编码为 PNG。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { crc32, deflateSync } from 'node:zlib';
 
@@ -31,6 +32,7 @@ import { crc32, deflateSync } from 'node:zlib';
  * @param width - 像素宽度
  * @param height - 像素高度
  * @returns PNG 字节
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function encodeScreenshotBitmap(bitmap: Buffer, width: number, height: number): Buffer {
   if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0

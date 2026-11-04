@@ -23,6 +23,7 @@
  * @description 主窗口服务模块
  * @description 管理灵动岛主窗口的创建、位置控制和事件处理
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, screen, shell } from 'electron';
@@ -66,6 +67,7 @@ interface MainWindowService {
  * @description 初始化并返回主窗口管理服务，负责窗口创建、位置控制和生命周期管理
  * @param options - 服务配置选项，包含主窗口获取/设置函数、位置偏移管理、尺寸配置
  * @returns 主窗口服务对象，包含 createWindow、getInitialCenterX、applyIslandPositionOffset 方法
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createMainWindowService(options: CreateMainWindowServiceOptions): MainWindowService {
   let initialCenterX = 0;

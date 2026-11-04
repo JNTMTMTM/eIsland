@@ -18,13 +18,27 @@
  * GNU General Public License for more details.
  */
 
+pub mod agent;
+mod assets;
+mod capture_tools;
+mod child_process;
+mod downloads;
+mod extensions;
+mod files;
 mod hardware;
+mod images;
+mod mail;
 mod media;
 mod media_state;
 mod music;
 mod music_window;
+mod native_wallpaper;
+pub mod runtime;
 #[cfg(windows)]
 mod smtc;
+mod system;
+mod updater;
+mod video;
 
 use crate::windows::Result;
 use serde_json::Value;
@@ -46,6 +60,9 @@ pub struct Services {
 }
 
 pub fn native_path(app: &AppHandle, component: &str, file: &str) -> Result<PathBuf> {
+    if let Some(path) = extensions::native_helper(app, component, file) {
+        return Ok(path);
+    }
     let rid = match std::env::consts::ARCH {
         "x86_64" => "win-x64",
         "aarch64" => "win-arm64",
@@ -97,9 +114,16 @@ impl Services {
             shutdown,
         });
         hardware::start(app, receiver);
-        media.start(app, stopped);
+        media.start(app, stopped.clone());
+        downloads::start(app);
+        images::start(app);
+        updater::start(app);
+        runtime::start(app, stopped);
+        agent::start(app);
     }
     pub fn stop(&self) {
+        agent::stop();
+        system::stop();
         self.stopped.store(true, Ordering::Release);
         let _ = self.shutdown.send(true);
         let _ = self.music.shutdown.send(true);
@@ -117,6 +141,33 @@ fn json_diagnostics(app: &AppHandle) -> Value {
 }
 
 pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Option<Result<Value>> {
+    if extensions::handles(channel) {
+        return Some(extensions::handle(app, channel, args).await);
+    }
+    if updater::handles(channel) {
+        return Some(updater::handle(app, channel, args).await);
+    }
+    if images::handles(channel) {
+        return Some(images::handle(app, channel, args).await);
+    }
+    if runtime::handles(channel) {
+        return Some(runtime::handle(app, channel, args).await);
+    }
+    if mail::handles(channel) {
+        return Some(mail::handle(app, channel, args).await);
+    }
+    if downloads::handles(channel) {
+        return Some(downloads::handle(app, channel, args).await);
+    }
+    if capture_tools::handles(channel) {
+        return Some(capture_tools::handle(app, channel, args).await);
+    }
+    if files::handles(channel) {
+        return Some(files::handle(app, channel, args).await);
+    }
+    if system::handles(channel) {
+        return Some(system::handle(app, channel, args).await);
+    }
     if hardware::handles(channel) {
         return Some(hardware::handle(app, channel, args).await);
     }
@@ -124,7 +175,12 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Option<Re
         return Some(media::handle(app, channel, args).await);
     }
     if music::handles(channel) {
-        return Some(app.state::<Services>().music.request(app,channel,args).await);
+        return Some(
+            app.state::<Services>()
+                .music
+                .request(app, channel, args)
+                .await,
+        );
     }
     None
 }

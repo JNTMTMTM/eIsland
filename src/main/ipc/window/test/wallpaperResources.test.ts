@@ -22,6 +22,7 @@
  * @file wallpaperResources.test.ts
  * @description 真实临时文件验证壁纸预览队列、磁盘缓存与桌面更新并发边界。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { mkdtemp, mkdir, writeFile, readdir, rm, open, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

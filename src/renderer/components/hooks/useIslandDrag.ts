@@ -25,7 +25,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import type { Point } from '../../../preload/types';
+import type { Point } from '../../../tauri/types';
 import type { IslandShapeMode, IslandState } from '../../store/types';
 
 /** 拖动距离阈值（像素），低于此值视为点击 */

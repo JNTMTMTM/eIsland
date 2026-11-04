@@ -21,6 +21,7 @@
  * @file updater.test.ts
  * @description updater 配置契约：任务容量、超时及持久化默认值。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_UPDATE_SOURCE, R2_UPDATE_URL, ESA_CDN_URL, GITHUB_OWNER, GITHUB_REPO } from '../updater';

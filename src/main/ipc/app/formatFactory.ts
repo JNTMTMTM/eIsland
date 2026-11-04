@@ -26,6 +26,7 @@
  *              - 输出到源文件同目录，文件名后缀标注轨道类型
  *              无 ffmpeg 时返回失败信息
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 
 import { BrowserWindow, dialog, ipcMain } from 'electron';
@@ -37,6 +38,7 @@ import type { ExtractVideoTrackOptions, ExtractVideoTrackResult } from './types'
 
 /**
  * 执行 ffmpeg 命令
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 function runFfmpeg(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -66,6 +68,7 @@ function runFfmpeg(args: string[]): Promise<{ code: number; stdout: string; stde
 
 /**
  * 注册格式工厂 IPC 处理器
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function registerFormatFactoryIpcHandlers(): void {
   /**

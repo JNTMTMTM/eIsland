@@ -7,6 +7,7 @@
  * @file codexScannerClient.ts
  * @description 复用一个扫描 Worker，关闭监视时释放解析缓存和线程。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { Worker } from 'worker_threads';
 import { join } from 'path';
@@ -15,6 +16,7 @@ import type { ParsedCodexSession } from './codexSessionParser';
 /**
  * 创建延迟初始化的扫描器代理。
  * @returns 异步扫描与终止操作。
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 export function createCodexScanner() {
   let worker: Worker | null = null;

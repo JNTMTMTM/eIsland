@@ -21,6 +21,7 @@
  * @file ffmpegPath.test.ts
  * @description FFmpeg打包路径优先级、静态依赖缺失及平台命令回退测试。
  * @author 鸡哥
+ * @deprecated Electron 宿主实现已弃用；保留函数与签名供迁移和回归参考，应用入口改用 Tauri。
  */
 import { Module } from 'node:module';
 import { join, resolve } from 'node:path';

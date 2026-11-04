@@ -5,6 +5,11 @@ icon: rocket
 
 # Release Commands
 
+:::warning Tauri migration
+Electron distribution commands `release:upload`, `release:upload-only` and `release:upload-minio` are disabled. The Tauri release workflow builds native NSIS installers and stores them as GitHub Actions artifacts for review. Electron latest.yml/blockmap publishing is not reused for Tauri. The legacy deployment details below are retained only as deprecated reference material.
+:::
+
+
 :::info
 This document covers the release and changelog commands for publishing eIsland builds and generating release notes. For packaging the installer locally, see [Package Commands](package-commands.md).
 :::
