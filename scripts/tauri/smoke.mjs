@@ -37,6 +37,7 @@ mkdirSync(output, { recursive: true });
 mkdirSync(resolve(output, 'store'), { recursive: true });
 writeFileSync(resolve(output, 'store/island-shape-mode.json'), JSON.stringify('notch'));
 writeFileSync(resolve(output, 'store/island-scale.json'), '100');
+writeFileSync(resolve(output, 'store/hide-hotkey.json'), JSON.stringify('Alt+X'));
 const port = 9224;
 const app = spawn(process.env.EISLAND_SMOKE_BINARY ?? resolve(root, 'src-tauri/target/debug/eisland.exe'), [], {
   cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'],
@@ -102,6 +103,17 @@ try {
   await guide.waitForSelector('#root > *');
   await ipc(guide, 'window:close');
   await main.waitForSelector('#root > *');
+  // Saving while recording registers the new binding before blur resumes all shortcuts.
+  const shortcutLogOffset = stderr.length;
+  await ipc(main, 'hotkey:suspend');
+  await ipc(main, 'hotkey:set', 'Ctrl+Alt+Shift+F11');
+  await ipc(main, 'hotkey:resume');
+  await ipc(main, 'hotkey:set', 'Control+Alt+Shift+F11');
+  await ipc(main, 'hotkey:resume');
+  await ipc(main, 'hotkey:suspend');
+  await ipc(main, 'hotkey:resume');
+  await delay(100);
+  assert(!stderr.slice(shortcutLogOffset).includes('[Shortcut] hide-hotkey:'), 'resume must not register a shortcut already owned by this process');
   const packaged = process.argv.includes('--packaged');
   if (!packaged) {
     await main.evaluate(async () => {
@@ -173,7 +185,7 @@ try {
   await assert.rejects(ipc(main, 'media:play-pause'), /not migrated/);
   assert.deepEqual(errors, [], 'main page must remain mounted without runtime exceptions');
   await main.screenshot({ path: resolve(output, 'main.png'), omitBackground: true });
-  console.log('PASS: real WebView2 main, guide, standalone, tray, capture, voice, glow, transitions, scale, sender checks');
+  console.log('PASS: real WebView2 main, guide, standalone, tray, capture, voice, glow, transitions, scale, shortcut suspend/save/resume, sender checks');
   console.log(JSON.stringify(await ipc(main, 'debug:windows')));
 } finally {
   if (browser) await browser.close();

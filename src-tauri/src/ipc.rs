@@ -112,18 +112,24 @@ pub async fn desktop_ipc(
                 if old == *a {
                     return Ok(json!(true));
                 }
-                if let Some(shortcut) = parsed {
+                let old_parsed = old.as_str().and_then(|v| v.parse::<Shortcut>().ok());
+                let same_binding = parsed == old_parsed;
+                if let Some(shortcut) = parsed.filter(|_| !same_binding) {
                     app.global_shortcut()
                         .register(shortcut)
                         .map_err(|e| e.to_string())?;
                 }
                 if let Err(error) = store_write(&app, key, a) {
-                    if let Some(shortcut) = parsed {
+                    if let Some(shortcut) = parsed.filter(|_| !same_binding) {
                         let _ = app.global_shortcut().unregister(shortcut);
                     }
                     return Err(error);
                 }
-                if let Some(old) = old.as_str().and_then(|v| v.parse::<Shortcut>().ok()) {
+                // Recording suspends all shortcuts before saving. The previous
+                // binding may already be released, or only its spelling changed.
+                if let Some(old) = old_parsed
+                    .filter(|old| !same_binding && app.global_shortcut().is_registered(*old))
+                {
                     app.global_shortcut()
                         .unregister(old)
                         .map_err(|e| e.to_string())?;
@@ -667,6 +673,11 @@ pub fn register_shortcuts(app: &AppHandle) -> Result<()> {
             continue;
         }
         let parsed: Shortcut = shortcut.parse().map_err(|e| format!("{key}: {e}"))?;
+        // Resume can run repeatedly on blur/unmount, and saving while suspended
+        // may have already registered one of the configured shortcuts.
+        if app.global_shortcut().is_registered(parsed) {
+            continue;
+        }
         if let Err(error) = app.global_shortcut().register(parsed) {
             eprintln!("[Shortcut] {key}: {error}");
         }
