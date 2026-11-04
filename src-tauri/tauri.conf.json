@@ -4,8 +4,8 @@
   "version": "27.0.1",
   "identifier": "com.pyisland.eisland",
   "build": {
-    "beforeDevCommand": "npm run dev:web",
-    "beforeBuildCommand": "npm run build:web",
+    "beforeDevCommand": "npm run native:tauri && npm run dev:web",
+    "beforeBuildCommand": "npm run native:tauri && npm run build:web",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../out/renderer"
   },
@@ -18,6 +18,9 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
-    "icon": ["../resources/icon/eisland_256x256.ico"]
+    "icon": ["../resources/icon/eisland_256x256.ico"],
+    "resources": {
+      "resources/native/": "native/"
+    }
   }
 }

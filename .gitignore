@@ -38,3 +38,4 @@ Thumbs.db
 /src-tauri/target/
 /src-tauri/generated/
 /src-tauri/gen/
+/src-tauri/resources/native/

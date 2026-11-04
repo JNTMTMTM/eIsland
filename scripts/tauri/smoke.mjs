@@ -103,6 +103,47 @@ try {
   await guide.waitForSelector('#root > *');
   await ipc(guide, 'window:close');
   await main.waitForSelector('#root > *');
+  if (process.argv.includes('--system')) {
+    const diagnostics = await ipc(main, 'debug:system-services');
+    assert.equal(diagnostics.media.ready, true, JSON.stringify(diagnostics));
+    assert.equal(diagnostics.media.error, null);
+    const hardware = await main.evaluate(async () => ({
+      volume: await window.api.getVolume(), brightness: await window.api.getBrightness(), muted: await window.api.mediaGetMuted(),
+    }));
+    console.log('Native system services:', JSON.stringify({ diagnostics, hardware }));
+    assert(hardware.volume === null || (hardware.volume >= 0 && hardware.volume <= 100));
+    assert(hardware.brightness === null || (hardware.brightness >= 0 && hardware.brightness <= 100));
+    assert(hardware.muted === null || typeof hardware.muted === 'boolean');
+    if (hardware.volume !== null) {
+      const writes = await Promise.all([0,1,2,3].map(() => ipc(main, 'system:volume:set', hardware.volume)));
+      assert(writes.every((success) => success === true));
+      assert.equal(await ipc(main, 'system:volume:get'),hardware.volume);
+    }
+    if (hardware.brightness !== null) assert.equal(await ipc(main, 'system:brightness:set', hardware.brightness), true);
+    assert.equal(await ipc(main, 'system:volume:set', 'invalid'), false);
+    assert.equal(await ipc(main, 'system:brightness:set', null), false);
+    const timestamp = await ipc(main, 'smtc:get-timestamp');
+    assert.equal(typeof timestamp.isAvailable, 'boolean');
+    const detected = await ipc(main, 'music:detect-source-app-id');
+    assert(Array.isArray(detected.sources));
+    const savedWhitelist = await ipc(main, 'music:whitelist:get');
+    try {
+      const titledSource = detected.sources.find((source) => source.hasTitle);
+      if (titledSource) {
+        await ipc(main, 'music:whitelist:set', [titledSource.sourceAppId]);
+        const playing = await ipc(main, 'media:current-info:get');
+        assert.equal(playing.deviceId,titledSource.sourceAppId);
+        assert.equal(typeof playing.title,'string');
+        assert.equal(typeof playing.positionTimestampMs,'number');
+      }
+      await ipc(main, 'music:whitelist:set', []);
+      assert.equal((await ipc(main, 'media:play-pause')).success,false);
+      assert.equal((await ipc(main, 'media:seek', -1)).success,false);
+    } finally {
+      await ipc(main, 'music:whitelist:set', savedWhitelist);
+    }
+    await assert.rejects(ipc(main, 'music:whitelist:set', ['valid', 42]), /Expected source name/);
+  }
   // Saving while recording registers the new binding before blur resumes all shortcuts.
   const shortcutLogOffset = stderr.length;
   await ipc(main, 'hotkey:suspend');
@@ -182,7 +223,7 @@ try {
   await capture.waitForFunction(() => typeof bgImage !== 'undefined' && bgImage?.width > 0);
   await ipc(capture, 'capture-cancel');
   await assert.rejects(ipc(main, 'store:read', '../secrets'), /Invalid store key/);
-  await assert.rejects(ipc(main, 'media:play-pause'), /not migrated/);
+  await assert.rejects(ipc(main, 'system:performance-snapshot:get'), /not migrated/);
   assert.deepEqual(errors, [], 'main page must remain mounted without runtime exceptions');
   await main.screenshot({ path: resolve(output, 'main.png'), omitBackground: true });
   console.log('PASS: real WebView2 main, guide, standalone, tray, capture, voice, glow, transitions, scale, shortcut suspend/save/resume, sender checks');

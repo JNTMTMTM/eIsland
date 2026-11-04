@@ -43,6 +43,11 @@ let queue: Promise<void> = Promise.resolve();
  * @returns Rust 命令结果。
  */
 async function invoke<T>(channel: string, ...args: unknown[]): Promise<T> {
+  // Hardware helpers and media calls may take seconds; keep them off the window queue.
+  if (!channel.startsWith('window:')) {
+    await ready;
+    return tauri.core.invoke<T>('desktop_ipc', { channel, args });
+  }
   const previous = queue;
   let release: () => void = () => {};
   queue = new Promise<void>((resolve) => { release = resolve; });

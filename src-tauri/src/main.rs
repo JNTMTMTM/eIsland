@@ -25,6 +25,7 @@ mod geometry;
 mod ipc;
 mod native;
 mod settings;
+mod services;
 mod state;
 mod windows;
 
@@ -69,6 +70,7 @@ fn main() {
                 .map(std::path::PathBuf::from)
                 .unwrap_or(directory);
             app.manage(state::Desktop::new(directory));
+            services::Services::start(app.handle());
             windows::create(app.handle(), "main")?;
             windows::reposition(app.handle())?;
             let scale = app.state::<state::Desktop>().inner.lock().unwrap().scale;
@@ -153,7 +155,10 @@ fn main() {
         })
         .build(tauri::generate_context!())
         .expect("Failed to initialize eIsland")
-        .run(|_, event| {
+        .run(|app, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                app.state::<services::Services>().stop();
+            }
             if let tauri::RunEvent::ExitRequested {
                 api, code: None, ..
             } = event

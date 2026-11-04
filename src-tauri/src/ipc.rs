@@ -78,6 +78,9 @@ pub async fn desktop_ipc(
     }
     let a = args.first().unwrap_or(&Value::Null);
     let b = args.get(1).unwrap_or(&Value::Null);
+    if let Some(result) = crate::services::handle(&app, &channel, &args).await {
+        return result;
+    }
     if let Some(result) = crate::settings::handle(&app, &channel, a)? {
         return Ok(result);
     }
@@ -147,6 +150,10 @@ pub async fn desktop_ipc(
         }
     }
     match channel.as_str() {
+        #[cfg(debug_assertions)]
+        "debug:system-services" => {
+            return Ok(crate::services::Services::diagnostics(&app));
+        }
         #[cfg(debug_assertions)]
         "debug:transparency-underlay" => {
             source(&window, "main")?;
@@ -662,6 +669,8 @@ const SHORTCUTS: &[(&str, &str)] = &[
     ("toggle-tray-hotkey", ""),
     ("toggle-ui-lock-hotkey", ""),
     ("open-clipboard-history-hotkey", ""),
+    ("next-song-hotkey", ""),
+    ("play-pause-song-hotkey", ""),
 ];
 pub fn register_shortcuts(app: &AppHandle) -> Result<()> {
     let state = app.state::<Desktop>();
@@ -738,6 +747,20 @@ pub fn shortcut_action(app: &AppHandle, pressed: &str) -> Result<()> {
             windows::reposition(app)
         }
         Some("show-settings-window-hotkey") => menu_action(app, "open-settings"),
+        Some("next-song-hotkey" | "play-pause-song-hotkey") => {
+            let handle = app.clone();
+            let channel = if action == Some("next-song-hotkey") {
+                "media:next"
+            } else {
+                "media:play-pause"
+            };
+            tauri::async_runtime::spawn(async move {
+                if let Some(Err(error)) = crate::services::handle(&handle, channel, &[]).await {
+                    eprintln!("[Media shortcut] {error}");
+                }
+            });
+            Ok(())
+        }
         Some("toggle-tray-hotkey") => {
             let tray = app.tray_by_id("eisland").ok_or("Tray unavailable")?;
             let visible = app
