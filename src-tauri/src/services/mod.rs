@@ -21,6 +21,8 @@
 mod hardware;
 mod media;
 mod media_state;
+mod music;
+mod music_window;
 #[cfg(windows)]
 mod smtc;
 
@@ -39,6 +41,7 @@ pub struct Services {
     pub hardware: hardware::Hardware,
     pub media: Arc<media::Media>,
     pub stopped: Arc<AtomicBool>,
+    pub music: music::Music,
     shutdown: tokio::sync::watch::Sender<bool>,
 }
 
@@ -90,6 +93,7 @@ impl Services {
             hardware,
             media: media.clone(),
             stopped: stopped.clone(),
+            music: music::Music::new(),
             shutdown,
         });
         hardware::start(app, receiver);
@@ -98,6 +102,7 @@ impl Services {
     pub fn stop(&self) {
         self.stopped.store(true, Ordering::Release);
         let _ = self.shutdown.send(true);
+        let _ = self.music.shutdown.send(true);
     }
 }
 
@@ -117,6 +122,9 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Option<Re
     }
     if media::handles(channel) {
         return Some(media::handle(app, channel, args).await);
+    }
+    if music::handles(channel) {
+        return Some(app.state::<Services>().music.request(app,channel,args).await);
     }
     None
 }

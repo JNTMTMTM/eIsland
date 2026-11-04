@@ -20,7 +20,8 @@
     "targets": ["nsis"],
     "icon": ["../resources/icon/eisland_256x256.ico"],
     "resources": {
-      "resources/native/": "native/"
+      "resources/native/": "native/",
+      "resources/music/": "music/"
     }
   }
 }

@@ -26,6 +26,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
@@ -42,7 +43,7 @@ const port = 9224;
 const app = spawn(process.env.EISLAND_SMOKE_BINARY ?? resolve(root, 'src-tauri/target/debug/eisland.exe'), [], {
   cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'],
   env: { ...process.env, EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
-    EISLAND_DATA_DIR: resolve(output, 'store'), WEBVIEW2_USER_DATA_FOLDER: resolve(output, 'webview') },
+    EISLAND_DATA_DIR: resolve(output, 'store'), EISLAND_WEBVIEW_DATA_DIR: resolve(output, 'webview') },
 });
 let stderr = '';
 app.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
@@ -103,6 +104,46 @@ try {
   await guide.waitForSelector('#root > *');
   await ipc(guide, 'window:close');
   await main.waitForSelector('#root > *');
+  if (process.argv.includes('--music')) {
+    const fixture = createServer((_request, response) => response.end('[00:01.00]Tauri 歌词链路'));
+    await new Promise((resolve) => fixture.listen(0, '127.0.0.1', resolve));
+    try {
+      const lyrics = await ipc(main, 'net:fetch', `http://127.0.0.1:${fixture.address().port}/lyrics`);
+      assert.equal(lyrics.ok, true);
+      assert.equal(lyrics.body, '[00:01.00]Tauri 歌词链路');
+      const source = await ipc(main, 'music:lyrics-source:get');
+      await ipc(main, 'music:lyrics-source:set', 'auto');
+      assert.equal(await ipc(main, 'store:read', 'lyrics-source'), 'auto');
+      await ipc(main, 'music:lyrics-source:set', source);
+      const auth = await ipc(main, 'music-provider-auth:status', 'qishui');
+      assert.equal(auth.loggedIn, false);
+      assert.equal((await ipc(main, 'qishui:status')).provider, 'qishui');
+      await assert.rejects(ipc(main, 'qishui:lyrics', ''), /QISHUI_TRACK_ID_REQUIRED/);
+      console.log('PASS: Rust/Node lyrics network, shared preferences and original platform services');
+      if (process.argv.includes('--music-network')) {
+        const results = await ipc(main, 'qishui:search', '晴天', { limit: 2 });
+        assert(results.songs?.length > 0, 'Public catalog must return tracks');
+        const lyric = await ipc(main, 'qishui:lyrics', results.songs[0].id);
+        assert.equal(typeof lyric.lyric, 'string');
+        const playback = await ipc(main, 'qishui:song-url', results.songs[0].id);
+        assert.equal(playback.reason, 'login_required');
+        console.log('PASS: public music search/lyrics and original playback authentication guard');
+      }
+      if (process.argv.includes('--music-login')) {
+        const qr = await ipc(main, 'music-provider-auth:create-qr', 'qishui');
+        assert.equal(qr.state, 'waiting');
+        assert(qr.token && qr.qrContent, 'QR payload must be complete');
+        const status = await ipc(main, 'music-provider-auth:check-qr', 'qishui', qr.token);
+        assert(['waiting', 'rate_limited', 'expired'].includes(status.state));
+        await ipc(main, 'music-provider-auth:clear', 'qishui');
+        assert.equal((await ipc(main, 'music-provider-auth:status', 'qishui')).loggedIn, false);
+        const replacement = await ipc(main, 'music-provider-auth:create-qr', 'qishui');
+        assert(replacement.token && replacement.qrContent);
+        await ipc(main, 'music-provider-auth:clear', 'qishui');
+        console.log('PASS: isolated WebView2 signer, official QR creation/polling, cleanup and recreation');
+      }
+    } finally { fixture.closeAllConnections(); fixture.close(); }
+  }
   if (process.argv.includes('--system')) {
     const diagnostics = await ipc(main, 'debug:system-services');
     assert.equal(diagnostics.media.ready, true, JSON.stringify(diagnostics));
@@ -228,6 +269,12 @@ try {
   await main.screenshot({ path: resolve(output, 'main.png'), omitBackground: true });
   console.log('PASS: real WebView2 main, guide, standalone, tray, capture, voice, glow, transitions, scale, shortcut suspend/save/resume, sender checks');
   console.log(JSON.stringify(await ipc(main, 'debug:windows')));
+  const exited = new Promise((resolve) => app.once('exit', resolve));
+  await main.evaluate(() => window.electron.ipcRenderer.send('app:quit'));
+  await Promise.race([exited, delay(3000).then(() => { throw new Error('Application did not quit'); })]);
+} catch (error) {
+  console.error(stderr);
+  throw error;
 } finally {
   if (browser) await browser.close();
   app.kill();

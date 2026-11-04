@@ -108,6 +108,12 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
     };
     let effect = matches!(label, "agent-voice-input" | "cli-glow");
     let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App(page.into()));
+    #[cfg(debug_assertions)]
+    let builder = if let Some(directory) = std::env::var_os("EISLAND_WEBVIEW_DATA_DIR") {
+        builder.data_directory(std::path::PathBuf::from(directory))
+    } else {
+        builder
+    };
     // Transparent WebView2 content must not expose the HWND's redirected background
     // when SetWindowRgn changes the visible area during an island transition.
     #[cfg(windows)]
