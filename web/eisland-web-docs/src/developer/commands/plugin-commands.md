@@ -54,10 +54,14 @@ Run from the **project root** to build or clean the Windows plugins at once. Bui
 |---------|-------------|
 | `npm run plugins:build` | Build the 13 configured Windows plugins sequentially (uses `build:all` where available) |
 | `npm run plugins:clean` | Clean the 13 configured Windows plugins in parallel |
+| `npm run plugins:build:tauri` | Independently publish the migrated volume, brightness and SMTC helpers to `src-tauri/resources/native/<RID>` |
+| `npm run native:tauri` | Compatibility alias for `plugins:build:tauri`; only builds native helpers |
 
 :::tip
 `plugins:build` automatically uses `build:all` for Bluetooth, Power, SMTC, and WiFi Helpers (which include NativeAOT DLL targets). All other plugins use `build`.
 :::
+
+Tauri application commands consume these prepared native resources without compiling plugins. Run `plugins:build:tauri` on first setup and after changing the migrated plugin sources or target architecture. The existing Electron `plugins:build` flow remains separate. Music business bundling uses `music:build:tauri` and runs automatically before Tauri development and application builds.
 
 ### Individual Plugin Commands
 

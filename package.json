@@ -94,7 +94,9 @@
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
     "dev:tauri": "tauri dev",
     "build:tauri": "tauri build",
-    "native:tauri": "node scripts/tauri/build-native.mjs"
+    "plugins:build:tauri": "node scripts/tauri/build-native.mjs",
+    "music:build:tauri": "node scripts/tauri/build-music.mjs",
+    "native:tauri": "npm run plugins:build:tauri"
   },
   "dependencies": {
     "@eisland/windows-application-icon-helper": "file:plugins/windows/eisland-windows-application-icon-helper",

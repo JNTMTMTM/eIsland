@@ -4,8 +4,8 @@
   "version": "27.0.1",
   "identifier": "com.pyisland.eisland",
   "build": {
-    "beforeDevCommand": "npm run native:tauri && npm run dev:web",
-    "beforeBuildCommand": "npm run native:tauri && npm run build:web",
+    "beforeDevCommand": "npm run music:build:tauri && npm run dev:web",
+    "beforeBuildCommand": "npm run music:build:tauri && npm run build:web",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../out/renderer"
   },

@@ -26,7 +26,6 @@ import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import './build-music.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 if (process.platform === 'win32') {

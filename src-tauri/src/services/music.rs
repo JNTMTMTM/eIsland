@@ -101,7 +101,7 @@ impl Music {
                 return Ok(path);
             }
         }
-        Err("Music runtime missing; run npm run native:tauri".into())
+        Err("Music runtime missing; run npm run music:build:tauri".into())
     }
     async fn start(&self, app: &AppHandle) -> Result<Arc<Runner>> {
         let mut slot = self.runner.lock().await;

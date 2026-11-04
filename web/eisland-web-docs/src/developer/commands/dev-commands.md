@@ -9,10 +9,9 @@ icon: code
 This document covers the core development commands for building, running, and previewing the eIsland application. For environment setup and prerequisites, see [Frontend Setup](/developer/environment-setup/frontend-setup.md).
 :::
 
-All commands are run from the `web/` directory:
+All commands are run from the **project root**:
 
 ```bash
-cd web
 npm run <script>
 ```
 
@@ -44,6 +43,27 @@ The renderer uses **React Fast Refresh** — component state is preserved across
 | Port 5173 in use | Another process is occupying the port | `netstat -ano \| findstr :5173` then `taskkill /PID <pid> /F` |
 | White screen | Renderer dev server not ready | Wait a few seconds; Vite needs time to bundle on first run |
 | Native module errors | Modules not rebuilt for Electron | Run `npx electron-builder install-app-deps` |
+
+## Tauri Development and Builds
+
+`npm run dev` continues to launch Electron. Use `npm run dev:tauri` to launch Tauri.
+
+Native plugins are built separately from application startup and packaging, following the Electron workflow:
+
+```bash
+# First setup, or after changing native plugin sources or target architecture
+npm run plugins:build:tauri
+
+# Daily development: rebuilds the music business bundle, starts Vite and Tauri
+npm run dev:tauri
+
+# Builds the music business bundle, renderer, Rust host and installer
+npm run build:tauri
+```
+
+Neither `dev:tauri` nor `build:tauri` invokes .NET or rebuilds native plugins. Both consume the prepared files in `src-tauri/resources/native/<RID>`; run `plugins:build:tauri` first on a clean checkout and again whenever those native sources or the target architecture change. The standalone plugin command requires .NET 10 and the Windows NativeAOT build tools.
+
+The music helper is application code: `music:build:tauri` bundles the existing music services and stages their Node runtime, so it remains in the application hooks. It does not compile native plugins. `native:tauri` remains an alias for `plugins:build:tauri` and no longer builds the music helper.
 
 ## `npm run build`
 
