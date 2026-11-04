@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: '24.22.1'
           cache: npm
-      - name: Install dependencies without legacy lifecycle scripts
+      - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Install CLI dependencies
         if: matrix.project == 'cli'
@@ -68,8 +68,8 @@ jobs:
           node-version: '24.22.1'
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Test native API and retired Electron command guards
-        run: npm run test:tauri:api
+      - name: Test native API, runtime entry points and release tooling
+        run: npm run test:api
       - name: Check translation consistency
         run: npm run i18n:check
       - name: Test lint configuration

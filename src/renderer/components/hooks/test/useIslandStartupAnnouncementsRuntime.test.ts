@@ -102,7 +102,7 @@ function token(role: string): string {
     role
   })).toString('base64url')}.signature`;
 }
-/** 创建 Electron 桥接叶实现。
+/** 创建原生 API 测试边界。
  * @returns 注册回调、存储及更新接口
  */
 function bridge() {

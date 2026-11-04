@@ -137,7 +137,7 @@ test('类型感知检查能发现悬空 Promise，声明文件不会因同名源
   const [result] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'vitest.config.mts')}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.mts' });
   assert.equal(result.fatalErrorCount, 0);
   assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'), JSON.stringify(result.messages));
-  const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'index.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/preload/index.d.ts' });
+  const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'global.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/tauri/global.d.ts' });
   assert.equal(declaration.fatalErrorCount, 0);
 });
 
@@ -246,7 +246,7 @@ test('子项目的普通 TypeScript 文件保留 Hook 插件及共享注释检�
 });
 
 test('Node 和浏览器全局隔离，产物忽略而源码与声明文件纳入检查', async () => {
-  const node = await eslint.calculateConfigForFile('src/main/index.ts');
+  const node = await eslint.calculateConfigForFile('scripts/check-i18n-completeness.ts');
   const browser = await eslint.calculateConfigForFile('src/renderer/App.tsx');
   assert.ok('process' in node.languageOptions.globals);
   assert.ok(!('window' in node.languageOptions.globals));
@@ -254,7 +254,7 @@ test('Node 和浏览器全局隔离，产物忽略而源码与声明文件纳入
   assert.ok(!('process' in browser.languageOptions.globals));
   assert.equal(await eslint.isPathIgnored('out/main/index.js'), true);
   assert.equal(await eslint.isPathIgnored('plugins/example/build/generated.js'), true);
-  assert.equal(await eslint.isPathIgnored('src/preload/index.d.ts'), false);
+  assert.equal(await eslint.isPathIgnored('src/tauri/global.d.ts'), false);
   assert.equal(await eslint.isPathIgnored('plugins/example/index.js'), false);
   assert.equal(await eslint.isPathIgnored('sdk/src/index.ts'), false);
 });

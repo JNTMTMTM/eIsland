@@ -92,7 +92,7 @@ pub fn native_path(app: &AppHandle, component: &str, file: &str) -> Result<PathB
         }
     }
     Err(format!(
-        "Native helper missing: {component}/{file}; run npm run plugins:build:tauri"
+        "Native helper missing: {component}/{file}; run npm run plugins:build"
     ))
 }
 

@@ -5,136 +5,62 @@ icon: code
 
 # Development Commands
 
-:::warning Tauri migration
-Application commands now run Tauri. `dev` aliases `dev:tauri`, `build` builds the native app without an installer, and `package` produces the Tauri NSIS installer. The Electron execution details retained below are deprecated reference material; old Electron preview/debug commands cannot run. Native plugins are prepared separately with `plugins:build:tauri`. The Node music helper and preload bridge have been retired; application hooks only build or serve the renderer.
-:::
+Run application commands from the **repository root**, where the application `package.json` lives. The desktop runtime is Tauri with a React renderer in WebView2. Rust implements the native services.
 
+## First setup
 
-:::info
-This document covers the core development commands for building, running, and previewing the eIsland application. For environment setup and prerequisites, see [Frontend Setup](/developer/environment-setup/frontend-setup.md).
-:::
+Windows x64 requires Node.js 24.22.1, Rust with the MSVC toolchain, Visual Studio 2022 C++ build tools, .NET 10 SDK and WebView2.
 
-All commands are run from the **project root**:
-
-```bash
-npm run <script>
+```powershell
+npm ci --ignore-scripts
+npm ci --prefix cli --ignore-scripts
+npm run plugins:build
 ```
 
-## `npm run dev`
+`plugins:build` publishes the volume, brightness, SMTC and temperature components and stages native FFmpeg in `src-tauri/resources/native/`. Missing FFmpeg is downloaded automatically; first setup requires network access. Repeat preparation after changing plugin sources or target architecture. Development and direct Tauri builds consume these resources.
 
-Starts the application in development mode with hot reload.
+## Start the desktop application
 
-```bash
+```powershell
 npm run dev
 ```
 
-**Under the hood:**
+Tauri runs `npm run dev:web`, starts Vite at `http://localhost:1420`, compiles the Rust host and opens the desktop windows. React edits use Fast Refresh; Rust edits rebuild the host. Native plugin changes require the separate preparation command.
 
-| Step | Process | Output |
-|------|---------|--------|
-| 1 | Compiles `src/main/` with electron-vite | `out/main/` |
-| 2 | Compiles `src/preload/` with electron-vite | `out/preload/` |
-| 3 | Starts Vite dev server for `src/renderer/` | `http://localhost:5173` |
-| 4 | Launches Electron pointing at the dev server | Desktop window |
+`npm run dev:web` starts only the renderer server. Native desktop APIs require the Tauri host.
 
-:::tip
-The renderer uses **React Fast Refresh** — component state is preserved across edits. Main process changes trigger an automatic Electron restart.
-:::
+## Build and run production pages
 
-**Common issues:**
-
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| Port 5173 in use | Another process is occupying the port | `netstat -ano \| findstr :5173` then `taskkill /PID <pid> /F` |
-| White screen | Renderer dev server not ready | Wait a few seconds; Vite needs time to bundle on first run |
-| Native module errors | Modules not rebuilt for Electron | Run `npx electron-builder install-app-deps` |
-
-## Tauri Development and Builds
-
-`npm run dev` now launches Tauri through `dev:tauri`. The Electron launcher is retired.
-
-Native plugins are built separately from application startup and packaging, following the Electron workflow:
-
-```bash
-# First setup, or after changing native plugin sources or target architecture
-npm run plugins:build:tauri
-
-# Daily development: rebuilds the music business bundle, starts Vite and Tauri
-npm run dev:tauri
-
-# Builds the music business bundle, renderer, Rust host and installer
-npm run build:tauri
-```
-
-Neither `dev:tauri` nor `build:tauri` invokes .NET or rebuilds native plugins. Both consume the prepared files in `src-tauri/resources/native/<RID>`; run `plugins:build:tauri` first on a clean checkout and again whenever those native sources or the target architecture change. The standalone plugin command requires .NET 10 and the Windows NativeAOT build tools.
-
-Music services execute in Rust. `music:build:tauri` is retired; `native:tauri` remains an alias for the independent `plugins:build:tauri` command.
-
-## `npm run build`
-
-Builds all three targets (main, preload, renderer) into the `out/` directory.
-
-```bash
+```powershell
 npm run build
 ```
 
-**Output structure:**
+This runs `tauri build --no-bundle`: Vite writes `out/renderer/`, and Cargo builds the native executable without creating an installer. With the default Cargo target directory, the executable is `src-tauri/target/release/eisland.exe`.
 
-```text
-out/
-├── main/          # Compiled main process (Node.js)
-├── preload/       # Compiled preload scripts
-└── renderer/      # Compiled React UI (4 HTML entries)
+Run that executable directly to inspect the embedded production pages. `npm run preview` starts Tauri with host watching disabled and uses the renderer development server.
+
+```powershell
+npm run build:web        # Renderer assets only
+npx tauri build      # Native application and NSIS installer; resources must be prepared
+npm run package          # Prepare native resources, then build the application and installer
 ```
 
-:::info
-This command produces a production-ready build but does **not** create an installer. Use `npm run package` to produce a distributable `.exe` installer. See [Package Commands](package-commands.md).
-:::
+See [Package Commands](package-commands.md) for installer outputs and [Release Commands](release-commands.md) for uploading an existing build.
 
-**When to use:**
-- Before running `npm run preview` to verify the production build
-- When CI needs a clean build artifact
-- To debug production-only issues locally
+## Native tests
 
-## `npm run preview`
-
-Previews the built application without the Vite dev server.
-
-```bash
-npm run preview
+```powershell
+npm run test:api
+npm run test:rust
+npm run build:e2e
+npm run test:e2e   # Real WebView2, music, AI and native service tests
 ```
 
-:::important
-You must run `npm run build` first. `npm run preview` serves the pre-built files from `out/` — it does not rebuild.
-:::
-
-**When to use:**
-- Verify the production build works correctly before packaging
-- Debug issues that only appear outside of dev mode (e.g., CSP violations, missing assets)
+The desktop tests use isolated data directories. Set `EISLAND_SMOKE_BINARY` when the executable is outside the default debug target directory. A direct Cargo build used for these tests must enable the `custom-protocol` feature so it embeds the production pages.
 
 ## Troubleshooting
 
-### `npm run dev` Fails to Start
-
-**Port already in use:**
-
-```bash
-netstat -ano | findstr :5173
-taskkill /PID <process-id> /F
-npm run dev
-```
-
-**Native module errors:**
-
-```bash
-npx electron-builder install-app-deps
-npm run dev
-```
-
-### TypeScript Errors After Pull
-
-```bash
-rm -rf out/ node_modules/
-npm install
-npm run build
-```
+- If port 1420 is occupied, inspect `netstat -ano | findstr :1420` and stop the development process that owns it before restarting.
+- If native resources are missing, run `npm run plugins:build`; its first run may download FFmpeg.
+- If Cargo cannot link, check the MSVC toolchain and the Visual Studio C++ workload. A renderer-only build does not validate the Rust executable or native plugins.
+- `CARGO_TARGET_DIR` can relocate Cargo output. Update `EISLAND_SMOKE_BINARY` to the resulting executable path when running desktop tests.

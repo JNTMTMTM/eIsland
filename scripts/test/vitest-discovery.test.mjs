@@ -59,8 +59,7 @@ test('Windows root Vitest projects discover every source and plugin test exactly
     ...Array.from(workflow.matchAll(/PROJECT_ARGS\+=\(--project ([\w-]+)\)/gu), (match) => match[1]),
   ]);
   const untestedProjects = Array.from(new Set(entries.map(({ projectName }) => projectName)))
-    .filter((name) => !ciProjects.has(name)
-      && !packageJson.deprecatedElectron.legacyTestProjects.includes(name));
+    .filter((name) => !ciProjects.has(name));
   assert.deepEqual(untestedProjects, [], 'Collected projects are missing from CI execution');
   console.log(`All ${expected.length} source and plugin test files are collected exactly once.`);
 });

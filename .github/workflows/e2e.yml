@@ -5,7 +5,7 @@ on:
     paths:
       - 'src/**'
       - 'src-tauri/**'
-      - 'scripts/tauri/**'
+      - 'scripts/native/**'
       - 'scripts/test/**'
       - 'i18n/**'
       - 'resources/**'
@@ -44,7 +44,7 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
-      - name: Install build dependencies without legacy lifecycle scripts
+      - name: Install build dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Prepare WebView2
         shell: pwsh
@@ -59,15 +59,15 @@ jobs:
       - name: Prepare native FFmpeg binary
         run: node node_modules/ffmpeg-static/install.js
       - name: Publish native plugin resources
-        run: npm run plugins:build:tauri
+        run: npm run plugins:build
       - name: Test native Tauri API and Rust services
-        run: npm run test:tauri
+        run: npm run test:api && npm run test:rust
       - name: Check Rust services
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
       - name: Build embedded Tauri test application
-        run: npm run build:tauri -- --debug --no-bundle
+        run: npx tauri build --debug --no-bundle
       - name: Run real WebView2 desktop tests
-        run: npm run test:e2e:tauri
+        run: npm run test:e2e
         env:
           EISLAND_SMOKE_BINARY: ${{ github.workspace }}/src-tauri/target/debug/eisland.exe
       - name: Upload diagnostics

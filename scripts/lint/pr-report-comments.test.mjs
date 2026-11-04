@@ -20,7 +20,7 @@
 
 /**
  * @file pr-report-comments.test.mjs
- * @description 验证当前 CI 评论和原生构建附件策略，并保留旧报告纯文本生成回归。
+ * @description 验证当前 CI 评论、原生模块分类、命令和构建附件策略。
  * @author 鸡哥
  */
 
@@ -51,41 +51,36 @@ function classificationScript(file, start, end) {
   return script.slice(script.indexOf(start), script.indexOf(end));
 }
 
-test('issue 分类识别原生 Tauri 与遗留 Electron，保留功能及类型类别', () => {
+test('issue 分类识别原生 Tauri，保留功能及类型类别', () => {
   const script = classificationScript('issue-auto-label.yml', 'const text =', 'const labels =');
   const classify = (title) => Array.from(runInNewContext(`${script}\n[...labelsToApply]`, { issue: { title } }));
   const native = classify('Tauri Rust WebView2 原生窗口 crash');
   assert(native.includes('area: tauri-core'));
   assert(native.includes('type: bug'));
-  assert(!native.includes('area: legacy-electron'));
-  assert(classify('Electron preload BrowserWindow migration').includes('area: legacy-electron'));
   const stock = classify('股票 chart feature');
   assert(stock.includes('area: stock'));
   assert(stock.includes('area: chart'));
   assert(stock.includes('type: feature'));
 });
 
-test('PR 路径分类覆盖 Rust、Tauri API、插件和遗留源码', () => {
+test('PR 路径分类覆盖 Rust、Tauri API、插件和脚本', () => {
   const script = classificationScript('pr-auto-label.yml', 'const filenames =', 'const labels =');
   const classify = (names) => Array.from(runInNewContext(`${script}\n[...labelsToApply]`, { files: names.map((filename) => ({ filename })) }));
-  ['src-tauri/src/main.rs', 'src/tauri/api.ts', 'plugins/windows/helper/src/lib.rs', 'scripts/tauri/smoke.mjs'].forEach((path) => {
+  ['src-tauri/src/main.rs', 'src/tauri/api.ts', 'plugins/windows/helper/src/lib.rs', 'scripts/native/smoke.mjs'].forEach((path) => {
     assert(classify([path]).includes('tauri-core'), path);
   });
-  assert.deepEqual(classify(['src/main/index.ts', 'src/preload/index.ts']), ['legacy-electron']);
   const existing = classify(['src/renderer/App.tsx', 'README.md', 'assets/icon.svg']);
   ['frontend', 'documentation', 'assets'].forEach((label) => assert(existing.includes(label)));
 });
 
-test('PR 摘要按 Tauri 构建配置、原生服务和遗留模块分组', () => {
+test('PR 摘要按 Tauri 构建配置、原生服务和界面分组', () => {
   const script = classificationScript('pr-summary-comment.yml', 'const moduleRules =', '// ========== 4. Statistics');
   const groups = runInNewContext(`${script}\ngroups`, { files: [
     'src-tauri/Cargo.toml', 'src-tauri/tauri.conf.json', 'src-tauri/build.rs', 'vite.config.ts', 'package-lock.json',
-    'src-tauri/src/main.rs', 'src/tauri/api.ts', 'src/main/index.ts', 'src/preload/index.ts', 'src/renderer/App.tsx',
+    'src-tauri/src/main.rs', 'src/tauri/api.ts', 'src/renderer/App.tsx',
   ].map((filename) => ({ filename })) });
   assert.equal(groups['Build / Config'].length, 5);
   assert.equal(groups['Tauri Core'].length, 2);
-  assert.equal(groups['Legacy Electron Main'].length, 1);
-  assert.equal(groups['Legacy Electron Preload'].length, 1);
   assert.equal(groups.Renderer.length, 1);
 });
 
@@ -95,133 +90,54 @@ test('原生测试工作流只提供可执行的 dispatch 项目', () => {
   assert.doesNotMatch(workflow, /legacy is available|options:.*legacy/u);
 });
 
-// 弃用工作流的报告协议，仅作为纯文本生成回归夹具；不安装或运行 Electron。
-const PROJECTS = ['main', 'preload', 'shared', 'plugins', 'renderer', 'cli'];
-
-/**
- * 执行工作流实际的报告生成代码，模拟六个矩阵任务的 JSON 附件。
- * @param overrides - 按 project 替换附件；null 模拟整个任务未能上传附件。
- * @param outcome - GitHub 聚合矩阵结果，包含报告之外的安装或上传失败。
- * @returns 实际生成的 PR 评论文本。
- * @deprecated 原 Electron 矩阵报告已归档；保留其纯文本生成函数与回归，当前原生工作流使用 Actions 状态和附件。
- */
-async function renderMatrixReport(overrides = {}, outcome = 'success') {
-  const workflow = readFileSync(new URL('../../.github/legacy-workflows/test.yml.disabled', import.meta.url), 'utf8');
-  const [, block] = workflow.split(/^ {10}script: \|\r?\n/mu);
-  const script = block.split('// ==================== Post Comment')[0].split(/\r?\n/u)
-    .map((line) => line.replace(/^ {12}/u, '')).join('\n');
-  const artifacts = new Map();
-  PROJECTS.forEach((project) => {
-    const files = Object.hasOwn(overrides, project) ? overrides[project] : {
-      'test-metadata.json': { exit_code: 0, duration_seconds: 5 },
-      'vitest-results.json': {
-        success: true, numTotalTests: 2, numPassedTests: 2, numFailedTests: 0,
-        numPendingTests: 0, numTodoTests: 0,
-        testResults: [{
-          name: `C:\\work\\src\\${project}\\test\\fixture.test.ts`, status: 'passed',
-          assertionResults: [{ status: 'passed' }, { status: 'passed' }],
-        }],
-      },
-    };
-    Object.entries(files ?? {}).forEach(([name, content]) => {
-      artifacts.set(`test-reports/test-logs-${project}/${name}`, typeof content === 'string' ? content : JSON.stringify(content));
+test('原生 CI 的固定 npm 命令均存在', () => {
+  const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+  ['test.yml', 'e2e.yml', 'release-build-upload.yml', 'build-size-report.yml'].forEach((file) => {
+    const source = readFileSync(new URL(`../../.github/workflows/${file}`, import.meta.url), 'utf8');
+    Array.from(source.matchAll(/npm run ([\w:-]+)(?![\w:$])/gu)).forEach(([, command]) => {
+      if (command.endsWith(':')) return;
+      assert.equal(typeof pkg.scripts[command], 'string', `${file}: ${command}`);
     });
   });
-  return runInNewContext(`(async () => {${script}\nreturn body;})()`, {
-    process: { env: { VITEST_RESULT: outcome } },
-    context: {
-      serverUrl: 'https://github.com', repo: { owner: 'fixture', repo: 'fixture' }, runId: 1,
-      payload: { pull_request: { head: { sha: 'current-commit' } } },
-    },
-    require: (name) => {
-      assert.equal(name, 'node:fs');
-      return { readFileSync: (file) => {
-        assert.ok(artifacts.has(file), `Missing fixture: ${file}`);
-        return artifacts.get(file);
-      } };
-    },
+});
+
+test('桌面 CI 只准备一次插件并直接构建原生测试程序', () => {
+  const source = readFileSync(new URL('../../.github/workflows/e2e.yml', import.meta.url), 'utf8');
+  assert.equal(Array.from(source.matchAll(/run: npm run plugins:build\s*$/gmu)).length, 1);
+  assert.match(source, /npx tauri build --debug --no-bundle/u);
+  assert.doesNotMatch(source, /run: npm run package/u);
+});
+
+test('安装器 CI 只准备一次插件且不执行正式上传', () => {
+  const source = readFileSync(new URL('../../.github/workflows/release-build-upload.yml', import.meta.url), 'utf8');
+  assert.equal(Array.from(source.matchAll(/run: npm run plugins:build\s*$/gmu)).length, 1);
+  assert.match(source, /run: npx tauri build/u);
+  assert.doesNotMatch(source, /run:.*(?:npm run release(?:\s|:)|upload-release\.mjs)/u);
+});
+
+test('原生测试 CI 同时执行 API 和 Rust 测试', () => {
+  const source = readFileSync(new URL('../../.github/workflows/e2e.yml', import.meta.url), 'utf8');
+  assert.match(source, /npm run test:api && npm run test:rust/u);
+  assert.match(source, /cargo clippy .*--all-targets -- -D warnings/u);
+});
+
+test('CI 原生脚本路径存在且命令无需运行时后缀', () => {
+  const files = ['test.yml', 'e2e.yml', 'release-build-upload.yml', 'build-size-report.yml'];
+  files.forEach((file) => {
+    const source = readFileSync(new URL(`../../.github/workflows/${file}`, import.meta.url), 'utf8');
+    assert.doesNotMatch(source, /:tauri|scripts\/tauri\//u);
+    Array.from(source.matchAll(/node (scripts\/native\/[\w.-]+\.mjs)/gu)).forEach(([, path]) => {
+      assert(readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8').length > 0);
+    });
   });
-}
-
-test('矩阵报告汇总六个 project 的真实测试数量和独立耗时', async () => {
-  const body = await renderMatrixReport();
-  assert.match(body, /\*\*PASS\*\*/u);
-  assert.match(body, /12 passed, 0 failed, 0 skipped\/todo/u);
-  PROJECTS.forEach((project) => {
-    assert.ok(body.includes(`| ${project} | PASS | 2 | 0 | 0 | 5s |`));
-    assert.ok(body.includes(`| src/${project}/test | 2 | 0 | 0 |`));
-  });
 });
 
-test('测试失败与文件加载失败均在矩阵报告中保留失败状态和详情', async () => {
-  const body = await renderMatrixReport({ main: {
-    'test-metadata.json': { exit_code: 1, duration_seconds: 8 },
-    'vitest-results.json': {
-      success: false, numTotalTests: 3, numPassedTests: 0, numFailedTests: 1,
-      numPendingTests: 1, numTodoTests: 1,
-      testResults: [{
-        name: 'src/main/test/failed.test.ts', status: 'failed', message: 'Cannot load dependency',
-        assertionResults: [{ status: 'failed', fullName: 'failed assertion', failureMessages: ['Expected true'] }],
-      }],
-    },
-  } });
-  assert.match(body, /\*\*FAIL\*\*/u);
-  assert.ok(body.includes('| main | FAIL | 0 | 1 | 2 | 8s |'));
-  assert.ok(body.includes('Cannot load dependency'));
-  assert.ok(body.includes('Expected true'));
-});
-
-test('矩阵任务没有附件或 JSON 损坏时明确显示 ERROR', async () => {
-  const body = await renderMatrixReport({
-    main: null,
-    renderer: {
-      'test-metadata.json': { exit_code: 1, duration_seconds: 2 },
-      'vitest-results.json': '{broken',
-      'vitest.log': 'Renderer worker crashed',
-    },
-  }, 'failure');
-  assert.match(body, /\*\*FAIL\*\*/u);
-  assert.ok(body.includes('| main | ERROR |'));
-  assert.ok(body.includes('| renderer | ERROR |'));
-  assert.ok(body.includes('Renderer worker crashed'));
-  assert.ok(body.includes('Check job setup and dependency installation'));
-});
-
-test('JSON 测试结果通过但进程异常退出时报告仍失败', async () => {
-  const body = await renderMatrixReport({ main: {
-    'test-metadata.json': { exit_code: 1, duration_seconds: 3 },
-    'vitest-results.json': {
-      success: true, numTotalTests: 1, numPassedTests: 1, numFailedTests: 0,
-      numPendingTests: 0, numTodoTests: 0, testResults: [],
-    },
-    'vitest.log': 'Unhandled rejection after tests',
-  } });
-  assert.match(body, /\*\*FAIL\*\*/u);
-  assert.ok(body.includes('| main | FAIL |'));
-  assert.ok(body.includes('Unhandled rejection after tests'));
-});
-
-test('附件上传等矩阵任务失败不能被全部通过的 JSON 覆盖', async () => {
-  const body = await renderMatrixReport({}, 'failure');
-  assert.match(body, /\*\*FAIL\*\*/u);
-  assert.ok(body.includes('| main | PASS |'));
-});
-
-test('失败日志转义 HTML 和提及符号并限制评论长度', async () => {
-  const body = await renderMatrixReport({ main: {
-    'test-metadata.json': { exit_code: 1, duration_seconds: 1 },
-    'vitest.log': `${'x'.repeat(70_000)}<script>@someone|broken</script>`,
-  } }, 'failure');
-  assert.ok(!body.includes('<script>'));
-  assert.ok(!body.includes('@someone'));
-  assert.ok(body.includes('&#60;script&#62;&#64;someone&#124;broken'));
-  assert.ok(body.length < 10_000);
-  const expanded = await renderMatrixReport(Object.fromEntries(
-    PROJECTS.map((project) => [project, {
-      'vitest.log': '@'.repeat(70_000),
-    }]),
-  ), 'failure');
-  assert.ok(expanded.length < 65_536);
+test('package 与 release 命令保持构建和上传职责', () => {
+  const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+  assert.equal(pkg.scripts.package, 'npm run plugins:build && tauri build');
+  assert.equal(pkg.scripts.release, 'npm run package && npm run release:upload-only');
+  assert.equal(pkg.scripts['release:upload-only'], 'node scripts/native/upload-release.mjs');
+  assert.equal(pkg.scripts['release:upload-minio'], 'node scripts/native/upload-release.mjs --minio-only');
 });
 
 ['test.yml', 'build-size-report.yml', 'e2e.yml', 'release-build-upload.yml'].forEach((file) => {
@@ -239,7 +155,7 @@ test('原生桌面和安装器工作流上传实际产物', () => {
   const release = readFileSync(new URL('../../.github/workflows/release-build-upload.yml', import.meta.url), 'utf8');
   assert.match(renderer, /npm run build:web/u);
   assert.match(renderer, /path: renderer-sizes\.json/u);
-  assert.match(desktop, /npm run test:e2e:tauri/u);
+  assert.match(desktop, /npm run test:e2e/u);
   assert.match(desktop, /EISLAND_SMOKE_BINARY:/u);
   assert.match(release, /create-update-manifest\.mjs/u);
   assert.match(release, /bundle\/tauri-latest\.json/u);
@@ -258,7 +174,7 @@ workflows.forEach((file) => {
   assert.match(workflow, /group: \$\{\{ github.workflow \}\}-\$\{\{ github.event.pull_request.number \|\| github.ref \}\}/u);
   assert.match(workflow, /cancel-in-progress: false/u);
 
-  if (['test.yml', 'i18n-check.yml', 'build-size-report.yml'].includes(file)) {
+  if (file === 'i18n-check.yml') {
     test(`${file}: fork PR runs unprivileged checks and skips direct comments`, () => {
       assert.match(workflow, /^ {2}pull_request:/mu);
       assert.doesNotMatch(workflow, /^ {2}pull_request_target:/mu);

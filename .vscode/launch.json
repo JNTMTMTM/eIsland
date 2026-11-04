@@ -8,7 +8,7 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",
-        "dev:tauri"
+        "dev"
       ],
       "console": "integratedTerminal",
       "sourceMaps": true,
@@ -44,7 +44,7 @@
       ]
     },
     {
-      "name": "[DEPRECATED Electron] Upload Package Only",
+      "name": "eIsland: Upload Package Only",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",

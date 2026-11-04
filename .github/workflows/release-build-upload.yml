@@ -27,23 +27,25 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
-      - name: Install build dependencies without legacy lifecycle scripts
+      - name: Install build dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Prepare native FFmpeg binary
         run: node node_modules/ffmpeg-static/install.js
       - name: Publish native plugin resources
-        run: npm run plugins:build:tauri
+        run: npm run plugins:build
       - name: Test native application services
-        run: npm run test:tauri
+        run: npm run test:api && npm run test:rust
       - name: Build Tauri NSIS installer
-        run: npm run package
+        # Resources were prepared above; package would build the plugins again.
+        run: npx tauri build
       - name: Generate release notes
         run: node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES.md
       - name: Generate native update manifest
-        run: node scripts/tauri/create-update-manifest.mjs
+        run: node scripts/native/create-update-manifest.mjs
         env:
           EISLAND_TAURI_RELEASE_BASE_URL: ${{ vars.TAURI_RELEASE_BASE_URL }}
-      # Electron latest.yml/blockmap uploads are retired; Tauri distribution is a separate pipeline.
+      # This workflow only creates review artifacts. Manifest download URLs do not
+      # publish an installer, update feed, GitHub Release or CDN object.
       - name: Upload Tauri installer for review
         uses: actions/upload-artifact@v7
         with:

@@ -38,8 +38,7 @@ jobs:
             const labelsToApply = new Set();
 
             if (hasMatch([/^src\/renderer\//])) labelsToApply.add('frontend');
-            if (hasMatch([/^src-tauri\//, /^src\/tauri\//, /^scripts\/tauri\//, /^plugins\//, /^src\/renderer\/tauri-bootstrap\.ts$/])) labelsToApply.add('tauri-core');
-            if (hasMatch([/^src\/(main|preload)\//, /^electron[.-]/, /^e2e\//, /^\.github\/legacy-workflows\//, /^tsconfig\.electron-deprecated\.json$/])) labelsToApply.add('legacy-electron');
+            if (hasMatch([/^src-tauri\//, /^src\/tauri\//, /^scripts\/native\//, /^plugins\//, /^src\/renderer\/tauri-bootstrap\.ts$/])) labelsToApply.add('tauri-core');
             if (hasMatch([/^\.github\/workflows\//, /^scripts\//])) labelsToApply.add('ci');
             if (hasMatch([/\.md$/i, /^README\.md$/i, /^\.github\/CONTRIBUTING\.md$/i])) labelsToApply.add('documentation');
             if (hasMatch([/\.(png|jpg|jpeg|gif|svg|webp|ico)$/i, /^assets\//])) labelsToApply.add('assets');
@@ -52,7 +51,6 @@ jobs:
             const colorMap = {
               frontend: '1f6feb',
               'tauri-core': '0e8a16',
-              'legacy-electron': '6a737d',
               ci: '5319e7',
               documentation: '0075ca',
               assets: 'fbca04',

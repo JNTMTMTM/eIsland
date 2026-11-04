@@ -20,16 +20,11 @@
 
 /**
  * @file vitest.config.mts
- * @description 按主进程、预加载、共享模块、原生插件与渲染进程划分 Vitest 测试项目。
+ * @description 按共享模块、原生插件、CLI 与渲染进程划分 Vitest 测试项目。
  * @author 鸡哥
  */
 
 import { coverageConfigDefaults, defineConfig } from 'vitest/config';
-
-const nativeIntegrationTests = [
-  'src/main/installer/test/*.integration.test.ts',
-  'src/main/window/test/screenshotProcess.test.ts',
-];
 
 /** 真实 Windows 插件测试会读取设备或发送系统命令，独立串行执行。 */
 const pluginIntegrationTests = [
@@ -56,31 +51,6 @@ export default defineConfig({
       ],
     },
     projects: [
-      {
-        extends: true,
-        test: {
-          name: { label: 'main', color: 'yellow' },
-          include: ['src/main/**/*.test.{ts,tsx}'],
-          exclude: nativeIntegrationTests,
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: { label: 'main-integration', color: 'yellow' },
-          include: nativeIntegrationTests,
-          // 真实进程扫描、安装和终止在单元测试释放负载后独占执行阶段。
-          sequence: { groupOrder: 1 },
-          fileParallelism: false,
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: { label: 'preload', color: 'cyan' },
-          include: ['src/preload/**/*.test.{ts,tsx}'],
-        },
-      },
       {
         extends: true,
         test: {

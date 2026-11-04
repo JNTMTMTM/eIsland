@@ -34,7 +34,7 @@ function write(level: string, ...args: unknown[]): void {
   const message = args.map(formatArg).join(' ');
   try {
     window.api.logWrite(level, message);
-  } catch { /* preload 未就绪时静默忽略 */ }
+  } catch { /* 原生 API 未就绪时静默忽略 */ }
 }
 
 export const logger = {
