@@ -77,7 +77,9 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         } else {
             tauri::webview::Color(0, 0, 0, 0)
         })
-        .shadow(label == "splash")
+        // Windows shadows add a native 1px frame and system corners over the
+        // transparent splash's CSS-rounded surface.
+        .shadow(label == "splash" && !cfg!(windows))
         .resizable(label == "standalone")
         .skip_taskbar(label != "standalone" && label != "guide")
         .always_on_top(label != "standalone" && label != "guide")
