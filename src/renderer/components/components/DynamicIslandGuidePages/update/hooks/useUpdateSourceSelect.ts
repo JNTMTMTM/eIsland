@@ -25,6 +25,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { normalizeUpdateSource } from '../../../../config/dynamicIslandUpdateSource';
 import { UPDATE_SOURCE_STORE_KEY, DEFAULT_UPDATE_SOURCE } from '../config/updateSourceOptions';
 import type { UseUpdateSourceSelectReturn } from '../types';
 
@@ -38,15 +39,14 @@ export function useUpdateSourceSelect(): UseUpdateSourceSelectReturn {
   /** 初始化时从存储加载当前更新源 */
   useEffect(() => {
     window.api.storeRead(UPDATE_SOURCE_STORE_KEY).then((value) => {
-      if (typeof value === 'string' && value) {
-        setSelected(value);
-      }
+      setSelected(normalizeUpdateSource(value));
     }).catch(() => {});
   }, []);
 
   const handleSelect = useCallback((key: string): void => {
-    setSelected(key);
-    window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, key).catch(() => {});
+    const source = normalizeUpdateSource(key);
+    setSelected(source);
+    window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, source).catch(() => {});
   }, []);
 
   return { selected, handleSelect };

@@ -21,11 +21,12 @@
 //! Download and install registered native helper extensions without executing JavaScript.
 use crate::shared::Result;
 use futures_util::StreamExt;
+use serde::Deserialize;
 use serde_json::{json, Value};
 use std::{
     fs::{self, File},
-    io::{Read, Write},
-    path::{Component, Path, PathBuf},
+    io::Write,
+    path::{Path, PathBuf},
     sync::LazyLock,
     time::Duration,
 };
@@ -61,34 +62,35 @@ const REGISTRY: [Extension; 3] = [
         executable: "eIslandBrightnessReader.exe",
     },
 ];
-#[derive(Default)]
+#[derive(Default, Debug, Deserialize)]
 struct Remote {
     id: String,
     version: String,
     url: String,
 }
-fn metadata(raw: &str) -> Vec<Remote> {
-    let mut result = vec![];
-    let mut current = Remote::default();
-    for line in raw.lines().map(str::trim) {
-        if let Some(id) = line.strip_prefix("- id:") {
-            if !current.id.is_empty() && !current.version.is_empty() && !current.url.is_empty() {
-                result.push(current);
-            }
-            current = Remote {
-                id: id.trim().trim_matches(['\'', '"']).to_owned(),
-                ..Default::default()
-            };
-        } else if let Some(value) = line.strip_prefix("version:") {
-            current.version = value.trim().trim_matches(['\'', '"']).to_owned();
-        } else if let Some(value) = line.strip_prefix("url:") {
-            current.url = value.trim().trim_matches(['\'', '"']).to_owned();
-        }
+/// Published indexes use a root sequence; accept the documented object wrapper as well.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum ExtensionIndex {
+    Sequence(Vec<Remote>),
+    Wrapped { extensions: Vec<Remote> },
+}
+fn metadata(raw: &str) -> Result<Vec<Remote>> {
+    let parsed: ExtensionIndex = serde_yaml_ng::from_str(raw)
+        .map_err(|error| format!("Invalid extension index: {error}"))?;
+    let entries = match parsed {
+        ExtensionIndex::Sequence(entries)
+        | ExtensionIndex::Wrapped {
+            extensions: entries,
+        } => entries,
+    };
+    if entries.len() > 4096 {
+        return Err("Extension index has too many entries".into());
     }
-    if !current.id.is_empty() && !current.version.is_empty() && !current.url.is_empty() {
-        result.push(current);
-    }
-    result
+    Ok(entries
+        .into_iter()
+        .filter(|entry| !entry.id.is_empty() && !entry.version.is_empty() && !entry.url.is_empty())
+        .collect())
 }
 fn registry(id: &str) -> Result<&'static Extension> {
     REGISTRY
@@ -128,7 +130,7 @@ fn base_url(app: &AppHandle, source: &str, resolved: &str) -> Result<String> {
     Ok(value)
 }
 async fn remote(client: &reqwest::Client, base: &str) -> Result<Vec<Remote>> {
-    let response = client
+    let mut response = client
         .get(format!("{base}/extensions/latest_ext.yml"))
         .send()
         .await
@@ -141,11 +143,8 @@ async fn remote(client: &reqwest::Client, base: &str) -> Result<Vec<Remote>> {
     {
         return Err("Extension index exceeds limit".into());
     }
-    let content = response.text().await.map_err(|e| e.to_string())?;
-    if content.len() > 1024 * 1024 {
-        return Err("Extension index exceeds limit".into());
-    }
-    Ok(metadata(&content))
+    let content = crate::infrastructure::http::bounded(&mut response, 1024 * 1024).await?;
+    metadata(std::str::from_utf8(&content).map_err(|error| error.to_string())?)
 }
 fn valid_version(version: &str) -> bool {
     !version.is_empty()
@@ -183,49 +182,15 @@ fn safe_remove(root: &Path, target: &Path) -> Result<()> {
     }
 }
 fn extract(archive: &Path, directory: &Path, extension: &Extension) -> Result<()> {
-    let input = File::open(archive).map_err(|e| e.to_string())?;
-    let mut zip = zip::ZipArchive::new(input).map_err(|e| e.to_string())?;
-    if zip.len() > 4096 {
-        return Err("Extension archive has too many entries".into());
-    }
-    fs::create_dir_all(directory).map_err(|e| e.to_string())?;
-    let mut total = 0u64;
-    for index in 0..zip.len() {
-        let mut entry = zip.by_index(index).map_err(|e| e.to_string())?;
-        let relative = entry
-            .enclosed_name()
-            .ok_or("Extension archive path escapes its install directory")?;
-        if entry.name().contains('\\')
-            || relative
-                .components()
-                .any(|component| !matches!(component, Component::Normal(_) | Component::CurDir))
-            || entry
-                .unix_mode()
-                .is_some_and(|mode| mode & 0o170000 == 0o120000)
-        {
-            return Err("Invalid extension archive entry".into());
-        }
-        total = total
-            .checked_add(entry.size())
-            .ok_or("Extension archive exceeds limit")?;
-        if total > EXTRACT_LIMIT {
-            return Err("Extension archive exceeds limit".into());
-        }
-        let output = directory.join(relative);
-        if entry.is_dir() {
-            fs::create_dir_all(&output).map_err(|e| e.to_string())?;
-            continue;
-        }
-        if let Some(parent) = output.parent() {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-        }
-        let mut file = File::create(output).map_err(|e| e.to_string())?;
-        let copied = std::io::copy(&mut entry.by_ref().take(EXTRACT_LIMIT + 1), &mut file)
-            .map_err(|e| e.to_string())?;
-        if copied > EXTRACT_LIMIT {
-            return Err("Extension archive exceeds limit".into());
-        }
-    }
+    crate::infrastructure::archive::extract(
+        archive,
+        directory,
+        false,
+        crate::infrastructure::archive::Limits {
+            entries: 4096,
+            bytes: EXTRACT_LIMIT,
+        },
+    )?;
     if !directory.join(extension.executable).is_file() {
         return Err("Extension archive does not contain its native executable".into());
     }
@@ -236,11 +201,8 @@ async fn install(app: &AppHandle, id: &str, base: &str) -> Result<()> {
     let _guard = MUTATION.lock().await;
     let root = root(app)?;
     fs::create_dir_all(&root).map_err(|e| e.to_string())?;
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(300))
-        .build()
-        .map_err(|e| e.to_string())?;
-    let versions = remote(&client, base).await.unwrap_or_default();
+    let client = crate::infrastructure::http::stream_client();
+    let versions = remote(client, base).await.unwrap_or_default();
     let version = versions
         .iter()
         .find(|value| value.id == id)
@@ -256,7 +218,7 @@ async fn install(app: &AppHandle, id: &str, base: &str) -> Result<()> {
     let backup = root.join(format!(".{id}-{suffix}.backup"));
     let destination = root.join(id);
     let result=async {
-  let response=client.get(url).send().await.map_err(|e|e.to_string())?.error_for_status().map_err(|e|e.to_string())?;
+  let response=client.get(url).timeout(Duration::from_secs(300)).send().await.map_err(|e|e.to_string())?.error_for_status().map_err(|e|e.to_string())?;
   let total=response.content_length().unwrap_or(0);if total>ARCHIVE_LIMIT{return Err("Extension download exceeds limit".into());}
   let mut stream=response.bytes_stream();let mut file=File::create(&archive).map_err(|e|e.to_string())?;let mut transferred=0u64;let mut last_progress=None;
   while let Some(chunk)=stream.next().await {
@@ -313,11 +275,8 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
             vec![]
         } else {
             let base = base_url(app, source, resolved)?;
-            let client = reqwest::Client::builder()
-                .timeout(Duration::from_secs(15))
-                .build()
-                .map_err(|e| e.to_string())?;
-            remote(&client, &base).await.unwrap_or_default()
+            let client = crate::infrastructure::http::client();
+            remote(client, &base).await.unwrap_or_default()
         };
         return status(app, &versions);
     }
@@ -350,8 +309,45 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
 mod tests {
     use super::*;
     #[test]
+    fn formal_yaml_preserves_published_sequence_wrapper_quotes_and_comments() {
+        let sequence = "- id: volume-helper\n  version: '1.2.3' # published comment\n  url: \"中文文件.zip?next=a:b#fragment\"\n  size: 42\n";
+        let result = metadata(sequence).unwrap();
+        assert_eq!(result[0].id, "volume-helper");
+        assert_eq!(result[0].url, "中文文件.zip?next=a:b#fragment");
+        let wrapped = format!(
+            "extensions:\n{}",
+            sequence
+                .lines()
+                .map(|line| format!("  {line}\n"))
+                .collect::<String>()
+        );
+        assert_eq!(metadata(&wrapped).unwrap()[0].version, "1.2.3");
+        assert_eq!(
+            metadata(r#"[{"id":"volume-helper","version":"1.2.3","url":"package.zip"}]"#).unwrap()
+                [0]
+            .url,
+            "package.zip"
+        );
+    }
+    #[test]
+    fn formal_yaml_rejects_guessed_indentation_wrong_shapes_duplicate_keys_and_truncation() {
+        for value in [
+            "extensions:\n - id: volume-helper\n version: 1.2.3\n url: file.zip",
+            "- id: volume-helper\n  id: brightness-helper\n  version: 1.2.3\n  url: file.zip",
+            "- id: [nested]\n  version: 1.2.3\n  url: file.zip",
+            "- id: volume-helper\n  url: [",
+            "unexpected: []",
+        ] {
+            assert!(metadata(value).is_err(), "{value}");
+        }
+        assert!(metadata("[]").unwrap().is_empty());
+    }
+    #[test]
     fn parses_remote_native_versions() {
-        let result=metadata("extensions:\n - id: volume-helper\n version: 1.2.3\n url: volume-helper-v1.2.3.zip\n size: 42\n");
+        let result = metadata(
+            "- id: volume-helper\n  version: 1.2.3\n  url: volume-helper-v1.2.3.zip\n  size: 42\n",
+        )
+        .unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].version, "1.2.3");
     }

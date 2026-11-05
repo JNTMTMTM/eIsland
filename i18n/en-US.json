@@ -3882,7 +3882,18 @@
       "guideCardHint": "Show the first-launch guide again",
       "guideResetSuccess": "Success! Guide will show on next launch",
       "guideResetError": "Failed. Please try again later",
-      "pagination": "Update settings pagination"
+      "pagination": "Update settings pagination",
+      "checkFailedMessage": "Could not check for updates: {{error}}",
+      "downloadFailedMessage": "Could not download the update: {{error}}",
+      "installFailedMessage": "Could not install the update: {{error}}",
+      "errors": {
+        "signingUnavailable": "Secure updates are temporarily unavailable. Please contact the app maintainer.",
+        "networkFailed": "Could not reach the update server. Check your connection and retry, or choose another update source.",
+        "verificationFailed": "Update verification failed and installation was stopped. Retry or choose another update source.",
+        "manifestInvalid": "This source cannot provide a valid update right now. Retry later or choose another update source.",
+        "platformUnsupported": "Automatic updates are not available for this system. Contact the app maintainer for an installer.",
+        "operationFailed": "The update could not be completed. Retry or choose another update source."
+      }
     },
     "pluginMarket": {
       "pagination": "General market pagination",
@@ -4987,12 +4998,12 @@
       "test:coverage": "Run all tests with a coverage report",
       "test:cli": "Run eIsland CLI tests",
       "postinstall": "Install CLI dependencies after installation",
-      "package": "Build native plugins and package the Tauri installer",
+      "package": "Build native plugins, Tauri NSIS installers, official updater signatures and manifests",
       "changelog:generate": "Generate docs/CHANGE_LOG.md",
       "release:notes": "Generate release notes since the last tag",
       "release": "Build native plugins and Tauri installers, upload to AWS, and purge matching ESA cache entries",
       "release:upload": "Run the full Tauri release: build, upload to AWS, and purge matching ESA cache entries",
-      "release:upload-only": "Upload existing Tauri installers and update manifests to AWS, then purge matching ESA cache entries",
+      "release:upload-only": "Use AWS CLI to upload verified Tauri installers, signatures and manifests to configured sources, publish manifests after all installers succeed, then purge matching ESA caches",
       "release:upload-minio": "Upload existing Tauri installers and update manifests to MinIO without purging ESA caches",
       "comment:check": "Check comment standards (alias of lint:comments)",
       "i18n:check": "Check i18n translation completeness",
@@ -5054,7 +5065,7 @@
       "dev:web": "Start the Tauri renderer development server",
       "build:web": "Build the Tauri renderer",
       "check:rust": "Check the Rust host",
-      "test:rust": "Test the native Rust application services",
+      "test:rust": "Run locked Rust unit and integration tests with Cargo",
       "native": "Prepare native plugins (alias for plugins:build)",
       "test:api": "Test the native frontend API, runtime entry points and release workflow",
       "test:services": "Verify native services through real WebView2, HTTP and Range requests",

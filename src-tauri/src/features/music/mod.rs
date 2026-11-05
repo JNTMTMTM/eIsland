@@ -113,10 +113,7 @@ impl Music {
         Self {
             window: AuthWindow::new(),
             shutdown,
-            client: reqwest::Client::builder()
-                .redirect(reqwest::redirect::Policy::limited(10))
-                .build()
-                .expect("HTTP client initialization failed"),
+            client: crate::infrastructure::http::client().clone(),
             server: Mutex::new(None),
             auth: tokio::sync::Mutex::new(auth::AuthState::default()),
         }

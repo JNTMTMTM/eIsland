@@ -27,3 +27,6 @@ pub(crate) mod storage;
 
 pub(crate) mod http;
 pub(crate) mod resources;
+
+pub(crate) mod archive;
+pub(crate) mod hashing;

@@ -21,7 +21,6 @@
 //! Native screenshot text recognition and image-translation clients.
 use crate::shared::Result;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use futures_util::StreamExt;
 use reqwest::{header::HeaderMap, multipart, Client, Response};
 use serde_json::{json, Value};
 use std::{
@@ -114,27 +113,17 @@ fn headers(app: &AppHandle, token: &str) -> Result<HeaderMap> {
     }
     Ok(headers)
 }
-async fn bounded(response: Response, limit: usize) -> Result<Vec<u8>> {
-    if response
-        .content_length()
-        .is_some_and(|size| size > limit as u64)
-    {
-        return Err("Response exceeds limit".into());
-    }
-    let mut stream = response.bytes_stream();
-    let mut bytes = Vec::new();
-    while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|e| e.to_string())?;
-        if chunk.len() > limit.saturating_sub(bytes.len()) {
-            return Err("Response exceeds limit".into());
-        }
-        bytes.extend_from_slice(&chunk);
-    }
-    Ok(bytes)
-}
-async fn json_response(response: Response) -> Result<(bool, Value)> {
+async fn json_response(mut response: Response) -> Result<(bool, Value)> {
     let success = response.status().is_success();
-    let bytes = bounded(response, 1024 * 1024).await?;
+    let bytes = crate::infrastructure::http::bounded(&mut response, 1024 * 1024)
+        .await
+        .map_err(|error| {
+            if error == "response too large" {
+                "Response exceeds limit".to_owned()
+            } else {
+                error
+            }
+        })?;
     Ok((
         success,
         serde_json::from_slice(&bytes).map_err(|e| e.to_string())?,
@@ -253,7 +242,7 @@ async fn translate(
                 if !matches!(url.scheme(), "http" | "https") {
                     return Ok(failure("translationFailed"));
                 }
-                let response = client.get(url).send().await.map_err(|e| e.to_string())?;
+                let mut response = client.get(url).send().await.map_err(|e| e.to_string())?;
                 if !response.status().is_success() {
                     return Ok(failure("translationFailed"));
                 }
@@ -269,7 +258,15 @@ async fn translate(
                 if !mime.starts_with("image/") {
                     return Ok(failure("translationFailed"));
                 }
-                let bytes = bounded(response, RESPONSE_LIMIT).await?;
+                let bytes = crate::infrastructure::http::bounded(&mut response, RESPONSE_LIMIT)
+                    .await
+                    .map_err(|error| {
+                        if error == "response too large" {
+                            "Response exceeds limit".to_owned()
+                        } else {
+                            error
+                        }
+                    })?;
                 return Ok(
                     json!({"success":true,"translatedImage":format!("data:{mime};base64,{}",STANDARD.encode(bytes))}),
                 );
@@ -369,16 +366,13 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
             }
         }
     } else {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|e| e.to_string())?;
+        let client = crate::infrastructure::http::client();
         if channel == "capture-translate" {
-            while_capture(app, translate(app, &client, token, image, payload))
+            while_capture(app, translate(app, client, token, image, payload))
                 .await
                 .unwrap_or_else(|_| Ok(failure("aborted")))
         } else {
-            while_capture(app, online_ocr(app, &client, token, image))
+            while_capture(app, online_ocr(app, client, token, image))
                 .await
                 .unwrap_or_else(|_| Ok(failure("ocrTimeout")))
         }

@@ -77,14 +77,7 @@ impl Downloads {
         Self {
             jobs: Mutex::new(jobs),
             connections: Arc::new(Semaphore::new(16)),
-            client: reqwest::Client::builder()
-                .gzip(false)
-                .brotli(false)
-                .deflate(false)
-                .connect_timeout(Duration::from_secs(10))
-                .read_timeout(Duration::from_secs(30))
-                .build()
-                .expect("HTTP client"),
+            client: crate::infrastructure::http::stream_client().clone(),
         }
     }
     fn publish(&self, app: &AppHandle, id: &str) {
@@ -304,14 +297,12 @@ async fn create(app: &AppHandle, payload: &Value) -> Result<Value> {
         .and_then(|mut v| v.next_back())
         .filter(|s| !s.is_empty())
         .unwrap_or("download.bin");
-    let name = response
+    let disposition = response
         .headers()
         .get("content-disposition")
-        .and_then(|h| h.to_str().ok())
-        .and_then(|s| s.split("filename=").nth(1))
-        .map(|s| s.trim_matches('"').split(';').next().unwrap_or(name))
-        .unwrap_or(name);
-    let name = safe_name(name);
+        .and_then(|value| value.to_str().ok())
+        .and_then(crate::infrastructure::http::disposition_filename);
+    let name = safe_name(disposition.as_deref().unwrap_or(name));
     let path = if let Some(path) = payload["savePath"].as_str().filter(|s| !s.is_empty()) {
         PathBuf::from(path)
     } else {

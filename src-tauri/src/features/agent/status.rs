@@ -25,7 +25,7 @@ use sha2::{Digest, Sha256};
 use std::{
     collections::{HashMap, HashSet},
     fs::{self, File},
-    io::{BufRead, BufReader, Read, Seek, SeekFrom, Write},
+    io::{BufReader, Read, Seek, SeekFrom, Write},
     net::{TcpListener, TcpStream},
     path::{Path, PathBuf},
     sync::{
@@ -281,8 +281,12 @@ pub fn start(app: &AppHandle) {
         while !STOPPED.load(Ordering::Acquire) {
             match listener.accept() {
                 Ok((stream, _)) => {
+                    let Some(permit) = HookPermit::acquire() else {
+                        continue;
+                    };
                     let app = app.clone();
                     std::thread::spawn(move || {
+                        let _permit = permit;
                         let _ = receive(&app, stream);
                     });
                 }
@@ -641,65 +645,146 @@ fn push_event(snapshot: &mut Value, event: Value) {
     sessions.sort_by_key(|v| std::cmp::Reverse(v["lastEventAt"].as_u64().unwrap_or(0)));
     sessions.truncate(1000);
 }
-fn receive(app: &AppHandle, mut stream: TcpStream) -> Result<()> {
-    if HOOK_REQUESTS.fetch_add(1, Ordering::AcqRel) >= 32 {
-        HOOK_REQUESTS.fetch_sub(1, Ordering::AcqRel);
-        return Err("Too many concurrent hook requests".into());
-    }
-    struct ActiveRequest;
-    impl Drop for ActiveRequest {
-        fn drop(&mut self) {
-            HOOK_REQUESTS.fetch_sub(1, Ordering::AcqRel);
-        }
-    }
-    let _request = ActiveRequest;
-    stream
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .map_err(|e| e.to_string())?;
-    let mut reader = BufReader::new(stream.try_clone().map_err(|e| e.to_string())?);
-    let mut line = String::new();
-    reader
-        .by_ref()
-        .take(8193)
-        .read_line(&mut line)
-        .map_err(|e| e.to_string())?;
-    if line.len() > 8192 {
-        return Err("Hook request line exceeds limit".into());
-    }
-    if line.trim() != "POST /claude-code/hook HTTP/1.1" {
-        return Err("Invalid hook endpoint".into());
-    }
-    let mut length = 0;
-    let mut headers = 0;
-    loop {
-        line.clear();
-        let bytes = reader
-            .by_ref()
-            .take(16385)
-            .read_line(&mut line)
-            .map_err(|e| e.to_string())?;
-        headers += bytes;
-        if bytes == 0 || headers > 16384 {
-            return Err("Invalid hook headers".into());
-        }
-        if line.trim().is_empty() {
-            break;
-        }
-        if let Some((name, value)) = line.split_once(':') {
-            if name.eq_ignore_ascii_case("Content-Length") {
-                length = value.trim().parse::<usize>().map_err(|e| e.to_string())?;
+const HOOK_BODY_LIMIT: usize = 2 * 1024 * 1024;
+const HOOK_HEADER_LIMIT: usize = 16384;
+const HOOK_LINE_LIMIT: usize = 8192;
+const HOOK_IO_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Hold a connection slot before starting a parser, including slow/incomplete headers.
+struct HookPermit;
+impl HookPermit {
+    fn acquire() -> Option<Self> {
+        let mut current = HOOK_REQUESTS.load(Ordering::Acquire);
+        loop {
+            if current >= 32 {
+                return None;
+            }
+            match HOOK_REQUESTS.compare_exchange_weak(
+                current,
+                current + 1,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            ) {
+                Ok(_) => return Some(Self),
+                Err(actual) => current = actual,
             }
         }
     }
-    if length > 2 * 1024 * 1024 {
-        return Err("Hook body exceeds 2 MiB".into());
+}
+impl Drop for HookPermit {
+    fn drop(&mut self) {
+        HOOK_REQUESTS.fetch_sub(1, Ordering::AcqRel);
     }
-    let mut body = vec![0; length];
-    reader.read_exact(&mut body).map_err(|e| e.to_string())?;
-    let mut payload: Value = serde_json::from_slice(&body).map_err(|e| e.to_string())?;
+}
+
+fn read_hook_payload(stream: &mut TcpStream, timeout: Duration) -> Result<Value> {
+    let deadline = std::time::Instant::now() + timeout;
+    let mut wire = Vec::with_capacity(4096);
+    let (offset, length) = loop {
+        let mut headers = vec![httparse::EMPTY_HEADER; 4096];
+        let mut request = httparse::Request::new(&mut headers);
+        match request
+            .parse(&wire)
+            .map_err(|error| format!("Invalid hook headers: {error}"))?
+        {
+            httparse::Status::Complete(offset) => {
+                let method = request.method.unwrap_or("");
+                let path = request.path.unwrap_or("");
+                let line_bytes = method.len() + path.len() + 12;
+                if line_bytes > HOOK_LINE_LIMIT
+                    || offset.saturating_sub(line_bytes) > HOOK_HEADER_LIMIT
+                {
+                    return Err("Hook headers exceed limit".into());
+                }
+                if method != "POST" || path != "/claude-code/hook" || request.version != Some(1) {
+                    return Err("Invalid hook endpoint".into());
+                }
+                let mut length = None;
+                for header in request.headers.iter() {
+                    if header.name.eq_ignore_ascii_case("Transfer-Encoding") {
+                        return Err("Hook requests require Content-Length".into());
+                    }
+                    if header.name.eq_ignore_ascii_case("Content-Length") {
+                        if length.is_some() {
+                            return Err("Duplicate hook Content-Length".into());
+                        }
+                        let value = std::str::from_utf8(header.value)
+                            .map_err(|error| error.to_string())?
+                            .trim_matches([' ', '\t']);
+                        if value.is_empty() || !value.bytes().all(|byte| byte.is_ascii_digit()) {
+                            return Err("Invalid hook Content-Length".into());
+                        }
+                        length = Some(value.parse::<usize>().map_err(|error| error.to_string())?);
+                    }
+                }
+                let length = length.unwrap_or(0);
+                if length > HOOK_BODY_LIMIT {
+                    return Err("Hook body exceeds 2 MiB".into());
+                }
+                break (offset, length);
+            }
+            httparse::Status::Partial => {
+                if wire.len() >= HOOK_LINE_LIMIT + HOOK_HEADER_LIMIT {
+                    return Err("Hook headers exceed limit".into());
+                }
+                read_hook_bytes(stream, &mut wire, deadline, 1024)?;
+            }
+        }
+    };
+    while wire.len() - offset < length {
+        let remaining = length - (wire.len() - offset);
+        read_hook_bytes(stream, &mut wire, deadline, remaining.min(16384))?;
+    }
+    let payload: Value = serde_json::from_slice(&wire[offset..offset + length])
+        .map_err(|error| error.to_string())?;
     if !payload.is_object() {
         return Err("Hook payload must be an object".into());
     }
+    Ok(payload)
+}
+fn read_hook_bytes(
+    stream: &mut TcpStream,
+    wire: &mut Vec<u8>,
+    deadline: std::time::Instant,
+    limit: usize,
+) -> Result<()> {
+    let remaining = deadline
+        .checked_duration_since(std::time::Instant::now())
+        .filter(|remaining| !remaining.is_zero())
+        .ok_or("Hook request timed out")?;
+    stream
+        .set_read_timeout(Some(remaining))
+        .map_err(|error| error.to_string())?;
+    let mut bytes = vec![0; limit];
+    let count = stream.read(&mut bytes).map_err(|error| error.to_string())?;
+    if count == 0 {
+        return Err("Incomplete hook request".into());
+    }
+    wire.extend_from_slice(&bytes[..count]);
+    Ok(())
+}
+fn respond_hook(stream: &mut TcpStream, result: Result<String>) -> Result<()> {
+    stream
+        .set_write_timeout(Some(HOOK_IO_TIMEOUT))
+        .map_err(|error| error.to_string())?;
+    let (status, body) = match result {
+        Ok(body) => (200, body),
+        Err(error) => (400, json!({"ok":false,"error":error}).to_string()),
+    };
+    tiny_http::Response::from_string(body)
+        .with_status_code(status)
+        .with_header(tiny_http::Header::from_bytes("Content-Type", "application/json").unwrap())
+        .with_header(tiny_http::Header::from_bytes("Connection", "close").unwrap())
+        .raw_print(&mut *stream, tiny_http::HTTPVersion(1, 1), &[], false, None)
+        .map_err(|error| error.to_string())?;
+    stream.flush().map_err(|error| error.to_string())
+}
+fn receive(app: &AppHandle, mut stream: TcpStream) -> Result<()> {
+    let result = read_hook_payload(&mut stream, HOOK_IO_TIMEOUT)
+        .and_then(|payload| receive_payload(app, payload));
+    respond_hook(&mut stream, result)
+}
+fn receive_payload(app: &AppHandle, mut payload: Value) -> Result<String> {
     for key in [
         "cwd",
         "transcript_path",
@@ -820,10 +905,9 @@ fn receive(app: &AppHandle, mut stream: TcpStream) -> Result<()> {
             publish(app, "claude-code", current)?;
         }
     }
-    let result = json!({"ok":true,"decision":decision}).to_string();
-    write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",result.len(),result).map_err(|e|e.to_string())?;
-    Ok(())
+    Ok(json!({"ok":true,"decision":decision}).to_string())
 }
+
 fn remove_managed(groups: &Value) -> Vec<Value> {
     groups
         .as_array()
@@ -1366,35 +1450,22 @@ pub fn run_hook_cli() -> bool {
         if !payload["cwd"].is_string() {
             payload["cwd"] = json!(std::env::current_dir().map_err(|e| e.to_string())?);
         }
-        let body = payload.to_string();
-        let mut stream = TcpStream::connect_timeout(
-            &format!("127.0.0.1:{PORT}")
-                .parse::<std::net::SocketAddr>()
-                .map_err(|e| e.to_string())?,
-            Duration::from_secs(2),
-        )
-        .map_err(|e| e.to_string())?;
-        stream
-            .set_read_timeout(Some(Duration::from_secs(if event == "PermissionRequest" {
+        let mut response = crate::infrastructure::http::blocking_loopback_client()?
+            .post(format!("http://127.0.0.1:{PORT}/claude-code/hook"))
+            .timeout(Duration::from_secs(if event == "PermissionRequest" {
                 605
             } else {
                 2
-            })))
-            .map_err(|e| e.to_string())?;
-        write!(stream,"POST /claude-code/hook HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",body.len(),body).map_err(|e|e.to_string())?;
-        let mut response = String::new();
-        stream
-            .take(65536)
-            .read_to_string(&mut response)
-            .map_err(|e| e.to_string())?;
+            }))
+            .json(&payload)
+            .send()
+            .map_err(|error| error.to_string())?
+            .error_for_status()
+            .map_err(|error| error.to_string())?;
+        let response = crate::infrastructure::http::bounded_blocking(&mut response, 65536)?;
         if event == "PermissionRequest" {
-            let value: Value = serde_json::from_str(
-                response
-                    .split_once("\r\n\r\n")
-                    .map(|(_, body)| body)
-                    .unwrap_or("{}"),
-            )
-            .map_err(|e| e.to_string())?;
+            let value: Value =
+                serde_json::from_slice(&response).map_err(|error| error.to_string())?;
             let decision = value["decision"].as_str().unwrap_or("");
             if matches!(decision, "allow" | "always" | "deny") {
                 println!(
@@ -1412,6 +1483,114 @@ pub fn run_hook_cli() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn hook_wire(wire: &[u8], close_write: bool, timeout: Duration) -> Result<Value> {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let worker = std::thread::spawn(move || {
+            let (mut socket, _) = listener.accept().unwrap();
+            read_hook_payload(&mut socket, timeout)
+        });
+        let mut socket = TcpStream::connect(address).unwrap();
+        socket.write_all(wire).unwrap();
+        if close_write {
+            socket.shutdown(std::net::Shutdown::Write).unwrap();
+        }
+        let result = worker.join().unwrap();
+        drop(socket);
+        result
+    }
+    #[test]
+    fn hook_http_library_retains_endpoint_framing_and_body_limits() {
+        let raw =
+            "POST /claude-code/hook HTTP/1.1\r\nHost: localhost\r\nContent-Length: 2\r\n\r\n{}";
+        assert_eq!(
+            hook_wire(raw.as_bytes(), true, HOOK_IO_TIMEOUT).unwrap(),
+            json!({})
+        );
+        for raw in [
+            "GET /claude-code/hook HTTP/1.1\r\nContent-Length: 2\r\n\r\n{}",
+            "POST /wrong HTTP/1.1\r\nContent-Length: 2\r\n\r\n{}",
+            "POST /claude-code/hook HTTP/1.0\r\nContent-Length: 2\r\n\r\n{}",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: 2\r\nContent-Length: 2\r\n\r\n{}",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: +2\r\n\r\n{}",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: -1\r\n\r\n{}",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: 1,2\r\n\r\n{}",
+            "POST /claude-code/hook HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: 2097153\r\n\r\n",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: 9\r\n\r\n{}",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: 2\r\n\r\n[]",
+        ] {
+            assert!(
+                hook_wire(raw.as_bytes(), true, HOOK_IO_TIMEOUT).is_err(),
+                "{raw}"
+            );
+        }
+        let headers = format!(
+            "POST /claude-code/hook HTTP/1.1\r\nX-Fill: {}\r\nContent-Length: 2\r\n\r\n{{}}",
+            "x".repeat(HOOK_HEADER_LIMIT)
+        );
+        assert!(hook_wire(headers.as_bytes(), true, HOOK_IO_TIMEOUT)
+            .unwrap_err()
+            .contains("limit"));
+    }
+    #[test]
+    fn incomplete_hook_headers_and_bodies_time_out_without_unbounded_parser_threads() {
+        for raw in [
+            "POST /claude-code/",
+            "POST /claude-code/hook HTTP/1.1\r\nContent-Length: 2\r\n\r\n{",
+        ] {
+            let started = std::time::Instant::now();
+            assert!(hook_wire(raw.as_bytes(), false, Duration::from_millis(100)).is_err());
+            assert!(started.elapsed() < Duration::from_secs(3));
+        }
+    }
+    #[test]
+    fn hook_connections_reserve_one_of_32_slots_before_parsing_and_release_on_drop() {
+        let mut guards = (0..32)
+            .map(|_| HookPermit::acquire().unwrap())
+            .collect::<Vec<_>>();
+        assert!(HookPermit::acquire().is_none());
+        drop(guards.pop());
+        assert!(HookPermit::acquire().is_some());
+        drop(guards);
+        assert_eq!(HOOK_REQUESTS.load(Ordering::Acquire), 0);
+    }
+    #[test]
+    fn hook_responses_use_library_serialization_with_utf8_lengths_and_errors() {
+        for success in [true, false] {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let address = listener.local_addr().unwrap();
+            let worker = std::thread::spawn(move || {
+                let (mut socket, _) = listener.accept().unwrap();
+                let payload = read_hook_payload(&mut socket, HOOK_IO_TIMEOUT).unwrap();
+                assert_eq!(payload["text"], "中文😀");
+                respond_hook(
+                    &mut socket,
+                    if success {
+                        Ok(json!({"ok":true,"decision":"允许😀"}).to_string())
+                    } else {
+                        Err("fixture rejected".into())
+                    },
+                )
+                .unwrap();
+            });
+            let response = crate::infrastructure::http::blocking_loopback_client()
+                .unwrap()
+                .post(format!("http://{address}/claude-code/hook"))
+                .timeout(Duration::from_secs(3))
+                .json(&json!({"text":"中文😀"}))
+                .send()
+                .unwrap();
+            assert_eq!(response.status().as_u16(), if success { 200 } else { 400 });
+            assert_eq!(response.headers()["content-type"], "application/json");
+            let value: Value = response.json().unwrap();
+            assert_eq!(value["ok"], success);
+            if success {
+                assert_eq!(value["decision"], "允许😀");
+            }
+            worker.join().unwrap();
+        }
+    }
     #[test]
     fn external_agents_notify_initial_and_restart_edges_once() {
         let mut edges = ExternalAgentEdges::default();

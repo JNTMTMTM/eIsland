@@ -26,11 +26,9 @@ use std::{
     fs,
     io::{Read, Write},
     path::{Component, Path, PathBuf},
-    process::Stdio,
     time::{Duration, Instant, UNIX_EPOCH},
 };
 use tauri::{AppHandle, Emitter, Manager};
-use tokio::{io::AsyncReadExt, process::Command};
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
     value[key].as_str().unwrap_or("").trim()
@@ -172,76 +170,30 @@ async fn command_output(
     cwd: Option<&Path>,
     timeout: u64,
 ) -> Result<Value> {
+    use crate::infrastructure::child_process::{self, Options};
     let mut command = if tool == "cmd.exec" {
-        let mut cmd = Command::new("cmd.exe");
-        cmd.args(["/d", "/s", "/c", source]);
-        cmd
+        let mut command = child_process::command("cmd.exe");
+        command.args(["/d", "/s", "/c", source]);
+        command
     } else {
-        let mut cmd = Command::new("powershell.exe");
-        cmd.args([
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-Command",
-            source,
-        ]);
-        cmd
+        child_process::powershell_command(source)
     };
     if let Some(cwd) = cwd {
         command.current_dir(cwd);
     }
-    #[cfg(windows)]
-    command.creation_flags(0x08000000);
-    command
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .kill_on_drop(true);
-    let mut child = command.spawn().map_err(|e| e.to_string())?;
-    let out = child
-        .stdout
-        .take()
-        .ok_or("Command stdout unavailable")?
-        .take(1024 * 1024 + 1);
-    let err = child
-        .stderr
-        .take()
-        .ok_or("Command stderr unavailable")?
-        .take(1024 * 1024 + 1);
-    let task = async {
-        let (stdout, stderr) = tokio::try_join!(read_output(out), read_output(err))?;
-        let status = child.wait().await.map_err(|e| e.to_string())?;
-        if !status.success() {
-            return Err(format!(
-                "Command exited with {}: {}",
-                status,
-                String::from_utf8_lossy(&stderr)
-            ));
-        }
-        Ok(
-            json!({"command":source,"cwd":cwd.map(|p|p.to_string_lossy()).unwrap_or_default(),"stdout":String::from_utf8_lossy(&stdout),"stderr":String::from_utf8_lossy(&stderr)}),
-        )
-    };
-    let result = tokio::time::timeout(Duration::from_millis(timeout), task)
-        .await
-        .map_err(|_| "Command timed out".to_owned());
-    if !matches!(&result, Ok(Ok(_))) {
-        let _ = child.kill().await;
-    }
-    result?
-}
-async fn read_output(reader: impl tokio::io::AsyncRead + Unpin) -> Result<Vec<u8>> {
-    let mut bytes = Vec::new();
-    reader
-        .take(1024 * 1024 + 1)
-        .read_to_end(&mut bytes)
-        .await
-        .map_err(|e| e.to_string())?;
-    if bytes.len() > 1024 * 1024 {
-        return Err("Command output exceeds 1 MiB".into());
-    }
-    Ok(bytes)
+    let output = child_process::run(
+        command,
+        Options {
+            timeout: Duration::from_millis(timeout),
+            stdout_limit: 1024 * 1024,
+            stderr_limit: 1024 * 1024,
+            ..Options::default()
+        },
+    )
+    .await?;
+    Ok(
+        json!({"command":source,"cwd":cwd.map(|path|path.to_string_lossy()).unwrap_or_default(),"stdout":output.stdout_text(),"stderr":output.stderr_text()}),
+    )
 }
 fn read_text(path: &Path, limit: u64) -> Result<String> {
     let file = fs::File::open(path).map_err(|e| e.to_string())?;
@@ -435,9 +387,9 @@ fn files(_app: &AppHandle, tool: &str, args: &Value, workspaces: &Value) -> Resu
             let tree = tree(&source, depth, max, &mut count, workspaces)?;
             Ok(json!({"path":source,"maxDepth":depth,"itemCount":count,"tree":tree}))
         }
-        "file.hash" | "file.trash" | "file.compress" | "file.extract" => {
-            archive_or_hash(tool, args, &source, workspaces)
-        }
+        "file.hash" => hash(args, &source),
+        "file.trash" => trash(&source),
+        "file.compress" | "file.extract" => archive(tool, args, &source, workspaces),
         _ => Err(format!("Unsupported file tool: {tool}")),
     }
 }
@@ -614,35 +566,32 @@ fn tree(
     }
     Ok(nodes)
 }
-fn ps_quote(value: &str) -> String {
-    format!("'{}'", value.replace('\'', "''"))
+fn hash(args: &Value, source: &Path) -> Result<Value> {
+    use crate::infrastructure::hashing::{self, Algorithm};
+    let name = if text(args, "algorithm").is_empty() {
+        "SHA256"
+    } else {
+        text(args, "algorithm")
+    };
+    let algorithm = Algorithm::parse(name)?;
+    let hash = hashing::file(source, algorithm)?.to_ascii_uppercase();
+    Ok(json!({"path":source,"algorithm":algorithm.name().to_ascii_uppercase(),"hash":hash}))
 }
-fn powershell(script: &str) -> Result<String> {
-    let output =
-        tauri::async_runtime::block_on(command_output("cmd.powershell", script, None, 60000))?;
-    Ok(output["stdout"].as_str().unwrap_or("").trim().to_owned())
+fn trash(source: &Path) -> Result<Value> {
+    use crate::infrastructure::child_process::{self, Options};
+    let script="Add-Type -AssemblyName Microsoft.VisualBasic;if($a.directory){[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory([string]$a.path,'OnlyErrorDialogs','SendToRecycleBin')}else{[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile([string]$a.path,'OnlyErrorDialogs','SendToRecycleBin')};$true";
+    tauri::async_runtime::block_on(child_process::powershell_json(
+        script,
+        &json!({"path":source,"directory":source.is_dir()}),
+        Options {
+            timeout: Duration::from_secs(60),
+            ..Options::default()
+        },
+    ))?;
+    Ok(json!({"path":source,"trashed":true}))
 }
-fn archive_or_hash(tool: &str, args: &Value, source: &Path, workspaces: &Value) -> Result<Value> {
-    let quoted = ps_quote(&source.to_string_lossy());
-    if tool == "file.hash" {
-        let algorithm = text(args, "algorithm").to_uppercase();
-        let algorithm = if algorithm.is_empty() {
-            "SHA256"
-        } else {
-            algorithm.as_str()
-        };
-        if !["SHA1", "SHA256", "SHA384", "SHA512", "MD5"].contains(&algorithm) {
-            return Err("Unsupported hash algorithm".into());
-        }
-        let hash = powershell(&format!(
-            "(Get-FileHash -LiteralPath {quoted} -Algorithm {algorithm}).Hash"
-        ))?;
-        return Ok(json!({"path":source,"algorithm":algorithm,"hash":hash}));
-    }
-    if tool == "file.trash" {
-        powershell(&format!("Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::{}({quoted},'OnlyErrorDialogs','SendToRecycleBin')",if source.is_dir(){"DeleteDirectory"}else{"DeleteFile"}))?;
-        return Ok(json!({"path":source,"trashed":true}));
-    }
+fn archive(tool: &str, args: &Value, source: &Path, workspaces: &Value) -> Result<Value> {
+    use crate::infrastructure::archive::{self, Limits};
     let raw = text(args, "destination");
     let default = if tool == "file.compress" {
         format!("{}.zip", source.display())
@@ -654,21 +603,11 @@ fn archive_or_hash(tool: &str, args: &Value, source: &Path, workspaces: &Value) 
             .into_owned()
     };
     let destination = checked_path(if raw.is_empty() { &default } else { raw }, workspaces)?;
-    // Archive extraction is delegated to the platform zip implementation; destination remains confined.
-    powershell(&format!(
-        "{} -LiteralPath {quoted} -DestinationPath {} -Force",
-        if tool == "file.compress" {
-            "Compress-Archive"
-        } else {
-            "Expand-Archive"
-        },
-        ps_quote(&destination.to_string_lossy())
-    ))?;
     if tool == "file.compress" {
-        Ok(
-            json!({"source":source,"destination":destination,"size":fs::metadata(&destination).map_err(|e|e.to_string())?.len()}),
-        )
+        let size = archive::compress(source, &destination, true, Limits::default())?;
+        Ok(json!({"source":source,"destination":destination,"size":size}))
     } else {
+        archive::extract(source, &destination, true, Limits::default())?;
         Ok(json!({"source":source,"destination":destination,"extracted":true}))
     }
 }
@@ -881,7 +820,17 @@ mod tests {
         .is_ok());
     }
     #[test]
-    fn powershell_paths_escape_quotes_without_interpolation() {
-        assert_eq!(ps_quote("a'b$()"), "'a''b$()'");
+    fn hash_adapter_keeps_agent_uppercase_contract() {
+        let path =
+            std::env::temp_dir().join(format!("eisland-agent-hash-{}", uuid::Uuid::new_v4()));
+        fs::write(&path, b"abc").unwrap();
+        let result = hash(&json!({}), &path).unwrap();
+        assert_eq!(result["algorithm"], "SHA256");
+        assert_eq!(
+            result["hash"],
+            "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"
+        );
+        assert!(hash(&json!({"algorithm":"crc32"}), &path).is_err());
+        fs::remove_file(path).unwrap();
     }
 }

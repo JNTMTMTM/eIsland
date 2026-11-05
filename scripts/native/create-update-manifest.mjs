@@ -32,8 +32,6 @@ const options = releaseOptions(process.argv.slice(2));
 if (options.help) console.log('Usage: node scripts/native/create-update-manifest.mjs [--target-dir <Cargo target> | --dist <NSIS directory>]');
 else {
   const artifact = await releaseArtifact(projectRoot, options, process.env);
-  const repository = process.env.GITHUB_REPOSITORY || 'JNTMTMTM/eIsland';
-  const reference = process.env.GITHUB_REF_NAME || `v${artifact.version}`;
-  const base = process.env.EISLAND_TAURI_RELEASE_BASE_URL || `https://github.com/${repository}/releases/download/${reference}`;
+  const base = process.env.EISLAND_TAURI_RELEASE_BASE_URL || 'https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri';
   console.log(`Created native update manifest: ${writeManifest(artifact, nativeManifest(artifact, base))}`);
 }

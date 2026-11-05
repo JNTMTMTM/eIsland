@@ -38,6 +38,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import { buildSync } from 'esbuild';
 import { cargoTargetDirectory } from './release-artifacts.mjs';
+import withoutSigningSecrets from './environment.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const binary = process.env.EISLAND_SMOKE_BINARY || join(cargoTargetDirectory(root), 'debug/eisland.exe');
@@ -112,7 +113,7 @@ test('toolbox public APIs operate on real native files and bounded local HTTP se
   const base = `http://127.0.0.1:${upstream.address().port}`;
   const port = 9226;
   const app = spawn(binary, [], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'], env: {
-    ...process.env, EISLAND_DATA_DIR: store, EISLAND_WEBVIEW_DATA_DIR: join(directory, 'webview'), EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
+    ...withoutSigningSecrets(process.env), EISLAND_DATA_DIR: store, EISLAND_WEBVIEW_DATA_DIR: join(directory, 'webview'), EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
   } });
   let diagnostics = ''; app.stderr.on('data', (chunk) => { diagnostics = (diagnostics + chunk.toString()).slice(-16000); });
   let browser; let page;

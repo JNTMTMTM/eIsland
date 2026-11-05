@@ -1,0 +1,107 @@
+name: Native Refactor Coverage
+
+on:
+  workflow_dispatch:
+
+# Reports are review artifacts; this workflow cannot publish releases or feeds.
+permissions:
+  contents: read
+
+concurrency:
+  group: native-refactor-coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Complete refactor frontend / 99 percent gate
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Collect complete frontend coverage and enforce four 99 percent gates
+        run: node scripts/native/toolbox-coverage.mjs --scope refactor
+      - name: Save frontend coverage and missing-path reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: refactor-frontend-coverage
+          path: coverage/refactor/renderer/
+          if-no-files-found: ignore
+
+  native:
+    name: Complete native refactor / real WebView2 coverage
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      EISLAND_TEST_IDENTIFIER: com.pyisland.eisland.refactor-test
+      EISLAND_REFACTOR_RUST_TARGET_DIR: ${{ runner.temp }}/eisland-refactor-coverage-target
+      EISLAND_SMOKE_OUTPUT: ${{ github.workspace }}/src-tauri/target/coverage-smoke
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> ${{ runner.temp }}/eisland-refactor-coverage-target
+          shared-key: native-refactor-coverage
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Install pinned stable LLVM coverage driver
+        run: cargo install cargo-llvm-cov --locked --version 0.9.1
+      - name: Prepare WebView2
+        shell: pwsh
+        run: |
+          $runtime = Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\*', 'HKCU:\Software\Microsoft\EdgeUpdate\Clients\*' -ErrorAction SilentlyContinue | Where-Object { $_.name -like '*WebView2*' -and $_.pv -and $_.pv -ne '0.0.0.0' }
+          if (-not $runtime) {
+            $bootstrapper = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebview2Setup.exe'
+            Invoke-WebRequest 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $bootstrapper
+            $install = Start-Process -FilePath $bootstrapper -ArgumentList '/silent', '/install' -WindowStyle Hidden -Wait -PassThru
+            if ($install.ExitCode -ne 0) { throw "WebView2 install failed: $($install.ExitCode)" }
+          }
+      - name: Prepare converter, probe and native plugin resources
+        run: npm run plugins:build
+      - name: Prepare temporary updater test identity using the shared helper
+        run: node scripts/native/test-signing.mjs prepare
+      - name: Build current renderer for embedded WebView2
+        run: npm run build:web
+      - name: Prepare instrumented Cargo tests and desktop executable
+        id: instrument
+        run: node scripts/native/toolbox-rust-coverage.mjs --scope refactor --prepare
+      - name: Exercise real windows, downloads and signed updater without installation
+        id: desktop
+        shell: pwsh
+        run: |
+          node scripts/native/toolbox-rust-coverage.mjs --scope refactor --env-pwsh | Out-String | Invoke-Expression
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:e2e
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Merge real native profiles and enforce the 99 percent target
+        if: always() && steps.instrument.outcome == 'success'
+        run: node scripts/native/toolbox-rust-coverage.mjs --scope refactor --report
+      - name: Remove temporary signing identity
+        if: always()
+        run: node scripts/native/test-signing.mjs cleanup
+      - name: Save raw global and complete refactor JSON HTML LCOV and gaps
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: refactor-native-coverage
+          path: |
+            coverage/refactor/rust/
+            src-tauri/target/coverage-smoke/
+            src-tauri/target/toolbox-download-ui.png
+          if-no-files-found: ignore

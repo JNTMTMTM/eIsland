@@ -3882,7 +3882,18 @@
       "guideCardHint": "重新顯示首次啟動引導界面",
       "guideResetSuccess": "設置成功，下次啟動將顯示引導界面",
       "guideResetError": "設置失敗，請稍後重試",
-      "pagination": "更新設置分頁"
+      "pagination": "更新設置分頁",
+      "checkFailedMessage": "檢查更新失敗：{{error}}",
+      "downloadFailedMessage": "下載更新失敗：{{error}}",
+      "installFailedMessage": "安裝更新失敗：{{error}}",
+      "errors": {
+        "signingUnavailable": "目前暫時無法提供安全更新，請聯絡應用程式維護者。",
+        "networkFailed": "無法連線至更新伺服器，請檢查網路後重試，或切換更新來源。",
+        "verificationFailed": "更新套件驗證失敗，已停止安裝。請重試或切換更新來源。",
+        "manifestInvalid": "此更新來源暫時無法提供有效更新，請稍後重試或切換更新來源。",
+        "platformUnsupported": "目前不支援此系統自動更新，請聯絡應用程式維護者取得安裝套件。",
+        "operationFailed": "更新操作未完成，請重試或切換更新來源。"
+      }
     },
     "pluginMarket": {
       "pagination": "綜合市場分頁",
@@ -4987,12 +4998,12 @@
       "test:coverage": "執行全部測試並產生覆蓋率報告",
       "test:cli": "執行 eIsland CLI 測試",
       "postinstall": "安裝後準備 CLI 相依套件",
-      "package": "建置原生外掛並封裝 Tauri 安裝程式",
+      "package": "自動建置原生外掛、Tauri NSIS 安裝套件、官方更新簽章及資訊清單",
       "changelog:generate": "產生 docs/CHANGE_LOG.md",
       "release:notes": "產生自上個標籤以來的發布說明",
       "release": "建置原生外掛與 Tauri 安裝程式，上傳 AWS 並精準清除 ESA 快取",
       "release:upload": "執行完整 Tauri 發布流程（建置、AWS 上傳與精準 ESA 清除）",
-      "release:upload-only": "將現有 Tauri 安裝程式與更新清單上傳 AWS，並精準清除 ESA 快取",
+      "release:upload-only": "使用 AWS CLI 將已驗證的 Tauri 安裝套件、簽章及資訊清單上傳至已設定來源，全部安裝套件成功後發佈資訊清單並精確清除 ESA 快取",
       "release:upload-minio": "僅將現有 Tauri 安裝程式與更新清單上傳 MinIO，不清除 ESA 快取",
       "comment:check": "檢查註解規範（lint:comments 的別名）",
       "i18n:check": "檢查 i18n 翻譯完整性",
@@ -5054,7 +5065,7 @@
       "dev:web": "以開發模式啟動 Tauri 應用程式 (Web)",
       "build:web": "建置 Tauri 應用程式（不產生安裝包） (Web)",
       "check:rust": "Rust Check",
-      "test:rust": "測試 Rust 原生應用服務",
+      "test:rust": "透過 Cargo 執行鎖定依賴的 Rust 單元及整合測試",
       "native": "準備原生外掛（plugins:build 別名）",
       "test:api": "驗證原生前端 API、執行階段進入點與發布流程",
       "test:services": "透過真實 WebView2、HTTP 和 Range 請求驗證原生服務",

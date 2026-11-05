@@ -362,7 +362,7 @@ describe('配置非法值和默认边界', () => {
       expect(setters[setter]).toHaveBeenCalledWith('');
     });
     expect(setters.setClipboardUrlBlacklist).toHaveBeenCalledWith([]);
-    expect(setters.setUpdateSource).toHaveBeenCalledWith('cloudflare-r2');
+    expect(setters.setUpdateSource).toHaveBeenCalledWith('esa-cdn');
   });
   it.each([{
     visibleOrder: [],

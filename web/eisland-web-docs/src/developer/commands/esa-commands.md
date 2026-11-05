@@ -97,8 +97,8 @@ The upload commands automatically purge the file-level cache after a successful 
 
 | Command | Uploads To | Auto Purge |
 |---------|-----------|------------|
-| `release:upload` | COS + OSS | `esa:purge` |
-| `release:upload-only` | COS + OSS | `esa:purge` |
+| `release:upload` | COS + OSS, optional R2/MinIO/GitHub | Exact native manifest, installer and signature purge |
+| `release:upload-only` | COS + OSS, optional R2/MinIO/GitHub | Exact native manifest, installer and signature purge |
 | `release:upload-minio` | MinIO | `esa:purge` |
 
 :::note

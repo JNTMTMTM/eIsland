@@ -25,7 +25,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { globSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, fstatSync, globSync, mkdirSync, openSync, readFileSync, readSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -33,7 +33,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cwd = join(root, 'src-tauri');
 const metricNames = ['lines', 'functions', 'regions'];
-const scopePatterns = [
+const toolboxPatterns = [
   'src-tauri/src/features/downloads/**/*.rs',
   'src-tauri/src/features/images/**/*.rs',
   'src-tauri/src/features/files/**/*.rs',
@@ -53,6 +53,27 @@ const scopePatterns = [
   'src-tauri/src/main.rs',
 ];
 
+const refactorPatterns = [
+  'src-tauri/src/app/**/*.rs',
+  'src-tauri/src/commands/**/*.rs',
+  'src-tauri/src/infrastructure/**/*.rs',
+  'src-tauri/src/shared/**/*.rs',
+  'src-tauri/src/state/**/*.rs',
+  'src-tauri/src/features/{agent,capture,downloads,extensions,files,images,mail,music,runtime,settings,system,updater,wallpaper}/**/*.rs',
+  'src-tauri/src/features/windowing/actions.rs',
+  'src-tauri/src/lib.rs',
+  'src-tauri/src/main.rs',
+];
+/** 选择完整生产文件范围；不根据已执行覆盖率筛选函数。
+ * @param scope - toolbox 或 refactor。
+ * @returns 不遗漏新子模块的文件 glob。
+ */
+export function rustScopePatterns(scope = 'toolbox') {
+  if (scope === 'toolbox') return toolboxPatterns;
+  if (scope === 'refactor') return refactorPatterns;
+  throw new Error(`Unknown Rust coverage scope: ${scope}`);
+}
+
 /** 统一 LLVM 的绝对源码路径。
  * @param path - 源文件路径。
  * @returns 仓库相对路径。
@@ -61,15 +82,29 @@ function repositoryPath(path) {
   return (isAbsolute(path) ? relative(root, path) : path).replaceAll('\\', '/');
 }
 
+/** 仅识别 cfg(test) 声明的独立 tests.rs；业务文件和 inline 测试不在此排除。
+ * @param path - 仓库相对源文件。
+ * @returns 是否是独立纯测试模块。
+ */
+function standaloneTestModule(path) {
+  if (!path.endsWith('/tests.rs')) return false;
+  const parent = resolve(root, path.slice(0, -'tests.rs'.length), 'mod.rs');
+  return existsSync(parent) && /#\[cfg\(test\)\]\s*mod\s+tests\s*;/u.test(readFileSync(parent, 'utf8'));
+}
+
 /** 明确列出全部 scope 文件，不按测试是否执行选择模块。
+ * @param scope - toolbox 或 refactor。
  * @returns 带哈希的 whole-file 清单。
  */
-export function rustInventory() {
-  return Array.from(new Set(scopePatterns.flatMap((pattern) => globSync(pattern, { cwd: root })).map(repositoryPath))).sort().map((path) => {
-    const text = readFileSync(resolve(root, path), 'utf8');
-    const code = text.replace(/\/\*[\s\S]*?\*\//gu, '').replace(/\/\/[^\r\n]*/gu, '');
-    return { path, sha256: createHash('sha256').update(text).digest('hex'), hasFunctions: /\bfn\s+\w+/u.test(code) };
-  });
+export function rustInventory(scope = 'toolbox') {
+  return Array.from(new Set(rustScopePatterns(scope).flatMap((pattern) => globSync(pattern, { cwd: root })).map(repositoryPath)))
+    .filter((path) => !standaloneTestModule(path))
+    .sort()
+    .map((path) => {
+      const text = readFileSync(resolve(root, path), 'utf8');
+      const code = text.replace(/\/\*[\s\S]*?\*\//gu, '').replace(/\/\/[^\r\n]*/gu, '');
+      return { path, sha256: createHash('sha256').update(text).digest('hex'), hasFunctions: /\bfn\s+\w+/u.test(code) };
+    });
 }
 
 /** 运行 Cargo/LLVM 边界，错误直接终止，不生成成功报告。
@@ -86,10 +121,12 @@ function cargo(args, env, capture = false) {
 
 /** 使用工具自己输出的环境，确保 unit、native binary 与 CDP 子进程写到同一 profile 集合。
  * @param target - 专用插桩构建目录。
+ * @param scope - 隔离应用标识使用的统计范围。
  * @returns 子进程环境与测试 binary 路径。
  */
-export function instrumentation(target) {
-  const testConfig = { ...JSON.parse(process.env.TAURI_CONFIG || '{}'), identifier: 'com.pyisland.eisland.toolbox-test' };
+export function instrumentation(target, scope = 'toolbox') {
+  rustScopePatterns(scope);
+  const testConfig = { ...JSON.parse(process.env.TAURI_CONFIG || '{}'), identifier: `com.pyisland.eisland.${scope}-test` };
   const base = { ...process.env, TAURI_CONFIG: JSON.stringify(testConfig), CARGO_TARGET_DIR: target, CARGO_LLVM_COV_TARGET_DIR: target };
   delete base.CARGO_LLVM_COV_SHOW_ENV;
   const assignments = cargo(['llvm-cov', 'show-env', '--cmd'], base, true);
@@ -102,6 +139,57 @@ export function instrumentation(target) {
   });
   if (!overrides.LLVM_PROFILE_FILE || !overrides.RUSTC_WRAPPER) throw new Error('Incomplete coverage instrumentation environment');
   return { base, overrides, env: { ...base, ...overrides } };
+}
+
+/** 分块计算 PE 指纹，不把完整桌面程序一次读入内存。
+ * @param path - 已完成插桩构建的程序。
+ * @returns 大小和内容哈希。
+ */
+function binaryFingerprint(path) {
+  const file = openSync(path, 'r');
+  try {
+    const hash = createHash('sha256'); const buffer = Buffer.allocUnsafe(1024 * 1024);
+    let size = 0; let count;
+    while ((count = readSync(file, buffer, 0, buffer.length, null)) !== 0) { hash.update(buffer.subarray(0, count)); size += count; }
+    if (fstatSync(file).size !== size) throw new Error('Coverage binary changed while hashing');
+    return { size, sha256: hash.digest('hex') };
+  } finally { closeSync(file); }
+}
+
+/** 冻结 custom-protocol PE 映射；Cargo 的默认 feature 构建会覆盖无哈希的同名目标。
+ * @param target - 独立插桩目录。
+ * @param output - 本轮报告目录。
+ * @returns 可审计的 PE 指纹清单。
+ */
+export function recordCoverageBinaries(target, output) {
+  const paths = ['debug/eisland.exe', 'debug/deps/eisland.exe'];
+  const binaries = paths.filter((path, index) => index === 0 || existsSync(join(target, path)))
+    .map((path) => ({ path, ...binaryFingerprint(join(target, path)) }));
+  const manifest = { binaries, targetDirectory: resolve(target), generatedAt: new Date().toISOString() };
+  mkdirSync(output, { recursive: true });
+  writeFileSync(join(output, 'coverage-binaries.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  return manifest;
+}
+
+/** 在合并前拒绝已丢失的 PE 映射，避免把保留 profraw 的错误低覆盖率当成有效结果。
+ * @param target - 独立插桩目录。
+ * @param output - 本轮报告目录。
+ * @returns 已验证的指纹清单。
+ */
+export function verifyCoverageBinaries(target, output) {
+  try {
+    const manifest = JSON.parse(readFileSync(join(output, 'coverage-binaries.json'), 'utf8'));
+    if (manifest.targetDirectory !== resolve(target) || !Array.isArray(manifest.binaries) || !manifest.binaries.length
+      || manifest.binaries[0].path !== 'debug/eisland.exe') throw new Error('missing or mismatched fingerprint manifest');
+    manifest.binaries.forEach(({ path, size, sha256 }) => {
+      if (!['debug/eisland.exe', 'debug/deps/eisland.exe'].includes(path)) throw new Error('unexpected binary path');
+      const current = binaryFingerprint(join(target, path));
+      if (current.size !== size || current.sha256 !== sha256) throw new Error(`PE coverage mapping changed: ${path}`);
+    });
+    return manifest;
+  } catch (error) {
+    throw new Error(`Coverage binary fingerprint verification failed (${error.message}). Repeat --prepare → E2E → --report; do not rebuild or change features in this coverage target between those steps. Run signed_release integration builds in a separate target directory.`, { cause: error });
+  }
 }
 
 /** 汇总 LLVM 的计数；stable Rust 未采集的 branch 必须保留 unsupported。
@@ -122,17 +210,20 @@ export function aggregate(files) {
 /** 生成全库与 whole-file 工具箱 JSON、HTML、LCOV，scope 不排除低覆盖函数。
  * @param output - 报告目录。
  * @param environment - instrumentation 返回值。
+ * @param scope - toolbox 或 refactor，保留独立完整文件报告。
  * @returns 工具箱门槛是否通过。
  */
-export function report(output, environment) {
-  const globalDir = join(output, 'global'); const toolboxDir = join(output, 'toolbox');
+export function report(output, environment, scope = 'toolbox') {
+  verifyCoverageBinaries(environment.overrides.CARGO_TARGET_DIR, output);
+  const scopePatterns = rustScopePatterns(scope);
+  const globalDir = join(output, 'global'); const toolboxDir = join(output, scope);
   [globalDir, toolboxDir].forEach((directory) => mkdirSync(directory, { recursive: true }));
   const globalJson = join(globalDir, 'coverage.json'); const globalLcov = join(globalDir, 'lcov.info');
   cargo(['llvm-cov', 'report', '--json', '--output-path', globalJson], environment.base);
   cargo(['llvm-cov', 'report', '--lcov', '--output-path', globalLcov], environment.base);
   cargo(['llvm-cov', 'report', '--html', '--output-dir', globalDir], environment.base);
   const raw = JSON.parse(readFileSync(globalJson, 'utf8'));
-  const inventory = rustInventory(); const names = new Set(inventory.map((file) => file.path));
+  const inventory = rustInventory(scope); const names = new Set(inventory.map((file) => file.path));
   const allFiles = raw.data.flatMap((data) => data.files).filter((file) => repositoryPath(file.filename).startsWith('src-tauri/src/'));
   const scoped = allFiles.filter((file) => names.has(repositoryPath(file.filename)));
   const reported = new Set(scoped.map((file) => repositoryPath(file.filename)));
@@ -144,9 +235,10 @@ export function report(output, environment) {
   });
   const global = aggregate(allFiles); const toolbox = aggregate(scoped);
   const belowThreshold = metricNames.filter((metric) => toolbox[metric].count === 0 || toolbox[metric].covered * 100 < toolbox[metric].count * 99);
-  const audit = { inventory, perFile, belowThreshold, scopePatterns, global, toolbox, generatedAt: new Date().toISOString(), language: 'rust', targetDirectory: environment.overrides.CARGO_TARGET_DIR, profilePattern: environment.overrides.LLVM_PROFILE_FILE, threshold: 99, globalSourceFileCount: globSync('src-tauri/src/**/*.rs', { cwd: root }).length, globalReportedFileCount: allFiles.length, missingInstrumentedFiles: missing, coveragePassed: missing.length === 0 && belowThreshold.length === 0, limitations: ['Metrics describe compiled Windows code and instantiated functions.', 'Whole-file LLVM summaries may include inline cfg(test) code in those production files.', 'No JavaScript percentage is combined with the native metrics.'] };
+  const excludedTestOnlyFiles = Array.from(new Set(scopePatterns.flatMap((pattern) => globSync(pattern, { cwd: root })).map(repositoryPath))).filter(standaloneTestModule);
+  const audit = { scope, inventory, perFile, belowThreshold, scopePatterns, global, excludedTestOnlyFiles, scoped: toolbox, ...(scope === 'toolbox' ? { toolbox } : { refactor: toolbox }), generatedAt: new Date().toISOString(), language: 'rust', targetDirectory: environment.overrides.CARGO_TARGET_DIR, profilePattern: environment.overrides.LLVM_PROFILE_FILE, threshold: 99, globalSourceFileCount: globSync('src-tauri/src/**/*.rs', { cwd: root }).length, globalReportedFileCount: allFiles.length, missingInstrumentedFiles: missing, coveragePassed: missing.length === 0 && belowThreshold.length === 0, limitations: ['Metrics describe compiled Windows code and instantiated functions.', 'Whole-file LLVM summaries may include inline cfg(test) code; standalone cfg(test) tests.rs files are excluded only from the scoped business inventory and remain in the raw global report.', 'No JavaScript percentage is combined with the native metrics.'] };
   writeFileSync(join(output, 'scope-audit.json'), `${JSON.stringify(audit, null, 2)  }\n`);
-  writeFileSync(join(toolboxDir, 'coverage.json'), `${JSON.stringify({ language: 'rust', scope: 'toolbox-whole-files', summary: toolbox, files: scoped, functions: raw.data.flatMap((data) => data.functions).filter((fn) => fn.filenames.some((path) => names.has(repositoryPath(path)))) }, null, 2)  }\n`);
+  writeFileSync(join(toolboxDir, 'coverage.json'), `${JSON.stringify({ language: 'rust', scope: `${scope}-whole-files`, summary: toolbox, files: scoped, functions: raw.data.flatMap((data) => data.functions).filter((fn) => fn.filenames.some((path) => names.has(repositoryPath(path)))) }, null, 2)  }\n`);
   const records = readFileSync(globalLcov, 'utf8').split('end_of_record');
   writeFileSync(join(toolboxDir, 'lcov.info'), records.filter((record) => {
     const path = record.match(/^SF:(.+)$/mu)?.[1];
@@ -161,36 +253,39 @@ export function report(output, environment) {
     return regions.length ? [{ regions, name: fn.name, filenames: fn.filenames.map(repositoryPath) }] : [];
   });
   writeFileSync(join(toolboxDir, 'uncovered.json'), `${JSON.stringify(uncovered, null, 2)  }\n`);
-  console.log(JSON.stringify({ belowThreshold, rustGlobal: global, rustToolbox: toolbox, missingInstrumentedFiles: missing }, null, 2));
+  console.log(JSON.stringify({ scope, belowThreshold, rustGlobal: global, rustScoped: toolbox, missingInstrumentedFiles: missing }, null, 2));
   return audit.coveragePassed;
 }
 
 /** 准备插桩构建、输出 CDP 环境或合并已收集的真实 profile。
- * @param argv - --prepare、--env、--env-pwsh、--report、--target-dir 与 --output。
+ * @param argv - --scope toolbox/refactor、--prepare、--env、--env-pwsh、--report、--target-dir 与 --output。
  * @returns 退出码。
  */
 export function main(argv) {
-  let mode = '--report'; let target = process.env.EISLAND_TOOLBOX_RUST_TARGET_DIR || join(tmpdir(), 'eisland-toolbox-coverage-target'); let output = 'coverage/toolbox/rust';
+  let mode = '--report'; let scope = 'toolbox'; let target; let output;
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (['--prepare', '--env', '--env-pwsh', '--report'].includes(arg)) mode = arg;
+    else if (arg === '--scope') { const value = argv[++index]; if (!value || value.startsWith('--')) throw new Error('--scope requires toolbox or refactor'); scope = value; rustScopePatterns(scope); }
     else if (arg === '--target-dir' || arg === '--output') {
       const value = argv[++index]; if (!value || value.startsWith('--')) throw new Error(`${arg  } requires a directory`);
       if (arg === '--target-dir') target = value; else output = value;
     } else throw new Error(`Unknown native coverage option: ${  arg}`);
   }
+  target ||= scope === 'refactor' ? process.env.EISLAND_REFACTOR_RUST_TARGET_DIR || join(tmpdir(), 'eisland-refactor-coverage-target') : process.env.EISLAND_TOOLBOX_RUST_TARGET_DIR || join(tmpdir(), 'eisland-toolbox-coverage-target');
+  output ||= `coverage/${scope}/rust`;
   target = resolve(root, target); output = resolve(root, output);
-  const environment = instrumentation(target);
+  const environment = instrumentation(target, scope);
   if (mode === '--env') console.log(JSON.stringify(environment.overrides, null, 2));
   else if (mode === '--env-pwsh') Object.entries(environment.overrides).forEach(([key, value]) => console.log(`$env:${  key  } = '${  value.replaceAll("'", "''")  }'`));
   else if (mode === '--prepare') {
-    cargo(['llvm-cov', 'test', '--no-report', '--locked', '--lib'], environment.base);
+    cargo(['llvm-cov', 'test', '--no-report', '--locked', scope === 'refactor' ? '--all-targets' : '--lib'], environment.base);
     cargo(['build', '--locked', '--features', 'custom-protocol'], environment.env);
-    mkdirSync(output, { recursive: true });
+    recordCoverageBinaries(target, output);
     writeFileSync(join(output, 'instrumentation-environment.json'), `${JSON.stringify(environment.overrides, null, 2)  }\n`);
-    writeFileSync(join(output, 'scope-manifest.json'), `${JSON.stringify(rustInventory(), null, 2)  }\n`);
+    writeFileSync(join(output, 'scope-manifest.json'), `${JSON.stringify(rustInventory(scope), null, 2)  }\n`);
     console.log('Instrumented binary ready. Run CDP tests with --env-pwsh environment and normal app:quit before --report.');
-  } else return report(output, environment) ? 0 : 1;
+  } else return report(output, environment, scope) ? 0 : 1;
   return 0;
 }
 

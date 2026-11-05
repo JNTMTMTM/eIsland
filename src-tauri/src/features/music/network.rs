@@ -106,7 +106,7 @@ mod tests {
             }
         });
         tauri::async_runtime::block_on(async {
-            let client = reqwest::Client::new();
+            let client = crate::infrastructure::http::client().clone();
             let response = fetch(&client, &[json!(format!("{base}/redirect"))]).await;
             assert_eq!(response["body"], "[00:01.00]测试歌词");
             assert_eq!(response["ok"], true);

@@ -29,21 +29,26 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Install build dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
-      - name: Prepare native FFmpeg binary
-        run: node node_modules/ffmpeg-static/install.js
-      - name: Publish native plugin resources
-        run: npm run plugins:build
-      - name: Test native application services
-        run: npm run test:api && npm run test:rust
-      - name: Build Tauri NSIS installer
-        # Resources were prepared above; package would build the plugins again.
-        run: npx tauri build
       - name: Generate release notes
         run: node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES.md
-      - name: Generate native update manifest
-        run: node scripts/native/create-update-manifest.mjs
+      - name: Build local signed NSIS package and official updater manifest
+        run: npm run package
         env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY || secrets.TAURI_UPDATER_PUBLIC_KEY }}
           EISLAND_TAURI_RELEASE_BASE_URL: ${{ vars.TAURI_RELEASE_BASE_URL }}
+      - name: Test native API and Cargo unit/integration tests
+        run: npm run test:api && npm run test:rust
+      - name: Verify packaged NSIS with official updater without installing
+        shell: pwsh
+        env:
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY || secrets.TAURI_UPDATER_PUBLIC_KEY }}
+        run: |
+          $taskInstaller = @(Get-ChildItem -LiteralPath 'src-tauri/target/release/bundle/nsis' -Filter '*-setup.exe')
+          if ($taskInstaller.Count -ne 1) { throw 'Expected exactly one packaged NSIS installer' }
+          $env:EISLAND_SIGNED_INSTALLER = $taskInstaller[0].FullName
+          cargo test --locked --manifest-path src-tauri/Cargo.toml --test signed_release -- --ignored
       # This workflow only creates review artifacts. Manifest download URLs do not
       # publish an installer, update feed, GitHub Release or CDN object.
       - name: Upload Tauri installer for review
@@ -51,7 +56,9 @@ jobs:
         with:
           name: eisland-tauri-windows-x64-${{ github.ref_name }}
           path: |
+            src-tauri/target/release/eisland.exe
             src-tauri/target/release/bundle/nsis/*-setup.exe
+            src-tauri/target/release/bundle/nsis/*-setup.exe.sig
             src-tauri/target/release/bundle/tauri-latest.json
             RELEASE_NOTES.md
           if-no-files-found: error

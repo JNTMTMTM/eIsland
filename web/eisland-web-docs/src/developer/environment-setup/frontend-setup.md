@@ -214,8 +214,8 @@ These commands are for **testing and maintainer use only**. Regular developers d
 | Command | Description | When to Use |
 |---------|-------------|-------------|
 | `npm run package` | Build + package into NSIS installer (`dist/eIsland-{version}-Setup.exe`) | Local testing — verify the installer builds correctly on your machine |
-| `release:upload` | Package + upload release artifacts to COS (Cloud Object Storage) | **Maintainer only** — publish a new release to CDN |
-| `release:upload-only` | Upload existing build artifacts to COS without rebuilding | **Maintainer only** — re-upload a previously built package |
+| `release:upload` | Package signed Tauri artifacts + upload to configured mirrors | **Maintainer only** — publish a new release to CDN |
+| `release:upload-only` | Verify and upload existing signed Tauri artifacts without rebuilding | **Maintainer only** — re-upload a previously built package |
 | `release:upload-minio` | Upload artifacts to MinIO storage (`--minio-only`) | **Maintainer only** — internal/self-hosted release distribution |
 | `release:notes` | Generate incremental release notes from git history since last tag | After merging PRs — outputs `RELEASE_NOTES_SINCE_LAST_TAG.md` |
 | `changelog:generate` | Generate full changelog from git history | Periodic maintenance — regenerates `docs/CHANGE_LOG.md` |

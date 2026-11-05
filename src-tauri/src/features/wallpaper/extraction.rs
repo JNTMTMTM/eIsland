@@ -342,9 +342,20 @@ mod tests {
                 .await;
                 assert_eq!(result["success"], true, "{}", result);
                 assert!(std::fs::metadata(&output).unwrap().len() > 0);
-                let parsed = super::super::video::probe_binary(&binary, output.to_str().unwrap())
-                    .await
-                    .unwrap();
+                let parsed = super::super::video::probe_binary(
+                    &std::env::var_os("FFPROBE_BIN")
+                        .map(PathBuf::from)
+                        .unwrap_or_else(|| {
+                            root.join("resources/native/ffmpeg").join(if cfg!(windows) {
+                                "ffprobe.exe"
+                            } else {
+                                "ffprobe"
+                            })
+                        }),
+                    output.to_str().unwrap(),
+                )
+                .await
+                .unwrap();
                 if kind == "audio" {
                     assert_eq!(parsed["audioCodec"], "pcm_s16le");
                     assert!(parsed["videoCodec"].is_null());

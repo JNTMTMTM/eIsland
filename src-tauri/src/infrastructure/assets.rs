@@ -18,6 +18,7 @@
  * GNU General Public License for more details.
  */
 
+use crate::infrastructure::http::byte_range;
 use crate::shared::Result;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use hmac::{Hmac, Mac};
@@ -125,7 +126,7 @@ fn serve(request: tiny_http::Request, key: &[u8; 32]) {
         StatusCode(status),
         headers,
         file.take(length),
-        Some(length as usize),
+        usize::try_from(length).ok(),
         None,
     ));
 }
@@ -167,34 +168,6 @@ pub fn mime(path: &Path) -> &'static str {
         "woff2" => "font/woff2",
         _ => "application/octet-stream",
     }
-}
-fn byte_range(header: Option<&str>, length: u64) -> Result<(u64, u64, u16)> {
-    let Some(header) = header else {
-        return Ok((0, length.saturating_sub(1), 200));
-    };
-    let (start, end) = header
-        .strip_prefix("bytes=")
-        .and_then(|v| v.split_once('-'))
-        .ok_or("Invalid range")?;
-    let (start, end) = if start.is_empty() {
-        let count = end.parse::<u64>().map_err(|_| "Invalid suffix")?;
-        (length.saturating_sub(count), length.saturating_sub(1))
-    } else {
-        (
-            start.parse::<u64>().map_err(|_| "Invalid range")?,
-            if end.is_empty() {
-                length.saturating_sub(1)
-            } else {
-                end.parse::<u64>()
-                    .map_err(|_| "Invalid range")?
-                    .min(length.saturating_sub(1))
-            },
-        )
-    };
-    if length == 0 || start > end || start >= length {
-        return Err("Unsatisfiable range".into());
-    }
-    Ok((start, end, 206))
 }
 #[cfg(test)]
 mod tests {

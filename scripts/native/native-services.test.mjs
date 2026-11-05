@@ -36,6 +36,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import { cargoTargetDirectory } from './release-artifacts.mjs';
+import withoutSigningSecrets from './environment.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const binary = process.env.EISLAND_SMOKE_BINARY || join(cargoTargetDirectory(root), 'debug/eisland.exe');
@@ -90,7 +91,7 @@ test('native services use real streams, resume data and concurrent local assets'
   upstream.listen(0, '127.0.0.1'); await once(upstream, 'listening');
   const port = 9225;
   const app = spawn(binary, [], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'], env: {
-    ...process.env, EISLAND_DATA_DIR: store, EISLAND_WEBVIEW_DATA_DIR: join(directory, 'webview'), EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
+    ...withoutSigningSecrets(process.env), EISLAND_DATA_DIR: store, EISLAND_WEBVIEW_DATA_DIR: join(directory, 'webview'), EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
   } });
   let diagnostics = ''; app.stderr.on('data', (chunk) => { diagnostics += chunk.toString(); });
   let browser;
@@ -162,6 +163,19 @@ test('native services use real streams, resume data and concurrent local assets'
       const range = await fetch(url, { headers: { Range: 'bytes=2-4' } });
       assert.equal(range.status, 206); assert.equal(await range.text(), 'cde');
       assert.equal((await fetch(url, { headers: { Range: 'bytes=99-' } })).status, 416);
+      await Promise.all([['bytes=5-', 'fgh'], ['bytes=-2', 'gh'], ['bytes=6-99', 'gh']].map(async ([value, expected]) => {
+        const response = await fetch(url, { headers: { Range: value } });
+        assert.equal(response.status, 206); assert.equal(await response.text(), expected);
+      }));
+      await Promise.all(['bytes=-0', 'bytes=+1-2', 'bytes=0-1,3-4', 'bytes=3-2'].map(async (value) => {
+        assert.equal((await fetch(url, { headers: { Range: value } })).status, 416);
+      }));
+      const empty = join(directory, 'empty.bin'); writeFileSync(empty, '');
+      const emptyAsset = await invoke('album:media-info', empty);
+      const emptyResponse = await fetch(emptyAsset.url);
+      assert.equal(emptyResponse.status, 200); assert.equal((await emptyResponse.arrayBuffer()).byteLength, 0);
+      const emptyRange = await fetch(emptyAsset.url, { headers: { Range: 'bytes=0-' } });
+      assert.equal(emptyRange.status, 416); assert.equal(emptyRange.headers.get('content-range'), 'bytes */0');
       const large = join(directory, 'large.bin'); writeFileSync(large, Buffer.alloc(32 * 1024 * 1024));
       const asset = await invoke('album:media-info', large);
       const stalled = await fetch(asset.url);
@@ -184,9 +198,10 @@ test('native services use real streams, resume data and concurrent local assets'
       assert.equal(response.status, 200);
       assert((await response.arrayBuffer()).byteLength > 0);
     });
-    await t.test('bundled FFmpeg performs real compression and probes video without ffprobe', async () => {
+    await t.test('bundled FFmpeg compresses and bundled ffprobe supplies JSON video metadata', async () => {
       const ffmpeg = join(dirname(binary), 'native', 'ffmpeg', 'ffmpeg.exe');
       assert(existsSync(ffmpeg), 'native resources must ship FFmpeg');
+      assert(existsSync(join(dirname(ffmpeg), 'ffprobe.exe')), 'native resources must ship ffprobe');
       const source = join(directory, 'fixture.bmp');
       const video = join(directory, 'fixture.mp4');
       execFileSync(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=red:s=64x48', '-frames:v', '1', source], { windowsHide: true, timeout: 15000 });
@@ -224,6 +239,9 @@ test('native services use real streams, resume data and concurrent local assets'
   } catch (error) {
     error.message += `\nNative process diagnostics:\n${diagnostics}`; throw error;
   } finally {
+    if (app.exitCode !== null || mainPage?.isClosed()) {
+      t.diagnostic(`Native process closed before cleanup (exit=${app.exitCode}):\n${diagnostics}`);
+    }
     const exited = app.exitCode === null ? once(app, 'exit') : Promise.resolve();
     if (mainPage && app.exitCode === null) {
       try { await mainPage.evaluate(() => window.desktop.send('app:quit')); } catch { /* The window may close before its command response. */ }

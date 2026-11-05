@@ -30,6 +30,7 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { transformSync } from 'esbuild';
 import { toolboxSourceRoots } from '../../vitest.toolbox.config.mts';
+import { refactorSourcePatterns } from '../../vitest.refactor.config.mts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const metrics = ['lines', 'statements', 'functions', 'branches'];
@@ -43,11 +44,22 @@ function repositoryPath(path) {
   return (isAbsolute(path) ? relative(root, path) : path).replaceAll('\\', '/');
 }
 
+/** 返回完整生产模块 glob，不按加载结果或覆盖高低选择文件。
+ * @param scope - toolbox 或 refactor。
+ * @returns 覆盖率生产文件 glob。
+ */
+export function javascriptScopePatterns(scope = 'toolbox') {
+  if (scope === 'toolbox') return toolboxSourceRoots.map((directory) => `${directory}/**/*.{ts,tsx,js,jsx,mts,cts}`);
+  if (scope === 'refactor') return refactorSourcePatterns;
+  throw new Error(`Unknown JavaScript coverage scope: ${scope}`);
+}
+
 /** 完整枚举生产模块；类型文件保留在范围清单中但不伪造可执行覆盖率。
+ * @param scope - toolbox 或 refactor。
  * @returns 带源码哈希和可执行性说明的文件清单。
  */
-export function productionInventory() {
-  return toolboxSourceRoots.flatMap((directory) => globSync(`${directory  }/**/*.{ts,tsx,js,jsx,mts,cts}`, { cwd: root }))
+export function productionInventory(scope = 'toolbox') {
+  return Array.from(new Set(javascriptScopePatterns(scope).flatMap((pattern) => globSync(pattern, { cwd: root }))))
     .map(repositoryPath)
     .filter((path) => !path.includes('/test/') && !/\.(?:test|spec)\.[^.]+$/u.test(path) && !/\.d\.(?:ts|mts|cts)$/u.test(path))
     .sort()
@@ -70,14 +82,15 @@ export function reachesThreshold(value) {
  * @param input - 原始 coverage-summary/final.json 目录。
  * @param output - 审计报告目录。
  * @param testExitCode - 本次测试退出码；只读取报告时为 null。
+ * @param scope - toolbox 或 refactor。
  * @returns 审计摘要。
  */
-export function auditCoverage(input, output, testExitCode = null) {
+export function auditCoverage(input, output, testExitCode = null, scope = 'toolbox') {
   const summary = JSON.parse(readFileSync(resolve(input, 'coverage-summary.json'), 'utf8'));
   const coverage = JSON.parse(readFileSync(resolve(input, 'coverage-final.json'), 'utf8'));
   const summaries = new Map(Object.entries(summary).filter(([path]) => path !== 'total').map(([path, row]) => [repositoryPath(path), row]));
   const details = new Map(Object.entries(coverage).map(([path, row]) => [repositoryPath(path), row]));
-  const inventory = productionInventory();
+  const inventory = productionInventory(scope);
   const missing = [];
   const totals = Object.fromEntries(metrics.map((metric) => [metric, { total: 0, covered: 0, skipped: 0 }]));
   const perFile = inventory.map((file) => {
@@ -98,36 +111,39 @@ export function auditCoverage(input, output, testExitCode = null) {
     const branches = Object.entries(file.b).flatMap(([id, counts]) => counts.flatMap((count, index) => count === 0 ? [{ line: file.branchMap[id].line, type: file.branchMap[id].type, location: file.branchMap[id].locations[index] }] : []));
     return statements.length || functions.length || branches.length ? [{ path, statements, functions, branches }] : [];
   });
-  const audit = { input, testExitCode, threshold, belowThreshold, perFile, generatedAt: new Date().toISOString(), language: 'javascript', productionFileCount: inventory.length, runtimeFileCount: inventory.filter((file) => file.executable).length, missingRuntimeFiles: missing, global: totals, coveragePassed: missing.length === 0 && belowThreshold.length === 0 };
+  const audit = { scope, input, testExitCode, threshold, belowThreshold, perFile, sourcePatterns: javascriptScopePatterns(scope), generatedAt: new Date().toISOString(), language: 'javascript', productionFileCount: inventory.length, runtimeFileCount: inventory.filter((file) => file.executable).length, missingRuntimeFiles: missing, global: totals, coveragePassed: missing.length === 0 && belowThreshold.length === 0 };
   mkdirSync(output, { recursive: true });
   writeFileSync(resolve(output, 'scope-audit.json'), `${JSON.stringify(audit, null, 2)  }\n`);
   writeFileSync(resolve(output, 'uncovered.json'), `${JSON.stringify(uncovered, null, 2)  }\n`);
-  metrics.forEach((metric) => console.log(`Toolbox JS ${  metric  }: ${  totals[metric].covered  }/${  totals[metric].total  } = ${  totals[metric].pct?.toFixed(4) || 'no executable items'  }%`));
+  metrics.forEach((metric) => console.log(`${scope} JS ${  metric  }: ${  totals[metric].covered  }/${  totals[metric].total  } = ${  totals[metric].pct?.toFixed(4) || 'no executable items'  }%`));
   if (missing.length) console.error('Missing executable modules in coverage report:', missing);
-  if (belowThreshold.length) console.error('Toolbox JS below 99%:', belowThreshold.join(', '));
+  if (belowThreshold.length) console.error(`${scope} JS below 99%:`, belowThreshold.join(', '));
   return audit;
 }
 
 /** 运行独立 JS 覆盖率，或只审计既有报告而不重跑测试。
- * @param argv - --report-only <报告目录>、--output <输出目录> 或额外 Vitest 参数。
+ * @param argv - --scope toolbox/refactor、--report-only <报告目录>、--output <输出目录> 或额外 Vitest 参数。
  * @returns 退出码。
  */
 export function main(argv) {
   let input;
-  let output = process.env.EISLAND_TOOLBOX_COVERAGE_DIR || 'coverage/toolbox/renderer';
+  let output;
+  let scope = 'toolbox';
   const additional = [];
   for (let index = 0; index < argv.length; index += 1) {
-    if (argv[index] === '--report-only' || argv[index] === '--output') {
+    if (argv[index] === '--scope') { const value = argv[++index]; if (!value || value.startsWith('--')) throw new Error('--scope requires toolbox or refactor'); scope = value; javascriptScopePatterns(scope); }
+    else if (argv[index] === '--report-only' || argv[index] === '--output') {
       const option = argv[index]; const value = argv[++index];
       if (!value || value.startsWith('--')) throw new Error(`${option  } requires a directory`);
       if (option === '--report-only') input = value;
       else output = value;
     } else additional.push(argv[index]);
   }
+  output ||= scope === 'refactor' ? process.env.EISLAND_REFACTOR_COVERAGE_DIR || 'coverage/refactor/renderer' : process.env.EISLAND_TOOLBOX_COVERAGE_DIR || 'coverage/toolbox/renderer';
   output = resolve(root, output);
-  const result = input ? null : spawnSync(process.execPath, [resolve(root, 'node_modules/vitest/vitest.mjs'), 'run', '--config', 'vitest.toolbox.config.mts', '--coverage', ...additional], { cwd: root, stdio: 'inherit', windowsHide: true, env: { ...process.env, EISLAND_TOOLBOX_COVERAGE_DIR: output } });
+  const result = input ? null : spawnSync(process.execPath, [resolve(root, 'node_modules/vitest/vitest.mjs'), 'run', '--config', `vitest.${scope}.config.mts`, '--coverage', ...additional], { cwd: root, stdio: 'inherit', windowsHide: true, env: { ...process.env, EISLAND_TOOLBOX_COVERAGE_DIR: output, EISLAND_REFACTOR_COVERAGE_DIR: output } });
   if (result?.error) throw result.error;
-  const audit = auditCoverage(resolve(root, input || output), output, result?.status ?? null);
+  const audit = auditCoverage(resolve(root, input || output), output, result?.status ?? null, scope);
   return audit.coveragePassed && (!result || result.status === 0) ? 0 : 1;
 }
 

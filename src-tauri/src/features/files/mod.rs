@@ -24,7 +24,6 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{
     fs,
-    io::Read,
     path::{Path, PathBuf},
 };
 use tauri::{AppHandle, Manager};
@@ -507,28 +506,16 @@ fn clear_prefixed(directory: &Path, prefixes: &[&str]) -> Result<u64> {
     }
     Ok(bytes)
 }
-fn digest<D: Digest + Default>(path: &Path) -> Result<String> {
-    let mut file = fs::File::open(path).map_err(|e| e.to_string())?;
-    let mut hash = D::default();
-    let mut buffer = [0u8; 65536];
-    loop {
-        let read = file.read(&mut buffer).map_err(|e| e.to_string())?;
-        if read == 0 {
-            break;
-        }
-        hash.update(&buffer[..read]);
-    }
-    Ok(hex::encode(hash.finalize()))
-}
 fn hash(path: &Path, algorithm: &str) -> Result<Value> {
-    let (algorithm, hash) = match algorithm {
-        "md5" => ("md5", digest::<md5::Md5>(path)?),
-        "sha1" => ("sha1", digest::<sha1::Sha1>(path)?),
-        "sha512" => ("sha512", digest::<sha2::Sha512>(path)?),
-        _ => ("sha256", digest::<Sha256>(path)?),
+    use crate::infrastructure::hashing::{self, Algorithm};
+    // The toolbox historically defaults unknown algorithm names to SHA-256.
+    let algorithm = match algorithm {
+        "md5" | "sha1" | "sha256" | "sha512" => Algorithm::parse(algorithm)?,
+        _ => Algorithm::Sha256,
     };
+    let hash = hashing::file(path, algorithm)?;
     Ok(
-        json!({"hash":hash,"algorithm":algorithm,"fileName":path.file_name().unwrap_or_default().to_string_lossy(),"fileSize":fs::metadata(path).map_err(|e|e.to_string())?.len()}),
+        json!({"hash":hash,"algorithm":algorithm.name(),"fileName":path.file_name().unwrap_or_default().to_string_lossy(),"fileSize":fs::metadata(path).map_err(|e|e.to_string())?.len()}),
     )
 }
 fn search(root: &str, keyword: &str, options: &Value) -> Result<Value> {

@@ -24,7 +24,7 @@ npm test
 | `npm run test:plugins:unit` | Plugin tests with fixtures and mocks |
 | `npm run test:api` | Native API, runtime entry points and release tooling |
 | `npm run test:release` | Installer, upload ordering, manifest and cache refresh behavior |
-| `npm run test:rust` | Rust native services |
+| `npm run test:rust` | Standard Rust unit/integration targets via cargo test --locked --all-targets |
 | `npm run test:e2e` | Tauri in real WebView2, followed by native service tests |
 | `npm run test:services` | Native streams/files/network/images and real toolbox download/history interactions |
 | `npm run test:coverage` | Coverage for active Vitest projects |

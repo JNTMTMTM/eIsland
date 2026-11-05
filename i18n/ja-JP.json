@@ -3882,7 +3882,18 @@
       "guideCardHint": "初回起動時のガイドをもう一度表示します",
       "guideResetSuccess": "設定しました。次回起動時にガイドが表示されます",
       "guideResetError": "設定に失敗しました。しばらくしてから再試行してください",
-      "pagination": "更新設定のページ切り替え"
+      "pagination": "更新設定のページ切り替え",
+      "checkFailedMessage": "更新を確認できませんでした：{{error}}",
+      "downloadFailedMessage": "更新をダウンロードできませんでした：{{error}}",
+      "installFailedMessage": "更新をインストールできませんでした：{{error}}",
+      "errors": {
+        "signingUnavailable": "現在、安全な更新を提供できません。アプリの管理者にお問い合わせください。",
+        "networkFailed": "更新サーバーに接続できません。接続を確認して再試行するか、更新元を変更してください。",
+        "verificationFailed": "更新パッケージの検証に失敗したため、インストールを中止しました。再試行するか、更新元を変更してください。",
+        "manifestInvalid": "この更新元では現在、有効な更新を提供できません。後でもう一度試すか、更新元を変更してください。",
+        "platformUnsupported": "このシステムでは自動更新を利用できません。インストーラーについてはアプリの管理者にお問い合わせください。",
+        "operationFailed": "更新を完了できませんでした。再試行するか、更新元を変更してください。"
+      }
     },
     "pluginMarket": {
       "pagination": "総合マーケットのページ切り替え",
@@ -4987,12 +4998,12 @@
       "test:coverage": "すべてのテストをカバレッジ付きで実行",
       "test:cli": "eIsland CLI のテストを実行",
       "postinstall": "インストール後に CLI の依存関係を準備",
-      "package": "ネイティブプラグインと Tauri インストーラーをビルド",
+      "package": "ネイティブプラグイン、Tauri NSIS インストーラー、公式更新署名とマニフェストをビルド",
       "changelog:generate": "docs/CHANGE_LOG.md を生成",
       "release:notes": "前回のタグ以降のリリースノートを生成",
       "release": "ネイティブプラグインと Tauri インストーラーをビルドし、AWS にアップロードして対象の ESA キャッシュを削除",
       "release:upload": "Tauri の完全なリリース処理を実行（ビルド、AWS アップロード、対象の ESA キャッシュ削除）",
-      "release:upload-only": "既存の Tauri インストーラーと更新マニフェストを AWS にアップロードし、対象の ESA キャッシュを削除",
+      "release:upload-only": "AWS CLI で検証済みの Tauri インストーラー、署名、マニフェストを設定済み配信先へアップロードし、全インストーラーの成功後にマニフェストを公開して該当する ESA キャッシュを削除",
       "release:upload-minio": "既存の Tauri インストーラーと更新マニフェストを MinIO にのみアップロード（ESA キャッシュは削除しない）",
       "comment:check": "コメント規約をチェック（lint:comments の別名）",
       "i18n:check": "i18n 翻訳の網羅性をチェック",
@@ -5054,7 +5065,7 @@
       "dev:web": "Tauri アプリを開発モードで起動 (Web)",
       "build:web": "インストーラーを作成せずに Tauri アプリをビルド (Web)",
       "check:rust": "Rust Check",
-      "test:rust": "Rust ネイティブアプリサービスをテスト",
+      "test:rust": "Cargo でロック済み Rust 単体・統合テストを実行",
       "native": "ネイティブプラグインを準備（plugins:build の別名）",
       "test:api": "ネイティブフロントエンド API、実行時エントリー、リリース処理をテスト",
       "test:services": "実際の WebView2、HTTP、Range リクエストでネイティブサービスを検証",

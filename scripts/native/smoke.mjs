@@ -32,6 +32,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import { cargoTargetDirectory } from './release-artifacts.mjs';
+import withoutSigningSecrets from './environment.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const output = process.env.EISLAND_SMOKE_OUTPUT ?? resolve(root, 'src-tauri/target/smoke');
@@ -44,7 +45,7 @@ const port = 9224;
 const binary = process.env.EISLAND_SMOKE_BINARY ?? resolve(cargoTargetDirectory(root), 'debug/eisland.exe');
 const app = spawn(binary, [], {
   cwd: root, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'],
-  env: { ...process.env, EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
+  env: { ...withoutSigningSecrets(process.env), EISLAND_WEBVIEW_DEBUG_ARGS: `--remote-debugging-port=${port}`,
     EISLAND_DATA_DIR: resolve(output, 'store'), EISLAND_WEBVIEW_DATA_DIR: resolve(output, 'webview') },
 });
 let stderr = '';

@@ -29,6 +29,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { prepareFfprobe } from './prepare-ffprobe.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 if (process.platform === 'win32') {
@@ -98,5 +99,6 @@ if (process.platform === 'win32') {
   ['LICENSE', 'README'].forEach((suffix) => {
     if (existsSync(`${ffmpegBinary}.${suffix}`)) copyFileSync(`${ffmpegBinary}.${suffix}`, resolve(ffmpeg, `ffmpeg.${suffix}`));
   });
+  await prepareFfprobe({ root, architecture, ffmpeg: ffmpegBinary });
   console.log(`Tauri native resources prepared: ${rid}`);
 }

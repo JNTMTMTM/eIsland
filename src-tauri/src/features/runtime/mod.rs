@@ -368,11 +368,12 @@ fn extract_urls(text: &str, mode: &str, blacklist: &Value) -> Vec<String> {
         .collect()
 }
 async fn page_title(url: &str) -> Option<String> {
-    let client = reqwest::Client::builder()
+    let response = crate::infrastructure::http::client()
+        .get(url)
         .timeout(Duration::from_secs(4))
-        .build()
+        .send()
+        .await
         .ok()?;
-    let response = client.get(url).send().await.ok()?;
     if !response.status().is_success() {
         return None;
     }

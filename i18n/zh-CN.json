@@ -3882,7 +3882,18 @@
       "guideCardHint": "重新显示首次启动引导界面",
       "guideResetSuccess": "设置成功，下次启动将显示引导界面",
       "guideResetError": "设置失败，请稍后重试",
-      "pagination": "更新设置分页"
+      "pagination": "更新设置分页",
+      "checkFailedMessage": "检查更新失败：{{error}}",
+      "downloadFailedMessage": "下载更新失败：{{error}}",
+      "installFailedMessage": "安装更新失败：{{error}}",
+      "errors": {
+        "signingUnavailable": "当前暂时无法提供安全更新，请联系应用维护者。",
+        "networkFailed": "无法连接更新服务器，请检查网络后重试，或切换更新源。",
+        "verificationFailed": "更新包验证失败，已停止安装。请重试或切换更新源。",
+        "manifestInvalid": "此更新源暂时无法提供有效更新，请稍后重试或切换更新源。",
+        "platformUnsupported": "暂不支持当前系统的自动更新，请联系应用维护者获取安装包。",
+        "operationFailed": "更新操作未完成，请重试或切换更新源。"
+      }
     },
     "pluginMarket": {
       "pagination": "综合市场分页",
@@ -4987,12 +4998,12 @@
       "test:coverage": "运行全部测试并生成覆盖率报告",
       "test:cli": "运行 eIsland CLI 测试",
       "postinstall": "安装后准备 CLI 依赖",
-      "package": "构建原生插件并打包 Tauri 安装程序",
+      "package": "自动构建原生插件、Tauri NSIS 安装包、官方更新签名和清单",
       "changelog:generate": "生成 docs/CHANGE_LOG.md",
       "release:notes": "生成自上个标签以来的发布说明",
       "release": "构建原生插件与 Tauri 安装包，上传 AWS 并精准清理 ESA 缓存",
       "release:upload": "执行完整 Tauri 发布流程（构建、AWS 上传与精准 ESA 清理）",
-      "release:upload-only": "上传已有 Tauri 安装包和更新清单到 AWS，并精准清理 ESA 缓存",
+      "release:upload-only": "使用 AWS CLI 上传已验证的 Tauri 安装包、签名和清单到已配置源，全部安装包成功后发布清单并精准清理 ESA 缓存",
       "release:upload-minio": "仅上传已有 Tauri 安装包和更新清单到 MinIO，不清理 ESA 缓存",
       "comment:check": "检查注释规范（lint:comments 的别名）",
       "i18n:check": "检查 i18n 翻译完整性",
@@ -5054,7 +5065,7 @@
       "dev:web": "以开发模式启动 Tauri 应用 (Web)",
       "build:web": "构建 Tauri 应用（不生成安装包） (Web)",
       "check:rust": "Rust Check",
-      "test:rust": "测试 Rust 原生应用服务",
+      "test:rust": "通过 Cargo 运行锁定依赖的 Rust 单元及集成测试",
       "native": "准备原生插件（plugins:build 别名）",
       "test:api": "验证原生前端 API、运行时入口与发布流程",
       "test:services": "通过真实 WebView2、HTTP 和 Range 请求验证原生服务",

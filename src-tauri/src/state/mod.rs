@@ -33,7 +33,7 @@ pub struct Desktop {
 
 impl Desktop {
     pub fn new(directory: PathBuf) -> Self {
-        let store = Store { directory };
+        let store = Store::new(directory);
         let shape = store
             .value("island-shape-mode", json!("notch"))
             .as_str()
@@ -96,9 +96,7 @@ mod tests {
     use super::*;
     #[test]
     fn store_rejects_traversal_and_reads_missing_as_null() {
-        let store = Store {
-            directory: std::env::temp_dir().join("eisland-store-contract-test"),
-        };
+        let store = Store::new(std::env::temp_dir().join("eisland-store-contract-test"));
         assert!(store.read("../secrets").is_err());
         assert!(store.read("C:\\secrets").is_err());
         assert_eq!(store.read("missing").unwrap(), Value::Null);

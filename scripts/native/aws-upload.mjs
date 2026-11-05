@@ -27,6 +27,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import withoutSigningSecrets from './environment.mjs';
 
 /** 读取原有 .env，已有环境变量保持优先。
  * @param file - 环境文件路径。
@@ -64,6 +65,11 @@ export function uploadTargets(env, minioOnly = false) {
     { provider: 'cos', endpoint: `https://cos.${required(env, 'COS_REGION')}.myqcloud.com`, region: required(env, 'COS_REGION'), bucket: required(env, 'COS_BUCKET_NAME'), accessKeyId: required(env, 'COS_SECRET_ID'), secretAccessKey: required(env, 'COS_SECRET_KEY') },
     { provider: 'oss', endpoint: `https://oss-${required(env, 'OSS_REGION')}.aliyuncs.com`, region: required(env, 'OSS_REGION'), bucket: required(env, 'OSS_BUCKET_NAME'), accessKeyId: required(env, 'OSS_ACCESS_KEY_ID'), secretAccessKey: required(env, 'OSS_ACCESS_KEY_SECRET') },
   ];
+  const r2Keys = ['R2_ENDPOINT', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'R2_PUBLIC_BASE_URL'];
+  if (!minioOnly && r2Keys.some((key) => env[key]?.trim())) {
+    r2Keys.forEach((key) => required(env, key));
+    targets.push({ provider: 'r2', endpoint: env.R2_ENDPOINT.trim(), region: 'auto', bucket: env.R2_BUCKET_NAME.trim(), accessKeyId: env.R2_ACCESS_KEY_ID.trim(), secretAccessKey: env.R2_SECRET_ACCESS_KEY.trim(), publicBase: env.R2_PUBLIC_BASE_URL.trim() });
+  }
   const minioKeys = ['MINIO_ENDPOINT', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'MINIO_BUCKET'];
   if (minioOnly || minioKeys.some((key) => env[key]?.trim())) {
     minioKeys.forEach((key) => required(env, key));
@@ -102,7 +108,7 @@ export function resolveAws(env, run = spawnSync) {
  */
 export function awsSession(binary, target, sourceEnv, run = spawnSync) {
   const directory = mkdtempSync(join(tmpdir(), 'eisland-aws-release-'));
-  const env = { ...sourceEnv, AWS_CONFIG_FILE: join(directory, 'config'), AWS_SHARED_CREDENTIALS_FILE: join(directory, 'credentials'), AWS_ACCESS_KEY_ID: target.accessKeyId, AWS_SECRET_ACCESS_KEY: target.secretAccessKey, AWS_REQUEST_CHECKSUM_CALCULATION: 'WHEN_REQUIRED', AWS_RESPONSE_CHECKSUM_VALIDATION: 'WHEN_REQUIRED', AWS_PAGER: '', AWS_CLI_AUTO_PROMPT: 'off', AWS_EC2_METADATA_DISABLED: 'true' };
+  const env = { ...withoutSigningSecrets(sourceEnv), AWS_CONFIG_FILE: join(directory, 'config'), AWS_SHARED_CREDENTIALS_FILE: join(directory, 'credentials'), AWS_ACCESS_KEY_ID: target.accessKeyId, AWS_SECRET_ACCESS_KEY: target.secretAccessKey, AWS_REQUEST_CHECKSUM_CALCULATION: 'WHEN_REQUIRED', AWS_RESPONSE_CHECKSUM_VALIDATION: 'WHEN_REQUIRED', AWS_PAGER: '', AWS_CLI_AUTO_PROMPT: 'off', AWS_EC2_METADATA_DISABLED: 'true' };
   delete env.AWS_PROFILE; delete env.AWS_DEFAULT_PROFILE; delete env.AWS_SESSION_TOKEN; delete env.AWS_SECURITY_TOKEN;
   writeFileSync(env.AWS_CONFIG_FILE, '', { mode: 0o600 }); writeFileSync(env.AWS_SHARED_CREDENTIALS_FILE, '', { mode: 0o600 });
   const close = () => rmSync(directory, { recursive: true, force: true });
@@ -111,13 +117,15 @@ export function awsSession(binary, target, sourceEnv, run = spawnSync) {
     if (result.error || result.status !== 0) throw new Error(`AWS ${target.provider} command failed${result.status === null ? ' (terminated)' : ` (exit ${result.status})`}`);
   };
   try {
-    const config = { 's3.addressing_style': target.provider === 'minio' ? 'path' : 'virtual', 's3.payload_signing_enabled': 'false', 's3.multipart_threshold': target.provider === 'minio' ? '8MB' : '5GB', 's3.multipart_chunksize': '8MB', request_checksum_calculation: 'when_required', response_checksum_validation: 'when_required' };
+    const config = { 's3.addressing_style': ['minio', 'r2'].includes(target.provider) ? 'path' : 'virtual', 's3.payload_signing_enabled': 'false', 's3.multipart_threshold': target.provider === 'minio' ? '8MB' : '5GB', 's3.multipart_chunksize': '8MB', request_checksum_calculation: 'when_required', response_checksum_validation: 'when_required' };
     Object.entries(config).forEach(([name, value]) => execute(['configure', 'set', `default.${name}`, value]));
   } catch (error) { close(); throw error; }
   return {
     close,
     upload(file, key, metadata = false) {
-      execute(['s3', 'cp', file, `s3://${target.bucket}/${key}`, '--endpoint-url', target.endpoint, '--region', target.region, '--content-type', metadata ? 'application/json' : 'application/vnd.microsoft.portable-executable', '--cache-control', metadata ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400']);
+      let contentType = file.endsWith('.sig') ? 'text/plain; charset=utf-8' : 'application/vnd.microsoft.portable-executable';
+      if (metadata) contentType = 'application/json';
+      execute(['s3', 'cp', file, `s3://${target.bucket}/${key}`, '--endpoint-url', target.endpoint, '--region', target.region, '--content-type', contentType, '--cache-control', metadata ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400']);
     },
   };
 }

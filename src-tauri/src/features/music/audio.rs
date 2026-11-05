@@ -19,6 +19,7 @@
  */
 
 use super::Music;
+use crate::infrastructure::http::byte_range;
 use crate::shared::Result;
 use serde_json::Value;
 use std::{
@@ -103,11 +104,7 @@ impl LocalServer {
         std::thread::Builder::new()
             .name("music-http".into())
             .spawn(move || {
-                let Ok(client) = reqwest::blocking::Client::builder()
-                    .timeout(Duration::from_secs(30))
-                    .redirect(reqwest::redirect::Policy::limited(10))
-                    .build()
-                else {
+                let Ok(client) = crate::infrastructure::http::blocking_stream_client() else {
                     return;
                 };
                 let active = Arc::new(AtomicUsize::new(0));
@@ -381,7 +378,7 @@ impl LocalServer {
             reply(request, 404, "Not Found");
             return;
         };
-        let (start, end) = match byte_range(range.as_deref(), length) {
+        let (start, end, status) = match byte_range(range.as_deref(), length) {
             Ok(value) => value,
             Err(_) => {
                 let _ = request.respond(
@@ -404,17 +401,17 @@ impl LocalServer {
             header("Accept-Ranges", "bytes"),
             header("Access-Control-Allow-Origin", "*"),
         ];
-        if range.is_some() {
+        if status == 206 {
             headers.push(header(
                 "Content-Range",
                 &format!("bytes {start}-{end}/{length}"),
             ));
         }
         let _ = request.respond(Response::new(
-            StatusCode(if range.is_some() { 206 } else { 200 }),
+            StatusCode(status),
             headers,
-            file.take(end - start + 1),
-            Some((end - start + 1) as usize),
+            file.take(if length == 0 { 0 } else { end - start + 1 }),
+            usize::try_from(if length == 0 { 0 } else { end - start + 1 }).ok(),
             None,
         ));
     }
@@ -433,27 +430,20 @@ impl LocalServer {
         {
             return Ok(());
         }
-        if response
-            .content_length()
-            .is_some_and(|length| length > AUDIO_LIMIT as u64)
-        {
-            return Err("QISHUI_AUDIO_TOO_LARGE".into());
-        }
         let kind = response
             .headers()
             .get("content-type")
             .and_then(|v| v.to_str().ok())
             .unwrap_or("audio/mp4")
             .to_owned();
-        let mut buffer = Vec::new();
-        response
-            .by_ref()
-            .take(AUDIO_LIMIT as u64 + 1)
-            .read_to_end(&mut buffer)
-            .map_err(|e| e.to_string())?;
-        if buffer.len() > AUDIO_LIMIT {
-            return Err("QISHUI_AUDIO_TOO_LARGE".into());
-        }
+        let buffer = crate::infrastructure::http::bounded_blocking(&mut response, AUDIO_LIMIT)
+            .map_err(|error| {
+                if error == "response too large" {
+                    "QISHUI_AUDIO_TOO_LARGE".to_owned()
+                } else {
+                    error
+                }
+            })?;
         let (buffer, kind) = if key.is_empty() {
             (buffer, kind)
         } else {
@@ -512,44 +502,14 @@ fn upstream_length(response: &reqwest::blocking::Response, head: bool) -> Option
     };
     usize::try_from(length).ok()
 }
-fn byte_range(raw: Option<&str>, length: u64) -> Result<(u64, u64)> {
-    if length == 0 {
-        return Err("Empty audio".into());
-    }
-    let Some(raw) = raw else {
-        return Ok((0, length - 1));
-    };
-    let Some((start, end)) = raw
-        .strip_prefix("bytes=")
-        .and_then(|value| value.split_once('-'))
-    else {
-        return Err("Invalid range".into());
-    };
-    let start = if start.is_empty() {
-        length.saturating_sub(end.parse::<u64>().map_err(|_| "Invalid range")?)
-    } else {
-        start.parse::<u64>().map_err(|_| "Invalid range")?
-    };
-    let end = if raw.starts_with("bytes=-") || end.is_empty() {
-        length - 1
-    } else {
-        end.parse::<u64>()
-            .map_err(|_| "Invalid range")?
-            .min(length - 1)
-    };
-    if start > end || start >= length {
-        return Err("Invalid range".into());
-    }
-    Ok((start, end))
-}
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn ranges_cover_closed_open_suffix_and_invalid_requests() {
-        assert_eq!(byte_range(Some("bytes=1-3"), 8).unwrap(), (1, 3));
-        assert_eq!(byte_range(Some("bytes=-2"), 8).unwrap(), (6, 7));
-        assert_eq!(byte_range(Some("bytes=5-"), 8).unwrap(), (5, 7));
+        assert_eq!(byte_range(Some("bytes=1-3"), 8).unwrap(), (1, 3, 206));
+        assert_eq!(byte_range(Some("bytes=-2"), 8).unwrap(), (6, 7, 206));
+        assert_eq!(byte_range(Some("bytes=5-"), 8).unwrap(), (5, 7, 206));
         assert!(byte_range(Some("bytes=9-"), 8).is_err());
         assert!(byte_range(Some("bytes=0-1,3-4"), 8).is_err());
     }
@@ -563,7 +523,11 @@ mod tests {
                 .respond(tiny_http::Response::from_data(b"abcdefgh".to_vec()))
                 .unwrap();
         });
-        let response = reqwest::blocking::Client::new().head(url).send().unwrap();
+        let response = crate::infrastructure::http::blocking_stream_client()
+            .unwrap()
+            .head(url)
+            .send()
+            .unwrap();
         assert_eq!(response.content_length(), Some(0));
         assert_eq!(upstream_length(&response, true), Some(8));
         worker.join().unwrap();

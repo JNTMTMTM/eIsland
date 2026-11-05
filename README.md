@@ -73,7 +73,7 @@ npm run dev                 # start Tauri with hot reload
 npm run package             # src-tauri/target/release/bundle/nsis/
 ```
 
-The desktop runtime, native services, tests and CI use Tauri. See [runtime and release commands](docs/TAURI_RUNTIME.md).
+The desktop runtime, native services, tests and CI use Tauri. Packaging requires an updater signing identity; see [release commands and upgrade compatibility](docs/TAURI_RELEASE.md) and the [refactor verification and coverage audit](docs/RUST_TAURI_REFACTOR.md).
 
 `npm run check` runs lint, type checks and tests. The [developer docs](https://eisland-dev.pyisland.com) cover the architecture, IPC APIs and plugins.
 

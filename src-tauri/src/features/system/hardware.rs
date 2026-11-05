@@ -31,7 +31,7 @@ use std::{
 };
 use tauri::{AppHandle, Manager};
 use tokio::{
-    io::{AsyncBufReadExt, AsyncReadExt, BufReader},
+    io::BufReader,
     process::Command,
     sync::{oneshot, watch, Notify},
 };
@@ -132,45 +132,24 @@ impl Hardware {
 
 fn command(app: &AppHandle, kind: Kind) -> Result<Command> {
     let path = native_path(app, kind.component(), kind.executable())?;
-    let mut command = Command::new(path);
-    command.kill_on_drop(true);
-    #[cfg(windows)]
-    command.creation_flags(0x08000000);
-    Ok(command)
+    Ok(crate::infrastructure::child_process::command(path))
 }
 
 /// Bound both execution time and output size; dropping the timed-out child kills it.
 async fn call(app: &AppHandle, kind: Kind, args: &[String]) -> Result<Value> {
-    let mut child = command(app, kind)?
-        .args(args)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    let mut output = child
-        .stdout
-        .take()
-        .ok_or("Missing helper stdout")?
-        .take(65537);
-    let read = async {
-        let mut bytes = Vec::new();
-        output
-            .read_to_end(&mut bytes)
-            .await
-            .map_err(|e| e.to_string())?;
-        if bytes.len() > 65536 {
-            return Err("Helper output exceeds limit".into());
-        }
-        let status = child.wait().await.map_err(|e| e.to_string())?;
-        if !status.success() {
-            return Err(format!("{} helper exited: {status}", kind.component()));
-        }
-        serde_json::from_slice(&bytes).map_err(|e| e.to_string())
-    };
-    tokio::time::timeout(Duration::from_secs(5), read)
-        .await
-        .map_err(|_| "Hardware helper timed out".to_owned())?
+    use crate::infrastructure::child_process::{self, Options};
+    let mut command = command(app, kind)?;
+    command.args(args);
+    let output = child_process::run(
+        command,
+        Options {
+            timeout: Duration::from_secs(5),
+            stdout_limit: 65536,
+            ..Options::default()
+        },
+    )
+    .await?;
+    serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())
 }
 
 fn setter(app: AppHandle, control: Arc<Control>, mut shutdown: watch::Receiver<bool>) {
@@ -226,20 +205,20 @@ async fn monitor(
     control: &Control,
     shutdown: &mut watch::Receiver<bool>,
 ) -> Result<()> {
-    let mut child = command(app, control.kind)?
+    let mut command = command(app, control.kind)?;
+    command
         .arg("monitor")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|e| e.to_string())?;
+        .stderr(Stdio::null());
+    let mut child = crate::infrastructure::child_process::spawn(&mut command, false)?;
     // Keeping stdin open is the helpers' lifetime contract; parent exit closes it too.
     let _stdin = child.stdin.take();
-    let mut lines = BufReader::new(child.stdout.take().ok_or("Missing monitor stdout")?).lines();
+    let mut lines = BufReader::new(child.stdout.take().ok_or("Missing monitor stdout")?);
     loop {
         tokio::select! {
             _ = shutdown.changed() => { let _ = child.kill().await; return Ok(()); },
-            line = lines.next_line() => {
+            line = crate::infrastructure::child_process::read_line(&mut lines,65536) => {
                 let Some(line) = line.map_err(|e|e.to_string())? else { return Err("Hardware monitor closed stdout".into()); };
                 if line.len() > 65536 { return Err("Hardware monitor output exceeds limit".into()); }
                 if let Ok(event) = serde_json::from_str::<Value>(&line) {

@@ -257,7 +257,7 @@ describe('实际跨窗口配置事件', () => {
     changed?.('store:update-source', 'github');
     expect(setters.setUpdateSource).toHaveBeenLastCalledWith('github');
     changed?.('store:update-source', 'unknown');
-    expect(setters.setUpdateSource).toHaveBeenLastCalledWith('cloudflare-r2');
+    expect(setters.setUpdateSource).toHaveBeenLastCalledWith('esa-cdn');
   });
   it('未知channel不触发任何setter', () => {
     changed?.('unknown:channel', true);

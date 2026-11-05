@@ -23,8 +23,12 @@
  * @description 发布 Tauri 安装包与原生更新清单，成功后精确刷新 ESA 缓存。
  * @author 鸡哥
  */
-import { resolve } from 'node:path';
+import { resolve, join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
+import withoutSigningSecrets from './environment.mjs';
 import { awsSession, loadEnvFile, required, resolveAws, uploadTargets } from './aws-upload.mjs';
 import { nativeManifest, projectRoot, releaseArtifact, releaseOptions, writeManifest } from './release-artifacts.mjs';
 
@@ -32,7 +36,7 @@ import { nativeManifest, projectRoot, releaseArtifact, releaseOptions, writeMani
  * @param value - 对象前缀。
  * @returns 不带首尾斜线的前缀。
  */
-export function objectPrefix(value = 'tauri') {
+export function objectPrefix(value = 'eisland-update/tauri') {
   const prefix = value.replace(/^\/+|\/+$/g, '');
   if (!/^[a-zA-Z0-9_./-]+$/.test(prefix) || prefix.split('/').some((part) => !part || part === '.' || part === '..')) throw new Error('Invalid native upload prefix');
   return prefix;
@@ -57,11 +61,13 @@ export function purgePlan(env, prefix, name) {
     if (previous.pathname.endsWith(`/${prefix}/latest.json`)) manifest = previous;
     else {
       if (!/\.(?:ya?ml|json)$/i.test(previous.pathname) && !previous.pathname.endsWith('/')) previous.pathname += '/';
-      manifest = new URL(`${prefix}/latest.json`, previous);
+      const parent = new URL('.', previous);
+      const directory = parent.pathname.replace(/^\/+|\/+$/g, '');
+      manifest = new URL(`${directory && prefix.startsWith(`${directory}/`) ? '/' : ''}${prefix}/latest.json`, previous);
     }
   } else manifest = new URL('https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json');
   if (manifest.protocol !== 'https:' || manifest.username || manifest.password || manifest.search || manifest.hash || !manifest.pathname.endsWith('/latest.json')) throw new Error('Native ESA manifest URL must be a plain HTTPS latest.json URL');
-  return { accessKeyId, accessKeySecret, siteId, files: [manifest.toString(), new URL(name, manifest).toString()] };
+  return { accessKeyId, accessKeySecret, siteId, files: [manifest.toString(), new URL(name, manifest).toString(), new URL(`${name}.sig`, manifest).toString()] };
 }
 
 /** 精确刷新清单和安装包。
@@ -76,6 +82,47 @@ async function purgeNativeCache(plan) {
   await createEsaClient(plan.accessKeyId, plan.accessKeySecret).purgeCachesWithOptions(request, new helpers.RuntimeOptions({}));
 }
 
+/** Compute the public object directory for each mirror without sharing credentials.
+ * @param target - Selected storage adapter.
+ * @param env - Release configuration.
+ * @param prefix - S3 object prefix.
+ * @returns Absolute public HTTPS download directory.
+ */
+export function mirrorBase(target, env, prefix) {
+  if (target.provider === 'cos') return env.COS_PUBLIC_BASE_URL || `https://${target.bucket}.cos.${target.region}.myqcloud.com/${prefix}`;
+  if (target.provider === 'oss') return env.OSS_PUBLIC_BASE_URL || `https://${target.bucket}.oss-${target.region}.aliyuncs.com/${prefix}`;
+  if (target.provider === 'r2') return `${target.publicBase.replace(/\/+$/, '')}/${prefix}`;
+  return env.MINIO_PUBLIC_BASE_URL || `${target.endpoint.replace(/\/+$/, '')}/${target.bucket}/${prefix}`;
+}
+
+/** Use GitHub only after an explicit opt-in, and only for an existing public release.
+ * @param env - Release environment.
+ * @param version - Current package version.
+ * @returns Optional existing-release adapter.
+ */
+export function githubTarget(env, version) {
+  if (env.EISLAND_GITHUB_RELEASE_UPLOAD !== '1') return null;
+  const repository = required(env, 'GITHUB_REPOSITORY');
+  const tag = required(env, 'EISLAND_GITHUB_RELEASE_TAG');
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository) || tag !== `v${version}`) throw new Error('GitHub repository or release tag does not match the package version');
+  const execute = (run, processEnv, args) => {
+    const childEnv = withoutSigningSecrets(processEnv);
+    const result = run('gh', args, { env: childEnv, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true, timeout: 1800000 });
+    if (result.error || result.status !== 0) throw new Error('GitHub existing Release operation failed');
+    return result.stdout;
+  };
+  return {
+    repository, tag, base: `https://github.com/${repository}/releases/download/${tag}`,
+    preflight(run, processEnv) {
+      const visibility = JSON.parse(execute(run, processEnv, ['repo', 'view', repository, '--json', 'isPrivate']));
+      if (visibility.isPrivate !== false) throw new Error('GitHub updater assets require a public repository');
+      const release = JSON.parse(execute(run, processEnv, ['release', 'view', tag, '--repo', repository, '--json', 'isDraft,isPrerelease,tagName']));
+      if (release.isDraft !== false || release.isPrerelease !== false || release.tagName !== tag) throw new Error('GitHub release must already be published with the exact stable version tag');
+    },
+    upload(run, processEnv, files) { execute(run, processEnv, ['release', 'upload', tag, ...files, '--repo', repository, '--clobber']); },
+  };
+}
+
 /** 发布原生文件；测试仅替换外部进程和 CDN 边界。
  * @param argv - 命令行参数。
  * @param dependencies - 根目录、环境和外部边界。
@@ -85,31 +132,59 @@ export async function uploadRelease(argv = [], dependencies = {}) {
   const options = releaseOptions(argv);
   const log = dependencies.log || console.log;
   if (options.help) {
-    log('Usage: npm run release:upload-only -- [--dry-run] [--minio-only] [--target-dir <Cargo target> | --dist <NSIS directory>]');
+    log('Usage: npm run release:upload-only -- [--dry-run] [--minio-only] [--skip-legacy-bridge] [--target-dir <Cargo target> | --dist <NSIS directory>]');
     return null;
   }
   const root = dependencies.root || projectRoot;
   const env = { ...(dependencies.env || process.env) };
   loadEnvFile(resolve(root, '.env'), env);
   const artifact = await releaseArtifact(root, options, env, dependencies.run);
-  const prefix = objectPrefix(env.EISLAND_TAURI_UPLOAD_PREFIX || 'tauri');
+  const prefix = objectPrefix(env.EISLAND_TAURI_UPLOAD_PREFIX || 'eisland-update/tauri');
+  const legacyManifestKeys = (env.EISLAND_TAURI_LEGACY_UPLOAD_PREFIXES ?? 'tauri').split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map(objectPrefix)
+    .filter((value) => value !== prefix)
+    .map((value) => `${value}/latest.json`);
   const targets = uploadTargets(env, options.minioOnly);
+  if (artifact.version === '27.0.2' && !options.minioOnly && !options.skipLegacyBridge && (!targets.some((target) => target.provider === 'r2') || (prefix !== 'tauri' && !legacyManifestKeys.includes('tauri/latest.json')))) throw new Error('Bridge release 27.0.2 requires the existing R2 bucket and tauri/latest.json alias; use --skip-legacy-bridge only after confirming no legacy clients need this feed');
+  targets.forEach((target) => nativeManifest(artifact, mirrorBase(target, env, prefix)));
   const purge = options.minioOnly ? null : purgePlan(env, prefix, artifact.name);
-  const manifest = nativeManifest(artifact, env.EISLAND_TAURI_RELEASE_BASE_URL);
-  const plan = { manifest, installer: artifact.file, installerKey: `${prefix}/${artifact.name}`, manifestKey: `${prefix}/latest.json`, targets: targets.map(({ provider, bucket }) => ({ provider, bucket })), purgeUrls: purge?.files || [] };
+  const manifest = nativeManifest(artifact, env.EISLAND_TAURI_RELEASE_BASE_URL || new URL('.', purge?.files[0] || 'https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json').toString());
+  const github = githubTarget(env, artifact.version);
+  const plan = { manifest, legacyManifestKeys, installer: artifact.file, signature: artifact.signatureFile, github: github ? { repository: github.repository, tag: github.tag } : null, installerKey: `${prefix}/${artifact.name}`, signatureKey: `${prefix}/${artifact.name}.sig`, manifestKey: `${prefix}/latest.json`, targets: targets.map(({ provider, bucket }) => ({ provider, bucket })), purgeUrls: purge?.files || [] };
   log(`Native release ${artifact.version}: ${artifact.size} bytes, SHA-512 ${artifact.sha512}`);
   log(JSON.stringify(plan, null, 2));
   if (options.dryRun) { log('DRY RUN: no AWS command, upload or CDN purge performed.'); return plan; }
   const binary = resolveAws(env, dependencies.run);
-  const manifestFile = writeManifest(artifact, manifest);
+  writeManifest(artifact, manifest);
+  const stage = mkdtempSync(join(tmpdir(), 'eisland-release-manifests-'));
+  const run = dependencies.run || spawnSync;
   const sessions = [];
   try {
     targets.forEach((target) => sessions.push(awsSession(binary, target, env, dependencies.run)));
-    // Every selected mirror receives the installer before any latest.json advertises it.
-    sessions.forEach((session) => session.upload(artifact.file, plan.installerKey));
-    sessions.forEach((session) => session.upload(manifestFile, plan.manifestKey, true));
+    if (github) github.preflight(run, env);
+    // All selected mirrors and the explicitly selected existing GitHub Release
+    // receive both immutable artifacts before any update manifest advertises them.
+    sessions.forEach((session) => { session.upload(artifact.file, plan.installerKey); session.upload(artifact.signatureFile, plan.signatureKey); });
+    if (github) github.upload(run, env, [artifact.file, artifact.signatureFile]);
+    sessions.forEach((session, index) => {
+      const target = targets[index];
+      const base = mirrorBase(target, env, prefix);
+      const file = join(stage, `${target.provider}-latest.json`);
+      writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, base), null, 2)}\n`);
+      session.upload(file, plan.manifestKey, true);
+      // Previous Tauri defaults fetched /tauri/latest.json; the hybrid alias
+      // advertises the same already-uploaded canonical installer and signature.
+      legacyManifestKeys.forEach((key) => session.upload(file, key, true));
+    });
+    if (github) {
+      const file = join(stage, 'tauri-latest.json');
+      writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, github.base), null, 2)}\n`);
+      github.upload(run, env, [file]);
+    }
     if (purge) await (dependencies.purge || purgeNativeCache)(purge);
-  } finally { sessions.forEach((session) => session.close()); }
+  } finally { sessions.forEach((session) => session.close()); rmSync(stage, { recursive: true, force: true }); }
   log('Native release uploaded successfully.');
   return plan;
 }

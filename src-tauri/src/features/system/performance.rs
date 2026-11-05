@@ -30,7 +30,7 @@ use std::{
 use tauri::AppHandle;
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
-    process::{Child, ChildStdin, ChildStdout, Command},
+    process::{Child, ChildStdin, ChildStdout},
     sync::Notify,
 };
 
@@ -108,22 +108,14 @@ async fn open(app: &AppHandle) -> Result<Session> {
         "volume",
         "eIslandTemperatureReader.exe",
     )?;
-    let mut command = Command::new(path);
+    let mut command = crate::infrastructure::child_process::command(path);
     command
         .arg("server")
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::null())
         .kill_on_drop(true);
-    #[cfg(windows)]
-    command.creation_flags(0x08000000);
-    let mut child = command.spawn().map_err(|e| e.to_string())?;
-    if let Some(pid) = child.id() {
-        if let Err(error) = crate::infrastructure::child_process::contain(pid) {
-            let _ = child.kill().await;
-            return Err(error);
-        }
-    }
+    let mut child = crate::infrastructure::child_process::spawn(&mut command, true)?;
     let input = child
         .stdin
         .take()
@@ -182,35 +174,32 @@ async fn maximum_clock() -> Value {
     }
     #[cfg(windows)]
     {
-        let mut command = Command::new("powershell.exe");
-        command.args(["-NoProfile","-NonInteractive","-Command","[Console]::OutputEncoding=[Text.UTF8Encoding]::new();@((Get-CimInstance Win32_Processor -ErrorAction Stop).MaxClockSpeed)|ConvertTo-Json -Compress"]).stdin(std::process::Stdio::null()).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::null()).kill_on_drop(true).creation_flags(0x08000000);
-        if let Ok(mut child) = command.spawn() {
-            if let Some(pid) = child.id() {
-                let _ = crate::infrastructure::child_process::contain(pid);
-            }
-            let mut output = Vec::new();
-            if let Some(stdout) = child.stdout.take() {
-                let result = tokio::time::timeout(Duration::from_secs(5), async {
-                    stdout.take(4097).read_to_end(&mut output).await?;
-                    child.wait().await
-                })
-                .await;
-                if matches!(result,Ok(Ok(status)) if status.success()) && output.len() <= 4096 {
-                    if let Ok(value) = serde_json::from_slice::<Value>(&output) {
-                        let values = if let Some(items) = value.as_array() {
-                            items.clone()
-                        } else {
-                            vec![value]
-                        };
-                        let value = json!(values
-                            .into_iter()
-                            .filter_map(|value| value.as_f64())
-                            .filter(|value| value.is_finite() && *value > 0.)
-                            .collect::<Vec<_>>());
-                        *cache = Some(value.clone());
-                        return value;
-                    }
-                }
+        use crate::infrastructure::child_process::{self, Options};
+        let command=child_process::powershell_command("$ErrorActionPreference='Stop';@((Get-CimInstance Win32_Processor -ErrorAction Stop).MaxClockSpeed)|ConvertTo-Json -Compress");
+        if let Ok(output) = child_process::run(
+            command,
+            Options {
+                timeout: Duration::from_secs(5),
+                stdout_limit: 4096,
+                managed: true,
+                ..Options::default()
+            },
+        )
+        .await
+        {
+            if let Ok(value) = serde_json::from_slice::<Value>(&output.stdout) {
+                let values = if let Some(items) = value.as_array() {
+                    items.clone()
+                } else {
+                    vec![value]
+                };
+                let value = json!(values
+                    .into_iter()
+                    .filter_map(|value| value.as_f64())
+                    .filter(|value| value.is_finite() && *value > 0.)
+                    .collect::<Vec<_>>());
+                *cache = Some(value.clone());
+                return value;
             }
         }
     }

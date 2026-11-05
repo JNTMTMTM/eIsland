@@ -21,9 +21,9 @@
 use crate::shared::Result;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::{json, Map, Value};
-use std::{io::Cursor, path::PathBuf, process::Stdio, time::Duration};
+use std::{io::Cursor, path::PathBuf, time::Duration};
 use tauri::AppHandle;
-use tokio::{io::AsyncReadExt, process::Command};
+
 fn string<'a>(args: &'a Value, key: &str) -> &'a str {
     args[key].as_str().unwrap_or("").trim()
 }
@@ -56,77 +56,38 @@ fn windows() -> Result<()> {
     }
 }
 async fn command(executable: &str, args: &[&str], allow_failure: bool) -> Result<String> {
-    let mut command = Command::new(executable);
-    command
-        .args(args)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .kill_on_drop(true);
-    #[cfg(windows)]
-    command.creation_flags(0x08000000);
-    let mut child = command.spawn().map_err(|e| e.to_string())?;
-    let mut stdout = child.stdout.take().unwrap().take(8 * 1024 * 1024 + 1);
-    let mut stderr = child.stderr.take().unwrap().take(64 * 1024 + 1);
-    let operation = async {
-        let mut output = Vec::new();
-        let mut errors = Vec::new();
-        let (first, second) = tokio::join!(
-            stdout.read_to_end(&mut output),
-            stderr.read_to_end(&mut errors)
-        );
-        first.map_err(|e| e.to_string())?;
-        second.map_err(|e| e.to_string())?;
-        if output.len() > 8 * 1024 * 1024 || errors.len() > 64 * 1024 {
-            return Err("System tool output limit exceeded".into());
-        }
-        let status = child.wait().await.map_err(|e| e.to_string())?;
-        if !status.success() && !allow_failure {
-            return Err(String::from_utf8_lossy(&errors).trim().to_owned());
-        }
-        let output = String::from_utf8_lossy(&output).trim().to_owned();
-        Ok(if output.is_empty() && allow_failure {
-            String::from_utf8_lossy(&errors).trim().to_owned()
-        } else {
-            output
-        })
-    };
-    match tokio::time::timeout(Duration::from_secs(35), operation).await {
-        Ok(value) => value,
-        Err(_) => {
-            let _ = child.kill().await;
-            Err("System tool timed out".into())
-        }
-    }
-}
-/// Execute a fixed operating-system action; user values are JSON data, never shell source.
-async fn powershell(script: &str, args: &Value) -> Result<Value> {
-    windows()?;
-    let payload = STANDARD.encode(serde_json::to_vec(args).map_err(|e| e.to_string())?);
-    let source=format!("$ErrorActionPreference='Stop'; [Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false); $a=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{payload}'))|ConvertFrom-Json; $result=& {{ {script} }}; ConvertTo-Json -InputObject $result -Depth 20 -Compress");
-    let bytes = source
-        .encode_utf16()
-        .flat_map(u16::to_le_bytes)
-        .collect::<Vec<_>>();
-    let output = command(
-        "powershell.exe",
-        &[
-            "-NoProfile",
-            "-NonInteractive",
-            "-WindowStyle",
-            "Hidden",
-            "-EncodedCommand",
-            &STANDARD.encode(bytes),
-        ],
-        false,
+    use crate::infrastructure::child_process::{self, Options};
+    let mut command = child_process::command(executable);
+    command.args(args);
+    let output = child_process::run(
+        command,
+        Options {
+            stdout_limit: 8 * 1024 * 1024,
+            check_exit: !allow_failure,
+            ..Options::default()
+        },
     )
     .await?;
-    if output.is_empty() {
-        Ok(Value::Null)
+    let stdout = output.stdout_text().trim().to_owned();
+    Ok(if stdout.is_empty() && allow_failure {
+        output.stderr_text().trim().to_owned()
     } else {
-        serde_json::from_str(output.trim_start_matches('\u{feff}'))
-            .map_err(|_| "Invalid system tool JSON response".into())
-    }
+        stdout
+    })
+}
+/// Execute fixed source with structured values through the shared PowerShell transport.
+async fn powershell(script: &str, args: &Value) -> Result<Value> {
+    windows()?;
+    crate::infrastructure::child_process::powershell_json(
+        script,
+        args,
+        crate::infrastructure::child_process::Options {
+            timeout: Duration::from_secs(35),
+            stdout_limit: 8 * 1024 * 1024,
+            ..Default::default()
+        },
+    )
+    .await
 }
 fn recognized(tool: &str) -> bool {
     matches!(
@@ -206,8 +167,8 @@ async fn run(app: &AppHandle, tool: &str, args: &Value) -> Result<Value> {
             let target=required(args,"target")?.to_lowercase();let target=target.as_str();
             let (executable,uri,label)=builtin_target(target).ok_or_else(||format!("Unsupported system target: {target}"))?;
             if !uri.is_empty(){powershell("Start-Process -FilePath ([string]$a.uri)|Out-Null; $true",&json!({"uri":uri})).await?;}
-            else{let mut command=std::process::Command::new(if executable.ends_with(".msc"){"mmc.exe"}else{executable});if executable.ends_with(".msc"){command.arg(executable);}
-            if target=="explorer"&&!string(args,"path").is_empty(){command.arg(string(args,"path"));}#[cfg(windows)]{use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}command.spawn().map_err(|e|e.to_string())?;}
+            else{let mut command=crate::infrastructure::child_process::external_command(if executable.ends_with(".msc"){"mmc.exe"}else{executable});if executable.ends_with(".msc"){command.arg(executable);}
+            if target=="explorer"&&!string(args,"path").is_empty(){command.arg(string(args,"path"));}command.spawn().map_err(|e|e.to_string())?;}
             Ok(json!({"target":target,"label":label,"opened":true}))
         }
         "sys.launch"=>{

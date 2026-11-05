@@ -22,11 +22,13 @@
 use crate::shared::Result;
 use crate::state::Desktop;
 use imap::{types::Fetch, Client};
-use imap_proto::types::{Address, BodyStructure, MessageSection, SectionPath};
+use imap_proto::types::{
+    Address, BodyStructure, Capability, MessageSection, Response, SectionPath, Status,
+};
 use serde_json::{json, Value};
 use std::{
     collections::VecDeque,
-    io::{Read, Write},
+    io::{BufRead, BufReader, Read, Write},
     net::{TcpStream, ToSocketAddrs},
     sync::{Arc, LazyLock, Mutex},
     time::{Duration, Instant},
@@ -307,42 +309,97 @@ fn read_session<T: Read + Write>(
     let _ = session.logout();
     result
 }
-fn protocol_line(socket: &mut TcpStream) -> Result<String> {
-    let mut line = Vec::new();
-    let started = Instant::now();
-    loop {
-        if line.len() >= 65536 || started.elapsed() > TIMEOUT {
-            return Err("IMAP greeting exceeds limits".into());
-        }
-        let mut byte = [0];
-        socket.read_exact(&mut byte).map_err(|e| e.to_string())?;
-        line.push(byte[0]);
-        if byte[0] == b'\n' {
-            return String::from_utf8(line).map_err(|e| e.to_string());
-        }
+/// Apply a single deadline to pre-auth protocol reads, including a slowly dripped response.
+struct ControlTransport<'a> {
+    socket: &'a mut TcpStream,
+    deadline: Instant,
+}
+impl Read for ControlTransport<'_> {
+    fn read(&mut self, bytes: &mut [u8]) -> std::io::Result<usize> {
+        let remaining = self
+            .deadline
+            .checked_duration_since(Instant::now())
+            .filter(|remaining| !remaining.is_zero())
+            .ok_or_else(|| {
+                std::io::Error::new(std::io::ErrorKind::TimedOut, "IMAP negotiation timed out")
+            })?;
+        self.socket.set_read_timeout(Some(remaining))?;
+        self.socket.read(bytes)
     }
 }
+/// imap 2.x exposes CAPABILITY only on authenticated sessions. Keep this bounded
+/// pre-auth adapter on imap-proto's formal grammar; STARTTLS itself uses Client::secure.
+fn control_response(reader: &mut impl BufRead) -> Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+    reader
+        .take(65537)
+        .read_until(b'\n', &mut bytes)
+        .map_err(|error| error.to_string())?;
+    if bytes.is_empty() || bytes.len() > 65536 {
+        return Err("IMAP control response exceeds limits".into());
+    }
+    let (remaining, _) = imap_proto::parse_response(&bytes)
+        .map_err(|error| format!("Invalid IMAP control response: {error:?}"))?;
+    if !remaining.is_empty() {
+        return Err("Unexpected IMAP control response".into());
+    }
+    Ok(bytes)
+}
 fn preauth_capabilities(socket: &mut TcpStream) -> Result<bool> {
-    if !protocol_line(socket)?
-        .to_ascii_uppercase()
-        .starts_with("* OK")
-    {
+    // The TLS upgrade takes ownership of the raw socket. Avoid consuming bytes
+    // belonging to the following response while borrowing it for pre-auth commands.
+    let mut reader = BufReader::with_capacity(
+        1,
+        ControlTransport {
+            socket,
+            deadline: Instant::now() + TIMEOUT,
+        },
+    );
+    let greeting = control_response(&mut reader)?;
+    if !matches!(
+        imap_proto::parse_response(&greeting)
+            .map_err(|error| format!("Invalid IMAP greeting: {error:?}"))?
+            .1,
+        Response::Data {
+            status: Status::Ok,
+            ..
+        }
+    ) {
         return Err("IMAP server rejected the connection".into());
     }
-    socket
+    reader
+        .get_mut()
+        .socket
         .write_all(b"NATIVE0 CAPABILITY\r\n")
-        .map_err(|e| e.to_string())?;
+        .map_err(|error| error.to_string())?;
+    let started = Instant::now();
     let mut starttls = false;
     for _ in 0..64 {
-        let line = protocol_line(socket)?;
-        starttls |= line
-            .split_whitespace()
-            .any(|token| token.eq_ignore_ascii_case("STARTTLS"));
-        if line.starts_with("NATIVE0 ") {
-            if !line.to_ascii_uppercase().starts_with("NATIVE0 OK") {
-                return Err("IMAP capability request failed".into());
+        if started.elapsed() > TIMEOUT {
+            return Err("IMAP capability request timed out".into());
+        }
+        let bytes = control_response(&mut reader)?;
+        match imap_proto::parse_response(&bytes)
+            .map_err(|error| format!("Invalid IMAP capabilities: {error:?}"))?
+            .1
+        {
+            Response::Capabilities(capabilities) => {
+                starttls |= capabilities.iter().any(|capability| matches!(capability, Capability::Atom(value) if value.eq_ignore_ascii_case("STARTTLS")));
             }
-            return Ok(starttls);
+            Response::Done { tag, status, .. } if tag.0 == "NATIVE0" => {
+                if status != Status::Ok {
+                    return Err("IMAP capability request failed".into());
+                }
+                if !reader.buffer().is_empty() {
+                    return Err("Unexpected data after IMAP capabilities".into());
+                }
+                return Ok(starttls);
+            }
+            Response::Data {
+                status: Status::Bye,
+                ..
+            } => return Err("IMAP server closed the connection".into()),
+            _ => {}
         }
     }
     Err("IMAP capability response exceeds limits".into())
@@ -382,22 +439,15 @@ fn connect(account: &Account, uid: Option<(&str, &str)>, limit: usize) -> Result
         client.read_greeting().map_err(|e| e.to_string())?;
         read_session(client, account, uid, limit)
     } else {
-        if preauth_capabilities(&mut socket)? {
-            socket
-                .write_all(b"NATIVE1 STARTTLS\r\n")
-                .map_err(|e| e.to_string())?;
-            if !protocol_line(&mut socket)?
-                .to_ascii_uppercase()
-                .starts_with("NATIVE1 OK")
-            {
-                return Err("IMAP server rejected STARTTLS".into());
-            }
-            let stream = tls
-                .connect(&account.host, socket)
-                .map_err(|e| e.to_string())?;
-            read_session(Client::new(stream), account, uid, limit)
+        let starttls = preauth_capabilities(&mut socket)?;
+        let client = Client::new(socket);
+        if starttls {
+            let client = client
+                .secure(&account.host, &tls)
+                .map_err(|error| error.to_string())?;
+            read_session(client, account, uid, limit)
         } else {
-            read_session(Client::new(socket), account, uid, limit)
+            read_session(client, account, uid, limit)
         }
     }
 }
@@ -522,6 +572,62 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn preauth_uses_formal_capability_parsing_and_library_starttls_rejection_without_login() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let worker = std::thread::spawn(move || {
+            let (mut socket, _) = listener.accept().unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
+            socket.write_all(b"* OK fixture ready\r\n").unwrap();
+            let mut reader = BufReader::new(socket.try_clone().unwrap());
+            let mut request = String::new();
+            reader.read_line(&mut request).unwrap();
+            assert_eq!(request, "NATIVE0 CAPABILITY\r\n");
+            socket
+                .write_all(
+                    b"* CAPABILITY IMAP4rev1 STARTTLS AUTH=PLAIN\r\nNATIVE0 OK capabilities\r\n",
+                )
+                .unwrap();
+            request.clear();
+            reader.read_line(&mut request).unwrap();
+            let (tag, command) = request.trim_end().split_once(' ').unwrap();
+            assert_eq!(command, "STARTTLS");
+            socket
+                .write_all(format!("{tag} NO fixture rejects TLS\r\n").as_bytes())
+                .unwrap();
+            request.clear();
+            assert_eq!(
+                reader.read_line(&mut request).unwrap(),
+                0,
+                "failed TLS must not send credentials in clear text"
+            );
+        });
+        let account = Account {
+            host: "127.0.0.1".into(),
+            port,
+            secure: false,
+            user: "fixture-user".into(),
+            secret: "fixture-not-a-real-secret".into(),
+        };
+        assert!(connect(&account, None, 1)
+            .unwrap_err()
+            .contains("fixture rejects TLS"));
+        worker.join().unwrap();
+    }
+    #[test]
+    fn imap_control_parser_rejects_malformed_and_oversized_responses() {
+        for wire in [b"not an IMAP response\r\n".to_vec(), vec![b'x'; 65537]] {
+            assert!(control_response(&mut std::io::Cursor::new(wire)).is_err());
+        }
+        let valid = b"* CAPABILITY IMAP4rev1 STARTTLS\r\n";
+        assert_eq!(
+            control_response(&mut std::io::Cursor::new(valid)).unwrap(),
+            valid
+        );
+    }
     #[test]
     fn validates_credentials_and_ports() {
         assert!(account(&json!({})).is_err());

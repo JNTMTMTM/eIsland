@@ -110,8 +110,12 @@ test('桌面 CI 只准备一次插件并直接构建原生测试程序', () => {
 
 test('安装器 CI 只准备一次插件且不执行正式上传', () => {
   const source = readFileSync(new URL('../../.github/workflows/release-build-upload.yml', import.meta.url), 'utf8');
-  assert.equal(Array.from(source.matchAll(/run: npm run plugins:build\s*$/gmu)).length, 1);
-  assert.match(source, /run: npx tauri build/u);
+  assert.equal(Array.from(source.matchAll(/run: npm run package\s*$/gmu)).length, 1);
+  assert.doesNotMatch(source, /run: npm run plugins:build/u);
+  const wrapper = readFileSync(new URL('../../scripts/native/package-release.mjs', import.meta.url), 'utf8');
+  assert.equal(Array.from(wrapper.matchAll(/execute\(\[join\(root, 'scripts\/native\/build-native\.mjs'/gu)).length, 1);
+  assert.match(wrapper, /'build', '--bundles', 'nsis'/u);
+  assert.match(wrapper, /TAURI_SIGNING_PRIVATE_KEY/u);
   assert.doesNotMatch(source, /run:.*(?:npm run release(?:\s|:)|upload-release\.mjs)/u);
 });
 
@@ -134,7 +138,7 @@ test('CI 原生脚本路径存在且命令无需运行时后缀', () => {
 
 test('package 与 release 命令保持构建和上传职责', () => {
   const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
-  assert.equal(pkg.scripts.package, 'npm run plugins:build && tauri build');
+  assert.equal(pkg.scripts.package, 'node scripts/native/package-release.mjs');
   assert.equal(pkg.scripts.release, 'npm run package && npm run release:upload-only');
   assert.equal(pkg.scripts['release:upload-only'], 'node scripts/native/upload-release.mjs');
   assert.equal(pkg.scripts['release:upload-minio'], 'node scripts/native/upload-release.mjs --minio-only');
@@ -157,7 +161,9 @@ test('原生桌面和安装器工作流上传实际产物', () => {
   assert.match(renderer, /path: renderer-sizes\.json/u);
   assert.match(desktop, /npm run test:e2e/u);
   assert.match(desktop, /EISLAND_SMOKE_BINARY:/u);
-  assert.match(release, /create-update-manifest\.mjs/u);
+  assert.match(release, /run: npm run package/u);
+  assert.match(release, /TAURI_SIGNING_PRIVATE_KEY/u);
+  assert.match(release, /\*-setup\.exe\.sig/u);
   assert.match(release, /bundle\/tauri-latest\.json/u);
   assert.match(release, /if-no-files-found: error/u);
 });

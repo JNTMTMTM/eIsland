@@ -66,7 +66,7 @@ function view(): ReturnType<typeof useUpdateSourceSelect> {
 }
 
 describe('引导更新源真实选择', () => {
-  it.each([undefined, null, 1, {}, ''])('无效缓存 %s 保留首次 ESA 选择', async (cached) => {
+  it.each([undefined, null, 1, {}, '', 'unknown-source'])('无效缓存 %s 保留首次 ESA 选择', async (cached) => {
     read.mockResolvedValue(cached);
     expect(view().selected).toBe('esa-cdn');
     runEffects();

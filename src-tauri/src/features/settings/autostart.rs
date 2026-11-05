@@ -127,10 +127,7 @@ pub async fn handle(app: &AppHandle, channel: &str, value: &Value) -> Result<Val
 mod tests {
     use super::*;
     fn store() -> Store {
-        Store {
-            directory: std::env::temp_dir()
-                .join(format!("eisland-autostart-{}", uuid::Uuid::new_v4())),
-        }
+        Store::new(std::env::temp_dir().join(format!("eisland-autostart-{}", uuid::Uuid::new_v4())))
     }
     #[test]
     fn legacy_modes_and_invalid_data_keep_the_string_contract() {

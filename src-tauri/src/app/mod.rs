@@ -28,6 +28,9 @@ mod tray;
 use crate::{commands, features};
 
 pub(crate) fn run() {
+    if features::updater::run_verification_cli() {
+        return;
+    }
     // Hooks use stdin/stdout and must finish before single-instance or GUI setup.
     if features::agent::run_hook_cli() {
         return;
@@ -42,6 +45,7 @@ pub(crate) fn run() {
             });
         }))
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {

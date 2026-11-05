@@ -31,7 +31,6 @@ use std::{
     io::{BufWriter, Cursor, Read, Write},
     path::{Component, Path, PathBuf},
     sync::OnceLock,
-    time::Duration,
 };
 use tauri::{AppHandle, Manager};
 const MAX_IMAGE: usize = 64 * 1024 * 1024;
@@ -163,10 +162,7 @@ async fn remote(url: &reqwest::Url, limit: usize) -> Result<Vec<u8>> {
     if !matches!(url.scheme(), "http" | "https") {
         return Err("Wallpaper downloads require HTTP(S)".into());
     }
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(30))
-        .build()
-        .map_err(|e| e.to_string())?;
+    let client = crate::infrastructure::http::client();
     let mut response = client
         .get(url.clone())
         .send()

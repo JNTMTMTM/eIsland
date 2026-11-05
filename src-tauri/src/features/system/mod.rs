@@ -77,8 +77,7 @@ fn work(_app: &AppHandle, channel: &str, args: &[Value]) -> Result<Value> {
     if channel == "system:open-task-manager" {
         #[cfg(windows)]
         {
-            let mut command = std::process::Command::new("taskmgr.exe");
-            hidden(&mut command);
+            let mut command = crate::infrastructure::child_process::external_command("taskmgr.exe");
             command.spawn().map_err(|e| e.to_string())?;
         }
         return Ok(Value::Null);
@@ -195,63 +194,25 @@ fn work(_app: &AppHandle, channel: &str, args: &[Value]) -> Result<Value> {
     }
     Ok(json!(processes.iter().map(|p|{let icon=p.exe().and_then(|path|file_icon(path).ok()).unwrap_or(Value::Null);json!({"name":p.name().to_string_lossy(),"path":p.exe(),"processName":p.name().to_string_lossy(),"processPath":p.exe(),"processId":p.pid().as_u32(),"iconDataUrl":icon.as_str().map(|s|format!("data:image/png;base64,{s}"))})}).collect::<Vec<_>>()))
 }
-fn hidden(command: &mut std::process::Command) {
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        command.creation_flags(0x08000000);
-    }
-    #[cfg(not(windows))]
-    let _ = command;
-}
 pub fn shortcut(path: &Path) -> Result<Value> {
     #[cfg(windows)]
     {
-        let result=powershell("$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:EISLAND_NATIVE_PATH);@{target=$s.TargetPath;name=[IO.Path]::GetFileNameWithoutExtension($env:EISLAND_NATIVE_PATH)}|ConvertTo-Json -Compress",path)?;
-        serde_json::from_str(&result).map_err(|e| e.to_string())
+        let script="$s=(New-Object -ComObject WScript.Shell).CreateShortcut([string]$a.path);@{target=$s.TargetPath;name=[IO.Path]::GetFileNameWithoutExtension([string]$a.path)}";
+        tauri::async_runtime::block_on(crate::infrastructure::child_process::powershell_json(
+            script,
+            &json!({"path":path}),
+            crate::infrastructure::child_process::Options {
+                timeout: std::time::Duration::from_secs(5),
+                stdout_limit: 65536,
+                ..Default::default()
+            },
+        ))
     }
     #[cfg(not(windows))]
     {
         let _ = path;
         Ok(Value::Null)
     }
-}
-#[cfg(windows)]
-fn powershell(script: &str, path: &Path) -> Result<String> {
-    use base64::Engine;
-    let bytes = script
-        .encode_utf16()
-        .flat_map(u16::to_le_bytes)
-        .collect::<Vec<_>>();
-    let mut command = std::process::Command::new("powershell.exe");
-    command
-        .args([
-            "-NoProfile",
-            "-NonInteractive",
-            "-EncodedCommand",
-            &base64::engine::general_purpose::STANDARD.encode(bytes),
-        ])
-        .env("EISLAND_NATIVE_PATH", path);
-    hidden(&mut command);
-    let mut child = command
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    let started = std::time::Instant::now();
-    while child.try_wait().map_err(|e| e.to_string())?.is_none() {
-        if started.elapsed() > std::time::Duration::from_secs(5) {
-            let _ = child.kill();
-            let _ = child.wait();
-            return Err("Native shell query timed out".into());
-        }
-        std::thread::sleep(std::time::Duration::from_millis(20));
-    }
-    let output = child.wait_with_output().map_err(|e| e.to_string())?;
-    if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).into_owned());
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
 }
 pub fn set_wallpaper(app: &AppHandle, payload: &Value) -> Result<Value> {
     #[cfg(windows)]

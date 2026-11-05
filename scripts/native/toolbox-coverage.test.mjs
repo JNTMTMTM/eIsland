@@ -24,12 +24,12 @@
  * @author 鸡哥
  */
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { auditCoverage, productionInventory, reachesThreshold } from './toolbox-coverage.mjs';
-import { aggregate } from './toolbox-rust-coverage.mjs';
+import { auditCoverage, javascriptScopePatterns, main as javascriptMain, productionInventory, reachesThreshold } from './toolbox-coverage.mjs';
+import { aggregate, main as rustMain, recordCoverageBinaries, rustInventory, rustScopePatterns, verifyCoverageBinaries } from './toolbox-rust-coverage.mjs';
 
 test('99 percent gate uses counts rather than a rounded display percentage', () => {
   assert.equal(reachesThreshold({ total: 100000, covered: 98999 }), false);
@@ -76,4 +76,86 @@ test('Rust uses weighted native counts and preserves unsupported metrics as null
   assert.equal(result.branches.pct, null);
   assert.equal(result.statements.supported, false);
   assert.equal(aggregate([]).regions.pct, null);
+});
+
+test('refactor scope retains the toolbox plus whole updater, startup and settings sources', () => {
+  const original = productionInventory(); const expanded = productionInventory('refactor');
+  const names = new Set(expanded.map((file) => file.path));
+  original.forEach(({ path }) => assert(names.has(path), `Toolbox production file dropped: ${path}`));
+  [
+    'src/renderer/components/config/dynamicIslandUpdateSource.ts',
+    'src/renderer/components/hooks/useIslandStartupAnnouncements.ts',
+    'src/renderer/components/components/DynamicIslandGuidePages/update/hooks/useUpdateSourceSelect.ts',
+    'src/renderer/components/states/maxExpand/components/setting/hooks/useUpdateSettingsState.ts',
+    'src/renderer/components/states/maxExpand/components/setting/hooks/useSettingsConfigurationEffects.ts',
+    'src/renderer/components/states/maxExpand/components/setting/hooks/useSettingsSyncEffects.ts',
+    'src/renderer/components/states/maxExpand/components/setting/config/settingsTabConfig.ts',
+  ].forEach((path) => assert(names.has(path), `Changed business module missing: ${path}`));
+  assert(expanded.length > original.length);
+  assert(expanded.every((file) => /^[a-f0-9]{64}$/u.test(file.sha256)));
+  assert.throws(() => javascriptScopePatterns('invalid'), /Unknown/);
+});
+
+test('native refactor scope includes business modules and shared dependencies rather than only helpers', () => {
+  const inventory = rustInventory('refactor'); const names = new Set(inventory.map((file) => file.path));
+  ['features/updater/mod.rs', 'features/updater/sources.rs', 'features/updater/verification.rs', 'features/agent/chat.rs', 'features/agent/status.rs', 'features/agent/tools.rs', 'features/agent/system_tools.rs', 'features/mail/mod.rs', 'features/extensions/mod.rs', 'features/downloads/mod.rs', 'features/files/mod.rs', 'features/images/mod.rs', 'features/wallpaper/video.rs', 'features/wallpaper/extraction.rs', 'features/runtime/mod.rs', 'features/music/audio.rs', 'infrastructure/http.rs', 'infrastructure/storage/store.rs', 'infrastructure/archive.rs', 'infrastructure/hashing.rs', 'infrastructure/child_process.rs'].forEach((file) => assert(names.has(`src-tauri/src/${file}`), `Native business file missing: ${file}`));
+  assert(inventory.every((file) => /^[a-f0-9]{64}$/u.test(file.sha256)));
+  assert(!names.has('src-tauri/src/features/updater/tests.rs'));
+  assert.throws(() => rustScopePatterns('invalid'), /Unknown/);
+});
+
+test('an empty expanded-scope report still fails all gates and missing executable modules', (t) => {
+  t.mock.method(console, 'log', () => {}); t.mock.method(console, 'error', () => {});
+  const directory = mkdtempSync(join(tmpdir(), 'eisland-refactor-empty-report-test-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  ['coverage-summary.json', 'coverage-final.json'].forEach((file) => writeFileSync(join(directory, file), '{}'));
+  const result = auditCoverage(directory, directory, null, 'refactor');
+  assert.equal(result.coveragePassed, false); assert.equal(result.scope, 'refactor');
+  assert.equal(result.productionFileCount, productionInventory('refactor').length);
+  assert(result.missingRuntimeFiles.length > 0);
+  assert.deepEqual(result.belowThreshold, ['lines', 'statements', 'functions', 'branches']);
+});
+
+test('scope CLI options reject missing or invalid values before invoking compilers', () => {
+  assert.throws(() => javascriptMain(['--scope']), /requires/);
+  assert.throws(() => javascriptMain(['--scope', 'invalid']), /Unknown/);
+  assert.throws(() => rustMain(['--scope']), /requires/);
+  assert.throws(() => rustMain(['--scope', 'invalid']), /Unknown/);
+});
+
+/** 创建不会执行的隔离 PE 占位文件，只验证驱动指纹行为。
+ * @param t - 测试生命周期。
+ * @returns 隔离构建和报告目录。
+ */
+function binaryFixture(t) {
+  const directory = mkdtempSync(join(tmpdir(), 'eisland-coverage-binaries-test-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const target = join(directory, 'target'); const output = join(directory, 'report');
+  mkdirSync(join(target, 'debug', 'deps'), { recursive: true });
+  ['debug/eisland.exe', 'debug/deps/eisland.exe'].forEach((path) => writeFileSync(join(target, path), Buffer.from('MZ isolated coverage mapping')));
+  return { target, output };
+}
+
+test('native report accepts unchanged prepared PE fingerprints', (t) => {
+  const { target, output } = binaryFixture(t);
+  const manifest = recordCoverageBinaries(target, output);
+  assert.deepEqual(verifyCoverageBinaries(target, output), manifest);
+  assert.equal(manifest.binaries.length, 2);
+  assert(manifest.binaries.every(({ size, sha256 }) => size > 0 && /^[a-f0-9]{64}$/u.test(sha256)));
+});
+
+test('native report rejects rebuilt PE mappings even when the new file has the same size', (t) => {
+  const { target, output } = binaryFixture(t);
+  recordCoverageBinaries(target, output);
+  const binary = join(target, 'debug', 'deps', 'eisland.exe');
+  const bytes = readFileSync(binary); bytes[bytes.length - 1] ^= 1; writeFileSync(binary, bytes);
+  assert.throws(() => verifyCoverageBinaries(target, output), /PE coverage mapping changed.*Repeat --prepare → E2E → --report/u);
+});
+
+test('native report rejects a missing fingerprint or deleted prepared executable', (t) => {
+  const { target, output } = binaryFixture(t);
+  assert.throws(() => verifyCoverageBinaries(target, output), /fingerprint verification failed/u);
+  recordCoverageBinaries(target, output);
+  unlinkSync(join(target, 'debug', 'eisland.exe'));
+  assert.throws(() => verifyCoverageBinaries(target, output), /fingerprint verification failed/u);
 });

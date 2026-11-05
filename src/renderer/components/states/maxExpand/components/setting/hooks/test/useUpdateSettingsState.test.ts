@@ -108,7 +108,7 @@ afterEach(() => {
 
 describe('Update settings persistence and sources', () => {
   it.each(['github', 'tencent-cos', 'aliyun-oss', 'esa-cdn', 'cloudflare-r2', 'unknown'])('selects source %s and persists its public normalized value', async (value) => {
-    const expected = value === 'unknown' ? 'cloudflare-r2' : value;
+    const expected = value === 'unknown' ? 'esa-cdn' : value;
     view().handleUpdateSourceChange(value);
     expect(view().updateSource).toBe(expected);
     expect(api.storeWrite).toHaveBeenCalledWith('update-source', expected);
@@ -125,8 +125,8 @@ describe('Update settings persistence and sources', () => {
     view().setUpdateSource('tencent-cos');
     api.storeWrite.mockRejectedValue(new Error('storage offline'));
     await commit();
-    expect(view().updateSource).toBe('cloudflare-r2');
-    expect(api.storeWrite).toHaveBeenCalledWith('update-source', 'cloudflare-r2');
+    expect(view().updateSource).toBe('esa-cdn');
+    expect(api.storeWrite).toHaveBeenCalledWith('update-source', 'esa-cdn');
   });
 
   it('keeps source labels meaningful for a damaged value supplied through the public setter', () => {
@@ -145,7 +145,7 @@ describe('Update settings persistence and sources', () => {
       return Promise.resolve(mode);
     });
     await commit();
-    expect(view().updateSource).toBe(source === 'invalid' ? 'cloudflare-r2' : source);
+    expect(view().updateSource).toBe(source === 'invalid' ? 'esa-cdn' : source);
     expect(view().updateAutoPromptEnabled).toBe(typeof prompt === 'boolean' ? prompt : true);
     expect(view().announcementShowMode).toBe(mode === 'always' ? 'always' : 'version-update-only');
   });
@@ -224,10 +224,12 @@ describe('Update settings request and updater events', () => {
     api.updaterCheck.mockRejectedValue(error);
     api.updaterDownload.mockRejectedValue(error);
     await view().handleCheckUpdate();
-    expect(view().updateError).toBe('检查更新失败: connection lost');
+    expect(view().updateError).toBe('settings.update.checkFailedMessage');
+    expect(t).toHaveBeenCalledWith('settings.update.checkFailedMessage', { error: 'connection lost' });
     await view().handleDownloadUpdate();
     expect(view().updateStatus).toBe('error');
-    expect(view().updateError).toBe('下载失败: connection lost');
+    expect(view().updateError).toBe('settings.update.downloadFailedMessage');
+    expect(t).toHaveBeenCalledWith('settings.update.downloadFailedMessage', { error: 'connection lost' });
   });
 
   it.each([true, false])('handles download success %s', async (success) => {
@@ -236,7 +238,41 @@ describe('Update settings request and updater events', () => {
     await view().handleDownloadUpdate();
     expect(api.updaterDownload).toHaveBeenCalledWith('tencent-cos', 'https://updates/package');
     expect(view().updateStatus).toBe(success ? 'ready' : 'error');
-    if (!success) expect(view().updateError).toBe('下载失败，请稍后重试');
+    if (!success) expect(view().updateError).toBe('settings.update.downloadFailed');
+  });
+
+  it.each([
+    ['NATIVE_UPDATE_SIGNING_KEY_NOT_CONFIGURED', 'signingUnavailable'],
+    ['NATIVE_UPDATE_NETWORK_FAILED', 'networkFailed'],
+    ['NATIVE_UPDATE_VERIFICATION_FAILED', 'verificationFailed'],
+    ['NATIVE_UPDATE_MANIFEST_INVALID', 'manifestInvalid'],
+    ['NATIVE_UPDATE_URL_CREDENTIALS_NOT_ALLOWED', 'manifestInvalid'],
+    ['NATIVE_UPDATE_REQUIRES_HTTPS', 'manifestInvalid'],
+    ['NATIVE_UPDATE_INSTALLER_NAME_INVALID', 'manifestInvalid'],
+    ['NATIVE_UPDATE_URL_INVALID', 'manifestInvalid'],
+    ['NATIVE_UPDATE_SIGNED_DIRECTORY_URL_UNSUPPORTED', 'manifestInvalid'],
+    ['ELECTRON_UPDATE_MANIFEST_REJECTED: configure the native JSON feed', 'manifestInvalid'],
+    ['PRO update source requires a server-issued URL', 'manifestInvalid'],
+    ['NATIVE_UPDATE_PLATFORM_UNSUPPORTED', 'platformUnsupported'],
+    ['NATIVE_UPDATE_OPERATION_FAILED', 'operationFailed'],
+  ])('localizes safe native update code %s in check, download and install failures', async (code, key) => {
+    api.updaterCheck.mockResolvedValue({ available: false, error: code });
+    await view().handleCheckUpdate();
+    expect(view().updateStatus).toBe('error');
+    expect(view().updateError).toBe(`settings.update.errors.${key}`);
+    api.updaterDownload.mockRejectedValue(new Error(code));
+    await view().handleDownloadUpdate();
+    expect(view().updateError).toBe(`settings.update.errors.${key}`);
+    api.updaterInstall.mockRejectedValue(code);
+    view().handleInstallUpdate();
+    await Promise.resolve();
+    expect(view().updateError).toBe(`settings.update.errors.${key}`);
+  });
+
+  it('preserves unknown legacy check errors without replacing their business message', async () => {
+    api.updaterCheck.mockResolvedValue({ available: false, error: 'Legacy custom source is temporarily unavailable' });
+    await view().handleCheckUpdate();
+    expect(view().updateError).toBe('Legacy custom source is temporarily unavailable');
   });
 
   it('subscribes to real updater callbacks, keeps an active download and respects disabled prompting', async () => {
@@ -278,6 +314,9 @@ describe('Update settings request and updater events', () => {
     api.updaterInstall.mockRejectedValue(new Error('installer unavailable'));
     view().handleInstallUpdate();
     await Promise.resolve();
+    expect(view().updateStatus).toBe('error');
+    expect(view().updateError).toBe('settings.update.installFailedMessage');
+    expect(t).toHaveBeenCalledWith('settings.update.installFailedMessage', { error: 'installer unavailable' });
     await view().handleResetGuide();
     expect(view().guideResetStatus).toBe('success');
     api.guideReset.mockResolvedValue(false);

@@ -58,29 +58,58 @@ pub fn native_path(app: &AppHandle, component: &str, file: &str) -> Result<PathB
     ))
 }
 
-/// Resolve the packaged converter, retaining the development binary fallback.
-pub(crate) fn ffmpeg(app: &AppHandle) -> PathBuf {
-    let name = if cfg!(windows) {
-        "ffmpeg.exe"
-    } else {
-        "ffmpeg"
-    };
+/// Resolve bundled media tools; production never falls back to the user's PATH.
+fn media_binary(app: &AppHandle, tool: &str) -> Result<PathBuf> {
+    let name = format!("{tool}{}", if cfg!(windows) { ".exe" } else { "" });
     if let Ok(resources) = app.path().resource_dir() {
-        let file = resources.join("native/ffmpeg").join(name);
+        let file = resources.join("native/ffmpeg").join(&name);
         if file.is_file() {
-            return file;
+            return Ok(file);
         }
     }
     #[cfg(debug_assertions)]
     {
-        let file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../node_modules/ffmpeg-static")
-            .join(name);
-        if file.is_file() {
-            return file;
+        let override_name = format!("{}_BIN", tool.to_ascii_uppercase());
+        if let Some(path) = std::env::var_os(override_name)
+            .map(PathBuf::from)
+            .filter(|path| path.is_file())
+        {
+            return Ok(path);
+        }
+        let resources = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources/native/ffmpeg")
+            .join(&name);
+        if resources.is_file() {
+            return Ok(resources);
+        }
+        if tool == "ffmpeg" {
+            let development = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../node_modules/ffmpeg-static")
+                .join(&name);
+            if development.is_file() {
+                return Ok(development);
+            }
         }
     }
-    PathBuf::from(name)
+    Err(format!("Bundled {tool} missing; run npm run plugins:build"))
+}
+/// Existing callers report a missing converter through the shared process error path.
+pub(crate) fn ffmpeg(app: &AppHandle) -> PathBuf {
+    media_binary(app, "ffmpeg").unwrap_or_else(|_| {
+        app.path()
+            .resource_dir()
+            .unwrap_or_else(|_| std::env::temp_dir().join("eisland-unavailable-resources"))
+            .join("native/ffmpeg")
+            .join(if cfg!(windows) {
+                "ffmpeg.exe"
+            } else {
+                "ffmpeg"
+            })
+    })
+}
+/// Metadata requires the bundled ffprobe; no global executable is consulted.
+pub(crate) fn ffprobe(app: &AppHandle) -> Result<PathBuf> {
+    media_binary(app, "ffprobe")
 }
 /// Resolve an embedded browser SDK directory, preserving the development resource fallback.
 pub(crate) fn browser_assets(app: &AppHandle, name: &str, entry: &str) -> Result<PathBuf> {

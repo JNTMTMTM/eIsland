@@ -69,7 +69,7 @@ describe('loadScripts', () => {
   it('发布别名与其生命周期保持危险标记，构建和发布说明不触发确认', () => {
     const releaseRoot = mkdtempSync(join(root, 'native-release-'));
     writeFileSync(join(releaseRoot, 'package.json'), JSON.stringify({ scripts: {
-      package: 'npm run plugins:build && tauri build',
+      package: 'node scripts/native/package-release.mjs',
       release: 'npm run package && npm run release:upload-only',
       'release:upload': 'npm run release',
       'release:upload-only': 'node native-upload.mjs',

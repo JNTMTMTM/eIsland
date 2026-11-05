@@ -28,6 +28,7 @@ import { createHash } from 'node:crypto';
 import { createReadStream, closeSync, existsSync, openSync, readFileSync, readSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import withoutSigningSecrets from './environment.mjs';
 
 export const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -41,6 +42,7 @@ export function releaseOptions(argv) {
     const arg = argv[index];
     if (arg === '--dry-run') options.dryRun = true;
     else if (arg === '--minio-only') options.minioOnly = true;
+    else if (arg === '--skip-legacy-bridge') options.skipLegacyBridge = true;
     else if (arg === '--help' || arg === '-h') options.help = true;
     else if (['--target-dir', '--dist', '-d'].includes(arg)) {
       const value = argv[++index];
@@ -105,24 +107,41 @@ export async function releaseArtifact(root, options, env, run = spawnSync) {
   for await (const chunk of createReadStream(file)) hash.update(chunk);
   const after = statSync(file);
   if (after.size !== info.size || after.mtimeMs !== info.mtimeMs) throw new Error('Installer changed while hashing; finish packaging before uploading');
+  const signatureFile = `${file}.sig`;
+  if (!existsSync(signatureFile)) throw new Error('Missing Tauri updater signature; run npm run package with the signing identity configured');
+  const signatureInfo = statSync(signatureFile);
+  if (!signatureInfo.isFile() || signatureInfo.size > 16384) throw new Error('Invalid updater signature file');
+  const signature = readFileSync(signatureFile, 'utf8').trim();
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(signature)) throw new Error('Invalid Tauri updater signature encoding');
+  const verifier = env.EISLAND_RELEASE_VERIFY_BINARY || join(dirname(dirname(dirname(file))), 'eisland.exe');
+  if (!existsSync(verifier)) throw new Error('Matching release verifier is missing; set EISLAND_RELEASE_VERIFY_BINARY to the packaged eisland.exe');
+  const verifyEnv = withoutSigningSecrets(env);
+  const verified = run(verifier, ['--verify-update-artifact', file, signatureFile], { env: verifyEnv, cwd: root, stdio: 'pipe', windowsHide: true, timeout: 120000 });
+  if (verified.error || verified.status !== 0) throw new Error('Updater signature rejected by the packaged application; check the signing identity and matching build');
+  const verifiedInfo = statSync(file);
+  if (verifiedInfo.size !== info.size || verifiedInfo.mtimeMs !== info.mtimeMs) throw new Error('Installer changed during signature verification');
+  const signatureAfter = statSync(signatureFile);
+  if (signatureAfter.size !== signatureInfo.size || signatureAfter.mtimeMs !== signatureInfo.mtimeMs || readFileSync(signatureFile, 'utf8').trim() !== signature) throw new Error('Signature changed during verification');
   const notesFile = ['RELEASE_NOTES.md', 'RELEASE_NOTES_SINCE_LAST_TAG.md'].map((name) => join(root, name)).find(existsSync);
   const notes = notesFile ? readFileSync(notesFile, 'utf8') : '';
-  return { file, name, notes, version: pkg.version, size: info.size, sha512: hash.digest('base64'), directory: dirname(dirname(file)) };
+  return { file, name, notes, signature, signatureFile, verifier, version: pkg.version, size: info.size, sha512: hash.digest('base64'), directory: dirname(dirname(file)) };
 }
 
-/** 生成同源相对地址或指定 HTTPS 源的原生更新清单。
+/** 生成官方格式与旧 Tauri 元数据兼容的绝对 HTTPS 更新清单。
  * @param artifact - 已校验的产物。
- * @param base - 可选的 HTTPS 下载目录。
+ * @param base - 必需的 HTTPS 下载目录。
  * @returns 原生更新清单。
  */
 export function nativeManifest(artifact, base) {
-  let url = artifact.name;
+  let url;
+  if (!artifact.signature) throw new Error('Official updater manifest requires a verified signature');
   if (base) {
     const origin = new URL(`${base.replace(/\/+$/, '')}/`);
     if (origin.protocol !== 'https:' || origin.username || origin.password || origin.search || origin.hash) throw new Error('Native release base URL must be a plain HTTPS directory URL');
     url = new URL(encodeURIComponent(artifact.name), origin).toString();
   }
-  return { runtime: 'tauri', version: artifact.version, notes: artifact.notes, platforms: { 'windows-x86_64': { url, format: 'nsis', size: artifact.size, sha512: artifact.sha512 } } };
+  if (!url) throw new Error('Official updater manifest requires an absolute HTTPS download base');
+  return { runtime: 'tauri', version: artifact.version, notes: artifact.notes, pub_date: new Date().toISOString(), platforms: { 'windows-x86_64': { url, signature: artifact.signature, format: 'nsis', size: artifact.size, sha512: artifact.sha512 } } };
 }
 
 /** 写入构建目录的发布清单。

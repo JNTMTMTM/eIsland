@@ -20,19 +20,68 @@
 
 use super::{emit, failure, local_tool, now};
 use crate::shared::Result;
-use futures_util::StreamExt;
+use eventsource_stream::Eventsource;
+use futures_util::{future::ready, Stream, StreamExt};
 use serde_json::{json, Value};
 use std::{
     collections::HashMap,
+    fmt::Display,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
     time::{Duration, Instant},
 };
 use tauri::AppHandle;
 
-fn client(seconds: u64) -> Result<reqwest::Client> {
-    reqwest::Client::builder()
-        .timeout(Duration::from_secs(seconds))
-        .build()
-        .map_err(|e| e.to_string())
+/// Decode SSE framing with the protocol library; retain the existing bounded model payload policy.
+fn model_events<S, B, E>(source: S) -> impl Stream<Item = Result<Value>>
+where
+    S: Stream<Item = std::result::Result<B, E>>,
+    B: AsRef<[u8]>,
+    E: Display,
+{
+    const LIMIT: usize = 8 * 1024 * 1024;
+    let pending = Arc::new(AtomicUsize::new(0));
+    let buffered = pending.clone();
+    source
+        .map(move |bytes| {
+            let bytes = bytes.map_err(|error| error.to_string())?;
+            if buffered
+                .fetch_add(bytes.as_ref().len(), Ordering::Relaxed)
+                .saturating_add(bytes.as_ref().len())
+                > LIMIT
+            {
+                return Err("Model stream event exceeds 8 MiB".to_owned());
+            }
+            Ok(bytes)
+        })
+        .eventsource()
+        .take_while(|event| {
+            ready(
+                !event
+                    .as_ref()
+                    .is_ok_and(|event| event.data.trim() == "[DONE]"),
+            )
+        })
+        .filter_map(move |event| {
+            pending.store(0, Ordering::Relaxed);
+            ready(match event {
+                Ok(event) if event.data.trim().is_empty() => None,
+                Ok(event) if event.data.len() > LIMIT => {
+                    Some(Err("Model stream event exceeds 8 MiB".into()))
+                }
+                Ok(event) => Some(
+                    serde_json::from_str(&event.data)
+                        .map_err(|error| format!("Invalid model stream: {error}")),
+                ),
+                Err(error) => Some(Err(format!("Invalid model stream: {error}"))),
+            })
+        })
+}
+async fn response_json(mut response: reqwest::Response) -> Result<Value> {
+    let bytes = crate::infrastructure::http::bounded(&mut response, 16 * 1024 * 1024).await?;
+    serde_json::from_slice(&bytes).map_err(|error| error.to_string())
 }
 fn endpoint(base: &str, path: &str) -> Result<reqwest::Url> {
     let base = reqwest::Url::parse(base).map_err(|e| e.to_string())?;
@@ -48,26 +97,23 @@ pub async fn ping(base: &str) -> bool {
     let Ok(url) = endpoint(base, "/") else {
         return false;
     };
-    let Ok(client) = client(3) else {
-        return false;
-    };
-    client
+    crate::infrastructure::http::client()
         .get(url)
+        .timeout(Duration::from_secs(3))
         .send()
         .await
         .is_ok_and(|r| r.status() == reqwest::StatusCode::OK)
 }
 pub async fn models(base: &str) -> Result<Value> {
-    let value: Value = client(5)?
+    let response = crate::infrastructure::http::client()
         .get(endpoint(base, "/api/tags")?)
+        .timeout(Duration::from_secs(5))
         .send()
         .await
         .map_err(|e| e.to_string())?
         .error_for_status()
-        .map_err(|e| e.to_string())?
-        .json()
-        .await
         .map_err(|e| e.to_string())?;
+    let value = response_json(response).await?;
     Ok(json!(value["models"]
         .as_array()
         .map(|items| items
@@ -264,8 +310,9 @@ async fn turn(
     if request["temperature"].is_number() {
         body["temperature"] = request["temperature"].clone();
     }
-    let mut builder = client(120)?
+    let mut builder = crate::infrastructure::http::client()
         .post(url)
+        .timeout(Duration::from_secs(120))
         .header("Accept", "text/event-stream")
         .json(&body);
     if !ollama {
@@ -287,7 +334,7 @@ async fn turn(
     let mut full = 0usize;
     let mut usage = Value::Null;
     if !sse {
-        let chunk: Value = response.json().await.map_err(|e| e.to_string())?;
+        let chunk = response_json(response).await?;
         process_chunk(
             app,
             owner,
@@ -296,58 +343,19 @@ async fn turn(
             (&mut envelope, &mut thinking, &mut full, &mut usage),
         )?;
     } else {
-        let mut stream = response.bytes_stream();
-        let mut buffer = Vec::new();
-        let mut complete = false;
+        let stream = model_events(response.bytes_stream());
+        futures_util::pin_mut!(stream);
         while let Some(chunk) = stream.next().await {
-            buffer.extend_from_slice(&chunk.map_err(|e| e.to_string())?);
-            if buffer.len() > 8 * 1024 * 1024 {
-                return Err("Model stream line exceeds 8 MiB".into());
-            }
-            while let Some(end) = buffer.iter().position(|byte| *byte == b'\n') {
-                let line = String::from_utf8_lossy(&buffer[..end]).trim().to_owned();
-                buffer.drain(..=end);
-                if let Some(data) = line.strip_prefix("data:").map(str::trim) {
-                    if data == "[DONE]" {
-                        complete = true;
-                        break;
-                    }
-                    if !data.is_empty() {
-                        let chunk: Value = serde_json::from_str(data)
-                            .map_err(|e| format!("Invalid model stream: {e}"))?;
-                        process_chunk(
-                            app,
-                            owner,
-                            channel,
-                            &chunk,
-                            (&mut envelope, &mut thinking, &mut full, &mut usage),
-                        )?;
-                    }
-                }
-            }
-            if complete {
-                break;
-            }
-        }
-        if !buffer.is_empty() && !complete {
-            let line = String::from_utf8_lossy(&buffer);
-            if let Some(data) = line
-                .trim()
-                .strip_prefix("data:")
-                .map(str::trim)
-                .filter(|v| *v != "[DONE]")
-            {
-                let chunk: Value = serde_json::from_str(data).map_err(|e| e.to_string())?;
-                process_chunk(
-                    app,
-                    owner,
-                    channel,
-                    &chunk,
-                    (&mut envelope, &mut thinking, &mut full, &mut usage),
-                )?;
-            }
+            process_chunk(
+                app,
+                owner,
+                channel,
+                &chunk?,
+                (&mut envelope, &mut thinking, &mut full, &mut usage),
+            )?;
         }
     }
+
     for (inside, text, index) in thinking.feed("", true) {
         if inside {
             event(
@@ -556,8 +564,9 @@ async fn web_search(token: &str, args: &Value) -> Value {
         } else {
             "https://server.pyisland.com/api"
         };
-        let response: Value = client(20)?
+        let response = crate::infrastructure::http::client()
             .post(format!("{base}/v1/user/ai/agent/search"))
+            .timeout(Duration::from_secs(20))
             .bearer_auth(token.trim())
             .header("X-App-Name", "eisland")
             .header("X-Client-Version", env!("CARGO_PKG_VERSION"))
@@ -568,10 +577,8 @@ async fn web_search(token: &str, args: &Value) -> Value {
             .await
             .map_err(|e| e.to_string())?
             .error_for_status()
-            .map_err(|e| e.to_string())?
-            .json()
-            .await
             .map_err(|e| e.to_string())?;
+        let response = response_json(response).await?;
         if response["success"] != true
             || response["data"]["provider"] != "searxng"
             || !response["data"]["results"].is_array()
@@ -592,6 +599,58 @@ async fn web_search(token: &str, args: &Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test]
+    async fn sse_library_handles_all_network_splits_crlf_multiline_empty_and_done_events() {
+        let wire = concat!(
+            ": heartbeat\r\n\r\n",
+            "data: {\r\ndata: \"choices\": [{\"delta\":{\"content\":\"中文😀\"}}]}\r\n\r\n",
+            "data:\r\n\r\n",
+            "data: [DONE]\r\n\r\n",
+            "data: invalid-after-done\n\n"
+        )
+        .as_bytes();
+        for split in 0..=wire.len() {
+            let chunks = vec![
+                Ok::<_, std::io::Error>(wire[..split].to_vec()),
+                Ok(wire[split..].to_vec()),
+            ];
+            let events = model_events(futures_util::stream::iter(chunks))
+                .collect::<Vec<_>>()
+                .await;
+            assert_eq!(events.len(), 1, "split={split}: {events:?}");
+            assert_eq!(
+                events[0].as_ref().unwrap()["choices"][0]["delta"]["content"],
+                "中文😀"
+            );
+        }
+    }
+    #[tokio::test]
+    async fn sse_library_reports_transport_json_utf8_and_size_errors_without_silent_loss() {
+        for chunks in [
+            vec![Err(std::io::Error::new(
+                std::io::ErrorKind::ConnectionReset,
+                "fixture interrupted",
+            ))],
+            vec![Ok(b"data: invalid-json\n\n".to_vec())],
+            vec![Ok(vec![
+                b'd', b'a', b't', b'a', b':', b' ', 0xff, b'\n', b'\n',
+            ])],
+            vec![Ok(vec![b'x'; 8 * 1024 * 1024 + 1])],
+        ] {
+            let events = model_events(futures_util::stream::iter(chunks))
+                .collect::<Vec<_>>()
+                .await;
+            assert!(events.iter().any(|event| event.is_err()), "{events:?}");
+        }
+        let interrupted = vec![Ok::<_, std::io::Error>(b"data: {\"choices\":[]}".to_vec())];
+        assert!(
+            model_events(futures_util::stream::iter(interrupted))
+                .collect::<Vec<_>>()
+                .await
+                .is_empty(),
+            "unterminated SSE records must not be dispatched"
+        );
+    }
     #[test]
     fn model_url_retains_configured_prefix() {
         assert_eq!(
