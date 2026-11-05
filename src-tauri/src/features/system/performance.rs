@@ -46,6 +46,17 @@ struct Session {
     output: BufReader<ChildStdout>,
 }
 
+/// Debug acceptance checks distinguish a completed collection from optional sensor availability.
+#[cfg(debug_assertions)]
+pub(crate) fn diagnostics() -> Value {
+    let current = CACHE.get().and_then(|cache| cache.lock().unwrap().clone());
+    json!({
+        "sampled": current.is_some(),
+        "running": RUNNING.load(Ordering::Acquire),
+        "metrics": current.map(|(_, metrics)| metrics),
+    })
+}
+
 /// Sampling is demand driven: returning the previous bounded snapshot keeps UI polling responsive.
 /// Only one collector can run, and no further work occurs while the performance panel is closed.
 pub fn sample(app: &AppHandle) -> Value {
@@ -480,5 +491,22 @@ mod tests {
             Some(("luid_0x00000000_0x0000abcd".into(), "0_eng_1".into()))
         );
         assert!(engine_key("unrelated").is_none());
+    }
+
+    #[test]
+    fn missing_clock_and_sensors_preserve_null_without_inventing_hardware_readings() {
+        for metrics in [
+            Value::Null,
+            json!({"maxClockMhz":[],"gpuLoads":null,"temperature":{"isAvailable":false,"readings":[]}}),
+        ] {
+            let mut snapshot = json!({"cpu":{"speedGhz":2.5,"loadPercent":0.},"memory":{"totalBytes":1024},"disk":{},"gpu":null});
+            augment(&mut snapshot, &metrics, &json!({}));
+            assert!(snapshot["cpu"]["speedMaxGhz"].is_null());
+            assert!(snapshot["cpu"]["temperatureCelsius"].is_null());
+            assert!(snapshot["disk"]["temperatureCelsius"].is_null());
+            assert!(snapshot["gpu"].is_null());
+            assert_eq!(snapshot["cpu"]["speedGhz"], 2.5);
+            assert_eq!(snapshot["memory"]["totalBytes"], 1024);
+        }
     }
 }

@@ -22,6 +22,9 @@ mod hardware;
 
 mod performance;
 
+#[cfg(debug_assertions)]
+pub(crate) use performance::diagnostics as performance_diagnostics;
+
 use crate::shared::Result;
 use serde_json::{json, Value};
 use std::{

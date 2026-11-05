@@ -48,14 +48,15 @@ const binary = process.env.EISLAND_SMOKE_BINARY || join(cargoTargetDirectory(roo
  */
 async function until(query, accept, timeout = 15000) {
   const deadline = Date.now() + timeout;
+  let value;
   while (Date.now() < deadline) {
     // eslint-disable-next-line no-await-in-loop -- 轮询必须等待前一个查询完成。
-    const value = await query();
+    value = await query();
     if (accept(value)) return value;
     // eslint-disable-next-line no-await-in-loop -- 对本任务隔离进程限频。
     await delay(30);
   }
-  throw new Error('Native task did not reach the expected state');
+  throw new Error(`Native task did not reach the expected state; last result: ${JSON.stringify(value)}`);
 }
 
 test('native services use real streams, resume data and concurrent local assets', { skip: !binary, timeout: 150000 }, async (t) => {
@@ -225,14 +226,26 @@ test('native services use real streams, resume data and concurrent local assets'
       assert(existsSync(helper), 'sensor collector must ship with the shared native runtime');
       const initial = await invoke('system:performance-snapshot:get');
       assert(initial.cpu && initial.memory);
-      const warm = await until(() => invoke('system:performance-snapshot:get'), (snapshot) => typeof snapshot.cpu.speedMaxGhz === 'number', 20000);
-      assert(warm.cpu.speedMaxGhz > 0);
+      // 最大频率和温度在虚拟机上可以永久不可用，采样完成状态必须独立于读数。
+      const warming = until(async () => {
+        await invoke('system:performance-snapshot:get', {}, false);
+        return (await invoke('debug:system-services')).performance;
+      }, (performance) => performance.sampled, 20000);
+      const responsive = Promise.race([
+        invoke('app:read-text-file', join(directory, 'still-missing.md')),
+        delay(5000, null, { ref: false }).then(() => { throw new Error('IPC blocked while sensors were sampling'); }),
+      ]);
+      const [sampling, missing] = await Promise.all([warming, responsive]);
+      t.diagnostic(`Completed native performance sample: ${JSON.stringify(sampling)}`);
+      assert.equal(missing, null);
+      assert(Array.isArray(sampling.metrics.maxClockMhz), 'collector must publish its completed result');
+      const warm = await invoke('system:performance-snapshot:get', {}, false);
+      assert(warm.cpu.speedMaxGhz === null || (Number.isFinite(warm.cpu.speedMaxGhz) && warm.cpu.speedMaxGhz > 0));
       assert(warm.cpu.loadPercent >= 0 && warm.cpu.loadPercent <= 100);
       [warm.cpu.temperatureCelsius, warm.gpu?.temperatureCelsius, warm.disk.temperatureCelsius].forEach((value) => {
         assert(value === null || value === undefined || (value > 0 && value <= 200));
       });
       assert(warm.gpu?.loadPercent === null || warm.gpu === null || (warm.gpu.loadPercent >= 0 && warm.gpu.loadPercent <= 100));
-      assert.equal(await invoke('app:read-text-file', join(directory, 'still-missing.md')), null);
     });
   } catch (error) {
     error.message += `\nNative process diagnostics:\n${diagnostics}`; throw error;

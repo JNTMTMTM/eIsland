@@ -31,4 +31,6 @@ CI 的 `plugins` 矩阵任务安装 .NET SDK、构建原生依赖、检查收集
 
 所有原生桌面套件共用 `scripts/native/cdp.mjs`：等待 WebView2 冷启动最多 60 秒，每次 CDP 连接最多 1 秒，进程退出或启动失败会提前终止。失败信息包含端点、PID、退出状态和启动阶段；冒烟输出目录中的 `native-stderr.log` 会随 CI 诊断产物保存。端口拒绝只表示调试端点尚未就绪，不能仅凭同一日志中的硬件枚举错误认定应用崩溃。连接等待、退出及错误契约包含在 `npm run test:api` 中。
 
+性能采样验收通过调试接口确认后台采样已完成，并在采样期间检查普通 IPC 响应。最大频率、温度及 GPU 负载属于可选读数，在虚拟机或不支持的设备上允许为 `null`；可用数值仍须满足范围约束。轮询超时会保留最后结果，以区分后台任务未完成与硬件读数不可用。
+
 `npm run test:api` 验证原生前端 API、运行入口和原生发布工具；`npm run test:rust` 验证 Rust 原生服务。`scripts/lint` 中的 `node:test` 测试通过 `npm run lint:config:test` 执行，测试收集检查通过 `npm run test:discovery` 执行。
