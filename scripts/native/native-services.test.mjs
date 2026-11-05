@@ -27,7 +27,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve, sep } from 'node:path';
@@ -94,6 +94,7 @@ test('native services use real streams, resume data and concurrent local assets'
   } });
   let diagnostics = ''; app.stderr.on('data', (chunk) => { diagnostics += chunk.toString(); });
   let browser;
+  let mainPage;
   try {
     browser = await until(async () => {
       try { return await chromium.connectOverCDP(`http://127.0.0.1:${port}`); } catch { return null; }
@@ -105,6 +106,7 @@ test('native services use real streams, resume data and concurrent local assets'
       }));
       return candidates[labels.indexOf('main')];
     }, Boolean);
+    mainPage = page;
     await page.waitForFunction(() => Boolean(window.api && window.desktop));
     const invoke = (channel, ...args) => page.evaluate(({ channel, args }) => window.__TAURI__.core.invoke('desktop_ipc', { channel, args }), { channel, args });
     await t.test('settings previews deliver active language, animation and notification events', async () => {
@@ -222,13 +224,22 @@ test('native services use real streams, resume data and concurrent local assets'
   } catch (error) {
     error.message += `\nNative process diagnostics:\n${diagnostics}`; throw error;
   } finally {
+    const exited = app.exitCode === null ? once(app, 'exit') : Promise.resolve();
+    if (mainPage && app.exitCode === null) {
+      try { await mainPage.evaluate(() => window.desktop.send('app:quit')); } catch { /* The window may close before its command response. */ }
+      await Promise.race([exited, delay(3000)]);
+    }
     if (browser) await browser.close();
-    const exited = app.exitCode === null ? once(app, 'exit') : Promise.resolve(); app.kill();
+    if (app.exitCode === null) app.kill();
     await Promise.race([exited, delay(3000)]);
     upstream.closeAllConnections(); upstream.close();
     const target = resolve(directory);
     if (target.startsWith(resolve(tmpdir()) + sep) && basename(target).startsWith('eisland-native-services-test-')) {
       try { rmSync(target, { recursive: true, force: true }); } catch { /* WebView2 may still release its isolated profile after parent exit. */ }
+    }
+    if (process.env.LLVM_PROFILE_FILE) {
+      const profile = process.env.LLVM_PROFILE_FILE.replaceAll('%p', String(app.pid)).replace(/%\d*m/gu, '*').replaceAll('\\', '/');
+      assert(globSync(profile).length > 0, 'Native service GUI execution profile was not flushed');
     }
   }
 });

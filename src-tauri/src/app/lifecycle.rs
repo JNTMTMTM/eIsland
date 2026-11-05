@@ -25,7 +25,13 @@ use tauri::{AppHandle, RunEvent};
 pub(super) fn on_event(app: &AppHandle, event: RunEvent) {
     match event {
         RunEvent::Resumed => crate::features::runtime::changed(app),
-        RunEvent::Exit => super::services::stop(app),
+        RunEvent::Exit => {
+            super::services::stop(app);
+            // The instrumented desktop must flush before the native event loop
+            // terminates; do not rely on the GUI process's CRT exit handlers.
+            #[cfg(coverage)]
+            flush_coverage();
+        }
         RunEvent::ExitRequested {
             api, code: None, ..
         } => {
@@ -33,5 +39,16 @@ pub(super) fn on_event(app: &AppHandle, event: RunEvent) {
             api.prevent_exit();
         }
         _ => {}
+    }
+}
+
+#[cfg(coverage)]
+fn flush_coverage() {
+    unsafe extern "C" {
+        fn __llvm_profile_write_file() -> std::ffi::c_int;
+    }
+    // SAFETY: Rust's instrument-coverage runtime supplies this no-argument API.
+    if unsafe { __llvm_profile_write_file() } != 0 {
+        eprintln!("[Coverage] Failed to flush native execution profile");
     }
 }

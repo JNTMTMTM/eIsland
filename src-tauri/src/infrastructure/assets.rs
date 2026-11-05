@@ -155,6 +155,7 @@ pub fn mime(path: &Path) -> &'static str {
         "gif" => "image/gif",
         "webp" => "image/webp",
         "bmp" => "image/bmp",
+        "ico" => "image/x-icon",
         "svg" => "image/svg+xml",
         "mp4" | "m4v" => "video/mp4",
         "webm" => "video/webm",

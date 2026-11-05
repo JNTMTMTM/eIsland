@@ -5058,7 +5058,12 @@
       "native": "Prepare native plugins (alias for plugins:build)",
       "test:api": "Test the native frontend API, runtime entry points and release workflow",
       "test:services": "Verify native services through real WebView2, HTTP and Range requests",
-      "test:release": "Test native release artifacts, upload plans and ESA purge scope without publishing"
+      "test:release": "Test native release artifacts, upload plans and ESA purge scope without publishing",
+      "test:toolbox": "Run all toolbox renderer and API tests",
+      "test:toolbox:coverage": "Measure complete toolbox JavaScript coverage with a 99% gate for all four metrics",
+      "test:toolbox:rust:prepare": "Build isolated instrumented Rust tests and desktop binary for toolbox coverage",
+      "test:toolbox:rust:env": "Print the PowerShell environment for native toolbox coverage and CDP tests",
+      "test:toolbox:coverage:rust": "Merge native profiles and report separate Rust coverage with a 99% gate"
     },
     "localTest": {
       "title": "Local tests",

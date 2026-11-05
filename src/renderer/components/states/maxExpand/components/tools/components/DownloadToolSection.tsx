@@ -33,6 +33,7 @@ import {
   type DownloadTaskStatus,
 } from '../config/downloadToolConfig';
 import { formatBytes, formatDurationMs, inferSuggestedName } from '../utils/downloadFormatters';
+import normalizeNativeFileName from '../utils/nativeFileName';
 
 interface DownloadToolSectionProps {
   downloadPage: DownloadPageKey;
@@ -296,7 +297,7 @@ export function DownloadToolSection({
                   return (
                     <div key={task.id} className="settings-card-subgroup download-task-card">
                       <div className="download-task-card-header">
-                        <div className="settings-card-subgroup-title">{task.fileName || task.url}</div>
+                        <div className="settings-card-subgroup-title">{normalizeNativeFileName(task.fileName, task.url)}</div>
                         <div className="settings-hotkey-row download-task-actions">
                           {task.status === 'downloading' && (
                             <button
@@ -369,6 +370,7 @@ export function DownloadToolSection({
             key={page}
             className={`settings-app-page-dot ${downloadPage === page ? 'active' : ''}`}
             data-label={pageLabels[page]}
+            aria-label={pageLabels[page]}
             type="button"
             onClick={() => setDownloadPage(page)}
           />

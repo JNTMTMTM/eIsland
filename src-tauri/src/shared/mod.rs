@@ -24,3 +24,5 @@ mod error;
 pub(crate) mod geometry;
 pub(crate) mod time;
 pub(crate) use error::Result;
+
+pub(crate) mod file_names;

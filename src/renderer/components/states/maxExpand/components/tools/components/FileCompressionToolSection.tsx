@@ -26,6 +26,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import normalizeNativeFileName from '../utils/nativeFileName';
 import {
   FILE_COMPRESSION_PAGES,
   type FileCompressionPageKey,
@@ -321,7 +322,7 @@ export function FileCompressionToolSection({
                 {tasks.map((item) => (
                   <div key={item.id} className="settings-card-subgroup download-task-card">
                     <div className="download-task-card-header">
-                      <div className="settings-card-subgroup-title">{item.fileName || getFileName(item.inputPath)}</div>
+                      <div className="settings-card-subgroup-title">{normalizeNativeFileName(item.fileName, getFileName(item.inputPath))}</div>
                       <div className="settings-hotkey-row download-task-actions">
                         {item.success && (
                           <button

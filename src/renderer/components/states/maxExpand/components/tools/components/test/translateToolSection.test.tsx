@@ -124,4 +124,15 @@ describe('TranslateToolSection', () => {
     cleanups.forEach((cleanup) => { cleanup(); });
     expect(remove).toHaveBeenCalledWith('mousedown', expect.any(Function));
   });
+
+  it('没有旗帜资源的语言菜单项显示占位并仍可选择', () => {
+    const { type, props } = sourceDropdown(render(TranslateToolSection));
+    const { options: originalOptions, ...dropdownProps } = props;
+    const options = [...originalOptions, { code: 'custom-language', labelKey: 'custom-language' }];
+    fire(render(type, { options, ...dropdownProps }), '.translate-lang-dropdown-trigger', 'onClick');
+    const tree = render(type, { options, ...dropdownProps });
+    expect(nodes(tree, '.translate-lang-flag-placeholder')).toHaveLength(1);
+    fire(tree, '.translate-lang-dropdown-item', 'onClick', options.length - 1);
+    expect(state.setSourceLang).toHaveBeenCalledWith('custom-language');
+  });
 });

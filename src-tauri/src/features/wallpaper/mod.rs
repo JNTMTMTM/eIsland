@@ -18,6 +18,7 @@
  * GNU General Public License for more details.
  */
 
+mod extraction;
 pub(crate) mod video;
 
 use crate::shared::Result;

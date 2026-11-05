@@ -44,6 +44,7 @@ const leaves = {
   context: vi.fn<() => {
     clearRect: typeof clear;
     drawImage: typeof draw;
+    getImageData: () => { data: Uint8ClampedArray };
   } | null>(),
   encode: vi.fn<(callback: (blob: Blob | null) => void, mime: string, quality: number) => void>(),
   createUrl: vi.fn<(blob: Blob | MediaSource) => string>(),
@@ -136,7 +137,8 @@ beforeEach(async () => {
   });
   leaves.context.mockReturnValue({
     clearRect: clear,
-    drawImage: draw
+    drawImage: draw,
+    getImageData: () => ({ data: new Uint8ClampedArray(800 * 600 * 4) })
   });
   leaves.encode.mockImplementation((callback) => {
     callback(new Blob(['image']));
@@ -164,7 +166,10 @@ beforeEach(async () => {
     api: {
       pickFileForHash: leaves.pick,
       loadWallpaperFile: leaves.load,
-      getFileStat: leaves.stat,
+      getAlbumMediaInfo: async (path: string) => {
+        const info = await leaves.stat(path);
+        return info ? { url: 'http://127.0.0.1/image', sizeBytes: info.size } : null;
+      },
       pickVideoForExtract: leaves.video,
       extractVideoTrack: leaves.extract
     }

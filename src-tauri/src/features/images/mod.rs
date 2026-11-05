@@ -43,15 +43,26 @@ pub fn handles(channel: &str) -> bool {
     )
 }
 fn history(app: &AppHandle) -> Vec<Value> {
-    app.state::<Desktop>()
-        .store
-        .lock()
-        .unwrap()
+    let state = app.state::<Desktop>();
+    let store = state.store.lock().unwrap();
+    let mut rows = store
         .value("image-compression-tasks", json!([]))
         .as_array()
         .cloned()
-        .unwrap_or_default()
+        .unwrap_or_default();
+    if restore_history(&mut rows) {
+        let _ = store.write("image-compression-tasks", &json!(rows));
+    }
+    rows
 }
+fn restore_history(rows: &mut [Value]) -> bool {
+    let mut changed = false;
+    for row in rows {
+        changed |= crate::shared::file_names::repair_file_name(row, &["inputPath", "outputPath"]);
+    }
+    changed
+}
+
 fn publish(app: &AppHandle, task: &Value) {
     let mut rows = history(app);
     rows.retain(|row| row["id"] != task["id"]);
@@ -162,7 +173,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
                     0
                 };
                 let success = outcome.is_ok();
-                let task = json!({"id":id,"fileName":input.file_name().unwrap_or_default(),"inputPath":input,"outputPath":target,"quality":quality,"status":if success{"completed"}else{"failed"},"success":success,"originalBytes":original,"compressedBytes":compressed,"ratio":if success&&original>0{(original as f64-compressed as f64)/original as f64}else{0.},"error":outcome.err(),"createdAt":now,"updatedAt":crate::shared::time::now_ms()});
+                let task = json!({"id":id,"fileName":input.file_name().unwrap_or_default().to_string_lossy(),"inputPath":input,"outputPath":target,"quality":quality,"status":if success{"completed"}else{"failed"},"success":success,"originalBytes":original,"compressedBytes":compressed,"ratio":if success&&original>0{(original as f64-compressed as f64)/original as f64}else{0.},"error":outcome.err(),"createdAt":now,"updatedAt":crate::shared::time::now_ms()});
                 publish(app, &task);
                 results.push(task);
             }
@@ -186,5 +197,27 @@ fn output_path(input: &Path, directory: &Path) -> PathBuf {
             return target;
         }
         index += 1;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn compression_history_repairs_names_without_removing_records_or_changing_results() {
+        let mut rows = vec![
+            json!({"id":"old","fileName":{"Windows":[65]},"inputPath":"C:\\图片\\示例😀.png","outputPath":"C:\\输出.png","status":"completed","compressedBytes":42}),
+            json!({"id":"new","fileName":"valid.png","success":true}),
+            json!({"id":"second-old","fileName":{"Windows":[66]},"inputPath":"C:\\图片\\另一张.png"}),
+        ];
+        let before = rows.clone();
+        assert!(restore_history(&mut rows));
+        assert_eq!(rows.len(), 3);
+        assert_eq!(rows[0]["fileName"], "示例😀.png");
+        assert_eq!(rows[0]["compressedBytes"], 42);
+        assert_eq!(rows[0]["status"], "completed");
+        assert_eq!(rows[1], before[1]);
+        assert_eq!(rows[2]["fileName"], "另一张.png");
+        assert!(!restore_history(&mut rows));
     }
 }

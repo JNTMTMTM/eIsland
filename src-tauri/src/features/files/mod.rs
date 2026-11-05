@@ -148,7 +148,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
             }
             if channel == "format-factory:pick-video" {
                 return Ok(
-                    json!({"filePath":path,"fileName":path.file_name().unwrap_or_default(),"fileSize":fs::metadata(path).ok().map(|m|m.len())}),
+                    json!({"filePath":path,"fileName":path.file_name().unwrap_or_default().to_string_lossy(),"fileSize":fs::metadata(path).ok().map(|m|m.len())}),
                 );
             }
             return Ok(json!(path));
@@ -287,7 +287,7 @@ fn import_background_to(directory: &Path, source: &Path, is_image: bool) -> Resu
         .unwrap_or("")
         .to_lowercase();
     if is_image {
-        if !["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].contains(&ext.as_str()) {
+        if !["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico"].contains(&ext.as_str()) {
             return Err("Unsupported background image".into());
         }
     } else if !["mp4", "mkv", "avi", "mov", "webm", "wmv", "ts"].contains(&ext.as_str()) {
@@ -373,7 +373,7 @@ fn font(path: &Path) -> Result<Value> {
         return Err("Font exceeds size limit".into());
     }
     Ok(
-        json!({"path":path,"data":"","url":crate::infrastructure::assets::url(path)?,"ext":ext,"name":path.file_stem().unwrap_or_default()}),
+        json!({"path":path,"data":"","url":crate::infrastructure::assets::url(path)?,"ext":ext,"name":path.file_stem().unwrap_or_default().to_string_lossy()}),
     )
 }
 fn work(app: &AppHandle, channel: &str, a: &Value, b: &Value, args: &[Value]) -> Result<Value> {
@@ -411,7 +411,9 @@ fn work(app: &AppHandle, channel: &str, a: &Value, b: &Value, args: &[Value]) ->
                 .and_then(|s| s.to_str())
                 .unwrap_or("")
                 .to_lowercase();
-            if !["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].contains(&extension.as_str()) {
+            if !["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico"]
+                .contains(&extension.as_str())
+            {
                 return Ok(Value::Null);
             }
             let size = fs::metadata(path).map_err(|e| e.to_string())?.len();
@@ -429,7 +431,7 @@ fn work(app: &AppHandle, channel: &str, a: &Value, b: &Value, args: &[Value]) ->
             let image = decode_image(Path::new(text(a)?))?.thumbnail(320, 320);
             let mut bytes = Vec::new();
             image::codecs::jpeg::JpegEncoder::new_with_quality(&mut bytes, 78)
-                .encode_image(&image)
+                .encode_image(&image.to_rgb8())
                 .map_err(|e| e.to_string())?;
             Ok(json!(format!(
                 "data:image/jpeg;base64,{}",
@@ -526,7 +528,7 @@ fn hash(path: &Path, algorithm: &str) -> Result<Value> {
         _ => ("sha256", digest::<Sha256>(path)?),
     };
     Ok(
-        json!({"hash":hash,"algorithm":algorithm,"fileName":path.file_name().unwrap_or_default(),"fileSize":fs::metadata(path).map_err(|e|e.to_string())?.len()}),
+        json!({"hash":hash,"algorithm":algorithm,"fileName":path.file_name().unwrap_or_default().to_string_lossy(),"fileSize":fs::metadata(path).map_err(|e|e.to_string())?.len()}),
     )
 }
 fn search(root: &str, keyword: &str, options: &Value) -> Result<Value> {
@@ -680,5 +682,31 @@ mod tests {
             preview_background_to(&directory, &imported).unwrap()
         );
         fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod icon_tests {
+    use super::*;
+    #[test]
+    fn ico_images_decode_under_existing_thumbnail_limits() {
+        let root = std::env::temp_dir().join(format!("eisland-ico-test-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("fixture.ico");
+        let image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
+            16,
+            16,
+            image::Rgba([12, 34, 56, 255]),
+        ));
+        let mut bytes = std::io::Cursor::new(Vec::new());
+        image.write_to(&mut bytes, image::ImageFormat::Ico).unwrap();
+        fs::write(&path, bytes.into_inner()).unwrap();
+        let decoded = decode_image(&path).unwrap();
+        assert_eq!((decoded.width(), decoded.height()), (16, 16));
+        assert_eq!(decoded.to_rgba8().get_pixel(0, 0).0, [12, 34, 56, 255]);
+        fs::write(&path, b"not an icon").unwrap();
+        assert!(decode_image(&path).is_err());
+        fs::remove_file(path).unwrap();
+        fs::remove_dir(root).unwrap();
     }
 }

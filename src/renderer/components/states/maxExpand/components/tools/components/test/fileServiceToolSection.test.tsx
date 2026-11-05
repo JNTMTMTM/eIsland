@@ -115,4 +115,40 @@ describe('FileServiceToolSection', () => {
     expect(nodes(render(FileServiceToolSection), '.file-hash-result')).toHaveLength(0);
     expect(text(render(FileServiceToolSection))).toContain('new.bin');
   });
+
+  it.each(['file', 'algorithm'])('计算中更换%s后不把旧请求结果显示在新选择下', async (changed) => {
+    await fireAsync(render(FileServiceToolSection), '.file-hash-pick-btn', 'onClick');
+    const result = Promise.withResolvers<HashResult>();
+    compute.mockReturnValueOnce(result.promise);
+    const pending = fireAsync(render(FileServiceToolSection), '.download-start-btn-full', 'onClick');
+    if (changed === 'file') {
+      pick.mockResolvedValueOnce('C:/files/next.bin');
+      await fireAsync(render(FileServiceToolSection), '.file-hash-pick-btn', 'onClick');
+    } else fire(render(FileServiceToolSection), '.file-hash-algo-btn', 'onClick', 0);
+    result.resolve({ hash: 'old-sha256', fileSize: 10 });
+    await pending;
+    expect(nodes(render(FileServiceToolSection), '.file-hash-result')).toHaveLength(0);
+    await fireAsync(render(FileServiceToolSection), '.download-start-btn-full', 'onClick');
+    expect(compute).toHaveBeenLastCalledWith(changed === 'file' ? 'C:/files/next.bin' : 'C:\\files\\sample.bin', changed === 'algorithm' ? 'md5' : 'sha256');
+    expect(text(render(FileServiceToolSection))).toContain('ABCDEF');
+  });
+
+  it('计算结果按完成时的预期值校验，不复用提交时的旧输入', async () => {
+    await fireAsync(render(FileServiceToolSection), '.file-hash-pick-btn', 'onClick');
+    fire(render(FileServiceToolSection), 'input', 'onChange', 0, { target: { value: 'outdated' } });
+    const result = Promise.withResolvers<HashResult>();
+    compute.mockReturnValueOnce(result.promise);
+    const pending = fireAsync(render(FileServiceToolSection), '.download-start-btn-full', 'onClick');
+    fire(render(FileServiceToolSection), 'input', 'onChange', 0, { target: { value: ' abcdef ' } });
+    await render(FileServiceToolSection);
+    result.resolve({ hash: 'ABCDEF', fileSize: 10 });
+    await pending;
+    expect(value(render(FileServiceToolSection), '.file-hash-verify', 'className')).toContain('match');
+  });
+
+  it('缺少文件名的原生返回仍保留可识别的完整路径', async () => {
+    pick.mockResolvedValueOnce('C:/');
+    await fireAsync(render(FileServiceToolSection), '.file-hash-pick-btn', 'onClick');
+    expect(text(render(FileServiceToolSection))).toContain('C:/');
+  });
 });

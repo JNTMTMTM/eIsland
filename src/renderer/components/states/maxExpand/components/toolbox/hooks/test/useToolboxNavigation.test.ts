@@ -61,6 +61,74 @@ beforeEach(() => {
   });
   vi.stubGlobal('window', { api: { storeRead: read, storeCompareAndSwap: save } });
 });
+
+describe('toolbox navigation interaction boundaries', () => {
+  it('routes every tool card and its nested page while ignoring an unknown stored ID', async () => {
+    await mount();
+    state().navigateByCard('download-history');
+    expect(state()).toMatchObject({ activeSidebar: 'download', downloadPage: 'history' });
+    state().navigateByCard('download-create');
+    expect(state().downloadPage).toBe('create');
+    state().navigateByCard('fileCompression-history');
+    expect(state()).toMatchObject({ activeSidebar: 'fileCompression', fileCompressionPage: 'history' });
+    state().navigateByCard('formatFactory-video');
+    expect(state()).toMatchObject({ activeSidebar: 'formatFactory', formatFactoryPage: 'video' });
+    state().navigateByCard('software');
+    state().navigateByCard('removed-card' as Parameters<ReturnType<typeof state>['navigateByCard']>[0]);
+    expect(state().activeSidebar).toBe('software');
+  });
+
+  it('keeps repeated add/remove actions unique and restores the visible card once', async () => {
+    await mount();
+    state().addCard('software');
+    state().removeCard('software'); state().removeCard('software');
+    expect(state().hiddenCards.filter((card) => card.id === 'software')).toHaveLength(1);
+    state().addCard('software'); state().addCard('software');
+    expect(state().visibleCards.filter((card) => card.id === 'software')).toHaveLength(1);
+    expect(state().hiddenCards).toEqual([]);
+  });
+
+  it('clears drag feedback and places a dragged card at the end without losing any card', async () => {
+    await mount();
+    const event = { preventDefault: vi.fn(), dataTransfer: { effectAllowed: '' } } as unknown as DragEvent<HTMLDivElement>;
+    state().handleDragOver(event, 3); expect(state().dragOverIdx).toBe(3);
+    state().handleDragLeave(); expect(state().dragOverIdx).toBeNull();
+    state().handleDrop(event, 2);
+    expect(state().visibleCards.map((card) => card.id)).toEqual(DEFAULT_TOOLBOX_NAV_ORDER);
+    state().handleDragStart(event, 0);
+    expect(event.dataTransfer.effectAllowed).toBe('move');
+    state().handleDrop(event, 0);
+    expect(state().visibleCards[0].id).toBe(DEFAULT_TOOLBOX_NAV_ORDER[0]);
+    state().handleDrop(event, DEFAULT_TOOLBOX_NAV_ORDER.length - 1);
+    expect(state().visibleCards.map((card) => card.id)).toEqual([...DEFAULT_TOOLBOX_NAV_ORDER.slice(1), DEFAULT_TOOLBOX_NAV_ORDER[0]]);
+    state().handleDragOver(event, 1); state().handleDragEnd();
+    expect(state().dragOverIdx).toBeNull();
+    state().handleDrop(event, 1);
+    expect(state().visibleCards.at(-1)?.id).toBe(DEFAULT_TOOLBOX_NAV_ORDER[0]);
+  });
+
+  it('does not resurrect a dragged item when pending initialization removes all visible cards', async () => {
+    const pending = deferred<unknown>(); read.mockReturnValueOnce(pending.promise);
+    state(); flushHookEffects();
+    const event = { preventDefault: vi.fn(), dataTransfer: {} } as unknown as DragEvent<HTMLDivElement>;
+    state().handleDragStart(event, 0);
+    pending.resolve({ visibleOrder: [], hiddenOrder: DEFAULT_TOOLBOX_NAV_ORDER }); await settleHook();
+    state().handleDrop(event, 1);
+    expect(state().visibleCards).toEqual([]);
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('does not alter pending edits through remove or drop while the atomic commit is in flight', async () => {
+    await mount(); await state().toggleNavEditMode();
+    const pending = deferred<'updated'>(); save.mockReturnValueOnce(pending.promise);
+    const commit = state().toggleNavEditMode(); await settleHook();
+    const event = { preventDefault: vi.fn(), dataTransfer: {} } as unknown as DragEvent<HTMLDivElement>;
+    state().removeCard('software'); state().handleDragStart(event, 0); state().handleDrop(event, 4);
+    expect(state().visibleCards.map((card) => card.id)).toEqual(DEFAULT_TOOLBOX_NAV_ORDER);
+    pending.resolve('updated'); await commit;
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+});
 afterEach(() => { unmountHook(); vi.unstubAllGlobals(); });
 
 describe('toolbox navigation persistence', () => {

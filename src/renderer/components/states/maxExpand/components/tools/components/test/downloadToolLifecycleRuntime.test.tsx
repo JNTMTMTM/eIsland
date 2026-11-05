@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { byClass, elements, find, invoke, text } from '../../../../../test/tree';
 import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 import type { RefObject } from 'react';
@@ -171,6 +172,33 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('DownloadToolSection real hook and native updates', () => {
+  it('开始下载收到真实旧Windows文件名对象后，历史页仍能由React完整渲染', async () => {
+    await mount();
+    invoke(find(run(), (node) => node.type === 'input'), 'onChange', { target: { value: 'https://example.test/file.bin' } });
+    const legacyName = { Windows: [0x4e2d, 0x6587, 46, 122, 105, 112] };
+    leaves.start.mockImplementationOnce(() => {
+      receive(task({ fileName: legacyName as unknown as string }));
+      return Promise.resolve({ ok: true });
+    });
+    invoke(button('form.start'), 'onClick');
+    await settleHook();
+    expect(page).toBe('history');
+    expect(renderToStaticMarkup(run())).toContain('中文.zip');
+    expect(leaves.start).toHaveBeenCalledWith({ url: 'https://example.test/file.bin', savePath: undefined, threads: 8 });
+    receive(task({ fileName: { invalid: true } as unknown as string }));
+    expect(renderToStaticMarkup(run())).toContain('https://example.test/file.bin');
+  });
+
+  it('重启读取旧Windows文件名历史仍能渲染任务并保留暂停操作', async () => {
+    leaves.list.mockResolvedValueOnce([task({ fileName: { Windows: [97, 46, 122, 105, 112] } as unknown as string })]);
+    page = 'history';
+    await mount();
+    expect(renderToStaticMarkup(run())).toContain('a.zip');
+    invoke(button('tasks.pause'), 'onClick');
+    await settleHook();
+    expect(leaves.pause).toHaveBeenCalledWith('task');
+  });
+
   it('native page wheel and dot clicks clamp boundaries and remove listener on unmount', async () => {
     await mount();
     expect(wheel(-1)).toBe(false);

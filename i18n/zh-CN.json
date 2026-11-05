@@ -5058,7 +5058,12 @@
       "native": "准备原生插件（plugins:build 别名）",
       "test:api": "验证原生前端 API、运行时入口与发布流程",
       "test:services": "通过真实 WebView2、HTTP 和 Range 请求验证原生服务",
-      "test:release": "验证原生发布产物、上传计划和 ESA 清理范围（不发布）"
+      "test:release": "验证原生发布产物、上传计划和 ESA 清理范围（不发布）",
+      "test:toolbox": "运行全部工具箱界面与 API 测试",
+      "test:toolbox:coverage": "统计完整工具箱 JavaScript 覆盖率，四项指标均要求达到 99%",
+      "test:toolbox:rust:prepare": "在独立目录构建 Rust 插桩测试与桌面程序，用于工具箱覆盖率统计",
+      "test:toolbox:rust:env": "输出原生工具箱覆盖率与 CDP 测试所需的 PowerShell 环境",
+      "test:toolbox:coverage:rust": "合并原生执行记录，独立报告 Rust 覆盖率并执行 99% 门槛检查"
     },
     "localTest": {
       "title": "本机测试",

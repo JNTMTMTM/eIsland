@@ -46,19 +46,24 @@ pub struct Downloads {
 impl Downloads {
     pub fn new(app: &AppHandle) -> Self {
         let mut jobs = HashMap::new();
-        let saved = app
+        let mut saved = app
             .state::<Desktop>()
             .store
             .lock()
             .unwrap()
             .value("download-tasks", json!([]));
-        for mut snapshot in saved.as_array().cloned().unwrap_or_default() {
+        if restore_history(&mut saved) {
+            let _ = app
+                .state::<Desktop>()
+                .store
+                .lock()
+                .unwrap()
+                .write("download-tasks", &saved);
+        }
+        for snapshot in saved.as_array().cloned().unwrap_or_default() {
             let Some(id) = snapshot["id"].as_str().map(str::to_owned) else {
                 continue;
             };
-            if snapshot["status"] == "downloading" {
-                snapshot["status"] = json!("paused");
-            }
             let (stop, _) = watch::channel(0);
             jobs.insert(
                 id,
@@ -106,6 +111,22 @@ impl Downloads {
             json!({"channel":"download:task-updated","args":[snapshot]}),
         );
     }
+}
+fn restore_history(saved: &mut Value) -> bool {
+    let Some(rows) = saved.as_array_mut() else {
+        return false;
+    };
+    let mut changed = false;
+    for row in rows {
+        changed |= crate::shared::file_names::repair_file_name(row, &["savePath"]);
+        if row["id"].is_string() && row["status"] == "downloading" {
+            row["status"] = json!("paused");
+            row["speedBytesPerSecond"] = json!(0);
+            row["estimatedFinishAt"] = Value::Null;
+            changed = true;
+        }
+    }
+    changed
 }
 pub fn start(app: &AppHandle) {
     app.manage(Downloads::new(app));
@@ -316,7 +337,7 @@ async fn create(app: &AppHandle, payload: &Value) -> Result<Value> {
     let now = crate::shared::time::now_ms();
     let id = uuid::Uuid::new_v4().to_string();
     let parts = split(total, threads, &path, &id, ranged);
-    let snapshot = json!({"id":id,"url":url,"savePath":path,"fileName":path.file_name().unwrap_or_default(),"totalBytes":total,"downloadedBytes":0,"progress":0,"speedBytesPerSecond":0,"estimatedFinishAt":null,"threads":threads,"status":"downloading","errorMessage":null,"createdAt":now,"updatedAt":now,"_parts":parts,"_range":ranged,"_etag":response.headers().get("etag").and_then(|v|v.to_str().ok())});
+    let snapshot = json!({"id":id,"url":url,"savePath":path,"fileName":path.file_name().unwrap_or_default().to_string_lossy(),"totalBytes":total,"downloadedBytes":0,"progress":0,"speedBytesPerSecond":0,"estimatedFinishAt":null,"threads":threads,"status":"downloading","errorMessage":null,"createdAt":now,"updatedAt":now,"_parts":parts,"_range":ranged,"_etag":response.headers().get("etag").and_then(|v|v.to_str().ok())});
     let (stop, _) = watch::channel(0);
     state.jobs.lock().unwrap().insert(
         id.clone(),
@@ -575,5 +596,24 @@ mod tests {
         assert_eq!(parts[1]["start"], 334);
         assert_eq!(parts[2]["end"], 1000);
         assert_eq!(safe_name("../file?.bin"), "_file_.bin");
+    }
+}
+
+#[cfg(test)]
+mod history_tests {
+    use super::*;
+    #[test]
+    fn restoring_display_names_preserves_resumable_parts_and_does_not_drop_history() {
+        let paused = json!({"id":"paused","savePath":"C:\\Downloads\\测试😀.zip","fileName":{"Windows":[65]},"status":"paused","downloadedBytes":123,"_parts":[{"path":"existing.part","downloaded":123}],"_range":true});
+        let mut history = json!([paused.clone(),{"id":"active","url":"https://example.test/archive.zip","fileName":{"Windows":[66]},"status":"downloading"},{"legacyUnknown":true}]);
+        assert!(restore_history(&mut history));
+        assert_eq!(history.as_array().unwrap().len(), 3);
+        assert_eq!(history[0]["fileName"], "测试😀.zip");
+        assert_eq!(history[0]["_parts"], paused["_parts"]);
+        assert_eq!(history[0]["status"], "paused");
+        assert_eq!(history[0]["downloadedBytes"], 123);
+        assert_eq!(history[1]["status"], "paused");
+        assert!(history[1]["fileName"].is_string());
+        assert!(!restore_history(&mut history));
     }
 }

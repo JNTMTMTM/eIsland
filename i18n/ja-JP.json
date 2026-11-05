@@ -5058,7 +5058,12 @@
       "native": "ネイティブプラグインを準備（plugins:build の別名）",
       "test:api": "ネイティブフロントエンド API、実行時エントリー、リリース処理をテスト",
       "test:services": "実際の WebView2、HTTP、Range リクエストでネイティブサービスを検証",
-      "test:release": "公開せずにネイティブ成果物、アップロード計画、ESA 削除範囲をテスト"
+      "test:release": "公開せずにネイティブ成果物、アップロード計画、ESA 削除範囲をテスト",
+      "test:toolbox": "ツールボックスの画面と API の全テストを実行",
+      "test:toolbox:coverage": "ツールボックスの全 JavaScript を測定し、4 指標すべてに 99% の基準を適用",
+      "test:toolbox:rust:prepare": "独立ディレクトリに Rust の計測用テストとデスクトップ実行ファイルを構築",
+      "test:toolbox:rust:env": "ネイティブ計測と CDP テスト用の PowerShell 環境を出力",
+      "test:toolbox:coverage:rust": "実行プロファイルを統合し、Rust のカバレッジを独立集計して 99% 基準を検査"
     },
     "localTest": {
       "title": "ローカルテスト",

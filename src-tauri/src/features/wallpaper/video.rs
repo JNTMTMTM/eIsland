@@ -29,7 +29,20 @@ use tokio::{
 
 use crate::infrastructure::resources::ffmpeg;
 pub async fn run(app: &AppHandle, args: &[String], progress: Option<&str>) -> Result<String> {
-    let mut command = Command::new(ffmpeg(app));
+    run_binary(
+        &ffmpeg(app),
+        args,
+        progress.map(|channel| (app.clone(), channel.to_owned())),
+    )
+    .await
+}
+/// Execute the packaged native processor with bounded lifetime and an optional UI progress sink.
+pub(super) async fn run_binary(
+    binary: &Path,
+    args: &[String],
+    progress: Option<(AppHandle, String)>,
+) -> Result<String> {
+    let mut command = Command::new(binary);
     command
         .args(args)
         .stdin(Stdio::null())
@@ -46,8 +59,6 @@ pub async fn run(app: &AppHandle, args: &[String], progress: Option<&str>) -> Re
         }
     }
     let stderr = child.stderr.take().ok_or("FFmpeg stderr unavailable")?;
-    let app = app.clone();
-    let progress = progress.map(str::to_owned);
     let reader = tauri::async_runtime::spawn(async move {
         let mut lines = BufReader::new(stderr).lines();
         let mut output = String::new();
@@ -56,7 +67,7 @@ pub async fn run(app: &AppHandle, args: &[String], progress: Option<&str>) -> Re
                 output.push_str(&line);
                 output.push('\n');
             }
-            if let Some(channel) = progress.as_ref() {
+            if let Some((app, channel)) = progress.as_ref() {
                 let _ = app.emit(
                     "eisland-ipc",
                     json!({"channel":channel,"args":[{"stage":"processing","message":line}]}),
@@ -137,7 +148,7 @@ fn parse_probe(output: &str) -> Option<Value> {
         json!({"width":dimensions.as_ref().and_then(|value|value[1].parse::<u32>().ok()).unwrap_or(0),"height":dimensions.as_ref().and_then(|value|value[2].parse::<u32>().ok()).unwrap_or(0),"durationMs":duration_ms,"frameRate":frame_rate,"videoCodec":video_codec,"audioCodec":audio_codec,"container":container}),
     )
 }
-async fn probe_binary(binary: &Path, path: &str) -> Result<Value> {
+pub(super) async fn probe_binary(binary: &Path, path: &str) -> Result<Value> {
     use tokio::io::AsyncReadExt;
     let mut command = Command::new(binary);
     command
@@ -310,84 +321,23 @@ pub async fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Value> 
         json!({"ok":true,"playbackPath":target,"coverPath":if cover_ok{Some(cover)}else{None},"width":probe["width"].as_u64().unwrap_or(0),"height":probe["height"].as_u64().unwrap_or(0),"durationMs":probe["durationMs"].as_f64().unwrap_or(0.),"frameRate":probe["frameRate"],"videoCodec":probe["videoCodec"],"audioCodec":probe["audioCodec"],"container":probe["container"],"mode":mode,"ffmpegAvailable":ffmpeg_available}),
     )
 }
+/// Keep native file selection at the UI boundary; processing and cancellation are independently tested.
 pub async fn extract(app: &AppHandle, options: &Value) -> Result<Value> {
-    let input = options["filePath"]
-        .as_str()
-        .filter(|s| Path::new(s).is_file())
-        .ok_or("Source file not found")?;
-    let kind = options["trackType"].as_str().ok_or("Track type missing")?;
-    if !["audio", "video"].contains(&kind) {
-        return Err("Invalid track type".into());
-    }
-    let format = options["outputFormat"]
-        .as_str()
-        .ok_or("Output format missing")?;
-    if ![
-        "mp3", "aac", "wav", "flac", "ogg", "m4a", "mp4", "mkv", "webm", "mov", "avi",
-    ]
-    .contains(&format)
-    {
-        return Err("Unsupported output format".into());
-    }
-    let name = format!(
-        "{}_{}.{}",
-        Path::new(input)
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy(),
-        kind,
-        format
-    );
-    let Some(output) = rfd::AsyncFileDialog::new()
-        .set_file_name(&name)
-        .save_file()
-        .await
-    else {
-        return Ok(json!({"success":false,"error":"canceled"}));
-    };
-    let mut args = vec![
-        "-y".into(),
-        "-hide_banner".into(),
-        "-i".into(),
-        input.into(),
-    ];
-    if kind == "audio" {
-        args.extend(
-            [
-                "-vn",
-                "-c:a",
-                match format {
-                    "mp3" => "libmp3lame",
-                    "aac" | "m4a" => "aac",
-                    "wav" => "pcm_s16le",
-                    "flac" => "flac",
-                    "ogg" => "libvorbis",
-                    _ => "copy",
-                },
-            ]
-            .map(str::to_owned),
-        );
-    } else {
-        args.extend(
-            [
-                "-an",
-                "-c:v",
-                if format == "webm" {
-                    "libvpx-vp9"
-                } else {
-                    "copy"
-                },
-            ]
-            .map(str::to_owned),
-        );
-    }
-    args.push(output.path().to_string_lossy().into_owned());
-    match run(app, &args, None).await {
-        Ok(_) => Ok(
-            json!({"success":true,"outputPath":output.path(),"fileSize":std::fs::metadata(output.path()).ok().map(|m|m.len())}),
-        ),
-        Err(error) => Ok(json!({"success":false,"error":error})),
-    }
+    let binary = ffmpeg(app);
+    Ok(super::extraction::extract_with(
+        options,
+        |suggested, format| async move {
+            rfd::AsyncFileDialog::new()
+                .set_file_name(suggested.file_name().unwrap_or_default().to_string_lossy())
+                .set_directory(suggested.parent().unwrap_or_else(|| Path::new(".")))
+                .add_filter(format.to_uppercase(), &[format])
+                .save_file()
+                .await
+                .map(|file| file.path().to_path_buf())
+        },
+        |args| async move { run_binary(&binary, &args, None).await },
+    )
+    .await)
 }
 
 #[cfg(test)]

@@ -154,7 +154,7 @@ export function NetworkServiceToolSection(): ReactElement {
           {result && (
             <div className="ipinfo-result-card">
               <div className="ipinfo-result-header">
-                <span className="ipinfo-result-ip">{String(result.ip || '-')}</span>
+                <span className="ipinfo-result-ip">{String(result.ip)}</span>
                 <span className="ipinfo-result-badge">{String(result.asn || '-')}</span>
               </div>
               <div className="ipinfo-result-grid">

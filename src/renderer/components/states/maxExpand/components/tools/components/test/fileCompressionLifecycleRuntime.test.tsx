@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { byClass, elements, find, invoke, text } from '../../../../../test/tree';
 import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
 import type { RefObject } from 'react';
@@ -151,6 +152,37 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('FileCompressionToolSection actual state and task protocol', () => {
+  it('历史、事件与新压缩结果中的旧Windows文件名均能被React渲染', async () => {
+    const legacy = { Windows: [0x56fe, 0x7247, 46, 112, 110, 103] } as unknown as string;
+    leaves.list.mockResolvedValueOnce([task({ fileName: legacy })]);
+    page = 'history';
+    await mount();
+    expect(renderToStaticMarkup(run())).toContain('图片.png');
+    receive(task({ fileName: { invalid: true } as unknown as string }));
+    expect(renderToStaticMarkup(run())).toContain('photo.png');
+    page = 'imageCompression';
+    run();
+    invoke(button('pickImages'), 'onClick');
+    await settleHook();
+    leaves.start.mockResolvedValueOnce({ ok: true, results: [task({ fileName: legacy })] });
+    invoke(byClass(run(), 'download-start-btn-full'), 'onClick');
+    await settleHook();
+    page = 'history';
+    expect(renderToStaticMarkup(run())).toContain('图片.png');
+  });
+
+  it('旧版空历史响应使用空列表且仍能选择图片开始新任务', async () => {
+    leaves.list.mockResolvedValueOnce(null as unknown as ImageCompressionTask[]);
+    page = 'history';
+    await mount();
+    expect(text(run())).toContain('resultsEmpty');
+    page = 'imageCompression';
+    run();
+    invoke(button('pickImages'), 'onClick');
+    await settleHook();
+    expect(byClass(run(), 'download-start-btn-full').props.disabled).toBe(false);
+  });
+
   it('native wheel and page dots clamp navigation and listener cleanup', async () => {
     await mount();
     expect(wheel(1, false)).toBe(false);

@@ -106,7 +106,8 @@ test('native hook CLI precedes GUI plugins and state precedes service startup', 
 
 test('process lifecycle keeps explicit exits and tray-hosted window closes distinct', () => {
   const lifecycle = source('src-tauri/src/app/lifecycle.rs');
-  assert.match(lifecycle, /RunEvent::Exit\s*=>\s*super::services::stop\(app\)/u);
+  assert.match(lifecycle, /RunEvent::Exit\s*=>\s*\{\s*super::services::stop\(app\);/u);
+  assert.match(lifecycle, /#\[cfg\(coverage\)\]\s*flush_coverage\(\);/u);
   assert.match(lifecycle, /RunEvent::Resumed\s*=>\s*crate::features::runtime::changed\(app\)/u);
   assert.match(lifecycle, /RunEvent::ExitRequested\s*\{\s*api,\s*code:\s*None,[\s\S]*?api\.prevent_exit\(\)/u);
 });

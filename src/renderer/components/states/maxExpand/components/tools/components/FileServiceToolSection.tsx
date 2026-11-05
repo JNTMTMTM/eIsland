@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useCallback, useState, type ReactElement } from 'react';
+import { useCallback, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const HASH_ALGORITHMS = ['md5', 'sha1', 'sha256', 'sha512'] as const;
@@ -49,11 +49,15 @@ export function FileServiceToolSection(): ReactElement {
   const [resultFileSize, setResultFileSize] = useState<number | null>(null);
   const [expectedHash, setExpectedHash] = useState('');
   const [verifyResult, setVerifyResult] = useState<'match' | 'mismatch' | null>(null);
+  const generationRef = useRef(0);
+  const expectedHashRef = useRef(expectedHash);
+  expectedHashRef.current = expectedHash;
 
   const handlePickFile = useCallback(async (): Promise<void> => {
     try {
       const picked = await window.api?.pickFileForHash?.();
       if (picked) {
+        generationRef.current += 1;
         setFilePath(picked);
         const parts = picked.replace(/\\/g, '/').split('/');
         setFileName(parts[parts.length - 1] || picked);
@@ -68,18 +72,20 @@ export function FileServiceToolSection(): ReactElement {
 
   const handleCompute = useCallback(async (): Promise<void> => {
     if (!filePath || computing) return;
+    const generation = generationRef.current;
     setComputing(true);
     setResultHash('');
     setResultFileSize(null);
     setVerifyResult(null);
     try {
       const result = await window.api?.computeFileHash?.(filePath, algorithm);
-      if (result) {
+      if (result && generation === generationRef.current) {
         setResultHash(result.hash);
         setResultFileSize(result.fileSize);
-        if (expectedHash.trim()) {
+        const expected = expectedHashRef.current.trim();
+        if (expected) {
           setVerifyResult(
-            result.hash.toLowerCase() === expectedHash.trim().toLowerCase() ? 'match' : 'mismatch',
+            result.hash.toLowerCase() === expected.toLowerCase() ? 'match' : 'mismatch',
           );
         }
       }
@@ -88,10 +94,9 @@ export function FileServiceToolSection(): ReactElement {
     } finally {
       setComputing(false);
     }
-  }, [filePath, algorithm, computing, expectedHash]);
+  }, [filePath, algorithm, computing]);
 
   const handleCopyHash = useCallback((): void => {
-    if (!resultHash) return;
     navigator.clipboard.writeText(resultHash).catch(() => {});
   }, [resultHash]);
 
@@ -110,7 +115,13 @@ export function FileServiceToolSection(): ReactElement {
                   key={algo}
                   type="button"
                   className={`file-hash-algo-btn ${algorithm === algo ? 'active' : ''}`}
-                  onClick={() => setAlgorithm(algo)}
+                  onClick={() => {
+                    generationRef.current += 1;
+                    setAlgorithm(algo);
+                    setResultHash('');
+                    setResultFileSize(null);
+                    setVerifyResult(null);
+                  }}
                 >
                   {algo.toUpperCase()}
                 </button>
