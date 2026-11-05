@@ -6,11 +6,19 @@ icon: camera
 
 # Windows Screenshot Helper
 
-`@eisland/windows-screenshot-helper` · v26.0.0
+`@eisland/windows-screenshot-helper` · v26.0.5
 
 :::info
 Capture the primary display as PNG and enumerate visible windows via .NET Native AOT DLL (koffi FFI). This plugin provides lightweight, high-performance screen capture using Windows GDI APIs (`BitBlt` with `SRCCOPY | CAPTUREBLT`) and window enumeration using `EnumWindows` with DWM extended frame bounds.
 :::
+
+## Tauri screenshot mode
+
+Select **Settings → Screenshot Settings → Screenshot Engine → Plugin Mode**. Both primary-display capture and the region-selection overlay read the existing `screenshot-engine` setting. Plugin mode reuses this plugin's Native AOT DLL; if loading, capture or PNG metadata validation fails, Tauri automatically falls back to the existing compatibility backend. The overlay badge reports the backend that actually succeeded.
+
+The historical `js` setting value and JS Mode label remain compatible with existing settings; in the Tauri application this mode uses the native xcap backend. Both backends retain multi-monitor physical coordinates, annotation, OCR, translation, save and copy behavior. Real mixed-DPI and negative-origin monitor setups still depend on the current Windows display layout.
+
+`npm run plugins:build` publishes `native/<rid>/screenshot/eIslandScreenshotHelper.dll`; `npm run package` and the Windows CI resource step invoke that same build. Tauri calls `sc_capture_primary_display_png_bytes` and `sc_capture_all_displays_png_bytes` directly with Rust libloading, validates buffer size and PNG dimensions, and releases the buffers through `sc_free_string`. It does not load Node, koffi or Electron. Calls are serialized and the Native AOT DLL stays loaded until application exit.
 
 ## Interfaces
 

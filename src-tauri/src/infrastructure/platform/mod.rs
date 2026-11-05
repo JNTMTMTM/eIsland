@@ -21,5 +21,7 @@
 //! 原生平台接口，编译平台边界在此声明。
 
 #[cfg(windows)]
+pub(crate) mod screenshot;
+#[cfg(windows)]
 pub(crate) mod smtc;
 pub(crate) mod window;

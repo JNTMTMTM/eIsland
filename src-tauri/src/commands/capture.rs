@@ -49,7 +49,7 @@ pub(super) async fn handle(
             capture::start(&app).await?;
             return Ok(json!(true));
         }
-        "system:screenshot" => return capture::primary().await,
+        "system:screenshot" => return capture::primary(&app).await,
         "capture-cancel" => {
             source(&window, "capture")?;
             capture::close(&app)?;

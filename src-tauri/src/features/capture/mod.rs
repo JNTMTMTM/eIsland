@@ -28,27 +28,114 @@ use image::{DynamicImage, RgbaImage};
 use serde_json::{json, Value};
 use tauri::{AppHandle, Manager};
 
-/// Capture the primary display through the native backend without opening a WebView.
-pub async fn primary() -> Result<Value> {
+struct Frame {
+    png: Vec<u8>,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    source: &'static str,
+}
+impl Frame {
+    fn from_png(png: Vec<u8>, x: i32, y: i32, source: &'static str) -> Result<Self> {
+        let (width, height) =
+            image::ImageReader::with_format(std::io::Cursor::new(&png), image::ImageFormat::Png)
+                .into_dimensions()
+                .map_err(|e| e.to_string())?;
+        if width == 0 || height == 0 || width as u64 * height as u64 > 160_000_000 {
+            return Err("Virtual desktop exceeds capture limit".into());
+        }
+        Ok(Self {
+            png,
+            x,
+            y,
+            width,
+            height,
+            source,
+        })
+    }
+}
+
+fn engine(app: &AppHandle) -> String {
+    app.state::<Desktop>()
+        .store
+        .lock()
+        .unwrap()
+        .value("screenshot-engine", json!("plugin"))
+        .as_str()
+        .unwrap_or("plugin")
+        .to_owned()
+}
+
+/// 旧 js 设置值继续表示兼容后端；只有实际插件成功才标记为插件截图。
+fn select_capture<T>(
+    engine: &str,
+    plugin: impl FnOnce() -> Result<T>,
+    compatible: impl FnOnce() -> Result<T>,
+) -> Result<T> {
+    if engine != "js" {
+        match plugin() {
+            Ok(frame) => return Ok(frame),
+            Err(error) => eprintln!(
+                "[Capture] Screenshot plugin unavailable: {error}; using compatibility capture"
+            ),
+        }
+    }
+    compatible()
+}
+
+fn plugin_frame(app: &AppHandle, all: bool) -> Result<Frame> {
+    #[cfg(windows)]
+    {
+        use windows_sys::Win32::UI::WindowsAndMessaging::{
+            GetSystemMetrics, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
+        };
+        let path = crate::infrastructure::resources::native_path(
+            app,
+            "screenshot",
+            "eIslandScreenshotHelper.dll",
+        )?;
+        let (x, y) = if all {
+            unsafe {
+                (
+                    GetSystemMetrics(SM_XVIRTUALSCREEN),
+                    GetSystemMetrics(SM_YVIRTUALSCREEN),
+                )
+            }
+        } else {
+            (0, 0)
+        };
+        let png = crate::infrastructure::platform::screenshot::capture(&path, all)?;
+        Frame::from_png(png, x, y, "plugin")
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (app, all);
+        Err("Screenshot plugin is only available on Windows".into())
+    }
+}
+
+fn capture_frame(app: &AppHandle, selected: &str, all: bool) -> Result<Frame> {
+    select_capture(
+        selected,
+        || plugin_frame(app, all),
+        || compatible_frame(all),
+    )
+}
+
+/// 按设置截取主显示器，不打开 WebView；截图插件失败时保留兼容后端。
+pub async fn primary(app: &AppHandle) -> Result<Value> {
     static BUSY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
     if BUSY.swap(true, std::sync::atomic::Ordering::AcqRel) {
         return Ok(Value::Null);
     }
-    let result = tauri::async_runtime::spawn_blocking(|| {
-        let monitors = xcap::Monitor::all().map_err(|e| e.to_string())?;
-        let monitor = monitors
-            .iter()
-            .find(|m| m.is_primary().unwrap_or(false))
-            .or_else(|| monitors.first())
-            .ok_or("No monitors available")?;
-        let image = monitor.capture_image().map_err(|e| e.to_string())?;
-        let mut bytes = std::io::Cursor::new(Vec::new());
-        DynamicImage::ImageRgba8(image)
-            .write_to(&mut bytes, image::ImageFormat::Png)
-            .map_err(|e| e.to_string())?;
+    let selected = engine(app);
+    let app = app.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        let frame = capture_frame(&app, &selected, false)?;
         Ok(json!(format!(
             "data:image/png;base64,{}",
-            STANDARD.encode(bytes.into_inner())
+            STANDARD.encode(frame.png)
         )))
     })
     .await
@@ -89,13 +176,25 @@ async fn capture_hidden_desktop(app: &AppHandle) -> Result<()> {
         .hide()
         .map_err(|e| e.to_string())?;
     tokio::time::sleep(std::time::Duration::from_millis(80)).await;
-    capture_desktop(app)
+    capture_desktop(app).await
 }
 
-fn capture_desktop(app: &AppHandle) -> Result<()> {
+fn compatible_frame(all: bool) -> Result<Frame> {
     let monitors = xcap::Monitor::all().map_err(|e| e.to_string())?;
     if monitors.is_empty() {
         return Err("No monitors available".into());
+    }
+    if !all {
+        let monitor = monitors
+            .iter()
+            .find(|monitor| monitor.is_primary().unwrap_or(false))
+            .unwrap_or(&monitors[0]);
+        let image = monitor.capture_image().map_err(|e| e.to_string())?;
+        let mut png = std::io::Cursor::new(Vec::new());
+        DynamicImage::ImageRgba8(image)
+            .write_to(&mut png, image::ImageFormat::Png)
+            .map_err(|e| e.to_string())?;
+        return Frame::from_png(png.into_inner(), 0, 0, "js");
     }
     let mut shots = Vec::new();
     for monitor in monitors {
@@ -129,15 +228,33 @@ fn capture_desktop(app: &AppHandle) -> Result<()> {
     DynamicImage::ImageRgba8(canvas)
         .write_to(&mut bytes, image::ImageFormat::Png)
         .map_err(|e| e.to_string())?;
-    let visible_windows = xcap::Window::all().map_err(|e|e.to_string())?.iter().filter_map(|window| {
+    Frame::from_png(bytes.into_inner(), x, y, "js")
+}
+
+async fn capture_desktop(app: &AppHandle) -> Result<()> {
+    let selected = engine(app);
+    let capture_app = app.clone();
+    let (frame, visible_windows) = tauri::async_runtime::spawn_blocking(move || {
+        let frame = capture_frame(&capture_app, &selected, true)?;
+        let visible_windows = xcap::Window::all().map_err(|e|e.to_string())?.iter().filter_map(|window| {
         if window.pid().ok()? == std::process::id() || window.is_minimized().ok()? { return None; }
         Some(json!({"x":window.x().ok()?,"y":window.y().ok()?,"width":window.width().ok()?,"height":window.height().ok()?,"title":window.title().ok()?}))
     }).collect::<Vec<_>>();
+        Ok::<_, String>((frame, visible_windows))
+    }).await.map_err(|e| e.to_string())??;
+    let Frame {
+        png,
+        x,
+        y,
+        width,
+        height,
+        source,
+    } = frame;
     let physical = json!({"x":x,"y":y,"width":width,"height":height});
     let payload = json!({
-        "imageDataURL":format!("data:image/png;base64,{}", STANDARD.encode(bytes.into_inner())),
+        "imageDataURL":format!("data:image/png;base64,{}", STANDARD.encode(png)),
         "virtualScreen":physical, "physicalScreen":physical,
-        "displays":[], "scaleFactor":1, "captureSource":"js", "visibleWindows":visible_windows
+        "displays":[], "scaleFactor":1, "captureSource":source, "visibleWindows":visible_windows
     });
     app.state::<Desktop>().inner.lock().unwrap().capture_payload = Some(payload);
     let window = windows::create(app, "capture")?;
@@ -212,4 +329,52 @@ pub fn save(payload: &Value) -> Result<()> {
         std::fs::write(path, bytes).map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn plugin_selection_never_silently_replaces_the_requested_backend() {
+        let value = select_capture("plugin", || Ok("plugin"), || panic!("Unexpected fallback"));
+        assert_eq!(value.unwrap(), "plugin");
+        assert_eq!(
+            select_capture("js", || panic!("Plugin must not run"), || Ok("js")).unwrap(),
+            "js"
+        );
+        assert_eq!(
+            select_capture("invalid", || Ok("plugin"), || panic!("Unexpected fallback")).unwrap(),
+            "plugin"
+        );
+    }
+
+    #[test]
+    fn unavailable_plugin_falls_back_and_preserves_compatibility_errors() {
+        assert_eq!(
+            select_capture("plugin", || Err("Missing DLL".into()), || Ok("js")).unwrap(),
+            "js"
+        );
+        let failure: Result<()> = select_capture(
+            "plugin",
+            || Err("Plugin failed".into()),
+            || Err("No monitors available".into()),
+        );
+        assert_eq!(failure.unwrap_err(), "No monitors available");
+    }
+
+    #[test]
+    fn png_metadata_keeps_negative_virtual_origins_and_rejects_invalid_data() {
+        let mut png = std::io::Cursor::new(Vec::new());
+        DynamicImage::ImageRgba8(RgbaImage::new(2, 3))
+            .write_to(&mut png, image::ImageFormat::Png)
+            .unwrap();
+        let frame = Frame::from_png(png.into_inner(), -1920, -1080, "plugin").unwrap();
+        assert_eq!(
+            (frame.x, frame.y, frame.width, frame.height),
+            (-1920, -1080, 2, 3)
+        );
+        assert_eq!(frame.source, "plugin");
+        assert!(Frame::from_png(b"not a PNG".to_vec(), 0, 0, "plugin").is_err());
+    }
 }

@@ -192,10 +192,10 @@ export function ScreenshotSettingsPage(): ReactElement {
         <div className="settings-card">
           <div className="settings-card-header">
             <div className="settings-card-title">
-              {t('settings.app.screenshotSettings.engineTitle', { defaultValue: '截图引擎' })}
+              {t('settings.app.screenshotSettings.engineTitle')}
             </div>
             <div className="settings-card-subtitle">
-              {t('settings.app.screenshotSettings.engineHint', { defaultValue: '选择截图使用的引擎。插件模式支持多显示器截图，JS 模式兼容性更好。' })}
+              {t('settings.app.screenshotSettings.engineHint')}
             </div>
           </div>
           <div className="settings-card-inline-row">
@@ -206,7 +206,7 @@ export function ScreenshotSettingsPage(): ReactElement {
                 checked={screenshotEngine === 'plugin'}
                 onChange={() => { handleScreenshotEngineChange('plugin'); }}
               />
-              {t('settings.app.screenshotSettings.enginePlugin', { defaultValue: '插件模式' })}
+              {t('settings.app.screenshotSettings.enginePlugin')}
             </label>
             <label className="settings-card-check">
               <input
@@ -215,7 +215,7 @@ export function ScreenshotSettingsPage(): ReactElement {
                 checked={screenshotEngine === 'js'}
                 onChange={() => { handleScreenshotEngineChange('js'); }}
               />
-              {t('settings.app.screenshotSettings.engineJs', { defaultValue: 'JS 模式' })}
+              {t('settings.app.screenshotSettings.engineJs')}
             </label>
           </div>
         </div>

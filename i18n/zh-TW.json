@@ -3076,7 +3076,7 @@
         "title": "截圖設置",
         "hint": "截圖相關配置。",
         "engineTitle": "截圖引擎",
-        "engineHint": "選擇截圖使用的引擎。插件模式支持多顯示器截圖，JS 模式兼容性更好。",
+        "engineHint": "插件模式使用 Windows 原生截圖插件，支援多顯示器；插件無法使用時自動回退 JS 模式。",
         "enginePlugin": "插件模式",
         "engineJs": "JS 模式",
         "ocrEngineTitle": "OCR 識別方案",

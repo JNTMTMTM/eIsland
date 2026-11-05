@@ -3076,7 +3076,7 @@
         "title": "Screenshot Settings",
         "hint": "Configure screenshot related settings.",
         "engineTitle": "Screenshot Engine",
-        "engineHint": "Choose the engine for screenshots. Plugin mode supports multi-monitor capture, JS mode has better compatibility.",
+        "engineHint": "Plugin mode uses the native Windows screenshot plugin and supports multiple monitors. It automatically falls back to JS mode if the plugin is unavailable.",
         "enginePlugin": "Plugin Mode",
         "engineJs": "JS Mode",
         "ocrEngineTitle": "OCR Engine",

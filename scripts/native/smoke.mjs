@@ -98,6 +98,37 @@ async function ipc(page, channel, ...args) {
   }
   return page.evaluate(({ channel, args }) => window.__TAURI__.core.invoke('desktop_ipc', { channel, args }), { channel, args });
 }
+/** 验证实际截图后端、主屏 PNG、选区标注和工具栏图标。
+ * @param main - 本测试实例的主窗口。
+ * @param engine - 持久化截图模式。
+ * @returns 两条截屏路径及选区交互均完成。
+ */
+async function captureMode(main, engine) {
+  await ipc(main, 'store:write', 'screenshot-engine', engine);
+  const captureLogOffset = stderr.length;
+  const primary = await ipc(main, 'system:screenshot');
+  assert.equal(typeof primary, 'string');
+  assert(primary.startsWith('data:image/png;base64,'));
+  const bytes = Buffer.from(primary.slice('data:image/png;base64,'.length), 'base64');
+  assert.deepEqual([...bytes.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  assert(bytes.readUInt32BE(16) > 0 && bytes.readUInt32BE(20) > 0);
+  await ipc(main, 'system:screenshot:region:start');
+  const capture = await pageFor('capture');
+  await capture.waitForFunction((source) => document.getElementById('captureSourceBadge')?.dataset.captureSource === source, engine);
+  await capture.waitForFunction(() => document.getElementById('bg-canvas').width > 300);
+  await capture.waitForFunction(() => {
+    const icons = Array.from(document.querySelectorAll('.capture-btn-icon'));
+    return icons.length > 0 && icons.every((icon) => icon.complete && icon.naturalWidth > 0 && icon.naturalHeight > 0);
+  });
+  await capture.mouse.move(100, 100);
+  await capture.mouse.down();
+  await capture.mouse.move(700, 400, { steps: 5 });
+  await capture.mouse.up();
+  await capture.locator('#toolbar').waitFor({ state: 'visible' });
+  await capture.locator('#toolbar').screenshot({ path: resolve(output, `capture-toolbar-${engine}.png`) });
+  if (engine === 'plugin') assert(!stderr.slice(captureLogOffset).includes('[Capture] Screenshot plugin unavailable:'), 'Primary and region plugin capture must both succeed');
+  await ipc(capture, 'capture-cancel');
+}
 try {
   browser = await connect();
   const main = await pageFor('main');
@@ -305,20 +336,8 @@ try {
   const menu = await pageFor('tray-menu');
   await menu.waitForSelector('#root > *');
   await ipc(menu, 'tray-menu:close');
-  await ipc(main, 'system:screenshot:region:start');
-  const capture = await pageFor('capture');
-  await capture.waitForFunction(() => document.getElementById('bg-canvas').width > 300);
-  await capture.waitForFunction(() => {
-    const icons = Array.from(document.querySelectorAll('.capture-btn-icon'));
-    return icons.length > 0 && icons.every((icon) => icon.complete && icon.naturalWidth > 0 && icon.naturalHeight > 0);
-  });
-  await capture.mouse.move(100, 100);
-  await capture.mouse.down();
-  await capture.mouse.move(700, 400, { steps: 5 });
-  await capture.mouse.up();
-  await capture.locator('#toolbar').waitFor({ state: 'visible' });
-  await capture.locator('#toolbar').screenshot({ path: resolve(output, 'capture-toolbar.png') });
-  await ipc(capture, 'capture-cancel');
+  if (process.platform === 'win32') await captureMode(main, 'plugin');
+  await captureMode(main, 'js');
   await assert.rejects(ipc(main, 'store:read', '../secrets'), /Invalid store key/);
   assert.equal(typeof await ipc(main, 'system:performance-snapshot:get'), 'object');
   assert.deepEqual(errors, [], 'main page must remain mounted without runtime exceptions');

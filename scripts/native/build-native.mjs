@@ -87,6 +87,11 @@ if (process.platform === 'win32') {
   mkdirSync(smtc, { recursive: true });
   // dotnet publish's output contains the Native AOT library, not the intermediate managed DLL.
   copyFileSync(resolve(staging, 'eIslandSmtcHelper.dll'), resolve(smtc, 'eIslandSmtcHelper.dll'));
+  const screenshot = resolve(output, 'screenshot');
+  const screenshotStage = resolve(root, 'src-tauri/target/native-publish', rid, 'screenshot');
+  publish('screenshot-helper', 'eIslandScreenshotHelper.csproj', screenshotStage);
+  mkdirSync(screenshot, { recursive: true });
+  copyFileSync(resolve(screenshotStage, 'eIslandScreenshotHelper.dll'), resolve(screenshot, 'eIslandScreenshotHelper.dll'));
   const ffmpeg = resolve(root, 'src-tauri/resources/native/ffmpeg');
   mkdirSync(ffmpeg, { recursive: true });
   const ffmpegBinary = createRequire(import.meta.url)('ffmpeg-static');
