@@ -308,6 +308,16 @@ try {
   await ipc(main, 'system:screenshot:region:start');
   const capture = await pageFor('capture');
   await capture.waitForFunction(() => document.getElementById('bg-canvas').width > 300);
+  await capture.waitForFunction(() => {
+    const icons = Array.from(document.querySelectorAll('.capture-btn-icon'));
+    return icons.length > 0 && icons.every((icon) => icon.complete && icon.naturalWidth > 0 && icon.naturalHeight > 0);
+  });
+  await capture.mouse.move(100, 100);
+  await capture.mouse.down();
+  await capture.mouse.move(700, 400, { steps: 5 });
+  await capture.mouse.up();
+  await capture.locator('#toolbar').waitFor({ state: 'visible' });
+  await capture.locator('#toolbar').screenshot({ path: resolve(output, 'capture-toolbar.png') });
   await ipc(capture, 'capture-cancel');
   await assert.rejects(ipc(main, 'store:read', '../secrets'), /Invalid store key/);
   assert.equal(typeof await ipc(main, 'system:performance-snapshot:get'), 'object');
