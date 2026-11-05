@@ -184,8 +184,14 @@ test('toolbox public APIs operate on real native files and bounded local HTTP se
         assert.equal(value.algorithm, algorithm); assert.equal(value.fileSize, sample.length); assert.equal(value.fileName, basename(file));
       });
       assert.equal(await api('computeFileHash', join(directory, 'missing'), 'sha256'), null);
-      const icon = await api('getFileIcon', binary);
-      assert.equal(typeof icon, 'string'); assert(Buffer.from(icon, 'base64').subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])));
+    });
+    await t.test('native file icons return PNG bytes from concurrent blocking workers', async () => {
+      const icons = await Promise.all([0, 1, 2, 3].map(() => api('getFileIcon', binary)));
+      icons.forEach((icon) => {
+        assert.equal(typeof icon, 'string', 'getFileIcon must extract the bundled executable icon');
+        assert(Buffer.from(icon, 'base64').subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])));
+      });
+      assert.equal(await api('getFileIcon', join(directory, 'missing-icon.exe')), null);
     });
     await t.test('native network preserves UTF-8 body, authorization, redirect, status and limits', async () => {
       const body = JSON.stringify({ text: '你好，工具箱', source: 'zh', target: 'en' });

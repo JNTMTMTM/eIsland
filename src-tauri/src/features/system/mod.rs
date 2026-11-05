@@ -254,10 +254,31 @@ pub fn file_icon(path: &Path) -> Result<Value> {
     #[cfg(windows)]
     {
         use base64::Engine;
+        use windows::Win32::{
+            Foundation::RPC_E_CHANGED_MODE,
+            System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED},
+        };
         use windows_sys::Win32::{
             Graphics::Gdi::*,
             UI::{Shell::*, WindowsAndMessaging::*},
         };
+        // SHGetFileInfo requires COM on this thread, not just on the GUI thread.
+        // Tokio blocking workers may be fresh or already belong to another apartment.
+        struct Apartment(bool);
+        impl Drop for Apartment {
+            fn drop(&mut self) {
+                if self.0 {
+                    unsafe { CoUninitialize() };
+                }
+            }
+        }
+        let initialized = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
+        let _apartment = Apartment(initialized.is_ok());
+        if initialized.is_err() && initialized != RPC_E_CHANGED_MODE {
+            return Err(format!(
+                "Cannot initialize COM for file icon: {initialized}"
+            ));
+        }
         let path = path
             .as_os_str()
             .to_string_lossy()
@@ -265,16 +286,23 @@ pub fn file_icon(path: &Path) -> Result<Value> {
             .chain(Some(0))
             .collect::<Vec<_>>();
         let mut info = unsafe { std::mem::zeroed::<SHFILEINFOW>() };
-        if unsafe {
+        unsafe {
             SHGetFileInfoW(
                 path.as_ptr(),
                 0,
                 &mut info,
                 std::mem::size_of::<SHFILEINFOW>() as u32,
                 SHGFI_ICON | SHGFI_SMALLICON,
-            )
-        } == 0
-        {
+            );
+        }
+        // Shell may return success with no HICON during concurrent cold lookups.
+        // Executables and ICO files can use the native resource extractor directly.
+        if info.hIcon.is_null() {
+            unsafe {
+                ExtractIconExW(path.as_ptr(), 0, std::ptr::null_mut(), &mut info.hIcon, 1);
+            }
+        }
+        if info.hIcon.is_null() {
             return Ok(Value::Null);
         }
         let result = (|| {
@@ -311,32 +339,41 @@ pub fn file_icon(path: &Path) -> Result<Value> {
                 return Err("Cannot allocate icon bitmap".into());
             }
             let old = unsafe { SelectObject(memory, bitmap.cast()) };
-            unsafe {
-                std::ptr::write_bytes(bits, 0, 32 * 32 * 4);
-                DrawIconEx(
-                    memory,
-                    0,
-                    0,
-                    info.hIcon,
-                    32,
-                    32,
-                    0,
-                    std::ptr::null_mut(),
-                    DI_NORMAL,
-                );
-            }
-            let mut rgba =
-                unsafe { std::slice::from_raw_parts(bits.cast::<u8>(), 32 * 32 * 4) }.to_vec();
-            for pixel in rgba.as_chunks_mut::<4>().0 {
-                pixel.swap(0, 2);
-            }
+            let pixels = (|| -> Result<Vec<u8>> {
+                unsafe { std::ptr::write_bytes(bits, 0, 32 * 32 * 4) };
+                let draw = |flags| unsafe {
+                    DrawIconEx(
+                        memory,
+                        0,
+                        0,
+                        info.hIcon,
+                        32,
+                        32,
+                        0,
+                        std::ptr::null_mut(),
+                        flags,
+                    )
+                };
+                if draw(DI_NORMAL) == 0 {
+                    return Err(format!(
+                        "Cannot render file icon: {}",
+                        std::io::Error::last_os_error()
+                    ));
+                }
+                let mut rgba =
+                    unsafe { std::slice::from_raw_parts(bits.cast::<u8>(), 32 * 32 * 4) }.to_vec();
+                for pixel in rgba.as_chunks_mut::<4>().0 {
+                    pixel.swap(0, 2);
+                }
+                Ok(rgba)
+            })();
             unsafe {
                 SelectObject(memory, old);
                 DeleteObject(bitmap.cast());
                 DeleteDC(memory);
                 ReleaseDC(std::ptr::null_mut(), dc);
             }
-            let image = image::RgbaImage::from_raw(32, 32, rgba).ok_or("Invalid icon image")?;
+            let image = image::RgbaImage::from_raw(32, 32, pixels?).ok_or("Invalid icon image")?;
             let mut output = std::io::Cursor::new(Vec::new());
             image
                 .write_to(&mut output, image::ImageFormat::Png)
@@ -356,6 +393,9 @@ pub fn file_icon(path: &Path) -> Result<Value> {
         Ok(Value::Null)
     }
 }
+
+#[cfg(all(test, windows))]
+mod icon_tests;
 
 fn gpus() -> Vec<Value> {
     #[cfg(windows)]
