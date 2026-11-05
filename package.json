@@ -95,7 +95,7 @@
     "release": "npm run package && npm run release:upload-only",
     "test:release": "node --test scripts/native/release.test.mjs",
     "native": "npm run plugins:build",
-    "test:api": "node --test scripts/native/api.test.mjs scripts/test/native-runtime.test.mjs scripts/native/release.test.mjs",
+    "test:api": "node --test scripts/native/api.test.mjs scripts/test/native-runtime.test.mjs scripts/native/release.test.mjs scripts/native/architecture.test.mjs",
     "test:services": "node --test scripts/native/native-services.test.mjs"
   },
   "dependencies": {

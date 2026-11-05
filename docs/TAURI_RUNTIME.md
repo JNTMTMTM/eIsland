@@ -2,6 +2,10 @@
 
 The application uses a Rust Tauri host and React in WebView2. Native services handle windows, media, hardware, music, files, downloads, mail, OCR, AI and CLI status. Build and test tooling lives in `scripts/native/`.
 
+## Source layout
+
+The Rust host has six internal layers: `app` composes startup and lifecycle, `commands` validates and routes invokes, `features` owns business behavior and managed services, `infrastructure` provides platform/storage/resource adapters, `shared` holds pure types and helpers, and `state` coordinates desktop windows. A thin `main.rs` delegates to the `eisland_lib` desktop library entry point. See [native architecture](../src-tauri/README.md) for dependencies, startup order and shutdown contracts.
+
 ## Commands
 
 | Command | Behavior |
@@ -33,7 +37,7 @@ Rebuild native resources after changing their sources or architecture. `package`
 ## Tests and CI
 
 - `test:unit` runs shared, renderer, CLI and plugin unit tests.
-- `test:api` verifies native APIs, runtime entry points and release tooling.
+- `test:api` verifies native APIs, runtime entry points, architecture boundaries and release tooling.
 - `test:rust` tests Rust services.
 - `test:e2e` tests the built debug application in WebView2, then native service streams with isolated application data.
 - `test:services` runs native download/resume and local resource tests. Set `EISLAND_SMOKE_BINARY` to a built executable with `custom-protocol`; without it, the standalone service test is skipped.

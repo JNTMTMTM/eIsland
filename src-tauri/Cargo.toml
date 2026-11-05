@@ -6,6 +6,10 @@ authors = ["JNTMTMTM"]
 license = "GPL-3.0"
 edition = "2021"
 
+[lib]
+name = "eisland_lib"
+crate-type = ["rlib"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 

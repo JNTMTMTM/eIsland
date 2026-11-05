@@ -140,7 +140,7 @@ The plugin's DLL must be built first. If the test reports `Unable to find eIslan
 Some apps do not report a timeline. For those, the progress row says so instead of drawing a bar. While media is playing, the position is extrapolated from the plugin's sample time (`sampledAtMs`), so the bar keeps moving between updates. Sessions that do not fit on the screen are cut off at the bottom. On macOS and Linux the test shows that SMTC is Windows-only and starts nothing.
 :::
 
-The Storage test reads the native application's store: one `<key>.json` file per setting, using the directory selection in `src-tauri/src/data_directory.rs`.
+The Storage test reads the native application's store: one `<key>.json` file per setting, using the directory selection in `src-tauri/src/infrastructure/storage/paths.rs`.
 
 | Platform | Store directory |
 |----------|-----------------|
