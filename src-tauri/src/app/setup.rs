@@ -29,6 +29,8 @@ use tauri::Manager;
 
 pub(super) fn initialize(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(debug_assertions)]
+    eprintln!("[Startup] initializing isolated-capable application state");
+    #[cfg(debug_assertions)]
     let debug_directory = std::env::var_os("EISLAND_DATA_DIR").map(std::path::PathBuf::from);
     #[cfg(not(debug_assertions))]
     let debug_directory: Option<std::path::PathBuf> = None;
@@ -41,7 +43,11 @@ pub(super) fn initialize(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     let store = paths.store_dir.clone();
     app.manage(paths);
     app.manage(Desktop::new(store));
+    #[cfg(debug_assertions)]
+    eprintln!("[Startup] starting services");
     super::services::start(app.handle());
+    #[cfg(debug_assertions)]
+    eprintln!("[Startup] services started; creating first WebView");
     windowing::create(app.handle(), "main")?;
     windowing::reposition(app.handle())?;
     let scale = app.state::<Desktop>().inner.lock().unwrap().scale;

@@ -31,7 +31,9 @@ npm run test:e2e
 | `EISLAND_SMOKE_OUTPUT` | Smoke screenshots, diagnostics and isolated application data |
 | `CARGO_TARGET_DIR` | Cargo output directory; update the binary path accordingly |
 
-Smoke uses port 9224; native service tests use 9225. Run suites sequentially with these ports free. No Chromium download is necessary: Playwright connects to installed WebView2.
+Smoke uses port 9224; download, toolbox and updater service tests use 9225, 9226 and 9227 respectively. Run suites sequentially with these ports free. No Chromium download is necessary: Playwright connects to installed WebView2.
+
+All suites share a 60-second WebView2 startup deadline, with each CDP connection attempt limited to one second. An exited process or spawn error stops startup polling early. Connection failures report the endpoint, PID, exit state and native startup stages. Smoke also saves `native-stderr.log` under `EISLAND_SMOKE_OUTPUT`; CI uploads it with screenshots. `ECONNREFUSED` means the debugging endpoint is unavailable and does not, by itself, identify an application crash. `test:api` includes regression tests for this startup contract.
 
 ```powershell
 node scripts/native/smoke.mjs --packaged --music --agent

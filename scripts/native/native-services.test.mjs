@@ -34,7 +34,7 @@ import { basename, dirname, join, resolve, sep } from 'node:path';
 import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { chromium } from '@playwright/test';
+import connectNative from './cdp.mjs';
 import { cargoTargetDirectory } from './release-artifacts.mjs';
 import withoutSigningSecrets from './environment.mjs';
 
@@ -58,7 +58,7 @@ async function until(query, accept, timeout = 15000) {
   throw new Error('Native task did not reach the expected state');
 }
 
-test('native services use real streams, resume data and concurrent local assets', { skip: !binary, timeout: 90000 }, async (t) => {
+test('native services use real streams, resume data and concurrent local assets', { skip: !binary, timeout: 150000 }, async (t) => {
   assert(existsSync(binary), 'Native test application is missing; run npm run build:e2e first');
   const directory = mkdtempSync(join(tmpdir(), 'eisland-native-services-test-'));
   const store = join(directory, 'store'); mkdirSync(store);
@@ -97,9 +97,7 @@ test('native services use real streams, resume data and concurrent local assets'
   let browser;
   let mainPage;
   try {
-    browser = await until(async () => {
-      try { return await chromium.connectOverCDP(`http://127.0.0.1:${port}`); } catch { return null; }
-    }, Boolean, 20000);
+    browser = await connectNative(app, `http://127.0.0.1:${port}`, { diagnostics: () => diagnostics });
     const page = await until(async () => {
       const candidates = browser.contexts().flatMap((context) => context.pages());
       const labels = await Promise.all(candidates.map(async (candidate) => {

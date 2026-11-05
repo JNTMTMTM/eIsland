@@ -30,7 +30,7 @@ import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { chromium } from '@playwright/test';
+import connectNative from './cdp.mjs';
 import { cargoTargetDirectory } from './release-artifacts.mjs';
 import withoutSigningSecrets from './environment.mjs';
 
@@ -51,18 +51,6 @@ const app = spawn(binary, [], {
 let stderr = '';
 app.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
 let browser;
-/** 等待本任务启动的调试端点。
- * @param attempts - 剩余重试次数。
- * @returns CDP 浏览器连接。
- */
-async function connect(attempts = 80) {
-  try { return await chromium.connectOverCDP(`http://127.0.0.1:${port}`); }
-  catch (error) {
-    if (attempts === 0 || app.exitCode !== null) throw new Error(`${error.message}\n${stderr}`, { cause: error });
-    await delay(250);
-    return connect(attempts - 1);
-  }
-}
 /** 查找真实宿主创建的窗口页面。
  * @param label - 固定窗口标签。
  * @param attempts - 剩余重试次数。
@@ -130,7 +118,7 @@ async function captureMode(main, engine) {
   await ipc(capture, 'capture-cancel');
 }
 try {
-  browser = await connect();
+  browser = await connectNative(app, `http://127.0.0.1:${port}`, { diagnostics: () => stderr });
   const main = await pageFor('main');
   const errors = [];
   main.on('pageerror', (error) => errors.push(error.message));
@@ -363,6 +351,7 @@ try {
   console.error(stderr);
   throw error;
 } finally {
+  writeFileSync(resolve(output, 'native-stderr.log'), stderr);
   if (browser) await browser.close();
   app.kill();
 }

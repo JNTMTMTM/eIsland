@@ -35,8 +35,8 @@ import { basename, dirname, join, resolve, sep } from 'node:path';
 import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { chromium } from '@playwright/test';
 import { buildSync } from 'esbuild';
+import connectNative from './cdp.mjs';
 import { cargoTargetDirectory } from './release-artifacts.mjs';
 import withoutSigningSecrets from './environment.mjs';
 
@@ -60,7 +60,7 @@ async function until(query, accept = Boolean, timeout = 20000) {
   throw new Error('Native toolbox operation timed out');
 }
 
-test('toolbox public APIs operate on real native files and bounded local HTTP services', { skip: process.platform !== 'win32', timeout: 120000 }, async (t) => {
+test('toolbox public APIs operate on real native files and bounded local HTTP services', { skip: process.platform !== 'win32', timeout: 180000 }, async (t) => {
   assert(existsSync(binary), 'Build the isolated native app before running toolbox services tests');
   const directory = mkdtempSync(join(tmpdir(), 'eisland-toolbox-test-'));
   const store = join(directory, 'store'); mkdirSync(store);
@@ -118,7 +118,7 @@ test('toolbox public APIs operate on real native files and bounded local HTTP se
   let diagnostics = ''; app.stderr.on('data', (chunk) => { diagnostics = (diagnostics + chunk.toString()).slice(-16000); });
   let browser; let page;
   try {
-    browser = await until(async () => { try { return await chromium.connectOverCDP(`http://127.0.0.1:${port}`); } catch { return null; } });
+    browser = await connectNative(app, `http://127.0.0.1:${port}`, { diagnostics: () => diagnostics });
     page = await until(async () => {
       const candidates = browser.contexts().flatMap((context) => context.pages());
       const labels = await Promise.all(candidates.map(async (candidate) => {

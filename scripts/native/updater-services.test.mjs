@@ -35,7 +35,7 @@ import { basename, join, resolve, sep } from 'node:path';
 import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { chromium } from '@playwright/test';
+import connectNative from './cdp.mjs';
 import withoutSigningSecrets from './environment.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -58,7 +58,7 @@ async function until(query, accept = Boolean, timeout = 20000) {
 }
 
 const skip = configured ? false : 'Requires an isolated debug executable and temporary updater signing identity; production secrets are not required';
-test('official updater validates signed downloads through a real isolated WebView without installation', { skip, timeout: 120000 }, async (t) => {
+test('official updater validates signed downloads through a real isolated WebView without installation', { skip, timeout: 180000 }, async (t) => {
   const binary = process.env.EISLAND_SMOKE_BINARY;
   assert(existsSync(binary)); assert(/[\\/]debug[\\/]/u.test(binary), 'Only an explicitly supplied debug test binary may run');
   const directory = mkdtempSync(join(tmpdir(), 'eisland-updater-services-test-'));
@@ -122,7 +122,7 @@ test('official updater validates signed downloads through a real isolated WebVie
   let diagnostics = ''; app.stderr.on('data', (chunk) => { diagnostics = (diagnostics + chunk.toString()).slice(-16000); });
   let browser; let page;
   try {
-    browser = await until(async () => { try { return await chromium.connectOverCDP(`http://127.0.0.1:${port}`); } catch { return null; } });
+    browser = await connectNative(app, `http://127.0.0.1:${port}`, { diagnostics: () => diagnostics });
     page = await until(async () => {
       const candidates = browser.contexts().flatMap((context) => context.pages());
       const labels = await Promise.all(candidates.map(async (candidate) => { try { return await candidate.evaluate(() => window.__TAURI_INTERNALS__?.metadata?.currentWindow?.label); } catch { return null; } }));

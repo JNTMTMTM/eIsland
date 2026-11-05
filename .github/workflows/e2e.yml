@@ -58,6 +58,7 @@ jobs:
             $install = Start-Process -FilePath $bootstrapper -ArgumentList '/silent', '/install' -WindowStyle Hidden -Wait -PassThru
             if ($install.ExitCode -ne 0) { throw "WebView2 install failed: $($install.ExitCode)" }
           }
+          Get-ChildItem "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe" -ErrorAction SilentlyContinue | ForEach-Object { $_.VersionInfo | Select-Object FileName, ProductVersion }
       - name: Prepare native FFmpeg binary
         run: node node_modules/ffmpeg-static/install.js
       - name: Publish native plugin resources

@@ -72,6 +72,7 @@ jobs:
             $install = Start-Process -FilePath $bootstrapper -ArgumentList '/silent', '/install' -WindowStyle Hidden -Wait -PassThru
             if ($install.ExitCode -ne 0) { throw "WebView2 install failed: $($install.ExitCode)" }
           }
+          Get-ChildItem "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe" -ErrorAction SilentlyContinue | ForEach-Object { $_.VersionInfo | Select-Object FileName, ProductVersion }
       - name: Prepare converter, probe and native plugin resources
         run: npm run plugins:build
       - name: Prepare temporary updater test identity using the shared helper

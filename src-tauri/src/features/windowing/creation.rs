@@ -66,6 +66,8 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         builder
     };
     let external_app = app.clone();
+    #[cfg(debug_assertions)]
+    eprintln!("[WebView] creating {label}");
     let window = builder
         .title("eIsland")
         .inner_size(width, height)
@@ -102,6 +104,8 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         })
         .build()
         .map_err(|e| e.to_string())?;
+    #[cfg(debug_assertions)]
+    eprintln!("[WebView] created {label}");
     if label == "standalone" {
         window
             .set_min_size(Some(tauri::LogicalSize::new(1155., 640.)))
