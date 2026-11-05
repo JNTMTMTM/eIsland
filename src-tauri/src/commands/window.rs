@@ -93,8 +93,7 @@ pub(super) fn handle(
             }
             "capture" => capture::ready(&app)?,
             "cli-glow" | "agent-voice-input" => {
-                window.show().map_err(|e| e.to_string())?;
-                windows::raise_main(&app)?;
+                // effect() 完成尺寸、位置和下层关系配置后统一显示；就绪回调不抢先或重复显示。
             }
             _ => {}
         },

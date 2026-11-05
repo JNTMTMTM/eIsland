@@ -20,12 +20,27 @@
 
 //! 透明效果窗口的创建、淡出与按代次销毁。
 
-use super::{create, emit, raise_main};
+use super::{create, emit};
 use crate::shared::Result;
 use crate::state::Desktop;
 use serde_json::json;
 use tauri::AppHandle;
 use tauri::Manager;
+use tauri::WebviewWindow;
+
+/// 首次显示就位于灵动岛下层，避免先 show 再抬升主窗口产生短暂遮挡。
+fn show_effect(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
+    #[cfg(windows)]
+    {
+        super::raise_main(app)?;
+        crate::infrastructure::platform::window::show_below(window, &super::main_window(app)?)
+    }
+    #[cfg(not(windows))]
+    {
+        window.show().map_err(|e| e.to_string())?;
+        super::raise_main(app)
+    }
+}
 
 pub fn effect(app: &AppHandle, label: &str, show: bool) -> Result<()> {
     if !matches!(label, "agent-voice-input" | "cli-glow") {
@@ -42,8 +57,7 @@ pub fn effect(app: &AppHandle, label: &str, show: bool) -> Result<()> {
         window
             .eval("document.documentElement.style.transition='opacity 400ms ease-out';document.documentElement.style.opacity='1';")
             .map_err(|e| e.to_string())?;
-        window.show().map_err(|e| e.to_string())?;
-        raise_main(app)?;
+        show_effect(app, &window)?;
     } else if let Some(window) = app.get_webview_window(label) {
         let generation = {
             let state = app.state::<Desktop>();

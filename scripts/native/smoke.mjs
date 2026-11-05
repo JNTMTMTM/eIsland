@@ -330,12 +330,22 @@ try {
   assert((await ipc(main, 'debug:windows')).some((w) => w.label === 'cli-glow'), 'old fade must not close reopened effect');
   await ipc(main, 'cli-glow:hide');
   await ipc(main, 'agent-voice-input:show');
-  await pageFor('agent-voice-input');
+  const voice = await pageFor('agent-voice-input');
+  await voice.waitForSelector('#lightCanvas');
+  await ipc(voice, 'window:renderer-ready');
   await ipc(main, 'agent-voice-input:hide');
+  await ipc(main, 'agent-voice-input:show');
+  await delay(600);
+  assert((await ipc(main, 'debug:windows')).some((w) => w.label === 'agent-voice-input' && w.visible), 'late ready and old fade must preserve reopened STT effect');
   await ipc(main, 'debug:open-window', 'tray-menu');
   const menu = await pageFor('tray-menu');
   await menu.waitForSelector('#root > *');
+  await ipc(menu, 'tray-menu:action', 'toggle-always-on-top');
+  assert((await ipc(main, 'debug:windows')).some((w) => w.label === 'agent-voice-input' && w.visible), 'STT effect must stay visible when topmost is disabled');
+  await ipc(menu, 'tray-menu:action', 'toggle-always-on-top');
+  assert((await ipc(main, 'debug:windows')).some((w) => w.label === 'agent-voice-input' && w.visible), 'STT effect must stay visible when topmost is restored');
   await ipc(menu, 'tray-menu:close');
+  await ipc(main, 'agent-voice-input:hide');
   if (process.platform === 'win32') await captureMode(main, 'plugin');
   await captureMode(main, 'js');
   await assert.rejects(ipc(main, 'store:read', '../secrets'), /Invalid store key/);
@@ -348,6 +358,8 @@ try {
   await main.evaluate(() => window.desktop.send('app:quit'));
   await Promise.race([exited, delay(3000).then(() => { throw new Error('Application did not quit'); })]);
 } catch (error) {
+  console.error('Native smoke state:', JSON.stringify({ exitCode: app.exitCode, signal: app.signalCode,
+    pages: browser?.contexts().flatMap((context) => context.pages()).map((page) => ({ url: page.url(), closed: page.isClosed() })) }));
   console.error(stderr);
   throw error;
 } finally {
