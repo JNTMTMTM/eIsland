@@ -26,7 +26,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempDisposableSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempDisposableSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -243,6 +243,40 @@ test('子项目的普通 TypeScript 文件保留 Hook 插件及共享注释检�
   assert.ok(config.plugins['react-hooks']);
   assert.equal(config.rules['react-hooks/rules-of-hooks'][0], 2);
   assert.equal(config.rules['project/file-header'][0], 2);
+});
+
+test('仅安装工具 workspace 时，子项目仍能加载完整 React 配置', (context) => {
+  const directory = mkdtempDisposableSync(join(tmpdir(), 'eisland-root-only-lint-'));
+  assert.equal(dirname(directory.path), tmpdir());
+  context.after(() => directory.remove());
+  const nested = join(directory.path, 'web/eisland-web-issue-report');
+  const tools = join(directory.path, 'scripts/lint');
+  mkdirSync(join(nested, 'src'), { recursive: true });
+  mkdirSync(tools, { recursive: true });
+  writeFileSync(join(directory.path, 'package.json'), '{"type":"module"}\n');
+  writeFileSync(join(nested, 'eslint.config.js'), readFileSync(new URL('../../web/eisland-web-issue-report/eslint.config.js', import.meta.url)));
+  const shared = JSON.stringify(new URL('./eslint.config.mjs', import.meta.url).href);
+  writeFileSync(join(tools, 'eslint.config.mjs'), `export * from ${shared}; export { default } from ${shared};\n`);
+  // 只暴露子配置其余已有入口；不提供本机子项目 node_modules 或 hoist 出来的 refresh 插件。
+  ['@eslint/js', 'eslint', 'globals'].forEach((name) => {
+    const target = join(directory.path, 'node_modules', name);
+    mkdirSync(dirname(target), { recursive: true });
+    symlinkSync(dirname(fileURLToPath(import.meta.resolve(`${name}/package.json`))), target, 'junction');
+  });
+  assert.equal(existsSync(join(nested, 'node_modules')), false);
+  assert.equal(existsSync(join(directory.path, 'node_modules/eslint-plugin-react-refresh')), false);
+  const code = `import assert from 'node:assert/strict';
+import { ESLint } from ${JSON.stringify(import.meta.resolve('eslint'))};
+const config = await new ESLint().calculateConfigForFile('web/eisland-web-issue-report/src/App.tsx');
+for (const rule of ['react-refresh/only-export-components', 'react-hooks/rules-of-hooks', 'react/jsx-props-no-spreading', 'jsx-a11y/alt-text', 'project/file-header']) {
+  assert.equal(config.rules[rule][0], 2, rule);
+}
+`;
+  const result = spawnSync(process.execPath, ['--input-type=module', '--eval', code], {
+    cwd: directory.path, encoding: 'utf8', timeout: 30_000,
+  });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test('Node 和浏览器全局隔离，产物忽略而源码与声明文件纳入检查', async () => {

@@ -12,6 +12,7 @@ on:
       - 'vitest.config.mts'
       - 'tsconfig*.json'
       - 'scripts/**'
+      - 'web/eisland-web-issue-report/eslint.config.js'
       - '.github/workflows/test.yml'
   workflow_dispatch:
     inputs:

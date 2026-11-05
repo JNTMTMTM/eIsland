@@ -39,13 +39,14 @@ import a11y from 'eslint-plugin-jsx-a11y';
 import promise from 'eslint-plugin-promise';
 import react from 'eslint-plugin-react';
 import hooks from 'eslint-plugin-react-hooks';
+import refresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import project from './project-rules.mjs';
 
 // 子项目复用相同的插件实例，避免分别安装的依赖重复注册同名插件。
-export { hooks as reactHooksPlugin };
+export { hooks as reactHooksPlugin, refresh as reactRefreshPlugin };
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const CODE = ['**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'];
