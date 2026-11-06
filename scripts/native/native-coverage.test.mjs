@@ -24,7 +24,10 @@
  * @author 鸡哥
  */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 import { load } from 'js-yaml';
 import { rustInventory } from './toolbox-rust-coverage.mjs';
@@ -74,7 +77,40 @@ test('desktop tests apply matching instrumentation in the same PowerShell sessio
   assert(desktop.run.indexOf('--env-pwsh') < desktop.run.indexOf('npm run test:e2e'));
   assert.match(desktop.run, /if \(\$LASTEXITCODE -ne 0\) \{ exit \$LASTEXITCODE \}/u);
   assert.match(native.env.EISLAND_TEST_IDENTIFIER, /\.refactor-test$/u);
-  assert(native.env.EISLAND_REFACTOR_RUST_TARGET_DIR.includes('runner.temp'));
+});
+
+test('temporary Cargo target is initialized on the runner before the cache and coverage steps', () => {
+  Object.values(workflow.jobs).forEach((job) => assert.doesNotMatch(JSON.stringify(job.env || {}), /\$\{\{\s*runner\./u));
+  assert.equal(native.env.EISLAND_REFACTOR_RUST_TARGET_DIR, undefined);
+  const initialize = step(native.steps, 'EISLAND_REFACTOR_RUST_TARGET_DIR=');
+  assert.equal(initialize.shell, 'pwsh');
+  assert.match(initialize.run, /Join-Path \$env:RUNNER_TEMP 'eisland-refactor-coverage-target'/u);
+  assert.match(initialize.run, /Out-File -FilePath \$env:GITHUB_ENV -Encoding utf8 -Append/u);
+  const cache = native.steps.find((value) => value.uses === 'Swatinem/rust-cache@v2');
+  assert.equal(cache.with.workspaces, 'src-tauri -> ${{ env.EISLAND_REFACTOR_RUST_TARGET_DIR }}');
+  assert(native.steps.indexOf(initialize) < native.steps.indexOf(cache));
+  assert(native.steps.indexOf(initialize) < native.steps.indexOf(step(native.steps, '--scope refactor --prepare')));
+});
+
+test('runner initialization exports the real temporary path, including spaces, without erasing existing environment values', { skip: process.platform !== 'win32' }, () => {
+  const directory = mkdtempSync(join(tmpdir(), 'eisland-coverage-env-'));
+  const file = join(directory, 'github-env');
+  const runnerTemp = join(directory, 'runner temp');
+  const initialize = step(native.steps, 'EISLAND_REFACTOR_RUST_TARGET_DIR=');
+  try {
+    writeFileSync(file, 'EXISTING_COVERAGE_TEST_VALUE=keep\n');
+    const result = spawnSync('pwsh', ['-NoProfile', '-NonInteractive', '-Command', initialize.run], {
+      env: { ...process.env, RUNNER_TEMP: runnerTemp, GITHUB_ENV: file },
+      windowsHide: true, encoding: 'utf8', timeout: 10000,
+    });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stderr);
+    const [existing, exported] = readFileSync(file, 'utf8').replace(/^\uFEFF/u, '').trim()
+      .split(/\r?\n/u);
+    assert.equal(existing, 'EXISTING_COVERAGE_TEST_VALUE=keep');
+    assert.equal(exported, `EISLAND_REFACTOR_RUST_TARGET_DIR=${join(runnerTemp, 'eisland-refactor-coverage-target')}`);
+    assert.equal(resolve(exported.slice(exported.indexOf('=') + 1)), join(runnerTemp, 'eisland-refactor-coverage-target'));
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
 test('both jobs preserve failing gates while always retaining diagnostic reports', () => {
