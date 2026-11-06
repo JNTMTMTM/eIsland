@@ -82,8 +82,23 @@ describe('SodaMusic real karaoke provider boundaries', () => {
     qishuiLyrics.mockRejectedValue(new Error('offline'));
     await expect(fetchKaraokeFromSodaMusic('Song', 'Artist')).rejects.toThrow('offline');
   });
-  it('filters lines with no syllables while retaining a valid later line', async () => {
-    qishuiLyrics.mockResolvedValue({ lyric: '[500,200]untimed\n[1000,500]<0,500,0>Hello' });
-    expect(await fetchKaraokeFromSodaMusic('Song', 'Artist')).toEqual(expected);
+  it('preserves symbol-only fallback lines alongside a valid timed line', async () => {
+    qishuiLyrics.mockResolvedValue({ lyric: '[500,200]♪—…!\n[1000,500]<0,500,0>Hello' });
+    expect(await fetchKaraokeFromSodaMusic('Song', 'Artist')).toEqual([
+      { time_ms: 500, duration_ms: 200, text: '♪—…!', syllables: [] },
+      ...expected,
+    ]);
+  });
+  it('preserves punctuation and emoji through the real matching, provider and parser chain', async () => {
+    qishuiLyrics.mockResolvedValue({ lyric: '[1000,2000]<0,1000,0>(foo) <3 [x] <1000,1000,0>can\'t re-enter 😀 & <tag>' });
+    expect(await fetchKaraokeFromSodaMusic('Song', 'Artist')).toEqual([{
+      time_ms: 1000,
+      duration_ms: 2000,
+      text: '(foo) <3 [x] can\'t re-enter 😀 & <tag>',
+      syllables: [
+        { start_offset_ms: 0, duration_ms: 1000, text: '(foo) <3 [x] ' },
+        { start_offset_ms: 1000, duration_ms: 1000, text: 'can\'t re-enter 😀 & <tag>' },
+      ],
+    }]);
   });
 });

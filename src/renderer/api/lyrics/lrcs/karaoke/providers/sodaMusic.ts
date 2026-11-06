@@ -65,13 +65,13 @@ async function fetchKaraokeByTrackId(trackId: string): Promise<KaraokeLine[] | n
 
   // 汽水音乐 KRC 为前缀式 `<s,d>text` 或 `(s,d)text`，偏移已是相对值
   const lines = parseSyncedLines(content, 'prefix', 'relative');
-  const withSyllables = lines.filter((l) => l.syllables.length > 0);
-  if (withSyllables.length === 0) {
+  // 只用音节判断来源是否可用，混合内容中的普通行与纯符号行仍需显示。
+  if (!lines.some((line) => line.syllables.length > 0)) {
     logger.warn(`${LOG_TAG} 解析出 0 行逐字, trackId=${trackId}, auth=${auth}`);
     return null;
   }
-  logger.info(`${LOG_TAG} 获取成功, trackId=${trackId}, auth=${auth}, 行数=${withSyllables.length}`);
-  return withSyllables;
+  logger.info(`${LOG_TAG} 获取成功, trackId=${trackId}, auth=${auth}, 行数=${lines.length}`);
+  return lines;
 }
 
 /* ── 对外入口 ──────────────────────────────────────────────────────── */

@@ -80,8 +80,8 @@ async function searchKaraokeKugou(queryTitle: string, queryArtist: string): Prom
     // 酷狗返回的 KRC 在不同歌曲里既可能是 `text<s,d>`(后缀式) 也可能是 `<s,d>text`(前缀式),
     // 用 suffix 解析前缀式会导致每行末字被挤到尾段而丢失; 这里用 auto 让解析器按文本长度挑选
     const lines = parseSyncedLines(plaintext, 'auto', 'relative');
-    const withSyllables = lines.filter((l) => l.syllables.length > 0);
-    return withSyllables.length > 0 ? withSyllables : null;
+    // 只用音节判断来源是否可用，混合内容中的普通行与纯符号行仍需显示。
+    return lines.some((line) => line.syllables.length > 0) ? lines : null;
   } catch {
     return null;
   }

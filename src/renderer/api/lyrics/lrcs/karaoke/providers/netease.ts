@@ -77,8 +77,8 @@ async function searchKaraokeNetease(queryTitle: string, queryArtist: string): Pr
     if (!yrc) return null;
 
     const lines = parseSyncedLines(yrc, 'prefix', 'absolute');
-    const withSyllables = lines.filter((l) => l.syllables.length > 0);
-    return withSyllables.length > 0 ? withSyllables : null;
+    // 只用音节判断来源是否可用，混合内容中的普通行与纯符号行仍需显示。
+    return lines.some((line) => line.syllables.length > 0) ? lines : null;
   } catch {
     return null;
   }

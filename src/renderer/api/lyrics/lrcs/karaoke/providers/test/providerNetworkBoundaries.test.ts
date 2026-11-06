@@ -32,7 +32,10 @@ interface RequestOptions { body?: string }
 const netFetch = vi.fn<(url: string, options?: RequestOptions) => Promise<{ ok: boolean; status: number; body: string }>>();
 const singleKrc = 'a3JjMTjbGsglTcDm0Lewo2dTL8VN37NG7sE8ipj/Ni1PTWY2';
 const untimedKrc = 'a3JjMTjbGsglTR0ZGFBfR0SQJwMFTmE2rDUx';
+// 独立用 zlib + 固定 KRC XOR 生成，包含无音节符号行及逐字行。
+const mixedKrc = 'a3JjMTjbGsglTcDu0Le/vE+TgsrZ7H9CEkug9x2nGvceEq4ph5OhV4g0OK5J7kiJKDaKakCAPGfm';
 const expected = [{ time_ms: 1000, duration_ms: 500, text: 'Hello', syllables: [{ start_offset_ms: 0, duration_ms: 500, text: 'Hello' }] }];
+const expectedYrc = [...expected, { time_ms: 2000, duration_ms: 500, text: '♪—…!', syllables: [] }];
 let search: unknown;
 let lyricSearch: unknown;
 let lyric: unknown;
@@ -54,10 +57,10 @@ beforeEach(() => {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('Netease real YRC transport and parser', () => {
-  beforeEach(() => { search = { result: { songs: [{ id: 123 }] } }; lyric = { yrc: { lyric: '[1000,500](1000,500,0)Hello\n[2000,500]untimed' } }; });
+  beforeEach(() => { search = { result: { songs: [{ id: 123 }] } }; lyric = { yrc: { lyric: '[1000,500](1000,500,0)Hello\n[2000,500]♪—…!' } }; });
   it.each([123, '123'])('sends numeric or string song id %s and keeps absolute word offsets', async (id) => {
     search = { result: { songs: [{ id }] } };
-    expect(await fetchKaraokeFromNetease('Song', 'Artist')).toEqual(expected);
+    expect(await fetchKaraokeFromNetease('Song', 'Artist')).toEqual(expectedYrc);
     expect(new URLSearchParams(netFetch.mock.calls[0][1]?.body).get('s')).toBe('Song Artist');
     expect(new URLSearchParams(netFetch.mock.calls[1][1]?.body).get('id')).toBe('123');
   });
@@ -75,7 +78,7 @@ describe('Netease real YRC transport and parser', () => {
   });
   it.each([['Song (Live)', 'Artist'], ['Song', 'Artist / Guest']])('retries cleaned inputs %s / %s', async (title, artist) => {
     netFetch.mockResolvedValueOnce({ ok: true, status: 200, body: '{}' });
-    expect(await fetchKaraokeFromNetease(title, artist)).toEqual(expected);
+    expect(await fetchKaraokeFromNetease(title, artist)).toEqual(expectedYrc);
     expect(new URLSearchParams(netFetch.mock.calls[1][1]?.body).get('s')).toBe('Song Artist');
   });
 });
@@ -92,6 +95,13 @@ describe('Kugou real KRC download, decryption and parser', () => {
     expect(new URL(netFetch.mock.calls[1][0]).searchParams.get('duration')).toBe('3000');
     expect(new URL(netFetch.mock.calls[2][0]).searchParams.get('id')).toBe('lyric-id');
     expect(new URL(netFetch.mock.calls[2][0]).searchParams.get('accesskey')).toBe('key');
+  });
+  it('preserves symbol-only lines from a mixed encrypted KRC response', async () => {
+    lyric = { content: mixedKrc };
+    expect(await fetchKaraokeFromKugou('Song', 'Artist')).toEqual([
+      { time_ms: 500, duration_ms: 200, text: '♪—…!', syllables: [] },
+      ...expected,
+    ]);
   });
   it('omits unknown duration and converts a numeric lyric id', async () => {
     search = { data: { info: [{ hash: 'hash', duration: '3' }] } };

@@ -134,13 +134,13 @@ async function searchKaraokeAppleMusic(queryTitle: string, queryArtist: string):
     }
 
     const lines = parseTTML(ttml);
-    const withSyllables = lines.filter((l) => l.syllables.length > 0);
-    if (withSyllables.length === 0) {
+    // 只用音节判断来源是否可用，混合内容中的普通行与纯符号行仍需显示。
+    if (!lines.some((line) => line.syllables.length > 0)) {
       logger.warn(`${LOG_TAG} TTML 解析出 0 行逐字, trackId=${matched.trackId}`);
       return null;
     }
-    logger.info(`${LOG_TAG} 获取成功, trackId=${matched.trackId}, 行数=${withSyllables.length}`);
-    return withSyllables;
+    logger.info(`${LOG_TAG} 获取成功, trackId=${matched.trackId}, 行数=${lines.length}`);
+    return lines;
   } catch (err) {
     logger.error(`${LOG_TAG} 未预期异常, query="${query}":`, err);
     return null;
