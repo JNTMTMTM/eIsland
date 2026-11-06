@@ -58,7 +58,7 @@ export function LyricsTranslationContentView(props: LyricsTranslationContentView
   } = props;
 
   return (
-    <div className="lyrics-content">
+    <div className="lyrics-content" data-playing={isPlaying}>
       <GlowBackground isMusicPlaying={isMusicPlaying} isPlaying={isPlaying} coverImage={coverImage} glowEnabled={glowEnabled} dominantColor={dominantColor} />
       <AlbumCover isMusicPlaying={isMusicPlaying} isPlaying={isPlaying} coverImage={coverImage} glowEnabled={glowEnabled} dominantColor={dominantColor} />
       <BeijingClock clockEnabled={clockEnabled} clockText={clockText} />
