@@ -119,8 +119,7 @@
   -webkit-app-region: no-drag;
 }
 
-.controls select,
-.sourceRow select {
+.controls select {
   padding: 8px 12px;
   color: #e7e9ef;
   background: #15171e;
@@ -167,11 +166,23 @@
 }
 
 .content {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
-  padding: 22px max(40px, calc((100vw - 660px) / 2)) 8px;
+  padding: 16px max(40px, calc((100vw - 660px) / 2));
   overflow-y: auto;
   scrollbar-width: thin;
+}
+
+.contentBody {
+  flex-shrink: 0;
+  margin-block: auto;
+  transform: translateY(-20px);
+}
+
+.contentBody > :last-child {
+  margin-bottom: 0;
 }
 
 .content h1 {
@@ -192,13 +203,53 @@
 }
 
 .sourceRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: flex-start;
+  min-width: 0;
   margin: 26px 0;
+  padding: 0;
   color: #adb4c3;
+  border: none;
+}
+
+.sourceRow legend {
+  margin-bottom: 12px;
+  padding: 0;
+  font-size: 12px;
+}
+
+.sourceOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sourceButton {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  min-height: 68px;
+  padding: 14px 16px;
+  color: #adb4c3;
+  text-align: center;
+  background: #15171ee6;
+  border: 1px solid #343a49;
+  border-radius: 8px;
+}
+
+.sourceButton img {
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.sourceButton:hover:enabled {
+  color: #e7e9ef;
+  border-color: #7da7ff80;
+}
+
+.sourceButton[aria-pressed="true"] {
+  color: #e7e9ef;
+  background: #222d46;
+  border-color: #7da7ff;
 }
 
 .textButton {
@@ -335,6 +386,7 @@
 
   .content {
     padding-top: 12px;
+    padding-bottom: 12px;
   }
 
   .footer {

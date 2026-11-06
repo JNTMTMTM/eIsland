@@ -39,7 +39,6 @@ export function useMigration(): UseMigrationReturn {
   const [state, setState] = useState<AdapterState | null>(null);
   const [source, setSource] = useState<SourceId>('esa');
   const [error, setError] = useState<string | null>(null);
-  const changeSource = useCallback((event: ChangeEvent<HTMLSelectElement>) => setSource(event.target.value as SourceId), []);
   const changeLanguage = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
     const language = event.target.value;
     i18n.changeLanguage(language).catch(() => setError('operationFailed'));
@@ -59,9 +58,9 @@ export function useMigration(): UseMigrationReturn {
     else if (state?.phase === 'complete' || state?.phase === 'installed') action(() => window.migration.launch());
     else action(() => window.migration.inspect(source));
   };
-  return { state, t, source, primary, setSource: changeSource, language: i18n.language, error: error || state?.error || null,
+  return { state, t, source, primary, setSource, language: i18n.language, error: error || state?.error || null,
     busy: Boolean(state && BUSY_PHASES.includes(state.phase)), step: stepForPhase(state?.phase),
     setLanguage: changeLanguage,
     cancel: () => action(() => window.migration.cancel()), close: () => action(() => window.migration.close()),
-    local: () => action(() => window.migration.chooseLocal()), openBackup: () => action(() => window.migration.openBackup()) };
+    openBackup: () => action(() => window.migration.openBackup()) };
 }

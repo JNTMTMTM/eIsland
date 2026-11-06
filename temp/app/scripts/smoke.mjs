@@ -49,6 +49,14 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.lang), locale);
   }
   await language.selectOption('zh-CN');
+  const sources = page.locator('fieldset button');
+  assert.equal(await sources.count(), 3);
+  assert.equal(await page.locator('section select').count(), 0);
+  for (const source of ['r2', 'github', 'esa']) {
+    await page.locator(`button[value="${source}"]`).click();
+    assert.equal(await page.locator('fieldset button[aria-pressed="true"]').getAttribute('value'), source);
+  }
+  await page.waitForFunction(() => [...document.querySelectorAll('fieldset img')].every((image) => image.complete && image.naturalWidth > 0));
   const boundary = await page.evaluate(() => ({ node: typeof globalThis.process, require: typeof globalThis.require, api: Object.keys(window.migration).sort() }));
   assert.equal(boundary.node, 'undefined'); assert.equal(boundary.require, 'undefined');
   assert.deepEqual(boundary.api, ['cancel', 'chooseLocal', 'close', 'getState', 'inspect', 'install', 'launch', 'onState', 'openBackup', 'prepare']);

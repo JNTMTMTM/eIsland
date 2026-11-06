@@ -23,7 +23,15 @@
  * @description 导航步骤与可取消阶段的界面配置。
  * @author 鸡哥
  */
+import alibabaCloudIcon from '../../../../public/svg/ALIBABACLOUD.svg?url&no-inline';
+import cloudflareIcon from '../../../../public/svg/CLOUDFLARE.svg?url&no-inline';
+import githubIcon from '../../../../public/svg/GITHUB.svg?url&no-inline';
 import type { Phase } from '../../../../shared/types/adapterTypes';
 export const LANGUAGES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP'];
 export const BUSY_PHASES: Phase[] = ['inspecting', 'backing-up', 'downloading', 'verifying', 'installing'];
 export const STEPS = ['welcome', 'review', 'protect', 'finish'];
+export const DOWNLOAD_SOURCES = [
+  { id: 'esa', icon: alibabaCloudIcon },
+  { id: 'r2', icon: cloudflareIcon },
+  { id: 'github', icon: githubIcon },
+] as const;

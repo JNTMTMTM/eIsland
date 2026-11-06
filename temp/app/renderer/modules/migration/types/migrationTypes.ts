@@ -29,9 +29,9 @@ import type { AdapterState, SourceId } from '../../../../shared/types/adapterTyp
 export interface UseMigrationReturn {
   state: AdapterState | null; t: TFunction; language: string; source: SourceId;
   busy: boolean; step: number; error: string | null;
-  setSource: ChangeEventHandler<HTMLSelectElement>; setLanguage: ChangeEventHandler<HTMLSelectElement>;
-  primary: () => void; cancel: () => void; close: () => void; local: () => void; openBackup: () => void;
+  setSource: (source: SourceId) => void; setLanguage: ChangeEventHandler<HTMLSelectElement>;
+  primary: () => void; cancel: () => void; close: () => void; openBackup: () => void;
 }
 export interface WizardHeaderProps { t: TFunction; language: string; onLanguage: ChangeEventHandler<HTMLSelectElement>; onClose: () => void; installing: boolean; }
-export interface MigrationContentProps { t: TFunction; state: AdapterState | null; error: string | null; source: SourceId; busy: boolean; onSource: ChangeEventHandler<HTMLSelectElement>; onLocal: () => void; onBackup: () => void; }
+export interface MigrationContentProps { t: TFunction; state: AdapterState | null; error: string | null; source: SourceId; busy: boolean; onSource: (source: SourceId) => void; onBackup: () => void; }
 export interface WizardFooterProps { t: TFunction; state: AdapterState | null; busy: boolean; onPrimary: () => void; onCancel: () => void; }
