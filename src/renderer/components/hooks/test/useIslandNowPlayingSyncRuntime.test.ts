@@ -339,6 +339,34 @@ describe('useIslandNowPlayingSync runtime', () => {
     }]);
     expect(options.setTranslationLyrics.mock.calls).toEqual([[null]]);
     expect(vi.getTimerCount()).toBe(0);
+    if (source === 'karaoke') expect(leaves.normal).not.toHaveBeenCalled();
+    else expect(leaves.karaoke).not.toHaveBeenCalled();
+  });
+  it.each([false, true])('requests regular lyrics after karaoke success only when translation is %s', async (withTranslation) => {
+    const pendingKaraoke = deferred<Awaited<ReturnType<typeof KaraokeApi.fetchKaraokeLyrics>>>();
+    const pendingTranslation = deferred<Awaited<ReturnType<typeof LyricsApi.fetchLyricsWithTranslation>>>();
+    const words = [{ time_ms: 0, text: 'word', duration_ms: 1000, syllables: [] }];
+    karaokeEnabled.mockResolvedValue(true);
+    translation.mockResolvedValue(withTranslation);
+    leaves.karaoke.mockReturnValue(pendingKaraoke.promise);
+    leaves.normal.mockReturnValue(pendingTranslation.promise);
+    mount();
+    await emit(song({ isPlaying: false }));
+    expect(leaves.karaoke).toHaveBeenCalledExactlyOnceWith('Song', 'Singer', 'player');
+    expect(leaves.normal).not.toHaveBeenCalled();
+    pendingKaraoke.resolve(words);
+    await settleHook();
+    expect(options.setSyncedLyrics).toHaveBeenLastCalledWith(words);
+    expect(options.setLyricsLoading).toHaveBeenLastCalledWith(false);
+    if (withTranslation) {
+      expect(leaves.normal).toHaveBeenCalledExactlyOnceWith('Song', 'Singer', 'player');
+      expect(options.setTranslationLyrics.mock.calls).toEqual([[null]]);
+      pendingTranslation.resolve(lyrics());
+      await settleHook();
+      expect(options.setTranslationLyrics).toHaveBeenLastCalledWith(lyrics().translation);
+    } else {
+      expect(leaves.normal).not.toHaveBeenCalled();
+    }
   });
   it('karaoke publication has mapped syllables, calibration timer and missing normal translation fallback', async () => {
     karaokeEnabled.mockResolvedValue(true);
@@ -374,12 +402,19 @@ describe('useIslandNowPlayingSync runtime', () => {
     expect(timestamp).toHaveBeenCalledTimes(1);
   });
   it.each(['empty', 'absent', 'reject'] as const)('karaoke %s falls back to real normal lyric publication', async (stage) => {
+    const pending = deferred<Awaited<ReturnType<typeof KaraokeApi.fetchKaraokeLyrics>>>();
     karaokeEnabled.mockResolvedValue(true);
-    if (stage === 'empty') leaves.karaoke.mockResolvedValue([]);else if (stage === 'absent') leaves.karaoke.mockResolvedValue(null);else leaves.karaoke.mockRejectedValue(new Error('karaoke'));
+    leaves.karaoke.mockReturnValue(pending.promise);
     mount();
     await emit(song({
       isPlaying: false
     }));
+    expect(leaves.normal).not.toHaveBeenCalled();
+    if (stage === 'empty') pending.resolve([]);
+    else if (stage === 'absent') pending.resolve(null);
+    else pending.reject(new Error('karaoke'));
+    await settleHook();
+    expect(leaves.normal).toHaveBeenCalledExactlyOnceWith('Song', 'Singer', 'player');
     expect(options.setSyncedLyrics).toHaveBeenLastCalledWith(lyrics().lyrics);
     expect(options.setTranslationLyrics).toHaveBeenLastCalledWith(lyrics().translation);
   });
@@ -402,6 +437,7 @@ describe('useIslandNowPlayingSync runtime', () => {
     } else pending.reject(new Error('late'));
     await settleHook();
     expect(options.setSyncedLyrics).not.toHaveBeenCalled();
+    expect(leaves.normal).not.toHaveBeenCalled();
   });
   it('normal translation resolving after published karaoke and stop does not publish stale translation', async () => {
     const pending = deferred<Awaited<ReturnType<typeof LyricsApi.fetchLyricsWithTranslation>>>();

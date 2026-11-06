@@ -357,9 +357,6 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
           }
           logCalibrationStatus(calibrationEnabled ? 'waiting-lyrics' : 'disabled', calibrationEnabled ? '校准已启用，等待歌词加载' : '校准已关闭');
 
-          const normalLyricsPromise = fetchLyricsWithTranslation(title, artist, deviceId)
-            .catch(() => null);
-
           if (karaokeEnabled) {
             try {
               const karaoke = await fetchKaraokeLyrics(title, artist, deviceId);
@@ -378,7 +375,10 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
                   scheduleCalibration(calibrationDelayMs);
                 }
 
-                const normalResult = await normalLyricsPromise;
+                // 逐字成功且未开启翻译时，不再启动常规歌词链路。
+                if (!translationEnabled) return;
+                const normalResult = await fetchLyricsWithTranslation(title, artist, deviceId)
+                  .catch(() => null);
                 if (!isCurrent()) return;
                 const translation = normalResult?.translation ?? notFetchedTranslationLyrics();
                 logTranslationLyricsStatus(translation);
@@ -391,7 +391,9 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
             if (!isCurrent()) return;
           }
 
-          const result = await normalLyricsPromise;
+          // 未开启逐字或逐字已失败时，才请求常规歌词。
+          const result = await fetchLyricsWithTranslation(title, artist, deviceId)
+            .catch(() => null);
           if (!isCurrent()) return;
           const translation = result?.translation ?? notFetchedTranslationLyrics();
           logTranslationLyricsStatus(translation);
