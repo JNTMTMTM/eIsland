@@ -432,6 +432,10 @@
 }
 
 .primary {
+  display: inline-flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
   min-width: 148px;
   padding: 12px 20px;
   color: #f0f4fc;
@@ -444,10 +448,6 @@
 .primary:hover:enabled {
   background: #ffffff1a;
   border-color: #ffffff40;
-}
-
-.primary span {
-  margin-left: 18px;
 }
 
 @media (max-height: 560px) {

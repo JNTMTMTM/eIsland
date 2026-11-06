@@ -23,6 +23,7 @@
  * @description 显式区分检测、准备和用户确认安装，取消不终止系统安装器。
  * @author 鸡哥
  */
+import { ArrowRight } from 'lucide-react';
 import styles from './migration.module.css';
 import type { WizardFooterProps } from '../types/migrationTypes';
 
@@ -41,7 +42,7 @@ export function WizardFooter(props: WizardFooterProps) {
     <footer className={styles.footer}>
       <div className={styles.actions}>
         {busy && phase !== 'installing' && <button type="button" onClick={onCancel} className={styles.textButton}>{t('cancel')}</button>}
-        <button type="button" className={styles.primary} onClick={onPrimary} disabled={busy || !state}>{t(busy ? 'working' : `actions.${action}`)}<span aria-hidden="true">→</span></button>
+        <button type="button" className={styles.primary} onClick={onPrimary} disabled={busy || !state}>{t(busy ? 'working' : `actions.${action}`)}<ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" /></button>
       </div>
     </footer>
   );
