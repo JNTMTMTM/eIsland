@@ -26,8 +26,9 @@ use std::path::{Path, PathBuf};
 use windows::Win32::{
     Foundation::CO_E_NOTINITIALIZED,
     System::Com::{
-        CoGetApartmentType, CoInitializeEx, CoUninitialize, APTTYPE, APTTYPEQUALIFIER_NONE,
-        APTTYPE_CURRENT, COINIT_APARTMENTTHREADED, COINIT_MULTITHREADED,
+        CoGetApartmentType, CoInitializeEx, CoUninitialize, APTTYPE, APTTYPEQUALIFIER,
+        APTTYPEQUALIFIER_IMPLICIT_MTA, APTTYPEQUALIFIER_NONE, APTTYPE_CURRENT, APTTYPE_MTA,
+        COINIT_APARTMENTTHREADED, COINIT_MULTITHREADED,
     },
 };
 
@@ -53,11 +54,20 @@ impl Drop for Fixture {
     }
 }
 
-fn apartment() -> windows::core::Result<APTTYPE> {
+fn apartment() -> windows::core::Result<(APTTYPE, APTTYPEQUALIFIER)> {
     let mut kind = APTTYPE_CURRENT;
     let mut qualifier = APTTYPEQUALIFIER_NONE;
     unsafe { CoGetApartmentType(&mut kind, &mut qualifier)? };
-    Ok(kind)
+    Ok((kind, qualifier))
+}
+
+fn assert_no_explicit_apartment() {
+    // Another test can keep the process MTA alive after this thread releases COM.
+    // Only the implicit qualifier is valid here; an explicit apartment still detects a leak.
+    match apartment() {
+        Ok(state) => assert_eq!(state, (APTTYPE_MTA, APTTYPEQUALIFIER_IMPLICIT_MTA)),
+        Err(error) => assert_eq!(error.code(), CO_E_NOTINITIALIZED),
+    }
 }
 
 fn assert_png(path: &Path) {
@@ -77,13 +87,13 @@ fn fresh_worker_extracts_unicode_icon_and_releases_com_on_success_and_missing_fi
     let fixture = Fixture::new();
     let path = fixture.icon();
     std::thread::spawn(move || {
-        assert_eq!(apartment().unwrap_err().code(), CO_E_NOTINITIALIZED);
+        assert_no_explicit_apartment();
         assert_png(&path);
-        assert_eq!(apartment().unwrap_err().code(), CO_E_NOTINITIALIZED);
+        assert_no_explicit_apartment();
         assert!(file_icon(&path.with_file_name("missing.exe"))
             .unwrap()
             .is_null());
-        assert_eq!(apartment().unwrap_err().code(), CO_E_NOTINITIALIZED);
+        assert_no_explicit_apartment();
     })
     .join()
     .unwrap();
@@ -104,9 +114,45 @@ fn icon_extraction_preserves_caller_owned_sta_and_mta_apartments() {
                 .is_null());
             assert_eq!(apartment().unwrap(), before);
             unsafe { CoUninitialize() };
-            assert_eq!(apartment().unwrap_err().code(), CO_E_NOTINITIALIZED);
+            assert_no_explicit_apartment();
         })
         .join()
         .unwrap();
     }
+}
+
+#[test]
+fn icon_worker_can_release_com_while_another_thread_keeps_the_mta_alive() {
+    let fixture = Fixture::new();
+    let path = fixture.icon();
+    std::thread::spawn(move || {
+        unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) }
+            .ok()
+            .unwrap();
+        let worker = std::thread::spawn(move || {
+            let implicit = (APTTYPE_MTA, APTTYPEQUALIFIER_IMPLICIT_MTA);
+            assert_eq!(apartment().unwrap(), implicit);
+            assert_png(&path);
+            assert_eq!(apartment().unwrap(), implicit);
+            assert!(file_icon(&path.with_file_name("missing.exe"))
+                .unwrap()
+                .is_null());
+            assert_eq!(apartment().unwrap(), implicit);
+            // Explicit and implicit MTA have the same type but different ownership.
+            unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) }
+                .ok()
+                .unwrap();
+            let explicit = (APTTYPE_MTA, APTTYPEQUALIFIER_NONE);
+            assert_eq!(apartment().unwrap(), explicit);
+            assert_png(&path);
+            assert_eq!(apartment().unwrap(), explicit);
+            unsafe { CoUninitialize() };
+            assert_eq!(apartment().unwrap(), implicit);
+        })
+        .join();
+        unsafe { CoUninitialize() };
+        worker.unwrap();
+    })
+    .join()
+    .unwrap();
 }

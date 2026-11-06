@@ -35,4 +35,6 @@ CI 的 `plugins` 矩阵任务安装 .NET SDK、构建原生依赖、检查收集
 
 文件图标验收检查并发后台请求返回有效 PNG、缺失文件返回 `null`，Rust 测试覆盖新线程与调用方已有 STA/MTA 的 COM 生命周期。有效图标提取失败会使图标子测试失败，并保留 Shell 返回空句柄和绘制失败的回归覆盖。
 
+COM 生命周期断言同时检查 apartment 类型和限定符：释放本线程的显式初始化后，允许未初始化或其他线程维持的隐式 MTA，仍拒绝残留的显式 STA/MTA。回归测试会主动保持另一线程的 MTA，验证图标提取与调用方初始化计数的平衡；无需串行化整套 Rust 测试。
+
 `npm run test:api` 验证原生前端 API、运行入口和原生发布工具；`npm run test:rust` 验证 Rust 原生服务。`scripts/lint` 中的 `node:test` 测试通过 `npm run lint:config:test` 执行，测试收集检查通过 `npm run test:discovery` 执行。
