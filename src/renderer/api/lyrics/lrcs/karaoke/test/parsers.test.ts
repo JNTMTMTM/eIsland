@@ -87,6 +87,36 @@ describe('parseSyncedLines', () => {
     ]);
   });
 
+  it.each([
+    { head: 'a', texts: ['amiddle', '😀'] },
+    { head: 'ab', texts: ['ab', 'middle😀'] },
+  ])('uses UTF-16 coverage and keeps suffix on a tie for head $head', ({ head, texts }) => {
+    const [line] = parseSyncedLines(`[1000,100]${head}(0,50)middle(50,50)😀`, 'auto', 'relative');
+    expect(line.syllables).toEqual([
+      { start_offset_ms: 0, duration_ms: 50, text: texts[0] },
+      { start_offset_ms: 50, duration_ms: 50, text: texts[1] },
+    ]);
+  });
+
+  it.each(['relative', 'absolute'] as const)('chooses one layout across rows and preserves fallback rows with %s offsets', (offsetKind) => {
+    const input = '[2000,100](0,50)A(50,50)B\n[1000,100]long(0,50)tail(50,50)\n[1000,100] ♪ \n[500,100](0,0)(0,0)\n[4000,100]';
+    expect(parseSyncedLines(input, 'auto', offsetKind)).toEqual([
+      { time_ms: 500, duration_ms: 100, text: '', syllables: [] },
+      {
+        time_ms: 1000, duration_ms: 100, text: 'longtail',
+        syllables: [
+          { start_offset_ms: 0, duration_ms: 50, text: 'long' },
+          { start_offset_ms: offsetKind === 'absolute' ? 0 : 50, duration_ms: 50, text: 'tail' },
+        ],
+      },
+      { time_ms: 1000, duration_ms: 100, text: '♪', syllables: [] },
+      {
+        time_ms: 2000, duration_ms: 100, text: 'AB',
+        syllables: [{ start_offset_ms: offsetKind === 'absolute' ? 0 : 50, duration_ms: 50, text: 'AB' }],
+      },
+    ]);
+  });
+
   it('prefix mode with absolute millisecond timestamps', () => {
     const input = '[1000,3000](1000,500)你(1500,500)好';
     const result = parseSyncedLines(input, 'prefix', 'absolute');
