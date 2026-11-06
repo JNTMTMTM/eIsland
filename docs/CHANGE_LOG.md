@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-03T19:40:39.420Z
+> 生成时间：2026-11-06T00:52:12.012Z
 
 ## 27.0.1
 
@@ -4247,6 +4247,30 @@
 
 ## Unreleased
 
+- 2026-11-05 | 7a53d428 | JNTMTMTM | Merge pull request #309 from JNTMTMTM/dev_rust
+- 2026-11-05 | ba62e012 | 鸡哥 | feat: adjust WebView2 focus handling to ensure proper file-drop target registration
+- 2026-11-05 | 381c3be3 | 鸡哥 | feat: enhance COM lifecycle assertions in icon extraction tests for improved reliability
+- 2026-11-05 | fe52e041 | 鸡哥 | feat: enhance file icon extraction with concurrent worker support and add comprehensive tests
+- 2026-11-05 | 251cae79 | 鸡哥 | feat: add performance diagnostics and enhance error reporting in native services
+- 2026-11-05 | ddeec964 | 鸡哥 | feat: implement native WebView2 connection handling and diagnostics for isolated testing
+- 2026-11-05 | 754059fb | 鸡哥 | feat: add eslint-plugin-react-refresh and update lint configurations for improved React support
+- 2026-11-05 | dfd9bb58 | 鸡哥 | fix: revert version number to 27.0.1 in package.json, package-lock.json, and tauri.conf.json
+- 2026-11-05 | 91002372 | 鸡哥 | feat: implement window stacking behavior for effects and improve visibility handling on Windows
+- 2026-11-04 | f4d4e538 | 鸡哥 | feat: enhance screenshot functionality with native plugin support and improved settings
+- 2026-11-04 | e478c988 | 鸡哥 | feat: update capture functionality and add new SVG icons for toolbar actions
+- 2026-11-04 | 358edb7f | 鸡哥 | feat: add updater verification and archive handling
+- 2026-11-04 | 7d06d5f8 | 鸡哥 | feat: adjust shadow behavior for splash screen on Windows
+- 2026-11-04 | 1551c84f | 鸡哥 | feat: add audio/video extraction functionality and related tests
+- 2026-11-05 | 191c8cb5 | 鸡哥 | feat: add infrastructure modules for native platform support
+- 2026-11-05 | 3ae144f8 | 鸡哥 | feat: add upload-release script for Tauri package publishing and cache purging
+- 2026-11-05 | 913593ff | 鸡哥 | feat: add type definitions for image compression, mail, media, navigation, net, performance, process, settings, updater, and window modules
+- 2026-11-04 | 369835e6 | 鸡哥 | feat: update build commands for music and plugins in Tauri configuration
+- 2026-11-04 | 3efefbe4 | 鸡哥 | feat(music): implement music service and authentication window
+- 2026-11-04 | da48697a | 鸡哥 | feat: add hardware and media services for volume and brightness control
+- 2026-11-04 | 8f78ebe6 | 鸡哥 | feat: enhance hotkey management and shortcut registration logic
+- 2026-11-04 | 477c7914 | 鸡哥 | feat: add support for transparency debugging in WebView2 and enhance window management
+- 2026-11-04 | 68ffaff5 | 鸡哥 | feat: implement native window clipping and raise functionality for Windows
+- 2026-11-03 | 2c19990e | eislandBot | docs: auto update CHANGE_LOG.md for #308 by @dependabot[bot] [skip ci]
 - 2026-11-03 | 5eede24c | JNTMTMTM | Merge pull request #308 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-7716e99581
 - 2026-11-03 | e9ec9c4a | 鸡哥 | Merge main into dependency updates and preserve docs Git plugin override
 - 2026-11-03 | 77ebe439 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 17 directories with 17 updates
