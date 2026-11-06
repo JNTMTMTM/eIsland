@@ -39,7 +39,7 @@ export default defineConfig({
     build: { rollupOptions: { input: { index: resolve('main/index.ts'), publisher: resolve('main/publisher.ts') } } },
   },
   preload: { build: { rollupOptions: { input: resolve('preload/index.ts') } } },
-  renderer: { root: resolve('renderer'), plugins: [react(), {
+  renderer: { root: resolve('renderer'), resolve: { dedupe: ['react', 'react-dom'] }, plugins: [react(), {
     name: 'adapter-development-csp', apply: 'serve',
     transformIndexHtml: (html: string) => html.replace("script-src 'self'", "script-src 'self' 'unsafe-inline'").replace("connect-src 'self'", "connect-src 'self' ws:"),
   }], build: { rollupOptions: { input: resolve('renderer/index.html') } } },

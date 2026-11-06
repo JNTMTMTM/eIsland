@@ -23,7 +23,6 @@
  * @description 显式区分检测、准备和用户确认安装，取消不终止系统安装器。
  * @author 鸡哥
  */
-import { STEPS } from '../config/migrationConfig';
 import styles from './migration.module.css';
 import type { WizardFooterProps } from '../types/migrationTypes';
 
@@ -32,7 +31,7 @@ import type { WizardFooterProps } from '../types/migrationTypes';
  * @returns 固定底部导航。
  */
 export function WizardFooter(props: WizardFooterProps) {
-  const { t, state, step, busy, onPrimary, onCancel } = props;
+  const { t, state, busy, onPrimary, onCancel } = props;
   const phase = state?.phase;
   let action = 'inspect';
   if (phase === 'ready') action = 'prepare';
@@ -40,9 +39,6 @@ export function WizardFooter(props: WizardFooterProps) {
   else if (phase === 'complete' || phase === 'installed') action = 'launch';
   return (
     <footer className={styles.footer}>
-      <ol className={styles.steps} aria-label={t('stepsLabel')}>
-        {STEPS.map((item, index) => <li key={item} aria-current={index === step ? 'step' : undefined}><span />{t(`steps.${item}`)}</li>)}
-      </ol>
       <div className={styles.actions}>
         {busy && phase !== 'installing' && <button type="button" onClick={onCancel} className={styles.textButton}>{t('cancel')}</button>}
         <button type="button" className={styles.primary} onClick={onPrimary} disabled={busy || !state}>{t(busy ? 'working' : `actions.${action}`)}<span aria-hidden="true">→</span></button>

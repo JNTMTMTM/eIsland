@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 import { useMigration } from '../hooks/useMigration';
+import { STEPS } from '../config/migrationConfig';
+import { ProcessIndicator } from '../../../../../../src/renderer/components/components/DynamicIslandProcessIndicator';
 import { WizardHeader } from './WizardHeader';
 import { MigrationContent } from './MigrationContent';
 import { WizardFooter } from './WizardFooter';
@@ -37,8 +39,14 @@ export function AdapterWizard() {
   return (
     <main className={styles.wizard}>
       <WizardHeader t={model.t} language={model.language} onLanguage={model.setLanguage} onClose={model.close} installing={model.state?.phase === 'installing'} />
+      <nav className={styles.navigation} aria-label={model.t('stepsLabel')}>
+        <div aria-hidden="true"><ProcessIndicator total={STEPS.length} current={model.step} /></div>
+        <ol className={styles.steps}>
+          {STEPS.map((item, index) => <li key={item} aria-current={index === model.step ? 'step' : undefined}>{model.t(`steps.${item}`)}</li>)}
+        </ol>
+      </nav>
       <MigrationContent t={model.t} state={model.state} error={model.error} source={model.source} busy={model.busy} onSource={model.setSource} onLocal={model.local} onBackup={model.openBackup} />
-      <WizardFooter t={model.t} state={model.state} step={model.step} busy={model.busy} onPrimary={model.primary} onCancel={model.cancel} />
+      <WizardFooter t={model.t} state={model.state} busy={model.busy} onPrimary={model.primary} onCancel={model.cancel} />
     </main>
   );
 }

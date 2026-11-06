@@ -18,46 +18,366 @@
  * GNU General Public License for more details.
  */
 
-/* guide 的低对比深色、波纹背景与底部步骤导航。 */
-:global(*) { box-sizing: border-box; }
-:global(body) { margin: 0; color: #f4f5f9; background: #080b11; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; font-size: 14px; }
-:global(button), :global(select) { font: inherit; }
-:global(button) { cursor: pointer; }
-:global(button:disabled) { cursor: default; opacity: .45; }
-:global(button:focus-visible), :global(select:focus-visible) { outline: 2px solid #9bbcff; outline-offset: 4px; }
-.wizard { height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden; background: radial-gradient(ellipse at 80% 110%, #17365a88, transparent 60%), repeating-linear-gradient(145deg, transparent 0 26px, #829aca07 27px, transparent 29px), linear-gradient(135deg, #101721, #080b11 65%); }
-.wizard::before { content: ''; position: absolute; width: 700px; height: 700px; border-radius: 48%; border: 60px solid #768ba907; right: -350px; top: -150px; transform: rotate(30deg); pointer-events: none; }
-.header { padding: 28px 36px; display: flex; align-items: center; justify-content: space-between; -webkit-app-region: drag; z-index: 1; }
-.brand { font-size: 22px; font-weight: 600; letter-spacing: -.8px; }
-.brand span { margin-left: 14px; color: #929bad; font-size: 11px; font-weight: 400; letter-spacing: 1px; }
-.controls { display: flex; align-items: center; gap: 20px; -webkit-app-region: no-drag; }
-.controls select, .sourceRow select { color: #e2e7f0; background: #151d2a; border: 1px solid #ffffff19; border-radius: 6px; padding: 7px 10px; }
-.close { background: none; color: #b4bbc8; border: none; font-size: 24px; padding: 0 4px; }
-.content { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 62px 12px; z-index: 1; }
-.eyebrow { font-size: 11px; letter-spacing: 2px; color: #a0b5d7; text-transform: uppercase; margin: 0 0 15px; }
-.content h1 { font-size: 34px; font-weight: 400; letter-spacing: -.8px; margin: 0 0 18px; }
-.description { color: #b0b8c8; line-height: 1.9; max-width: 720px; margin: 0 0 20px; white-space: pre-line; }
-.sourceRow { display: flex; align-items: center; gap: 16px; margin: 24px 0; color: #b0b8c8; }
-.textButton { background: none; color: #b7c6df; border: none; padding: 8px; }
-.details { background: #ffffff05; border: 1px solid #ffffff0b; border-radius: 9px; padding: 12px 18px; margin: 12px 0; }
-.details div { display: grid; grid-template-columns: 145px 1fr; gap: 12px; padding: 5px 0; }
-.details dt { color: #8e9bb1; }
-.details dd { margin: 0; overflow-wrap: anywhere; font-size: 12px; }
-.note { color: #808da2; line-height: 1.8; font-size: 11px; max-width: 710px; margin-top: 22px; }
-.warning { color: #ebc78b; font-size: 12px; }
-.error { background: #e5757511; border: 1px solid #e5757533; color: #efb3b3; padding: 12px 16px; border-radius: 6px; line-height: 1.6; }
-.progress { margin: 28px 0; }
-.progress progress { width: 100%; height: 5px; accent-color: #a5c1ef; border: none; }
-.progress p { color: #a0aec3; font-size: 12px; text-align: right; }
-.backup { text-align: left; color: #c0d2ee; border: none; background: none; padding: 4px 0; }
-.backup span { display: block; color: #8493aa; font-size: 10px; margin-top: 5px; overflow-wrap: anywhere; }
-.footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 24px 36px 30px; z-index: 1; }
-.steps { display: flex; gap: 15px; list-style: none; margin: 0; padding: 0; color: #6e7d94; font-size: 10px; }
-.steps li { display: flex; align-items: center; gap: 6px; }
-.steps span { width: 5px; height: 5px; border-radius: 50%; background: #59657a; }
-.steps [aria-current] { color: #dce7fa; }
-.steps [aria-current] span { background: #c0d5fb; box-shadow: 0 0 8px #a4c5ff66; }
-.actions { display: flex; gap: 12px; align-items: center; }
-.primary { border: 1px solid #ffffff20; border-radius: 8px; background: #ffffff0d; color: #f0f4fc; padding: 12px 20px; min-width: 148px; }
-.primary:hover:enabled { background: #ffffff18; }
-.primary span { margin-left: 18px; }
+/* 沿用引导页的分步布局，背景使用 admin 登录页的点阵地球。 */
+:global(*) {
+  box-sizing: border-box;
+}
+
+:global(body) {
+  margin: 0;
+  color: #e7e9ef;
+  background: #101116;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color-scheme: dark;
+}
+
+:global(button),
+:global(select) {
+  font: inherit;
+}
+
+:global(button) {
+  cursor: pointer;
+}
+
+:global(button:disabled) {
+  cursor: default;
+  opacity: .45;
+}
+
+:global(button:focus-visible),
+:global(select:focus-visible) {
+  outline: 2px solid #7da7ff;
+  outline-offset: 4px;
+}
+
+.wizard {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background: #101116;
+}
+
+/* 与 AccessShell 保持相同的渐变、遮罩和深色透明度。 */
+.wizard::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 42%, #222d46);
+  content: "";
+  pointer-events: none;
+}
+
+.wizard::after {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  right: -8%;
+  width: min(76vw, 1050px);
+  aspect-ratio: 1;
+  background: #7da7ff;
+  mask: url("../../../assets/status-globe.svg") center / contain no-repeat;
+  opacity: .46;
+  content: "";
+  pointer-events: none;
+  transform: translateY(-46%);
+}
+
+.header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px 40px 20px;
+  -webkit-app-region: drag;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -.8px;
+}
+
+.brand span {
+  color: #adb4c3;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: .5px;
+}
+
+.controls {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+.controls select,
+.sourceRow select {
+  padding: 8px 12px;
+  color: #e7e9ef;
+  background: #15171e;
+  border: 1px solid #343a49;
+  border-radius: 8px;
+}
+
+.close {
+  padding: 0 4px;
+  color: #adb4c3;
+  font-size: 24px;
+  background: none;
+  border: none;
+}
+
+.navigation {
+  align-self: center;
+  padding: 0 0 14px;
+}
+
+.navigation :global(.process-indicator) {
+  gap: 12px;
+  margin-top: 0;
+}
+
+.navigation :global(.process-indicator-segment) {
+  width: 48px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 48px);
+  gap: 12px;
+  margin: 10px 0 0;
+  padding: 0;
+  color: #919aaa;
+  font-size: 11px;
+  text-align: center;
+  list-style: none;
+}
+
+.steps [aria-current] {
+  color: #fff;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  padding: 22px max(40px, calc((100vw - 660px) / 2)) 8px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.content h1 {
+  margin: 0 0 16px;
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -.6px;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.description {
+  margin: 0 0 22px;
+  color: #adb4c3;
+  line-height: 1.8;
+  text-align: left;
+  white-space: pre-line;
+}
+
+.sourceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 26px 0;
+  color: #adb4c3;
+}
+
+.textButton {
+  padding: 8px;
+  color: #b9cdf8;
+  background: none;
+  border: none;
+}
+
+.textButton:hover:enabled,
+.backup:hover {
+  color: #fff;
+}
+
+.details {
+  margin: 12px 0;
+  padding: 12px 16px;
+  background: #101116cc;
+  border: 1px solid #343a49;
+  border-radius: 10px;
+}
+
+.details div {
+  display: grid;
+  grid-template-columns: 135px minmax(0, 1fr);
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.details dt {
+  color: #adb4c3;
+  font-size: 12px;
+}
+
+.details dd {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin: 18px 0 0;
+  color: #adb4c3;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.warning {
+  color: #e4bf69;
+  font-size: 12px;
+}
+
+.error {
+  margin: 16px 0;
+  padding: 12px 16px;
+  color: #ff9cad;
+  line-height: 1.6;
+  background: #301f27;
+  border: 1px solid #67404d;
+  border-radius: 8px;
+}
+
+.progress {
+  margin: 24px 0;
+}
+
+.progress progress {
+  width: 100%;
+  height: 5px;
+  accent-color: #7da7ff;
+  border: none;
+}
+
+.progress p {
+  color: #adb4c3;
+  font-size: 12px;
+  text-align: left;
+}
+
+.backup {
+  max-width: 100%;
+  padding: 4px 0;
+  color: #b9cdf8;
+  text-align: left;
+  background: none;
+  border: none;
+}
+
+.backup span {
+  display: block;
+  margin-top: 5px;
+  color: #adb4c3;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  padding: 20px 40px 30px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.primary {
+  min-width: 148px;
+  padding: 12px 20px;
+  color: #f0f4fc;
+  background: #ffffff0f;
+  border: 1px solid #ffffff26;
+  border-radius: 8px;
+  transition: background .2s, border-color .2s;
+}
+
+.primary:hover:enabled {
+  background: #ffffff1a;
+  border-color: #ffffff40;
+}
+
+.primary span {
+  margin-left: 18px;
+}
+
+@media (max-height: 560px) {
+  .header {
+    padding-top: 20px;
+    padding-bottom: 16px;
+  }
+
+  .content {
+    padding-top: 12px;
+  }
+
+  .footer {
+    padding-top: 14px;
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .header {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .content {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .content h1 {
+    font-size: 28px;
+  }
+
+  .wizard::after {
+    right: -320px;
+    width: 680px;
+    opacity: .12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .wizard::before,
+  .wizard::after {
+    display: none;
+  }
+}

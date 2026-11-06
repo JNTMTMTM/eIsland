@@ -38,7 +38,6 @@ export function MigrationContent(props: MigrationContentProps) {
   const working = ['backing-up', 'downloading', 'verifying', 'installing'].includes(phase);
   return (
     <section className={styles.content} aria-live="polite">
-      <p className={styles.eyebrow}>{t('eyebrow')}</p>
       <h1>{t(`phases.${phase}.title`)}</h1>
       <p className={styles.description}>{t(`phases.${phase}.body`)}</p>
       {['welcome', 'error', 'cancelled'].includes(phase) && (

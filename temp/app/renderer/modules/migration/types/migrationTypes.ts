@@ -34,4 +34,4 @@ export interface UseMigrationReturn {
 }
 export interface WizardHeaderProps { t: TFunction; language: string; onLanguage: ChangeEventHandler<HTMLSelectElement>; onClose: () => void; installing: boolean; }
 export interface MigrationContentProps { t: TFunction; state: AdapterState | null; error: string | null; source: SourceId; busy: boolean; onSource: ChangeEventHandler<HTMLSelectElement>; onLocal: () => void; onBackup: () => void; }
-export interface WizardFooterProps { t: TFunction; state: AdapterState | null; step: number; busy: boolean; onPrimary: () => void; onCancel: () => void; }
+export interface WizardFooterProps { t: TFunction; state: AdapterState | null; busy: boolean; onPrimary: () => void; onCancel: () => void; }
