@@ -24,6 +24,8 @@
  * @author 鸡哥
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createStore } from 'zustand/vanilla';
+import { createMediaSlice } from '../../../store/slices/mediaSlice';
 import { useIslandNowPlayingSync } from '../useIslandNowPlayingSync';
 import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from './startupHookHarness';
 import type { NowPlayingInfo, SyncedLyricLine } from '../../../store/types';
@@ -188,6 +190,35 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('useIslandNowPlayingSync runtime', () => {
+  it('keeps the real store paused and lyric progress frozen when delayed lyrics arrive after a player pause', async () => {
+    const pendingLyrics = deferred<LyricsFetchResult>();
+    leaves.normal.mockReturnValue(pendingLyrics.promise);
+    const store = createStore(createMediaSlice);
+    renderHook(useIslandNowPlayingSync, store.getState());
+    flushHookEffects();
+    await emit(song({ deviceId: 'soda.exe' }));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(store.getState().currentPositionMs).toBeGreaterThan(1000);
+
+    await emit(song({ deviceId: 'soda.exe', isPlaying: false, position_ms: 1500 }));
+    pendingLyrics.resolve(lyrics());
+    await settleHook();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(store.getState()).toMatchObject({
+      isPlaying: false,
+      currentPositionMs: 1500,
+      syncedLyrics: lyrics().lyrics,
+      lyricsLoading: false,
+    });
+    expect(timestamp).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+
+    await emit(song({ deviceId: 'soda.exe', position_ms: 1500 }));
+    await vi.advanceTimersByTimeAsync(300);
+    expect(store.getState().isPlaying).toBe(true);
+    expect(store.getState().currentPositionMs).toBeGreaterThan(1500);
+  });
+
   it.each([0, 1.05, 2.5, 6])('calibration at %s seconds updates the playback clock without shifting lyric or translation timings', async (position) => {
     timestamp.mockResolvedValue({
       isAvailable: true,

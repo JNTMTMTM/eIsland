@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePendingSeek } from '../../../hooks/usePendingSeek';
 import { estimatePlaybackPosition } from '../utils/trayPlayback';
 import type { NowPlayingInfo } from '../../../../../tauri/types/media';
@@ -87,9 +87,11 @@ export function toTrayNowPlaying(info: NowPlayingInfo | null, previous: TrayNowP
 export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   const [nowPlaying, setNowPlaying] = useState<TrayNowPlaying | null>(null);
   const [loading, setLoading] = useState(true);
+  const playbackVersionRef = useRef(0);
   const { pendingSeek, commitSeek } = usePendingSeek(nowPlaying ? `${nowPlaying.title}\n${nowPlaying.artist}` : '');
 
   useEffect(() => window.api.onNowPlayingInfo((info) => {
+    playbackVersionRef.current += 1;
     setNowPlaying((previous) => toTrayNowPlaying(info, previous));
     setLoading(false);
   }), []);
@@ -97,10 +99,14 @@ export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   useEffect(() => {
     if (openCount === 0) return undefined;
     let cancelled = false;
+    const playbackVersion = playbackVersionRef.current;
     window.api.mediaCurrentInfoGet()
       // eslint-disable-next-line promise/prefer-await-to-then -- effect 不能是 async，需在此处理结果与失败。
       .then((info) => {
-        if (!cancelled) setNowPlaying((previous) => toTrayNowPlaying(info, previous));
+        // 读取期间收到的暂停、会话移除或本地操作优先，避免旧快照恢复播放状态。
+        if (!cancelled && playbackVersion === playbackVersionRef.current) {
+          setNowPlaying((previous) => toTrayNowPlaying(info, previous));
+        }
       })
       .catch(() => undefined)
       // eslint-disable-next-line promise/prefer-await-to-then -- 读取失败同样结束加载态，显示未在播放。
@@ -116,6 +122,7 @@ export function useTrayNowPlaying(openCount: number): TrayNowPlayingControls {
   // 进度同时锚定到当前时刻，否则暂停后进度条会退回上次采样的位置。
   const togglePlayback = (): void => {
     if (!nowPlaying) return;
+    playbackVersionRef.current += 1;
     const now = Date.now();
     setNowPlaying({
       ...nowPlaying,

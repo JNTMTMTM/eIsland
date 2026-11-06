@@ -152,7 +152,6 @@ public static class SmtcSessionMonitor
     public static int WaitForChanges(int timeoutMs)
     {
         if (!_monitoring || _changeEvent == IntPtr.Zero) return -1;
-        ResetEvent(_changeEvent);
         var ms = timeoutMs < 0 ? INFINITE : (uint)timeoutMs;
         var result = WaitForSingleObject(_changeEvent, ms);
         return result switch
@@ -178,6 +177,8 @@ public static class SmtcSessionMonitor
         {
             changes = _pendingChanges.Values.ToArray();
             _pendingChanges.Clear();
+            // 通知表示尚未消费的增量；与发布共用锁，避免清除两次 wait 之间到达的暂停。
+            if (_changeEvent != IntPtr.Zero) ResetEvent(_changeEvent);
         }
         finally { Monitor.Exit(_sessionLock); }
         return System.Text.Json.JsonSerializer.Serialize(changes, SmtcJsonContext.Default.SessionDeltaArray);
