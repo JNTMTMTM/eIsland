@@ -24,14 +24,14 @@
  * @author 鸡哥
  */
 import type { TFunction } from 'i18next';
-import type { ChangeEventHandler } from 'react';
 import type { AdapterState, SourceId } from '../../../../shared/types/adapterTypes';
 export interface UseMigrationReturn {
   state: AdapterState | null; t: TFunction; language: string; source: SourceId;
   busy: boolean; step: number; error: string | null;
-  setSource: (source: SourceId) => void; setLanguage: ChangeEventHandler<HTMLSelectElement>;
+  setSource: (source: SourceId) => void; setLanguage: (language: string) => void;
   primary: () => void; cancel: () => void; close: () => void; openBackup: () => void;
 }
-export interface WizardHeaderProps { t: TFunction; language: string; onLanguage: ChangeEventHandler<HTMLSelectElement>; onClose: () => void; installing: boolean; }
+export interface LanguageSelectProps { t: TFunction; language: string; onLanguage: (language: string) => void; }
+export interface WizardHeaderProps extends LanguageSelectProps { onClose: () => void; installing: boolean; }
 export interface MigrationContentProps { t: TFunction; state: AdapterState | null; error: string | null; source: SourceId; busy: boolean; onSource: (source: SourceId) => void; onBackup: () => void; }
 export interface WizardFooterProps { t: TFunction; state: AdapterState | null; busy: boolean; onPrimary: () => void; onCancel: () => void; }

@@ -88,6 +88,8 @@
 }
 
 .header {
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 16px;
   align-items: center;
@@ -119,12 +121,90 @@
   -webkit-app-region: no-drag;
 }
 
-.controls select {
-  padding: 8px 12px;
-  color: #e7e9ef;
-  background: #15171e;
-  border: 1px solid #343a49;
+.languageSelect {
+  position: relative;
+  width: 146px;
+}
+
+.languageTrigger {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  color: #ffffffdb;
+  font-size: 12px;
+  background: #ffffff0d;
+  border: 1px solid #ffffff1f;
   border-radius: 8px;
+}
+
+.languageTrigger:hover,
+.languageTrigger[aria-expanded="true"] {
+  background: #ffffff11;
+  border-color: #ffffff38;
+}
+
+.languageFlag {
+  flex-shrink: 0;
+  width: 18px;
+  height: 13px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.languageLabel {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.languageArrow {
+  font-size: 10px;
+  opacity: .5;
+}
+
+.languageTrigger[aria-expanded="true"] .languageArrow {
+  transform: rotate(180deg);
+}
+
+.languageMenu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 100%;
+  padding: 4px;
+  background: #2a2a2d;
+  border: 1px solid #ffffff1f;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px #00000052;
+}
+
+.languageItem {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
+  color: #ffffffdb;
+  font-size: 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 6px;
+}
+
+.languageItem:hover,
+.languageItem:focus-visible {
+  background: #ffffff14;
+}
+
+.languageItem[aria-checked="true"] {
+  font-weight: 600;
+  background: #ffffff1f;
 }
 
 .close {

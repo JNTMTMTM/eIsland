@@ -29,7 +29,6 @@ import { BUSY_PHASES } from '../config/migrationConfig';
 import { stepForPhase } from '../utils/migrationUtils';
 import type { UseMigrationReturn } from '../types/migrationTypes';
 import type { AdapterState, SourceId } from '../../../../shared/types/adapterTypes';
-import type { ChangeEvent } from 'react';
 
 /** 管理向导，renderer 只发送白名单动作。
  * @returns 页面状态与有限动作。
@@ -39,8 +38,7 @@ export function useMigration(): UseMigrationReturn {
   const [state, setState] = useState<AdapterState | null>(null);
   const [source, setSource] = useState<SourceId>('esa');
   const [error, setError] = useState<string | null>(null);
-  const changeLanguage = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    const language = event.target.value;
+  const changeLanguage = useCallback((language: string) => {
     i18n.changeLanguage(language).catch(() => setError('operationFailed'));
     document.documentElement.lang = language;
   }, [i18n]);

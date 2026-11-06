@@ -26,8 +26,16 @@
 import alibabaCloudIcon from '../../../../public/svg/ALIBABACLOUD.svg?url&no-inline';
 import cloudflareIcon from '../../../../public/svg/CLOUDFLARE.svg?url&no-inline';
 import githubIcon from '../../../../public/svg/GITHUB.svg?url&no-inline';
+import chinaFlag from '../../../../public/svg/CHN.svg?url&no-inline';
+import usaFlag from '../../../../public/svg/USA.svg?url&no-inline';
+import japanFlag from '../../../../public/svg/JP.svg?url&no-inline';
 import type { Phase } from '../../../../shared/types/adapterTypes';
-export const LANGUAGES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP'];
+export const LANGUAGES = [
+  { code: 'zh-CN', icon: chinaFlag },
+  { code: 'zh-TW', icon: chinaFlag },
+  { code: 'en-US', icon: usaFlag },
+  { code: 'ja-JP', icon: japanFlag },
+];
 export const BUSY_PHASES: Phase[] = ['inspecting', 'backing-up', 'downloading', 'verifying', 'installing'];
 export const STEPS = ['welcome', 'review', 'protect', 'finish'];
 export const DOWNLOAD_SOURCES = [

@@ -42,13 +42,26 @@ try {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.locator('h1').waitFor();
-  const language = page.locator('header select');
+  const language = page.locator('header button[aria-haspopup="menu"]');
   for (const [locale, title] of [['zh-CN', '准备好，迎接新的 eIsland'], ['zh-TW', '準備好，迎接新的 eIsland'], ['en-US', 'Get ready for the next eIsland'], ['ja-JP', '新しい eIsland の準備をしましょう']]) {
-    await language.selectOption(locale);
+    await language.click();
+    await page.locator(`button[role="menuitemradio"][value="${locale}"]`).click();
     assert.equal(await page.locator('h1').innerText(), title);
     assert.equal(await page.evaluate(() => document.documentElement.lang), locale);
   }
-  await language.selectOption('zh-CN');
+  await language.click();
+  await page.locator('button[role="menuitemradio"][value="zh-CN"]').click();
+  await language.click();
+  await page.waitForFunction(() => [...document.querySelectorAll('header img')].every((image) => image.complete && image.naturalWidth > 0));
+  await mkdir('test-results', { recursive: true });
+  await page.screenshot({ path: 'test-results/language-menu.png' });
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await page.locator(':focus').getAttribute('value'), 'zh-TW');
+  await page.keyboard.press('Escape');
+  assert.equal(await language.getAttribute('aria-expanded'), 'false');
+  await language.click();
+  await page.locator('h1').click();
+  assert.equal(await language.getAttribute('aria-expanded'), 'false');
   const sources = page.locator('fieldset button');
   assert.equal(await sources.count(), 3);
   assert.equal(await page.locator('section select').count(), 0);
