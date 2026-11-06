@@ -23,6 +23,7 @@
  * @description 无边框向导的拖动标题区、语言和关闭控件。
  * @author 鸡哥
  */
+import logo from '../../../../public/image/logo_full.png?url&no-inline';
 import { LanguageSelect } from './LanguageSelect';
 import styles from './migration.module.css';
 import type { WizardHeaderProps } from '../types/migrationTypes';
@@ -35,7 +36,7 @@ export function WizardHeader(props: WizardHeaderProps) {
   const { t, language, onLanguage, onClose, installing } = props;
   return (
     <header className={styles.header}>
-      <div className={styles.brand}>{t('brand')}<span>{t('adapterVersion')}</span></div>
+      <img className={styles.brand} src={logo} width={180} height={40} alt={t('brand')} draggable={false} />
       <div className={styles.controls}>
         <LanguageSelect t={t} language={language} onLanguage={onLanguage} />
         <button type="button" onClick={onClose} disabled={installing} className={styles.close} aria-label={t('close')}>×</button>

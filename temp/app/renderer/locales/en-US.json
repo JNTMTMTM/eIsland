@@ -20,7 +20,7 @@
     "installing": { "title": "Finish the installer", "body": "Complete the installation in its window. We will wait and confirm the registered version and executable. Keep the old eIsland closed." },
     "complete": { "title": "Welcome back", "body": "The Tauri installation directory and version have been confirmed. Launch eIsland below to close this assistant. Your backup and the old uninstall entry will remain." },
     "cancelled": { "title": "Preparation cancelled", "body": "Your original data is unchanged. Choose another source and check again. Completed backups remain available." },
-    "error": { "title": "This step needs attention", "body": "Follow the message below and try again. Original data and completed backups are retained. Completion is shown only after installation is confirmed." }
+    "error": { "title": "This step needs attention", "body": "Follow the message below and try again." }
   },
   "errors": {
     "missingKey": "This adapter has no production Tauri update public key. Contact the publisher for a configured build before downloading or installing.",

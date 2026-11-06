@@ -99,19 +99,11 @@
 }
 
 .brand {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  font-size: 23px;
-  font-weight: 600;
-  letter-spacing: -.8px;
-}
-
-.brand span {
-  color: #adb4c3;
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: .5px;
+  display: block;
+  width: 180px;
+  height: 40px;
+  object-fit: cover;
+  transform: translateX(-12px);
 }
 
 .controls {
@@ -479,10 +471,6 @@
   .header {
     padding-right: 24px;
     padding-left: 24px;
-  }
-
-  .brand span {
-    display: none;
   }
 
   .content {
