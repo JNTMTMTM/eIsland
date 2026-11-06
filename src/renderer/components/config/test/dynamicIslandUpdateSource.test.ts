@@ -67,37 +67,37 @@ describe('normalizeUpdateSource', () => {
     expect(normalizeUpdateSource('esa-cdn')).toBe('esa-cdn');
   });
 
-  it('returns "cloudflare-r2" as default for unknown string', () => {
-    expect(normalizeUpdateSource('unknown-source')).toBe('cloudflare-r2');
+  it('returns "esa-cdn" as default for unknown string', () => {
+    expect(normalizeUpdateSource('unknown-source')).toBe('esa-cdn');
   });
 
-  it('returns "cloudflare-r2" for null', () => {
-    expect(normalizeUpdateSource(null)).toBe('cloudflare-r2');
+  it('returns "esa-cdn" for null', () => {
+    expect(normalizeUpdateSource(null)).toBe('esa-cdn');
   });
 
-  it('returns "cloudflare-r2" for undefined', () => {
-    expect(normalizeUpdateSource(undefined)).toBe('cloudflare-r2');
+  it('returns "esa-cdn" for undefined', () => {
+    expect(normalizeUpdateSource(undefined)).toBe('esa-cdn');
   });
 
-  it('returns "cloudflare-r2" for numeric value', () => {
-    expect(normalizeUpdateSource(42)).toBe('cloudflare-r2');
+  it('returns "esa-cdn" for numeric value', () => {
+    expect(normalizeUpdateSource(42)).toBe('esa-cdn');
   });
 
-  it('returns "cloudflare-r2" for empty string', () => {
-    expect(normalizeUpdateSource('')).toBe('cloudflare-r2');
+  it('returns "esa-cdn" for empty string', () => {
+    expect(normalizeUpdateSource('')).toBe('esa-cdn');
   });
 
-  it('returns "cloudflare-r2" for object', () => {
-    expect(normalizeUpdateSource({})).toBe('cloudflare-r2');
+  it('returns "esa-cdn" for object', () => {
+    expect(normalizeUpdateSource({})).toBe('esa-cdn');
   });
 
-  it('returns "cloudflare-r2" for boolean true', () => {
-    expect(normalizeUpdateSource(true)).toBe('cloudflare-r2');
+  it('returns "esa-cdn" for boolean true', () => {
+    expect(normalizeUpdateSource(true)).toBe('esa-cdn');
   });
 
   it('is case-sensitive (uppercase variant falls back to default)', () => {
-    expect(normalizeUpdateSource('GitHub')).toBe('cloudflare-r2');
-    expect(normalizeUpdateSource('GITHUB')).toBe('cloudflare-r2');
+    expect(normalizeUpdateSource('GitHub')).toBe('esa-cdn');
+    expect(normalizeUpdateSource('GITHUB')).toBe('esa-cdn');
   });
 });
 
@@ -262,31 +262,31 @@ describe('getUpdateSourceLabel', () => {
     expect(getUpdateSourceLabel('esa-cdn')).toBe('ESA CDN');
   });
 
-  it('returns "Cloudflare R2" as default for unknown string', () => {
-    expect(getUpdateSourceLabel('unknown')).toBe('Cloudflare R2');
+  it('returns "ESA CDN" as default for unknown string', () => {
+    expect(getUpdateSourceLabel('unknown')).toBe('ESA CDN');
   });
 
-  it('returns "Cloudflare R2" for null', () => {
-    expect(getUpdateSourceLabel(null)).toBe('Cloudflare R2');
+  it('returns "ESA CDN" for null', () => {
+    expect(getUpdateSourceLabel(null)).toBe('ESA CDN');
   });
 
-  it('returns "Cloudflare R2" for undefined', () => {
-    expect(getUpdateSourceLabel(undefined)).toBe('Cloudflare R2');
+  it('returns "ESA CDN" for undefined', () => {
+    expect(getUpdateSourceLabel(undefined)).toBe('ESA CDN');
   });
 
-  it('returns "Cloudflare R2" for numeric value', () => {
-    expect(getUpdateSourceLabel(0)).toBe('Cloudflare R2');
+  it('returns "ESA CDN" for numeric value', () => {
+    expect(getUpdateSourceLabel(0)).toBe('ESA CDN');
   });
 
-  it('returns "Cloudflare R2" for empty string', () => {
-    expect(getUpdateSourceLabel('')).toBe('Cloudflare R2');
+  it('returns "ESA CDN" for empty string', () => {
+    expect(getUpdateSourceLabel('')).toBe('ESA CDN');
   });
 
-  it('returns "Cloudflare R2" for boolean false', () => {
-    expect(getUpdateSourceLabel(false)).toBe('Cloudflare R2');
+  it('returns "ESA CDN" for boolean false', () => {
+    expect(getUpdateSourceLabel(false)).toBe('ESA CDN');
   });
 
   it('is case-sensitive (uppercase "GitHub" falls back to default)', () => {
-    expect(getUpdateSourceLabel('GitHub')).toBe('Cloudflare R2');
+    expect(getUpdateSourceLabel('GitHub')).toBe('ESA CDN');
   });
 });

@@ -25,6 +25,7 @@
  */
 
 import { useEffect } from 'react';
+import { normalizeUpdateSource } from '../../../../../config/dynamicIslandUpdateSource';
 import { normalizeMusicWhitelist } from '../../../../../../utils/musicWhitelist';
 import useIslandStore from '../../../../../../store/slices';
 import { normalizeOverviewLayoutConfig } from '../../../../expand/pages/OverviewTab';
@@ -32,9 +33,7 @@ import {
   CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY,
   SETTINGS_OPEN_TAB_STORE_KEY,
   UPDATE_SOURCE_STORE_KEY,
-  UPDATE_SOURCES,
   type SettingsOpenTabIntent,
-  type UpdateSourceKey,
 } from '../config/settingsTabConfig';
 import {
   LAYOUT_STORE_KEY,
@@ -364,7 +363,7 @@ export function useSettingsConfigurationEffects(options: SettingsConfigurationEf
     let cancelled = false;
     window.api.storeRead(UPDATE_SOURCE_STORE_KEY).then((value) => {
       if (cancelled) return;
-      setUpdateSource(UPDATE_SOURCES.some(s => s.key === value) ? value as UpdateSourceKey : 'cloudflare-r2');
+      setUpdateSource(normalizeUpdateSource(value));
     }).catch(() => { });
     return () => { cancelled = true; };
   }, []);

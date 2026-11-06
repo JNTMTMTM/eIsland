@@ -36,7 +36,7 @@ import { TrayUserCard } from '../TrayUserCard';
 import { TRAY_MENU_ITEMS } from '../../config/trayMenuItems';
 import type { TestElement } from '../../../../test/elementHarness';
 import type { TrayMenuState } from '../../../../../../shared/trayMenu';
-import type { NowPlayingInfo } from '../../../../../../preload/types/media';
+import type { NowPlayingInfo } from '../../../../../../tauri/types/media';
 import type { TrayNowPlaying, TrayUserSummary } from '../../types';
 
 const mocks = vi.hoisted(() => ({

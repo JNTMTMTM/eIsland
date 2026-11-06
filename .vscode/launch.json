@@ -2,51 +2,75 @@
   "version": "26.0.0",
   "configurations": [
     {
-      "name": "Eisland: Eisland DEV Server",
+      "name": "eIsland: Tauri Dev Server",
       "type": "node",
       "request": "launch",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron-vite",
-      "runtimeArgs": ["dev"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "console": "integratedTerminal",
       "sourceMaps": true,
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "name": "Eisland: Developers TEST",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["test"],
+      "runtimeArgs": [
+        "test"
+      ],
       "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "name": "Eisland: Package",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "package"],
+      "runtimeArgs": [
+        "run",
+        "package"
+      ],
       "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
-      "name": "Eisland: Upload Package Only",
+      "name": "eIsland: Upload Package Only",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "release:upload-only"],
+      "runtimeArgs": [
+        "run",
+        "release:upload-only"
+      ],
       "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "name": "Eisland: Docs DEV Server",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "docs:dev"],
+      "runtimeArgs": [
+        "run",
+        "docs:dev"
+      ],
       "cwd": "${workspaceFolder}/web/eisland-web-docs",
       "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     }
   ]
 }

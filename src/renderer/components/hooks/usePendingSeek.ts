@@ -25,7 +25,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import type { NowPlayingInfo } from '../../../preload/types/media';
+import type { NowPlayingInfo } from '../../../tauri/types/media';
 
 /** 松手后等待播放源确认跳转的最长时间，超时仍未确认视为跳转未生效，回到真实进度 */
 const SEEK_CONFIRM_TIMEOUT_MS = 1000;

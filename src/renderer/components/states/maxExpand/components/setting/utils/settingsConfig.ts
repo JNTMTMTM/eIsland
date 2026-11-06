@@ -538,6 +538,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '通知音效', desc: '通知触发时播放一次提示音。', labelKey: 'settings.notification.sound.title', descKey: 'settings.notification.sound.hint', tab: 'app', appPage: 'notification' },
   { label: 'Agent 启动通知', desc: '检测到桌面 Agent 启动或关闭时弹出灵动岛通知。', labelKey: 'settings.notification.agentNotification.title', descKey: 'settings.notification.agentNotification.hint', tab: 'app', appPage: 'notification' },
   // ── 软件设置 > 截图设置 ──
+  { label: '截图引擎', desc: '插件模式复用 Windows 原生截图插件，支持多显示器；插件不可用时自动回退 JS 模式。', labelKey: 'settings.app.screenshotSettings.engineTitle', descKey: 'settings.app.screenshotSettings.engineHint', tab: 'app', appPage: 'screenshot-settings' },
   { label: '截图翻译语言', desc: '配置截图翻译的源语言和目标语言。', labelKey: 'settings.app.screenshotSettings.translateTitle', descKey: 'settings.app.screenshotSettings.translateHint', tab: 'app', appPage: 'screenshot-settings' },
   { label: '性能设置', desc: '性能相关配置。', labelKey: 'settings.app.performance.title', descKey: 'settings.app.performance.hint', tab: 'app', appPage: 'performance' },
   { label: '启用性能模式', desc: '启用后 MaxExpand 首次进入将延迟加载各页面，降低首次切换卡顿；关闭后使用旧版一次性加载方式。', labelKey: 'settings.app.performance.modeTitle', descKey: 'settings.app.performance.modeHint', tab: 'app', appPage: 'performance' },

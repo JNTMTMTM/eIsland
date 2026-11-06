@@ -26,7 +26,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempDisposableSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempDisposableSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -137,7 +137,7 @@ test('类型感知检查能发现悬空 Promise，声明文件不会因同名源
   const [result] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'vitest.config.mts')}export async function probe(): Promise<void> { Promise.resolve(1); }\n`, { filePath: 'vitest.config.mts' });
   assert.equal(result.fatalErrorCount, 0);
   assert.ok(result.messages.some(({ ruleId }) => ruleId === '@typescript-eslint/no-floating-promises'), JSON.stringify(result.messages));
-  const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'index.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/preload/index.d.ts' });
+  const [declaration] = await typed.lintText(`${HEADER.replace('lint-probe.ts', 'global.d.ts')}export interface Probe { value: string; }\n`, { filePath: 'src/tauri/global.d.ts' });
   assert.equal(declaration.fatalErrorCount, 0);
 });
 
@@ -245,8 +245,42 @@ test('子项目的普通 TypeScript 文件保留 Hook 插件及共享注释检�
   assert.equal(config.rules['project/file-header'][0], 2);
 });
 
+test('仅安装工具 workspace 时，子项目仍能加载完整 React 配置', (context) => {
+  const directory = mkdtempDisposableSync(join(tmpdir(), 'eisland-root-only-lint-'));
+  assert.equal(dirname(directory.path), tmpdir());
+  context.after(() => directory.remove());
+  const nested = join(directory.path, 'web/eisland-web-issue-report');
+  const tools = join(directory.path, 'scripts/lint');
+  mkdirSync(join(nested, 'src'), { recursive: true });
+  mkdirSync(tools, { recursive: true });
+  writeFileSync(join(directory.path, 'package.json'), '{"type":"module"}\n');
+  writeFileSync(join(nested, 'eslint.config.js'), readFileSync(new URL('../../web/eisland-web-issue-report/eslint.config.js', import.meta.url)));
+  const shared = JSON.stringify(new URL('./eslint.config.mjs', import.meta.url).href);
+  writeFileSync(join(tools, 'eslint.config.mjs'), `export * from ${shared}; export { default } from ${shared};\n`);
+  // 只暴露子配置其余已有入口；不提供本机子项目 node_modules 或 hoist 出来的 refresh 插件。
+  ['@eslint/js', 'eslint', 'globals'].forEach((name) => {
+    const target = join(directory.path, 'node_modules', name);
+    mkdirSync(dirname(target), { recursive: true });
+    symlinkSync(dirname(fileURLToPath(import.meta.resolve(`${name}/package.json`))), target, 'junction');
+  });
+  assert.equal(existsSync(join(nested, 'node_modules')), false);
+  assert.equal(existsSync(join(directory.path, 'node_modules/eslint-plugin-react-refresh')), false);
+  const code = `import assert from 'node:assert/strict';
+import { ESLint } from ${JSON.stringify(import.meta.resolve('eslint'))};
+const config = await new ESLint().calculateConfigForFile('web/eisland-web-issue-report/src/App.tsx');
+for (const rule of ['react-refresh/only-export-components', 'react-hooks/rules-of-hooks', 'react/jsx-props-no-spreading', 'jsx-a11y/alt-text', 'project/file-header']) {
+  assert.equal(config.rules[rule][0], 2, rule);
+}
+`;
+  const result = spawnSync(process.execPath, ['--input-type=module', '--eval', code], {
+    cwd: directory.path, encoding: 'utf8', timeout: 30_000,
+  });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
+});
+
 test('Node 和浏览器全局隔离，产物忽略而源码与声明文件纳入检查', async () => {
-  const node = await eslint.calculateConfigForFile('src/main/index.ts');
+  const node = await eslint.calculateConfigForFile('scripts/check-i18n-completeness.ts');
   const browser = await eslint.calculateConfigForFile('src/renderer/App.tsx');
   assert.ok('process' in node.languageOptions.globals);
   assert.ok(!('window' in node.languageOptions.globals));
@@ -254,7 +288,7 @@ test('Node 和浏览器全局隔离，产物忽略而源码与声明文件纳入
   assert.ok(!('process' in browser.languageOptions.globals));
   assert.equal(await eslint.isPathIgnored('out/main/index.js'), true);
   assert.equal(await eslint.isPathIgnored('plugins/example/build/generated.js'), true);
-  assert.equal(await eslint.isPathIgnored('src/preload/index.d.ts'), false);
+  assert.equal(await eslint.isPathIgnored('src/tauri/global.d.ts'), false);
   assert.equal(await eslint.isPathIgnored('plugins/example/index.js'), false);
   assert.equal(await eslint.isPathIgnored('sdk/src/index.ts'), false);
 });

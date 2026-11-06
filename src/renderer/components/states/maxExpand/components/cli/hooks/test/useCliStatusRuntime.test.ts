@@ -25,7 +25,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
-import type { ClaudeCodeStatusSnapshot, ClaudeCodeHookMutationResult } from '../../../../../../../../preload/types/claudeCode';
+import type { ClaudeCodeStatusSnapshot, ClaudeCodeHookMutationResult } from '../../../../../../../../tauri/types/claudeCode';
 import type { CliProvider } from '../../../../../../../store/types';
 const context = vi.hoisted(() => ({
   active: true

@@ -25,6 +25,7 @@
  */
 
 import { useEffect } from 'react';
+import { normalizeUpdateSource } from '../../../../../config/dynamicIslandUpdateSource';
 import { ISLAND_POSITION_LOCKED_STORE_KEY } from '../../../../../../../shared/storeKeys';
 import {
   AUTO_HIDE_FULLSCREEN_WINDOWS_STORE_KEY,
@@ -39,10 +40,8 @@ import {
   ISLAND_BG_VIDEO_VOLUME_STORE_KEY,
   SETTINGS_OPEN_TAB_STORE_KEY,
   STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY,
-  UPDATE_SOURCES,
   normalizeBgMediaConfig,
   resolveBgMediaPreviewUrl,
-  type UpdateSourceKey,
 } from '../config/settingsTabConfig';
 import type { useSettingsAppearance } from './useSettingsAppearance';
 import type { useSettingsBehavior } from './useSettingsBehavior';
@@ -247,7 +246,7 @@ export function useSettingsSyncEffects(options: SettingsSyncEffectsOptions): voi
         setLyricsKaraoke(value);
       }
       if (channel === 'store:update-source' && typeof value === 'string' && value) {
-        const nextSource: UpdateSourceKey = UPDATE_SOURCES.some(s => s.key === value) ? value as UpdateSourceKey : 'cloudflare-r2';
+        const nextSource = normalizeUpdateSource(value);
         setUpdateSource(nextSource);
       }
     });

@@ -1223,6 +1223,33 @@
   overflow: hidden;
 }
 
+.toolbox-tab-container .settings-app-page-dots {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 4px;
+
+}
+
+.toolbox-tab-container .settings-app-page-dot {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  cursor: pointer;
+  background: rgb(var(--color-text-rgb), .3);
+  border: 4px solid transparent;
+  border-radius: 50%;
+  background-clip: padding-box;
+
+}
+
+.toolbox-tab-container .settings-app-page-dot:is(:hover, :focus-visible, .active) {
+  background-color: var(--color-island-text);
+
+}
+
 .settings-app-page-main {
   flex: 1;
   min-width: 0;

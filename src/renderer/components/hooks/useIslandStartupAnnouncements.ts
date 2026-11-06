@@ -38,6 +38,7 @@ import {
 } from '../../api/announcement/announcementApi';
 import { readLocalToken } from '../../utils/userAccount';
 import {
+  DEFAULT_UPDATE_SOURCE,
   UPDATE_SOURCE_STORE_KEY,
   UPDATE_AUTO_PROMPT_STORE_KEY,
   WEATHER_ALERT_ENABLED_STORE_KEY,
@@ -113,7 +114,7 @@ export function useIslandStartupAnnouncements(options: UseIslandStartupAnnouncem
       if (startupAutoCheckHandledRef.current) return;
       startupAutoCheckHandledRef.current = true;
       let finished = false;
-      let startupSource: UpdateSourceKey = 'cloudflare-r2';
+      let startupSource: UpdateSourceKey = DEFAULT_UPDATE_SOURCE;
       let startupResolvedUrl: string | undefined;
       let unsubscribeWeather: (() => void) | undefined;
       let precheckTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -124,7 +125,7 @@ export function useIslandStartupAnnouncements(options: UseIslandStartupAnnouncem
         precheckTimeout = undefined;
         unsubscribeWeather?.();
         finishStartupRef.current = null;
-        if (isProOnlyUpdateSource(startupSource) && !startupResolvedUrl) startupSource = 'cloudflare-r2';
+        if (isProOnlyUpdateSource(startupSource) && !startupResolvedUrl) startupSource = DEFAULT_UPDATE_SOURCE;
         const check = async (): Promise<void> => {
           try {
             await window.api?.updaterCheck(startupSource, startupResolvedUrl);
@@ -161,14 +162,14 @@ export function useIslandStartupAnnouncements(options: UseIslandStartupAnnouncem
 
           if (isProOnlyUpdateSource(startupSource)) {
             if (!token || !isProUser) {
-              startupSource = 'cloudflare-r2';
+              startupSource = DEFAULT_UPDATE_SOURCE;
             } else {
               const resolved = await fetchUpdateSourceUrl(token, startupSource);
               if (finished) return;
               if (resolved.ok && resolved.data?.url) {
                 startupResolvedUrl = resolved.data.url;
               } else {
-                startupSource = 'cloudflare-r2';
+                startupSource = DEFAULT_UPDATE_SOURCE;
               }
             }
           }

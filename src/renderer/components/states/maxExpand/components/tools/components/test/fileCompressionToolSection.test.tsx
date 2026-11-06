@@ -28,7 +28,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushEffects, nodes, render, text, value } from '../../../../test/componentHarness';
 import { FileCompressionToolSection } from '../FileCompressionToolSection';
 import { fire } from './toolTestEvents';
-import type { ImageCompressionStartPayload, ImageCompressionStartResult, ImageCompressionTask as CompressionTask } from '../../../../../../../../preload/types';
+import type { ImageCompressionStartPayload, ImageCompressionStartResult, ImageCompressionTask as CompressionTask } from '../../../../../../../../tauri/types';
 
 const mocks = vi.hoisted(() => ({
   pick: vi.fn<() => Promise<string[]>>(),

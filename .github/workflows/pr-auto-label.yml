@@ -38,7 +38,7 @@ jobs:
             const labelsToApply = new Set();
 
             if (hasMatch([/^src\/renderer\//])) labelsToApply.add('frontend');
-            if (hasMatch([/^src\/main\//, /^src\/preload\//])) labelsToApply.add('electron-core');
+            if (hasMatch([/^src-tauri\//, /^src\/tauri\//, /^scripts\/native\//, /^plugins\//, /^src\/renderer\/tauri-bootstrap\.ts$/])) labelsToApply.add('tauri-core');
             if (hasMatch([/^\.github\/workflows\//, /^scripts\//])) labelsToApply.add('ci');
             if (hasMatch([/\.md$/i, /^README\.md$/i, /^\.github\/CONTRIBUTING\.md$/i])) labelsToApply.add('documentation');
             if (hasMatch([/\.(png|jpg|jpeg|gif|svg|webp|ico)$/i, /^assets\//])) labelsToApply.add('assets');
@@ -50,7 +50,7 @@ jobs:
 
             const colorMap = {
               frontend: '1f6feb',
-              'electron-core': '0e8a16',
+              'tauri-core': '0e8a16',
               ci: '5319e7',
               documentation: '0075ca',
               assets: 'fbca04',

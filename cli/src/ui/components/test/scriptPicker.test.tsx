@@ -54,7 +54,7 @@ describe('ScriptPicker', () => {
   it('展示脚本说明、危险标记与操作提示', () => {
     const { lastFrame, unmount } = render(<ScriptPicker entries={entries} onSubmit={vi.fn()} />);
     const frame = lastFrame() ?? '';
-    expect(frame).toContain('Run main process unit and integration tests');
+    expect(frame).toContain('Test the native Rust application services');
     expect(frame).toContain('[dangerous]');
     expect(frame).toContain('Esc back');
     unmount();

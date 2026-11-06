@@ -39,13 +39,14 @@ import a11y from 'eslint-plugin-jsx-a11y';
 import promise from 'eslint-plugin-promise';
 import react from 'eslint-plugin-react';
 import hooks from 'eslint-plugin-react-hooks';
+import refresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import project from './project-rules.mjs';
 
 // 子项目复用相同的插件实例，避免分别安装的依赖重复注册同名插件。
-export { hooks as reactHooksPlugin };
+export { hooks as reactHooksPlugin, refresh as reactRefreshPlugin };
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const CODE = ['**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'];
@@ -57,7 +58,6 @@ export default defineConfig([
     ignores: [
       '**/node_modules/**', '**/dist/**', '**/out/**', '**/build/**', '**/coverage/**',
       '**/.git/**', '**/.codegraph/**', '**/.temp/**', '**/.cache/**', '**/.next/**',
-      'e2e/playwright-report/**', 'e2e/test-results/**',
       '.agents/**', '.claude/**', '.cursor/**', '.gemini/**', '.kiro/**',
       'resources/qishui-auth-v6/bdms.js', 'resources/qishui-auth-v6/react.js',
       'resources/qishui-auth-v6/react-dom.js',
@@ -179,7 +179,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['*.{js,mjs,cjs,ts}', 'scripts/**', 'test/**', 'e2e/**', 'src/main/**', 'src/preload/**', 'plugins/**', 'sdk/**', 'web/**'],
+    files: ['*.{js,mjs,cjs,ts}', 'scripts/**', 'test/**', 'plugins/**', 'sdk/**', 'web/**'],
     languageOptions: { globals: globals.node },
   },
   {

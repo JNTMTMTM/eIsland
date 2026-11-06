@@ -35,7 +35,7 @@ import {
   windowLabel,
 } from '../../../AgentUsageTab/utils/agentUsageUtils';
 import type { Translate } from '../../../AgentUsageTab/types/agentUsageTypes';
-import type { AgentUsageProviderId, AgentUsageProviderSnapshot, AgentUsageRateLimitWindow, AgentUsageSnapshot } from '../../../../../../../../preload/types/agentUsage';
+import type { AgentUsageProviderId, AgentUsageProviderSnapshot, AgentUsageRateLimitWindow, AgentUsageSnapshot } from '../../../../../../../../tauri/types/agentUsage';
 
 /** 与 Agent 用量页保持相同刷新节奏。 */
 const REFRESH_INTERVAL_MS = 60_000;

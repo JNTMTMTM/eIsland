@@ -494,10 +494,12 @@ export function useAlbumItems(): UseAlbumItemsReturn {
     event.target.value = '';
   }, [handleAddFiles]);
 
-  /** 触发文件选择器 */
+  /** 通过原生对话框选择文件，保留操作系统提供的真实路径。 */
   const handlePickFiles = useCallback((): void => {
-    fileInputRef.current?.click();
-  }, []);
+    const select = async (): Promise<void> => { handleAddFiles(await window.api.selectFiles()); };
+    // eslint-disable-next-line promise/prefer-await-to-then -- React 点击处理器同步返回，原生对话框异步完成。
+    select().catch(console.error);
+  }, [handleAddFiles]);
 
   return {
     items,

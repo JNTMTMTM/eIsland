@@ -40,7 +40,7 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); });
 describe('GithubStep', () => {
-  it('opens repository URLs through Electron and suppresses native anchor navigation', () => {
+  it('opens repository URLs through the native API and suppresses native anchor navigation', () => {
     const onNext = vi.fn();
     const onPrev = vi.fn();
     const tree = GithubStep({ onNext, onPrev });

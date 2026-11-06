@@ -29,7 +29,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { ActivityHeatmap } from '../ActivityHeatmap';
 import { EventRow } from '../EventRow';
-import type { ClaudeCodeHookEvent as CliHookEvent } from '../../../../../../../../preload/types/claudeCode';
+import type { ClaudeCodeHookEvent as CliHookEvent } from '../../../../../../../../tauri/types/claudeCode';
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 

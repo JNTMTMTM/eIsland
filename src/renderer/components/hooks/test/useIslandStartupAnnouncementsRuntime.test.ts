@@ -102,7 +102,7 @@ function token(role: string): string {
     role
   })).toString('base64url')}.signature`;
 }
-/** 创建 Electron 桥接叶实现。
+/** 创建原生 API 测试边界。
  * @returns 注册回调、存储及更新接口
  */
 function bridge() {
@@ -225,12 +225,17 @@ describe('useIslandStartupAnnouncements runtime', () => {
     await triggerStartup();
     startup?.();
     await settleHook();
-    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('esa-cdn', undefined);
     const [unsubscribeStartup] = api.onUpdaterStartupAutoCheckRequest.mock.results;
     const [unsubscribeUnavailable] = api.onUpdaterNotAvailable.mock.results;
     unmountHook();
     expect(unsubscribeStartup.value).toHaveBeenCalledTimes(1);
     expect(unsubscribeUnavailable.value).toHaveBeenCalledTimes(1);
+  });
+  it('preserves an explicitly selected public R2 source', async () => {
+    store['update-source'] = 'cloudflare-r2';
+    await triggerStartup();
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
   });
   it('disabled auto prompt exits before token/source/weather or update reads', async () => {
     store['update-auto-prompt-enabled'] = false;
@@ -243,7 +248,7 @@ describe('useIslandStartupAnnouncements runtime', () => {
     api.storeRead.mockRejectedValue(new Error('read'));
     api.updaterCheck.mockRejectedValue(new Error('offline'));
     await triggerStartup();
-    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('esa-cdn', undefined);
     expect(api.storeRead).toHaveBeenCalledTimes(3);
   });
   it.each([null, 'basic'] as const)('falls back from pro source for token role %s', async (role) => {
@@ -252,7 +257,7 @@ describe('useIslandStartupAnnouncements runtime', () => {
     await triggerStartup();
     expect(leaves.source).not.toHaveBeenCalled();
     expect(leaves.weather).not.toHaveBeenCalled();
-    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('esa-cdn', undefined);
   });
   it('resolves a pro source and proceeds when there is no weather alert', async () => {
     const pro = token('pro');
@@ -284,7 +289,7 @@ describe('useIslandStartupAnnouncements runtime', () => {
     store['update-source'] = 'tencent-cos';
     leaves.source.mockResolvedValue(response);
     await triggerStartup();
-    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('esa-cdn', undefined);
   });
   it('disabled weather keeps a resolved pro updater URL and bypasses weather', async () => {
     leaves.token.mockReturnValue(token('pro'));
@@ -318,7 +323,7 @@ describe('useIslandStartupAnnouncements runtime', () => {
     await triggerStartup();
     expect(api.updaterCheck).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(30_000);
-    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('esa-cdn', undefined);
     const value = stage === 'weather' ? payload() : { ok: true, data: { url: 'https://late.example' } };
     resolve(value as never);
     await settleHook();
@@ -333,7 +338,7 @@ describe('useIslandStartupAnnouncements runtime', () => {
     store['update-source'] = 'tencent-cos';
     leaves.source.mockRejectedValueOnce(new Error('source unavailable'));
     await triggerStartup();
-    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('cloudflare-r2', undefined);
+    expect(api.updaterCheck).toHaveBeenCalledExactlyOnceWith('esa-cdn', undefined);
   });
 
   it('continues if UI locking prevents the weather notification from being displayed', async () => {
@@ -401,7 +406,7 @@ describe('useIslandStartupAnnouncements runtime', () => {
       icon: 'weather.svg',
       type: 'weather-alert-startup',
       weatherAlertTime: '2026-10-06',
-      startupUpdateSource: 'cloudflare-r2',
+      startupUpdateSource: 'esa-cdn',
       startupUpdateResolvedUrl: undefined
     });
     expect(options.t).toHaveBeenCalledWith(body, expect.objectContaining({
@@ -521,7 +526,7 @@ describe('useIslandStartupAnnouncements runtime', () => {
     startup?.();
     unavailable?.();
     await settleHook();
-    expect(api.updaterCheck).toHaveBeenCalledWith('cloudflare-r2', undefined);
+    expect(api.updaterCheck).toHaveBeenCalledWith('esa-cdn', undefined);
     expect(options.setAnnouncement).toHaveBeenCalledTimes(1);
     expect(leaves.write).not.toHaveBeenCalled();
   });

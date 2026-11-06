@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { NowPlayingInfo } from '../../../../../../preload/types/media';
+import type { NowPlayingInfo } from '../../../../../../tauri/types/media';
 import type { SmtcMediaMeta } from '../types';
 import { extractDominantColor } from '../utils/smtcUtils';
 import { runtime, dominantColorCache, notify } from './smtcStore';

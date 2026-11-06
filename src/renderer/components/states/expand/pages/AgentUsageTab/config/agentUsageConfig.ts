@@ -25,7 +25,7 @@
  */
 
 import { AgentIcon } from '../../../../../../utils/SvgIcon';
-import type { AgentUsageProviderId, AgentUsageTokens } from '../../../../../../../preload/types/agentUsage';
+import type { AgentUsageProviderId, AgentUsageTokens } from '../../../../../../../tauri/types/agentUsage';
 
 export const REFRESH_INTERVAL_MS = 60_000;
 export const START_FETCH_DELAY_MS = 200;

@@ -50,8 +50,12 @@ test('Windows root Vitest projects discover every source and plugin test exactly
   const workflow = readFileSync(resolve(root, '.github/workflows/test.yml'), 'utf8');
   const matrix = workflow.match(/project:.*\|\| '(\[[^'\r\n]*\])'/u);
   assert.ok(matrix, 'No default CI project matrix found');
+  const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
+  const matrixProjects = JSON.parse(matrix[1]);
   const ciProjects = new Set([
-    ...JSON.parse(matrix[1]),
+    ...matrixProjects,
+    ...matrixProjects.flatMap((name) => Array.from((packageJson.scripts[`test:${name}`] ?? '')
+      .matchAll(/--project ([\w-]+)/gu), (match) => match[1])),
     ...Array.from(workflow.matchAll(/PROJECT_ARGS\+=\(--project ([\w-]+)\)/gu), (match) => match[1]),
   ]);
   const untestedProjects = Array.from(new Set(entries.map(({ projectName }) => projectName)))

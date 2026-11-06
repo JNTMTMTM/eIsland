@@ -543,7 +543,7 @@ describe('fetchLyricsFromSodaMusic', () => {
     expect(await fetchLyricsFromSodaMusic('t', 'a')).toBeNull();
   });
 
-  it('requests lyrics through preload API and calls parseKrc', async () => {
+  it('requests lyrics through the native API and calls parseKrc', async () => {
     const krcLines = okLines('soda-line');
     mockSearchWithScoring.mockResolvedValue({ id: '42', title: 't', artists: ['a'] });
     mockQishuiLyrics.mockResolvedValueOnce({ lyric: 'krc-data', tlyric: '' });

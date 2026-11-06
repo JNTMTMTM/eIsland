@@ -1,65 +1,87 @@
-name: Electron E2E
+name: Tauri Desktop E2E
 
 on:
   pull_request:
     paths:
       - 'src/**'
+      - 'src-tauri/**'
+      - 'scripts/native/**'
+      - 'scripts/test/**'
       - 'i18n/**'
       - 'resources/**'
       - 'plugins/**'
-      - 'e2e/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'electron.vite.config.ts'
-      - 'tsconfig*.json'
+      - 'package*.json'
+      - 'vite.config.ts'
       - '.github/workflows/e2e.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: tauri-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   desktop:
-    name: E2E (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        # node-gyp 11 requires VS2022; windows-latest now selects VS2026.
-        os: [windows-2022, macos-latest]
+    name: Tauri / WebView2 (Windows x64)
+    runs-on: windows-2022
+    timeout-minutes: 40
+    env:
+      TAURI_CONFIG: '{"identifier":"com.pyisland.eisland.ci"}'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: '24.22.1'
           cache: npm
-      # 本地 Windows 插件声明 os/cpu 限制，macOS 测试构建使用替身；不执行原生安装脚本。
-      - name: Install dependencies
-        run: npm ci --ignore-scripts --force
-      - name: Install Electron binary
-        run: node node_modules/electron/install.js
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
       - uses: actions/setup-dotnet@v6
-        if: runner.os == 'Windows'
         with:
           dotnet-version: '10.0.x'
-      - name: Typecheck E2E
-        run: npm run typecheck:e2e
-      - name: Test process termination safety
-        if: runner.os == 'Windows'
-        run: npm run plugin:build:processes && npm --prefix plugins/windows/eisland-windows-processes-attacker run test:native
-      - name: Run E2E
-        if: runner.os != 'Windows'
+      - name: Install build dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Prepare isolated temporary updater signing identity
+        run: node scripts/native/test-signing.mjs prepare
+      - name: Prepare WebView2
+        shell: pwsh
+        run: |
+          $runtime = Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\*', 'HKCU:\Software\Microsoft\EdgeUpdate\Clients\*' -ErrorAction SilentlyContinue | Where-Object { $_.name -like '*WebView2*' -and $_.pv -and $_.pv -ne '0.0.0.0' }
+          if (-not $runtime) {
+            $bootstrapper = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebview2Setup.exe'
+            Invoke-WebRequest 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $bootstrapper
+            $install = Start-Process -FilePath $bootstrapper -ArgumentList '/silent', '/install' -WindowStyle Hidden -Wait -PassThru
+            if ($install.ExitCode -ne 0) { throw "WebView2 install failed: $($install.ExitCode)" }
+          }
+          Get-ChildItem "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe" -ErrorAction SilentlyContinue | ForEach-Object { $_.VersionInfo | Select-Object FileName, ProductVersion }
+      - name: Prepare native FFmpeg binary
+        run: node node_modules/ffmpeg-static/install.js
+      - name: Publish native plugin resources
+        run: npm run plugins:build
+      - name: Test native Tauri API and Cargo unit/integration tests
+        run: npm run test:api && npm run test:rust
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+      - name: Check Rust services
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Build embedded Tauri test application
+        run: npx tauri build --debug --no-bundle --config $env:TAURI_CONFIG
+      - name: Run real WebView2 desktop tests
         run: npm run test:e2e
-      - name: Run Windows E2E with native helpers
-        if: runner.os == 'Windows'
-        run: npm run test:e2e:windows
+        env:
+          EISLAND_SMOKE_BINARY: ${{ github.workspace }}/src-tauri/target/debug/eisland.exe
+      - name: Remove temporary test signing identity
+        if: always()
+        run: node scripts/native/test-signing.mjs cleanup
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-${{ matrix.os }}
-          path: |
-            e2e/playwright-report/
-            e2e/test-results/
+          name: tauri-e2e-windows-x64
+          path: src-tauri/target/smoke/
           if-no-files-found: ignore

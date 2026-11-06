@@ -26,6 +26,9 @@
 
 export type UpdateSourceKey = 'cloudflare-r2' | 'esa-cdn' | 'tencent-cos' | 'aliyun-oss' | 'github';
 
+/** 默认使用与 COS/OSS 发布链路一致的 ESA 公共分发源。 */
+export const DEFAULT_UPDATE_SOURCE: UpdateSourceKey = 'esa-cdn';
+
 const PRO_UPDATE_SOURCE_SET: ReadonlySet<UpdateSourceKey> = new Set<UpdateSourceKey>(['tencent-cos', 'aliyun-oss']);
 
 /**
@@ -38,7 +41,8 @@ export function normalizeUpdateSource(value: unknown): UpdateSourceKey {
   if (value === 'tencent-cos') return 'tencent-cos';
   if (value === 'aliyun-oss') return 'aliyun-oss';
   if (value === 'esa-cdn') return 'esa-cdn';
-  return 'cloudflare-r2';
+  if (value === 'cloudflare-r2') return 'cloudflare-r2';
+  return DEFAULT_UPDATE_SOURCE;
 }
 
 /**
@@ -69,15 +73,19 @@ export const getRoleFromToken = (token: string | null | undefined): string | nul
   }
 };
 
+const UPDATE_SOURCE_LABELS: Record<UpdateSourceKey, string> = {
+  github: 'GitHub Releases',
+  'tencent-cos': 'Tencent COS',
+  'aliyun-oss': 'Aliyun OSS',
+  'esa-cdn': 'ESA CDN',
+  'cloudflare-r2': 'Cloudflare R2',
+};
+
 /**
  * @description 获取更新源显示标签。
  * @param value - 更新源键值。
  * @returns 更新源展示标签文本。
  */
 export function getUpdateSourceLabel(value: unknown): string {
-  if (value === 'github') return 'GitHub Releases';
-  if (value === 'tencent-cos') return 'Tencent COS';
-  if (value === 'aliyun-oss') return 'Aliyun OSS';
-  if (value === 'esa-cdn') return 'ESA CDN';
-  return 'Cloudflare R2';
+  return UPDATE_SOURCE_LABELS[normalizeUpdateSource(value)];
 }

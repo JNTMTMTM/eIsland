@@ -25,7 +25,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { byClass, elements, find, invoke, text } from '../../../../../test/tree';
 import { createHookReactMock, deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from '../../../../../../hooks/test/startupHookHarness';
-import type { NetFetchOptions, NetFetchResult } from '../../../../../../../../preload/types';
+import type { NetFetchOptions, NetFetchResult } from '../../../../../../../../tauri/types';
 let Component: typeof import('../MarkdownSiteLink').MarkdownSiteLink;
 const fetch = vi.fn<(url: string, options?: NetFetchOptions) => Promise<NetFetchResult>>();
 const open = vi.fn<(url: string) => Promise<void>>();

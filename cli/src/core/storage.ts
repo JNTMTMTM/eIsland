@@ -27,7 +27,7 @@
  */
 
 import {
-  existsSync, readdirSync, readFileSync, rmSync, statSync,
+  readdirSync, readFileSync, rmSync, statSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
@@ -53,7 +53,7 @@ export interface StoreLocation {
   platform: NodeJS.Platform;
   env: NodeJS.ProcessEnv;
   home: string;
-  /** 判断目录是否存在，默认 existsSync */
+  /** 判断目录是否存在，默认读取目录元信息 */
   exists?: (dir: string) => boolean;
 }
 
@@ -68,11 +68,12 @@ export interface StoreSnapshot {
 }
 
 /**
- * userData 目录名候选：Electron 优先使用 productName。打包版由 electron-builder 写入 eIsland，
- * 开发运行时只有 package.json 的 name，即 eisland；大小写敏感的文件系统上二者是不同目录。
+ * 旧业务数据目录候选；保留大小写敏感文件系统上的历史目录兼容。
  */
 export const APP_DIR_NAMES: readonly string[] = ['eIsland', 'eisland'];
-/** 应用存储子目录，与 storeConfig.ts 的 getStoreDir 一致 */
+/** 原生宿主的应用标识。 */
+const NATIVE_APP_DIR_NAME = 'com.pyisland.eisland';
+/** 业务存储子目录，与原生 data_directory.rs 一致。 */
 export const STORE_DIR_NAME = 'eIsland_store';
 /** 遮蔽后显示的占位文本 */
 export const MASK = '******';
@@ -93,20 +94,27 @@ const READ_ATTEMPTS = 3;
 const READ_RETRY_MS = 30;
 
 /**
- * 按 Electron app.getPath('userData') 的规则定位应用存储目录
- * @param location - 运行平台、环境变量、用户主目录与目录存在判断，默认取当前进程的平台、环境变量、homedir() 与 existsSync
- * @returns 已存在的候选存储目录；都不存在时返回打包版的目录
+ * 按原生宿主的目录优先级定位业务存储，显式环境覆盖优先。
+ * @param location - 运行平台、环境变量、用户主目录与目录存在判断
+ * @returns 现有原生目录、现有旧业务目录或新用户的原生默认目录
  */
 export function resolveStoreDir(location: StoreLocation = { platform: process.platform, env: process.env, home: homedir() }): string {
   const {
-    platform, env, home, exists = existsSync,
+    platform, env, home, exists = (dir: string): boolean => {
+      try { return statSync(dir).isDirectory(); } catch { return false; }
+    },
   } = location;
+  if (env.EISLAND_DATA_DIR !== undefined) return env.EISLAND_DATA_DIR;
   const bases: Partial<Record<NodeJS.Platform, string>> = {
     win32: env.APPDATA ?? path.join(home, 'AppData', 'Roaming'),
     darwin: path.join(home, 'Library', 'Application Support'),
   };
-  const base = bases[platform] ?? env.XDG_CONFIG_HOME ?? path.join(home, '.config');
-  const dirs = APP_DIR_NAMES.map((name) => path.join(base, name, STORE_DIR_NAME));
+  const config = bases[platform] ?? env.XDG_CONFIG_HOME ?? path.join(home, '.config');
+  const data = bases[platform] ?? env.XDG_DATA_HOME ?? path.join(home, '.local', 'share');
+  const dirs = [
+    path.join(data, NATIVE_APP_DIR_NAME, STORE_DIR_NAME),
+    ...APP_DIR_NAMES.map((name) => path.join(config, name, STORE_DIR_NAME)),
+  ];
   return dirs.find((dir) => exists(dir)) ?? dirs[0];
 }
 

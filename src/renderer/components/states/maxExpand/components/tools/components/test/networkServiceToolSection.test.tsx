@@ -51,7 +51,7 @@ describe('NetworkServiceToolSection', () => {
   it.each([
     { body: '{"ip":"127.0.0.1","latitude":0,"longitude":0}', label: '顶层响应' },
     { body: '{"code":200,"data":{"ip":"127.0.0.1","latitude":0,"longitude":0}}', label: '嵌套响应' },
-  ])('$label保留零经纬度，缺失字段使用占位符', async ({ body }) => {
+  ])('$label 保留零经纬度，缺失字段使用占位符', async ({ body }) => {
     netFetch.mockResolvedValue({ body, ok: true, status: 200 });
     fire(render(NetworkServiceToolSection), 'input', 'onChange', 0, { target: { value: ' 127.0.0.1 ' } });
     await fireAsync(render(NetworkServiceToolSection), 'button', 'onClick');
@@ -69,6 +69,7 @@ describe('NetworkServiceToolSection', () => {
     { response: { ok: true, status: 200, body: '  <html>error</html>' }, error: 'ipinfo.nonJson' },
     { response: { ok: true, status: 200, body: '{' }, error: 'ipinfo.failed' },
     { response: { ok: true, status: 200, body: '{}' }, error: 'ipinfo.failed' },
+    { response: { ok: true, status: 200, body: '{"code":200,"data":{"latitude":0,"longitude":0}}' }, error: 'ipinfo.failed' },
     { response: { ok: true, status: 200, body: '{"code":500,"msg":"API error","data":{}}' }, error: 'API error' },
     { response: { ok: true, status: 200, body: '{"code":500,"message":"fallback message","data":{}}' }, error: 'fallback message' },
   ])('无效响应 $error清除结果并提供错误信息', async ({ response, error }) => {
@@ -100,5 +101,18 @@ describe('NetworkServiceToolSection', () => {
     expect(netFetch).not.toHaveBeenCalled();
     fire(render(NetworkServiceToolSection), 'input', 'onKeyDown', 0, { key: 'Enter' });
     await vi.waitFor(() => { expect(nodes(render(NetworkServiceToolSection), '.ipinfo-result-card')).toHaveLength(1); });
+  });
+
+  it('完整网络响应保留地区、运营商、ASN与IP范围', async () => {
+    netFetch.mockResolvedValue({ ok: true, status: 200, body: JSON.stringify({ data: {
+      ip: '192.0.2.1', asn: 'AS64500', region: 'Example region', isp: 'Example ISP', llc: 'Example company',
+      beginip: '192.0.2.0', endip: '192.0.2.255', latitude: 30, longitude: 120,
+    } }) });
+    fire(render(NetworkServiceToolSection), 'input', 'onChange', 0, { target: { value: '192.0.2.1' } });
+    await fireAsync(render(NetworkServiceToolSection), 'button', 'onClick');
+    const tree = render(NetworkServiceToolSection);
+    expect(value(tree, '.ipinfo-result-badge', 'children')).toBe('AS64500');
+    expect(text(tree)).toContain('192.0.2.0 ~ 192.0.2.255');
+    expect(text(tree)).toContain('Example ISP');
   });
 });

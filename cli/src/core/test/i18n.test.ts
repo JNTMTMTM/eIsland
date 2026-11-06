@@ -63,6 +63,20 @@ describe('翻译资源', () => {
     expect(Object.keys(rootPackage.scripts).filter((name) => !described.includes(name))).toEqual([]);
   });
 
+  it.each(Object.entries(locales))('%s 区分完整原生发布、已有产物上传和 MinIO 上传', (locale, data) => {
+    expect(data.scripts.package).toContain('Tauri');
+    (['release', 'release:upload', 'release:upload-only'] as const).forEach((name) => {
+      expect(data.scripts[name]).toContain('Tauri');
+      expect(data.scripts[name]).toContain('AWS');
+      expect(data.scripts[name]).toContain('ESA');
+      expect(data.scripts[name]).not.toMatch(/弃用|棄用|Deprecated|非推奨/);
+    });
+    expect(data.scripts['release:upload-minio']).toContain('MinIO');
+    expect(data.scripts['release:upload-minio']).toContain('ESA');
+    expect(data.scripts['release:upload-minio']).not.toContain('AWS');
+    expect(data.scripts['release:upload-minio']).not.toMatch(/弃用|棄用|Deprecated|非推奨/);
+  });
+
   it('按语言返回脚本说明与插值文案', async () => {
     await initI18n('zh-CN');
     expect(describeScript('test:main')).toBe(zhCN.scripts['test:main']);

@@ -49,11 +49,23 @@ export type ResolveResult =
   | { kind: 'unknown'; suggestions: string[] };
 
 // 上传发布包与清理 CDN 缓存均作用于线上环境，且无法撤销。
-const DANGEROUS_PATTERN = /^(?:release:upload|esa:purge)/;
+const DANGEROUS_PATTERN = /^(?:release$|release:upload(?:$|[-:])|esa:purge)/;
 const LIFECYCLE_SCRIPTS = new Set([
   'preinstall', 'install', 'postinstall', 'prepare', 'prepublish', 'prepublishOnly', 'prepack', 'postpack',
 ]);
 const MAX_SUGGESTIONS = 3;
+
+/**
+ * 查找 npm 自动执行的自定义 pre/post 生命周期对应的基脚本。
+ * @param name - 当前脚本名
+ * @param scripts - package.json 声明的脚本
+ * @returns 已声明的基脚本名；普通命令返回 null
+ */
+function lifecycleTarget(name: string, scripts: Record<string, string>): string | null {
+  const prefix = ['pre', 'post'].find((candidate) => name.startsWith(candidate));
+  const target = prefix ? name.slice(prefix.length) : '';
+  return target && Object.hasOwn(scripts, target) ? target : null;
+}
 
 /**
  * 读取仓库根目录 package.json 中的全部脚本
@@ -62,12 +74,13 @@ const MAX_SUGGESTIONS = 3;
  */
 export function loadScripts(root: string): ScriptEntry[] {
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { scripts?: Record<string, string> };
-  return Object.entries(pkg.scripts ?? {}).map(([name, command]) => ({
+  const scripts = pkg.scripts ?? {};
+  return Object.entries(scripts).map(([name, command]) => ({
     name,
     command,
     group: name.split(':')[0],
-    dangerous: DANGEROUS_PATTERN.test(name),
-    hidden: LIFECYCLE_SCRIPTS.has(name),
+    dangerous: DANGEROUS_PATTERN.test(lifecycleTarget(name, scripts) ?? name),
+    hidden: LIFECYCLE_SCRIPTS.has(name) || lifecycleTarget(name, scripts) !== null,
   }));
 }
 

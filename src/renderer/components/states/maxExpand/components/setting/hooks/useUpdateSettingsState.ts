@@ -25,7 +25,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import type { TFunction } from 'i18next';
+import { DEFAULT_UPDATE_SOURCE, normalizeUpdateSource } from '../../../../../config/dynamicIslandUpdateSource';
 import { fetchUpdateSourceUrl } from '../../../../../../api/user/userAccountApi';
 import {
   readAnnouncementShowMode,
@@ -41,6 +41,37 @@ import {
   type UpdateSourceKey,
   type UpdateStatus,
 } from '../config/settingsTabConfig';
+import type { TFunction } from 'i18next';
+
+const UPDATE_ERROR_KEYS = new Map<string, string>([
+  ['NATIVE_UPDATE_SIGNING_KEY_NOT_CONFIGURED', 'settings.update.errors.signingUnavailable'],
+  ['NATIVE_UPDATE_NETWORK_FAILED', 'settings.update.errors.networkFailed'],
+  ['NATIVE_UPDATE_VERIFICATION_FAILED', 'settings.update.errors.verificationFailed'],
+  ['NATIVE_UPDATE_MANIFEST_INVALID', 'settings.update.errors.manifestInvalid'],
+  ['NATIVE_UPDATE_URL_CREDENTIALS_NOT_ALLOWED', 'settings.update.errors.manifestInvalid'],
+  ['NATIVE_UPDATE_REQUIRES_HTTPS', 'settings.update.errors.manifestInvalid'],
+  ['NATIVE_UPDATE_INSTALLER_NAME_INVALID', 'settings.update.errors.manifestInvalid'],
+  ['NATIVE_UPDATE_URL_INVALID', 'settings.update.errors.manifestInvalid'],
+  ['NATIVE_UPDATE_SIGNED_DIRECTORY_URL_UNSUPPORTED', 'settings.update.errors.manifestInvalid'],
+  ['ELECTRON_UPDATE_MANIFEST_REJECTED: configure the native JSON feed', 'settings.update.errors.manifestInvalid'],
+  ['PRO update source requires a server-issued URL', 'settings.update.errors.manifestInvalid'],
+  ['NATIVE_UPDATE_PLATFORM_UNSUPPORTED', 'settings.update.errors.platformUnsupported'],
+  ['NATIVE_UPDATE_OPERATION_FAILED', 'settings.update.errors.operationFailed'],
+]);
+
+/**
+ * 本地化原生更新错误码，保留旧业务错误内容与操作上下文。
+ * @param t - 当前语言翻译函数。
+ * @param error - 原生错误码或旧业务异常。
+ * @param fallbackKey - 未识别错误的操作上下文翻译键。
+ * @returns 用户可读的更新失败原因。
+ */
+function updateErrorMessage(t: TFunction, error: unknown, fallbackKey?: string): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const key = UPDATE_ERROR_KEYS.get(message.trim());
+  if (key) return t(key);
+  return fallbackKey ? t(fallbackKey, { error: message }) : message;
+}
 
 interface UseUpdateSettingsStateArgs {
   t: TFunction;
@@ -63,21 +94,13 @@ export default function useUpdateSettingsState({ t, isProUser, sessionToken }: U
   const [downloadProgress, setDownloadProgress] = useState<UpdateDownloadProgress | null>(null);
   const [updateAutoPromptEnabled, setUpdateAutoPromptEnabled] = useState<boolean>(true);
   const [announcementShowMode, setAnnouncementShowMode] = useState<AnnouncementShowMode>('version-update-only');
-  const [updateSource, setUpdateSource] = useState<UpdateSourceKey>('esa-cdn');
+  const [updateSource, setUpdateSource] = useState<UpdateSourceKey>(DEFAULT_UPDATE_SOURCE);
   const [guideResetStatus, setGuideResetStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const currentSourceLabel = UPDATE_SOURCES.find((s) => s.key === updateSource)?.label ?? updateSource;
 
   const handleUpdateSourceChange = (value: string): void => {
-    const nextSource: UpdateSourceKey = value === 'github'
-      ? 'github'
-      : value === 'tencent-cos'
-        ? 'tencent-cos'
-        : value === 'aliyun-oss'
-          ? 'aliyun-oss'
-          : value === 'esa-cdn'
-            ? 'esa-cdn'
-            : 'cloudflare-r2';
+    const nextSource = normalizeUpdateSource(value);
 
     if (isProOnlyUpdateSource(nextSource) && !isProUser) {
       setUpdateStatus('error');
@@ -93,8 +116,8 @@ export default function useUpdateSettingsState({ t, isProUser, sessionToken }: U
   useEffect(() => {
     if (isProUser) return;
     if (!isProOnlyUpdateSource(updateSource)) return;
-    setUpdateSource('cloudflare-r2');
-    window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, 'cloudflare-r2').catch(() => {});
+    setUpdateSource(DEFAULT_UPDATE_SOURCE);
+    window.api.storeWrite(UPDATE_SOURCE_STORE_KEY, DEFAULT_UPDATE_SOURCE).catch(() => {});
   }, [isProUser, updateSource]);
 
   const resolveUpdateSourceUrl = async (source: UpdateSourceKey): Promise<string | undefined> => {
@@ -129,7 +152,7 @@ export default function useUpdateSettingsState({ t, isProUser, sessionToken }: U
     let cancelled = false;
     window.api.storeRead(UPDATE_SOURCE_STORE_KEY).then((value) => {
       if (cancelled) return;
-      setUpdateSource(UPDATE_SOURCES.some(s => s.key === value) ? value as UpdateSourceKey : 'cloudflare-r2');
+      setUpdateSource(normalizeUpdateSource(value));
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -182,7 +205,7 @@ export default function useUpdateSettingsState({ t, isProUser, sessionToken }: U
       const result = await window.api.updaterCheck(updateSource, resolvedUrl);
       if (result.error) {
         setUpdateStatus('error');
-        setUpdateError(result.error);
+        setUpdateError(updateErrorMessage(t, result.error));
       } else if (result.available && result.version) {
         setUpdateStatus('available');
         setUpdateVersion(result.version);
@@ -191,7 +214,7 @@ export default function useUpdateSettingsState({ t, isProUser, sessionToken }: U
       }
     } catch (err) {
       setUpdateStatus('error');
-      setUpdateError(`检查更新失败: ${err instanceof Error ? err.message : String(err)}`);
+      setUpdateError(updateErrorMessage(t, err, 'settings.update.checkFailedMessage'));
     }
   };
 
@@ -205,16 +228,19 @@ export default function useUpdateSettingsState({ t, isProUser, sessionToken }: U
         setUpdateStatus('ready');
       } else {
         setUpdateStatus('error');
-        setUpdateError('下载失败，请稍后重试');
+        setUpdateError(t('settings.update.downloadFailed'));
       }
     } catch (err) {
       setUpdateStatus('error');
-      setUpdateError(`下载失败: ${err instanceof Error ? err.message : String(err)}`);
+      setUpdateError(updateErrorMessage(t, err, 'settings.update.downloadFailedMessage'));
     }
   };
 
   const handleInstallUpdate = (): void => {
-    window.api.updaterInstall().catch(() => {});
+    window.api.updaterInstall().catch((error: unknown) => {
+      setUpdateStatus('error');
+      setUpdateError(updateErrorMessage(t, error, 'settings.update.installFailedMessage'));
+    });
   };
 
   const handleResetGuide = async (): Promise<void> => {

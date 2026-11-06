@@ -86,6 +86,23 @@ describe('runCli', () => {
     expect(errors.join('\n')).toContain('--yes');
   });
 
+  it.each(['release', 'release:upload', 'release:upload-only', 'release:upload-minio'])('%s 在非交互终端要求确认标记', async (name) => {
+    expect(await cli('run', name)).toBe(1);
+    expect(runMock).not.toHaveBeenCalled();
+    expect(errors.join('\n')).toContain('--yes');
+  });
+
+  it('完整发布别名确认后只分派一次，不单独执行 npm 生命周期', async () => {
+    expect(await cli('release', '--yes')).toBe(0);
+    expect(runMock).toHaveBeenCalledExactlyOnceWith(expect.any(String), 'release', []);
+  });
+
+  it('原生打包命令无需发布确认', async () => {
+    expect(await cli('package')).toBe(0);
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(runMock).toHaveBeenCalledExactlyOnceWith(expect.any(String), 'package', []);
+  });
+
   it('--yes 跳过危险脚本确认', async () => {
     expect(await cli('release', 'upload-only', '--yes')).toBe(0);
     expect(confirmMock).not.toHaveBeenCalled();

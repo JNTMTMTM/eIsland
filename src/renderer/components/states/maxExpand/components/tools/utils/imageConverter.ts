@@ -94,6 +94,43 @@ async function buildIcoBlobFromPng(pngBlob: Blob, iconSize: number): Promise<Blo
   return new Blob([header, pngBytes], { type: 'image/x-icon' });
 }
 
+/**
+ * 编码带透明通道的 BMP V4，避免浏览器不支持 image/bmp 时静默生成 PNG。
+ * @param canvas - 已绘制原图的画布。
+ * @param ctx - 原图画布上下文。
+ * @returns 包含标准 BMP 文件头、颜色掩码与 BGRA 像素的图片。
+ */
+function canvasToBmp(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Blob {
+  const { width, height } = canvas;
+  const rgba = ctx.getImageData(0, 0, width, height).data;
+  const pixelOffset = 122;
+  const bytes = new Uint8Array(pixelOffset + rgba.byteLength);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(0, 0x4d42, true);
+  view.setUint32(2, bytes.byteLength, true);
+  view.setUint32(10, pixelOffset, true);
+  view.setUint32(14, 108, true);
+  view.setInt32(18, width, true);
+  // 负高度按从上到下的行顺序保存，与 Canvas 像素顺序一致。
+  view.setInt32(22, -height, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 32, true);
+  view.setUint32(30, 3, true);
+  view.setUint32(34, rgba.byteLength, true);
+  view.setUint32(54, 0x00ff0000, true);
+  view.setUint32(58, 0x0000ff00, true);
+  view.setUint32(62, 0x000000ff, true);
+  view.setUint32(66, 0xff000000, true);
+  view.setUint32(70, 0x73524742, true);
+  for (let offset = 0; offset < rgba.length; offset += 4) {
+    bytes[pixelOffset + offset] = rgba[offset + 2];
+    bytes[pixelOffset + offset + 1] = rgba[offset + 1];
+    bytes[pixelOffset + offset + 2] = rgba[offset];
+    bytes[pixelOffset + offset + 3] = rgba[offset + 3];
+  }
+  return new Blob([bytes], { type: 'image/bmp' });
+}
+
 function triggerBlobDownload(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -110,6 +147,8 @@ function triggerBlobDownload(blob: Blob, fileName: string): void {
 
 /**
  * 在渲染进程执行图片格式转换并触发保存。
+ * @param params - 本机源文件、目标格式、图标尺寸与图片质量。
+ * @returns 实际保存格式的转换结果，或加载、解码及保存失败原因。
  */
 export async function convertImageInRenderer(params: ConvertImageInRendererParams): Promise<ConvertImageInRendererResult> {
   const { filePath, targetFormat, icoSize, quality = 1 } = params;
@@ -155,15 +194,9 @@ export async function convertImageInRenderer(params: ConvertImageInRendererParam
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    const mime = targetFormat === 'jpg'
-      ? 'image/jpeg'
-      : targetFormat === 'webp'
-        ? 'image/webp'
-        : targetFormat === 'bmp'
-          ? 'image/bmp'
-          : 'image/png';
+    const mime = { jpg: 'image/jpeg', webp: 'image/webp', png: 'image/png', bmp: 'image/bmp' }[targetFormat];
 
-    const blob = await canvasToBlob(canvas, mime, quality);
+    const blob = targetFormat === 'bmp' ? canvasToBmp(canvas, ctx) : await canvasToBlob(canvas, mime, quality);
     const outputName = `${getFileBaseName(filePath)}.${targetFormat}`;
     triggerBlobDownload(blob, outputName);
 

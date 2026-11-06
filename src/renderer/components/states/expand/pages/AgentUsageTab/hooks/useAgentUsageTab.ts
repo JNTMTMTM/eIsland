@@ -26,7 +26,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { REFRESH_INTERVAL_MS, START_FETCH_DELAY_MS } from '../config/agentUsageConfig';
-import type { AgentUsageSnapshot } from '../../../../../../../preload/types/agentUsage';
+import type { AgentUsageSnapshot } from '../../../../../../../tauri/types/agentUsage';
 import type { UseAgentUsageTabReturn } from '../types/agentUsageTypes';
 
 /** 跨挂载保留最近一次快照，重新展开时直接显示而不是骨架屏。 */

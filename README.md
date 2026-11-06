@@ -57,25 +57,29 @@
 
 ## Getting started
 
-Grab the latest `eIsland-<version>-Setup.exe` from [Releases](https://github.com/JNTMTMTM/eIsland/releases/latest) and run it. eIsland runs on Windows 10 22H2 or later (x64).
+Use a published Windows x64 installer from [Releases](https://github.com/JNTMTMTM/eIsland/releases/latest), or build the native installer below. Native packages are named `eIsland_<version>_x64-setup.exe`. eIsland runs on Windows 10 22H2 or later (x64).
 
 ### Build from source
 
-Requirements: Node.js `24.22.1` (see [`.nvmrc`](.nvmrc)), the .NET 10 SDK and the Visual Studio C++ build tools for the native plugins.
+Requirements: Node.js `24.22.1` (see [`.nvmrc`](.nvmrc)), Rust with the Windows MSVC toolchain, WebView2, the .NET 10 SDK and Visual Studio C++ build tools for the native plugins.
 
 ```sh
 git clone https://github.com/JNTMTMTM/eIsland.git
 cd eIsland
-npm ci
-npm run dev       # start with hot reload
-npm run package   # build the NSIS installer into dist/
+npm ci --ignore-scripts
+npm ci --prefix cli --ignore-scripts
+npm run plugins:build # build native plugins separately
+npm run dev                 # start Tauri with hot reload
+npm run package             # src-tauri/target/release/bundle/nsis/
 ```
+
+The desktop runtime, native services, tests and CI use Tauri. Packaging requires an updater signing identity; see [release commands and upgrade compatibility](docs/TAURI_RELEASE.md) and the [refactor verification and coverage audit](docs/RUST_TAURI_REFACTOR.md).
 
 `npm run check` runs lint, type checks and tests. The [developer docs](https://eisland-dev.pyisland.com) cover the architecture, IPC APIs and plugins.
 
 ### Built with
 
-[![Electron](https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://v2.tauri.app/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)

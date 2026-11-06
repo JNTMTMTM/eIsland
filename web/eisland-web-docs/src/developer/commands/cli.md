@@ -116,7 +116,7 @@ In the dashboard, scripts write to a pipe, not the terminal. Colors are forced o
 :::
 
 :::tip
-"End current task" uses `taskkill /T /F` on Windows and signals the process group elsewhere, so grandchild processes such as the Electron window from `dev` also stop. Direct commands such as `eisland-cli test main` keep the plain terminal output and exit after one run, so they stay safe to chain in shells and CI.
+"End current task" uses `taskkill /T /F` on Windows and signals the process group elsewhere, so grandchild processes such as the Tauri process from `dev` also stop. Direct commands such as `eisland-cli test main` keep the plain terminal output and exit after one run, so they stay safe to chain in shells and CI.
 :::
 
 ### Local Tests
@@ -140,15 +140,15 @@ The plugin's DLL must be built first. If the test reports `Unable to find eIslan
 Some apps do not report a timeline. For those, the progress row says so instead of drawing a bar. While media is playing, the position is extrapolated from the plugin's sample time (`sampledAtMs`), so the bar keeps moving between updates. Sessions that do not fit on the screen are cut off at the bottom. On macOS and Linux the test shows that SMTC is Windows-only and starts nothing.
 :::
 
-The Storage test reads the app's own store: one `<key>.json` file per setting under Electron's `userData` directory, the same files `src/main/config/storeConfig.ts` reads and writes.
+The Storage test reads the native application's store: one `<key>.json` file per setting, using the directory selection in `src-tauri/src/infrastructure/storage/paths.rs`.
 
 | Platform | Store directory |
 |----------|-----------------|
-| Windows | `%APPDATA%\eIsland\eIsland_store` |
-| macOS | `~/Library/Application Support/eIsland/eIsland_store` |
-| Linux | `$XDG_CONFIG_HOME/eIsland/eIsland_store` (default `~/.config/...`) |
+| Windows | `%APPDATA%\com.pyisland.eisland\eIsland_store` |
+| macOS | `~/Library/Application Support/com.pyisland.eisland/eIsland_store` |
+| Linux | `$XDG_DATA_HOME/com.pyisland.eisland/eIsland_store` (default `~/.local/share/...`) |
 
-Electron names the `userData` folder after the product name. The packaged app gets `eIsland` from `electron-builder.json`, while a development run (`npm run dev`) only has the `package.json` name, `eisland`. On Windows and macOS these are the same folder. On case-sensitive Linux file systems they differ, so the CLI uses whichever exists, preferring `eIsland`.
+An existing native store is preferred. If it is absent, the CLI and application reuse an existing `eIsland/eIsland_store` or `eisland/eIsland_store` business directory. `EISLAND_DATA_DIR` selects an explicit store directory.
 
 Use `↑` / `↓` to pick a key, `PgUp` / `PgDn` to scroll a long value, `D` to delete the selected entry, and `R` to read the directory again. Entries that fail to parse are shown in red with the parse error. A file that fails to read is retried twice, 30 ms apart, before it is shown as broken, because the app may be rewriting it at that moment. One unreadable file never hides the other entries.
 

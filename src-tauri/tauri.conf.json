@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "eIsland",
+  "version": "27.0.1",
+  "identifier": "com.pyisland.eisland",
+  "build": {
+    "beforeDevCommand": "npm run dev:web",
+    "beforeBuildCommand": "npm run build:web",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../out/renderer"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": null
+    },
+    "macOSPrivateApi": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "../resources/icon/eisland_256x256.ico"
+    ],
+    "resources": {
+      "resources/native/": "native/",
+      "../resources/qishui-auth-v6/": "qishui-auth-v6/"
+    },
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "requireSignedVersion": true,
+      "windows": {
+        "installMode": "passive"
+      },
+      "endpoints": [
+        "https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json"
+      ]
+    }
+  }
+}

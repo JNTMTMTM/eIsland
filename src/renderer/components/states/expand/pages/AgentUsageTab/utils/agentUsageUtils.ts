@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import type { AgentUsageRateLimitWindow } from '../../../../../../../preload/types/agentUsage';
+import type { AgentUsageRateLimitWindow } from '../../../../../../../tauri/types/agentUsage';
 import type { Translate } from '../types/agentUsageTypes';
 
 /**

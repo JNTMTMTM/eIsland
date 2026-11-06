@@ -25,7 +25,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { NowPlayingInfo } from '../../../../../../../preload/types/media';
+import type { NowPlayingInfo } from '../../../../../../../tauri/types/media';
 const { color } = vi.hoisted(() => ({ color: vi.fn() }));
 vi.mock('colorthief', () => ({ getColor: color }));
 const current = vi.fn();

@@ -36,14 +36,14 @@ const root = mkdtempSync(join(tmpdir(), 'eisland-cli-scripts-'));
 writeFileSync(join(root, 'package.json'), JSON.stringify({
   name: 'eisland',
   scripts: {
-    dev: 'electron-vite dev',
+    dev: 'tauri dev',
     test: 'vitest run',
-    'test:main': 'vitest run --project main',
+    'test:main': 'npm run test:rust',
     'plugin:build:smtc': 'cd smtc && npm run build',
     'plugin:build:wifi': 'cd wifi && npm run build',
     'release:upload': 'node upload.ts',
     'esa:purge-all': 'node purge.ts --purge-all',
-    postinstall: 'electron-builder install-app-deps',
+    postinstall: 'npm ci --prefix cli --ignore-scripts',
   },
 }));
 const entries = loadScripts(root);
@@ -64,6 +64,34 @@ describe('loadScripts', () => {
 
   it('隐藏 npm 生命周期脚本', () => {
     expect(entries.filter((entry) => entry.hidden).map((entry) => entry.name)).toEqual(['postinstall']);
+  });
+
+  it('发布别名与其生命周期保持危险标记，构建和发布说明不触发确认', () => {
+    const releaseRoot = mkdtempSync(join(root, 'native-release-'));
+    writeFileSync(join(releaseRoot, 'package.json'), JSON.stringify({ scripts: {
+      package: 'node scripts/native/package-release.mjs',
+      release: 'npm run package && npm run release:upload-only',
+      'release:upload': 'npm run release',
+      'release:upload-only': 'node native-upload.mjs',
+      'release:upload-minio': 'node native-upload.mjs --minio',
+      'release:notes': 'node release-notes.mjs',
+      'release:uploadation': 'node unrelated.mjs',
+      prerelease: 'node prepare-release.mjs',
+      postrelease: 'node finish-release.mjs',
+      prepackage: 'node prepare-package.mjs',
+      preview: 'vite preview',
+    } }));
+    const releaseEntries = loadScripts(releaseRoot);
+    expect(releaseEntries.filter((entry) => entry.dangerous).map((entry) => entry.name)).toEqual([
+      'release', 'release:upload', 'release:upload-only', 'release:upload-minio', 'prerelease', 'postrelease',
+    ]);
+    expect(releaseEntries.filter((entry) => entry.hidden).map((entry) => entry.name)).toEqual([
+      'prerelease', 'postrelease', 'prepackage',
+    ]);
+    expect([...groupScripts(releaseEntries).values()].flat().map((entry) => entry.name)).not.toContain('prerelease');
+    expect(filterScripts(releaseEntries, 'release', () => '').map((entry) => entry.name)).not.toContain('postrelease');
+    expect(resolveScript(releaseEntries, ['release'])).toMatchObject({ kind: 'found', entry: { name: 'release', dangerous: true } });
+    expect(resolveScript(releaseEntries, ['prerelease'])).toMatchObject({ kind: 'found', entry: { hidden: true, dangerous: true } });
   });
 });
 

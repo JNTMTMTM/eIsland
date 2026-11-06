@@ -26,6 +26,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTranslateTool } from '../useTranslateTool';
+import * as translateApi from '../../../../../../../api/tools/toolboxTranslateApi';
 import { renderWithHooks, resetLifecycle } from '../../../setting/hooks/test/settingsCoverageHarness';
 
 const translate = vi.hoisted(() => {
@@ -144,5 +145,15 @@ describe('useTranslateTool real session and API', () => {
     await settle();
     expect(view().resultText).toBe('网络请求失败');
     expect(view().translating).toBe(false);
+  });
+
+  it('uses the translated fallback when the API failure has no optional message', async () => {
+    const request = vi.spyOn(translateApi, 'fetchTranslate').mockResolvedValueOnce({ success: false });
+    view().setSourceText('hello');
+    view().handleTranslate();
+    await settle();
+    expect(view().resultText).toBe('maxExpand.toolbox.translate.error');
+    expect(view().translating).toBe(false);
+    request.mockRestore();
   });
 });

@@ -33,6 +33,7 @@ vi.mock('../../../api/user/userAccountApi', () => ({ fetchUpdateSourceUrl: vi.fn
 vi.mock('../../../api/announcement/announcementApi', () => ({}));
 vi.mock('../../../utils/userAccount', () => ({ readLocalToken: vi.fn() }));
 vi.mock('../../config/dynamicIslandConfig', () => ({
+  DEFAULT_UPDATE_SOURCE: 'esa-cdn',
   UPDATE_SOURCE_STORE_KEY: 'update-source',
   UPDATE_AUTO_PROMPT_STORE_KEY: 'update-auto-prompt',
   WEATHER_ALERT_ENABLED_STORE_KEY: 'weather-alert-enabled',

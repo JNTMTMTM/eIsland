@@ -52,12 +52,14 @@ Run from the **project root** to build or clean the Windows plugins at once. Bui
 
 | Command | Description |
 |---------|-------------|
-| `npm run plugins:build` | Build the 13 configured Windows plugins sequentially (uses `build:all` where available) |
+| `npm run test:plugins:build` | Prepare the 13 Windows plugins required by the integration test suite |
 | `npm run plugins:clean` | Clean the 13 configured Windows plugins in parallel |
+| `npm run plugins:build` | Publish the volume, brightness, SMTC and temperature components and prepare FFmpeg to `src-tauri/resources/native/<RID>` |
+| `npm run native` | Compatibility alias for `plugins:build`; only builds native helpers |
 
-:::tip
-`plugins:build` automatically uses `build:all` for Bluetooth, Power, SMTC, and WiFi Helpers (which include NativeAOT DLL targets). All other plugins use `build`.
-:::
+`plugins:build` downloads FFmpeg when missing. The individual `plugin:build:*` commands remain available for plugin development.
+
+Development and direct Tauri builds consume prepared native resources; `package` runs `plugins:build` automatically. Run `plugins:build` on first setup and after changing the migrated plugin sources or target architecture. Music services run natively in Rust; no Node music helper is bundled.
 
 ### Individual Plugin Commands
 
@@ -250,7 +252,7 @@ This is a pure .NET plugin with two build targets: a console exe (for Node.js) a
 **Directory:** `plugins/macos/eisland-macos-brightness-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-brightness-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
 
 :::info
-See the [API reference](../../api-plugins/display-graphics/macos-brightness-helper.md) for target selection, polling, DDC limits, and Electron packaging. Development requires Xcode Command Line Tools and Node.js 24.22.1 for the locked Vitest toolchain.
+See the [API reference](../../api-plugins/display-graphics/macos-brightness-helper.md) for target selection, polling, DDC limits, and native packaging. Development requires Xcode Command Line Tools and Node.js 24.22.1 for the locked Vitest toolchain.
 :::
 
 ### Build / Usage
@@ -299,7 +301,7 @@ Native coverage requires an existing host build and Node headers (`npm run build
 **Directory:** `plugins/macos/eisland-macos-media-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-media-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
 
 :::info
-See the [API reference](../../api-plugins/media-notifications/macos-media-helper.md) for configuration, artwork, event handling, Electron packaging, and differences from Windows SMTC. Development requires Xcode Command Line Tools; use Node.js 24.22.1 for Vitest 4.1 and its locked toolchain.
+See the [API reference](../../api-plugins/media-notifications/macos-media-helper.md) for configuration, artwork, event handling, native packaging, and differences from Windows SMTC. Development requires Xcode Command Line Tools; use Node.js 24.22.1 for Vitest 4.1 and its locked toolchain.
 :::
 
 ### Build / Usage

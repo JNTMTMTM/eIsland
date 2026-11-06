@@ -61,12 +61,8 @@ export function EncodingServiceToolSection(): ReactElement {
 
   const handleJsonEncode = useCallback((): void => {
     setJsonError('');
-    try {
-      setJsonOutput(JSON.stringify(jsonInput));
-    } catch {
-      setJsonError(t('maxExpand.toolbox.encodingService.json.encodeError'));
-    }
-  }, [jsonInput, t]);
+    setJsonOutput(JSON.stringify(jsonInput));
+  }, [jsonInput]);
 
   const handleJsonDecode = useCallback((): void => {
     setJsonError('');

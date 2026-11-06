@@ -84,7 +84,6 @@ function getMimeFromDataUrl(dataUrl: string): string {
 
 function formatAspectRatio(width: number, height: number): string {
   const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
-  if (width <= 0 || height <= 0) return '-';
   const d = gcd(width, height);
   return `${Math.round(width / d)}:${Math.round(height / d)}`;
 }
@@ -236,17 +235,13 @@ export function FormatFactoryToolSection({ formatFactoryPage, setFormatFactoryPa
           const dataUrl = await window.api?.loadWallpaperFile?.(picked);
           if (dataUrl) {
             setPreviewDataUrl(dataUrl);
-            if (imgFileSize === null) {
-              const estimated = estimateBytesFromDataUrl(dataUrl);
-              if (estimated > 0) setImgFileSize(estimated);
-            }
+            const estimated = estimateBytesFromDataUrl(dataUrl);
+            if (estimated > 0) setImgFileSize(estimated);
           }
         } catch { /* ignore */ }
         try {
-          const stat = await (window.api as Record<string, unknown> & {
-            getFileStat?: (p: string) => Promise<{ size: number } | null>;
-          }).getFileStat?.(picked);
-          if (stat?.size !== null && stat?.size !== undefined) setImgFileSize(stat.size);
+          const info = await window.api.getAlbumMediaInfo(picked);
+          if (info) setImgFileSize(info.sizeBytes);
         } catch { /* ignore */ }
         if (ext && FORMAT_FACTORY_IMAGE_OUTPUT_FORMATS.includes(ext as FormatFactoryImageOutputFormat)) {
           const firstOther = FORMAT_FACTORY_IMAGE_OUTPUT_FORMATS.find((f) => f !== ext);

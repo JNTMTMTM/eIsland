@@ -45,8 +45,5 @@ export const UPDATE_SOURCE_OPTIONS: UpdateSourceOption[] = UPDATE_SOURCES
     icon: UPDATE_SOURCE_ICON_MAP[s.key],
   }));
 
-/** 更新源持久化存储键 */
-export const UPDATE_SOURCE_STORE_KEY = 'update-source';
-
-/** 默认更新源（首次使用时的预选值） */
-export const DEFAULT_UPDATE_SOURCE = 'esa-cdn';
+export { UPDATE_SOURCE_STORE_KEY } from '../../../../config/dynamicIslandStorageKeys';
+export { DEFAULT_UPDATE_SOURCE } from '../../../../config/dynamicIslandUpdateSource';

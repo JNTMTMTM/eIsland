@@ -1,215 +1,56 @@
 ---
-title: Testing Commands
-icon: vial
+title: Test Commands
+icon: flask
 ---
 
-# Testing Commands
+# Test Commands
 
-:::info
-This document covers Vitest commands for running, filtering, and measuring test coverage, plus Playwright commands for Electron E2E testing.
-:::
+Run from the repository root. Install root and CLI dependencies before the full suite:
 
-All commands are run from the eIsland project root, where `package.json` and `vitest.config.mts` are located:
-
-```bash
-npm run <script>
+```powershell
+npm ci --ignore-scripts
+npm ci --prefix cli --ignore-scripts
+npm test
 ```
 
-## `npm run test`
+`npm test` runs active Vitest projects, native API and release tooling tests, then Rust service tests.
 
-Runs all configured test projects once, including the serial native integration stage.
+| Command | Coverage |
+| --- | --- |
+| `npm run test:unit` | Shared, renderer, CLI and plugin unit tests |
+| `npm run test:shared` | Shared TypeScript modules |
+| `npm run test:renderer` | Renderer components and behavior |
+| `npm run test:cli` | Repository development CLI |
+| `npm run test:plugins:unit` | Plugin tests with fixtures and mocks |
+| `npm run test:api` | Native API, runtime entry points and release tooling |
+| `npm run test:release` | Installer, upload ordering, manifest and cache refresh behavior |
+| `npm run test:rust` | Standard Rust unit/integration targets via cargo test --locked --all-targets |
+| `npm run test:e2e` | Tauri in real WebView2, followed by native service tests |
+| `npm run test:services` | Native streams/files/network/images and real toolbox download/history interactions |
+| `npm run test:coverage` | Coverage for active Vitest projects |
+| `npm run test:toolbox` | All toolbox renderer and dedicated API tests |
+| `npm run test:toolbox:coverage` | Complete toolbox JavaScript scope, with four overall 99% gates |
+| `npm run test:toolbox:rust:prepare` | Isolated instrumented Rust tests and desktop build |
+| `npm run test:toolbox:rust:env` | Print the matching PowerShell environment for native scenarios |
+| `npm run test:toolbox:coverage:rust` | Merge native profiles and report Rust line/function/region coverage |
+| `npm run test:discovery` | Verify active source/plugin tests are collected once |
+| `npm run lint:config:test` | Lint rules, workflow classification and CI behavior |
 
-```bash
-npm run test
+API and release tests use Node's test runner. Rust tests require the MSVC toolchain. Release tests replace storage/CDN boundaries and do not publish files.
+
+Toolbox coverage includes all production files under the toolbox, tools and dedicated API directories, even when tests do not import them. JavaScript lines, statements, functions and branches must each reach 99% overall; per-file values remain diagnostic. Reports include JSON, HTML, LCOV, file inventory and uncovered locations under `coverage/toolbox/renderer/`.
+
+Native coverage is separate. Stable LLVM reports Rust lines, functions and regions; branch coverage is unsupported and explicitly reported without a percentage. Build the latest renderer, prepare the isolated native target, run real scenarios with the printed `LLVM_PROFILE_FILE` environment, and exit the application normally before generating reports. Native metrics below 99% still fail even if JavaScript passes. See the repository's `docs/TOOLBOX_COVERAGE.md` for the exact scope and commands.
+
+## Windows plugin integration
+
+```powershell
+npm run test:plugins:build
+npm run test:plugins
 ```
 
-**Configuration:** Vitest with:
+Preparation builds the 13 plugins used by the Node integration suite and checks required DLL, EXE and Node addon outputs. It is separate from `plugins:build`, which prepares components bundled with Tauri. Integration requires Windows x64, Node.js 24.22.1, .NET 10 and Visual Studio C++ build tools.
 
-- `environment: 'node'`
-- `clearMocks: true` — mocks are cleared between tests
-- `restoreMocks: true` — mocks are restored to their original implementation
-- Six named projects, each inheriting the root configuration with `extends: true`
-- Support for both `.test.ts` and `.test.tsx` files
+`test:plugins:integration` runs only real-device tests. These query hardware, screenshots and media state. Brightness tests restore the initial level. Notification tests check access before reading; missing permission means unavailable data, while unexpected read failures still fail.
 
-| Project | Test File Pattern | Exclusion | CLI Label Color |
-|---------|-------------------|-----------|-----------------|
-| `main` | `src/main/**/*.test.{ts,tsx}` | Native integration files below | Yellow |
-| `main-integration` | Installer `.integration.test.ts` files and `screenshotProcess.test.ts` | None configured | Yellow |
-| `preload` | `src/preload/**/*.test.{ts,tsx}` | None configured | Cyan |
-| `shared` | `src/shared/**/*.test.{ts,tsx}` | None configured | Green |
-| `plugins` | Native plugin runtime and loader tests | None configured | Blue |
-| `renderer` | `src/renderer/**/*.test.{ts,tsx}` | None configured | Magenta |
-| `cli` | `cli/src/**/*.test.{ts,tsx}` (defined in `cli/vitest.config.ts`) | None configured | White |
-
-:::important
-These labels identify test projects. They run in the Node.js environment; naming a project `renderer` does not provide a DOM or launch Electron. Tests that require DOM interaction need a configured environment such as `jsdom` or `happy-dom` and its dependency.
-:::
-
-### Native integration scheduling
-
-`main-integration` uses `sequence.groupOrder: 1` and `fileParallelism: false`. It runs after the other projects have finished and executes its files serially. Real Windows installers enumerate and terminate operating-system processes; running these probes alongside hundreds of unit-test workers can exhaust their deadlines. The native cases remain part of `npm test`, `test:coverage`, `test:node`, `test:main`, and the CI main job. Windows/NSIS availability checks still apply.
-
-To run only this stage:
-
-```bash
-npx vitest run --project main-integration
-```
-
-### Historical Verified Test Run
-
-The full suite passed on **2026-10-05**:
-
-| Project | Test Files | Passing Tests |
-|---------|------------|---------------|
-| `node` | 59 | 778 |
-| `renderer` | 138 | 1913 |
-| **Total** | **197** | **2691** |
-
-These counts describe the Vitest application suite; Electron E2E and native plugins have separate test configurations.
-
-:::tip
-For iterative development, use `npx vitest` (without `run`) to start Vitest in **watch mode** — it re-runs affected tests on file save.
-:::
-
-**When to use:**
-
-- Before committing code
-- In CI pipelines
-- After pulling new changes to verify nothing is broken
-
-## `npm run test:node`
-
-Runs `main`, `main-integration`, `preload`, `shared`, and `plugins`. The native integration stage runs last.
-
-```bash
-npm run test:node
-```
-
-**Under the hood:** `vitest run --project main --project main-integration --project preload --project shared --project plugins`
-
-## `npm run test:main`
-
-Runs the main process unit tests followed by the serial native integration stage. A direct `vitest run --project main` selects only the unit-test project; use the npm script to include native integration tests.
-
-```bash
-npm run test:main
-```
-
-## `npm run test:renderer`
-
-Runs only the `renderer` project for renderer stores, utilities, hooks, and component tests.
-
-```bash
-npm run test:renderer
-```
-
-**Under the hood:** `vitest run --project renderer`
-
-:::tip
-Filter a project to a specific test file by forwarding its path through npm:
-
-```bash
-npm run test:renderer -- src/renderer/components/states/questionnaire/components/test/QuestionnaireQuestion.test.ts
-```
-:::
-
-## `npm run test:preload`
-
-Runs the preload bridge and type tests.
-
-```bash
-npm run test:preload
-```
-
-**Under the hood:** `vitest run --project preload`
-
-:::note
-This is a subset of `npm run test`. Use it when modifying preload code for faster feedback — it skips all other test files.
-:::
-
-## `npm run test:cli`
-
-Runs the [eIsland CLI](cli.md) tests (`cli/src/**/*.test.{ts,tsx}`).
-
-```bash
-npm run test:cli
-```
-
-**Under the hood:** `vitest run --project cli`. The project is loaded from `cli/vitest.config.ts`, so `npm test` inside `cli/` runs the same tests on their own.
-
-:::warning
-The CLI is a separate package. Run `npm install` inside `cli/` first, or Ink and the other CLI dependencies will not resolve.
-:::
-
-## `npm run test:coverage`
-
-Runs all configured test projects with the V8 coverage provider (`@vitest/coverage-v8`).
-
-```bash
-npm run test:coverage
-```
-
-**Output:** Coverage report in the terminal and `coverage/` directory with HTML reports.
-
-**When to use:**
-
-- Before opening a PR to review exercised code and untested paths
-- Periodically to audit test gaps
-- When adding new features to ensure they are tested
-
-### Audit Renderer TSX Coverage
-
-Use an explicit include pattern to measure all renderer TSX source files, including files that tests do not import:
-
-```bash
-npm run test:coverage -- --coverage.include="src/renderer/**/*.tsx" --coverage.reportsDirectory=coverage/renderer-tsx
-```
-
-The audit on **2026-10-05** measured:
-
-| Metric | Result |
-|--------|--------|
-| `.test.tsx` files | 0 |
-| Renderer TSX source files | 278 |
-| TSX files with executed statements | 15 |
-| TSX files without executed statements | 263 |
-| Line coverage | 2.38% |
-| Statement coverage | 2.30% |
-| Function coverage | 2.08% |
-| Branch coverage | 2.51% |
-
-:::note
-These percentages cover only `src/renderer/**/*.tsx`, not the entire application. Existing `.test.ts` files already exercise some TSX components through `React.createElement` and static rendering with `react-dom/server`. The absence of `.test.tsx` files does not mean there are no component tests; UI interaction and unexecuted component paths still need additional coverage.
-:::
-
-## Electron E2E Commands
-
-The Playwright suite launches real Electron windows on Windows and macOS. Source, configuration, build output, and diagnostics live in the repository-root `e2e/` directory.
-
-| Command | Description |
-|---------|-------------|
-| `npm run build:e2e` | Build with `--mode e2e` into `e2e/out/` |
-| `npm run test:e2e` | Build and run the Electron E2E suite |
-| `npm run test:e2e:run` | Run an existing E2E build with `e2e/playwright.config.ts` |
-| `npm run typecheck:e2e` | Check E2E TypeScript and `electron.vite.config.ts` |
-
-```bash
-npm run typecheck:e2e
-npm run test:e2e
-```
-
-:::important
-E2E requires an installed Electron binary and a graphical desktop session. The existing `test`, `typecheck`, and `check` scripts do not automatically run E2E. See [Electron E2E Testing](e2e-testing.md) for dependency installation, filtering, isolation boundaries, CI, and diagnostics.
-:::
-
-## Troubleshooting
-
-### `npm run test` Fails After Pull
-
-**Stale build artifacts:**
-
-```bash
-rm -rf out/ node_modules/
-npm install
-npm run test
-```
+See [E2E Testing](e2e-testing.md) for the debug build and binary selection. `test:services` uses the default debug executable or `EISLAND_SMOKE_BINARY`; a missing executable fails the tests. Native test files execute sequentially so the application's single-instance lock does not conflict between scenarios.

@@ -28,12 +28,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nodes, render, text, value } from '../../../../test/componentHarness';
 import { FormatFactoryToolSection } from '../FormatFactoryToolSection';
 import { fire, fireAsync } from './toolTestEvents';
-import type { ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult } from '../../../../../../../../preload/types';
+import type { ExtractVideoTrackOptions, ExtractVideoTrackResult, PickVideoForExtractResult } from '../../../../../../../../tauri/types';
 import type { convertImageInRenderer, ConvertImageInRendererResult } from '../../utils/imageConverter';
 
 const mocks = vi.hoisted(() => ({
   pick: vi.fn<() => Promise<string | null>>(), preview: vi.fn<() => Promise<string | null>>(),
-  stat: vi.fn<() => Promise<{ size: number } | null>>(), convert: vi.fn<typeof convertImageInRenderer>(),
+  stat: vi.fn<(path: string) => Promise<{ size: number } | null>>(), convert: vi.fn<typeof convertImageInRenderer>(),
   pickVideo: vi.fn<() => Promise<PickVideoForExtractResult | null>>(),
   extract: vi.fn<(input: ExtractVideoTrackOptions) => Promise<ExtractVideoTrackResult>>(),
 }));
@@ -52,7 +52,10 @@ describe('FormatFactoryToolSection', () => {
     mocks.pickVideo.mockResolvedValue({ filePath: '/input/movie.MP4', fileSize: 4096 });
     mocks.extract.mockResolvedValue({ success: true, outputPath: '/output/track.mp3' });
     vi.stubGlobal('window', { api: { pickFileForHash: mocks.pick, loadWallpaperFile: mocks.preview,
-      getFileStat: mocks.stat, pickVideoForExtract: mocks.pickVideo, extractVideoTrack: mocks.extract },
+      getAlbumMediaInfo: async (path: string) => {
+        const info = await mocks.stat(path);
+        return info ? { url: 'http://127.0.0.1/image', sizeBytes: info.size } : null;
+      }, pickVideoForExtract: mocks.pickVideo, extractVideoTrack: mocks.extract },
     setInterval: globalThis.setInterval, clearInterval: globalThis.clearInterval, setTimeout: globalThis.setTimeout });
   });
   afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
@@ -100,6 +103,24 @@ describe('FormatFactoryToolSection', () => {
     await fireAsync(render(FormatFactoryToolSection, imageInput), '.file-hash-pick-btn', 'onClick');
     await fireAsync(render(FormatFactoryToolSection, imageInput), '.file-hash-pick-btn', 'onClick');
     expect(value(render(FormatFactoryToolSection, imageInput), 'img', 'alt')).toBe('photo.PNG');
+  });
+
+  it('原生HTTP图片预览使用真实元数据大小，不把签名URL当成base64', async () => {
+    mocks.preview.mockResolvedValue('http://127.0.0.1:18000/signed-image');
+    mocks.stat.mockResolvedValue({ size: 1234 });
+    await fireAsync(render(FormatFactoryToolSection, imageInput), '.file-hash-pick-btn', 'onClick');
+    const tree = render(FormatFactoryToolSection, imageInput);
+    expect(mocks.stat).toHaveBeenCalledWith('C:\\input\\photo.PNG');
+    expect(value(tree, 'img', 'src')).toBe('http://127.0.0.1:18000/signed-image');
+    expect(text(tree)).toContain('1.2 KB');
+    expect(text(tree)).toContain('image/*');
+  });
+
+  it.each([{ success: true }, { success: false }] as const)('转换返回可选字段缺失时保持正确反馈 $success', async (result) => {
+    await fireAsync(render(FormatFactoryToolSection, imageInput), '.file-hash-pick-btn', 'onClick');
+    mocks.convert.mockResolvedValueOnce(result);
+    await fireAsync(render(FormatFactoryToolSection, imageInput), '.ff-convert-btn', 'onClick');
+    expect(text(render(FormatFactoryToolSection, imageInput))).toContain(result.success ? 'image.success' : 'image.failed');
   });
 
   it('图片转换挂起时呈现加载状态和进度，重复操作不启动第二次任务', async () => {

@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "windows",
+  "description": "Local eIsland renderer events; window mutations are validated by Rust.",
+  "windows": ["main", "splash", "guide", "standalone", "tray-menu", "capture", "agent-voice-input", "cli-glow"],
+  "permissions": ["core:event:default"]
+}

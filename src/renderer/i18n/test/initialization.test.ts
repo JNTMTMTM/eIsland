@@ -97,7 +97,7 @@ describe('actual language change and settings bridge callback', () => {
     expect(setItem).not.toHaveBeenCalled();
     expect(storeWrite).not.toHaveBeenCalled();
   });
-  it.each([{}, { api: {} }])('initializes and changes languages without optional preload bridges %j', async (windowValue) => {
+  it.each([{}, { api: {} }])('initializes and changes languages without optional native APIs %j', async (windowValue) => {
     vi.stubGlobal('window', windowValue);
     const { setLanguage, getLanguage } = await import('../index');
     await setLanguage('ja-JP');

@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import type { UpdateSourceKey } from '../../../../../config/dynamicIslandUpdateSource';
 import type { SettingsSidebarTabKey } from '../utils/settingsConfig';
 
 export const CLIPBOARD_URL_SUPPRESS_IN_FAVORITES_KEY = 'clipboard-url-suppress-in-url-favorites';
@@ -39,8 +40,9 @@ export const ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY = 'island-bg-video-hw-decode';
 export const ISLAND_BG_SYNC_SYSTEM_WALLPAPER_STORE_KEY = 'island-bg-sync-system-wallpaper';
 export const STANDALONE_WINDOW_MAC_CONTROLS_STORE_KEY = 'standalone-window-mac-controls';
 export const ISLAND_DISPLAY_STORE_KEY = 'island-display-id';
-export const UPDATE_SOURCE_STORE_KEY = 'update-source';
-export const UPDATE_AUTO_PROMPT_STORE_KEY = 'update-auto-prompt-enabled';
+export { UPDATE_SOURCE_STORE_KEY, UPDATE_AUTO_PROMPT_STORE_KEY } from '../../../../../config/dynamicIslandStorageKeys';
+export { isProOnlyUpdateSource, getRoleFromToken } from '../../../../../config/dynamicIslandUpdateSource';
+export type { UpdateSourceKey } from '../../../../../config/dynamicIslandUpdateSource';
 export const WEATHER_ALERT_ENABLED_STORE_KEY = 'weather-alert-enabled';
 export const MAIL_CONFIG_STORE_KEY = 'mail-account-config';
 export const MAIL_ACCOUNTS_STORE_KEY = 'mail-accounts-config';
@@ -84,7 +86,6 @@ export interface RunningWindowItem {
 }
 
 export type PluginMarketPageKey = 'wallpaper' | 'contribution' | 'edit' | 'apps';
-export type UpdateSourceKey = 'cloudflare-r2' | 'esa-cdn' | 'tencent-cos' | 'aliyun-oss' | 'github';
 export type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'error' | 'latest';
 
 export interface UpdateDownloadProgress {
@@ -93,8 +94,6 @@ export interface UpdateDownloadProgress {
   total: number;
   bytesPerSecond: number;
 }
-
-const PRO_UPDATE_SOURCE_SET: ReadonlySet<UpdateSourceKey> = new Set<UpdateSourceKey>(['tencent-cos', 'aliyun-oss']);
 
 export const PLUGIN_MARKET_PAGES: PluginMarketPageKey[] = ['wallpaper', 'apps', 'contribution', 'edit'];
 
@@ -189,39 +188,6 @@ export function applyIslandOpacity(opacity: number): void {
   const safe = Math.max(10, Math.min(100, Math.round(opacity)));
   document.documentElement.style.setProperty('--island-opacity', String(safe));
 }
-
-const normalizeRoleValue = (value: string): string => {
-  return value.trim().toLowerCase().replace(/^role_/, '');
-};
-
-/**
- * 从 JWT Token 中解析角色字段。
- * @param token - 本地会话 Token
- * @returns 归一化后的角色名，解析失败时返回 null
- */
-export const getRoleFromToken = (token: string | null | undefined): string | null => {
-  if (!token) return null;
-  const rawToken = token.trim().replace(/^bearer\s+/i, '');
-  const parts = rawToken.split('.');
-  if (parts.length < 2) return null;
-  try {
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const normalizedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
-    const decoded = JSON.parse(atob(normalizedPayload)) as { role?: unknown };
-    return typeof decoded.role === 'string' ? normalizeRoleValue(decoded.role) : null;
-  } catch {
-    return null;
-  }
-};
-
-/**
- * 判断更新源是否仅 PRO 可用。
- * @param source - 更新源标识
- * @returns 是否为 PRO 专属更新源
- */
-export const isProOnlyUpdateSource = (source: UpdateSourceKey): boolean => {
-  return PRO_UPDATE_SOURCE_SET.has(source);
-};
 
 export const HOVER_MUSIC_BG_STYLE_STORE_KEY = 'hover-music-bg-style';
 

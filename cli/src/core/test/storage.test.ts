@@ -50,23 +50,43 @@ afterAll(() => {
 });
 
 describe('resolveStoreDir', () => {
-  it('按 Electron userData 规则定位各平台目录，默认使用打包版的 productName', () => {
+  it('各平台新用户默认使用原生应用标识目录', () => {
     const none = (): boolean => false;
     expect(resolveStoreDir({ platform: 'win32', env: { APPDATA: 'C:\\Roaming' }, home: 'C:\\Users\\me', exists: none }))
-      .toBe(path.join('C:\\Roaming', 'eIsland', 'eIsland_store'));
+      .toBe(path.join('C:\\Roaming', 'com.pyisland.eisland', 'eIsland_store'));
     expect(resolveStoreDir({ platform: 'win32', env: {}, home: '/home', exists: none }))
-      .toBe(path.join('/home', 'AppData', 'Roaming', 'eIsland', 'eIsland_store'));
+      .toBe(path.join('/home', 'AppData', 'Roaming', 'com.pyisland.eisland', 'eIsland_store'));
     expect(resolveStoreDir({ platform: 'darwin', env: {}, home: '/Users/me', exists: none }))
-      .toBe(path.join('/Users/me', 'Library', 'Application Support', 'eIsland', 'eIsland_store'));
+      .toBe(path.join('/Users/me', 'Library', 'Application Support', 'com.pyisland.eisland', 'eIsland_store'));
     expect(resolveStoreDir({ platform: 'linux', env: { XDG_CONFIG_HOME: '/cfg' }, home: '/home/me', exists: none }))
-      .toBe(path.join('/cfg', 'eIsland', 'eIsland_store'));
+      .toBe(path.join('/home/me', '.local', 'share', 'com.pyisland.eisland', 'eIsland_store'));
     expect(resolveStoreDir({ platform: 'linux', env: {}, home: '/home/me', exists: none }))
-      .toBe(path.join('/home/me', '.config', 'eIsland', 'eIsland_store'));
+      .toBe(path.join('/home/me', '.local', 'share', 'com.pyisland.eisland', 'eIsland_store'));
+    expect(resolveStoreDir({ platform: 'linux', env: { XDG_DATA_HOME: '/data' }, home: '/home/me', exists: none }))
+      .toBe(path.join('/data', 'com.pyisland.eisland', 'eIsland_store'));
   });
 
   it('大小写敏感的文件系统上只有开发版目录存在时使用它', () => {
     const devDir = path.join('/home/me', '.config', 'eisland', 'eIsland_store');
     expect(resolveStoreDir({ platform: 'linux', env: {}, home: '/home/me', exists: (dir) => dir === devDir })).toBe(devDir);
+  });
+
+  it('临时目录中优先现有原生存储，缺少时回退旧目录且不改动文件', () => {
+    const base = mkdtempSync(path.join(sandbox, 'directory-selection-'));
+    const native = path.join(base, 'com.pyisland.eisland', 'eIsland_store');
+    const legacy = path.join(base, 'eIsland', 'eIsland_store');
+    const location = { platform: 'win32' as const, env: { APPDATA: base }, home: base };
+    expect(resolveStoreDir(location)).toBe(native);
+    expect(existsSync(native)).toBe(false);
+    mkdirSync(legacy, { recursive: true });
+    writeFileSync(path.join(legacy, 'theme-mode.json'), '"dark"');
+    expect(resolveStoreDir(location)).toBe(legacy);
+    mkdirSync(native, { recursive: true });
+    expect(resolveStoreDir(location)).toBe(native);
+    expect(readStore(legacy)?.[0].value).toBe('dark');
+    const override = path.join(base, 'isolated-test-store');
+    expect(resolveStoreDir({ ...location, env: { ...location.env, EISLAND_DATA_DIR: override } })).toBe(override);
+    expect(existsSync(override)).toBe(false);
   });
 });
 

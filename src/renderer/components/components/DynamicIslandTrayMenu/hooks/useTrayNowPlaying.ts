@@ -27,7 +27,7 @@
 import { useEffect, useState } from 'react';
 import { usePendingSeek } from '../../../hooks/usePendingSeek';
 import { estimatePlaybackPosition } from '../utils/trayPlayback';
-import type { NowPlayingInfo } from '../../../../../preload/types/media';
+import type { NowPlayingInfo } from '../../../../../tauri/types/media';
 import type { TrayNowPlaying } from '../types';
 
 interface TrayNowPlayingControls {

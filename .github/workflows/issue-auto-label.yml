@@ -38,7 +38,7 @@ jobs:
 
             // ── Area ──────────────────────────────────────
             if (/(ui|界面|前端|renderer|css|样式|布局|layout|component|组件)/i.test(text)) labelsToApply.add('area: frontend');
-            if (/(electron|主进程|main\s*process|preload|托盘|tray|ipc|窗口|window|BrowserWindow)/i.test(text)) labelsToApply.add('area: electron-core');
+            if (/(tauri|rust|webview2|native|原生|src[\\/]tauri|src-tauri|托盘|tray|ipc|窗口|window)/i.test(text)) labelsToApply.add('area: tauri-core');
             if (/(stock|股票|k线|kline|行情|自选|持仓|ticker|quote)/i.test(text)) labelsToApply.add('area: stock');
             if (/(chart|图表|highcharts|k线图|candlestick|蜡烛图)/i.test(text)) labelsToApply.add('area: chart');
             if (/(sidebar|侧边栏|导航栏|nav|抽屉|drawer)/i.test(text)) labelsToApply.add('area: sidebar');
@@ -76,7 +76,7 @@ jobs:
               'type: dependency':    '0366d6',
               // area
               'area: frontend':      '1f6feb',
-              'area: electron-core': '0e8a16',
+              'area: tauri-core':     '0e8a16',
               'area: stock':         'f9a825',
               'area: chart':         '006b75',
               'area: sidebar':       '7c3aed',

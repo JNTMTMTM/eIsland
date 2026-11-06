@@ -74,7 +74,7 @@ beforeEach(async () => {
     storeRead: (key: string) => Promise.resolve(reads.get(key)),
     onSettingsChanged: (listener: (...args: unknown[]) => void) => { settings.on('changed', listener); return () => settings.off('changed', listener); },
     expandWindowFull: vi.fn(), disableMousePassthrough: vi.fn(),
-  }, electron: { ipcRenderer: { send: vi.fn(), on: vi.fn(), removeListener: vi.fn() } } });
+  }, desktop: { send: vi.fn(), on: vi.fn(), removeListener: vi.fn() } });
   vi.stubGlobal('window', nativeWindow);
   config = await import('../components/setting/utils/settingsConfig');
   store = (await import('../../../../store/slices')).default;

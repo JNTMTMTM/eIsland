@@ -37,7 +37,7 @@ beforeEach(async () => {
   vi.stubGlobal('localStorage', { getItem: (key: string) => cache.get(key) ?? null, setItem: (key: string, value: string) => cache.set(key, value), removeItem: (key: string) => cache.delete(key) });
   vi.stubGlobal('window', Object.assign(new EventTarget(), { localStorage, matchMedia: () => Object.assign(new EventTarget(), { matches: false }), location: { hostname: 'localhost' }, api: {
     storeRead: (key: string) => Promise.resolve(key === 'maxexpand-performance-mode-enabled' && cache.get('eIsland:maxexpand-performance-mode-enabled') === 'false' ? false : null), onSettingsChanged: () => () => undefined,
-  }, electron: { ipcRenderer: { send: vi.fn(), on: vi.fn(), removeListener: vi.fn() } } }));
+  }, desktop: { send: vi.fn(), on: vi.fn(), removeListener: vi.fn() } }));
   loader = await import('../../maxExpandContentEagerLoader'); hook = (await import('../useEagerContentLoader')).useEagerContentLoader;
 });
 afterEach(() => { unmountHook(); vi.doUnmock('katex'); vi.unstubAllGlobals(); });

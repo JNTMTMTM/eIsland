@@ -30,7 +30,7 @@ import { elements, findElement, hookMocks, invoke, textContent } from '../../../
 import useIslandStore from '../../../../../../../store/slices';
 import { LyricsProgress } from '../LyricsProgress';
 import type { TestElement } from '../../../../../../test/elementHarness';
-import type { MediaCommandResult, NowPlayingInfo } from '../../../../../../../../preload/types/media';
+import type { MediaCommandResult, NowPlayingInfo } from '../../../../../../../../tauri/types/media';
 
 vi.hoisted(() => {
   vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } }));

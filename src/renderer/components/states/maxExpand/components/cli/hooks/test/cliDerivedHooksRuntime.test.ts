@@ -33,7 +33,7 @@ import { useHeatmapGrid } from '../useHeatmapGrid';
 import { useHeatmapScroll } from '../useHeatmapScroll';
 import useCollapsibleContent from '../useCollapsibleContent';
 import { flushHookEffects, renderHook, resetHook, unmountHook, settleHook } from '../../../../../../hooks/test/startupHookHarness';
-import type { ClaudeCodeHookEvent, ClaudeCodeSessionSnapshot, ClaudeCodeStatusSnapshot } from '../../../../../../../../preload/types/claudeCode';
+import type { ClaudeCodeHookEvent, ClaudeCodeSessionSnapshot, ClaudeCodeStatusSnapshot } from '../../../../../../../../tauri/types/claudeCode';
 vi.mock('react', async (original) => {
   const actual = await original<typeof import('react')>();
   const {
