@@ -85,7 +85,9 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         .resizable(label == "standalone")
         .skip_taskbar(label != "standalone" && label != "guide")
         .always_on_top(label != "standalone" && label != "guide")
-        .focused(false)
+        // WebView2 must initialize its render HWND before Wry registers file-drop targets.
+        // Hidden, unfocused views can otherwise miss Explorer drops (wry#1638).
+        .focused(cfg!(windows) && matches!(label, "main" | "standalone"))
         .focusable(!effect && label != "splash")
         .on_new_window(move |url, _features| {
             if matches!(url.scheme(), "http" | "https") {
