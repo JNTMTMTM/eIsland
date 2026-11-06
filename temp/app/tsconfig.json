@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES2023", "module": "ESNext", "moduleResolution": "Bundler",
+    "jsx": "react-jsx", "strict": true, "noEmit": true, "skipLibCheck": true,
+    "resolveJsonModule": true, "esModuleInterop": true, "allowJs": true,
+    "types": ["node", "vite/client"], "lib": ["ES2023", "DOM", "DOM.Iterable"]
+  },
+  "include": ["main", "preload", "renderer", "shared", "tests", "*.ts"]
+}

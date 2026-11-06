@@ -1,0 +1,34 @@
+{
+  "brand": "eIsland", "adapterVersion": "Migration assistant · 27.0.2", "eyebrow": "The next eIsland", "language": "Language", "close": "Close", "cancel": "Cancel preparation", "working": "Please wait",
+  "languages": { "zh-CN": "简体中文", "zh-TW": "繁體中文", "en-US": "English", "ja-JP": "日本語" },
+  "stepsLabel": "Migration steps", "steps": { "welcome": "Welcome", "review": "Review", "protect": "Prepare", "finish": "Install" },
+  "source": "Download source", "sources": { "esa": "ESA CDN", "r2": "Cloudflare R2", "github": "GitHub", "cos": "Tencent COS", "oss": "Alibaba OSS", "local": "Local installer" },
+  "localPackage": "Choose offline manifest", "targetVersion": "Tauri version", "targetDirectory": "Planned install directory", "dataDirectory": "Selected data directory",
+  "startupNotice": "To start at login, turn that setting off and on in the new app and review Windows startup entries. This assistant does not modify old startup entries.",
+  "openBackup": "Open verified backup", "progressBytes": "{{done}} / {{total}} MB", "unknownSize": "unknown",
+  "dataNotice": "Your original data stays in place. Settings and download records retain their existing per-key storage. Some services may require signing in again. eIsland pauses during migration; keep the old version closed.",
+  "actions": { "inspect": "Check for update", "prepare": "Back up & download", "install": "Open installer", "launch": "Launch eIsland" },
+  "phases": {
+    "installed": { "title": "The new eIsland is already installed", "body": "A compatible Tauri version is already installed. Launch it below without repeating migration. Future updates are handled inside eIsland." },
+    "welcome": { "title": "Get ready for the next eIsland", "body": "You have updated to the 27.0.2 migration assistant. It will protect your data and download Tauri 27.0.3 or a newer stable release.\neIsland will return once installation is complete." },
+    "inspecting": { "title": "Checking your setup", "body": "Reading installation paths, data directories and the selected official update manifest." },
+    "ready": { "title": "Ready to prepare your migration", "body": "Review the paths below. We will create and verify a separate backup before downloading. The Electron directory will remain untouched and will not be uninstalled automatically." },
+    "backing-up": { "title": "Protecting your data", "body": "Copying and verifying each file. Keep all other eIsland instances closed." },
+    "downloading": { "title": "Downloading the next eIsland", "body": "Your backup is complete. The download will also be checked against its release signature and signed version." },
+    "verifying": { "title": "Verifying the installer", "body": "Only installers verified by the embedded public key with a matching signed version are accepted." },
+    "prepared": { "title": "Everything is prepared", "body": "Backup and signature checks have passed. Next, the interactive installer will open. Keep the planned installation directory and follow the Windows prompts." },
+    "installing": { "title": "Finish the installer", "body": "Complete the installation in its window. We will wait and confirm the registered version and executable. Keep the old eIsland closed." },
+    "complete": { "title": "Welcome back", "body": "The Tauri installation directory and version have been confirmed. Launch eIsland below to close this assistant. Your backup and the old uninstall entry will remain." },
+    "cancelled": { "title": "Preparation cancelled", "body": "Your original data is unchanged. Choose another source and check again. Completed backups remain available." },
+    "error": { "title": "This step needs attention", "body": "Follow the message below and try again. Original data and completed backups are retained. Completion is shown only after installation is confirmed." }
+  },
+  "errors": {
+    "missingKey": "This adapter has no production Tauri update public key. Contact the publisher for a configured build before downloading or installing.",
+    "invalidSource": "This source is not configured. Choose another source.", "invalidManifest": "The update manifest is invalid or does not describe a supported Tauri installer.", "targetTooOld": "The target must be Tauri 27.0.3 or newer.",
+    "network": "The source is unavailable. Check your connection or choose another source.", "invalidInstaller": "The installer is incomplete or invalid. Download it again.", "signatureRejected": "The installer signature or signed version was rejected. Installation has been blocked.",
+    "backupLink": "A data directory contains links or unsafe paths. Organize and back up the data manually first.", "backupLimit": "Data exceeds the safe backup limits. Back up and organize large files manually first.", "dataChanged": "Paths or data changed. Close other instances and check again.",
+    "closeRunning": "Other eIsland instances are running. Quit them and retry. The assistant will not terminate them.", "backupMissing": "A complete backup marker is missing. Installation has been blocked.", "installOverlap": "The new directory overlaps the old installation. Contact the publisher for installation guidance.",
+    "installNotConfirmed": "The planned installation directory and version could not be confirmed. Check the installation and keep the planned directory.", "alreadyCurrent": "The same or a newer Tauri version is already installed. Launch that eIsland installation directly.",
+    "windowsOnly": "This assistant supports Windows only.", "operationFailed": "The operation did not complete. Check your network, free disk space and directory permissions, then try again."
+  }
+}

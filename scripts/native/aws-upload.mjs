@@ -124,7 +124,7 @@ export function awsSession(binary, target, sourceEnv, run = spawnSync) {
     close,
     upload(file, key, metadata = false) {
       let contentType = file.endsWith('.sig') ? 'text/plain; charset=utf-8' : 'application/vnd.microsoft.portable-executable';
-      if (metadata) contentType = 'application/json';
+      if (metadata) contentType = /\.ya?ml$/i.test(file) ? 'application/yaml' : 'application/json';
       execute(['s3', 'cp', file, `s3://${target.bucket}/${key}`, '--endpoint-url', target.endpoint, '--region', target.region, '--content-type', contentType, '--cache-control', metadata ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400']);
     },
   };

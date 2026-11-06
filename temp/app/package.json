@@ -1,0 +1,47 @@
+{
+  "name": "eisland-migration-adapter",
+  "version": "27.0.2",
+  "private": true,
+  "description": "eIsland Electron to Tauri migration adapter",
+  "author": "JNTMTMTM",
+  "license": "GPL-3.0",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run build:native && electron-vite build",
+    "build:native": "cargo build --locked --release --manifest-path native/verifier/Cargo.toml --target-dir native/verifier/target",
+    "typecheck": "tsc --noEmit",
+    "comment:check": "node ../../scripts/lint/eslint.mjs . --config eslint.config.mjs --max-warnings=0",
+    "i18n:check": "node scripts/check-i18n.mjs",
+    "test": "vitest run && cargo test --locked --manifest-path native/verifier/Cargo.toml --target-dir native/verifier/target",
+    "test:e2e": "npm run build && node scripts/smoke.mjs",
+    "test:coverage": "vitest run --coverage",
+    "package": "node scripts/package.mjs",
+    "package:preview": "node scripts/package.mjs --preview",
+    "release:upload-only": "node scripts/upload.mjs",
+    "release": "npm run package && npm run release:upload-only"
+  },
+  "dependencies": {
+    "i18next": "26.5.12",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-i18next": "17.1.9",
+    "semver": "7.7.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/semver": "7.7.1",
+    "@vitejs/plugin-react": "6.1.2",
+    "@vitest/coverage-v8": "5.0.5",
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0",
+    "electron-vite": "6.0.0",
+    "js-yaml": "5.5.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}
