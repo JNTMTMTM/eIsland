@@ -34,6 +34,7 @@ const api: AdapterApi = {
   prepare: () => ipcRenderer.invoke(IPC.prepare),
   install: () => ipcRenderer.invoke(IPC.install),
   cancel: () => ipcRenderer.invoke(IPC.cancel),
+  dismissError: () => ipcRenderer.invoke(IPC.dismissError),
   openBackup: () => ipcRenderer.invoke(IPC.backup),
   launch: () => ipcRenderer.invoke(IPC.launch),
   close: () => ipcRenderer.invoke(IPC.close),

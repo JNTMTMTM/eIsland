@@ -1,5 +1,6 @@
 {
   "brand": "eIsland", "adapterVersion": "移行アシスタント · 27.0.2", "eyebrow": "新しい eIsland へ", "language": "言語", "close": "閉じる", "cancel": "準備を中止", "working": "お待ちください",
+  "dismissError": "閉じて前の手順に戻る",
   "languages": { "zh-CN": "简体中文", "zh-TW": "繁體中文", "en-US": "English", "ja-JP": "日本語" },
   "stepsLabel": "移行の手順", "steps": { "welcome": "ようこそ", "review": "確認", "protect": "準備", "finish": "インストール" },
   "source": "ダウンロード元", "sources": { "esa": "ESA CDN", "r2": "Cloudflare R2", "github": "GitHub", "cos": "Tencent COS", "oss": "Alibaba OSS", "local": "ローカルパッケージ" },

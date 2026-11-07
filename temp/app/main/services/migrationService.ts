@@ -34,6 +34,8 @@ import type { MigrationPorts, ServiceConfig } from '../types/serviceTypes';
 
 /** 串行控制迁移生命周期，不自动卸载原客户端或终止外部进程。 */
 export class MigrationService {
+  private previousPhase: Phase = 'welcome';
+
   private active: AbortController | null = null;
 
   private installer: string | null = null;
@@ -65,6 +67,7 @@ export class MigrationService {
    */
   private async operation(phase: Phase, work: (signal: AbortSignal) => Promise<void>): Promise<void> {
     if (this.active) return;
+    if (this.state.phase !== 'error') this.previousPhase = this.state.phase;
     const controller = new AbortController();
     this.active = controller;
     this.update({ phase, error: null, progress: { done: 0, total: null } });
@@ -158,4 +161,12 @@ export class MigrationService {
    * @returns 当前安装阶段不会被强制中断。
    */
   cancel(): void { if (this.state.phase !== 'installing') this.active?.abort(); }
+
+  /** 关闭错误并恢复操作前的步骤，保留已完成的备份与安装准备。
+   * @returns 运行中的任务不会被中断。
+   */
+  dismissError(): void {
+    if (this.active || this.state.phase !== 'error') return;
+    this.update({ phase: this.previousPhase, error: null, progress: { done: 0, total: null } });
+  }
 }

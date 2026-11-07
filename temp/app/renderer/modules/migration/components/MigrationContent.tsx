@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 import { useCallback } from 'react';
+import { CircleAlert, X } from 'lucide-react';
 import { progressPercent } from '../utils/migrationUtils';
 import { DOWNLOAD_SOURCES } from '../config/migrationConfig';
 import styles from './migration.module.css';
@@ -36,7 +37,7 @@ import type { MouseEvent } from 'react';
  * @returns 当前阶段的内容。
  */
 export function MigrationContent(props: MigrationContentProps) {
-  const { t, state, error, source, busy, onSource, onBackup } = props;
+  const { t, state, error, source, busy, onSource, onBackup, onDismissError } = props;
   const handleSource = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
     onSource(event.currentTarget.value as SourceId);
   }, [onSource]);
@@ -75,7 +76,15 @@ export function MigrationContent(props: MigrationContentProps) {
             <p>{t('progressBytes', { done: (state.progress.done / 1048576).toFixed(1), total: state.progress.total === null ? t('unknownSize') : (state.progress.total / 1048576).toFixed(1) })}</p>
           </div>
         )}
-        {error && <p role="alert" className={styles.error}>{t(`errors.${error}`, { defaultValue: t('errors.operationFailed') })}</p>}
+        {error && (
+          <div role="alert" className={styles.error}>
+            <CircleAlert className={styles.errorIcon} size={18} aria-hidden="true" />
+            <span className={styles.errorMessage}>{t(`errors.${error}`, { defaultValue: t('errors.operationFailed') })}</span>
+            <button type="button" className={styles.errorClose} onClick={onDismissError} aria-label={t('dismissError')} title={t('dismissError')}>
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        )}
         {state?.backup && <button type="button" onClick={onBackup} className={styles.backup}>{t('openBackup')}<span>{state.backup.directory}</span></button>}
         {['complete', 'installed'].includes(phase) && <p className={styles.note}>{t('startupNotice')}</p>}
       </div>

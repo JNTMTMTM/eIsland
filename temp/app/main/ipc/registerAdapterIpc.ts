@@ -64,6 +64,7 @@ export function registerAdapterIpc(window: BrowserWindow, service: MigrationServ
   handle(IPC.prepare, () => service.prepare());
   handle(IPC.install, () => service.install());
   handle(IPC.cancel, () => service.cancel());
+  handle(IPC.dismissError, () => service.dismissError());
   handle(IPC.backup, async () => { if (service.state.backup) await shell.openPath(service.state.backup.directory); });
   handle(IPC.launch, async () => {
     if (['complete', 'installed'].includes(service.state.phase) && service.state.inspection) {

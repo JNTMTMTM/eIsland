@@ -71,6 +71,48 @@ it('fails closed before network work if the production key is missing', async ()
   const service = new MigrationService(config, ports); await service.inspect('esa');
   expect(service.state.error).toBe('missingKey'); expect(ports.release).not.toHaveBeenCalled();
 });
+
+it('dismisses repeated inspection failures back to welcome and allows retry', async () => {
+  const { service, ports } = await fixture();
+  vi.mocked(ports.release).mockRejectedValue(new AdapterError('network'));
+  await service.inspect('esa');
+  await service.inspect('esa');
+  service.dismissError();
+  expect(service.state.phase).toBe('welcome');
+  expect(service.state.error).toBeNull();
+  vi.mocked(ports.release).mockResolvedValue({ version: '27.0.3', notes: '', url: 'https://example.com/setup.exe', signature: 'signature' });
+  await service.inspect('esa');
+  expect(service.state.phase).toBe('ready');
+});
+
+it('returns failed preparation to review, retains its backup and permits retry', async () => {
+  const { service, ports } = await fixture();
+  vi.mocked(ports.verify).mockRejectedValueOnce(new AdapterError('signatureRejected'));
+  await service.inspect('esa');
+  await service.prepare();
+  const { backup } = service.state;
+  expect(backup).not.toBeNull();
+  service.dismissError();
+  expect(service.state.phase).toBe('ready');
+  expect(service.state.error).toBeNull();
+  expect(service.state.backup).toEqual(backup);
+  await service.prepare();
+  expect(service.state.phase).toBe('prepared');
+});
+
+it('returns an unconfirmed installation to prepared and permits verified retry', async () => {
+  const { service, ports } = await fixture();
+  vi.mocked(ports.install).mockResolvedValueOnce(undefined);
+  await service.inspect('esa');
+  await service.prepare();
+  await service.install();
+  expect(service.state.error).toBe('installNotConfirmed');
+  service.dismissError();
+  expect(service.state.phase).toBe('prepared');
+  expect(service.state.error).toBeNull();
+  await service.install();
+  expect(service.state.phase).toBe('complete');
+});
 it('rejects an unconfigured source and never downgrades an existing Tauri installation', async () => {
   const { service, inspection, ports } = await fixture();
   await service.inspect('cos'); expect(service.state.error).toBe('invalidSource');

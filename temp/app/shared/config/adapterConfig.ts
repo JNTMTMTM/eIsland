@@ -38,5 +38,6 @@ export const FEEDS = {
 export const IPC = {
   state: 'adapter:state', changed: 'adapter:changed', inspect: 'adapter:inspect', local: 'adapter:local',
   prepare: 'adapter:prepare', install: 'adapter:install', cancel: 'adapter:cancel',
+  dismissError: 'adapter:dismiss-error',
   backup: 'adapter:backup', launch: 'adapter:launch', close: 'adapter:close',
 };

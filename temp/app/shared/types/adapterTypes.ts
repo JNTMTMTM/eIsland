@@ -47,6 +47,7 @@ export interface AdapterApi {
   prepare: () => Promise<void>;
   install: () => Promise<void>;
   cancel: () => Promise<void>;
+  dismissError: () => Promise<void>;
   openBackup: () => Promise<void>;
   launch: () => Promise<void>;
   close: () => Promise<void>;

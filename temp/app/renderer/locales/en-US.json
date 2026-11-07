@@ -1,5 +1,6 @@
 {
   "brand": "eIsland", "adapterVersion": "Migration assistant · 27.0.2", "eyebrow": "The next eIsland", "language": "Language", "close": "Close", "cancel": "Cancel preparation", "working": "Please wait",
+  "dismissError": "Dismiss and go back",
   "languages": { "zh-CN": "简体中文", "zh-TW": "繁體中文", "en-US": "English", "ja-JP": "日本語" },
   "stepsLabel": "Migration steps", "steps": { "welcome": "Welcome", "review": "Review", "protect": "Prepare", "finish": "Install" },
   "source": "Download source", "sources": { "esa": "ESA CDN", "r2": "Cloudflare R2", "github": "GitHub", "cos": "Tencent COS", "oss": "Alibaba OSS", "local": "Local installer" },

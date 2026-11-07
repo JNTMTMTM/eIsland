@@ -45,7 +45,7 @@ export function AdapterWizard() {
           {STEPS.map((item, index) => <li key={item} aria-current={index === model.step ? 'step' : undefined}>{model.t(`steps.${item}`)}</li>)}
         </ol>
       </nav>
-      <MigrationContent t={model.t} state={model.state} error={model.error} source={model.source} busy={model.busy} onSource={model.setSource} onBackup={model.openBackup} />
+      <MigrationContent t={model.t} state={model.state} error={model.error} source={model.source} busy={model.busy} onSource={model.setSource} onBackup={model.openBackup} onDismissError={model.dismissError} />
       <WizardFooter t={model.t} state={model.state} busy={model.busy} onPrimary={model.primary} onCancel={model.cancel} />
     </main>
   );

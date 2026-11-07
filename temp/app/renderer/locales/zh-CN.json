@@ -1,5 +1,6 @@
 {
   "brand": "eIsland", "adapterVersion": "迁移助手 · 27.0.2", "eyebrow": "新一代 eIsland", "language": "语言", "close": "关闭", "cancel": "取消准备", "working": "请稍候",
+  "dismissError": "关闭并返回上一步",
   "languages": { "zh-CN": "简体中文", "zh-TW": "繁體中文", "en-US": "English", "ja-JP": "日本語" },
   "stepsLabel": "迁移步骤", "steps": { "welcome": "欢迎", "review": "检查", "protect": "准备", "finish": "安装" },
   "source": "下载源", "sources": { "esa": "ESA 加速", "r2": "Cloudflare R2", "github": "GitHub", "cos": "腾讯云 COS", "oss": "阿里云 OSS", "local": "本地安装包" },

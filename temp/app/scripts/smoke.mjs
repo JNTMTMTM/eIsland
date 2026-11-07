@@ -72,7 +72,7 @@ try {
   await page.waitForFunction(() => [...document.querySelectorAll('fieldset img')].every((image) => image.complete && image.naturalWidth > 0));
   const boundary = await page.evaluate(() => ({ node: typeof globalThis.process, require: typeof globalThis.require, api: Object.keys(window.migration).sort() }));
   assert.equal(boundary.node, 'undefined'); assert.equal(boundary.require, 'undefined');
-  assert.deepEqual(boundary.api, ['cancel', 'chooseLocal', 'close', 'getState', 'inspect', 'install', 'launch', 'onState', 'openBackup', 'prepare']);
+  assert.deepEqual(boundary.api, ['cancel', 'chooseLocal', 'close', 'dismissError', 'getState', 'inspect', 'install', 'launch', 'onState', 'openBackup', 'prepare']);
   const profile = await app.evaluate(({ app: host }) => host.getPath('userData'));
   assert.equal(profile, join(root, 'profile'));
   await mkdir('test-results', { recursive: true });
@@ -99,6 +99,14 @@ try {
     await page.getByRole('alert').waitFor();
     assert.match(await page.getByRole('alert').innerText(), /公钥/);
     assert.equal((await page.evaluate(() => window.migration.getState())).phase, 'error');
+    assert.equal(await page.getByRole('alert').locator('svg').count(), 2);
+    await page.screenshot({ path: 'test-results/error.png' });
+    await page.getByRole('button', { name: '关闭并返回上一步' }).click();
+    await page.getByRole('heading', { name: '准备好，迎接新的 eIsland' }).waitFor();
+    assert.equal(await page.getByRole('alert').count(), 0);
+    assert.equal((await page.evaluate(() => window.migration.getState())).phase, 'welcome');
+    await page.getByRole('button', { name: '检查新版本' }).click();
+    await page.getByRole('alert').waitFor();
   }
   assert.equal(await readFile(history, 'utf8'), '{"isolated":true}');
   assert.deepEqual(errors, []);
