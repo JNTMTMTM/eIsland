@@ -71,6 +71,19 @@ impl Media {
     pub fn set_unsubscribe_ms(&self, milliseconds: u64) {
         self.unsubscribe_ms.store(milliseconds, Ordering::Release);
     }
+    /// 状态变更与事件发布共用会话锁，避免旧快照在新的暂停事件之后发出。
+    fn publish_update<T>(
+        &self,
+        update: impl FnOnce(&mut Sessions) -> (T, Option<Value>),
+        publish: impl FnOnce(Value) -> Result<()>,
+    ) -> Result<T> {
+        let mut sessions = self.sessions.lock().unwrap();
+        let (result, payload) = update(&mut sessions);
+        if let Some(payload) = payload {
+            publish(payload)?;
+        }
+        Ok(result)
+    }
     fn update(&self, app: &AppHandle, changes: &[Value], full: bool) -> Result<()> {
         // A pruned session can emit a timeline-only delta. Resolve it from the DLL's
         // retained snapshot; retry a busy snapshot on native wait timeouts as well.
@@ -126,8 +139,7 @@ impl Media {
         if changes.is_empty() && !full {
             return Ok(());
         }
-        let (outbound, pending_before, pending_after) = {
-            let mut sessions = self.sessions.lock().unwrap();
+        let request = self.publish_update(|sessions| {
             sessions.set_unsubscribe_ms(self.unsubscribe_ms.load(Ordering::Acquire));
             let before = sessions.summary();
             let pending_before = sessions.pending.clone();
@@ -149,18 +161,16 @@ impl Media {
             } else {
                 None
             };
-            (outbound, pending_before, sessions.pending.clone())
-        };
-        // Timeline-only updates neither clone the base64 string nor transmit it.
-        if let Some(outbound) = outbound {
-            publish(app, outbound)?;
-        }
-        if !pending_after.is_empty() && pending_after != pending_before {
-            let request = {
-                let sessions = self.sessions.lock().unwrap();
-                let entry = &sessions.entries[&pending_after];
-                json!({"sourceAppId":pending_after,"title":entry["media"]["title"],"artist":entry["media"]["artist"]})
+            let request = if !sessions.pending.is_empty() && sessions.pending != pending_before {
+                sessions.entries.get(&sessions.pending).map(|entry| {
+                    json!({"sourceAppId":sessions.pending,"title":entry["media"]["title"],"artist":entry["media"]["artist"]})
+                })
+            } else {
+                None
             };
+            (request, outbound)
+        }, |outbound| publish(app, outbound))?;
+        if let Some(request) = request {
             windows::emit(app, "main", "media:source-switch-request", json!([request]))?;
         }
         Ok(())
@@ -204,20 +214,10 @@ impl Media {
                         let result = (|| -> Result<()> {
                             media.update(&app, &api.snapshot(true)?, true)?;
                             while !stopped.load(Ordering::Acquire) {
-                                match api.wait() {
-                                    0 => {
-                                        let changes = api.snapshot(false)?;
-                                        if !changes.is_empty() {
-                                            media.update(&app, &changes, false)?;
-                                        }
-                                    }
-                                    1 => {
-                                        let recover = !media.recovery.lock().unwrap().is_empty();
-                                        if recover {
-                                            media.update(&app, &[], false)?;
-                                        }
-                                    }
-                                    _ => return Err("SMTC change wait failed".into()),
+                                let changes = api.wait_for_changes()?;
+                                let recover = !media.recovery.lock().unwrap().is_empty();
+                                if !changes.is_empty() || recover {
+                                    media.update(&app, &changes, false)?;
                                 }
                             }
                             Ok(())
@@ -227,14 +227,16 @@ impl Media {
                         result
                     })();
                     if let Err(error) = result {
-                        {
-                            let mut sessions = media.sessions.lock().unwrap();
-                            sessions.error = Some(error.clone());
-                            sessions.entries.clear();
-                            sessions.current.clear();
-                            sessions.pending.clear();
-                        }
-                        let _ = publish(&app, Value::Null);
+                        let _ = media.publish_update(
+                            |sessions| {
+                                sessions.error = Some(error.clone());
+                                sessions.entries.clear();
+                                sessions.current.clear();
+                                sessions.pending.clear();
+                                ((), Some(Value::Null))
+                            },
+                            |payload| publish(&app, payload),
+                        );
                         eprintln!("[SMTC] {error}");
                     }
                 });
@@ -410,26 +412,31 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
                 .lock()
                 .unwrap()
                 .write("music-whitelist", &json!(names))?;
-            let payload = {
-                let mut s = media.sessions.lock().unwrap();
-                s.whitelist = names.clone();
-                s.select();
-                s.payload()
-            };
-            windows::broadcast(app, "store:music-whitelist", json!(names))?;
-            publish(app, payload)?;
+            media.publish_update(
+                |s| {
+                    s.whitelist = names.clone();
+                    s.select();
+                    ((), Some(s.payload()))
+                },
+                |payload| {
+                    windows::broadcast(app, "store:music-whitelist", json!(names))?;
+                    publish(app, payload)
+                },
+            )?;
             Ok(json!(true))
         }
         "media:accept-source-switch" | "media:reject-source-switch" => {
-            let payload = {
-                let mut s = media.sessions.lock().unwrap();
-                if channel == "media:accept-source-switch" && s.entries.contains_key(&s.pending) {
-                    s.current = s.pending.clone();
-                }
-                s.pending.clear();
-                s.payload()
-            };
-            publish(app, payload)?;
+            media.publish_update(
+                |s| {
+                    if channel == "media:accept-source-switch" && s.entries.contains_key(&s.pending)
+                    {
+                        s.current = s.pending.clone();
+                    }
+                    s.pending.clear();
+                    ((), Some(s.payload()))
+                },
+                |payload| publish(app, payload),
+            )?;
             Ok(Value::Null)
         }
         "media:seek" => {
@@ -446,5 +453,81 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
         "media:next" => Ok(media.command("next", None).await),
         "media:prev" => Ok(media.command("previous", None).await),
         _ => Err("Unknown media operation".into()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    #[test]
+    fn pause_cannot_be_overtaken_by_a_delayed_playing_publication() {
+        let media = Arc::new(Media::new());
+        {
+            let mut sessions = media.sessions.lock().unwrap();
+            sessions.whitelist = vec!["music".into()];
+            sessions.apply(
+                &[json!({
+                    "sourceAppId":"music", "media":{"title":"Track"},
+                    "playback":{"playbackStatus":4}
+                })],
+                true,
+            );
+        }
+        let published = Arc::new(Mutex::new(Vec::new()));
+        let (publishing_tx, publishing_rx) = mpsc::channel();
+        let (release_tx, release_rx) = mpsc::channel();
+        let (pausing_tx, pausing_rx) = mpsc::channel();
+        let playing = {
+            let media = media.clone();
+            let published = published.clone();
+            std::thread::spawn(move || {
+                media.publish_update(
+                    |sessions| ((), Some(sessions.payload())),
+                    |payload| {
+                        publishing_tx.send(()).unwrap();
+                        release_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+                        published.lock().unwrap().push(payload);
+                        Ok(())
+                    },
+                )
+            })
+        };
+        publishing_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+        // 模拟设置/切源事件发送较慢，暂停必须等待这次发布结束。
+        assert!(media.sessions.try_lock().is_err());
+        let paused = {
+            let media = media.clone();
+            let published = published.clone();
+            std::thread::spawn(move || {
+                pausing_tx.send(()).unwrap();
+                media.publish_update(
+                    |sessions| {
+                        sessions.apply(
+                            &[json!({
+                                "sourceAppId":"music", "playback":{"playbackStatus":5}
+                            })],
+                            false,
+                        );
+                        ((), Some(sessions.summary()))
+                    },
+                    |payload| {
+                        published.lock().unwrap().push(payload);
+                        Ok(())
+                    },
+                )
+            })
+        };
+        pausing_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+        release_tx.send(()).unwrap();
+        playing.join().unwrap().unwrap();
+        paused.join().unwrap().unwrap();
+        let published = published.lock().unwrap();
+        assert_eq!(published.len(), 2);
+        assert_eq!(published[0]["isPlaying"], true);
+        assert_eq!(published[1]["isPlaying"], false);
+        assert_eq!(media.sessions.lock().unwrap().payload()["isPlaying"], false);
     }
 }

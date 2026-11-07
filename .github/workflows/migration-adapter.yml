@@ -1,0 +1,80 @@
+name: Electron to Tauri migration adapter
+
+on:
+  pull_request:
+    paths:
+      - 'temp/app/**'
+      - 'scripts/native/aws-upload.mjs'
+      - 'scripts/native/upload-release.mjs'
+      - '.github/workflows/migration-adapter.yml'
+  workflow_dispatch:
+
+# Build outputs are private review artifacts, never public update feeds.
+permissions:
+  contents: read
+
+jobs:
+  adapter:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            temp/app/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: temp/app/native/verifier -> target
+      - name: Install shared lint and release tools
+        run: npm ci --ignore-scripts
+      - name: Install isolated adapter dependencies
+        run: npm --prefix temp/app ci --ignore-scripts
+      - name: Prepare adapter runtime
+        working-directory: temp/app
+        run: node node_modules/electron/install.js
+      - name: Prepare pinned Rust coverage driver
+        run: cargo install cargo-llvm-cov --locked --version 0.9.1
+      - name: Type, comments and four-language checks
+        working-directory: temp/app
+        run: |
+          npm run typecheck
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run comment:check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run i18n:check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Service coverage and real in-memory signing tests
+        working-directory: temp/app
+        run: |
+          npm run test:coverage
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force test-results | Out-Null
+          $env:CARGO_TARGET_DIR = Join-Path (Get-Location) 'native/verifier/target/coverage'
+          cargo llvm-cov --manifest-path native/verifier/Cargo.toml --json --summary-only --output-path test-results/rust-coverage.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo fmt --manifest-path native/verifier/Cargo.toml -- --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo clippy --locked --manifest-path native/verifier/Cargo.toml --target-dir native/verifier/target --all-targets -- -D warnings
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Exercise real isolated Electron window
+        working-directory: temp/app
+        run: npm run test:e2e
+      - name: Build preview with separate identity, without updater feed publication
+        working-directory: temp/app
+        run: npm run package:preview
+      - name: Save review artifacts and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: migration-adapter-preview
+          path: |
+            temp/app/test-results/
+            temp/app/coverage/
+          if-no-files-found: ignore

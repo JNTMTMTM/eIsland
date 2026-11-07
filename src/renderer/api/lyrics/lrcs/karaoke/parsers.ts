@@ -28,74 +28,69 @@
 
 import type { KaraokeLine, KaraokeSyllable } from './types';
 
-/** 行级头: `[start_ms,duration_ms]text_payload` */
-const LINE_RE = /\[(\d+),(\d+)\]([^\[\n]+)/g;
+/** 仅完整数字行头或换行分隔歌词，正文中的普通方括号不截断文本。 */
+const LINE_RE = /\[(\d+),(\d+)\]([^\r\n]*?)(?=\[\d+,\d+\]|[\r\n]|$)/g;
 
 /** LRC 行级头: `[mm:ss.xx]text` 或 `[mm:ss:xx]text` */
-const LRC_LINE_RE = /\[(\d+):(\d+)[.:](\d+)\]([^\[\n]+)/g;
+const LRC_LINE_RE = /\[(\d+):(\d+)[.:](\d+)\]([^\r\n]*?)(?=\[\d+:\d+[.:]\d+\]|[\r\n]|$)/g;
 
-/** 后缀式音节: `text(s,d)` 或 `text<s,d>`,第三字段可选 (QRC/KRC 用) */
-const SUFFIX_RE = /(?<t>[^\n)>\]]+)[(<](?<s>\d+),(?<d>\d+)(?:,[^)>]+)?[)>]/g;
+/** 只识别成对闭合的数字时间标签；其余括号和符号均属于歌词原文。 */
+const SYLLABLE_RE = /\((\d+),(\d+)(?:,\d+)?\)|<(\d+),(\d+)(?:,\d+)?>/g;
 
-/** 前缀式音节: `(s,d)text` 或 `<s,d>text`(YRC/汽水用) */
-const PREFIX_RE = /[(<](?<s>\d+),(?<d>\d+)(?:,[^)>]+)?[)>](?<t>[^\n(<]+)/g;
-
-/** 音节时间戳位置; `auto` 表示由解析器同时尝试 prefix / suffix 选文本更长者 */
+/** 音节时间戳位置; `auto` 表示按 prefix / suffix 的文本覆盖长度选择布局 */
 export type SyllableMode = 'prefix' | 'suffix' | 'auto';
 
 /** 音节时间戳含义: absolute=绝对毫秒(需减行首),relative=已是行内偏移 */
 export type OffsetKind = 'absolute' | 'relative';
 
 /**
- * 内部: 使用指定模式解析同步歌词
- * @param lyrics - 解密/明文后的同步歌词文本
+ * 使用已扫描的行头和音节标签构建一行歌词。
+ * @param lineMatch - 行头和正文的匹配结果。
+ * @param tokens - 正文中按出现顺序排列的音节标签。
  * @param mode - `prefix` 音节时间戳在文本前; `suffix` 时间戳在文本后
  * @param offsetKind - 时间戳含义
- * @returns 解析后的逐字歌词行数组
+ * @returns 保留首尾无时间文本的歌词行。
  */
-function parseWithMode(
-  lyrics: string,
+function buildLine(
+  lineMatch: RegExpExecArray,
+  tokens: RegExpExecArray[],
   mode: 'prefix' | 'suffix',
   offsetKind: OffsetKind,
-): KaraokeLine[] {
-  const out: KaraokeLine[] = [];
-  const syllableRe = mode === 'prefix' ? PREFIX_RE : SUFFIX_RE;
+): KaraokeLine {
+  const lineStart = parseInt(lineMatch[1], 10);
+  const lineDur = parseInt(lineMatch[2], 10);
+  const [, , , segment] = lineMatch;
+  const syllables: KaraokeSyllable[] = tokens.map((token, index) => {
+    const previous = tokens[index - 1];
+    const next = tokens[index + 1];
+    const tokenEnd = token.index + token[0].length;
+    let text = mode === 'prefix'
+      ? segment.slice(tokenEnd, next?.index ?? segment.length)
+      : segment.slice(previous ? previous.index + previous[0].length : 0, token.index);
+    if (mode === 'prefix' && index === 0) text = segment.slice(0, token.index) + text;
+    if (mode === 'suffix' && !next) text += segment.slice(tokenEnd);
+    const s = parseInt(token[1] ?? token[3], 10);
+    const d = parseInt(token[2] ?? token[4], 10);
+    return {
+      text,
+      start_offset_ms: offsetKind === 'absolute' ? Math.max(0, s - lineStart) : s,
+      duration_ms: d,
+    };
+  }).filter((syllable) => syllable.text.length > 0);
 
-  Array.from(lyrics.matchAll(LINE_RE)).forEach((lineMatch) => {
-    const lineStart = parseInt(lineMatch[1], 10);
-    const lineDur = parseInt(lineMatch[2], 10);
-    const segment = lineMatch[3];
-
-    const syllables: KaraokeSyllable[] = [];
-    let fullText = '';
-    Array.from(segment.matchAll(syllableRe)).forEach((sm) => {
-      const s = parseInt(sm.groups!.s, 10);
-      const d = parseInt(sm.groups!.d, 10);
-      const t = sm.groups!.t;
-      fullText += t;
-      syllables.push({
-        start_offset_ms: offsetKind === 'absolute' ? Math.max(0, s - lineStart) : s,
-        duration_ms: d,
-        text: t,
-      });
-    });
-
-    out.push({
-      time_ms: lineStart,
-      duration_ms: lineDur,
-      text: fullText || segment.trim(),
-      syllables,
-    });
-  });
-  out.sort((a, b) => a.time_ms - b.time_ms);
-  return out;
+  return {
+    syllables,
+    time_ms: lineStart,
+    duration_ms: lineDur,
+    text: tokens.length > 0 ? syllables.map((syllable) => syllable.text).join('') : segment.trim(),
+  };
 }
 
 /**
  * 解析同步逐字歌词文本为歌词行数组
  *
- * `mode='auto'` 会同时以 prefix 与 suffix 两种文法各跑一遍,
- * 并选择「捕获音节文本总长度更大」的那一路返回 —— 这是为了兼容
+ * `mode='auto'` 共用一次标签扫描，按「附加无时间首尾文本前覆盖长度」选择布局，
+ * 只构建并排序选中的结果；覆盖长度相同仍优先 suffix。这是为了兼容
  * 同一来源(如酷狗)在不同歌曲/版本中交替出现 `text<s,d>` 与 `<s,d>text`
  * 两种布局, 避免误用 suffix 时末字被挤到无匹配尾段而丢失。
  *
@@ -109,15 +104,35 @@ export function parseSyncedLines(
   mode: SyllableMode,
   offsetKind: OffsetKind,
 ): KaraokeLine[] {
-  if (mode !== 'auto') {
-    return parseWithMode(lyrics, mode, offsetKind);
+  const lines: KaraokeLine[] = [];
+  const pending: Array<{ lineMatch: RegExpExecArray; tokens: RegExpExecArray[] }> = [];
+  let coverageDifference = 0;
+
+  Array.from(lyrics.matchAll(LINE_RE)).forEach((lineMatch) => {
+    const [, , , segment] = lineMatch;
+    if (!segment) return;
+    const tokens = Array.from(segment.matchAll(SYLLABLE_RE));
+    if (mode !== 'auto') {
+      lines.push(buildLine(lineMatch, tokens, mode, offsetKind));
+      return;
+    }
+
+    const [first] = tokens;
+    const last = tokens[tokens.length - 1];
+    if (first && last) {
+      // 两种布局的内部文本覆盖相同，差值只取决于首尾文本；索引保持 UTF-16 计分。
+      coverageDifference += segment.length - last.index - last[0].length - first.index;
+    }
+    pending.push({ lineMatch, tokens });
+  });
+
+  if (mode === 'auto') {
+    const selectedMode = coverageDifference > 0 ? 'prefix' : 'suffix';
+    pending.forEach(({ lineMatch, tokens }) => {
+      lines.push(buildLine(lineMatch, tokens, selectedMode, offsetKind));
+    });
   }
-  const suffix = parseWithMode(lyrics, 'suffix', offsetKind);
-  const prefix = parseWithMode(lyrics, 'prefix', offsetKind);
-  // 无音节时 text 保留整行回退文本，不能将这部分长度计入布局评分。
-  const suffixChars = suffix.reduce((sum, l) => sum + l.syllables.reduce((length, syllable) => length + syllable.text.length, 0), 0);
-  const prefixChars = prefix.reduce((sum, l) => sum + l.syllables.reduce((length, syllable) => length + syllable.text.length, 0), 0);
-  return prefixChars > suffixChars ? prefix : suffix;
+  return lines.sort((a, b) => a.time_ms - b.time_ms);
 }
 
 /**

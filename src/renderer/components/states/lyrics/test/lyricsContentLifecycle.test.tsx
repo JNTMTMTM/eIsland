@@ -55,6 +55,20 @@ async function commit(): Promise<ReactElement> {
   const root = renderWithHooks(LyricsContent); runEffects(); return root;
 }
 describe('真实普通歌词内容组合', () => {
+  it('播放状态切换同步控制歌词动画，暂停保持当前歌词和滚动进度', async () => {
+    settings.karaoke = true;
+    useIslandStore.setState({ currentPositionMs: 1850, syncedLyrics: [{ time_ms: 1000, text: 'original', syllables: [{ start_offset_ms: 0, duration_ms: 2000, text: 'original' }] }] });
+    let root = await commit();
+    const currentLyric = findElement(root, (element) => element.type === ScrollingText);
+    expect(root.props).toHaveProperty('data-playing', true);
+    useIslandStore.setState({ isPlaying: false });
+    root = renderWithHooks(LyricsContent);
+    expect(root.props).toHaveProperty('data-playing', false);
+    expect(findElement(root, (element) => element.type === ScrollingText).props).toEqual(currentLyric.props);
+    useIslandStore.setState({ isPlaying: true });
+    expect(renderWithHooks(LyricsContent).props).toHaveProperty('data-playing', true);
+  });
+
   it('真实设置加载后显示北京时间、歌词与媒体光晕，分钟变化实时重绘', async () => {
     let root = await commit(); expect(textContent(root)).toContain('08:00');
     expect(findElement(root, (element) => element.type === ScrollingText).props.children).toBe('original');

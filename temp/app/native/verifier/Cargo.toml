@@ -1,0 +1,14 @@
+[package]
+name = "eisland-update-verifier"
+version = "27.0.2"
+edition = "2021"
+license = "GPL-3.0"
+
+[dependencies]
+base64 = "0.22"
+minisign-verify = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+minisign = "0.8"

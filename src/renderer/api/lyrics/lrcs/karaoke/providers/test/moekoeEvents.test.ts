@@ -88,6 +88,13 @@ describe('real MoeKoe karaoke events', () => {
     expect(await promise).toBeNull();
   });
 
+  it('preserves symbol-only lines in a mixed encrypted lyric packet', async () => {
+    const promise = fetchKaraokeFromMoeKoe('Song', 'Artist');
+    const mixedKrc = 'a3JjMTjbGsglTcDu0Le/vE+TgsrZ7H9CEkug9x2nGvceEq4ph5OhV4g0OK5J7kiJKDaKakCAPGfm';
+    sockets[0].emit('message', JSON.stringify({ type: 'lyrics', data: { lyricsData: mixedKrc } }));
+    expect((await promise)?.map((line) => line.text)).toEqual(['♪—…!', 'Hello']);
+  });
+
   it('catches malformed server lyric data at the public boundary', async () => {
     const promise = fetchKaraokeFromMoeKoe('Song', 'Artist');
     sockets[0].emit('message', JSON.stringify({ type: 'lyrics', data: { lyricsData: 42 } }));

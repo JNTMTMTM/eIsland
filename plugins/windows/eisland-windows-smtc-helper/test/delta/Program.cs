@@ -117,3 +117,68 @@ try
 finally { release.Set(); holder.Join(); }
 if (SmtcSessionMonitor.DrainSessionChangesJson() == "[]") throw new Exception("Contended drain lost its pending delta");
 Console.WriteLine("PASS: contended drain returned without blocking and retained pending changes.");
+
+// 暂停可能发生在两次 wait 之间；读取通知不能先清空尚未消费的增量通知。
+var monitorType = typeof(SmtcSessionMonitor);
+var ensureEvents = monitorType.GetMethod("EnsureEvents", BindingFlags.NonPublic | BindingFlags.Static)!;
+var signalChange = monitorType.GetMethod("SignalChange", BindingFlags.NonPublic | BindingFlags.Static)!;
+var monitoring = monitorType.GetField("_monitoring", BindingFlags.NonPublic | BindingFlags.Static)!;
+var cleanup = monitorType.GetMethod("Cleanup", BindingFlags.NonPublic | BindingFlags.Static)!;
+if (!(bool)ensureEvents.Invoke(null, null)!) throw new Exception("Could not create notification events");
+monitoring.SetValue(null, true);
+try
+{
+    lock (sessionLock)
+    {
+        publish.Invoke(null, new object[] {
+            new SessionInfo { SourceAppId = "app", Media = media,
+                Playback = new PlaybackInfoSnapshot { PlaybackStatus = 5, PlaybackRate = 1.5 } }, false
+        });
+        signalChange.Invoke(null, null);
+    }
+    if (SmtcSessionMonitor.WaitForChanges(0) != 0)
+        throw new Exception("Wait erased the pause notification published before waiting");
+    if (SmtcSessionMonitor.WaitForChanges(0) != 0)
+        throw new Exception("An unconsumed pause must remain signaled");
+    using (var paused = JsonDocument.Parse(SmtcSessionMonitor.DrainSessionChangesJson()!))
+    {
+        if (paused.RootElement[0].GetProperty("playback").GetProperty("playbackStatus").GetInt32() != 5)
+            throw new Exception("Pause delta was lost between waits");
+    }
+    if (SmtcSessionMonitor.WaitForChanges(0) != 1)
+        throw new Exception("Successful drain must clear the consumed notification");
+
+    using var pendingReady = new ManualResetEventSlim();
+    using var releasePending = new ManualResetEventSlim();
+    var pendingHolder = new Thread(() => {
+        lock (sessionLock)
+        {
+            Update(603, false);
+            signalChange.Invoke(null, null);
+            pendingReady.Set();
+            releasePending.Wait();
+        }
+    }) { IsBackground = true };
+    pendingHolder.Start();
+    try
+    {
+        if (!pendingReady.Wait(1000)) throw new Exception("Pending notification fixture did not start");
+        if (SmtcSessionMonitor.WaitForChanges(0) != 0)
+            throw new Exception("Lock contention must not hide pending notifications");
+        if (SmtcSessionMonitor.DrainSessionChangesJson() != null)
+            throw new Exception("Busy drain must request a retry");
+        if (SmtcSessionMonitor.WaitForChanges(0) != 0)
+            throw new Exception("Busy drain consumed the notification before the delta");
+    }
+    finally { releasePending.Set(); pendingHolder.Join(); }
+    if (SmtcSessionMonitor.DrainSessionChangesJson() == "[]")
+        throw new Exception("Busy drain lost the pending playback change");
+    if (SmtcSessionMonitor.WaitForChanges(0) != 1)
+        throw new Exception("Recovered drain left a stale notification");
+    Console.WriteLine("PASS: pause notifications survive pre-wait publication and lock contention until drained.");
+}
+finally
+{
+    monitoring.SetValue(null, false);
+    cleanup.Invoke(null, null);
+}

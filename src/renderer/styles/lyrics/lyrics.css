@@ -150,6 +150,18 @@
   transition: transform 0.12s linear;
 }
 
+/* 暂停后立即显示最终进度，避免扫光与位置修正继续过渡；恢复时沿用跑马灯位置。 */
+.lyrics-content[data-playing="false"] .scroll-text-content {
+  transition: none;
+  animation-play-state: paused;
+
+}
+
+.lyrics-content[data-playing="false"] .lyrics-syllable {
+  transition: none;
+
+}
+
 @keyframes scroll-text-scroll {
   from {
     transform: translateX(0);

@@ -104,8 +104,11 @@ describe('QQ real QRC search and encrypted download', () => {
     xml = value;
     expect(await fetchKaraokeFromQQMusic('Song', 'Artist')).toBeNull();
   });
-  it('filters untimed lines after successful independent decryption', async () => {
+  it('preserves untimed lines after successful independent decryption', async () => {
     xml = `<![CDATA[${  mixedCipher  }]]>`;
-    expect(await fetchKaraokeFromQQMusic('Song', 'Artist')).toEqual(expected);
+    expect(await fetchKaraokeFromQQMusic('Song', 'Artist')).toEqual([
+      ...expected,
+      { time_ms: 2000, duration_ms: 500, text: 'untimed', syllables: [] },
+    ]);
   });
 });

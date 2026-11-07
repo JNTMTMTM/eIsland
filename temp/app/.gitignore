@@ -1,0 +1,7 @@
+/out/
+/dist/
+/node_modules/
+/native/verifier/target/
+/test-results/
+/coverage/
+/resources/release.json

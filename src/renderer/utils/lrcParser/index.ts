@@ -229,14 +229,18 @@ export function cleanArtist(artist: string): string {
  * @returns 解析后的歌词行数组，无匹配时返回 null
  */
 export function extractSyncedFromArray(json: unknown[]): LyricLine[] | null {
-  const match = json
-    .map((item) => (item && typeof item === 'object'
+  let match: LyricLine[] | null = null;
+  json.some((item) => {
+    const synced = item && typeof item === 'object'
       ? (item as Record<string, unknown>).syncedLyrics
-      : null))
-    .filter((value): value is string => typeof value === 'string' && value.length > 0)
-    .map((synced) => parseSyncedLrc(synced))
-    .find((lines) => lines.length > 0);
-  return match ?? null;
+      : null;
+    if (typeof synced !== 'string' || synced.length === 0) return false;
+    const lines = parseSyncedLrc(synced);
+    if (lines.length === 0) return false;
+    match = lines;
+    return true;
+  });
+  return match;
 }
 
 /**

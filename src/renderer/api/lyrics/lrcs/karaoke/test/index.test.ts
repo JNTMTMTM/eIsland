@@ -86,6 +86,15 @@ describe('fetchKaraokeLyrics', () => {
     expect(result).toEqual(SAMPLE_KARAOKE);
   });
 
+  it('drops empty and whitespace-only rows but keeps symbol-only rows', async () => {
+    musicLyricsSourceGet.mockResolvedValue('netease-only');
+    fetchKaraokeFromNetease.mockResolvedValue([makeLine(0, 'hello'), makeLine(1000, ''), makeLine(2000, '  '), makeLine(3000, '…')]);
+
+    const result = await fetchKaraokeLyrics('song', 'artist');
+
+    expect(result?.map((line) => line.text)).toEqual(['hello', '…']);
+  });
+
   it('uses forced provider when source setting is qqmusic-only', async () => {
     musicLyricsSourceGet.mockResolvedValue('qqmusic-only');
     fetchKaraokeFromQQMusic.mockResolvedValue(SAMPLE_KARAOKE);

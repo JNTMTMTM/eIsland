@@ -204,6 +204,37 @@ describe('useTrayNowPlaying', () => {
     expect(render(2).nowPlaying).toBeNull();
   });
 
+  it.each([
+    { name: 'paused', latest: info({ isPlaying: false }) },
+    { name: 'removed', latest: null },
+    { name: 'changed source', latest: info({ title: 'Next', deviceId: 'another-player', isPlaying: false }) },
+  ])('keeps the $name broadcast when an older playing refresh resolves later', async ({ latest }) => {
+    let resolveRefresh: (value: NowPlayingInfo | null) => void = () => undefined;
+    api.mediaCurrentInfoGet.mockReturnValueOnce(new Promise((resolve) => { resolveRefresh = resolve; }));
+    render(1);
+    broadcast(latest);
+    resolveRefresh(info());
+    await settle();
+    expect(render(1)).toMatchObject({ loading: false, nowPlaying: toTrayNowPlaying(latest, null) });
+
+    // 忽略旧请求不应阻止下一次打开时读取新的系统状态。
+    api.mediaCurrentInfoGet.mockResolvedValueOnce(info({ title: 'Fresh', isPlaying: false }));
+    render(2);
+    await settle();
+    expect(render(2).nowPlaying).toMatchObject({ title: 'Fresh', isPlaying: false });
+  });
+
+  it('does not overwrite a playback toggle with a refresh started before the command', async () => {
+    let resolveRefresh: (value: NowPlayingInfo | null) => void = () => undefined;
+    api.mediaCurrentInfoGet.mockReturnValueOnce(new Promise((resolve) => { resolveRefresh = resolve; }));
+    render(0);
+    broadcast(info());
+    render(1).togglePlayback();
+    resolveRefresh(info());
+    await settle();
+    expect(render(1).nowPlaying?.isPlaying).toBe(false);
+  });
+
   it('ignores a stale or failed fetch', async () => {
     render(1);
     render(2);
