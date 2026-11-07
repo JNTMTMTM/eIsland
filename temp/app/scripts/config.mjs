@@ -24,13 +24,17 @@
  * @author 鸡哥
  */
 import { readFileSync } from 'node:fs';
+import { loadEnvFile } from '../../../scripts/native/aws-upload.mjs';
 
 /** 构建和正式打包采用相同公开信任配置。
  * @param env - 当前环境。
+ * @param envFile - 根目录环境配置文件，测试可替换为隔离文件。
  * @returns 发布者公钥，缺失时为空。
  */
-export function publicKey(env = process.env) {
-  return (env.TAURI_UPDATER_PUBLIC_KEY || JSON.parse(readFileSync(new URL('../../../src-tauri/tauri.conf.json', import.meta.url), 'utf8')).plugins?.updater?.pubkey || '').trim();
+export function publicKey(env = process.env, envFile = new URL('../../../.env', import.meta.url)) {
+  const local = {};
+  loadEnvFile(envFile, local);
+  return (env.TAURI_UPDATER_PUBLIC_KEY || local.TAURI_UPDATER_PUBLIC_KEY || JSON.parse(readFileSync(new URL('../../../src-tauri/tauri.conf.json', import.meta.url), 'utf8')).plugins?.updater?.pubkey || '').trim();
 }
 
 /** 正式包不能使用空密钥或私钥文本冒充公钥。
