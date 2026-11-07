@@ -67,13 +67,13 @@ describe('real TTML syllable parser', () => {
     ]);
   });
 
-  it('ignores empty or incomplete syllables without discarding the valid line', () => {
+  it('preserves text without complete timing and ignores empty syllables', () => {
     const raw = '<p in="00:01.00" nd="00:02.00">'
       + '<span in="00:01.00" nd="00:02.00"></span>'
       + '<span nd="00:02.00">no-start</span>'
       + '<span in="00:01.00">no-end</span>'
       + '<span in="00:01.00" nd="00:02.00">Hello</span></p>';
-    expect(parseTTML(raw)).toEqual([{ time_ms: 1000, duration_ms: 1000, text: 'Hello', syllables: [{ start_offset_ms: 0, duration_ms: 1000, text: 'Hello' }] }]);
+    expect(parseTTML(raw)).toEqual([{ time_ms: 1000, duration_ms: 1000, text: 'no-startno-endHello', syllables: [{ start_offset_ms: 0, duration_ms: 1000, text: 'no-startno-endHello' }] }]);
   });
 
   it('clamps negative line durations, offsets and syllable durations to zero', () => {
@@ -85,6 +85,70 @@ describe('real TTML syllable parser', () => {
   it('uses the existing zero-time fallback for an unsupported one-part time', () => {
     expect(parseTTML('<p in="1" nd="2"><span in="1" nd="2">Hello</span></p>')).toEqual([
       { time_ms: 0, duration_ms: 0, text: 'Hello', syllables: [{ start_offset_ms: 0, duration_ms: 0, text: 'Hello' }] },
+    ]);
+  });
+
+  it('retains punctuation and spaces outside timed spans without changing their timing', () => {
+    const raw = '<p begin="00:01" end="00:04">（<span begin="00:01" end="00:02">Hello</span>'
+      + ', <span>“</span><span begin="00:03" end="00:04">world</span><span>！”</span>）</p>';
+    expect(parseTTML(raw)).toEqual([
+      { time_ms: 1000, duration_ms: 3000, text: '（Hello, “world！”）', syllables: [
+        { start_offset_ms: 0, duration_ms: 1000, text: '（Hello, “' },
+        { start_offset_ms: 2000, duration_ms: 1000, text: 'world！”）' },
+      ] },
+    ]);
+  });
+
+  it('retains parent text and inherits timing through nested untimed spans', () => {
+    const raw = '<p begin="00:01" end="00:03"><span begin="00:01.5" end="00:02.5">'
+      + 'Don<span>’</span>t <span>stop</span>!</span></p>';
+    expect(parseTTML(raw)).toEqual([
+      { time_ms: 1000, duration_ms: 2000, text: 'Don’t stop!', syllables: [
+        { start_offset_ms: 500, duration_ms: 1000, text: 'Don’t stop!' },
+      ] },
+    ]);
+  });
+
+  it('decodes XML entities once after extracting timed text', () => {
+    const raw = '<p begin="00:01" end="00:02"><span begin="00:01" end="00:02">'
+      + '&quot;I&apos;m&quot; &amp; &lt;3 &#33; &#x266A; &#x1F3B5; &amp;lt;</span></p>';
+    const text = '"I\'m" & <3 ! ♪ 🎵 &lt;';
+    expect(parseTTML(raw)).toEqual([
+      { text, time_ms: 1000, duration_ms: 1000, syllables: [
+        { text, start_offset_ms: 0, duration_ms: 1000 },
+      ] },
+    ]);
+  });
+
+  it('retains CDATA symbols and punctuation-only timed syllables', () => {
+    const raw = '<p begin="00:01" end="00:02"><span begin="00:01" end="00:02"><![CDATA[<&♪>]]></span></p>';
+    expect(parseTTML(raw)).toEqual([
+      { time_ms: 1000, duration_ms: 1000, text: '<&♪>', syllables: [
+        { start_offset_ms: 0, duration_ms: 1000, text: '<&♪>' },
+      ] },
+    ]);
+  });
+
+  it('preserves untimed punctuation lines in documents containing timed syllables', () => {
+    const raw = '<p begin="00:01" end="00:02">♪ &amp; …</p>'
+      + '<p begin="00:02" end="00:03"><span begin="00:02" end="00:03">Hello</span></p>';
+    expect(parseTTML(raw)).toEqual([
+      { time_ms: 1000, duration_ms: 1000, text: '♪ & …', syllables: [] },
+      { time_ms: 2000, duration_ms: 1000, text: 'Hello', syllables: [
+        { start_offset_ms: 0, duration_ms: 1000, text: 'Hello' },
+      ] },
+    ]);
+  });
+
+  it('keeps nested explicit syllable times and ignores empty spans and XML comments', () => {
+    const raw = '<p begin="00:01" end="00:04"><span begin="00:01" end="00:04">'
+      + '<span begin="00:01" end="00:02">A</span><!-- note --><span/>'
+      + '<span begin="00:03" end="00:04">B</span></span>!</p>';
+    expect(parseTTML(raw)).toEqual([
+      { time_ms: 1000, duration_ms: 3000, text: 'AB!', syllables: [
+        { start_offset_ms: 0, duration_ms: 1000, text: 'A' },
+        { start_offset_ms: 2000, duration_ms: 1000, text: 'B!' },
+      ] },
     ]);
   });
 });
@@ -106,6 +170,18 @@ describe('real TTML word-level parser', () => {
   it('limits output to the number of nonempty text values', () => {
     expect(parseTTML('<div><p in="00:00:01.00" nd="00:00:02.00">One</p><p in="00:00:03.00" nd="00:00:04.00"> </p></div>')).toEqual([
       { time_ms: 1000, duration_ms: 1000, text: 'One', syllables: [] },
+    ]);
+  });
+
+  it('decodes entities in line-level lyrics without discarding symbolic text', () => {
+    expect(parseTTML('<div><p in="00:00:01.00" nd="00:00:02.00">&lt;3 &amp; &#x266A;</p></div>')).toEqual([
+      { time_ms: 1000, duration_ms: 1000, text: '<3 & ♪', syllables: [] },
+    ]);
+  });
+
+  it('preserves a symbolic paragraph without requiring an enclosing div or a timed span', () => {
+    expect(parseTTML('<p begin="00:01" end="00:02">♪ &amp; …</p>')).toEqual([
+      { time_ms: 1000, duration_ms: 1000, text: '♪ & …', syllables: [] },
     ]);
   });
 });

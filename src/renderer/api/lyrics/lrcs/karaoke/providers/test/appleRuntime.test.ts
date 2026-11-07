@@ -101,11 +101,18 @@ describe('real Apple Music karaoke provider', () => {
 });
 
 describe('real Apple Music TTML syllable selection', () => {
-  it('omits parsed lines that contain no timed syllable', async () => {
+  it('preserves parsed fallback lines alongside timed syllables', async () => {
     fixture.state.lyrics = { data: [{ attributes: { ttmlLocalizations:
       '<tt><p in="00:00.00" nd="00:01.00"><span></span></p><p in="00:01.00" nd="00:02.00"><span in="00:01.00" nd="00:02.00">Hello</span></p></tt>',
     } }] };
-    expect((await fetchKaraokeFromAppleMusic('Song', 'Artist'))?.map((line) => line.text)).toEqual(['Hello']);
+    expect((await fetchKaraokeFromAppleMusic('Song', 'Artist'))?.map((line) => line.text)).toEqual(['', 'Hello']);
+  });
+
+  it('preserves symbol-only text in a mixed TTML response', async () => {
+    fixture.state.lyrics = { data: [{ attributes: { ttmlLocalizations:
+      '<tt><p in="00:00.00" nd="00:01.00">♪—…!</p><p in="00:01.00" nd="00:02.00"><span in="00:01.00" nd="00:02.00">Hello</span></p></tt>',
+    } }] };
+    expect((await fetchKaraokeFromAppleMusic('Song', 'Artist'))?.map((line) => line.text)).toEqual(['♪—…!', 'Hello']);
   });
 
   it('returns null for timed word-level content with no syllables', async () => {

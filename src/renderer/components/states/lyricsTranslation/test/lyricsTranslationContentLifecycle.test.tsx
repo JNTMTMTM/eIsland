@@ -64,6 +64,17 @@ async function commit(): Promise<ReactElement<LyricsTranslationContentViewProps>
   const root = renderContent(); runEffects(); return root;
 }
 describe('真实双语歌词内容组合与状态回退', () => {
+  it('暂停及恢复同步控制双语歌词动画并保持原文翻译', async () => {
+    const root = await commit();
+    expect(LyricsTranslationContentView(root.props).props).toHaveProperty('data-playing', true);
+    useIslandStore.setState({ isPlaying: false });
+    const paused = renderContent();
+    expect(LyricsTranslationContentView(paused.props).props).toHaveProperty('data-playing', false);
+    expect(paused.props).toMatchObject({ currentText: root.props.currentText, translationText: root.props.translationText, currentPositionMs: root.props.currentPositionMs });
+    useIslandStore.setState({ isPlaying: true });
+    expect(LyricsTranslationContentView(renderContent().props).props).toHaveProperty('data-playing', true);
+  });
+
   it('真实时间索引与设置产生双语视图，实际子组件保留原文及翻译', async () => {
     const root = await commit();
     expect(root.type).toBe(LyricsTranslationContentView); expect(root.props).toMatchObject({ clockText: '08:00', currentText: 'original', translationText: '翻译', currentIdx: 0, glowEnabled: true });

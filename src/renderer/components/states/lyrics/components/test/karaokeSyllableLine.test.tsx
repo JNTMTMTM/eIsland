@@ -33,6 +33,13 @@ import type { TreeElement } from '../../../test/tree';
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'zh-CN' } }) }));
 
 describe('KaraokeSyllableLine', () => {
+  it('renders symbol-only syllables and literal punctuation without HTML interpretation or filtering', () => {
+    const parts = ['(', 'foo', ') <3 [x] ', "can't", ' re-enter ', '😀', ' & <tag> &amp;'];
+    const root = KaraokeSyllableLine({ lineStartMs: 1000, posMs: 1500, syllables: parts.map((value, index) => ({ text: value, start_offset_ms: index * 100, duration_ms: 100 })) }) as TreeElement;
+    expect(text(root)).toBe(parts.join(''));
+    expect(elements(root).filter((element) => element.props.className === 'lyrics-syllable')).toHaveLength(parts.length);
+  });
+
   it.each([[900, '0.00%'], [1000, '0.00%'], [1250, '50.00%'], [1500, '100.00%'], [2000, '100.00%']] as const)('renders progress at %i ms', (posMs, progress) => { const root = ((KaraokeSyllableLine({ posMs, syllables: [{ text: 'Word', start_offset_ms: 0, duration_ms: 500 }], lineStartMs: 1000 }) as TreeElement)); expect(byClass(root, 'lyrics-syllable').props.style).toEqual({ '--syl-prog': progress }); expect(text(root)).toBe('Word'); });
   it('handles zero duration and empty lines', () => { const root = ((KaraokeSyllableLine({ syllables: [{ text: 'Zero', start_offset_ms: 0, duration_ms: 0 }], lineStartMs: 0, posMs: 0 }) as TreeElement)); expect(byClass(root, 'lyrics-syllable').props.style).toEqual({ '--syl-prog': '100.00%' }); expect(elements(((KaraokeSyllableLine({ syllables: [], lineStartMs: 0, posMs: 0 }) as TreeElement)))).toHaveLength(1); });
 });

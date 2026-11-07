@@ -117,15 +117,14 @@ export async function fetchKaraokeFromMoeKoe(_title: string, _artist: string): P
     const plaintext = await decryptKRC(krcContent);
     // 酷狗 KRC 可能是 prefix 或 suffix 模式，用 auto 自动检测
     const lines = parseSyncedLines(plaintext, 'auto', 'relative');
-    const withSyllables = lines.filter((l) => l.syllables.length > 0);
-
-    if (withSyllables.length === 0) {
+    // 只用音节判断来源是否可用，混合内容中的普通行与纯符号行仍需显示。
+    if (!lines.some((line) => line.syllables.length > 0)) {
       logger.warn(`${LOG_TAG} 解密成功但解析出 0 行逐字`);
       return null;
     }
 
-    logger.info(`${LOG_TAG} 获取成功, 行数=${withSyllables.length}`);
-    return withSyllables;
+    logger.info(`${LOG_TAG} 获取成功, 行数=${lines.length}`);
+    return lines;
   } catch (err) {
     logger.error(`${LOG_TAG} 未预期异常:`, err);
     return null;

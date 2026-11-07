@@ -28,6 +28,95 @@ import { describe, expect, it } from 'vitest';
 import { parseSyncedLines, parseLRCAsKaraoke } from '../parsers';
 
 describe('parseSyncedLines', () => {
+  it.each(['prefix', 'suffix'] as const)('preserves punctuation and Unicode text in %s syllables', (mode) => {
+    const texts = ['(Hello) <echo> [chorus] ', 'don\'t—stop! “好？”♪👩‍🎤 <3 & > = + / \\'];
+    const tokens = ['(1000,500,0)', '<1500,600,0>'];
+    const input = `[1000,3000]${texts.map((text, index) => mode === 'prefix' ? tokens[index] + text : text + tokens[index]).join('')}`;
+    expect(parseSyncedLines(input, mode, 'absolute')).toEqual([{
+      time_ms: 1000,
+      duration_ms: 3000,
+      text: texts.join(''),
+      syllables: [
+        { start_offset_ms: 0, duration_ms: 500, text: texts[0] },
+        { start_offset_ms: 500, duration_ms: 600, text: texts[1] },
+      ],
+    }]);
+  });
+
+  it.each(['(', ')', '<', '>', '[', ']', '♪', '…', '—', "'", '！', '👩‍🎤'])('retains a timed symbol-only syllable %s', (symbol) => {
+    expect(parseSyncedLines(`[1000,500](0,500)${symbol}`, 'prefix', 'relative')[0]).toEqual({
+      time_ms: 1000, duration_ms: 500, text: symbol,
+      syllables: [{ start_offset_ms: 0, duration_ms: 500, text: symbol }],
+    });
+  });
+
+  it.each([
+    { mode: 'prefix' as const, segment: '♪ (0,500)one (500,600)two!', texts: ['♪ one ', 'two!'] },
+    { mode: 'suffix' as const, segment: 'one (0,500)two(500,600) ♪', texts: ['one ', 'two ♪'] },
+  ])('keeps untimed edge text inside the rendered $mode syllables without shifting timings', ({ mode, segment, texts }) => {
+    const [line] = parseSyncedLines(`[1000,2000]${segment}`, mode, 'relative');
+    expect(line.text).toBe(texts.join(''));
+    expect(line.syllables).toEqual([
+      { start_offset_ms: 0, duration_ms: 500, text: texts[0] },
+      { start_offset_ms: 500, duration_ms: 600, text: texts[1] },
+    ]);
+  });
+
+  it('keeps ordinary brackets while retaining compact row boundaries and CRLF support', () => {
+    const input = '[1000,500](0,500)A[echo]B[2000,500](0,500)C\r\n[3000,500](0,500)D[ending]';
+    expect(parseSyncedLines(input, 'prefix', 'relative').map((line) => line.text)).toEqual(['A[echo]B', 'C', 'D[ending]']);
+  });
+
+  it('treats mismatched or nonnumeric timing-like brackets as literal text', () => {
+    const text = '(0,500> <0,500) (word,500) (0,500,word)';
+    expect(parseSyncedLines(`[1000,500](0,500)${text}`, 'prefix', 'relative')[0]).toEqual({
+      text, time_ms: 1000, duration_ms: 500,
+      syllables: [{ text, start_offset_ms: 0, duration_ms: 500 }],
+    });
+  });
+
+  it.each([
+    { segment: '“(0,500)Hello(500,500) world!”', texts: ['“Hello', ' world!”'] },
+    { segment: '“Hello(0,500) world!(500,500)”', texts: ['“Hello', ' world!”'] },
+  ])('chooses auto timing layout before attaching edge punctuation in $segment', ({ segment, texts }) => {
+    const [line] = parseSyncedLines(`[1000,1000]${segment}`, 'auto', 'relative');
+    expect(line.text).toBe('“Hello world!”');
+    expect(line.syllables).toEqual([
+      { start_offset_ms: 0, duration_ms: 500, text: texts[0] },
+      { start_offset_ms: 500, duration_ms: 500, text: texts[1] },
+    ]);
+  });
+
+  it.each([
+    { head: 'a', texts: ['amiddle', '😀'] },
+    { head: 'ab', texts: ['ab', 'middle😀'] },
+  ])('uses UTF-16 coverage and keeps suffix on a tie for head $head', ({ head, texts }) => {
+    const [line] = parseSyncedLines(`[1000,100]${head}(0,50)middle(50,50)😀`, 'auto', 'relative');
+    expect(line.syllables).toEqual([
+      { start_offset_ms: 0, duration_ms: 50, text: texts[0] },
+      { start_offset_ms: 50, duration_ms: 50, text: texts[1] },
+    ]);
+  });
+
+  it.each(['relative', 'absolute'] as const)('chooses one layout across rows and preserves fallback rows with %s offsets', (offsetKind) => {
+    const input = '[2000,100](0,50)A(50,50)B\n[1000,100]long(0,50)tail(50,50)\n[1000,100] ♪ \n[500,100](0,0)(0,0)\n[4000,100]';
+    expect(parseSyncedLines(input, 'auto', offsetKind)).toEqual([
+      { time_ms: 500, duration_ms: 100, text: '', syllables: [] },
+      {
+        time_ms: 1000, duration_ms: 100, text: 'longtail',
+        syllables: [
+          { start_offset_ms: 0, duration_ms: 50, text: 'long' },
+          { start_offset_ms: offsetKind === 'absolute' ? 0 : 50, duration_ms: 50, text: 'tail' },
+        ],
+      },
+      { time_ms: 1000, duration_ms: 100, text: '♪', syllables: [] },
+      {
+        time_ms: 2000, duration_ms: 100, text: 'AB',
+        syllables: [{ start_offset_ms: offsetKind === 'absolute' ? 0 : 50, duration_ms: 50, text: 'AB' }],
+      },
+    ]);
+  });
+
   it('prefix mode with absolute millisecond timestamps', () => {
     const input = '[1000,3000](1000,500)你(1500,500)好';
     const result = parseSyncedLines(input, 'prefix', 'absolute');
@@ -198,6 +287,11 @@ describe('parseSyncedLines', () => {
 });
 
 describe('parseLRCAsKaraoke', () => {
+  it('preserves brackets and symbols in fallback lyrics without consuming the next row', () => {
+    const input = '[00:01.00][echo] (don\'t) <3 ♪[00:02.00]“好！” [ending]\r\n[00:03.00]👩‍🎤';
+    expect(parseLRCAsKaraoke(input).map((line) => line.text)).toEqual(['[echo] (don\'t) <3 ♪', '“好！” [ending]', '👩‍🎤']);
+  });
+
   it('standard LRC with dot separator', () => {
     const input = '[00:10.50]Hello World';
     const result = parseLRCAsKaraoke(input);

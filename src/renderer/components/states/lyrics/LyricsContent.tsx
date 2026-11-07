@@ -62,7 +62,7 @@ export function LyricsContent(): ReactElement {
   const [r, g, b] = dominantColor;
 
   return (
-    <div className="lyrics-content">
+    <div className="lyrics-content" data-playing={isPlaying}>
       {/* 背景光晕 — 与 IdleContent 一致 */}
       <div
         className={`idle-glow${isMusicPlaying && coverImage && musicOuterGlowEffectEnabled ? ' active' : ''}${isMusicPlaying && coverImage && !isPlaying && musicOuterGlowEffectEnabled ? ' paused' : ''}`}

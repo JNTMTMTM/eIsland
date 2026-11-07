@@ -40,10 +40,14 @@ jobs:
     timeout-minutes: 60
     env:
       EISLAND_TEST_IDENTIFIER: com.pyisland.eisland.refactor-test
-      EISLAND_REFACTOR_RUST_TARGET_DIR: ${{ runner.temp }}/eisland-refactor-coverage-target
       EISLAND_SMOKE_OUTPUT: ${{ github.workspace }}/src-tauri/target/coverage-smoke
     steps:
       - uses: actions/checkout@v7
+      - name: Initialize isolated coverage target on the runner
+        shell: pwsh
+        run: |
+          $coverageTarget = Join-Path $env:RUNNER_TEMP 'eisland-refactor-coverage-target'
+          "EISLAND_REFACTOR_RUST_TARGET_DIR=$coverageTarget" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - uses: actions/setup-node@v7
         with:
           node-version: '24.22.1'
@@ -53,7 +57,7 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri -> ${{ runner.temp }}/eisland-refactor-coverage-target
+          workspaces: src-tauri -> ${{ env.EISLAND_REFACTOR_RUST_TARGET_DIR }}
           shared-key: native-refactor-coverage
       - uses: actions/setup-dotnet@v6
         with:

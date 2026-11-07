@@ -24,7 +24,7 @@
  *              解析 TTML XML 中 `<p>` + `<span>` 结构提取逐字音节
  *              时间格式: `HH:MM:SS` 或 `MM:SS`，秒支持任意小数精度
  * @author 鸡哥
- * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
+ * @see https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
 import type { KaraokeLine, KaraokeSyllable } from '../types';
@@ -45,7 +45,12 @@ function parseTimeMs(tag: string): number {
 
 /* ── 属性提取辅助 ──────────────────────────────────────────────────── */
 
-/** 从片段中查找 `attr="value"` 的值 */
+/**
+ * 从片段中查找 `attr="value"` 的值。
+ * @param fragment - 当前标签的属性片段。
+ * @param attr - 属性名或兼容的时间属性后缀。
+ * @returns 属性值，缺失或不完整时返回 null。
+ */
 function findAttr(fragment: string, attr: string): string | null {
   const marker = `${attr}="`;
   const start = fragment.indexOf(marker);
@@ -56,60 +61,97 @@ function findAttr(fragment: string, attr: string): string | null {
   return fragment.substring(valueStart, valueEnd);
 }
 
+/**
+ * 解码文本中的 XML 实体；先拆标签再解码，避免将歌词中的小于号误当作标签。
+ * @param text - 尚未解码的 XML 文本节点。
+ * @returns 仅解码一层后的原始歌词，非法字符引用保持原样。
+ */
+function decodeXmlText(text: string): string {
+  const entities: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: '\'' };
+  return text.replace(/&(amp|lt|gt|quot|apos|#\d+|#x[\da-fA-F]+);/g, (entity: string, name: string) => {
+    if (!name.startsWith('#')) return entities[name];
+    const hexadecimal = name.startsWith('#x');
+    const point = Number.parseInt(name.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10);
+    if (point <= 0 || point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff)) return entity;
+    return String.fromCodePoint(point);
+  });
+}
+
 /* ── 逐字模式（syllable: `<p>` + `<span>`）──────────────────────────── */
 
 /**
  * 解析单个 `<p>...</p>` 为一行逐字歌词
  * `<p>` 属性: `in="start" nd="end"` 行级时间
  * `<span>` 子元素: `in="start" nd="end"` 音节时间
+ * @param pBlock - 包含行级时间和歌词内容的完整段落。
+ * @returns 保留全部文本的歌词行，行时间不完整时返回 null。
  */
 function parseSyllableLine(pBlock: string): KaraokeLine | null {
   // 提取行级时间
-  const lineStartStr = findAttr(pBlock, 'in');
-  const lineEndStr = findAttr(pBlock, 'nd');
+  const openingEnd = pBlock.indexOf('>');
+  const lineAttrs = pBlock.slice(0, openingEnd);
+  const lineStartStr = findAttr(lineAttrs, 'in');
+  const lineEndStr = findAttr(lineAttrs, 'nd');
   if (!lineStartStr || !lineEndStr) return null;
 
   const lineStart = parseTimeMs(lineStartStr);
   const lineEnd = parseTimeMs(lineEndStr);
   const lineDur = Math.max(0, lineEnd - lineStart);
 
-  // 遍历所有 <span> 标签
+  // 文本节点都参与显示；未定时标点附着相邻音节，不为它们捏造时间戳。
   const syllables: KaraokeSyllable[] = [];
+  const timings: (Omit<KaraokeSyllable, 'text'> | null)[] = [];
+  let lastTiming: Omit<KaraokeSyllable, 'text'> | null = null;
+  let leadingText = '';
   let fullText = '';
-  const spanRe = /<span\b([^>]*)>([^<]*)<\/span>/g;
+  const content = pBlock.slice(openingEnd + 1, pBlock.lastIndexOf('</p>'));
+  const tokenRe = /<!--[\s\S]*?-->|<!\[CDATA\[([\s\S]*?)\]\]>|(<\/?span\b[^>]*>)|<[^>]*>|([^<]+)/g;
   let m: RegExpExecArray | null;
 
-  while ((m = spanRe.exec(pBlock)) !== null) {
-    const attrs = m[1];
-    const text = m[2];
+  while ((m = tokenRe.exec(content)) !== null) {
+    const [, cdata, span, nodeText] = m;
+    if (span) {
+      if (span.startsWith('</')) {
+        timings.pop();
+      } else if (!/\/\s*>$/.test(span)) {
+        const start = findAttr(span, 'in');
+        const end = findAttr(span, 'nd');
+        timings.push(start && end ? {
+          start_offset_ms: Math.max(0, parseTimeMs(start) - lineStart),
+          duration_ms: Math.max(0, parseTimeMs(end) - parseTimeMs(start)),
+        } : timings.at(-1) ?? null);
+      }
+      continue;
+    }
+    const text = cdata ?? decodeXmlText(nodeText ?? '');
     if (!text) continue;
-
-    const sStartStr = findAttr(attrs, 'in');
-    const sEndStr = findAttr(attrs, 'nd');
-    if (!sStartStr || !sEndStr) continue;
-
-    const sStart = parseTimeMs(sStartStr);
-    const sEnd = parseTimeMs(sEndStr);
-    const offset = Math.max(0, sStart - lineStart);
-    const dur = Math.max(0, sEnd - sStart);
-
     fullText += text;
-    syllables.push({
-      start_offset_ms: offset,
-      duration_ms: dur,
-      text,
-    });
+    const timing = timings.at(-1) ?? null;
+    const previous = syllables.at(-1);
+    if (timing && (timing !== lastTiming || !previous)) {
+      syllables.push({ ...timing, text: leadingText + text });
+      leadingText = '';
+      lastTiming = timing;
+    } else if (previous) {
+      previous.text += text;
+    } else {
+      leadingText += text;
+    }
   }
 
   return {
+    syllables,
     time_ms: lineStart,
     duration_ms: lineDur,
     text: fullText,
-    syllables,
   };
 }
 
-/** 解析包含 `<span>` 的 TTML 为逐字歌词行 */
+/**
+ * 按段落解析 TTML，保留有完整行时间的逐字行和纯文本行。
+ * @param ttml - TTML XML 文本。
+ * @returns 按开始时间排列的歌词行。
+ */
 function parseSyllables(ttml: string): KaraokeLine[] {
   const lines: KaraokeLine[] = [];
   const pRe = /<p\b[^>]*>[\s\S]*?<\/p>/g;
@@ -126,8 +168,17 @@ function parseSyllables(ttml: string): KaraokeLine[] {
 
 /* ── 行级模式（word: `<div>` with `="..."` pairs）───────────────────── */
 
-/** 解析无 `<span>` 的 TTML 为行级歌词（无逐字） */
+/**
+ * 解析无 `<span>` 的 TTML 为行级歌词（无逐字）。
+ * @param ttml - TTML XML 文本。
+ * @returns 保留符号和实体文本的行级歌词。
+ */
 function parseWordLevel(ttml: string): KaraokeLine[] {
+  if (/<p\b/.test(ttml)) {
+    return parseSyllables(ttml)
+      .map((line) => ({ ...line, text: line.text.trim() }))
+      .filter((line) => line.text.length > 0);
+  }
   const lines: KaraokeLine[] = [];
 
   // 定位到第一个 <div 之后
@@ -148,7 +199,7 @@ function parseWordLevel(ttml: string): KaraokeLine[] {
   const textRe = />([^<]+)</g;
   const texts: string[] = [];
   while ((m = textRe.exec(body)) !== null) {
-    const t = m[1].trim();
+    const t = decodeXmlText(m[1]).trim();
     if (t) texts.push(t);
   }
 

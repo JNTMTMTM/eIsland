@@ -73,7 +73,7 @@ export function purgePlan(env, prefix, name) {
 /** 精确刷新清单和安装包。
  * @param plan - 刷新配置。
  */
-async function purgeNativeCache(plan) {
+export async function purgeNativeCache(plan) {
   // eslint-disable-next-line import-x/extensions -- Node 24 直接加载现有 ESA TypeScript 工具。
   const [{ createEsaClient }, module, util] = await Promise.all([import('../esa/esa-env.ts'), import('@alicloud/esa20240910'), import('@alicloud/tea-util')]);
   const sdk = module.PurgeCachesRequest ? module : module.default;

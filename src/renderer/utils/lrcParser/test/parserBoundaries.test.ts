@@ -79,6 +79,19 @@ describe('title and artist normalization', () => {
 });
 
 describe('public JSON lyric extraction', () => {
+  it('stops reading later candidates after the first parseable lyric', () => {
+    const later = {
+      get syncedLyrics(): string {
+        throw new Error('later candidate must not be read');
+      },
+    };
+    expect(extractSyncedFromArray([
+      { syncedLyrics: 'plain' },
+      { syncedLyrics: '[00:01]First' },
+      later,
+    ])).toEqual([{ time_ms: 1000, text: 'First' }]);
+  });
+
   it('finds the first actually parseable array lyric after damaged values', () => {
     const json = [null, false, 3, {}, { syncedLyrics: 3 }, { syncedLyrics: '' }, { syncedLyrics: 'plain' }, { syncedLyrics: '[00:01]Valid' }, { syncedLyrics: '[00:02]Later' }];
     expect(extractSyncedFromArray(json)).toEqual([{ time_ms: 1000, text: 'Valid' }]);
