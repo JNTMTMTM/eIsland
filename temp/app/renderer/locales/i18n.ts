@@ -20,15 +20,16 @@
 
 /**
  * @file i18n.ts
- * @description 仅在独立适配器 profile 中选择语言，不修改原客户端设置。
+ * @description 仅在独立适配器 profile 中选择语言，不修改原客户端设置；词条来自仓库根 i18n 的 migrationAdapter 命名空间。
  * @author 鸡哥
  */
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import zhCN from './zh-CN.json';
-import zhTW from './zh-TW.json';
-import enUS from './en-US.json';
-import jaJP from './ja-JP.json';
+// 具名导入只打包 migrationAdapter 命名空间，不把主程序词条带入适配器。
+import { migrationAdapter as zhCN } from '../../../../i18n/zh-CN.json';
+import { migrationAdapter as zhTW } from '../../../../i18n/zh-TW.json';
+import { migrationAdapter as enUS } from '../../../../i18n/en-US.json';
+import { migrationAdapter as jaJP } from '../../../../i18n/ja-JP.json';
 
 let language = 'en-US';
 if (navigator.language.startsWith('zh')) language = ['zh-TW', 'zh-HK'].includes(navigator.language) ? 'zh-TW' : 'zh-CN';

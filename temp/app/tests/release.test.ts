@@ -28,12 +28,13 @@ import { mkdtemp, readFile, rm, writeFile, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { parseRelease, ReleaseService, releaseUrl } from '../main/services/releaseService';
+import { parseRelease, ReleaseService, releaseUrl, trustedHosts } from '../main/services/releaseService';
 
 const payload = Buffer.from('MZ isolated download bytes 中文');
 const asset = { url: 'https://example.test/setup.exe', signature: Buffer.from('not a real signature').toString('base64'), format: 'nsis', size: payload.length, sha512: createHash('sha512').update(payload).digest('base64') };
 const manifest = { runtime: 'tauri', version: '27.0.3', platforms: { 'windows-x86_64': asset } };
 const roots: string[] = [];
+const service = (fetcher: ConstructorParameters<typeof ReleaseService>[0] = fetch): ReleaseService => new ReleaseService(fetcher, false, ['example.test']);
 afterEach(async () => { vi.useRealTimers(); await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true }))); });
 
 describe('official Tauri release contract', () => {
@@ -57,25 +58,33 @@ describe('official Tauri release contract', () => {
 describe('bounded network and staging', () => {
   it('reads a UTF-8 manifest split across network chunks', async () => {
     const bytes = Buffer.from(JSON.stringify({ ...manifest, notes: '更新说明' }));
-    const body = new ReadableStream({ start(controller) { for (const byte of bytes) controller.enqueue(Uint8Array.of(byte)); controller.close(); } });
-    const client = new ReleaseService(vi.fn().mockResolvedValue(new Response(body)));
+    const body = new ReadableStream({ start(controller) { bytes.forEach((byte) => controller.enqueue(Uint8Array.of(byte))); controller.close(); } });
+    const client = service(vi.fn().mockResolvedValue(new Response(body)));
     expect((await client.manifest(asset.url, new AbortController().signal)).notes).toBe('更新说明');
   });
   it('rejects oversized manifest and redirect loops', async () => {
-    const oversized = new ReleaseService(vi.fn().mockResolvedValue(new Response(' '.repeat(1024 * 1024 + 1))));
+    const oversized = service(vi.fn().mockResolvedValue(new Response(' '.repeat(1024 * 1024 + 1))));
     await expect(oversized.manifest(asset.url, new AbortController().signal)).rejects.toThrow();
     const fetcher = vi.fn().mockImplementation(async () => new Response(null, { status: 302, headers: { location: '/again' } }));
-    await expect(new ReleaseService(fetcher).request(asset.url, new AbortController().signal)).rejects.toThrow();
+    await expect(service(fetcher).request(asset.url, new AbortController().signal)).rejects.toThrow();
     expect(fetcher).toHaveBeenCalledTimes(6);
   });
+  it('limits requests and redirects to trusted hosts', async () => {
+    await expect(service(vi.fn().mockResolvedValue(new Response(null, { status: 302, headers: { location: 'https://internal.example/admin' } }))).request(asset.url, new AbortController().signal)).rejects.toThrow();
+    const fetcher = vi.fn();
+    await expect(service(fetcher).request('https://other.example/latest.json', new AbortController().signal)).rejects.toThrow();
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(trustedHosts({ r2: 'https://pub.example.dev/a/latest.json' })).toEqual(expect.arrayContaining(['pub.example.dev', 'release-assets.githubusercontent.com']));
+  });
+  it.each(['https://10.0.0.1/a', 'https://169.254.169.254/a', 'https://[::1]/a', 'https://127.0.0.1/a'])('rejects IP literal destination %s', (address) => expect(() => releaseUrl(address)).toThrow());
   it('blocks HTTP redirect downgrade and error status', async () => {
-    await expect(new ReleaseService(vi.fn().mockResolvedValue(new Response(null, { status: 302, headers: { location: 'http://example.test/setup.exe' } }))).request(asset.url, new AbortController().signal)).rejects.toThrow();
-    await expect(new ReleaseService(vi.fn().mockResolvedValue(new Response(null, { status: 503 }))).request(asset.url, new AbortController().signal)).rejects.toThrow();
+    await expect(service(vi.fn().mockResolvedValue(new Response(null, { status: 302, headers: { location: 'http://example.test/setup.exe' } }))).request(asset.url, new AbortController().signal)).rejects.toThrow();
+    await expect(service(vi.fn().mockResolvedValue(new Response(null, { status: 503 }))).request(asset.url, new AbortController().signal)).rejects.toThrow();
   });
   it('commits exact bytes and removes owned partial data on hash failure', async () => {
     const root = await mkdtemp(join(tmpdir(), 'adapter-download-')); roots.push(root);
     const path = join(root, 'setup.exe');
-    const client = new ReleaseService(vi.fn().mockImplementation(async () => new Response(payload)));
+    const client = service(vi.fn().mockImplementation(async () => new Response(payload)));
     await client.download(parseRelease(manifest), path, new AbortController().signal, () => {});
     expect(await readFile(path)).toEqual(payload);
     const bad = { ...parseRelease(manifest), sha512: 'wrong' };
@@ -85,23 +94,24 @@ describe('bounded network and staging', () => {
   });
   it('rejects truncated and overlong downloads without a final file', async () => {
     const root = await mkdtemp(join(tmpdir(), 'adapter-truncated-')); roots.push(root);
-    for (const bytes of [payload.subarray(0, 2), Buffer.concat([payload, payload])]) {
-      const client = new ReleaseService(vi.fn().mockResolvedValue(new Response(bytes)));
+    await [payload.subarray(0, 2), Buffer.concat([payload, payload])].reduce(async (previous, bytes) => {
+      await previous;
+      const client = service(vi.fn().mockResolvedValue(new Response(bytes)));
       await expect(client.download(parseRelease(manifest), join(root, 'setup.exe'), new AbortController().signal, () => {})).rejects.toThrow();
       await expect(access(join(root, 'setup.exe'))).rejects.toThrow();
-    }
+    }, Promise.resolve());
   });
   it('copies a selected offline installer without touching its source', async () => {
     const root = await mkdtemp(join(tmpdir(), 'adapter-local-')); roots.push(root);
     const source = join(root, 'source.exe'); await writeFile(source, payload);
-    await new ReleaseService().download(parseRelease(manifest), join(root, 'stage.exe'), new AbortController().signal, () => {}, source);
+    await service().download(parseRelease(manifest), join(root, 'stage.exe'), new AbortController().signal, () => {}, source);
     expect(await readFile(source)).toEqual(payload);
     expect(await readFile(join(root, 'stage.exe'))).toEqual(payload);
   });
   it('respects cancellation before downloading', async () => {
     const root = await mkdtemp(join(tmpdir(), 'adapter-cancel-')); roots.push(root);
     const controller = new AbortController(); controller.abort();
-    await expect(new ReleaseService().download(parseRelease(manifest), join(root, 'stage.exe'), controller.signal, () => {}, join(root, 'missing.exe'))).rejects.toThrow();
+    await expect(service().download(parseRelease(manifest), join(root, 'stage.exe'), controller.signal, () => {}, join(root, 'missing.exe'))).rejects.toThrow();
     await expect(access(join(root, 'stage.exe'))).rejects.toThrow();
   });
 });

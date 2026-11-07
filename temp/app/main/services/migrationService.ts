@@ -24,16 +24,26 @@
  * @author 鸡哥
  */
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, stat } from 'node:fs/promises';
+import { mkdir, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { gte, valid } from 'semver';
 import { AdapterError, fail } from '../../shared/utils/adapterErrors';
 import { MINIMUM_TAURI_VERSION } from '../../shared/config/adapterConfig';
-import type { AdapterState, Phase, SourceId, Release } from '../../shared/types/adapterTypes';
+import { verifyBackup } from './backupService';
+import type { AdapterState, Inspection, Installation, Phase, SourceId, Release } from '../../shared/types/adapterTypes';
 import type { MigrationPorts, ServiceConfig } from '../types/serviceTypes';
 
+/** 查找已达到目标版本的 Tauri 安装，不限定目录，因为安装器允许用户修改位置。
+ * @param inspection - 系统检测结果。
+ * @param version - 需要达到的最低版本。
+ * @returns 第一个满足条件的安装项。
+ */
+function currentInstallation(inspection: Inspection, version: string): Installation | undefined {
+  return inspection.installations.find((entry) => entry.runtime === 'tauri' && valid(entry.version) && gte(entry.version, version));
+}
+
 /** 串行控制迁移生命周期，不自动卸载原客户端或终止外部进程。 */
-export class MigrationService {
+export default class MigrationService {
   private previousPhase: Phase = 'welcome';
 
   private active: AbortController | null = null;
@@ -47,6 +57,7 @@ export class MigrationService {
   /** 管理本次适配器会话，不复用旧客户端的 session 或下载调度器。
    * @param config - 已固定的信任配置与数据目录。
    * @param ports - 操作系统及网络边界。
+   * @returns 处于 welcome 阶段的服务实例。
    */
   constructor(private readonly config: ServiceConfig, private readonly ports: MigrationPorts) {
     const sources = Object.keys(config.feeds).map((id) => ({ id: id as SourceId }));
@@ -55,6 +66,7 @@ export class MigrationService {
 
   /** 发布不可跨进程共享引用的状态快照。
    * @param patch - 本次状态变化。
+   * @returns 无返回值，快照已推送给 renderer。
    */
   private update(patch: Partial<AdapterState>): void {
     this.state = { ...this.state, ...patch };
@@ -64,6 +76,7 @@ export class MigrationService {
   /** 同一时刻只允许一个操作；取消和错误不会伪装成安装完成。
    * @param phase - 操作的初始阶段。
    * @param work - 执行流程。
+   * @returns 操作结束（成功、错误或取消均已写入状态）后完成。
    */
   private async operation(phase: Phase, work: (signal: AbortSignal) => Promise<void>): Promise<void> {
     if (this.active) return;
@@ -82,13 +95,14 @@ export class MigrationService {
    * @param local - 原生对话框选中的离线清单及安装器。
    * @param local.release - 官方目标清单。
    * @param local.file - 用户选取清单旁的安装器。
+   * @returns 进入 ready 或 installed 后完成。
    */
   async inspect(source: SourceId, local?: { release: Release; file: string }): Promise<void> {
     await this.operation('inspecting', async (signal) => {
       if (!this.config.publicKey) fail('missingKey');
       if (source !== 'local' && !this.config.feeds[source]) fail('invalidSource');
       const inspection = await this.ports.inspect();
-      const installed = inspection.installations.find((entry) => entry.runtime === 'tauri' && valid(entry.version) && gte(entry.version, MINIMUM_TAURI_VERSION));
+      const installed = currentInstallation(inspection, MINIMUM_TAURI_VERSION);
       if (installed) {
         this.installer = null;
         this.update({ source, phase: 'installed', inspection: { ...inspection, targetDirectory: installed.directory }, release: null });
@@ -111,7 +125,7 @@ export class MigrationService {
       const inspection = await this.ports.inspect();
       this.update({ inspection });
       if (inspection.running.length) fail('closeRunning');
-      if (inspection.installations.some((entry) => entry.runtime === 'tauri' && valid(entry.version) && gte(entry.version, release.version))) fail('alreadyCurrent');
+      if (currentInstallation(inspection, release.version)) fail('alreadyCurrent');
       const id = randomUUID();
       const operation = join(this.config.workRoot, 'operations', id);
       const backups = join(this.config.workRoot, 'backups');
@@ -131,7 +145,7 @@ export class MigrationService {
   }
 
   /** 用户最后确认后交接安装；保留原目录、原卸载项及独立备份。
-   * @returns 仅在安装路径与注册版本均得到确认后进入 complete。
+   * @returns 仅在注册版本与程序文件均得到确认后进入 complete。
    */
   async install(): Promise<void> {
     if (this.state.phase !== 'prepared' || !this.installer || !this.state.release || !this.state.backup || !this.state.inspection) return;
@@ -142,18 +156,25 @@ export class MigrationService {
     await this.operation('verifying', async (signal) => {
       const inspected = await this.ports.inspect();
       if (inspected.running.length) fail('closeRunning');
-      if (inspected.installations.some((entry) => entry.runtime === 'tauri' && valid(entry.version) && gte(entry.version, release.version))) fail('alreadyCurrent');
+      // 上次安装器已成功但确认步骤失败时，重试直接以已安装结果收尾，而不是卡在 alreadyCurrent。
+      const existing = currentInstallation(inspected, release.version);
+      if (existing) {
+        this.installer = null;
+        this.update({ phase: 'installed', inspection: { ...inspected, targetDirectory: existing.directory } });
+        return;
+      }
       if (resolve(inspected.targetDirectory).toLowerCase() !== resolve(directory).toLowerCase()) fail('dataChanged');
-      const marker = JSON.parse(await readFile(join(backup.directory, 'backup.json'), 'utf8')) as { complete?: boolean };
-      if (marker.complete !== true) fail('backupMissing');
+      await verifyBackup(backup.directory, signal);
       await this.ports.verify(release, installer, signal);
       signal.throwIfAborted();
       this.update({ phase: 'installing' });
       await this.ports.install(installer, directory);
       const installed = await this.ports.inspect();
-      const matching = installed.installations.find((entry) => entry.runtime === 'tauri' && resolve(entry.directory).toLowerCase() === resolve(directory).toLowerCase() && valid(entry.version) && gte(entry.version, release.version));
-      if (!matching || !(await stat(join(directory, 'eisland.exe'))).isFile()) fail('installNotConfirmed');
-      this.update({ phase: 'complete', inspection: installed });
+      // 用户可在安装器中修改目录，以注册表实际登记的位置为准。
+      const matching = currentInstallation(installed, release.version);
+      if (!matching || !(await stat(join(matching.directory, 'eisland.exe')).catch(() => null))?.isFile()) fail('installNotConfirmed');
+      this.installer = null;
+      this.update({ phase: 'complete', inspection: { ...installed, targetDirectory: matching.directory } });
     });
   }
 

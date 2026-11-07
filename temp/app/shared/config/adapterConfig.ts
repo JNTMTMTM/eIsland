@@ -35,6 +35,8 @@ export const FEEDS = {
   r2: 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev/eisland-update/tauri/latest.json',
   github: 'https://github.com/JNTMTMTM/eIsland/releases/latest/download/tauri-latest.json',
 };
+/** GitHub Release 下载会从 github.com 跳转到这些资源域名。 */
+export const GITHUB_ASSET_HOSTS = ['objects.githubusercontent.com', 'release-assets.githubusercontent.com'];
 export const IPC = {
   state: 'adapter:state', changed: 'adapter:changed', inspect: 'adapter:inspect', local: 'adapter:local',
   prepare: 'adapter:prepare', install: 'adapter:install', cancel: 'adapter:cancel',

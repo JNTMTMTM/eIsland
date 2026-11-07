@@ -24,10 +24,12 @@
  * @author 鸡哥
  */
 import type { AdapterState, Backup, Inspection, Progress, Release, SourceId } from '../../shared/types/adapterTypes';
+/** 主进程服务配置：在线源地址、发布公钥、适配器工作目录、验证器路径、用户数据目录与适配器自身程序路径。 */
 export interface ServiceConfig {
   feeds: Partial<Record<SourceId, string>>; publicKey: string; workRoot: string;
   verifier: string; appData: string; localData: string; ownExecutable: string;
 }
+/** MigrationService 依赖的外部边界，测试中以替身注入。 */
 export interface MigrationPorts {
   inspect: () => Promise<Inspection>;
   release: (source: SourceId, signal: AbortSignal) => Promise<Release>;

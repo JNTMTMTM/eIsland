@@ -20,7 +20,7 @@
 
 /**
  * @file check-i18n.mjs
- * @description 比较四语言叶子键及插值参数，并检查界面固定翻译键。
+ * @description 比较根 i18n 中 migrationAdapter 命名空间的四语言叶子键及插值参数，并检查界面固定翻译键。
  * @author 鸡哥
  */
 import assert from 'node:assert/strict';
@@ -35,7 +35,7 @@ import { join } from 'node:path';
 function flatten(value, prefix = '') {
   return Object.fromEntries(Object.entries(value).flatMap(([key, item]) => typeof item === 'string' ? [[prefix + key, item]] : Object.entries(flatten(item, `${prefix}${key}.`))));
 }
-const locales = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP'].map((name) => flatten(JSON.parse(readFileSync(`renderer/locales/${name}.json`, 'utf8'))));
+const locales = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP'].map((name) => flatten(JSON.parse(readFileSync(`../../i18n/${name}.json`, 'utf8')).migrationAdapter));
 const keys = Object.keys(locales[0]).sort();
 locales.forEach((locale) => {
   assert.deepEqual(Object.keys(locale).sort(), keys);
@@ -46,6 +46,7 @@ locales.forEach((locale) => {
 });
 /** 递归核对静态 t() 调用。
  * @param directory - 源码目录。
+ * @returns 无返回值，缺失词条时断言失败。
  */
 function scan(directory) {
   readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
@@ -53,7 +54,7 @@ function scan(directory) {
     if (entry.isDirectory()) scan(path);
     else if (/\.tsx?$/.test(entry.name)) {
       const source = readFileSync(path, 'utf8');
-      for (const match of source.matchAll(/\bt\('([^']+)'/g)) assert.ok(keys.includes(match[1]), `${path}: ${match[1]}`);
+      Array.from(source.matchAll(/\bt\('([^']+)'/g)).forEach((match) => assert.ok(keys.includes(match[1]), `${path}: ${match[1]}`));
     }
   });
 }

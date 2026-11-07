@@ -30,11 +30,9 @@ import project from '../../scripts/lint/eslint.config.mjs';
 export default [
   { ignores: ['out/**', 'dist/**', 'node_modules/**', 'native/**/target/**', 'test-results/**'] },
   ...project,
-  // 显式命名导出与 PascalCase 组件遵循本任务指定的 module-split 规范。
-  { rules: { 'import-x/prefer-default-export': 'off' } },
   { files: ['renderer/modules/**/components/*.tsx'], rules: { 'project/filename': 'off' } },
-  // 有界流读取与备份按顺序执行，不能改成无上限并发的数组回调。
-  { files: ['main/services/**/*.ts', 'scripts/**/*.mjs', 'tests/**/*.{ts,mjs}'], rules: { 'no-await-in-loop': 'off', 'no-restricted-syntax': ['error', { selector: 'ForInStatement', message: '使用安全的键枚举' }, { selector: 'AssignmentExpression[left.property.name=/^(innerHTML|outerHTML)$/]', message: '禁止未经清理的 HTML 写入' }] } },
+  // 有界流读取需在 while 循环中逐块 await；数组迭代改用 reduce 串行，仍遵守 §3.11 禁止 for…of。
+  { files: ['main/services/**/*.ts', 'scripts/**/*.mjs', 'tests/**/*.{ts,mjs}'], rules: { 'no-await-in-loop': 'off' } },
   // 生命周期入口和同步 effect 不能直接 await，必须保留有拒绝处理的异步回调。
   { files: ['main/index.ts', 'renderer/modules/**/hooks/*.ts', 'renderer/locales/i18n.ts'], rules: { 'promise/prefer-await-to-then': 'off' } },
   // 测试替身需保持异步边界，返回已完成 Promise 与真实 I/O 契约一致。

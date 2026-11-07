@@ -24,16 +24,20 @@
  * @author 鸡哥
  */
 import logo from '../../../../public/image/logo_full.png?url&no-inline';
-import { LanguageSelect } from './LanguageSelect';
+import LanguageSelect from './LanguageSelect';
 import styles from './migration.module.css';
 import type { WizardHeaderProps } from '../types/migrationTypes';
 
 /** 提供系统窗口操作和四语言选择。
  * @param props - 翻译及窗口动作。
+ * @param props.t - 界面翻译函数。
+ * @param props.language - 当前界面语言代码。
+ * @param props.onLanguage - 切换语言的动作。
+ * @param props.onClose - 关闭窗口的动作。
+ * @param props.installing - 安装中禁用关闭。
  * @returns 向导标题栏。
  */
-export function WizardHeader(props: WizardHeaderProps) {
-  const { t, language, onLanguage, onClose, installing } = props;
+export default function WizardHeader({ t, language, onLanguage, onClose, installing }: WizardHeaderProps) {
   return (
     <header className={styles.header}>
       <img className={styles.brand} src={logo} width={180} height={40} alt={t('brand')} draggable={false} />

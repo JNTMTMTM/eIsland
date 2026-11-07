@@ -106,7 +106,8 @@ async function tryProviders(
     const prev = await prevPromise;
     if (prev && prev.length > 0) return prev;
     try {
-      const result = await PROVIDER_MAP[p](title, artist);
+      // 空白行会被当前行定位选中而显示为空，统一在出口过滤；纯符号行仍保留。
+      const result = (await PROVIDER_MAP[p](title, artist))?.filter((line) => line.text.trim() !== '');
       if (result && result.length > 0) return result;
     } catch {
       // 单源失败继续下一个

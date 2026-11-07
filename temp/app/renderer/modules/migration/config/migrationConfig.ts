@@ -26,10 +26,11 @@
 import alibabaCloudIcon from '../../../../public/svg/ALIBABACLOUD.svg?url&no-inline';
 import cloudflareIcon from '../../../../public/svg/CLOUDFLARE.svg?url&no-inline';
 import githubIcon from '../../../../public/svg/GITHUB.svg?url&no-inline';
+import tencentCloudIcon from '../../../../public/svg/TENCENTCLOUD.svg?url&no-inline';
 import chinaFlag from '../../../../public/svg/CHN.svg?url&no-inline';
 import usaFlag from '../../../../public/svg/USA.svg?url&no-inline';
 import japanFlag from '../../../../public/svg/JP.svg?url&no-inline';
-import type { Phase } from '../../../../shared/types/adapterTypes';
+import type { Phase, SourceId } from '../../../../shared/types/adapterTypes';
 export const LANGUAGES = [
   { code: 'zh-CN', icon: chinaFlag },
   { code: 'zh-TW', icon: chinaFlag },
@@ -38,8 +39,11 @@ export const LANGUAGES = [
 ];
 export const BUSY_PHASES: Phase[] = ['inspecting', 'backing-up', 'downloading', 'verifying', 'installing'];
 export const STEPS = ['welcome', 'review', 'protect', 'finish'];
-export const DOWNLOAD_SOURCES = [
-  { id: 'esa', icon: alibabaCloudIcon },
-  { id: 'r2', icon: cloudflareIcon },
-  { id: 'github', icon: githubIcon },
-] as const;
+/** 在线源图标；可见源由主进程的 state.sources 决定。 */
+export const SOURCE_ICONS: Partial<Record<SourceId, string>> = {
+  esa: alibabaCloudIcon,
+  r2: cloudflareIcon,
+  github: githubIcon,
+  cos: tencentCloudIcon,
+  oss: alibabaCloudIcon,
+};

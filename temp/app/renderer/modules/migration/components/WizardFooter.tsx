@@ -29,10 +29,14 @@ import type { WizardFooterProps } from '../types/migrationTypes';
 
 /** 展示步骤和当前可执行动作。
  * @param props - 流程状态与主动作。
+ * @param props.t - 界面翻译函数。
+ * @param props.state - 主进程状态快照。
+ * @param props.busy - 是否有操作进行中。
+ * @param props.onPrimary - 当前阶段的主动作。
+ * @param props.onCancel - 取消准备工作的动作。
  * @returns 固定底部导航。
  */
-export function WizardFooter(props: WizardFooterProps) {
-  const { t, state, busy, onPrimary, onCancel } = props;
+export default function WizardFooter({ t, state, busy, onPrimary, onCancel }: WizardFooterProps) {
   const phase = state?.phase;
   let action = 'inspect';
   if (phase === 'ready') action = 'prepare';
@@ -41,7 +45,7 @@ export function WizardFooter(props: WizardFooterProps) {
   return (
     <footer className={styles.footer}>
       <div className={styles.actions}>
-        {busy && phase !== 'installing' && <button type="button" onClick={onCancel} className={styles.textButton}>{t('cancel')}</button>}
+        {busy && phase !== 'installing' && <button type="button" onClick={onCancel} className={styles['text-button']}>{t('cancel')}</button>}
         <button type="button" className={styles.primary} onClick={onPrimary} disabled={busy || !state}>{t(busy ? 'working' : `actions.${action}`)}<ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" /></button>
       </div>
     </footer>

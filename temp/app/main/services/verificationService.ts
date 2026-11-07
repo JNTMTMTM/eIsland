@@ -39,8 +39,9 @@ const execute = promisify(execFile);
  * @param release - 目标版本和签名。
  * @param file - 主进程暂存文件。
  * @param signal - 仅用于取消适配器拥有的验证进程。
+ * @returns 签名、版本与文件未变化均确认后完成。
  */
-export async function verifyInstaller(verifier: string, publicKey: string, release: Release, file: string, signal: AbortSignal): Promise<void> {
+export default async function verifyInstaller(verifier: string, publicKey: string, release: Release, file: string, signal: AbortSignal): Promise<void> {
   const info = await stat(file);
   if (!info.isFile() || info.size < 2 || info.size > MAX_INSTALLER_BYTES || (release.size !== undefined && release.size !== info.size)) fail('invalidInstaller');
   const descriptor = await open(file, 'r');

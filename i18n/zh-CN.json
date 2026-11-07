@@ -5140,5 +5140,121 @@
         }
       }
     }
+  },
+  "migrationAdapter": {
+    "brand": "eIsland",
+    "adapterVersion": "迁移助手 · 27.0.2",
+    "eyebrow": "新一代 eIsland",
+    "language": "语言",
+    "close": "关闭",
+    "cancel": "取消准备",
+    "working": "请稍候",
+    "dismissError": "关闭并返回上一步",
+    "languages": {
+      "zh-CN": "简体中文",
+      "zh-TW": "繁體中文",
+      "en-US": "English",
+      "ja-JP": "日本語"
+    },
+    "stepsLabel": "迁移步骤",
+    "steps": {
+      "welcome": "欢迎",
+      "review": "检查",
+      "protect": "准备",
+      "finish": "安装"
+    },
+    "source": "下载源",
+    "sources": {
+      "esa": "ESA 加速",
+      "r2": "Cloudflare R2",
+      "github": "GitHub",
+      "cos": "腾讯云 COS",
+      "oss": "阿里云 OSS",
+      "local": "本地安装包"
+    },
+    "localPackage": "选择离线清单",
+    "targetVersion": "Tauri 目标版本",
+    "targetDirectory": "计划安装目录",
+    "dataDirectory": "将使用的数据目录",
+    "startupNotice": "如需开机启动，请在新版本设置中关闭后重新开启，并核对 Windows 启动项。助手不会修改旧启动项。",
+    "openBackup": "打开已校验的备份",
+    "progressBytes": "{{done}} / {{total}} MB",
+    "unknownSize": "未知",
+    "dataNotice": "原用户数据不会被删除。设置与下载记录继续使用原逐键存储；部分平台可能需要重新登录。迁移期间暂不运行灵动岛，请勿手动启动旧版本。",
+    "actions": {
+      "inspect": "检查新版本",
+      "prepare": "备份并下载",
+      "install": "打开安装程序",
+      "launch": "启动 eIsland"
+    },
+    "phases": {
+      "installed": {
+        "title": "新的 eIsland 已经安装",
+        "body": "已检测到兼容的 Tauri 版本，无需重复迁移。点击下方按钮直接启动；后续更新在 eIsland 内完成。"
+      },
+      "welcome": {
+        "title": "准备好，迎接新的 eIsland",
+        "body": "你已更新至 27.0.2 迁移助手。接下来，它将保护原数据，并下载 Tauri 27.0.3 或更新的正式版本。\n安装完成后，灵动岛将重新与你见面。"
+      },
+      "inspecting": {
+        "title": "正在检查",
+        "body": "读取安装位置、原数据目录与所选源的官方更新清单。"
+      },
+      "ready": {
+        "title": "为迁移做好准备",
+        "body": "确认以下目录后继续。我们会先创建并校验独立备份，再下载安装包。原 Electron 目录不会被覆盖或自动卸载。"
+      },
+      "backing-up": {
+        "title": "正在保护你的数据",
+        "body": "复制并逐文件校验原数据。请保持其他 eIsland 实例关闭。"
+      },
+      "downloading": {
+        "title": "正在下载新的 eIsland",
+        "body": "数据备份已完成。下载完成后还会验证发布签名与签名版本。"
+      },
+      "verifying": {
+        "title": "正在验证安装包",
+        "body": "仅接受由内置公钥验证通过、且签名版本与清单一致的安装包。"
+      },
+      "prepared": {
+        "title": "已准备就绪",
+        "body": "备份和签名检查均已完成。下一步会打开交互式安装程序，请保持上述计划安装目录，并完成 Windows 提示。"
+      },
+      "installing": {
+        "title": "请完成安装程序",
+        "body": "请在安装窗口完成操作。迁移助手会等待安装退出，并检查注册版本与目标程序。不要关闭或重新启动旧版 eIsland。"
+      },
+      "complete": {
+        "title": "欢迎回来",
+        "body": "已确认 Tauri 安装目录和版本。点击下方按钮启动 eIsland 并关闭迁移助手。独立备份将保留，旧卸载项不会自动删除。"
+      },
+      "cancelled": {
+        "title": "准备已取消",
+        "body": "原数据保持不变。可以更换下载源后重新检查，已完成的备份仍会保留。"
+      },
+      "error": {
+        "title": "这一步还没有完成",
+        "body": "请按下方提示处理后重试。"
+      }
+    },
+    "errors": {
+      "missingKey": "此适配器尚未配置正式 Tauri 更新公钥，无法安全下载安装。请联系发布者提供已配置的版本。",
+      "invalidSource": "这个下载源没有接通，请选择其他源。",
+      "invalidManifest": "更新清单格式不正确，或并非受支持的 Tauri 安装包。",
+      "targetTooOld": "目标版本必须是 Tauri 27.0.3 或更新版本。",
+      "network": "更新源暂不可用，请检查网络或更换下载源。",
+      "invalidInstaller": "安装包不完整或格式不正确，请重新下载。",
+      "signatureRejected": "安装包签名或签名版本验证失败，已阻止安装。",
+      "backupLink": "数据目录包含链接或不安全路径，无法创建完整备份。请先手动整理并备份数据。",
+      "backupLimit": "原数据超过安全备份限制，请先手动备份并整理大文件。",
+      "dataChanged": "检测到目录或数据变化，请关闭其他实例后重新检查。",
+      "closeRunning": "检测到其他 eIsland 实例，请自行退出它们后重试；迁移助手不会强制结束进程。",
+      "backupMissing": "找不到完整备份标记，已阻止安装。",
+      "installOverlap": "新安装目录与旧版目录重叠，请联系发布者确认安装方式。",
+      "installNotConfirmed": "尚未确认目标安装目录与版本。请检查安装结果，并保持计划安装目录。",
+      "alreadyCurrent": "已检测到相同或更新的 Tauri 版本，无需再次迁移。请直接启动已安装的 eIsland。",
+      "windowsOnly": "迁移助手仅支持 Windows。",
+      "operationFailed": "操作未完成，请检查网络、磁盘空间与目录权限后重试。"
+    }
   }
 }

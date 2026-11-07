@@ -33,7 +33,7 @@ import type { AdapterState, SourceId } from '../../../../shared/types/adapterTyp
 /** 管理向导，renderer 只发送白名单动作。
  * @returns 页面状态与有限动作。
  */
-export function useMigration(): UseMigrationReturn {
+export default function useMigration(): UseMigrationReturn {
   const { t, i18n } = useTranslation();
   const [state, setState] = useState<AdapterState | null>(null);
   const [source, setSource] = useState<SourceId>('esa');

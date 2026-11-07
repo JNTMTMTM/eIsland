@@ -26,7 +26,7 @@
 import { useCallback } from 'react';
 import { CircleAlert, X } from 'lucide-react';
 import { progressPercent } from '../utils/migrationUtils';
-import { DOWNLOAD_SOURCES } from '../config/migrationConfig';
+import { SOURCE_ICONS } from '../config/migrationConfig';
 import styles from './migration.module.css';
 import type { MigrationContentProps } from '../types/migrationTypes';
 import type { SourceId } from '../../../../shared/types/adapterTypes';
@@ -34,10 +34,17 @@ import type { MouseEvent } from 'react';
 
 /** 显示阶段详情，所有路径均来自只读主进程状态。
  * @param props - 迁移快照与有限界面动作。
+ * @param props.t - 界面翻译函数。
+ * @param props.state - 主进程状态快照。
+ * @param props.error - 当前错误代码。
+ * @param props.source - 已选择的在线源。
+ * @param props.busy - 是否有操作进行中。
+ * @param props.onSource - 选择在线源的动作。
+ * @param props.onBackup - 打开备份目录的动作。
+ * @param props.onDismissError - 关闭错误提示的动作。
  * @returns 当前阶段的内容。
  */
-export function MigrationContent(props: MigrationContentProps) {
-  const { t, state, error, source, busy, onSource, onBackup, onDismissError } = props;
+export default function MigrationContent({ t, state, error, source, busy, onSource, onBackup, onDismissError }: MigrationContentProps) {
   const handleSource = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
     onSource(event.currentTarget.value as SourceId);
   }, [onSource]);
@@ -46,16 +53,17 @@ export function MigrationContent(props: MigrationContentProps) {
   const working = ['backing-up', 'downloading', 'verifying', 'installing'].includes(phase);
   return (
     <section className={styles.content} aria-live="polite">
-      <div className={styles.contentBody}>
+      <div className={styles['content-body']}>
         <h1>{t(`phases.${phase}.title`)}</h1>
         <p className={styles.description}>{t(`phases.${phase}.body`)}</p>
         {['welcome', 'error', 'cancelled'].includes(phase) && (
-          <fieldset className={styles.sourceRow} disabled={busy}>
+          <fieldset className={styles['source-row']} disabled={busy}>
             <legend>{t('source')}</legend>
-            <div className={styles.sourceOptions}>
-              {DOWNLOAD_SOURCES.map((entry) => (
-                <button key={entry.id} type="button" className={styles.sourceButton} value={entry.id} aria-pressed={source === entry.id} onClick={handleSource}>
-                  <img src={entry.icon} width={28} height={28} alt="" />
+            <div className={styles['source-options']}>
+              {/* 只展示主进程实际配置的在线源，构建时追加的 COS/OSS 也会出现。 */}
+              {state?.sources.filter((entry) => entry.id !== 'local').map((entry) => (
+                <button key={entry.id} type="button" className={styles['source-button']} value={entry.id} aria-pressed={source === entry.id} onClick={handleSource}>
+                  <img src={SOURCE_ICONS[entry.id]} width={28} height={28} alt="" />
                   <span>{t(`sources.${entry.id}`)}</span>
                 </button>
               ))}
@@ -78,9 +86,9 @@ export function MigrationContent(props: MigrationContentProps) {
         )}
         {error && (
           <div role="alert" className={styles.error}>
-            <CircleAlert className={styles.errorIcon} size={18} aria-hidden="true" />
-            <span className={styles.errorMessage}>{t(`errors.${error}`, { defaultValue: t('errors.operationFailed') })}</span>
-            <button type="button" className={styles.errorClose} onClick={onDismissError} aria-label={t('dismissError')} title={t('dismissError')}>
+            <CircleAlert className={styles['error-icon']} size={18} aria-hidden="true" />
+            <span className={styles['error-message']}>{t(`errors.${error}`, { defaultValue: t('errors.operationFailed') })}</span>
+            <button type="button" className={styles['error-close']} onClick={onDismissError} aria-label={t('dismissError')} title={t('dismissError')}>
               <X size={16} aria-hidden="true" />
             </button>
           </div>

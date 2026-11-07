@@ -29,12 +29,12 @@ import { mkdir } from 'node:fs/promises';
 import { app, BrowserWindow, net } from 'electron';
 import { FEEDS, IPC } from '../shared/config/adapterConfig';
 import { fail } from '../shared/utils/adapterErrors';
-import { MigrationService } from './services/migrationService';
-import { ReleaseService } from './services/releaseService';
+import MigrationService from './services/migrationService';
+import { ReleaseService, trustedHosts } from './services/releaseService';
 import { backupData } from './services/backupService';
 import { inspectSystem, runInstaller } from './services/platformService';
-import { verifyInstaller } from './services/verificationService';
-import { registerAdapterIpc } from './ipc/registerAdapterIpc';
+import verifyInstaller from './services/verificationService';
+import registerAdapterIpc from './ipc/registerAdapterIpc';
 import type { ServiceConfig } from './types/serviceTypes';
 
 const isolatedRoot = !app.isPackaged ? process.env.EISLAND_ADAPTER_TEST_ROOT : undefined;
@@ -61,7 +61,7 @@ else {
     };
     const window = new BrowserWindow({ width: 900, height: 600, minWidth: 820, minHeight: 540, show: false, frame: false, backgroundColor: '#080b11', resizable: false,
       webPreferences: { preload: join(__dirname, '../preload/index.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
-    const client = new ReleaseService((input, init) => net.fetch(input.href, init));
+    const client = new ReleaseService((input, init) => net.fetch(input.href, init), false, trustedHosts(config.feeds));
     const service = new MigrationService(config, {
       inspect: () => inspectSystem(config),
       release: (source, signal) => client.manifest(config.feeds[source] || fail('invalidSource'), signal),

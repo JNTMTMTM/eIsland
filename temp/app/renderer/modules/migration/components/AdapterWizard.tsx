@@ -23,18 +23,18 @@
  * @description 沿用 guide 的分步构图，仅组合界面与迁移 hook。
  * @author 鸡哥
  */
-import { useMigration } from '../hooks/useMigration';
+import useMigration from '../hooks/useMigration';
 import { STEPS } from '../config/migrationConfig';
 import { ProcessIndicator } from '../../../../../../src/renderer/components/components/DynamicIslandProcessIndicator';
-import { WizardHeader } from './WizardHeader';
-import { MigrationContent } from './MigrationContent';
-import { WizardFooter } from './WizardFooter';
+import WizardHeader from './WizardHeader';
+import MigrationContent from './MigrationContent';
+import WizardFooter from './WizardFooter';
 import styles from './migration.module.css';
 
 /** 组合独立升级向导。
  * @returns 由主进程状态驱动的界面。
  */
-export function AdapterWizard() {
+export default function AdapterWizard() {
   const model = useMigration();
   return (
     <main className={styles.wizard}>

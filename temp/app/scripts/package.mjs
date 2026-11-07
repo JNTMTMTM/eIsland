@@ -37,10 +37,10 @@ if (!preview) requirePublicKey(key);
 const env = withoutSigningSecrets(process.env);
 env.EISLAND_ADAPTER_PREVIEW = preview ? '1' : '0';
 const require = createRequire(import.meta.url);
-for (const args of [[process.env.npm_execpath, 'run', 'build'], [require.resolve('electron-builder/cli.js'), '--config', preview ? 'electron-builder.preview.config.mjs' : 'electron-builder.config.mjs', '--win', 'nsis', 'portable', '--publish', 'never']]) {
+[[process.env.npm_execpath, 'run', 'build'], [require.resolve('electron-builder/cli.js'), '--config', preview ? 'electron-builder.preview.config.mjs' : 'electron-builder.config.mjs', '--win', 'nsis', 'portable', '--publish', 'never']].forEach((args) => {
   const result = spawnSync(process.execPath, args, { env, stdio: 'inherit', windowsHide: true });
   if (result.error || result.status !== 0) throw new Error('Adapter package failed');
-}
+});
 if (!preview) {
   const artifacts = await adapterArtifacts('dist');
   await writeFile('dist/adapter-build.json', JSON.stringify({ version: '27.0.2', appId: 'com.eisland.app', publicKey: key, sha512: artifacts.sha512 }, null, 2), { mode: 0o600 });

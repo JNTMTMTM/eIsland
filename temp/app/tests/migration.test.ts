@@ -23,11 +23,11 @@
  * @description 两跳更新在隔离文件系统中验证交接，绝不启动真实安装器。
  * @author 鸡哥
  */
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
-import { MigrationService } from '../main/services/migrationService';
+import MigrationService from '../main/services/migrationService';
 import { backupData } from '../main/services/backupService';
 import { AdapterError } from '../shared/utils/adapterErrors';
 import type { MigrationPorts, ServiceConfig } from '../main/types/serviceTypes';
@@ -158,4 +158,26 @@ it('cancels only owned preparation and serializes duplicate commands', async () 
   const pending = service.inspect('esa'); await vi.waitFor(() => expect(ports.release).toHaveBeenCalledOnce());
   await service.inspect('esa'); service.cancel(); await pending;
   expect(ports.release).toHaveBeenCalledOnce(); expect(service.state.phase).toBe('cancelled'); expect(ports.install).not.toHaveBeenCalled();
+});
+it('blocks install when a backed-up file is changed or removed after preparation', async () => {
+  const { service, ports } = await fixture(); await service.inspect('esa'); await service.prepare();
+  const manifest = JSON.parse(await readFile(join(service.state.backup!.directory, 'backup.json'), 'utf8')) as { files: { backup: string }[] };
+  await writeFile(join(service.state.backup!.directory, manifest.files[0].backup), 'tampered');
+  await service.install(); expect(service.state.error).toBe('backupMissing'); expect(ports.install).not.toHaveBeenCalled();
+});
+it('confirms the directory chosen in the installer instead of the planned one', async () => {
+  const { service, ports, inspection } = await fixture();
+  const chosen = `${inspection.targetDirectory}-chosen`;
+  const install = vi.mocked(ports.install).getMockImplementation()!;
+  vi.mocked(ports.install).mockImplementationOnce(async (file: string) => { await install(file, chosen); });
+  await service.inspect('esa'); await service.prepare(); await service.install();
+  expect(service.state.phase).toBe('complete'); expect(service.state.inspection?.targetDirectory).toBe(chosen);
+});
+it('recovers to installed when confirmation failed after a successful installer run', async () => {
+  const { service, ports } = await fixture(); await service.inspect('esa'); await service.prepare();
+  const inspect = vi.mocked(ports.inspect).getMockImplementation()!;
+  vi.mocked(ports.inspect).mockImplementationOnce(inspect).mockRejectedValueOnce(new AdapterError('operationFailed'));
+  await service.install(); expect(service.state.phase).toBe('error'); expect(ports.install).toHaveBeenCalledOnce();
+  service.dismissError(); await service.install();
+  expect(service.state.phase).toBe('installed'); expect(ports.install).toHaveBeenCalledOnce();
 });

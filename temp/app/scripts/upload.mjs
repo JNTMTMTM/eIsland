@@ -46,7 +46,12 @@ export async function adapterArtifacts(directory) {
   if (metadata?.version !== '27.0.2' || metadata.path !== name || metadata.files?.length !== 1 || metadata.files[0].url !== name) throw new Error('Expected legacy Electron 27.0.2 NSIS manifest');
   const file = join(directory, name);
   const hash = createHash('sha512'); let size = 0;
-  for await (const chunk of createReadStream(file)) { size += chunk.length; hash.update(chunk); }
+  await new Promise((resolveRead, reject) => {
+    const input = createReadStream(file);
+    input.on('data', (chunk) => { size += chunk.length; hash.update(chunk); });
+    input.once('error', reject);
+    input.once('end', resolveRead);
+  });
   const digest = hash.digest('base64');
   if (!size || metadata.sha512 !== digest || metadata.files[0].sha512 !== digest || metadata.files[0].size !== size) throw new Error('Adapter artifact hash or size mismatch');
   const blockmap = `${file}.blockmap`;

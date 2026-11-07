@@ -29,15 +29,16 @@ import { ipcMain, dialog, shell } from 'electron';
 import { IPC } from '../../shared/config/adapterConfig';
 import { parseRelease } from '../services/releaseService';
 import type { SourceId } from '../../shared/types/adapterTypes';
-import type { MigrationService } from '../services/migrationService';
+import type MigrationService from '../services/migrationService';
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron';
 
 /** 注册最小权限迁移动作。
  * @param window - 唯一可信的本地窗口。
  * @param service - 主进程状态机。
  * @param trustedUrl - 构建页面或开发服务器的确切入口。
+ * @returns 无返回值，窗口关闭时自动移除全部处理器。
  */
-export function registerAdapterIpc(window: BrowserWindow, service: MigrationService, trustedUrl: string): void {
+export default function registerAdapterIpc(window: BrowserWindow, service: MigrationService, trustedUrl: string): void {
   const validate = (event: IpcMainInvokeEvent): void => {
     const frame = event.senderFrame;
     const main = window.webContents.mainFrame;

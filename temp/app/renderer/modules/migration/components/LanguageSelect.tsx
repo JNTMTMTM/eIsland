@@ -37,7 +37,7 @@ import type { MouseEvent } from 'react';
  * @param props.onLanguage - 选择语言后的切换动作。
  * @returns 标题栏语言选择菜单。
  */
-export function LanguageSelect({ t, language, onLanguage }: LanguageSelectProps) {
+export default function LanguageSelect({ t, language, onLanguage }: LanguageSelectProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -83,17 +83,17 @@ export function LanguageSelect({ t, language, onLanguage }: LanguageSelectProps)
   }, [open]);
 
   return (
-    <div className={styles.languageSelect} ref={wrapperRef}>
-      <button type="button" className={styles.languageTrigger} ref={triggerRef} aria-label={t('language')} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined} onClick={toggle}>
-        <img className={styles.languageFlag} src={selected.icon} alt="" draggable={false} />
-        <span className={styles.languageLabel}>{t(`languages.${selected.code}`)}</span>
-        <span className={styles.languageArrow} aria-hidden="true">▾</span>
+    <div className={styles['language-select']} ref={wrapperRef}>
+      <button type="button" className={styles['language-trigger']} ref={triggerRef} aria-label={t('language')} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined} onClick={toggle}>
+        <img className={styles['language-flag']} src={selected.icon} alt="" draggable={false} />
+        <span className={styles['language-label']}>{t(`languages.${selected.code}`)}</span>
+        <span className={styles['language-arrow']} aria-hidden="true">▾</span>
       </button>
       {open && (
-        <div id={menuId} className={styles.languageMenu} ref={menuRef} role="menu" aria-label={t('language')}>
+        <div id={menuId} className={styles['language-menu']} ref={menuRef} role="menu" aria-label={t('language')}>
           {LANGUAGES.map((item) => (
-            <button key={item.code} type="button" className={styles.languageItem} role="menuitemradio" aria-checked={item.code === selected.code} value={item.code} tabIndex={-1} onClick={choose}>
-              <img className={styles.languageFlag} src={item.icon} alt="" draggable={false} />
+            <button key={item.code} type="button" className={styles['language-item']} role="menuitemradio" aria-checked={item.code === selected.code} value={item.code} tabIndex={-1} onClick={choose}>
+              <img className={styles['language-flag']} src={item.icon} alt="" draggable={false} />
               <span>{t(`languages.${item.code}`)}</span>
             </button>
           ))}

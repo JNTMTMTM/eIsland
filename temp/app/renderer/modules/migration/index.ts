@@ -23,4 +23,4 @@
  * @description 迁移向导模块入口。
  * @author 鸡哥
  */
-export { AdapterWizard } from './components/AdapterWizard';
+export { default } from './components/AdapterWizard';

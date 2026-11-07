@@ -24,5 +24,5 @@
  * @author 鸡哥
  */
 export { ReleaseService, parseRelease } from './services/releaseService';
-export { verifyInstaller } from './services/verificationService';
+export { default as verifyInstaller } from './services/verificationService';
 export const BUILT_PUBLIC_KEY = __ADAPTER_PUBLIC_KEY__;

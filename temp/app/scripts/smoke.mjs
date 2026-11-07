@@ -43,12 +43,13 @@ try {
   page.on('pageerror', (error) => errors.push(error.message));
   await page.locator('h1').waitFor();
   const language = page.locator('header button[aria-haspopup="menu"]');
-  for (const [locale, title] of [['zh-CN', '准备好，迎接新的 eIsland'], ['zh-TW', '準備好，迎接新的 eIsland'], ['en-US', 'Get ready for the next eIsland'], ['ja-JP', '新しい eIsland の準備をしましょう']]) {
+  await [['zh-CN', '准备好，迎接新的 eIsland'], ['zh-TW', '準備好，迎接新的 eIsland'], ['en-US', 'Get ready for the next eIsland'], ['ja-JP', '新しい eIsland の準備をしましょう']].reduce(async (previous, [locale, title]) => {
+    await previous;
     await language.click();
     await page.locator(`button[role="menuitemradio"][value="${locale}"]`).click();
     assert.equal(await page.locator('h1').innerText(), title);
     assert.equal(await page.evaluate(() => document.documentElement.lang), locale);
-  }
+  }, Promise.resolve());
   await language.click();
   await page.locator('button[role="menuitemradio"][value="zh-CN"]').click();
   await language.click();
@@ -65,10 +66,11 @@ try {
   const sources = page.locator('fieldset button');
   assert.equal(await sources.count(), 3);
   assert.equal(await page.locator('section select').count(), 0);
-  for (const source of ['r2', 'github', 'esa']) {
+  await ['r2', 'github', 'esa'].reduce(async (previous, source) => {
+    await previous;
     await page.locator(`button[value="${source}"]`).click();
     assert.equal(await page.locator('fieldset button[aria-pressed="true"]').getAttribute('value'), source);
-  }
+  }, Promise.resolve());
   await page.waitForFunction(() => [...document.querySelectorAll('fieldset img')].every((image) => image.complete && image.naturalWidth > 0));
   const boundary = await page.evaluate(() => ({ node: typeof globalThis.process, require: typeof globalThis.require, api: Object.keys(window.migration).sort() }));
   assert.equal(boundary.node, 'undefined'); assert.equal(boundary.require, 'undefined');

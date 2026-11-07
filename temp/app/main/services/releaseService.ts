@@ -26,20 +26,33 @@
 import { createHash } from 'node:crypto';
 import { open, rename, rm, stat, copyFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
+import { isIP } from 'node:net';
 import { valid, prerelease, gte } from 'semver';
-import { MAX_INSTALLER_BYTES, MINIMUM_TAURI_VERSION } from '../../shared/config/adapterConfig';
+import { FEEDS, GITHUB_ASSET_HOSTS, MAX_INSTALLER_BYTES, MINIMUM_TAURI_VERSION } from '../../shared/config/adapterConfig';
 import { fail } from '../../shared/utils/adapterErrors';
 import type { Progress, Release } from '../../shared/types/adapterTypes';
 
-/** 只接受发布源的 HTTPS 地址，测试可显式允许自己的 loopback 服务。
+/** 只接受发布源的 HTTPS 域名地址，测试可显式允许自己的 loopback 服务。
  * @param value - 原始地址。
  * @param loopback - 仅供隔离测试的本机 HTTP 边界。
  * @returns 已校验地址。
  */
 export function releaseUrl(value: string, loopback = false): URL {
   const url = new URL(value);
-  if (url.username || url.password || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:' && url.hostname === '127.0.0.1'))) fail('invalidManifest');
+  const testLoopback = loopback && url.hostname === '127.0.0.1';
+  if (url.username || url.password || (url.protocol !== 'https:' && !(testLoopback && url.protocol === 'http:'))) fail('invalidManifest');
+  // 官方源都使用域名；拒绝 IP 字面量，避免清单把请求指向本机、链路本地或内网地址。
+  if (isIP(url.hostname.replace(/^\[|\]$/g, '')) && !testLoopback) fail('invalidManifest');
   return url;
+}
+
+/** 汇总允许连接的主机：已配置清单所在域名及 GitHub Release 的资源跳转域名。
+ * @param feeds - 构建时配置的清单地址。
+ * @returns 小写主机名白名单。
+ */
+export function trustedHosts(feeds: Partial<Record<string, string>>): string[] {
+  const hosts = Object.values(feeds).filter((value): value is string => Boolean(value)).map((value) => new URL(value).hostname.toLowerCase());
+  return [...new Set([...hosts, ...GITHUB_ASSET_HOSTS])];
 }
 
 /** 兼容官方及现有混合清单，不将旧 Electron YAML 误认为 Tauri 安装器。
@@ -69,16 +82,22 @@ export class ReleaseService {
   /** 注入请求边界；正式程序使用独立 Electron session 的系统代理策略。
    * @param fetcher - fetch 兼容请求实现。
    * @param loopback - 仅在测试中允许本机 HTTP。
+   * @param hosts - 清单、安装包及重定向允许到达的主机，默认取内置官方源。
    */
-  constructor(private readonly fetcher: (address: URL, options: RequestInit) => Promise<Response> = fetch, private readonly loopback = false) {}
+  constructor(private readonly fetcher: (address: URL, options: RequestInit) => Promise<Response> = fetch, private readonly loopback = false, private readonly hosts: readonly string[] = trustedHosts(FEEDS)) {}
 
-  /** 限制每次响应头等待和重定向数量，阻止 HTTPS 降级。
+  /** 限制每次响应头等待和重定向数量，阻止 HTTPS 降级及跳转到白名单外主机。
    * @param address - 起始 URL。
    * @param signal - 本次操作取消信号。
    * @returns HTTP 响应。
    */
   async request(address: string, signal: AbortSignal): Promise<Response> {
-    let url = releaseUrl(address, this.loopback);
+    const allowed = (value: string): URL => {
+      const url = releaseUrl(value, this.loopback);
+      if (!this.hosts.includes(url.hostname.toLowerCase())) fail('network');
+      return url;
+    };
+    let url = allowed(address);
     for (let redirects = 0; redirects <= 5; redirects += 1) {
       const timeout = new AbortController();
       const timer = setTimeout(() => timeout.abort(), 30000);
@@ -90,7 +109,7 @@ export class ReleaseService {
         await response.body?.cancel();
         const location = response.headers.get('location');
         if (!location) fail('network');
-        url = releaseUrl(new URL(location, url).toString(), this.loopback);
+        url = allowed(new URL(location, url).toString());
       } else {
         if (!response.ok) { await response.body?.cancel(); fail('network'); }
         return response;
@@ -134,6 +153,7 @@ export class ReleaseService {
    * @param signal - 取消信号。
    * @param progress - 有界进度回调。
    * @param localFile - 用户选择的离线清单旁安装器。
+   * @returns 暂存文件提交到 destination 后完成。
    */
   async download(release: Release, destination: string, signal: AbortSignal, progress: (value: Progress) => void, localFile?: string): Promise<void> {
     if (localFile) {

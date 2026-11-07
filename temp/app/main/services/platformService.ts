@@ -86,22 +86,23 @@ export async function inspectSystem(config: ServiceConfig): Promise<Inspection> 
   const script = `[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);${PROBE}`;
   const output = await execute('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')], { env: withoutSigningSecrets(process.env) as NodeJS.ProcessEnv, windowsHide: true, timeout: 15000, maxBuffer: 1024 * 1024 });
   const result = JSON.parse(output.stdout.trim().replace(/^\uFEFF/, '')) as { installations: (Installation & { key: string })[]; running: RunningApp[] };
-  const installations: Installation[] = [];
-  for (const entry of result.installations) {
-    if (!entry.directory || !isAbsolute(entry.directory) || !(await directoryExists(entry.directory))) continue;
+  const detected = await Promise.all(result.installations.map(async (entry): Promise<Installation | null> => {
+    if (!entry.directory || !isAbsolute(entry.directory) || !(await directoryExists(entry.directory))) return null;
     const electron = await access(join(entry.directory, 'resources/app.asar')).then(() => true, () => false);
     const tauri = ['eIsland', TAURI_APP_ID].includes(entry.key) && await access(join(entry.directory, 'eisland.exe')).then(() => true, () => false);
     let runtime: Installation['runtime'] = 'unknown';
     if (electron) runtime = 'electron';
     else if (tauri) runtime = 'tauri';
-    installations.push({ runtime, directory: resolve(entry.directory), version: entry.version });
-  }
+    return { runtime, directory: resolve(entry.directory), version: entry.version };
+  }));
+  const installations = detected.filter((entry): entry is Installation => entry !== null);
   const ownPath = resolve(config.ownExecutable).toLowerCase();
   const running = result.running.filter((entry) => !entry.path || resolve(entry.path).toLowerCase() !== ownPath);
   const legacyRoot = join(config.appData, 'eIsland');
   const tauriRoot = join(config.appData, TAURI_APP_ID);
-  const dataRoots: string[] = [];
-  for (const root of [legacyRoot, tauriRoot]) if (await directoryExists(root)) dataRoots.push(root);
+  const roots = [legacyRoot, tauriRoot];
+  const present = await Promise.all(roots.map((root) => directoryExists(root)));
+  const dataRoots = roots.filter((root, index) => present[index]);
   const legacyStore = join(legacyRoot, 'eIsland_store');
   const tauriStore = join(tauriRoot, 'eIsland_store');
   const selectedStore = (await directoryExists(tauriStore)) || !(await directoryExists(legacyStore)) ? tauriStore : legacyStore;
@@ -109,7 +110,7 @@ export async function inspectSystem(config: ServiceConfig): Promise<Inspection> 
   return { installations, running, dataRoots, legacyStore, tauriStore, selectedStore, targetDirectory };
 }
 
-/** 交接给交互式 NSIS；/D 必须位于命令行末尾，禁止 shell 插值和静默安装。
+/** 交接给交互式 NSIS；/D 必须位于命令行末尾且不能加引号，禁止 shell 插值和静默安装。
  * @param file - 已重新验证的暂存安装器。
  * @param directory - 主进程检测并规划的独立 Tauri 安装目录。
  * @returns 安装器退出后完成，不把退出码当作安装成功的唯一证据。
@@ -117,7 +118,9 @@ export async function inspectSystem(config: ServiceConfig): Promise<Inspection> 
 export async function runInstaller(file: string, directory: string): Promise<void> {
   if (!isAbsolute(file) || !isAbsolute(directory) || /["\r\n\0]/.test(directory)) fail('invalidInstaller');
   await new Promise<void>((resolveExit, reject) => {
-    const child = spawn(file, [`/D=${directory}`], { env: withoutSigningSecrets(process.env) as NodeJS.ProcessEnv, shell: false, windowsVerbatimArguments: true, stdio: 'ignore' });
+    // NSIS 把 /D= 之后的整段命令行当作目录，带空格的路径必须原样传入；
+    // 逐字模式下 libuv 也不会为程序路径加引号，因此显式引用 argv0，避免暂存目录中的空格拆分命令行。
+    const child = spawn(file, [`/D=${directory}`], { argv0: `"${file}"`, env: withoutSigningSecrets(process.env) as NodeJS.ProcessEnv, shell: false, windowsVerbatimArguments: true, stdio: 'ignore' });
     child.once('error', reject);
     child.once('exit', (code) => code === 0 ? resolveExit() : reject(new Error('installerFailed')));
   });
