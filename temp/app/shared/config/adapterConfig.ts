@@ -23,17 +23,18 @@
  * @description 兼容版本、应用标识、官方公开更新源及数据与网络上限。
  * @author 鸡哥
  */
-export const ADAPTER_VERSION = '27.0.2';
-export const MINIMUM_TAURI_VERSION = '27.0.3';
+import adapterPackage from '../../package.json';
+export const ADAPTER_VERSION = adapterPackage.version;
+export const MINIMUM_TAURI_VERSION = ADAPTER_VERSION;
 export const LEGACY_APP_ID = 'com.eisland.app';
 export const TAURI_APP_ID = 'com.pyisland.eisland';
 export const MAX_INSTALLER_BYTES = 2 * 1024 ** 3;
 export const MAX_BACKUP_BYTES = 8 * 1024 ** 3;
 export const MAX_BACKUP_FILES = 100000;
 export const FEEDS = {
-  esa: 'https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json',
-  r2: 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev/eisland-update/tauri/latest.json',
-  github: 'https://github.com/JNTMTMTM/eIsland/releases/latest/download/tauri-latest.json',
+  esa: 'https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/tauri-latest.yml',
+  r2: 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev/eisland-update/tauri/tauri-latest.yml',
+  github: 'https://github.com/JNTMTMTM/eIsland/releases/latest/download/tauri-latest.yml',
 };
 /** GitHub Release 下载会从 github.com 跳转到这些资源域名。 */
 export const GITHUB_ASSET_HOSTS = ['objects.githubusercontent.com', 'release-assets.githubusercontent.com'];

@@ -25,6 +25,7 @@
  */
 import { useCallback } from 'react';
 import { CircleAlert, X } from 'lucide-react';
+import { ADAPTER_VERSION, MINIMUM_TAURI_VERSION } from '../../../../shared/config/adapterConfig';
 import { progressPercent } from '../utils/migrationUtils';
 import { SOURCE_ICONS } from '../config/migrationConfig';
 import styles from './migration.module.css';
@@ -55,7 +56,7 @@ export default function MigrationContent({ t, state, error, source, busy, onSour
     <section className={styles.content} aria-live="polite">
       <div className={styles['content-body']}>
         <h1>{t(`phases.${phase}.title`)}</h1>
-        <p className={styles.description}>{t(`phases.${phase}.body`)}</p>
+        <p className={styles.description}>{t(`phases.${phase}.body`, { version: ADAPTER_VERSION, targetVersion: MINIMUM_TAURI_VERSION })}</p>
         {['welcome', 'error', 'cancelled'].includes(phase) && (
           <fieldset className={styles['source-row']} disabled={busy}>
             <legend>{t('source')}</legend>
@@ -87,7 +88,7 @@ export default function MigrationContent({ t, state, error, source, busy, onSour
         {error && (
           <div role="alert" className={styles.error}>
             <CircleAlert className={styles['error-icon']} size={18} aria-hidden="true" />
-            <span className={styles['error-message']}>{t(`errors.${error}`, { defaultValue: t('errors.operationFailed') })}</span>
+            <span className={styles['error-message']}>{t(`errors.${error}`, { defaultValue: t('errors.operationFailed'), targetVersion: MINIMUM_TAURI_VERSION })}</span>
             <button type="button" className={styles['error-close']} onClick={onDismissError} aria-label={t('dismissError')} title={t('dismissError')}>
               <X size={16} aria-hidden="true" />
             </button>

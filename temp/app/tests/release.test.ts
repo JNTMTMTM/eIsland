@@ -29,20 +29,21 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { parseRelease, ReleaseService, releaseUrl, trustedHosts } from '../main/services/releaseService';
+import { MINIMUM_TAURI_VERSION } from '../shared/config/adapterConfig';
 
 const payload = Buffer.from('MZ isolated download bytes 中文');
 const asset = { url: 'https://example.test/setup.exe', signature: Buffer.from('not a real signature').toString('base64'), format: 'nsis', size: payload.length, sha512: createHash('sha512').update(payload).digest('base64') };
-const manifest = { runtime: 'tauri', version: '27.0.3', platforms: { 'windows-x86_64': asset } };
+const manifest = { runtime: 'tauri', version: MINIMUM_TAURI_VERSION, platforms: { 'windows-x86_64': asset } };
 const roots: string[] = [];
 const service = (fetcher: ConstructorParameters<typeof ReleaseService>[0] = fetch): ReleaseService => new ReleaseService(fetcher, false, ['example.test']);
 afterEach(async () => { vi.useRealTimers(); await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true }))); });
 
 describe('official Tauri release contract', () => {
   it('accepts official-only and current extended JSON', () => {
-    expect(parseRelease(manifest).version).toBe('27.0.3');
-    expect(parseRelease({ version: '28.0.0', platforms: { 'windows-x86_64': { url: asset.url, signature: asset.signature } } }).size).toBeUndefined();
+    expect(parseRelease(manifest).version).toBe(MINIMUM_TAURI_VERSION);
+    expect(parseRelease({ version: MINIMUM_TAURI_VERSION, platforms: { 'windows-x86_64': { url: asset.url, signature: asset.signature } } }).size).toBeUndefined();
   });
-  it.each(['27.0.2', '27.0.3-beta.1', 'v27.0.3', 'bad'])('rejects unsupported version %s', (version) => {
+  it.each(['27.0.1', '27.0.3-beta.1', 'v27.0.3', 'bad'])('rejects unsupported version %s', (version) => {
     const candidate = { ...manifest }; candidate.version = version;
     expect(() => parseRelease(candidate)).toThrow();
   });

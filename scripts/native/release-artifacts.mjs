@@ -150,7 +150,7 @@ export function nativeManifest(artifact, base) {
  * @returns 写入的清单路径。
  */
 export function writeManifest(artifact, manifest) {
-  const path = join(artifact.directory, 'tauri-latest.json');
+  const path = join(artifact.directory, 'tauri-latest.yml');
   writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
   return path;
 }

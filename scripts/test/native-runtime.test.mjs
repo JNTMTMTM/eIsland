@@ -50,7 +50,7 @@ function assertWorkflowRuntime(name, source) {
   Object.values(workflow.jobs).forEach((job) => {
     (job.steps || []).forEach((step) => {
       const command = step.run || '';
-      const adapterInstall = name.replaceAll('\\', '/') === '.github/workflows/migration-adapter.yml'
+      const adapterInstall = ['.github/workflows/migration-adapter.yml', '.github/workflows/release-build-upload.yml'].includes(name.replaceAll('\\', '/'))
         && step['working-directory'] === 'temp/app'
         && command.trim() === 'node node_modules/electron/install.js';
       assert(!command.includes('node_modules/electron/install.js') || adapterInstall, name);
@@ -70,6 +70,7 @@ test('adapter runtime installation is allowed only in its isolated workflow step
   const name = '.github/workflows/migration-adapter.yml';
   const source = 'jobs:\n  adapter:\n    steps:\n      - working-directory: temp/app\n        run: node node_modules/electron/install.js\n';
   assert.doesNotThrow(() => assertWorkflowRuntime(name, source));
+  assert.doesNotThrow(() => assertWorkflowRuntime('.github/workflows/release-build-upload.yml', source));
   assert.doesNotThrow(() => assertWorkflowRuntime(name.replaceAll('/', '\\'), source));
   assert.throws(() => assertWorkflowRuntime('.github/workflows/build.yml', source), assert.AssertionError);
   assert.throws(() => assertWorkflowRuntime(name, source.replace('temp/app', '.')), assert.AssertionError);

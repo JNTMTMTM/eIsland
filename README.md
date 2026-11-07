@@ -68,12 +68,27 @@ git clone https://github.com/JNTMTMTM/eIsland.git
 cd eIsland
 npm ci --ignore-scripts
 npm ci --prefix cli --ignore-scripts
+npm ci --prefix temp/app --ignore-scripts
 npm run plugins:build # build native plugins separately
 npm run dev                 # start Tauri with hot reload
-npm run package             # src-tauri/target/release/bundle/nsis/
+npm run package             # Tauri NSIS and same-version migration adapter
 ```
 
 The desktop runtime, native services, tests and CI use Tauri. Packaging requires an updater signing identity; see [release commands and upgrade compatibility](docs/TAURI_RELEASE.md) and the [refactor verification and coverage audit](docs/RUST_TAURI_REFACTOR.md).
+
+The release version starts at `27.0.2`. Keep the root `package.json`, Tauri configuration and Cargo version in sync; packaging automatically synchronizes the migration adapter version. Configure the production Tauri signing identity, COS/OSS/R2 credentials and ESA cache settings in the root `.env`, then run these commands from the repository root:
+
+```sh
+npm run package                         # build both applications without uploading
+npm run release:upload-only -- --dry-run # inspect the paired release plan
+npm run release:upload-only              # upload both applications and their feeds
+# Or build and upload both in one command:
+npm run release
+```
+
+Electron uses `latest.yml` to download `eIsland-<version>-Setup.exe`, the migration adapter. Tauri and the adapter use `tauri-latest.yml` to download `eIsland_<version>_x64-setup.exe`; this feed contains official Tauri JSON despite its `.yml` filename. Existing JSON feed URLs remain available. All installers, signatures and blockmaps are uploaded before the feeds; the Electron feed is updated last.
+
+For GitHub, enable `EISLAND_GITHUB_RELEASE_UPLOAD=1`, set `GITHUB_REPOSITORY=JNTMTMTM/eIsland` and `EISLAND_GITHUB_RELEASE_TAG=v<version>`, and authenticate `gh`. Create one published stable Release with that tag before uploading. Both applications and both feeds are attached to that same Release. The release workflow builds both applications as review artifacts; publishing to download sources remains an explicit release command.
 
 `npm run check` runs lint, type checks and tests. The [developer docs](https://eisland-dev.pyisland.com) cover the architecture, IPC APIs and plugins.
 

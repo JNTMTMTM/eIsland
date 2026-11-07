@@ -18,8 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "package": "node scripts/package.mjs",
     "package:preview": "node scripts/package.mjs --preview",
-    "release:upload-only": "node scripts/upload.mjs",
-    "release": "npm run package && npm run release:upload-only"
+    "release:upload-only": "npm --prefix ../.. run release:upload-only --",
+    "release": "npm --prefix ../.. run release"
   },
   "dependencies": {
     "i18next": "26.5.12",

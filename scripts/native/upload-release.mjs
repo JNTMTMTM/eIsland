@@ -139,6 +139,8 @@ export async function uploadRelease(argv = [], dependencies = {}) {
   const env = { ...(dependencies.env || process.env) };
   loadEnvFile(resolve(root, '.env'), env);
   const artifact = await releaseArtifact(root, options, env, dependencies.run);
+  const {companion} = dependencies;
+  if (companion && companion.version !== artifact.version) throw new Error('Adapter and Tauri versions must match');
   const prefix = objectPrefix(env.EISLAND_TAURI_UPLOAD_PREFIX || 'eisland-update/tauri');
   const legacyManifestKeys = (env.EISLAND_TAURI_LEGACY_UPLOAD_PREFIXES ?? 'tauri').split(',')
     .map((value) => value.trim())
@@ -147,12 +149,20 @@ export async function uploadRelease(argv = [], dependencies = {}) {
     .filter((value) => value !== prefix)
     .map((value) => `${value}/latest.json`);
   const targets = uploadTargets(env, options.minioOnly);
+  if (companion && !options.minioOnly && !targets.some((target) => target.provider === 'r2' && target.publicBase?.replace(/\/$/, '') === 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev')) throw new Error('Paired release requires the original Electron R2 update target');
   if (artifact.version === '27.0.2' && !options.minioOnly && !options.skipLegacyBridge && (!targets.some((target) => target.provider === 'r2') || (prefix !== 'tauri' && !legacyManifestKeys.includes('tauri/latest.json')))) throw new Error('Bridge release 27.0.2 requires the existing R2 bucket and tauri/latest.json alias; use --skip-legacy-bridge only after confirming no legacy clients need this feed');
   targets.forEach((target) => nativeManifest(artifact, mirrorBase(target, env, prefix)));
   const purge = options.minioOnly ? null : purgePlan(env, prefix, artifact.name);
+  if (companion && purge) {
+    const legacy = env.EISLAND_ADAPTER_ESA_MANIFEST_URL || 'https://eisland-server-download-cdn.pyisland.com/eisland-update/latest.yml';
+    const url = new URL(legacy);
+    if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || !url.pathname.endsWith('/latest.yml')) throw new Error('Invalid legacy ESA manifest URL');
+    purge.files.push(new URL('tauri-latest.yml', purge.files[0]).href, url.href, ...companion.keys.map((key) => new URL(key, url).href));
+  }
   const manifest = nativeManifest(artifact, env.EISLAND_TAURI_RELEASE_BASE_URL || new URL('.', purge?.files[0] || 'https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json').toString());
   const github = githubTarget(env, artifact.version);
   const plan = { manifest, legacyManifestKeys, installer: artifact.file, signature: artifact.signatureFile, github: github ? { repository: github.repository, tag: github.tag } : null, installerKey: `${prefix}/${artifact.name}`, signatureKey: `${prefix}/${artifact.name}.sig`, manifestKey: `${prefix}/latest.json`, targets: targets.map(({ provider, bucket }) => ({ provider, bucket })), purgeUrls: purge?.files || [] };
+  if (companion) Object.assign(plan, { adapterVersion: companion.version, adapterInstallers: companion.keys, tauriManifestKey: `${prefix}/tauri-latest.yml`, electronManifestKey: 'latest.yml' });
   log(`Native release ${artifact.version}: ${artifact.size} bytes, SHA-512 ${artifact.sha512}`);
   log(JSON.stringify(plan, null, 2));
   if (options.dryRun) { log('DRY RUN: no AWS command, upload or CDN purge performed.'); return plan; }
@@ -167,13 +177,20 @@ export async function uploadRelease(argv = [], dependencies = {}) {
     // All selected mirrors and the explicitly selected existing GitHub Release
     // receive both immutable artifacts before any update manifest advertises them.
     sessions.forEach((session) => { session.upload(artifact.file, plan.installerKey); session.upload(artifact.signatureFile, plan.signatureKey); });
-    if (github) github.upload(run, env, [artifact.file, artifact.signatureFile]);
+    if (companion) {
+      sessions.forEach((session) => companion.immutable.forEach((file, index) => {
+        session.upload(file, companion.keys[index]);
+        session.upload(file, `eisland-update/${companion.keys[index]}`);
+      }));
+    }
+    if (github) github.upload(run, env, [artifact.file, artifact.signatureFile, ...(companion?.immutable || [])]);
     sessions.forEach((session, index) => {
       const target = targets[index];
       const base = mirrorBase(target, env, prefix);
       const file = join(stage, `${target.provider}-latest.json`);
       writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, base), null, 2)}\n`);
       session.upload(file, plan.manifestKey, true);
+      if (companion) session.upload(file, plan.tauriManifestKey, true);
       // Previous Tauri defaults fetched /tauri/latest.json; the hybrid alias
       // advertises the same already-uploaded canonical installer and signature.
       legacyManifestKeys.forEach((key) => session.upload(file, key, true));
@@ -181,7 +198,21 @@ export async function uploadRelease(argv = [], dependencies = {}) {
     if (github) {
       const file = join(stage, 'tauri-latest.json');
       writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, github.base), null, 2)}\n`);
-      github.upload(run, env, [file]);
+      const nativeFiles = [file];
+      if (companion) {
+        const named = join(stage, 'tauri-latest.yml');
+        writeFileSync(named, `${JSON.stringify(nativeManifest(artifact, github.base), null, 2)}\n`);
+        nativeFiles.push(named);
+      }
+      github.upload(run, env, nativeFiles);
+    }
+    // 最后更新 Electron 入口，避免旧客户端先收到尚未准备好的迁移目标。
+    if (companion) {
+      sessions.forEach((session) => {
+        session.upload(companion.manifest, 'latest.yml', true);
+        session.upload(companion.manifest, 'eisland-update/latest.yml', true);
+      });
+      if (github) github.upload(run, env, [companion.manifest]);
     }
     if (purge) await (dependencies.purge || purgeNativeCache)(purge);
   } finally { sessions.forEach((session) => session.close()); rmSync(stage, { recursive: true, force: true }); }
@@ -190,6 +221,6 @@ export async function uploadRelease(argv = [], dependencies = {}) {
 }
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
-  try { await uploadRelease(process.argv.slice(2)); }
+  try { const { uploadPaired } = await import('./paired-release.mjs'); await uploadPaired(process.argv.slice(2)); }
   catch (error) { console.error(`Native release failed: ${error.message}`); process.exitCode = 1; }
 }

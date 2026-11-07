@@ -34,6 +34,7 @@ import { fileURLToPath } from 'node:url';
 import { loadEnvFile, resolveAws, uploadTargets } from './aws-upload.mjs';
 import { installerDirectory, nativeManifest, releaseArtifact, releaseOptions } from './release-artifacts.mjs';
 import packageRelease from './package-release.mjs';
+import { packagePaired, uploadPaired } from './paired-release.mjs';
 import { objectPrefix, purgePlan, uploadRelease, githubTarget } from './upload-release.mjs';
 
 const version = '27.0.1';
@@ -462,4 +463,89 @@ test('GitHub payload failures stop all manifest writes across every selected des
   assert(githubPayload >= 0 && githubPayload < firstManifest);
   const githubFeed = success.calls.find((call) => call.binary === 'gh' && call.args[1] === 'upload' && call.args.some((arg) => arg.endsWith('tauri-latest.json')));
   assert(githubFeed); assert.equal(success.purges.length, 1); closedSessions(success.calls);
+});
+
+/** 为原生发布 fixture 补齐同版本助手及公开信任配置。
+ * @param f - 隔离发布 fixture。
+ * @returns 助手文件路径。
+ */
+function companionFixture(f) {
+  const releaseVersion = JSON.parse(readFileSync(join(f.root, 'package.json'), 'utf8')).version;
+  const directory = join(f.root, 'temp/app/dist');
+  mkdirSync(directory, { recursive: true });
+  const installer = `eIsland-${releaseVersion}-Setup.exe`;
+  const sha512 = createHash('sha512').update(bytes).digest('base64');
+  const key = Buffer.from(`untrusted comment: fixture public key\n${Buffer.alloc(42).toString('base64')}\n`).toString('base64');
+  writeFileSync(join(directory, installer), bytes);
+  writeFileSync(join(directory, `${installer}.blockmap`), 'fixture blockmap');
+  writeFileSync(join(directory, 'latest.yml'), `version: ${releaseVersion}\npath: ${installer}\nsha512: ${sha512}\nfiles:\n  - url: ${installer}\n    sha512: ${sha512}\n    size: ${bytes.length}\n`);
+  writeFileSync(join(directory, 'adapter-build.json'), JSON.stringify({ sha512, version: releaseVersion, appId: 'com.eisland.app', publicKey: key }));
+  Object.assign(f.env, { TAURI_UPDATER_PUBLIC_KEY: key, R2_ENDPOINT: 'https://fixture.r2.cloudflarestorage.com', R2_ACCESS_KEY_ID: 'fixture', R2_SECRET_ACCESS_KEY: 'fixture', R2_BUCKET_NAME: 'fixture-r2', R2_PUBLIC_BASE_URL: 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev' });
+  return { directory, installer };
+}
+
+test('paired release uploads both payloads before either feed and uses one GitHub release', async (t) => {
+  const f = fixture(t); const adapter = companionFixture(f);
+  Object.assign(f.env, { EISLAND_GITHUB_RELEASE_UPLOAD: '1', GITHUB_REPOSITORY: 'owner/repo', EISLAND_GITHUB_RELEASE_TAG: `v${version}` });
+  const boundary = boundaries(f);
+  const plan = await uploadPaired(f.args, boundary);
+  assert.equal(plan.adapterVersion, version);
+  assert.equal(plan.tauriManifestKey, 'eisland-update/tauri/tauri-latest.yml');
+  const firstFeed = boundary.uploads.findIndex((upload) => /\.(?:json|yml)$/.test(upload.args[3]));
+  assert.equal(firstFeed, 18);
+  assert(boundary.uploads.slice(0, firstFeed).some((upload) => upload.args[3].endsWith(adapter.installer)));
+  const nativeFeed = boundary.uploads.find((upload) => upload.args[3].endsWith('/tauri-latest.yml'));
+  assert.equal(JSON.parse(nativeFeed.content).version, version);
+  const github = boundary.calls.filter((call) => call.binary === 'gh' && call.args[1] === 'upload');
+  assert(github[0].args.includes(join(adapter.directory, adapter.installer)));
+  assert(github[0].args.includes(f.file));
+  assert(github.some((call) => call.args.some((arg) => arg.endsWith('tauri-latest.yml'))));
+  assert(github.at(-1).args.includes(join(adapter.directory, 'latest.yml')));
+  assert(github.every((call) => call.args[2] === `v${version}`));
+  assert(boundary.purges[0].files.some((url) => url.endsWith('/tauri-latest.yml')));
+  closedSessions(boundary.calls);
+});
+
+test('paired release rejects version or key mismatch and missing files before any upload', async (t) => {
+  const f = fixture(t); const adapter = companionFixture(f); const boundary = boundaries(f);
+  const metadata = join(adapter.directory, 'adapter-build.json');
+  const original = JSON.parse(readFileSync(metadata, 'utf8'));
+  writeFileSync(metadata, JSON.stringify({ ...original, version: '0.0.0' }));
+  await assert.rejects(uploadPaired(f.args, boundary), /identity, version or public key/);
+  writeFileSync(metadata, JSON.stringify({ ...original, publicKey: 'wrong key' }));
+  await assert.rejects(uploadPaired(f.args, boundary), /identity, version or public key/);
+  writeFileSync(metadata, JSON.stringify(original));
+  rmSync(join(adapter.directory, adapter.installer));
+  await assert.rejects(uploadPaired(f.args, boundary), /ENOENT/);
+  assert.equal(boundary.calls.length, 0);
+});
+
+test('paired adapter upload failure leaves both update feeds untouched', async (t) => {
+  const f = fixture(t); const adapter = companionFixture(f);
+  const boundary = boundaries(f, (call) => call.args[0] === 's3' && call.args[3].endsWith(adapter.installer) ? { status: 9 } : null);
+  await assert.rejects(uploadPaired(f.args, boundary), /command failed/);
+  assert(boundary.uploads.every((upload) => !/\.(?:json|yml)$/.test(upload.args[3])));
+  assert.equal(boundary.purges.length, 0);
+  closedSessions(boundary.calls);
+});
+
+test('paired dry-run performs no remote writes and packaging isolates signing secrets', async (t) => {
+  const f = fixture(t); companionFixture(f); const boundary = boundaries(f);
+  await uploadPaired([...f.args, '--dry-run'], boundary);
+  assert.equal(boundary.uploads.length, 0);
+  assert.equal(boundary.purges.length, 0);
+  const env = { ...f.env, npm_execpath: 'fixture-npm.cjs', TAURI_SIGNING_PRIVATE_KEY: 'fixture-private', TAURI_SIGNING_PRIVATE_KEY_PASSWORD: 'fixture-password' };
+  let built = false;
+  await packagePaired({ env, root: f.root, packageNative: async (input) => {
+    assert.equal(input.env.TAURI_SIGNING_PRIVATE_KEY, env.TAURI_SIGNING_PRIVATE_KEY);
+    return { installer: f.file };
+  }, run: (_binary, args, options) => {
+    built = true;
+    assert.deepEqual(args, ['fixture-npm.cjs', 'run', 'package']);
+    assert.equal(options.env.TAURI_SIGNING_PRIVATE_KEY, undefined);
+    assert.equal(options.env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD, undefined);
+    assert.equal(options.env.TAURI_UPDATER_PUBLIC_KEY, f.env.TAURI_UPDATER_PUBLIC_KEY);
+    return { status: 0 };
+  } });
+  assert(built);
 });

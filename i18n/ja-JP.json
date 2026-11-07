@@ -5143,7 +5143,7 @@
   },
   "migrationAdapter": {
     "brand": "eIsland",
-    "adapterVersion": "移行アシスタント · 27.0.2",
+    "adapterVersion": "移行アシスタント · {{version}}",
     "eyebrow": "新しい eIsland へ",
     "language": "言語",
     "close": "閉じる",
@@ -5194,7 +5194,7 @@
       },
       "welcome": {
         "title": "新しい eIsland の準備をしましょう",
-        "body": "27.0.2 移行アシスタントへの更新が完了しました。データを保護し、Tauri 27.0.3 以降の安定版をダウンロードします。\nインストール後に eIsland が再び利用できます。"
+        "body": "{{version}} 移行アシスタントへの更新が完了しました。データを保護し、Tauri {{targetVersion}} 以降の安定版をダウンロードします。\nインストール後に eIsland が再び利用できます。"
       },
       "inspecting": {
         "title": "環境を確認しています",
@@ -5241,7 +5241,7 @@
       "missingKey": "正式な Tauri 更新公開鍵が設定されていません。安全な取得とインストールのため、設定済みのアシスタントを配布元に依頼してください。",
       "invalidSource": "この取得元は未設定です。他の取得元を選択してください。",
       "invalidManifest": "更新マニフェストが不正か、対応する Tauri インストーラーではありません。",
-      "targetTooOld": "Tauri 27.0.3 以降が必要です。",
+      "targetTooOld": "Tauri {{targetVersion}} 以降が必要です。",
       "network": "取得元に接続できません。ネットワークを確認するか取得元を変更してください。",
       "invalidInstaller": "インストーラーが不完全または不正です。再取得してください。",
       "signatureRejected": "署名または署名済みバージョンの検証に失敗したため、インストールを停止しました。",

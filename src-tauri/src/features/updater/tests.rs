@@ -52,8 +52,8 @@ impl Feed {
         .unwrap();
         let key = STANDARD.encode(pair.pk.to_box().unwrap().to_string());
         let server = Arc::new(tiny_http::Server::http("127.0.0.1:0").unwrap());
-        let url =
-            reqwest::Url::parse(&format!("http://{}/latest.json", server.server_addr())).unwrap();
+        let url = reqwest::Url::parse(&format!("http://{}/tauri-latest.yml", server.server_addr()))
+            .unwrap();
         let manifest = Arc::new(Mutex::new(
             json!({"runtime":"tauri","version":"99.0.0","notes":"native notes","platforms":{"windows-x86_64":{"url":url.join("fixture.exe").unwrap().to_string(),"signature":STANDARD.encode(signature.to_string()),"format":"nsis","size":bytes.len(),"sha512":"legacy-compatibility-field"}}}),
         ));
@@ -72,7 +72,7 @@ impl Feed {
                     let Ok(Some(request)) = server.recv_timeout(Duration::from_millis(50)) else {
                         continue;
                     };
-                    let response = if request.url() == "/latest.json" {
+                    let response = if request.url() == "/tauri-latest.yml" {
                         tiny_http::Response::from_data(
                             serde_json::to_vec(&*manifest.lock().unwrap()).unwrap(),
                         )
@@ -217,7 +217,7 @@ fn source_compatibility_has_one_default_and_preserves_explicit_server_feeds() {
     assert!(endpoint(None, None)
         .unwrap()
         .as_str()
-        .contains("eisland-update/tauri/latest.json"));
+        .contains("eisland-update/tauri/tauri-latest.yml"));
     for source in ["tencent-cos", "aliyun-oss"] {
         assert!(endpoint(Some(&json!(source)), None).is_err());
         for base in [
@@ -229,10 +229,10 @@ fn source_compatibility_has_one_default_and_preserves_explicit_server_feeds() {
                 endpoint(Some(&json!(source)), Some(&json!(base)))
                     .unwrap()
                     .as_str(),
-                "https://mirror.test/eisland-update/tauri/latest.json"
+                "https://mirror.test/eisland-update/tauri/tauri-latest.yml"
             );
         }
-        let signed = "https://mirror.test/eisland-update/tauri/latest.json?token=fixture";
+        let signed = "https://mirror.test/eisland-update/tauri/tauri-latest.yml?token=fixture";
         assert_eq!(
             endpoint(Some(&json!(source)), Some(&json!(signed)))
                 .unwrap()

@@ -5143,7 +5143,7 @@
   },
   "migrationAdapter": {
     "brand": "eIsland",
-    "adapterVersion": "Migration assistant · 27.0.2",
+    "adapterVersion": "Migration assistant · {{version}}",
     "eyebrow": "The next eIsland",
     "language": "Language",
     "close": "Close",
@@ -5194,7 +5194,7 @@
       },
       "welcome": {
         "title": "Get ready for the next eIsland",
-        "body": "You have updated to the 27.0.2 migration assistant. It will protect your data and download Tauri 27.0.3 or a newer stable release.\neIsland will return once installation is complete."
+        "body": "You have updated to the {{version}} migration assistant. It will protect your data and download Tauri {{targetVersion}} or a newer stable release.\neIsland will return once installation is complete."
       },
       "inspecting": {
         "title": "Checking your setup",
@@ -5241,7 +5241,7 @@
       "missingKey": "This adapter has no production Tauri update public key. Contact the publisher for a configured build before downloading or installing.",
       "invalidSource": "This source is not configured. Choose another source.",
       "invalidManifest": "The update manifest is invalid or does not describe a supported Tauri installer.",
-      "targetTooOld": "The target must be Tauri 27.0.3 or newer.",
+      "targetTooOld": "The target must be Tauri {{targetVersion}} or newer.",
       "network": "The source is unavailable. Check your connection or choose another source.",
       "invalidInstaller": "The installer is incomplete or invalid. Download it again.",
       "signatureRejected": "The installer signature or signed version was rejected. Installation has been blocked.",

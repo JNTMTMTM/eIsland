@@ -29,9 +29,14 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Install build dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
+      - name: Install isolated adapter dependencies
+        run: npm --prefix temp/app ci --ignore-scripts
+      - name: Prepare adapter runtime
+        working-directory: temp/app
+        run: node node_modules/electron/install.js
       - name: Generate release notes
         run: node --experimental-strip-types scripts/generate-incremental-release-notes.ts -o RELEASE_NOTES.md
-      - name: Build local signed NSIS package and official updater manifest
+      - name: Build paired Tauri and migration adapter packages
         run: npm run package
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -59,6 +64,10 @@ jobs:
             src-tauri/target/release/eisland.exe
             src-tauri/target/release/bundle/nsis/*-setup.exe
             src-tauri/target/release/bundle/nsis/*-setup.exe.sig
-            src-tauri/target/release/bundle/tauri-latest.json
+            src-tauri/target/release/bundle/tauri-latest.yml
+            temp/app/dist/*-Setup.exe
+            temp/app/dist/*.blockmap
+            temp/app/dist/latest.yml
+            temp/app/dist/adapter-build.json
             RELEASE_NOTES.md
           if-no-files-found: error

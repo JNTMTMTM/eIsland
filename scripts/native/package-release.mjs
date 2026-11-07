@@ -62,6 +62,6 @@ export default async function packageRelease(dependencies = {}) {
   return { manifest, installer: artifact.file, signature: artifact.signatureFile };
 }
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
-  try { const result = await packageRelease(); console.log(`Local signed Tauri package ready: ${result.installer}`); }
+  try { const { packagePaired } = await import('./paired-release.mjs'); const result = await packagePaired(); console.log(`Paired signed packages ready: ${result.installer}`); }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }

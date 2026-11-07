@@ -5143,7 +5143,7 @@
   },
   "migrationAdapter": {
     "brand": "eIsland",
-    "adapterVersion": "移轉助手 · 27.0.2",
+    "adapterVersion": "移轉助手 · {{version}}",
     "eyebrow": "新一代 eIsland",
     "language": "語言",
     "close": "關閉",
@@ -5194,7 +5194,7 @@
       },
       "welcome": {
         "title": "準備好，迎接新的 eIsland",
-        "body": "你已更新至 27.0.2 移轉助手。接下來，它將保護原資料，並下載 Tauri 27.0.3 或更新的正式版本。\n安裝完成後，靈動島將重新與你見面。"
+        "body": "你已更新至 {{version}} 移轉助手。接下來，它將保護原資料，並下載 Tauri {{targetVersion}} 或更新的正式版本。\n安裝完成後，靈動島將重新與你見面。"
       },
       "inspecting": {
         "title": "正在檢查",
@@ -5241,7 +5241,7 @@
       "missingKey": "此助手尚未設定正式 Tauri 更新公開金鑰，無法安全下載安裝。請聯絡發布者提供已設定的版本。",
       "invalidSource": "這個下載來源尚未接通，請選擇其他來源。",
       "invalidManifest": "更新清單格式不正確，或並非支援的 Tauri 安裝套件。",
-      "targetTooOld": "目標版本必須是 Tauri 27.0.3 或更新版本。",
+      "targetTooOld": "目標版本必須是 Tauri {{targetVersion}} 或更新版本。",
       "network": "更新來源暫時無法使用，請檢查網路或更換來源。",
       "invalidInstaller": "安裝套件不完整或格式不正確，請重新下載。",
       "signatureRejected": "安裝套件簽章或簽署版本驗證失敗，已阻止安裝。",
