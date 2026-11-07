@@ -53,6 +53,31 @@ it('rejects backup inside original data and rejects junction traversal', async (
   await expect(backupData([source], join(root, 'backup'), new AbortController().signal, () => {})).rejects.toThrow('backupLink');
   await expect(access(join(root, 'backup/backup.json'))).rejects.toThrow();
 });
+it('rejects nested backup paths reached through a parent directory alias before writing', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'adapter-alias-')); roots.push(root);
+  const original = join(root, 'original'); await mkdir(original);
+  const source = join(original, 'source'); await mkdir(source);
+  const alias = join(root, 'alias');
+  await symlink(original, alias, process.platform === 'win32' ? 'junction' : 'dir');
+  const destination = join(alias, 'source', 'backup');
+  await expect(backupData([join(alias, 'source')], destination, new AbortController().signal, () => {})).rejects.toThrow('backupLink');
+  await expect(access(destination)).rejects.toThrow();
+  await expect(backupData([source], destination, new AbortController().signal, () => {})).rejects.toThrow('backupLink');
+  await expect(access(destination)).rejects.toThrow();
+});
+
+it('allows a sibling backup through a directory alias and preserves its original data', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'adapter-alias-sibling-')); roots.push(root);
+  const original = join(root, 'original'); await mkdir(original);
+  const source = join(original, 'source'); await mkdir(source);
+  await writeFile(join(source, 'settings.json'), '{"keep":true}');
+  const alias = join(root, 'alias');
+  await symlink(original, alias, process.platform === 'win32' ? 'junction' : 'dir');
+  const result = await backupData([join(alias, 'source')], join(alias, 'backup'), new AbortController().signal, () => {});
+  expect(result.files).toBe(1);
+  expect(await readFile(join(source, 'settings.json'), 'utf8')).toBe('{"keep":true}');
+  expect(await readFile(join(original, 'backup/data-0/settings.json'), 'utf8')).toBe('{"keep":true}');
+});
 it('never writes a complete marker after cancellation', async () => {
   const root = await mkdtemp(join(tmpdir(), 'adapter-backup-cancel-')); roots.push(root);
   const source = join(root, 'source'); await mkdir(source); await writeFile(join(source, 'a'), 'original');

@@ -26,7 +26,7 @@
 import { createHash } from 'node:crypto';
 import { createReadStream, constants } from 'node:fs';
 import { copyFile, lstat, mkdir, readdir, realpath, rename, stat, writeFile } from 'node:fs/promises';
-import { join, relative, isAbsolute, resolve } from 'node:path';
+import { basename, dirname, join, relative, isAbsolute, resolve } from 'node:path';
 import { MAX_BACKUP_BYTES, MAX_BACKUP_FILES } from '../../shared/config/adapterConfig';
 import { fail } from '../../shared/utils/adapterErrors';
 import type { Backup, Progress } from '../../shared/types/adapterTypes';
@@ -56,8 +56,11 @@ async function digest(path: string, signal: AbortSignal): Promise<string> {
  * @returns 可供用户手工恢复的校验备份。
  */
 export async function backupData(roots: string[], destination: string, signal: AbortSignal, progress: (value: Progress) => void): Promise<Backup> {
+  // 目标尚未创建，先规范化其父目录，使短路径和目录别名与源目录使用相同的路径形式。
+  const resolvedDestination = resolve(destination);
+  const canonicalDestination = join(await realpath(dirname(resolvedDestination)), basename(resolvedDestination));
   for (const root of roots) {
-    const path = relative(await realpath(root), resolve(destination));
+    const path = relative(await realpath(root), canonicalDestination);
     if (!path || (path !== '..' && !path.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`) && !isAbsolute(path))) fail('backupLink');
   }
   await mkdir(destination, { recursive: false });
