@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-06T00:52:12.012Z
+> 生成时间：2026-11-07T23:10:22.298Z
 
 ## 27.0.1
 
@@ -4247,6 +4247,25 @@
 
 ## Unreleased
 
+- 2026-11-07 | 15e77b50 | JNTMTMTM | Merge pull request #310 from JNTMTMTM/dev
+- 2026-11-07 | 2993177f | 鸡哥 | refactor: update migration components and styles for improved consistency
+- 2026-11-07 | b92074ab | 鸡哥 | feat: remove outdated localization files for zh-CN, zh-TW, ja-JP, and en-US
+- 2026-11-06 | c4952288 | 鸡哥 | feat: enhance backup functionality with alias handling and additional tests
+- 2026-11-06 | 48c8cde0 | 鸡哥 | feat: add dismissError functionality to MigrationService and related components; update UI and tests
+- 2026-11-06 | e2c60a93 | 鸡哥 | feat: add lucide-react dependency and update WizardFooter with icon; enhance primary button styling
+- 2026-11-06 | c3b495c6 | 鸡哥 | Implement code changes to enhance functionality and improve performance
+- 2026-11-06 | dc0d10a3 | 鸡哥 | feat: implement language selection component with flag icons and keyboard navigation
+- 2026-11-06 | 6b579381 | 鸡哥 | feat: enhance migration UI with new source selection buttons and improved layout
+- 2026-11-06 | 0df8f238 | 鸡哥 | Refactor code structure for improved readability and maintainability
+- 2026-11-06 | 930b1be0 | 鸡哥 | feat: optimize lyrics fetching logic to prevent unnecessary requests based on translation settings
+- 2026-11-06 | bf1f7e20 | 鸡哥 | feat: refactor karaoke line parsing and enhance test coverage for synced lyrics extraction
+- 2026-11-06 | ed9ca5ae | 鸡哥 | feat: enhance TTML parsing to preserve symbol-only lines and punctuation
+- 2026-11-06 | be96cf68 | 鸡哥 | feat: synchronize playing state with lyrics animation and update styles for paused state
+- 2026-11-06 | d650f340 | 鸡哥 | feat: update version of windows-smtc-helper to 26.0.6 and enhance session management with new publish_update method
+- 2026-11-06 | 55cf2fec | 鸡哥 | feat: initialize isolated coverage target directory in native coverage workflow
+- 2026-11-05 | cab6e956 | 鸡哥 | feat: add adapter configuration, types, and error handling
+- 2026-11-05 | b402543f | 鸡哥 | feat: add .gitkeep to ensure temp directory is tracked
+- 2026-11-06 | e5609646 | eislandBot | docs: auto update CHANGE_LOG.md for #309 by @JNTMTMTM [skip ci]
 - 2026-11-05 | 7a53d428 | JNTMTMTM | Merge pull request #309 from JNTMTMTM/dev_rust
 - 2026-11-05 | ba62e012 | 鸡哥 | feat: adjust WebView2 focus handling to ensure proper file-drop target registration
 - 2026-11-05 | 381c3be3 | 鸡哥 | feat: enhance COM lifecycle assertions in icon extraction tests for improved reliability
