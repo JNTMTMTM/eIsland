@@ -39,6 +39,7 @@ export const FEEDS = {
 /** GitHub Release 下载会从 github.com 跳转到这些资源域名。 */
 export const GITHUB_ASSET_HOSTS = ['objects.githubusercontent.com', 'release-assets.githubusercontent.com'];
 export const IPC = {
+  directory: 'adapter:directory', removeLegacy: 'adapter:remove-legacy',
   state: 'adapter:state', changed: 'adapter:changed', inspect: 'adapter:inspect', local: 'adapter:local',
   prepare: 'adapter:prepare', install: 'adapter:install', cancel: 'adapter:cancel',
   dismissError: 'adapter:dismiss-error',

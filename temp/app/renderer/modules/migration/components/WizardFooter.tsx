@@ -41,7 +41,7 @@ export default function WizardFooter({ t, state, busy, onPrimary, onCancel }: Wi
   let action = 'inspect';
   if (phase === 'ready') action = 'prepare';
   else if (phase === 'prepared') action = 'install';
-  else if (phase === 'complete' || phase === 'installed') action = 'launch';
+  else if (phase === 'complete' || phase === 'installed') action = state?.removeLegacy ? 'uninstallAndLaunch' : 'launch';
   return (
     <footer className={styles.footer}>
       <div className={styles.actions}>

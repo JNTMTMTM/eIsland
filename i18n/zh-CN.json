@@ -5190,7 +5190,8 @@
       "inspect": "检查新版本",
       "prepare": "备份并下载",
       "install": "打开安装程序",
-      "launch": "启动 eIsland"
+      "launch": "启动 eIsland",
+      "uninstallAndLaunch": "卸载旧版并启动"
     },
     "phases": {
       "installed": {
@@ -5207,7 +5208,7 @@
       },
       "ready": {
         "title": "为迁移做好准备",
-        "body": "确认以下版本和目录后继续。接下来会备份数据并下载安装包，旧版安装目录会保留。"
+        "body": "确认以下版本和安装目录后继续。接下来会备份数据并下载安装包。"
       },
       "backing-up": {
         "title": "正在保护你的数据",
@@ -5223,7 +5224,7 @@
       },
       "prepared": {
         "title": "已准备就绪",
-        "body": "备份和安装包检查已完成。打开安装程序后，请使用上方的安装目录。"
+        "body": "备份和安装包检查已完成。确认安装目录和卸载选项后继续。"
       },
       "installing": {
         "title": "请完成安装程序",
@@ -5259,7 +5260,13 @@
       "installNotConfirmed": "未检测到预期的安装版本，请确认安装已完成且安装目录未更改。",
       "alreadyCurrent": "已安装相同或更新版本，请直接启动 eIsland。",
       "windowsOnly": "迁移助手仅支持 Windows。",
-      "operationFailed": "操作失败，请检查网络、磁盘空间和目录权限后重试。"
-    }
+      "operationFailed": "操作失败，请检查网络、磁盘空间和目录权限后重试。",
+      "invalidDirectory": "安装目录无效，请选择其他目录。",
+      "directoryNotEmpty": "该目录已有文件，请选择空目录或新建目录。",
+      "legacyUnavailable": "找不到可用的旧版卸载程序，请手动卸载旧版。"
+    },
+    "chooseDirectory": "选择目录",
+    "removeLegacy": "安装完成后卸载旧版 eIsland",
+    "removeLegacyNote": "安装成功后打开旧版卸载程序，完成后启动新版。备份会保留。"
   }
 }

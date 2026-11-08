@@ -32,7 +32,7 @@ export interface SourceOption { id: SourceId; }
 /** 已校验的 Tauri 发布信息；size 与 sha512 为清单可选字段，存在时下载必须匹配。 */
 export interface Release { version: string; notes: string; url: string; signature: string; size?: number; sha512?: string; }
 /** 注册表登记且目录存在的安装项，runtime 由目录内容判定。 */
-export interface Installation { directory: string; version: string; runtime: 'electron' | 'tauri' | 'unknown'; }
+export interface Installation { directory: string; version: string; runtime: 'electron' | 'tauri' | 'unknown'; uninstaller?: string; }
 /** 正在运行的 eisland.exe 进程（已排除适配器自身）。 */
 export interface RunningApp { pid: number; path: string; }
 /** 系统检测结果：安装项、运行实例、待备份的数据根目录、新旧数据存储位置与计划安装目录。 */
@@ -47,6 +47,7 @@ export interface Progress { done: number; total: number | null; }
 /** 主进程发布给 renderer 的完整状态快照。 */
 export interface AdapterState {
   phase: Phase; sources: SourceOption[]; source: SourceId; signingConfigured: boolean;
+  removeLegacy: boolean;
   release: Release | null; inspection: Inspection | null; backup: Backup | null;
   progress: Progress; error: string | null;
 }
@@ -55,6 +56,8 @@ export interface AdapterApi {
   getState: () => Promise<AdapterState>;
   inspect: (source: SourceId) => Promise<void>;
   chooseLocal: () => Promise<void>;
+  chooseDirectory: () => Promise<void>;
+  setRemoveLegacy: (remove: boolean) => Promise<void>;
   prepare: () => Promise<void>;
   install: () => Promise<void>;
   cancel: () => Promise<void>;

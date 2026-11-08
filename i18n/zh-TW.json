@@ -5190,7 +5190,8 @@
       "inspect": "檢查新版本",
       "prepare": "備份並下載",
       "install": "開啟安裝程式",
-      "launch": "啟動 eIsland"
+      "launch": "啟動 eIsland",
+      "uninstallAndLaunch": "解除安裝舊版並啟動"
     },
     "phases": {
       "installed": {
@@ -5207,7 +5208,7 @@
       },
       "ready": {
         "title": "為移轉做好準備",
-        "body": "確認以下版本和目錄後繼續。接下來會備份資料並下載安裝套件，舊版安裝目錄會保留。"
+        "body": "確認以下版本和安裝目錄後繼續。接下來會備份資料並下載安裝套件。"
       },
       "backing-up": {
         "title": "正在保護你的資料",
@@ -5223,7 +5224,7 @@
       },
       "prepared": {
         "title": "已準備就緒",
-        "body": "備份和安裝套件檢查已完成。開啟安裝程式後，請使用上方的安裝目錄。"
+        "body": "備份和安裝套件檢查已完成。確認安裝目錄和解除安裝選項後繼續。"
       },
       "installing": {
         "title": "請完成安裝程式",
@@ -5259,7 +5260,13 @@
       "installNotConfirmed": "未偵測到預期的安裝版本，請確認安裝已完成且安裝目錄未變更。",
       "alreadyCurrent": "已安裝相同或更新版本，請直接啟動 eIsland。",
       "windowsOnly": "移轉助手僅支援 Windows。",
-      "operationFailed": "操作失敗，請檢查網路、磁碟空間和目錄權限後重試。"
-    }
+      "operationFailed": "操作失敗，請檢查網路、磁碟空間和目錄權限後重試。",
+      "invalidDirectory": "安裝目錄無效，請選擇其他目錄。",
+      "directoryNotEmpty": "該目錄已有檔案，請選擇空目錄或建立新目錄。",
+      "legacyUnavailable": "找不到可用的舊版解除安裝程式，請手動解除安裝舊版。"
+    },
+    "chooseDirectory": "選擇目錄",
+    "removeLegacy": "安裝完成後解除安裝舊版 eIsland",
+    "removeLegacyNote": "安裝成功後開啟舊版解除安裝程式，完成後啟動新版。備份會保留。"
   }
 }

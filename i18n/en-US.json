@@ -5190,7 +5190,8 @@
       "inspect": "Check for update",
       "prepare": "Back up & download",
       "install": "Open installer",
-      "launch": "Launch eIsland"
+      "launch": "Launch eIsland",
+      "uninstallAndLaunch": "Uninstall old version & launch"
     },
     "phases": {
       "installed": {
@@ -5207,7 +5208,7 @@
       },
       "ready": {
         "title": "Ready to prepare your migration",
-        "body": "Confirm the version and folders below. Next, your data will be backed up and the installer downloaded. The old installation folder will remain."
+        "body": "Confirm the version and installation folder below. Next, your data will be backed up and the installer downloaded."
       },
       "backing-up": {
         "title": "Protecting your data",
@@ -5223,7 +5224,7 @@
       },
       "prepared": {
         "title": "Everything is prepared",
-        "body": "Backup and installer checks are complete. Use the installation folder shown above when you open the installer."
+        "body": "Backup and installer checks are complete. Confirm the installation folder and uninstall option to continue."
       },
       "installing": {
         "title": "Finish the installer",
@@ -5259,7 +5260,13 @@
       "installNotConfirmed": "The expected version was not found. Check that installation finished and the installation folder was not changed.",
       "alreadyCurrent": "The same or a newer version is installed. Launch eIsland directly.",
       "windowsOnly": "This assistant supports Windows only.",
-      "operationFailed": "The operation failed. Check your connection, free disk space and folder permissions, then try again."
-    }
+      "operationFailed": "The operation failed. Check your connection, free disk space and folder permissions, then try again.",
+      "invalidDirectory": "The installation folder is invalid. Choose another folder.",
+      "directoryNotEmpty": "This folder contains files. Choose an empty folder or create a new one.",
+      "legacyUnavailable": "The old uninstaller is unavailable. Uninstall the old version manually."
+    },
+    "chooseDirectory": "Choose folder",
+    "removeLegacy": "Uninstall the old eIsland after installation",
+    "removeLegacyNote": "After installation, the old uninstaller opens. The new app starts when it closes. Your backup is retained."
   }
 }

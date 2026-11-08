@@ -33,14 +33,16 @@ export const LOCAL_PHASES: Phase[] = ['welcome', 'inspecting', 'ready', 'backing
  */
 export function createLocalPreview() {
   let source: SourceId = 'esa';
+  let selectedDirectory = 'C:/Users/Preview/AppData/Local/eIsland-Tauri';
+  let removeLegacy = false;
   const listeners = new Set<(state: AdapterState) => void>();
   const snapshot = (phase: Phase): AdapterState => ({
-    phase, source, sources: [{ id: 'esa' }, { id: 'r2' }, { id: 'github' }], signingConfigured: true,
+    phase, source, removeLegacy, sources: [{ id: 'esa' }, { id: 'r2' }, { id: 'github' }], signingConfigured: true,
     inspection: {
-      installations: [], running: [], dataRoots: ['C:/Users/Preview/AppData/Roaming/eIsland'],
+      installations: [{ directory: 'C:/Users/Preview/AppData/Local/eIsland', version: ADAPTER_VERSION, runtime: 'electron', uninstaller: 'C:/Users/Preview/AppData/Local/eIsland/Uninstall eIsland.exe' }], running: [], dataRoots: ['C:/Users/Preview/AppData/Roaming/eIsland'],
       legacyStore: 'C:/Users/Preview/AppData/Roaming/eIsland/eIsland_store',
       tauriStore: 'C:/Users/Preview/AppData/Roaming/com.pyisland.eisland',
-      selectedStore: 'C:/Users/Preview/AppData/Roaming/eIsland/eIsland_store', targetDirectory: 'C:/Users/Preview/AppData/Local/eIsland-Tauri',
+      selectedStore: 'C:/Users/Preview/AppData/Roaming/eIsland/eIsland_store', targetDirectory: selectedDirectory,
     },
     release: { version: ADAPTER_VERSION, notes: '', url: 'https://example.invalid/preview.exe', signature: 'preview-only' },
     backup: ['downloading', 'verifying', 'prepared', 'installing', 'complete'].includes(phase)
@@ -57,7 +59,9 @@ export function createLocalPreview() {
     getState: () => Promise.resolve(structuredClone(state)),
     inspect: (value) => { source = value; return move('ready'); },
     prepare: () => move('prepared'), install: () => move('complete'),
-    chooseLocal: () => move('ready'), cancel: () => move('cancelled'),
+    chooseLocal: () => move('ready'),
+    chooseDirectory: () => { selectedDirectory = 'D:/Apps/eIsland'; return move(state.phase); },
+    setRemoveLegacy: (remove) => { removeLegacy = remove; return move(state.phase); }, cancel: () => move('cancelled'),
     dismissError: () => move('welcome'), launch: () => move('welcome'), close: () => move('welcome'),
     openBackup: () => Promise.resolve(),
     onState: (callback) => { listeners.add(callback); return () => { listeners.delete(callback); }; },

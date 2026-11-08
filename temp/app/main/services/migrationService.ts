@@ -30,6 +30,7 @@ import { gte, valid } from 'semver';
 import { AdapterError, fail } from '../../shared/utils/adapterErrors';
 import { MINIMUM_TAURI_VERSION } from '../../shared/config/adapterConfig';
 import { verifyBackup } from './backupService';
+import { legacyInstallation, validateTargetDirectory } from './platformService';
 import type { AdapterState, Inspection, Installation, Phase, SourceId, Release } from '../../shared/types/adapterTypes';
 import type { MigrationPorts, ServiceConfig } from '../types/serviceTypes';
 
@@ -42,7 +43,7 @@ function currentInstallation(inspection: Inspection, version: string): Installat
   return inspection.installations.find((entry) => entry.runtime === 'tauri' && valid(entry.version) && gte(entry.version, version));
 }
 
-/** 串行控制迁移生命周期，不自动卸载原客户端或终止外部进程。 */
+/** 串行控制迁移生命周期，旧版卸载须由用户选择且新版安装已确认。 */
 export default class MigrationService {
   private previousPhase: Phase = 'welcome';
 
@@ -51,6 +52,8 @@ export default class MigrationService {
   private installer: string | null = null;
 
   private localFile: string | undefined;
+
+  private customDirectory: string | null = null;
 
   state: AdapterState;
 
@@ -61,7 +64,7 @@ export default class MigrationService {
    */
   constructor(private readonly config: ServiceConfig, private readonly ports: MigrationPorts) {
     const sources = Object.keys(config.feeds).map((id) => ({ id: id as SourceId }));
-    this.state = { sources, phase: 'welcome', source: 'esa', signingConfigured: Boolean(config.publicKey), release: null, inspection: null, backup: null, progress: { done: 0, total: null }, error: null };
+    this.state = { sources, phase: 'welcome', source: 'esa', signingConfigured: Boolean(config.publicKey), removeLegacy: false, release: null, inspection: null, backup: null, progress: { done: 0, total: null }, error: null };
   }
 
   /** 发布不可跨进程共享引用的状态快照。
@@ -71,6 +74,52 @@ export default class MigrationService {
   private update(patch: Partial<AdapterState>): void {
     this.state = { ...this.state, ...patch };
     this.ports.publish(structuredClone(this.state));
+  }
+
+  /** 每次关键操作都重新检测，并重新校验用户选定的目录。
+   * @returns 带当前安装目录的检测结果。
+   */
+  private async inspectConfigured(): Promise<Inspection> {
+    const inspection = await this.ports.inspect();
+    if (this.customDirectory) return { ...inspection, targetDirectory: await validateTargetDirectory(this.customDirectory, inspection, this.config) };
+    return inspection;
+  }
+
+  /** 仅在用户可操作阶段接受原生目录选择结果。
+   * @param directory - 原生对话框选择的安装位置。
+   * @returns 校验后更新目录，不开始安装。
+   */
+  async setTargetDirectory(directory: string): Promise<void> {
+    if (this.active || !['ready', 'prepared'].includes(this.state.phase)) return;
+    const { phase } = this.state;
+    await this.operation('inspecting', async () => {
+      const inspection = await this.ports.inspect();
+      const selectedDirectory = await validateTargetDirectory(directory, inspection, this.config);
+      this.customDirectory = selectedDirectory;
+      this.update({ phase, inspection: { ...inspection, targetDirectory: selectedDirectory } });
+    });
+  }
+
+  /** 保存用户是否卸载旧版的选择，默认不卸载。
+   * @param remove - 是否在新版安装成功后打开旧版卸载程序。
+   * @returns 无返回值，仅更新选项。
+   */
+  setRemoveLegacy(remove: boolean): void {
+    if (this.active || !['ready', 'prepared', 'complete', 'installed'].includes(this.state.phase)) return;
+    this.update({ removeLegacy: remove });
+  }
+
+  /** 完成安装后重新确认备份、新程序和旧版卸载目标。
+   * @returns 用户明确选择卸载时的旧安装项，否则为空。
+   */
+  async legacyToRemove(): Promise<Installation | undefined> {
+    if (!this.state.removeLegacy) return undefined;
+    if (!['complete', 'installed'].includes(this.state.phase) || !this.state.backup) fail('backupMissing');
+    await verifyBackup(this.state.backup.directory, new AbortController().signal);
+    const inspection = await this.ports.inspect();
+    const installed = currentInstallation(inspection, this.state.release?.version || MINIMUM_TAURI_VERSION);
+    if (!installed || !(await stat(join(installed.directory, 'eisland.exe')).catch(() => null))?.isFile()) fail('installNotConfirmed');
+    return legacyInstallation(inspection, this.config.ownExecutable);
   }
 
   /** 同一时刻只允许一个操作；取消和错误不会伪装成安装完成。
@@ -101,7 +150,7 @@ export default class MigrationService {
     await this.operation('inspecting', async (signal) => {
       if (!this.config.publicKey) fail('missingKey');
       if (source !== 'local' && !this.config.feeds[source]) fail('invalidSource');
-      const inspection = await this.ports.inspect();
+      const inspection = await this.inspectConfigured();
       const installed = currentInstallation(inspection, MINIMUM_TAURI_VERSION);
       if (installed) {
         this.installer = null;
@@ -122,7 +171,7 @@ export default class MigrationService {
     if (this.state.phase !== 'ready' || !this.state.release) return;
     const {release} = this.state;
     await this.operation('backing-up', async (signal) => {
-      const inspection = await this.ports.inspect();
+      const inspection = await this.inspectConfigured();
       this.update({ inspection });
       if (inspection.running.length) fail('closeRunning');
       if (currentInstallation(inspection, release.version)) fail('alreadyCurrent');
@@ -154,7 +203,7 @@ export default class MigrationService {
     const {backup} = this.state;
     const directory = this.state.inspection.targetDirectory;
     await this.operation('verifying', async (signal) => {
-      const inspected = await this.ports.inspect();
+      const inspected = await this.inspectConfigured();
       if (inspected.running.length) fail('closeRunning');
       // 上次安装器已成功但确认步骤失败时，重试直接以已安装结果收尾，而不是卡在 alreadyCurrent。
       const existing = currentInstallation(inspected, release.version);

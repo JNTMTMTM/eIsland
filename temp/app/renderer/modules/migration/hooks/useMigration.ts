@@ -59,10 +59,11 @@ export default function useMigration(): UseMigrationReturn {
   return { state, t, source, primary, setSource, language: i18n.language, error: error || state?.error || null,
     busy: Boolean(state && BUSY_PHASES.includes(state.phase)), step: stepForPhase(state?.phase),
     setLanguage: changeLanguage,
+    chooseDirectory: () => action(() => window.migration.chooseDirectory()),
+    setRemoveLegacy: (remove) => action(() => window.migration.setRemoveLegacy(remove)),
     dismissError: () => {
       setError(null);
       if (state?.phase === 'error') action(() => window.migration.dismissError());
     },
-    cancel: () => action(() => window.migration.cancel()), close: () => action(() => window.migration.close()),
-    openBackup: () => action(() => window.migration.openBackup()) };
+    cancel: () => action(() => window.migration.cancel()), close: () => action(() => window.migration.close()) };
 }

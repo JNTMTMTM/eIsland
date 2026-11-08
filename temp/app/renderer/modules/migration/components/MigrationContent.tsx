@@ -24,14 +24,14 @@
  * @author 鸡哥
  */
 import { useCallback } from 'react';
-import { CircleAlert, X } from 'lucide-react';
+import { CircleAlert, FolderOpen, X } from 'lucide-react';
 import { ADAPTER_VERSION, MINIMUM_TAURI_VERSION } from '../../../../shared/config/adapterConfig';
 import { progressPercent } from '../utils/migrationUtils';
 import { SOURCE_ICONS } from '../config/migrationConfig';
 import styles from './migration.module.css';
 import type { MigrationContentProps } from '../types/migrationTypes';
 import type { SourceId } from '../../../../shared/types/adapterTypes';
-import type { MouseEvent } from 'react';
+import type { ChangeEvent, MouseEvent } from 'react';
 
 /** 显示阶段详情，所有路径均来自只读主进程状态。
  * @param props - 迁移快照与有限界面动作。
@@ -41,14 +41,16 @@ import type { MouseEvent } from 'react';
  * @param props.source - 已选择的在线源。
  * @param props.busy - 是否有操作进行中。
  * @param props.onSource - 选择在线源的动作。
- * @param props.onBackup - 打开备份目录的动作。
  * @param props.onDismissError - 关闭错误提示的动作。
+ * @param props.onDirectory - 选择安装目录的动作。
+ * @param props.onRemoveLegacy - 更改是否卸载旧版。
  * @returns 当前阶段的内容。
  */
-export default function MigrationContent({ t, state, error, source, busy, onSource, onBackup, onDismissError }: MigrationContentProps) {
+export default function MigrationContent({ t, state, error, source, busy, onSource, onDismissError, onDirectory, onRemoveLegacy }: MigrationContentProps) {
   const handleSource = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
     onSource(event.currentTarget.value as SourceId);
   }, [onSource]);
+  const handleRemoveLegacy = useCallback((event: ChangeEvent<HTMLInputElement>) => onRemoveLegacy(event.target.checked), [onRemoveLegacy]);
   const phase = state?.phase || 'welcome';
   const review = phase === 'ready';
   const working = ['backing-up', 'downloading', 'verifying', 'installing'].includes(phase);
@@ -74,9 +76,15 @@ export default function MigrationContent({ t, state, error, source, busy, onSour
         {(review || phase === 'prepared') && state?.inspection && state.release && (
           <dl className={styles.details}>
             <div><dt>{t('targetVersion')}</dt><dd>{state.release.version}</dd></div>
-            <div><dt>{t('targetDirectory')}</dt><dd>{state.inspection.targetDirectory}</dd></div>
+            <div><dt>{t('targetDirectory')}</dt><dd className={styles['directory-row']}><span>{state.inspection.targetDirectory}</span><button type="button" className={styles['directory-button']} disabled={busy} onClick={onDirectory}><FolderOpen size={15} aria-hidden="true" />{t('chooseDirectory')}</button></dd></div>
             <div><dt>{t('dataDirectory')}</dt><dd>{state.inspection.selectedStore}</dd></div>
           </dl>
+        )}
+        {['ready', 'prepared', 'complete', 'installed'].includes(phase) && state?.inspection?.installations.some((entry) => entry.runtime === 'electron' && entry.uninstaller) && (
+          <label className={styles['remove-legacy']}>
+            <input type="checkbox" checked={state.removeLegacy} disabled={busy || (phase === 'installed' && !state.backup)} onChange={handleRemoveLegacy} />
+            <span>{t('removeLegacy')}<small>{t('removeLegacyNote')}</small></span>
+          </label>
         )}
         {review && Boolean(state?.inspection?.running.length) && <p className={styles.warning}>{t('errors.closeRunning')}</p>}
         {(working || phase === 'prepared') && state && (
@@ -94,7 +102,6 @@ export default function MigrationContent({ t, state, error, source, busy, onSour
             </button>
           </div>
         )}
-        {state?.backup && <button type="button" onClick={onBackup} className={styles.backup}>{t('openBackup')}<span>{state.backup.directory}</span></button>}
         {['complete', 'installed'].includes(phase) && <p className={styles.note}>{t('startupNotice')}</p>}
       </div>
     </section>

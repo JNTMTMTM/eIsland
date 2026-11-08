@@ -52,7 +52,7 @@ async function fixture() {
     verify: vi.fn(async () => { events.push('verify'); }),
     install: vi.fn(async (file: string, directory: string) => {
       void file;
-      events.push('install-boundary'); await mkdir(directory); await writeFile(join(directory, 'eisland.exe'), 'not an executable');
+      events.push('install-boundary'); await mkdir(directory, { recursive: true }); await writeFile(join(directory, 'eisland.exe'), 'not an executable');
       inspection.installations.push({ directory, version: '27.0.3', runtime: 'tauri' });
     }), publish: vi.fn(),
   };
@@ -180,4 +180,38 @@ it('recovers to installed when confirmation failed after a successful installer 
   await service.install(); expect(service.state.phase).toBe('error'); expect(ports.install).toHaveBeenCalledOnce();
   service.dismissError(); await service.install();
   expect(service.state.phase).toBe('installed'); expect(ports.install).toHaveBeenCalledOnce();
+});
+
+it('keeps a chosen installation directory through backup, verification and installation', async () => {
+  const { service, config, ports } = await fixture();
+  await service.inspect('esa');
+  const chosen = join(config.localData, 'Custom eIsland');
+  await mkdir(chosen, { recursive: true });
+  await service.setTargetDirectory(chosen);
+  expect(service.state.phase).toBe('ready');
+  expect(service.state.inspection?.targetDirectory).toBe(chosen);
+  await service.prepare();
+  expect(service.state.phase).toBe('prepared');
+  expect(service.state.inspection?.targetDirectory).toBe(chosen);
+  await service.install();
+  expect(service.state.phase).toBe('complete');
+  expect(ports.install).toHaveBeenCalledWith(expect.any(String), chosen);
+  expect(service.state.inspection?.targetDirectory).toBe(chosen);
+});
+
+it('requires explicit uninstall opt-in, a verified backup and a confirmed new installation', async () => {
+  const { service, inspection } = await fixture();
+  const [legacy] = inspection.installations;
+  legacy.uninstaller = join(legacy.directory, 'Uninstall eIsland.exe');
+  expect(service.state.removeLegacy).toBe(false);
+  await service.inspect('esa');
+  expect(await service.legacyToRemove()).toBeUndefined();
+  service.setRemoveLegacy(true);
+  await expect(service.legacyToRemove()).rejects.toThrow('backupMissing');
+  await service.prepare();
+  await service.install();
+  expect(service.state.phase).toBe('complete');
+  expect((await service.legacyToRemove())?.directory).toBe(legacy.directory);
+  service.setRemoveLegacy(false);
+  expect(await service.legacyToRemove()).toBeUndefined();
 });

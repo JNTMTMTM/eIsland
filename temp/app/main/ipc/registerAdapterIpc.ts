@@ -28,6 +28,7 @@ import { basename, dirname, join } from 'node:path';
 import { ipcMain, dialog, shell } from 'electron';
 import { IPC } from '../../shared/config/adapterConfig';
 import { parseRelease } from '../services/releaseService';
+import scheduleLegacyUninstall from '../services/legacyUninstallService';
 import type { SourceId } from '../../shared/types/adapterTypes';
 import type MigrationService from '../services/migrationService';
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron';
@@ -64,14 +65,34 @@ export default function registerAdapterIpc(window: BrowserWindow, service: Migra
   });
   handle(IPC.prepare, () => service.prepare());
   handle(IPC.install, () => service.install());
+  handle(IPC.directory, async () => {
+    if (!['ready', 'prepared'].includes(service.state.phase)) return;
+    const result = await dialog.showOpenDialog(window, { defaultPath: service.state.inspection?.targetDirectory, properties: ['openDirectory', 'createDirectory'] });
+    if (!result.canceled && result.filePaths[0]) await service.setTargetDirectory(result.filePaths[0]);
+  });
+  handle(IPC.removeLegacy, (remove) => {
+    if (typeof remove !== 'boolean') throw new Error('Invalid uninstall preference');
+    service.setRemoveLegacy(remove);
+  });
   handle(IPC.cancel, () => service.cancel());
   handle(IPC.dismissError, () => service.dismissError());
   handle(IPC.backup, async () => { if (service.state.backup) await shell.openPath(service.state.backup.directory); });
+  let finishing = false;
   handle(IPC.launch, async () => {
+    if (finishing) return;
     if (['complete', 'installed'].includes(service.state.phase) && service.state.inspection) {
-      const error = await shell.openPath(join(service.state.inspection.targetDirectory, 'eisland.exe'));
-      if (error) throw new Error('Application launch failed');
-      window.close();
+      finishing = true;
+      try {
+        const legacy = await service.legacyToRemove();
+        if (legacy) {
+          await scheduleLegacyUninstall(legacy, service.state.inspection.targetDirectory, process.execPath);
+          window.close();
+          return;
+        }
+        const error = await shell.openPath(join(service.state.inspection.targetDirectory, 'eisland.exe'));
+        if (error) throw new Error('Application launch failed');
+        window.close();
+      } catch (error) { finishing = false; throw error; }
     }
   });
   handle(IPC.close, () => { if (service.state.phase !== 'installing') { service.cancel(); window.close(); } });

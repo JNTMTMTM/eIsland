@@ -25,8 +25,8 @@
  */
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
-import { access, stat } from 'node:fs/promises';
-import { dirname, join, resolve, relative, isAbsolute } from 'node:path';
+import { access, lstat, readdir, realpath, stat } from 'node:fs/promises';
+import { basename, dirname, join, resolve, relative, isAbsolute } from 'node:path';
 import withoutSigningSecrets from '../../../../scripts/native/environment.mjs';
 import { TAURI_APP_ID } from '../../shared/config/adapterConfig';
 import { fail } from '../../shared/utils/adapterErrors';
@@ -56,6 +56,54 @@ export function directoriesOverlap(first: string, second: string): boolean {
 export async function directoryExists(path: string): Promise<boolean> {
   try { return (await stat(path)).isDirectory(); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false; throw error; }
+}
+
+/** 规范化目录及其尚未创建的后缀，统一处理短路径和目录链接。
+ * @param directory - 待比较的目录。
+ * @returns 规范绝对路径。
+ */
+async function canonicalDirectory(directory: string): Promise<string> {
+  let parent = resolve(directory);
+  const parts: string[] = [];
+  while (true) {
+    try { return join(await realpath(parent), ...parts.reverse()); }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT' || dirname(parent) === parent) throw error;
+      parts.push(basename(parent));
+      parent = dirname(parent);
+    }
+  }
+}
+
+/** 校验用户选择的安装位置，避免覆盖旧程序、自身、用户数据或备份。
+ * @param directory - 用户选择的目标目录。
+ * @param inspection - 最新的系统检测结果。
+ * @param config - 适配器工作目录与自身路径。
+ * @returns 经规范化的可用安装目录。
+ */
+export async function validateTargetDirectory(directory: string, inspection: Inspection, config: ServiceConfig): Promise<string> {
+  if (!isAbsolute(directory) || /["\r\n\0]/.test(directory) || dirname(resolve(directory)) === resolve(directory)) fail('invalidDirectory');
+  const target = await canonicalDirectory(directory);
+  const protectedRoots = [dirname(config.ownExecutable), config.workRoot, ...inspection.dataRoots,
+    ...inspection.installations.filter((entry) => entry.runtime !== 'tauri').map((entry) => entry.directory)];
+  const canonicalRoots = await Promise.all(protectedRoots.map(canonicalDirectory));
+  if (canonicalRoots.some((root) => directoriesOverlap(root, target))) fail('installOverlap');
+  const info = await lstat(target).catch((error: NodeJS.ErrnoException) => { if (error.code === 'ENOENT') return null; throw error; });
+  if (info && !info.isDirectory()) fail('invalidDirectory');
+  const knownTargets = await Promise.all(inspection.installations.filter((entry) => entry.runtime === 'tauri').map((entry) => canonicalDirectory(entry.directory)));
+  const known = knownTargets.some((entry) => entry.toLowerCase() === target.toLowerCase());
+  if (info && !known && (await readdir(target)).length) fail('directoryNotEmpty');
+  return target;
+}
+
+/** 找到可由官方卸载器移除的旧版，优先选择当前迁移助手所在目录。
+ * @param inspection - 系统检测结果。
+ * @param ownExecutable - 迁移助手程序路径。
+ * @returns 可卸载的 Electron 安装项。
+ */
+export function legacyInstallation(inspection: Inspection, ownExecutable: string): Installation | undefined {
+  const entries = inspection.installations.filter((entry) => entry.runtime === 'electron' && entry.uninstaller);
+  return entries.find((entry) => resolve(entry.directory).toLowerCase() === dirname(resolve(ownExecutable)).toLowerCase()) || entries[0];
 }
 
 /** 只复用明确识别的 Tauri 目录，保护适配器自身及没有注册信息的旧目录。
@@ -93,7 +141,10 @@ export async function inspectSystem(config: ServiceConfig): Promise<Inspection> 
     let runtime: Installation['runtime'] = 'unknown';
     if (electron) runtime = 'electron';
     else if (tauri) runtime = 'tauri';
-    return { runtime, directory: resolve(entry.directory), version: entry.version };
+    const uninstaller = join(entry.directory, 'Uninstall eIsland.exe');
+    const uninstallInfo = electron ? await lstat(uninstaller).catch(() => null) : null;
+    return { runtime, directory: resolve(entry.directory), version: entry.version,
+      ...(uninstallInfo?.isFile() && !uninstallInfo.isSymbolicLink() ? { uninstaller } : {}) };
   }));
   const installations = detected.filter((entry): entry is Installation => entry !== null);
   const ownPath = resolve(config.ownExecutable).toLowerCase();
