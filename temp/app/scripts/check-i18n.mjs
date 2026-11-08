@@ -59,4 +59,5 @@ function scan(directory) {
   });
 }
 scan('renderer/modules');
+scan('renderer/local');
 console.log(`PASS: ${keys.length} translation keys and interpolation parameters in all four languages`);

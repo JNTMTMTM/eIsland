@@ -5142,6 +5142,11 @@
     }
   },
   "migrationAdapter": {
+    "localPreview": {
+      "title": "Local preview",
+      "phase": "Screen",
+      "simulated": "Simulated data · Update checks skipped"
+    },
     "brand": "eIsland",
     "adapterVersion": "Migration assistant · {{version}}",
     "eyebrow": "The next eIsland",
@@ -5176,7 +5181,7 @@
     "targetVersion": "Tauri version",
     "targetDirectory": "Planned install directory",
     "dataDirectory": "Selected data directory",
-    "startupNotice": "To start at login, turn that setting off and on in the new app and review Windows startup entries. This assistant does not modify old startup entries.",
+    "startupNotice": "To launch at login, turn that setting off and back on in the new app.",
     "openBackup": "Open verified backup",
     "progressBytes": "{{done}} / {{total}} MB",
     "unknownSize": "unknown",
@@ -5190,71 +5195,71 @@
     "phases": {
       "installed": {
         "title": "The new eIsland is already installed",
-        "body": "A compatible Tauri version is already installed. Launch it below without repeating migration. Future updates are handled inside eIsland."
+        "body": "A supported version is installed and ready to launch. Future updates are handled in eIsland."
       },
       "welcome": {
         "title": "Get ready for the next eIsland",
-        "body": "You have updated to the {{version}} migration assistant. It will protect your data and download Tauri {{targetVersion}} or a newer stable release.\neIsland will return once installation is complete."
+        "body": "Migration assistant {{version}} will back up your data, then download and install eIsland {{targetVersion}} or later."
       },
       "inspecting": {
         "title": "Checking your setup",
-        "body": "Reading installation paths, data directories and the selected official update manifest."
+        "body": "Checking the installation location, data folders and available version."
       },
       "ready": {
         "title": "Ready to prepare your migration",
-        "body": "Review the paths below. We will create and verify a separate backup before downloading. The Electron directory will remain untouched and will not be uninstalled automatically."
+        "body": "Confirm the version and folders below. Next, your data will be backed up and the installer downloaded. The old installation folder will remain."
       },
       "backing-up": {
         "title": "Protecting your data",
-        "body": "Copying and verifying each file. Keep all other eIsland instances closed."
+        "body": "Copying and verifying files. The download will start when the backup is complete."
       },
       "downloading": {
         "title": "Downloading the next eIsland",
-        "body": "Your backup is complete. The download will also be checked against its release signature and signed version."
+        "body": "Backup complete. Downloading the installer."
       },
       "verifying": {
         "title": "Verifying the installer",
-        "body": "Only installers verified by the embedded public key with a matching signed version are accepted."
+        "body": "Checking the installer signature and version."
       },
       "prepared": {
         "title": "Everything is prepared",
-        "body": "Backup and signature checks have passed. Next, the interactive installer will open. Keep the planned installation directory and follow the Windows prompts."
+        "body": "Backup and installer checks are complete. Use the installation folder shown above when you open the installer."
       },
       "installing": {
         "title": "Finish the installer",
-        "body": "Complete the installation in its window. We will wait and confirm the registered version and executable. Keep the old eIsland closed."
+        "body": "Follow the prompts in the installer window. The result will be checked when it finishes."
       },
       "complete": {
         "title": "Welcome back",
-        "body": "The Tauri installation directory and version have been confirmed. Launch eIsland below to close this assistant. Your backup and the old uninstall entry will remain."
+        "body": "Launch eIsland below to close the migration assistant."
       },
       "cancelled": {
         "title": "Preparation cancelled",
-        "body": "Your original data is unchanged. Choose another source and check again. Completed backups remain available."
+        "body": "Check for updates again to continue. Completed backups are retained."
       },
       "error": {
         "title": "This step needs attention",
-        "body": "Follow the message below and try again."
+        "body": "Check the message below, then try again."
       }
     },
     "errors": {
-      "missingKey": "This adapter has no production Tauri update public key. Contact the publisher for a configured build before downloading or installing.",
-      "invalidSource": "This source is not configured. Choose another source.",
-      "invalidManifest": "The update manifest is invalid or does not describe a supported Tauri installer.",
-      "targetTooOld": "The target must be Tauri {{targetVersion}} or newer.",
-      "network": "The source is unavailable. Check your connection or choose another source.",
-      "invalidInstaller": "The installer is incomplete or invalid. Download it again.",
-      "signatureRejected": "The installer signature or signed version was rejected. Installation has been blocked.",
-      "backupLink": "A data directory contains links or unsafe paths. Organize and back up the data manually first.",
-      "backupLimit": "Data exceeds the safe backup limits. Back up and organize large files manually first.",
-      "dataChanged": "Paths or data changed. Close other instances and check again.",
-      "closeRunning": "Other eIsland instances are running. Quit them and retry. The assistant will not terminate them.",
-      "backupMissing": "A complete backup marker is missing. Installation has been blocked.",
-      "installOverlap": "The new directory overlaps the old installation. Contact the publisher for installation guidance.",
-      "installNotConfirmed": "The planned installation directory and version could not be confirmed. Check the installation and keep the planned directory.",
-      "alreadyCurrent": "The same or a newer Tauri version is already installed. Launch that eIsland installation directly.",
+      "missingKey": "The update verification key is missing. Ask the publisher for a new build.",
+      "invalidSource": "This download source is not configured. Choose another source.",
+      "invalidManifest": "The update manifest is invalid. Choose another source or try again later.",
+      "targetTooOld": "eIsland {{targetVersion}} or later is required.",
+      "network": "Cannot connect to the download source. Check your connection or choose another source.",
+      "invalidInstaller": "The installer is incomplete or has an invalid format. Download it again.",
+      "signatureRejected": "The installer signature or version check failed. Download it again or choose another source.",
+      "backupLink": "A data folder contains links or an invalid path. Check the folder and try again.",
+      "backupLimit": "The data size or file count exceeds the backup limit. Back up the data manually and organize the files first.",
+      "dataChanged": "Data or folders have changed. Quit other eIsland instances and check again.",
+      "closeRunning": "Quit all other eIsland instances and try again.",
+      "backupMissing": "The backup is incomplete. Create a new backup before installing.",
+      "installOverlap": "The old and new installation folders overlap. Contact the publisher.",
+      "installNotConfirmed": "The expected version was not found. Check that installation finished and the installation folder was not changed.",
+      "alreadyCurrent": "The same or a newer version is installed. Launch eIsland directly.",
       "windowsOnly": "This assistant supports Windows only.",
-      "operationFailed": "The operation did not complete. Check your network, free disk space and directory permissions, then try again."
+      "operationFailed": "The operation failed. Check your connection, free disk space and folder permissions, then try again."
     }
   }
 }

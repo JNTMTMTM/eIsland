@@ -8,6 +8,7 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:local": "vite --config vite.local.config.ts --mode local-preview",
     "build": "npm run build:native && electron-vite build",
     "build:native": "cargo build --locked --release --manifest-path native/verifier/Cargo.toml --target-dir native/verifier/target",
     "typecheck": "tsc --noEmit",

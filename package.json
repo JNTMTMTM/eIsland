@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "tauri dev",
+    "dev:local": "npm --prefix temp/app run dev:local",
     "build": "tauri build --no-bundle",
     "preview": "tauri dev --no-watch",
     "test": "run-s test:unit test:api test:rust",

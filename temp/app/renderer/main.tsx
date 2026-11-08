@@ -26,4 +26,10 @@
 import { createRoot } from 'react-dom/client';
 import './locales/i18n';
 import AdapterWizard from './modules/migration';
-createRoot(document.getElementById('root')!).render(<AdapterWizard />);
+let App = AdapterWizard;
+if (import.meta.env.DEV && import.meta.env.MODE === 'local-preview') {
+  const { localPreview } = await import('./local/localPreview');
+  window.migration = localPreview.api;
+  App = (await import('./local/localApp')).default;
+}
+createRoot(document.getElementById('root')!).render(<App />);
