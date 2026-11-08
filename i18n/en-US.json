@@ -4982,6 +4982,7 @@
     },
     "scripts": {
       "dev": "Start the Tauri app in development mode",
+      "dev:local": "Preview the migration assistant UI locally with simulated data",
       "build": "Build the Tauri app without an installer",
       "preview": "Start the Tauri app without watching source changes",
       "test": "Run active unit tests and native Tauri tests",
@@ -5263,10 +5264,15 @@
       "operationFailed": "The operation failed. Check your connection, free disk space and folder permissions, then try again.",
       "invalidDirectory": "The installation folder is invalid. Choose another folder.",
       "directoryNotEmpty": "This folder contains files. Choose an empty folder or create a new one.",
-      "legacyUnavailable": "The old uninstaller is unavailable. Uninstall the old version manually."
+      "legacyUnavailable": "The old uninstaller is unavailable. Uninstall the old version manually.",
+      "legacyUntrusted": "The old uninstaller can be modified by other programs, so it was not run. Uninstall the old version manually from Windows Settings."
     },
     "chooseDirectory": "Choose folder",
     "removeLegacy": "Uninstall the old eIsland after installation",
-    "removeLegacyNote": "After installation, the old uninstaller opens. The new app starts when it closes. Your backup is retained."
+    "removeLegacyNote": "After installation, the old uninstaller opens. The new app starts when it closes. Your backup is retained.",
+    "legacyUninstallFailed": {
+      "title": "Old version not removed",
+      "body": "The old eIsland was not fully uninstalled. The new version has started. Uninstall the old version manually from Windows Settings. Your backup is retained."
+    }
   }
 }

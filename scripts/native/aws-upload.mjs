@@ -113,10 +113,12 @@ export function awsSession(binary, target, sourceEnv, run = spawnSync) {
   delete env.AWS_PROFILE; delete env.AWS_DEFAULT_PROFILE; delete env.AWS_SESSION_TOKEN; delete env.AWS_SECURITY_TOKEN;
   writeFileSync(env.AWS_CONFIG_FILE, '', { mode: 0o600 }); writeFileSync(env.AWS_SHARED_CREDENTIALS_FILE, '', { mode: 0o600 });
   const close = () => rmSync(directory, { recursive: true, force: true });
+  const failure = (result) => new Error(`AWS ${target.provider} command failed${result.status === null ? ' (terminated)' : ` (exit ${result.status})`}`);
   const execute = (args) => {
     const result = run(binary, args, { env, stdio: 'inherit', windowsHide: true, timeout: 1800000 });
-    if (result.error || result.status !== 0) throw new Error(`AWS ${target.provider} command failed${result.status === null ? ' (terminated)' : ` (exit ${result.status})`}`);
+    if (result.error || result.status !== 0) throw failure(result);
   };
+  const location = ['--endpoint-url', target.endpoint, '--region', target.region];
   try {
     const config = { 's3.addressing_style': ['minio', 'r2'].includes(target.provider) ? 'path' : 'virtual', 's3.payload_signing_enabled': 'false', 's3.multipart_threshold': target.provider === 'minio' ? '8MB' : '5GB', 's3.multipart_chunksize': '8MB', request_checksum_calculation: 'when_required', response_checksum_validation: 'when_required' };
     Object.entries(config).forEach(([name, value]) => execute(['configure', 'set', `default.${name}`, value]));
@@ -126,7 +128,23 @@ export function awsSession(binary, target, sourceEnv, run = spawnSync) {
     upload(file, key, metadata = false) {
       let contentType = file.endsWith('.sig') ? 'text/plain; charset=utf-8' : 'application/vnd.microsoft.portable-executable';
       if (metadata) contentType = /\.ya?ml$/i.test(file) ? 'application/yaml' : 'application/json';
-      execute(['s3', 'cp', file, `s3://${target.bucket}/${key}`, '--endpoint-url', target.endpoint, '--region', target.region, '--content-type', contentType, '--cache-control', metadata ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400']);
+      execute(['s3', 'cp', file, `s3://${target.bucket}/${key}`, ...location, '--content-type', contentType, '--cache-control', metadata ? 'no-cache, no-store, must-revalidate' : 'public, max-age=86400']);
     },
+    /** 下载现有对象；只有明确的 404 视为不存在，其他错误一律中止发布。
+     * @param key - 对象键。
+     * @param file - 本地保存路径。
+     * @returns 对象存在并已下载时为 true。
+     */
+    download(key, file) {
+      const head = run(binary, ['s3api', 'head-object', '--bucket', target.bucket, '--key', key, ...location], { env, encoding: 'utf8', stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true, timeout: 120000 });
+      if (!head.error && head.status !== 0 && /\(404\)|Not Found|NoSuchKey/i.test(head.stderr || '')) return false;
+      if (head.error || head.status !== 0) throw failure(head);
+      execute(['s3', 'cp', `s3://${target.bucket}/${key}`, file, ...location]);
+      return true;
+    },
+    /** 删除本次新建的对象，仅用于回滚此前不存在的更新清单。
+     * @param key - 对象键。
+     */
+    remove(key) { execute(['s3', 'rm', `s3://${target.bucket}/${key}`, ...location]); },
   };
 }

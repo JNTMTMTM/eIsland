@@ -35,8 +35,9 @@ import { projectRoot, releaseOptions } from './release-artifacts.mjs';
 import { uploadRelease } from './upload-release.mjs';
 
 /** 校验助手身份和签名信任配置，产物不完整时不能开始上传。
- * @param root - 仓库根目录。
+ * @param root - 仓库根目录，读取其 package.json 与 temp/app/dist 中的助手产物。
  * @param env - 本次公开配置。
+ * @param env.TAURI_UPDATER_PUBLIC_KEY - 必填，Tauri 更新公钥；必须与助手构建记录的公钥一致。
  * @returns 已校验的助手发布文件。
  */
 export async function pairedAdapter(root, env) {
@@ -51,7 +52,11 @@ export async function pairedAdapter(root, env) {
 }
 
 /** 一次构建两套软件；私钥仅传给 Tauri 签名构建，助手只取得公钥。
- * @param dependencies - 可注入的本地构建边界。
+ * @param dependencies - 可注入的本地构建边界，均可省略。
+ * @param dependencies.root - 仓库根目录，默认为当前项目根目录。
+ * @param dependencies.env - 构建环境，默认为 process.env；会复制后再补齐根目录 .env。须经 npm 运行以提供 npm_execpath，并包含 package-release 所需的 TAURI_SIGNING_PRIVATE_KEY、TAURI_SIGNING_PRIVATE_KEY_PASSWORD（可选）与 TAURI_UPDATER_PUBLIC_KEY。
+ * @param dependencies.packageNative - Tauri 打包函数，默认为 package-release；接收 { root, env, run }。
+ * @param dependencies.run - 同步进程边界，默认为 spawnSync。
  * @returns 两套经过校验的构建产物。
  */
 export async function packagePaired(dependencies = {}) {
@@ -70,7 +75,12 @@ export async function packagePaired(dependencies = {}) {
 
 /** 两套产物先校验、再上传文件，最后发布各自清单；dry-run 不接触远端。
  * @param argv - 原有发布参数。
- * @param dependencies - 离线测试边界。
+ * @param dependencies - 离线测试边界，均可省略。
+ * @param dependencies.root - 仓库根目录，默认为当前项目根目录。
+ * @param dependencies.env - 发布环境，默认为 process.env；会复制后再补齐根目录 .env。除 TAURI_UPDATER_PUBLIC_KEY 外，其余存储、ESA 与 GitHub 变量均由 uploadRelease 读取。
+ * @param dependencies.run - 同步进程边界，默认为 spawnSync。
+ * @param dependencies.purge - ESA 缓存刷新函数，默认为 purgeNativeCache。
+ * @param dependencies.log - 日志输出函数，默认为 console.log。
  * @returns 同一版本的联合发布计划。
  */
 export async function uploadPaired(argv = [], dependencies = {}) {

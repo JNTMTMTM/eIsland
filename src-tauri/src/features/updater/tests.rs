@@ -214,10 +214,15 @@ fn official_signatures_reject_wrong_key_replayed_version_missing_signature_and_t
 #[test]
 fn source_compatibility_has_one_default_and_preserves_explicit_server_feeds() {
     use sources::endpoint;
-    assert!(endpoint(None, None)
-        .unwrap()
-        .as_str()
-        .contains("eisland-update/tauri/tauri-latest.yml"));
+    // 构建或运行时显式覆盖 ESA 地址时，默认值本就不是官方地址。
+    if std::env::var_os("EISLAND_TAURI_UPDATE_ESA_URL").is_none()
+        && option_env!("EISLAND_TAURI_UPDATE_ESA_URL").is_none()
+    {
+        assert_eq!(
+            endpoint(None, None).unwrap().as_str(),
+            "https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/tauri-latest.yml"
+        );
+    }
     for source in ["tencent-cos", "aliyun-oss"] {
         assert!(endpoint(Some(&json!(source)), None).is_err());
         for base in [

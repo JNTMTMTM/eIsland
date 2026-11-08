@@ -35,7 +35,7 @@ import { loadEnvFile, resolveAws, uploadTargets } from './aws-upload.mjs';
 import { installerDirectory, nativeManifest, releaseArtifact, releaseOptions } from './release-artifacts.mjs';
 import packageRelease from './package-release.mjs';
 import { packagePaired, uploadPaired } from './paired-release.mjs';
-import { objectPrefix, purgePlan, uploadRelease, githubTarget, mirrorBase, mirrorKey } from './upload-release.mjs';
+import { advertisedVersion, isNewerVersion, objectPrefix, purgePlan, uploadRelease, githubTarget, mirrorBase, mirrorKey } from './upload-release.mjs';
 
 const version = '27.0.1';
 const name = `eIsland_${version}_x64-setup.exe`;
@@ -82,6 +82,8 @@ function fixture(t, fixtureVersion = version) {
  */
 function boundaries(f, failure = () => null) {
   const calls = []; const uploads = []; const purges = []; const logs = [];
+  // 远端已有对象，键为 s3://bucket/key；默认为空，即各更新源尚无清单。
+  const remote = new Map(); const removals = [];
   const run = (binary, args, options) => {
     const call = { binary, options, args: [...args], env: { ...options.env } };
     calls.push(call);
@@ -100,6 +102,9 @@ function boundaries(f, failure = () => null) {
     }
     const failed = failure(call, { calls, uploads });
     if (failed) return failed;
+    if (args[0] === 's3api') return remote.has(`s3://${args[3]}/${args[5]}`) ? { status: 0 } : { status: 254, stderr: 'An error occurred (404) when calling the HeadObject operation: Not Found' };
+    if (args[0] === 's3' && args[1] === 'rm') { removals.push(args[2]); return { status: 0 }; }
+    if (args[0] === 's3' && args[2].startsWith('s3://')) { writeFileSync(args[3], remote.get(args[2])); return { status: 0 }; }
     if (args[0] === 'configure') appendFileSync(call.env.AWS_CONFIG_FILE, `${args[2]}=${args[3]}\n`);
     if (args[0] === 's3') {
       const content = readFileSync(args[2]);
@@ -107,7 +112,7 @@ function boundaries(f, failure = () => null) {
     }
     return { status: 0 };
   };
-  return { run, calls, uploads, purges, logs, root: f.root, env: f.env, purge: async (plan) => { purges.push(plan); }, log: (line) => logs.push(line) };
+  return { run, calls, uploads, purges, logs, remote, removals, root: f.root, env: f.env, purge: async (plan) => { purges.push(plan); }, log: (line) => logs.push(line) };
 }
 
 /** 检查发布结束后每个临时 AWS 会话都已释放。
@@ -260,6 +265,28 @@ test('all mirror installers precede every manifest and manifest bytes match the 
   });
   assert.equal(boundary.purges.length, 1);
   closedSessions(boundary.calls);
+});
+
+test('a feed advertising a newer version stops publication before any upload', async (t) => {
+  const f = fixture(t); const boundary = boundaries(f);
+  boundary.remote.set('s3://fixture-oss/tauri/latest.json', JSON.stringify({ version: '99.0.0' }));
+  await assert.rejects(uploadRelease(f.args, boundary), /Refusing to replace oss tauri\/latest\.json \(99\.0\.0\) with older/);
+  assert.equal(boundary.uploads.length, 0); assert.equal(boundary.purges.length, 0); closedSessions(boundary.calls);
+  assert.equal(isNewerVersion('v27.0.10', '27.0.9'), true);
+  assert.equal(isNewerVersion('27.0.2', '27.0.2'), false);
+  assert.equal(advertisedVersion('version: 26.4.0\npath: setup.exe\n', 'latest.yml'), '26.4.0');
+  assert.throws(() => advertisedVersion('{}', 'latest.json'), /Cannot read the version/);
+});
+
+test('a failed feed write restores every feed already written across destinations', async (t) => {
+  const f = fixture(t); const previous = JSON.stringify({ version: '1.0.0' });
+  const boundary = boundaries(f, (call) => call.args[0] === 's3' && call.args[1] === 'cp' && call.args[3] === 's3://fixture-oss/eisland-update/tauri/latest.json' ? { status: 6 } : null);
+  boundary.remote.set('s3://fixture-cos/eisland-update/tauri/latest.json', previous);
+  await assert.rejects(uploadRelease(f.args, boundary), /command failed.*restored to their previous state/);
+  const restored = boundary.uploads.filter((upload) => upload.args[3] === 's3://fixture-cos/eisland-update/tauri/latest.json');
+  assert.equal(restored.length, 2); assert.equal(restored[1].content.toString(), previous);
+  assert.deepEqual(boundary.removals, ['s3://fixture-oss/eisland-update/tauri/latest.json', 's3://fixture-cos/tauri/latest.json']);
+  assert.equal(boundary.purges.length, 0); closedSessions(boundary.calls);
 });
 
 [1, 2].forEach((position) => {
@@ -436,6 +463,7 @@ test('GitHub stays disabled by default and refuses creation or draft publication
   adapter.upload((_binary, args) => { calls.push(args); return { status: 0 }; }, f.env, [f.file, `${f.file}.sig`]);
   assert(calls.every((args) => args[0] === 'repo' || (args[0] === 'release' && ['view', 'upload'].includes(args[1]))));
   assert.throws(() => adapter.preflight(() => ({ status: 0, stdout: JSON.stringify({ isPrivate: true }) }), f.env), /public repository/);
+  assert.throws(() => adapter.preflight((_binary, args) => ({ status: 0, stdout: JSON.stringify(args[0] === 'repo' ? { isPrivate: false } : { isDraft: false, isPrerelease: false, tagName: args[2] === '--repo' ? 'v99.0.0' : `v${version}` }) }), f.env), /GitHub latest is v99\.0\.0/);
   assert(!calls.some((args) => args.includes('create')));
 });
 

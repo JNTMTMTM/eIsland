@@ -23,9 +23,9 @@
  * @description 发布 Tauri 安装包与原生更新清单，成功后精确刷新 ESA 缓存。
  * @author 鸡哥
  */
-import { resolve, join } from 'node:path';
+import { extname, resolve, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import withoutSigningSecrets from './environment.mjs';
@@ -106,6 +106,34 @@ export function mirrorBase(target, env, prefix) {
   return `${origin.replace(/\/+$/, '')}/${target.bucket}/${mirrorKey(target, prefix)}`;
 }
 
+/** 判断已发布的版本是否比本次发布更新，避免旧版本覆盖共享更新源。
+ * @param current - 更新源当前声明的版本。
+ * @param next - 本次发布的版本。
+ * @returns current 更新时为 true。
+ */
+export function isNewerVersion(current, next) {
+  const parse = (value) => {
+    const match = /^v?(\d+)\.(\d+)\.(\d+)(?:[-+][0-9A-Za-z.-]+)?$/.exec(String(value).trim());
+    if (!match) throw new Error(`Cannot compare release version: ${value}`);
+    return match.slice(1).map(Number);
+  };
+  const [left, right] = [parse(current), parse(next)];
+  const index = left.findIndex((part, position) => part !== right[position]);
+  return index >= 0 && left[index] > right[index];
+}
+
+/** 读取 Tauri JSON 或 electron-updater YAML 清单声明的版本。
+ * @param content - 清单内容。
+ * @param key - 对象键，仅用于错误信息。
+ * @returns 声明的版本。
+ */
+export function advertisedVersion(content, key) {
+  let version;
+  try { ({ version } = JSON.parse(content)); } catch { version = /^version:\s*['"]?([^'"\s]+)/m.exec(content)?.[1]; }
+  if (typeof version !== 'string' || !version) throw new Error(`Cannot read the version advertised by ${key}`);
+  return version;
+}
+
 /** Use GitHub only after an explicit opt-in, and only for an existing public release.
  * @param env - Release environment.
  * @param version - Current package version.
@@ -129,6 +157,8 @@ export function githubTarget(env, version) {
       if (visibility.isPrivate !== false) throw new Error('GitHub updater assets require a public repository');
       const release = JSON.parse(execute(run, processEnv, ['release', 'view', tag, '--repo', repository, '--json', 'isDraft,isPrerelease,tagName']));
       if (release.isDraft !== false || release.isPrerelease !== false || release.tagName !== tag) throw new Error('GitHub release must already be published with the exact stable version tag');
+      const latest = JSON.parse(execute(run, processEnv, ['release', 'view', '--repo', repository, '--json', 'tagName']));
+      if (isNewerVersion(latest.tagName, version)) throw new Error(`Refusing to publish ${version} while GitHub latest is ${latest.tagName}`);
     },
     upload(run, processEnv, files) { execute(run, processEnv, ['release', 'upload', tag, ...files, '--repo', repository, '--clobber']); },
   };
@@ -182,12 +212,24 @@ export async function uploadRelease(argv = [], dependencies = {}) {
   const stage = mkdtempSync(join(tmpdir(), 'eisland-release-manifests-'));
   const run = dependencies.run || spawnSync;
   const sessions = [];
+  const feedKeys = [plan.manifestKey, ...(companion ? [plan.tauriManifestKey] : []), ...legacyManifestKeys, ...(companion ? ['latest.yml', 'eisland-update/latest.yml'] : [])];
   try {
     targets.forEach((target) => {
       const session = awsSession(binary, target, env, dependencies.run);
-      sessions.push({ close: session.close, upload: (file, key, metadata) => session.upload(file, mirrorKey(target, key), metadata) });
+      sessions.push({ close: session.close, upload: (file, key, metadata) => session.upload(file, mirrorKey(target, key), metadata),
+        download: (key, file) => session.download(mirrorKey(target, key), file), remove: (key) => session.remove(mirrorKey(target, key)) });
     });
     if (github) github.preflight(run, env);
+    // 上传任何文件前保存每个更新源的现有清单：既拒绝旧版本覆盖新版本，也用于清单写入失败时回滚。
+    const snapshots = sessions.map((session, index) => new Map(feedKeys.map((key, position) => {
+      const file = join(stage, `previous-${index}-${position}${extname(key)}`);
+      return [key, session.download(key, file) ? file : null];
+    })));
+    snapshots.forEach((snapshot, index) => snapshot.forEach((file, key) => {
+      if (!file) return;
+      const current = advertisedVersion(readFileSync(file, 'utf8'), key);
+      if (isNewerVersion(current, artifact.version)) throw new Error(`Refusing to replace ${targets[index].provider} ${key} (${current}) with older ${artifact.version}`);
+    }));
     // All selected mirrors and the explicitly selected existing GitHub Release
     // receive both immutable artifacts before any update manifest advertises them.
     sessions.forEach((session) => { session.upload(artifact.file, plan.installerKey); session.upload(artifact.signatureFile, plan.signatureKey); });
@@ -198,35 +240,49 @@ export async function uploadRelease(argv = [], dependencies = {}) {
       }));
     }
     if (github) github.upload(run, env, [artifact.file, artifact.signatureFile, ...(companion?.immutable || [])]);
-    sessions.forEach((session, index) => {
-      const target = targets[index];
-      const base = mirrorBase(target, env, prefix);
-      const file = join(stage, `${target.provider}-latest.json`);
-      writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, base), null, 2)}\n`);
-      session.upload(file, plan.manifestKey, true);
-      if (companion) session.upload(file, plan.tauriManifestKey, true);
-      // Previous Tauri defaults fetched /tauri/latest.json; the hybrid alias
-      // advertises the same already-uploaded canonical installer and signature.
-      legacyManifestKeys.forEach((key) => session.upload(file, key, true));
-    });
-    if (github) {
-      const file = join(stage, 'tauri-latest.json');
-      writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, github.base), null, 2)}\n`);
-      const nativeFiles = [file];
-      if (companion) {
-        const named = join(stage, 'tauri-latest.yml');
-        writeFileSync(named, `${JSON.stringify(nativeManifest(artifact, github.base), null, 2)}\n`);
-        nativeFiles.push(named);
-      }
-      github.upload(run, env, nativeFiles);
-    }
-    // 最后更新 Electron 入口，避免旧客户端先收到尚未准备好的迁移目标。
-    if (companion) {
-      sessions.forEach((session) => {
-        session.upload(companion.manifest, 'latest.yml', true);
-        session.upload(companion.manifest, 'eisland-update/latest.yml', true);
+    const written = [];
+    const publish = (index, file, key) => { written.push({ index, key }); sessions[index].upload(file, key, true); };
+    try {
+      sessions.forEach((session, index) => {
+        const target = targets[index];
+        const base = mirrorBase(target, env, prefix);
+        const file = join(stage, `${target.provider}-latest.json`);
+        writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, base), null, 2)}\n`);
+        publish(index, file, plan.manifestKey);
+        if (companion) publish(index, file, plan.tauriManifestKey);
+        // Previous Tauri defaults fetched /tauri/latest.json; the hybrid alias
+        // advertises the same already-uploaded canonical installer and signature.
+        legacyManifestKeys.forEach((key) => publish(index, file, key));
       });
-      if (github) github.upload(run, env, [companion.manifest]);
+      if (github) {
+        const file = join(stage, 'tauri-latest.json');
+        writeFileSync(file, `${JSON.stringify(nativeManifest(artifact, github.base), null, 2)}\n`);
+        const nativeFiles = [file];
+        if (companion) {
+          const named = join(stage, 'tauri-latest.yml');
+          writeFileSync(named, `${JSON.stringify(nativeManifest(artifact, github.base), null, 2)}\n`);
+          nativeFiles.push(named);
+        }
+        github.upload(run, env, nativeFiles);
+      }
+      // 最后更新 Electron 入口，避免旧客户端先收到尚未准备好的迁移目标。
+      if (companion) {
+        sessions.forEach((session, index) => {
+          publish(index, companion.manifest, 'latest.yml');
+          publish(index, companion.manifest, 'eisland-update/latest.yml');
+        });
+        if (github) github.upload(run, env, [companion.manifest]);
+      }
+    } catch (error) {
+      // 任一清单失败都把已写入的镜像清单恢复为原内容（原本不存在则删除），避免各更新源指向不同版本。
+      // GitHub 清单属于本次版本的 Release，CI 只在全部成功后才将其提升为 latest。
+      const unrestored = [];
+      written.reverse().forEach(({ index, key }) => {
+        const previous = snapshots[index].get(key);
+        try { if (previous) sessions[index].upload(previous, key, true); else sessions[index].remove(key); }
+        catch { unrestored.push(`${targets[index].provider}:${key}`); }
+      });
+      throw new Error(`${error.message}; update feeds ${unrestored.length ? `NOT restored: ${unrestored.join(', ')}` : 'restored to their previous state'}`, { cause: error });
     }
     if (purge) await (dependencies.purge || purgeNativeCache)(purge);
   } finally { sessions.forEach((session) => session.close()); rmSync(stage, { recursive: true, force: true }); }

@@ -21,14 +21,28 @@ jobs:
   build:
     runs-on: windows-2022
     timeout-minutes: 45
+    # Signing, R2 and publication secrets belong to this environment. Restrict its
+    # deployment rules to protected v* tags so an arbitrary ref cannot receive them.
+    environment: release
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      # Runs before any step that receives secrets: the build must come from a
+      # commit already reviewed into the trusted release branch.
+      - name: Require a commit from the trusted release branch
+        shell: pwsh
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot fetch the trusted release branch.' }
+          git merge-base --is-ancestor $env:GITHUB_SHA origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Release builds must use a commit reachable from main.' }
+      # Tag pushes only build review artifacts; publication needs an explicit
+      # workflow_dispatch on the tag with publish enabled.
       - name: Validate stable publication tag
         shell: pwsh
         env:
-          PUBLISH_REQUESTED: ${{ github.event_name == 'push' || inputs.publish }}
+          PUBLISH_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
         run: |
           if ($env:PUBLISH_REQUESTED -eq 'true') {
             $version = (Get-Content package.json -Raw | ConvertFrom-Json).version

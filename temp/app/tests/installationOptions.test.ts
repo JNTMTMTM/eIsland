@@ -27,11 +27,13 @@ import { mkdtemp, mkdir, writeFile, rm, realpath, symlink } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { dirname, join, parse } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
-import { validateTargetDirectory } from '../main/services/platformService';
+import { legacyInstallation, uninstallerProtected, validateTargetDirectory } from '../main/services/platformService';
 import { legacyUninstallPlan } from '../main/services/legacyUninstallService';
 import type { Inspection, Installation } from '../shared/types/adapterTypes';
 import type { ServiceConfig } from '../main/types/serviceTypes';
 const roots: string[] = [];
+const notice = { title: 'fixture title', body: 'fixture body' };
+const trusted = async (): Promise<boolean> => true;
 afterEach(async () => { await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true }))); });
 
 /** 创建无真实程序的安装目录快照。
@@ -63,6 +65,33 @@ it('allows empty or new folders and rejects nonempty folders, volume roots and p
   await expect(validateTargetDirectory(parse(f.root).root, f.inspection, f.config)).rejects.toThrow('invalidDirectory');
 });
 
+it('rejects folders nested inside or around a registered Tauri installation but allows reinstalling in place', async () => {
+  const f = await fixture(); const tauri = join(f.root, 'tauri'); await mkdir(tauri);
+  await writeFile(join(tauri, 'eisland.exe'), 'not an executable');
+  f.inspection.installations.push({ directory: tauri, version: '27.0.2', runtime: 'tauri' });
+  expect(await validateTargetDirectory(tauri, f.inspection, f.config)).toBe(await realpath(tauri));
+  await expect(validateTargetDirectory(join(tauri, 'nested'), f.inspection, f.config)).rejects.toThrow('installOverlap');
+  await mkdir(join(tauri, 'empty'));
+  await expect(validateTargetDirectory(join(tauri, 'empty'), f.inspection, f.config)).rejects.toThrow('installOverlap');
+});
+
+it('only selects an unambiguous legacy installation', async () => {
+  const f = await fixture();
+  const other: Installation = { directory: join(f.root, 'other eIsland'), version: '26.0.0', runtime: 'electron', uninstaller: join(f.root, 'other eIsland/Uninstall eIsland.exe') };
+  expect(legacyInstallation([f.legacy], f.config.ownExecutable)).toBe(f.legacy);
+  expect(legacyInstallation([f.legacy, other], f.config.ownExecutable)).toBeUndefined();
+  expect(legacyInstallation([f.legacy, other], join(other.directory, 'eIsland.exe'))).toBe(other);
+  expect(legacyInstallation([{ ...f.legacy, uninstaller: undefined }], f.config.ownExecutable)).toBeUndefined();
+});
+
+it('refuses an uninstaller that ordinary users can replace', async () => {
+  const f = await fixture();
+  await writeFile(join(f.target, 'eisland.exe'), 'not an executable');
+  await expect(legacyUninstallPlan(f.legacy, f.target, f.config.ownExecutable, notice, async () => false)).rejects.toThrow('legacyUntrusted');
+  // 临时目录归当前用户所有，真实检查必须判定为可被替换。
+  expect(await uninstallerProtected(f.legacy.uninstaller!)).toBe(false);
+});
+
 it('rejects a directory alias that resolves into old program data', async () => {
   const f = await fixture(); const alias = join(f.root, 'alias');
   await symlink(f.old, alias, process.platform === 'win32' ? 'junction' : 'dir');
@@ -72,17 +101,20 @@ it('rejects a directory alias that resolves into old program data', async () => 
 it('only builds a detached official-uninstaller plan after checking old and new program paths', async () => {
   const f = await fixture();
   await writeFile(join(f.target, 'eisland.exe'), 'not an executable');
-  const plan = await legacyUninstallPlan(f.legacy, f.target, f.config.ownExecutable);
-  const request = JSON.parse(Buffer.from(plan.env.EISLAND_LEGACY_UNINSTALL_REQUEST!, 'base64').toString()) as { uninstaller: string; executable: string; pid: number };
+  const plan = await legacyUninstallPlan(f.legacy, f.target, f.config.ownExecutable, notice, trusted);
+  const request = JSON.parse(Buffer.from(plan.env.EISLAND_LEGACY_UNINSTALL_REQUEST!, 'base64').toString()) as { uninstaller: string; executable: string; pid: number; noticeTitle: string; noticeBody: string };
   expect(request.uninstaller).toBe(await realpath(f.legacy.uninstaller!));
   expect(request.executable).toBe(await realpath(join(f.target, 'eisland.exe')));
   expect(request.pid).toBe(process.pid);
+  expect([request.noticeTitle, request.noticeBody]).toEqual([notice.title, notice.body]);
   const script = Buffer.from(plan.args.at(-1)!, 'base64').toString('utf16le');
   expect(script).toContain('WaitForExit');
   expect(script).toContain('Start-Process');
+  expect(script).toContain('ExitCode');
+  expect(script).toContain('MessageBox');
   expect(script).not.toContain('Remove-Item');
   expect(script).not.toContain(f.old);
   expect(plan.env.TAURI_SIGNING_PRIVATE_KEY).toBeUndefined();
-  await expect(legacyUninstallPlan({ ...f.legacy, uninstaller: join(f.target, 'eisland.exe') }, f.target, f.config.ownExecutable)).rejects.toThrow('legacyUnavailable');
-  await expect(legacyUninstallPlan(f.legacy, f.old, f.config.ownExecutable)).rejects.toThrow('installOverlap');
+  await expect(legacyUninstallPlan({ ...f.legacy, uninstaller: join(f.target, 'eisland.exe') }, f.target, f.config.ownExecutable, notice, trusted)).rejects.toThrow('legacyUnavailable');
+  await expect(legacyUninstallPlan(f.legacy, f.old, f.config.ownExecutable, notice, trusted)).rejects.toThrow('installOverlap');
 });

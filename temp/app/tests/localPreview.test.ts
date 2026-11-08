@@ -41,7 +41,7 @@ it('renders every stage without reading signing configuration or checking update
   expect((await preview.api.getState()).phase).toBe('prepared');
   await preview.api.install();
   expect((await preview.api.getState()).phase).toBe('complete');
-  await preview.api.launch();
+  await preview.api.launch({ title: 'preview', body: 'preview' });
   expect((await preview.api.getState()).phase).toBe('welcome');
   expect(fetcher).not.toHaveBeenCalled();
 });

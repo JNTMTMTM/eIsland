@@ -4982,6 +4982,7 @@
     },
     "scripts": {
       "dev": "以開發模式啟動 Tauri 應用程式",
+      "dev:local": "使用模擬資料在本機預覽移轉助手介面",
       "build": "建置 Tauri 應用程式（不產生安裝包）",
       "preview": "啟動 Tauri 應用程式（不監聽原始碼變更）",
       "test": "執行有效單元測試和 Tauri 原生測試",
@@ -5263,10 +5264,15 @@
       "operationFailed": "操作失敗，請檢查網路、磁碟空間和目錄權限後重試。",
       "invalidDirectory": "安裝目錄無效，請選擇其他目錄。",
       "directoryNotEmpty": "該目錄已有檔案，請選擇空目錄或建立新目錄。",
-      "legacyUnavailable": "找不到可用的舊版解除安裝程式，請手動解除安裝舊版。"
+      "legacyUnavailable": "找不到可用的舊版解除安裝程式，請手動解除安裝舊版。",
+      "legacyUntrusted": "舊版解除安裝程式可被其他程式修改，已停止執行。請在 Windows 設定中手動解除安裝舊版。"
     },
     "chooseDirectory": "選擇目錄",
     "removeLegacy": "安裝完成後解除安裝舊版 eIsland",
-    "removeLegacyNote": "安裝成功後開啟舊版解除安裝程式，完成後啟動新版。備份會保留。"
+    "removeLegacyNote": "安裝成功後開啟舊版解除安裝程式，完成後啟動新版。備份會保留。",
+    "legacyUninstallFailed": {
+      "title": "舊版未解除安裝",
+      "body": "舊版 eIsland 未完全解除安裝，新版已啟動。請在 Windows 設定中手動解除安裝舊版。備份會保留。"
+    }
   }
 }

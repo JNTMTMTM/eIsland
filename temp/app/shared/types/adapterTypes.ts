@@ -40,6 +40,8 @@ export interface Inspection {
   installations: Installation[]; running: RunningApp[]; dataRoots: string[];
   legacyStore: string; tauriStore: string; selectedStore: string; targetDirectory: string;
 }
+/** 旧版卸载失败时显示的本地化提示。 */
+export interface LegacyNotice { title: string; body: string; }
 /** 已完成校验的备份目录摘要。 */
 export interface Backup { directory: string; files: number; bytes: number; }
 /** 字节进度；total 为 null 表示总量未知。 */
@@ -63,7 +65,7 @@ export interface AdapterApi {
   cancel: () => Promise<void>;
   dismissError: () => Promise<void>;
   openBackup: () => Promise<void>;
-  launch: () => Promise<void>;
+  launch: (notice: LegacyNotice) => Promise<void>;
   close: () => Promise<void>;
   onState: (callback: (state: AdapterState) => void) => () => void;
 }

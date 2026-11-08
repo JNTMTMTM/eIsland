@@ -38,7 +38,7 @@ const api: AdapterApi = {
   cancel: () => ipcRenderer.invoke(IPC.cancel),
   dismissError: () => ipcRenderer.invoke(IPC.dismissError),
   openBackup: () => ipcRenderer.invoke(IPC.backup),
-  launch: () => ipcRenderer.invoke(IPC.launch),
+  launch: (notice) => ipcRenderer.invoke(IPC.launch, notice),
   close: () => ipcRenderer.invoke(IPC.close),
   onState: (callback) => {
     const listener = (event: Electron.IpcRendererEvent, state: AdapterState): void => { void event; callback(state); };

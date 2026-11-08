@@ -4982,6 +4982,7 @@
     },
     "scripts": {
       "dev": "以开发模式启动 Tauri 应用",
+      "dev:local": "使用模拟数据在本地预览迁移助手界面",
       "build": "构建 Tauri 应用（不生成安装包）",
       "preview": "启动 Tauri 应用（不监听源码变化）",
       "test": "运行有效单元测试与 Tauri 原生测试",
@@ -5263,10 +5264,15 @@
       "operationFailed": "操作失败，请检查网络、磁盘空间和目录权限后重试。",
       "invalidDirectory": "安装目录无效，请选择其他目录。",
       "directoryNotEmpty": "该目录已有文件，请选择空目录或新建目录。",
-      "legacyUnavailable": "找不到可用的旧版卸载程序，请手动卸载旧版。"
+      "legacyUnavailable": "找不到可用的旧版卸载程序，请手动卸载旧版。",
+      "legacyUntrusted": "旧版卸载程序可被其他程序修改，已停止运行。请在 Windows 设置中手动卸载旧版。"
     },
     "chooseDirectory": "选择目录",
     "removeLegacy": "安装完成后卸载旧版 eIsland",
-    "removeLegacyNote": "安装成功后打开旧版卸载程序，完成后启动新版。备份会保留。"
+    "removeLegacyNote": "安装成功后打开旧版卸载程序，完成后启动新版。备份会保留。",
+    "legacyUninstallFailed": {
+      "title": "旧版未卸载",
+      "body": "旧版 eIsland 未完全卸载，新版已启动。请在 Windows 设置中手动卸载旧版。备份会保留。"
+    }
   }
 }

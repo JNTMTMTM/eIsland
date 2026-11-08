@@ -53,7 +53,7 @@ export default function useMigration(): UseMigrationReturn {
   const primary = (): void => {
     if (state?.phase === 'ready') action(() => window.migration.prepare());
     else if (state?.phase === 'prepared') action(() => window.migration.install());
-    else if (state?.phase === 'complete' || state?.phase === 'installed') action(() => window.migration.launch());
+    else if (state?.phase === 'complete' || state?.phase === 'installed') action(() => window.migration.launch({ title: t('legacyUninstallFailed.title'), body: t('legacyUninstallFailed.body') }));
     else action(() => window.migration.inspect(source));
   };
   return { state, t, source, primary, setSource, language: i18n.language, error: error || state?.error || null,

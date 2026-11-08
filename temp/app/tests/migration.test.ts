@@ -206,12 +206,59 @@ it('requires explicit uninstall opt-in, a verified backup and a confirmed new in
   expect(service.state.removeLegacy).toBe(false);
   await service.inspect('esa');
   expect(await service.legacyToRemove()).toBeUndefined();
+  service.releaseLegacyChoice();
   service.setRemoveLegacy(true);
   await expect(service.legacyToRemove()).rejects.toThrow('backupMissing');
   await service.prepare();
   await service.install();
   expect(service.state.phase).toBe('complete');
   expect((await service.legacyToRemove())?.directory).toBe(legacy.directory);
+  // 启动交接期间选择已锁定，交接失败解锁后才接受新的选择。
+  service.setRemoveLegacy(false);
+  expect(service.state.removeLegacy).toBe(true);
+  service.releaseLegacyChoice();
   service.setRemoveLegacy(false);
   expect(await service.legacyToRemove()).toBeUndefined();
+});
+
+it('locks the uninstall choice while launch validation is still running', async () => {
+  const { service, inspection, ports } = await fixture();
+  const [legacy] = inspection.installations;
+  legacy.uninstaller = join(legacy.directory, 'Uninstall eIsland.exe');
+  await service.inspect('esa'); service.setRemoveLegacy(true);
+  await service.prepare(); await service.install();
+  const inspect = vi.mocked(ports.inspect).getMockImplementation()!;
+  let release: (() => void) | null = null;
+  vi.mocked(ports.inspect).mockImplementationOnce(async () => { await new Promise<void>((resolveWait) => { release = resolveWait; }); return inspect(); });
+  const pending = service.legacyToRemove();
+  await vi.waitFor(() => expect(release).not.toBeNull());
+  service.setRemoveLegacy(false);
+  release!();
+  expect((await pending)?.directory).toBe(legacy.directory);
+  expect(service.state.removeLegacy).toBe(true);
+});
+
+it('fails instead of silently keeping the old app when the legacy installation is ambiguous', async () => {
+  const { service, inspection } = await fixture();
+  const [legacy] = inspection.installations;
+  legacy.uninstaller = join(legacy.directory, 'Uninstall eIsland.exe');
+  await service.inspect('esa'); service.setRemoveLegacy(true);
+  await service.prepare(); await service.install();
+  inspection.installations.push({ ...legacy, directory: `${legacy.directory}-copy`, uninstaller: join(`${legacy.directory}-copy`, 'Uninstall eIsland.exe') });
+  await expect(service.legacyToRemove()).rejects.toThrow('legacyUnavailable');
+  service.setRemoveLegacy(false);
+  expect(service.state.removeLegacy).toBe(false);
+});
+
+it('rejects an installer-chosen folder inside protected locations before completing', async () => {
+  const { service, ports, config } = await fixture();
+  vi.mocked(ports.install).mockImplementationOnce(async () => {
+    const directory = join(config.workRoot, 'inside-work');
+    await mkdir(directory, { recursive: true }); await writeFile(join(directory, 'eisland.exe'), 'not an executable');
+    const current = await ports.inspect();
+    vi.mocked(ports.inspect).mockResolvedValue({ ...current, installations: [...current.installations, { directory, version: '27.0.3', runtime: 'tauri' }] });
+  });
+  await service.inspect('esa'); await service.prepare(); await service.install();
+  expect(service.state.phase).toBe('error');
+  expect(service.state.error).toBe('installOverlap');
 });

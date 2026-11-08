@@ -55,6 +55,8 @@ export default class MigrationService {
 
   private customDirectory: string | null = null;
 
+  private legacyChoiceLocked = false;
+
   state: AdapterState;
 
   /** 管理本次适配器会话，不复用旧客户端的 session 或下载调度器。
@@ -105,22 +107,31 @@ export default class MigrationService {
    * @returns 无返回值，仅更新选项。
    */
   setRemoveLegacy(remove: boolean): void {
-    if (this.active || !['ready', 'prepared', 'complete', 'installed'].includes(this.state.phase)) return;
+    if (this.active || this.legacyChoiceLocked || !['ready', 'prepared', 'complete', 'installed'].includes(this.state.phase)) return;
     this.update({ removeLegacy: remove });
   }
 
-  /** 完成安装后重新确认备份、新程序和旧版卸载目标。
+  /** 完成安装后重新确认备份、新程序和旧版卸载目标；调用即锁定卸载选择，失败时自动解锁。
    * @returns 用户明确选择卸载时的旧安装项，否则为空。
    */
   async legacyToRemove(): Promise<Installation | undefined> {
-    if (!this.state.removeLegacy) return undefined;
-    if (!['complete', 'installed'].includes(this.state.phase) || !this.state.backup) fail('backupMissing');
-    await verifyBackup(this.state.backup.directory, new AbortController().signal);
-    const inspection = await this.ports.inspect();
-    const installed = currentInstallation(inspection, this.state.release?.version || MINIMUM_TAURI_VERSION);
-    if (!installed || !(await stat(join(installed.directory, 'eisland.exe')).catch(() => null))?.isFile()) fail('installNotConfirmed');
-    return legacyInstallation(inspection, this.config.ownExecutable);
+    this.legacyChoiceLocked = true;
+    try {
+      if (!this.state.removeLegacy) return undefined;
+      if (!['complete', 'installed'].includes(this.state.phase) || !this.state.backup) fail('backupMissing');
+      await verifyBackup(this.state.backup.directory, new AbortController().signal);
+      const inspection = await this.ports.inspect();
+      const installed = currentInstallation(inspection, this.state.release?.version || MINIMUM_TAURI_VERSION);
+      if (!installed || !(await stat(join(installed.directory, 'eisland.exe')).catch(() => null))?.isFile()) fail('installNotConfirmed');
+      await validateTargetDirectory(installed.directory, inspection, this.config);
+      return legacyInstallation(inspection.installations, this.config.ownExecutable) || fail('legacyUnavailable');
+    } catch (error) { this.legacyChoiceLocked = false; throw error; }
   }
+
+  /** 启动交接失败后解除卸载选择锁定，允许用户重新选择。
+   * @returns 无返回值。
+   */
+  releaseLegacyChoice(): void { this.legacyChoiceLocked = false; }
 
   /** 同一时刻只允许一个操作；取消和错误不会伪装成安装完成。
    * @param phase - 操作的初始阶段。
@@ -222,6 +233,8 @@ export default class MigrationService {
       // 用户可在安装器中修改目录，以注册表实际登记的位置为准。
       const matching = currentInstallation(installed, release.version);
       if (!matching || !(await stat(join(matching.directory, 'eisland.exe')).catch(() => null))?.isFile()) fail('installNotConfirmed');
+      // 安装器中改选的位置同样不能覆盖旧程序、数据、备份或助手自身。
+      await validateTargetDirectory(matching.directory, installed, this.config);
       this.installer = null;
       this.update({ phase: 'complete', inspection: { ...installed, targetDirectory: matching.directory } });
     });

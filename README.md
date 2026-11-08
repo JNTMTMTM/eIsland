@@ -88,7 +88,9 @@ npm run release
 
 Electron uses `latest.yml` to download `eIsland-<version>-Setup.exe`, the migration adapter. Tauri and the adapter use `tauri-latest.yml` to download `eIsland_<version>_x64-setup.exe`; this feed contains official Tauri JSON despite its `.yml` filename. Existing JSON feed URLs remain available. All installers, signatures and blockmaps are uploaded before the feeds; the Electron feed is updated last.
 
-For GitHub, enable `EISLAND_GITHUB_RELEASE_UPLOAD=1`, set `GITHUB_REPOSITORY=JNTMTMTM/eIsland` and `EISLAND_GITHUB_RELEASE_TAG=v<version>`, and authenticate `gh`. Create one published stable Release with that tag before uploading. Both applications and both feeds are attached to that same Release. The release workflow builds both applications as review artifacts; publishing to download sources remains an explicit release command.
+The default local upload publishes only to COS, OSS, optional MinIO and ESA, and never touches GitHub. GitHub publication is part of the `--r2-only` CI path: enable `EISLAND_GITHUB_RELEASE_UPLOAD=1`, set `GITHUB_REPOSITORY=JNTMTMTM/eIsland` and `EISLAND_GITHUB_RELEASE_TAG=v<version>`, and authenticate `gh`. Create one published stable Release with that tag before uploading. Both applications and both feeds are attached to that same Release. Every upload refuses to replace a feed that advertises a newer version, and restores the previous feeds if any feed write fails.
+
+Pushing a `v<version>` tag only builds both applications as review artifacts. To publish to R2 and GitHub, run the release workflow manually on that tag with `publish` enabled. Release builds must use a commit reachable from `main`, and the signing and storage secrets belong to the protected `release` environment.
 
 `npm run check` runs lint, type checks and tests. The [developer docs](https://eisland-dev.pyisland.com) cover the architecture, IPC APIs and plugins.
 

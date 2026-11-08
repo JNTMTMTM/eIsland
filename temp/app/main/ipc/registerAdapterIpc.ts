@@ -29,7 +29,7 @@ import { ipcMain, dialog, shell } from 'electron';
 import { IPC } from '../../shared/config/adapterConfig';
 import { parseRelease } from '../services/releaseService';
 import scheduleLegacyUninstall from '../services/legacyUninstallService';
-import type { SourceId } from '../../shared/types/adapterTypes';
+import type { LegacyNotice, SourceId } from '../../shared/types/adapterTypes';
 import type MigrationService from '../services/migrationService';
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron';
 
@@ -78,21 +78,23 @@ export default function registerAdapterIpc(window: BrowserWindow, service: Migra
   handle(IPC.dismissError, () => service.dismissError());
   handle(IPC.backup, async () => { if (service.state.backup) await shell.openPath(service.state.backup.directory); });
   let finishing = false;
-  handle(IPC.launch, async () => {
+  handle(IPC.launch, async (notice) => {
     if (finishing) return;
+    const { title, body } = (notice || {}) as Partial<LegacyNotice>;
+    if (typeof title !== 'string' || typeof body !== 'string' || !title || !body || title.length > 200 || body.length > 1000) throw new Error('Invalid launch notice');
     if (['complete', 'installed'].includes(service.state.phase) && service.state.inspection) {
       finishing = true;
       try {
         const legacy = await service.legacyToRemove();
         if (legacy) {
-          await scheduleLegacyUninstall(legacy, service.state.inspection.targetDirectory, process.execPath);
+          await scheduleLegacyUninstall(legacy, service.state.inspection.targetDirectory, process.execPath, { title, body });
           window.close();
           return;
         }
         const error = await shell.openPath(join(service.state.inspection.targetDirectory, 'eisland.exe'));
         if (error) throw new Error('Application launch failed');
         window.close();
-      } catch (error) { finishing = false; throw error; }
+      } catch (error) { finishing = false; service.releaseLegacyChoice(); throw error; }
     }
   });
   handle(IPC.close, () => { if (service.state.phase !== 'installing') { service.cancel(); window.close(); } });
