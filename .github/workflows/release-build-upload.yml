@@ -1,12 +1,21 @@
-name: Tauri Release Build
+name: eIsland Paired Release
 
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the selected stable version tag to R2 and GitHub
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: eisland-stable-release
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -16,6 +25,19 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      - name: Validate stable publication tag
+        shell: pwsh
+        env:
+          PUBLISH_REQUESTED: ${{ github.event_name == 'push' || inputs.publish }}
+        run: |
+          if ($env:PUBLISH_REQUESTED -eq 'true') {
+            $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+            if ($env:GITHUB_REF -notlike 'refs/tags/*' -or $env:GITHUB_REF_NAME -cne "v$version" -or $env:GITHUB_REF_NAME -notmatch '^v\d+\.\d+\.\d+$') {
+              throw 'Publication requires a stable version tag matching package.json.'
+            }
+            'EISLAND_PUBLISH=1' | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+            "EISLAND_GITHUB_RELEASE_TAG=$($env:GITHUB_REF_NAME)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          }
       - uses: actions/setup-node@v7
         with:
           node-version: '24.22.1'
@@ -54,9 +76,7 @@ jobs:
           if ($taskInstaller.Count -ne 1) { throw 'Expected exactly one packaged NSIS installer' }
           $env:EISLAND_SIGNED_INSTALLER = $taskInstaller[0].FullName
           cargo test --locked --manifest-path src-tauri/Cargo.toml --test signed_release -- --ignored
-      # This workflow only creates review artifacts. Manifest download URLs do not
-      # publish an installer, update feed, GitHub Release or CDN object.
-      - name: Upload Tauri installer for review
+      - name: Save paired installers and manifests for review
         uses: actions/upload-artifact@v7
         with:
           name: eisland-tauri-windows-x64-${{ github.ref_name }}
@@ -65,9 +85,48 @@ jobs:
             src-tauri/target/release/bundle/nsis/*-setup.exe
             src-tauri/target/release/bundle/nsis/*-setup.exe.sig
             src-tauri/target/release/bundle/tauri-latest.yml
-            temp/app/dist/*-Setup.exe
+            temp/app/dist/*.exe
             temp/app/dist/*.blockmap
             temp/app/dist/latest.yml
             temp/app/dist/adapter-build.json
             RELEASE_NOTES.md
           if-no-files-found: error
+      - name: Prepare stable GitHub Release without changing latest
+        if: env.EISLAND_PUBLISH == '1'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          aws --version
+          if ($LASTEXITCODE -ne 0) { throw 'AWS CLI is required for R2 publication.' }
+          $tag = $env:EISLAND_GITHUB_RELEASE_TAG
+          $latest = gh release view --repo $env:GITHUB_REPOSITORY --json tagName --jq .tagName
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot read the current release before publication.' }
+          if ($latest -match '^v\d+\.\d+\.\d+$' -and [version]$latest.Substring(1) -gt [version]$tag.Substring(1)) {
+            throw 'Refusing to replace update feeds with an older version.'
+          }
+          $existing = gh release view $tag --repo $env:GITHUB_REPOSITORY --json isDraft,isPrerelease,tagName 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo $env:GITHUB_REPOSITORY --verify-tag --latest=false --title "eIsland $($tag.Substring(1))" --notes-file RELEASE_NOTES.md
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot create the shared release.' }
+          } else {
+            $release = $existing | ConvertFrom-Json
+            if ($release.isDraft -or $release.isPrerelease -or $release.tagName -cne $tag) { throw 'Expected an existing published stable release.' }
+          }
+      - name: Publish paired packages and update feeds to R2 and GitHub
+        if: env.EISLAND_PUBLISH == '1'
+        run: npm run release:upload-only -- --r2-only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EISLAND_GITHUB_RELEASE_UPLOAD: '1'
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY || secrets.TAURI_UPDATER_PUBLIC_KEY }}
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_BASE_URL: ${{ vars.R2_PUBLIC_BASE_URL || 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev' }}
+      - name: Promote the completed shared release to latest
+        if: env.EISLAND_PUBLISH == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit $env:EISLAND_GITHUB_RELEASE_TAG --repo $env:GITHUB_REPOSITORY --latest

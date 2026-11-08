@@ -82,6 +82,15 @@ export async function purgeNativeCache(plan) {
   await createEsaClient(plan.accessKeyId, plan.accessKeySecret).purgeCachesWithOptions(request, new helpers.RuntimeOptions({}));
 }
 
+/** MinIO 的公开 URL 已包含桶名，不能再把同名目录写进对象键。
+ * @param target - 本次存储目标。
+ * @param key - 统一发布使用的对象键。
+ * @returns 与该目标公开下载路径对应的实际对象键。
+ */
+export function mirrorKey(target, key) {
+  return target.provider === 'minio' && key.startsWith(`${target.bucket}/`) ? key.slice(target.bucket.length + 1) : key;
+}
+
 /** Compute the public object directory for each mirror without sharing credentials.
  * @param target - Selected storage adapter.
  * @param env - Release configuration.
@@ -92,7 +101,9 @@ export function mirrorBase(target, env, prefix) {
   if (target.provider === 'cos') return env.COS_PUBLIC_BASE_URL || `https://${target.bucket}.cos.${target.region}.myqcloud.com/${prefix}`;
   if (target.provider === 'oss') return env.OSS_PUBLIC_BASE_URL || `https://${target.bucket}.oss-${target.region}.aliyuncs.com/${prefix}`;
   if (target.provider === 'r2') return `${target.publicBase.replace(/\/+$/, '')}/${prefix}`;
-  return env.MINIO_PUBLIC_BASE_URL || `${target.endpoint.replace(/\/+$/, '')}/${target.bucket}/${prefix}`;
+  if (env.MINIO_PUBLIC_BASE_URL) return env.MINIO_PUBLIC_BASE_URL;
+  const origin = target.endpoint.startsWith('https:') ? target.endpoint : new URL(env.ESA_PURGE_URL || 'https://eisland-server-download-cdn.pyisland.com/').origin;
+  return `${origin.replace(/\/+$/, '')}/${target.bucket}/${mirrorKey(target, prefix)}`;
 }
 
 /** Use GitHub only after an explicit opt-in, and only for an existing public release.
@@ -132,7 +143,7 @@ export async function uploadRelease(argv = [], dependencies = {}) {
   const options = releaseOptions(argv);
   const log = dependencies.log || console.log;
   if (options.help) {
-    log('Usage: npm run release:upload-only -- [--dry-run] [--minio-only] [--skip-legacy-bridge] [--target-dir <Cargo target> | --dist <NSIS directory>]');
+    log('Usage: npm run release:upload-only -- [--dry-run] [--minio-only | --r2-only] [--skip-legacy-bridge] [--target-dir <Cargo target> | --dist <NSIS directory>]');
     return null;
   }
   const root = dependencies.root || projectRoot;
@@ -148,11 +159,11 @@ export async function uploadRelease(argv = [], dependencies = {}) {
     .map(objectPrefix)
     .filter((value) => value !== prefix)
     .map((value) => `${value}/latest.json`);
-  const targets = uploadTargets(env, options.minioOnly);
-  if (companion && !options.minioOnly && !targets.some((target) => target.provider === 'r2' && target.publicBase?.replace(/\/$/, '') === 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev')) throw new Error('Paired release requires the original Electron R2 update target');
-  if (artifact.version === '27.0.2' && !options.minioOnly && !options.skipLegacyBridge && (!targets.some((target) => target.provider === 'r2') || (prefix !== 'tauri' && !legacyManifestKeys.includes('tauri/latest.json')))) throw new Error('Bridge release 27.0.2 requires the existing R2 bucket and tauri/latest.json alias; use --skip-legacy-bridge only after confirming no legacy clients need this feed');
+  const targets = uploadTargets(env, options.minioOnly, options.r2Only);
+  if (companion && options.r2Only && !targets.some((target) => target.provider === 'r2' && target.publicBase?.replace(/\/$/, '') === 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev')) throw new Error('Paired release requires the original Electron R2 update target');
+  if (artifact.version === '27.0.2' && options.r2Only && !options.skipLegacyBridge && prefix !== 'tauri' && !legacyManifestKeys.includes('tauri/latest.json')) throw new Error('Bridge release 27.0.2 requires the tauri/latest.json alias in R2; use --skip-legacy-bridge only after confirming no legacy clients need this feed');
   targets.forEach((target) => nativeManifest(artifact, mirrorBase(target, env, prefix)));
-  const purge = options.minioOnly ? null : purgePlan(env, prefix, artifact.name);
+  const purge = options.minioOnly || options.r2Only ? null : purgePlan(env, prefix, artifact.name);
   if (companion && purge) {
     const legacy = env.EISLAND_ADAPTER_ESA_MANIFEST_URL || 'https://eisland-server-download-cdn.pyisland.com/eisland-update/latest.yml';
     const url = new URL(legacy);
@@ -160,7 +171,7 @@ export async function uploadRelease(argv = [], dependencies = {}) {
     purge.files.push(new URL('tauri-latest.yml', purge.files[0]).href, url.href, ...companion.keys.map((key) => new URL(key, url).href));
   }
   const manifest = nativeManifest(artifact, env.EISLAND_TAURI_RELEASE_BASE_URL || new URL('.', purge?.files[0] || 'https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json').toString());
-  const github = githubTarget(env, artifact.version);
+  const github = options.r2Only ? githubTarget(env, artifact.version) : null;
   const plan = { manifest, legacyManifestKeys, installer: artifact.file, signature: artifact.signatureFile, github: github ? { repository: github.repository, tag: github.tag } : null, installerKey: `${prefix}/${artifact.name}`, signatureKey: `${prefix}/${artifact.name}.sig`, manifestKey: `${prefix}/latest.json`, targets: targets.map(({ provider, bucket }) => ({ provider, bucket })), purgeUrls: purge?.files || [] };
   if (companion) Object.assign(plan, { adapterVersion: companion.version, adapterInstallers: companion.keys, tauriManifestKey: `${prefix}/tauri-latest.yml`, electronManifestKey: 'latest.yml' });
   log(`Native release ${artifact.version}: ${artifact.size} bytes, SHA-512 ${artifact.sha512}`);
@@ -172,7 +183,10 @@ export async function uploadRelease(argv = [], dependencies = {}) {
   const run = dependencies.run || spawnSync;
   const sessions = [];
   try {
-    targets.forEach((target) => sessions.push(awsSession(binary, target, env, dependencies.run)));
+    targets.forEach((target) => {
+      const session = awsSession(binary, target, env, dependencies.run);
+      sessions.push({ close: session.close, upload: (file, key, metadata) => session.upload(file, mirrorKey(target, key), metadata) });
+    });
     if (github) github.preflight(run, env);
     // All selected mirrors and the explicitly selected existing GitHub Release
     // receive both immutable artifacts before any update manifest advertises them.

@@ -55,23 +55,24 @@ export function required(env, name) {
   return value;
 }
 
-/** 沿用原有 COS/OSS 必选、MinIO 可选的目标配置。
+/** 本地沿用 COS/OSS 必选、MinIO 可选；CI 通过显式选项仅发布 R2。
  * @param env - 发布环境。
  * @param minioOnly - 仅使用 MinIO。
+ * @param r2Only - CI 仅使用 R2，不要求本机其他存储凭据。
  * @returns 已校验的上传目标。
  */
-export function uploadTargets(env, minioOnly = false) {
-  const targets = minioOnly ? [] : [
+export function uploadTargets(env, minioOnly = false, r2Only = false) {
+  const targets = minioOnly || r2Only ? [] : [
     { provider: 'cos', endpoint: `https://cos.${required(env, 'COS_REGION')}.myqcloud.com`, region: required(env, 'COS_REGION'), bucket: required(env, 'COS_BUCKET_NAME'), accessKeyId: required(env, 'COS_SECRET_ID'), secretAccessKey: required(env, 'COS_SECRET_KEY') },
     { provider: 'oss', endpoint: `https://oss-${required(env, 'OSS_REGION')}.aliyuncs.com`, region: required(env, 'OSS_REGION'), bucket: required(env, 'OSS_BUCKET_NAME'), accessKeyId: required(env, 'OSS_ACCESS_KEY_ID'), secretAccessKey: required(env, 'OSS_ACCESS_KEY_SECRET') },
   ];
   const r2Keys = ['R2_ENDPOINT', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'R2_PUBLIC_BASE_URL'];
-  if (!minioOnly && r2Keys.some((key) => env[key]?.trim())) {
+  if (r2Only) {
     r2Keys.forEach((key) => required(env, key));
     targets.push({ provider: 'r2', endpoint: env.R2_ENDPOINT.trim(), region: 'auto', bucket: env.R2_BUCKET_NAME.trim(), accessKeyId: env.R2_ACCESS_KEY_ID.trim(), secretAccessKey: env.R2_SECRET_ACCESS_KEY.trim(), publicBase: env.R2_PUBLIC_BASE_URL.trim() });
   }
   const minioKeys = ['MINIO_ENDPOINT', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'MINIO_BUCKET'];
-  if (minioOnly || minioKeys.some((key) => env[key]?.trim())) {
+  if (minioOnly || (!r2Only && minioKeys.some((key) => env[key]?.trim()))) {
     minioKeys.forEach((key) => required(env, key));
     targets.push({ provider: 'minio', endpoint: env.MINIO_ENDPOINT.trim(), region: env.MINIO_REGION?.trim() || 'us-east-1', bucket: env.MINIO_BUCKET.trim(), accessKeyId: env.MINIO_ACCESS_KEY.trim(), secretAccessKey: env.MINIO_SECRET_KEY.trim() });
   }

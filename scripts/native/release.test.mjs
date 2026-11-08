@@ -35,7 +35,7 @@ import { loadEnvFile, resolveAws, uploadTargets } from './aws-upload.mjs';
 import { installerDirectory, nativeManifest, releaseArtifact, releaseOptions } from './release-artifacts.mjs';
 import packageRelease from './package-release.mjs';
 import { packagePaired, uploadPaired } from './paired-release.mjs';
-import { objectPrefix, purgePlan, uploadRelease, githubTarget } from './upload-release.mjs';
+import { objectPrefix, purgePlan, uploadRelease, githubTarget, mirrorBase, mirrorKey } from './upload-release.mjs';
 
 const version = '27.0.1';
 const name = `eIsland_${version}_x64-setup.exe`;
@@ -165,7 +165,9 @@ test('explicit target directory wins over CARGO_TARGET_DIR and --dist remains co
   assert.equal(installerDirectory(f.root, { targetDir: 'explicit' }, { CARGO_TARGET_DIR: 'other' }, noCargo), join(f.root, 'src-tauri', 'explicit', 'release', 'bundle', 'nsis'));
   assert.equal(installerDirectory(f.root, {}, { CARGO_TARGET_DIR: join(f.root, 'environment-target') }, noCargo), join(f.root, 'environment-target', 'release', 'bundle', 'nsis'));
   assert.equal(installerDirectory(f.root, { dist: f.dist }, { CARGO_TARGET_DIR: 'other' }, noCargo), f.dist);
-  assert.deepEqual(releaseOptions(['-d', 'native-dist', '--minio-only', '--dry-run']), { dryRun: true, minioOnly: true, help: false, dist: 'native-dist' });
+  assert.deepEqual(releaseOptions(['-d', 'native-dist', '--minio-only', '--dry-run']), { dryRun: true, minioOnly: true, r2Only: false, help: false, dist: 'native-dist' });
+  assert.equal(releaseOptions(['--r2-only']).r2Only, true);
+  assert.throws(() => releaseOptions(['--r2-only', '--minio-only']), /either/);
   assert.throws(() => releaseOptions(['--target-dir', 'one', '--dist', 'two']), /either/);
   assert.throws(() => releaseOptions(['--target-dir']), /requires a directory/);
   assert.throws(() => releaseOptions(['--typo']), /Unknown release option/);
@@ -393,13 +395,13 @@ test('signature upload failure prevents every manifest and ESA purge', async (t)
 
 test('R2 requires a complete explicit public configuration and uploads signed immutable artifacts first', async (t) => {
   const f = fixture(t); Object.assign(f.env, { R2_ENDPOINT: 'https://account.r2.cloudflarestorage.com' });
-  assert.throws(() => uploadTargets(f.env), /R2_ACCESS_KEY_ID/);
+  assert.throws(() => uploadTargets(f.env, false, true), /R2_ACCESS_KEY_ID/);
   Object.assign(f.env, { R2_ACCESS_KEY_ID: 'fixture-r2-id', R2_SECRET_ACCESS_KEY: 'fixture-r2-secret', R2_BUCKET_NAME: 'fixture-r2', R2_PUBLIC_BASE_URL: 'https://public.example.test' });
-  const boundary = boundaries(f); const plan = await uploadRelease(f.args, boundary);
+  const boundary = boundaries(f); const plan = await uploadRelease([...f.args, '--r2-only'], boundary);
   assert.equal(plan.installerKey, `eisland-update/tauri/${name}`);
   assert.deepEqual(plan.legacyManifestKeys, ['tauri/latest.json']);
-  assert.equal(boundary.uploads.length, 12);
-  assert(boundary.uploads.slice(0, 6).every((upload) => !upload.manifest));
+  assert.equal(boundary.uploads.length, 4);
+  assert(boundary.uploads.slice(0, 2).every((upload) => !upload.manifest));
   const r2 = boundary.uploads.filter((upload) => upload.args[3].startsWith('s3://fixture-r2/'));
   assert(r2.some((upload) => upload.args[3] === 's3://fixture-r2/tauri/latest.json'));
   assert.equal(r2[2].manifest.platforms['windows-x86_64'].url, `https://public.example.test/eisland-update/tauri/${name}`);
@@ -407,20 +409,21 @@ test('R2 requires a complete explicit public configuration and uploads signed im
   closedSessions(boundary.calls);
 });
 
-test('bridge release requires existing R2 discovery and keeps the explicit operator override', async (t) => {
-  const f = fixture(t, '27.0.2'); const missing = boundaries(f);
-  await assert.rejects(uploadRelease(f.args, missing), /requires the existing R2 bucket/);
-  assert(missing.calls.every((call) => call.args[0] === '--verify-update-artifact'));
-  const skipped = boundaries(f);
-  await uploadRelease([...f.args, '--skip-legacy-bridge'], skipped);
-  assert.equal(skipped.uploads.length, 8); closedSessions(skipped.calls);
+test('bridge discovery is required only for CI R2 publication and keeps the explicit operator override', async (t) => {
+  const f = fixture(t, '27.0.2'); const local = boundaries(f);
+  await uploadRelease(f.args, local);
+  assert.deepEqual(uploadTargets(f.env).map((target) => target.provider), ['cos', 'oss']);
+  assert.equal(local.uploads.length, 8); closedSessions(local.calls);
   Object.assign(f.env, { R2_ENDPOINT: 'https://account.r2.cloudflarestorage.com', R2_ACCESS_KEY_ID: 'fixture-r2-id', R2_SECRET_ACCESS_KEY: 'fixture-r2-secret', R2_BUCKET_NAME: 'fixture-r2', R2_PUBLIC_BASE_URL: 'https://public.example.test', EISLAND_TAURI_LEGACY_UPLOAD_PREFIXES: '' });
-  await assert.rejects(uploadRelease(f.args, boundaries(f)), /requires the existing R2 bucket/);
+  await assert.rejects(uploadRelease([...f.args, '--r2-only'], boundaries(f)), /requires the tauri\/latest.json alias/);
+  const skipped = boundaries(f);
+  await uploadRelease([...f.args, '--r2-only', '--skip-legacy-bridge'], skipped);
+  assert.equal(skipped.uploads.length, 3); closedSessions(skipped.calls);
   delete f.env.EISLAND_TAURI_LEGACY_UPLOAD_PREFIXES;
-  const enabled = boundaries(f); await uploadRelease(f.args, enabled);
-  assert.equal(enabled.uploads.length, 12);
+  const enabled = boundaries(f); await uploadRelease([...f.args, '--r2-only'], enabled);
+  assert.equal(enabled.uploads.length, 4);
   assert(enabled.uploads.some((upload) => upload.args[3] === 's3://fixture-r2/tauri/latest.json'));
-  assert(enabled.uploads.slice(0, 6).every((upload) => !upload.manifest)); closedSessions(enabled.calls);
+  assert(enabled.uploads.slice(0, 2).every((upload) => !upload.manifest)); closedSessions(enabled.calls);
 });
 
 test('GitHub stays disabled by default and refuses creation or draft publication', async (t) => {
@@ -454,15 +457,16 @@ test('package requires signing configuration before building and uses official v
 
 test('GitHub payload failures stop all manifest writes across every selected destination', async (t) => {
   const f = fixture(t); Object.assign(f.env, { EISLAND_GITHUB_RELEASE_UPLOAD: '1', GITHUB_REPOSITORY: 'owner/repo', EISLAND_GITHUB_RELEASE_TAG: `v${version}` });
+  Object.assign(f.env, { R2_ENDPOINT: 'https://fixture.r2.cloudflarestorage.com', R2_ACCESS_KEY_ID: 'fixture', R2_SECRET_ACCESS_KEY: 'fixture', R2_BUCKET_NAME: 'fixture-r2', R2_PUBLIC_BASE_URL: 'https://public.example.test' });
   const failure = boundaries(f, (call) => call.binary === 'gh' && call.args[1] === 'upload' ? { status: 5 } : null);
-  await assert.rejects(uploadRelease(f.args, failure), /GitHub existing Release operation failed/);
+  await assert.rejects(uploadRelease([...f.args, '--r2-only'], failure), /GitHub existing Release operation failed/);
   assert(failure.uploads.every((upload) => !upload.manifest)); assert.equal(failure.purges.length, 0); closedSessions(failure.calls);
-  const success = boundaries(f); await uploadRelease(f.args, success);
+  const success = boundaries(f); await uploadRelease([...f.args, '--r2-only'], success);
   const githubPayload = success.calls.findIndex((call) => call.binary === 'gh' && call.args[1] === 'upload' && call.args.some((arg) => arg.endsWith('.sig')));
   const firstManifest = success.calls.findIndex((call) => call.args[0] === 's3' && call.args[3].endsWith('/latest.json'));
   assert(githubPayload >= 0 && githubPayload < firstManifest);
   const githubFeed = success.calls.find((call) => call.binary === 'gh' && call.args[1] === 'upload' && call.args.some((arg) => arg.endsWith('tauri-latest.json')));
-  assert(githubFeed); assert.equal(success.purges.length, 1); closedSessions(success.calls);
+  assert(githubFeed); assert.equal(success.purges.length, 0); closedSessions(success.calls);
 });
 
 /** 为原生发布 fixture 补齐同版本助手及公开信任配置。
@@ -488,11 +492,11 @@ test('paired release uploads both payloads before either feed and uses one GitHu
   const f = fixture(t); const adapter = companionFixture(f);
   Object.assign(f.env, { EISLAND_GITHUB_RELEASE_UPLOAD: '1', GITHUB_REPOSITORY: 'owner/repo', EISLAND_GITHUB_RELEASE_TAG: `v${version}` });
   const boundary = boundaries(f);
-  const plan = await uploadPaired(f.args, boundary);
+  const plan = await uploadPaired([...f.args, '--r2-only'], boundary);
   assert.equal(plan.adapterVersion, version);
   assert.equal(plan.tauriManifestKey, 'eisland-update/tauri/tauri-latest.yml');
   const firstFeed = boundary.uploads.findIndex((upload) => /\.(?:json|yml)$/.test(upload.args[3]));
-  assert.equal(firstFeed, 18);
+  assert.equal(firstFeed, 6);
   assert(boundary.uploads.slice(0, firstFeed).some((upload) => upload.args[3].endsWith(adapter.installer)));
   const nativeFeed = boundary.uploads.find((upload) => upload.args[3].endsWith('/tauri-latest.yml'));
   assert.equal(JSON.parse(nativeFeed.content).version, version);
@@ -502,7 +506,7 @@ test('paired release uploads both payloads before either feed and uses one GitHu
   assert(github.some((call) => call.args.some((arg) => arg.endsWith('tauri-latest.yml'))));
   assert(github.at(-1).args.includes(join(adapter.directory, 'latest.yml')));
   assert(github.every((call) => call.args[2] === `v${version}`));
-  assert(boundary.purges[0].files.some((url) => url.endsWith('/tauri-latest.yml')));
+  assert.equal(boundary.purges.length, 0);
   closedSessions(boundary.calls);
 });
 
@@ -548,4 +552,59 @@ test('paired dry-run performs no remote writes and packaging isolates signing se
     return { status: 0 };
   } });
   assert(built);
+});
+
+test('local paired publication needs no R2 credentials and only updates COS, OSS, MinIO and ESA', async (t) => {
+  const f = fixture(t, '27.0.2'); companionFixture(f); minio(f.env);
+  Object.keys(f.env).filter((key) => key.startsWith('R2_')).forEach((key) => { delete f.env[key]; });
+  Object.assign(f.env, { R2_ENDPOINT: 'unused-incomplete-ci-configuration', EISLAND_GITHUB_RELEASE_UPLOAD: '1' });
+  const boundary = boundaries(f);
+  const plan = await uploadPaired(f.args, boundary);
+  assert.deepEqual(plan.targets.map((target) => target.provider), ['cos', 'oss', 'minio']);
+  assert.equal(plan.github, null);
+  assert(!boundary.calls.some((call) => call.binary === 'gh'));
+  assert(boundary.uploads.every((upload) => /^s3:\/\/fixture-(?:cos|oss|minio)\//.test(upload.args[3])));
+  assert.equal(boundary.purges.length, 1);
+  assert(boundary.purges[0].files.some((url) => url.endsWith('/tauri-latest.yml')));
+  assert(boundary.purges[0].files.some((url) => url.endsWith('/latest.yml')));
+  const firstFeed = boundary.uploads.findIndex((upload) => /\.(?:json|yml)$/.test(upload.args[3]));
+  assert(firstFeed > 0);
+  assert(boundary.uploads.slice(firstFeed).every((upload) => /\.(?:json|yml)$/.test(upload.args[3])));
+  closedSessions(boundary.calls);
+});
+
+test('CI publishes both applications to R2 and one GitHub release without local mirror credentials', async (t) => {
+  const f = fixture(t); const adapter = companionFixture(f);
+  const required = ['TAURI_UPDATER_PUBLIC_KEY', 'R2_ENDPOINT', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'R2_PUBLIC_BASE_URL'];
+  f.env = Object.fromEntries(required.map((key) => [key, f.env[key]]));
+  Object.assign(f.env, { EISLAND_GITHUB_RELEASE_UPLOAD: '1', GITHUB_REPOSITORY: 'owner/repo', EISLAND_GITHUB_RELEASE_TAG: `v${version}` });
+  const boundary = boundaries(f);
+  const plan = await uploadPaired([...f.args, '--r2-only'], boundary);
+  assert.deepEqual(plan.targets, [{ provider: 'r2', bucket: 'fixture-r2' }]);
+  assert.equal(boundary.purges.length, 0);
+  assert(boundary.uploads.every((upload) => upload.args[3].startsWith('s3://fixture-r2/')));
+  const nativeFeed = boundary.uploads.findIndex((upload) => upload.args[3].endsWith('/tauri-latest.yml'));
+  const legacyFeed = boundary.uploads.findIndex((upload) => upload.args[3] === 's3://fixture-r2/latest.yml');
+  assert(nativeFeed >= 0 && legacyFeed > nativeFeed);
+  assert(boundary.calls.some((call) => call.binary === 'gh' && call.args.includes(f.file) && call.args.includes(join(adapter.directory, adapter.installer))));
+  assert.throws(() => uploadTargets({}, false, true), /R2_ENDPOINT/);
+  closedSessions(boundary.calls);
+});
+
+test('MinIO uses the existing ESA HTTPS endpoint and never duplicates the bucket in object keys', async (t) => {
+  const f = fixture(t); companionFixture(f); minio(f.env);
+  Object.assign(f.env, { MINIO_ENDPOINT: 'http://minio.internal:29000', MINIO_BUCKET: 'eisland-update' });
+  const boundary = boundaries(f);
+  await uploadPaired([...f.args, '--minio-only'], boundary);
+  const manifest = boundary.uploads.find((upload) => upload.args[3] === 's3://eisland-update/tauri/tauri-latest.yml');
+  assert(manifest);
+  assert.equal(JSON.parse(manifest.content).platforms['windows-x86_64'].url, `https://cdn.example.test/eisland-update/tauri/${name}`);
+  assert(boundary.uploads.some((upload) => upload.args[3] === `s3://eisland-update/tauri/${name}`));
+  assert(!boundary.uploads.some((upload) => upload.args[3].includes('/eisland-update/eisland-update/')));
+  assert(boundary.uploads.some((upload) => upload.args[3] === 's3://eisland-update/latest.yml'));
+  const target = { provider: 'minio', bucket: 'eisland-update', endpoint: f.env.MINIO_ENDPOINT };
+  assert.equal(mirrorBase(target, f.env, 'eisland-update/tauri'), 'https://cdn.example.test/eisland-update/tauri');
+  assert.equal(mirrorKey({ ...target, provider: 'r2' }, 'eisland-update/tauri/latest.json'), 'eisland-update/tauri/latest.json');
+  assert.equal(mirrorKey(target, 'eisland-update-other/file'), 'eisland-update-other/file');
+  closedSessions(boundary.calls);
 });
