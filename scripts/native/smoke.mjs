@@ -51,6 +51,8 @@ const app = spawn(binary, [], {
 let stderr = '';
 app.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
 let browser;
+const pageErrors = [];
+const embeddedPlayerRequests = [];
 /** 查找真实宿主创建的窗口页面。
  * @param label - 固定窗口标签。
  * @param attempts - 剩余重试次数。
@@ -119,9 +121,17 @@ async function captureMode(main, engine) {
 }
 try {
   browser = await connectNative(app, `http://127.0.0.1:${port}`, { diagnostics: () => stderr });
+  // 公告播放器来自外部站点，桌面测试只验证嵌入容器，不依赖其地区限制、广告或网络状态。
+  await Promise.all(browser.contexts().map((context) => context.route('https://player.bilibili.com/player.html**', async (route) => {
+    embeddedPlayerRequests.push(route.request().url());
+    await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html lang="en"><head><title>Embedded player fixture</title></head><body>Local embedded player fixture</body></html>' });
+  })));
   const main = await pageFor('main');
   const errors = [];
-  main.on('pageerror', (error) => errors.push(error.message));
+  main.on('pageerror', (error) => {
+    errors.push(error.message);
+    pageErrors.push({ message: error.message, stack: error.stack });
+  });
   const guide = await pageFor('guide');
   await guide.waitForSelector('#root > *');
   await ipc(guide, 'window:close');
@@ -352,6 +362,8 @@ try {
   throw error;
 } finally {
   writeFileSync(resolve(output, 'native-stderr.log'), stderr);
+  writeFileSync(resolve(output, 'page-errors.json'), JSON.stringify(pageErrors, null, 2));
+  writeFileSync(resolve(output, 'embedded-player-requests.json'), JSON.stringify(embeddedPlayerRequests, null, 2));
   if (browser) await browser.close();
   app.kill();
 }
