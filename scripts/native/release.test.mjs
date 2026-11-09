@@ -75,6 +75,25 @@ function fixture(t, fixtureVersion = version) {
   return { root, dist, file, env, args: ['--dist', dist] };
 }
 
+[['package-release.mjs', 'packagePaired'], ['upload-release.mjs', 'uploadPaired']].forEach(([file, method]) => {
+  test(`${file} CLI completes a circular paired import and reports operation failures`, (t) => {
+    const f = fixture(t);
+    const source = readFileSync(new URL(file, import.meta.url), 'utf8');
+    const start = source.lastIndexOf('\nif (process.argv[1]');
+    assert(start >= 0);
+    const entry = join(f.root, file);
+    writeFileSync(entry, `import {resolve} from 'node:path';\nimport {pathToFileURL} from 'node:url';\nexport default function nativeFixture() {}\n${source.slice(start)}`);
+    writeFileSync(join(f.root, 'paired-release.mjs'), `import nativeFixture from './${file}';\nexport async function ${method}(args) { if (process.env.EISLAND_FIXTURE_FAIL) throw new Error('fixture-operation-failed'); console.log(JSON.stringify({entered: true, args, nativeType: typeof nativeFixture})); return {installer: 'fixture.exe'}; }\n`);
+    const success = spawnSync(process.execPath, [entry, '--dry-run'], { cwd: f.root, encoding: 'utf8', timeout: 10000, windowsHide: true });
+    assert.equal(success.status, 0, success.stderr);
+    assert.match(success.stdout, /"entered":true/u);
+    if (method === 'uploadPaired') assert.match(success.stdout, /"args":\["--dry-run"\]/u);
+    const failure = spawnSync(process.execPath, [entry], { cwd: f.root, env: { ...process.env, EISLAND_FIXTURE_FAIL: '1' }, encoding: 'utf8', timeout: 10000, windowsHide: true });
+    assert.equal(failure.status, 1, failure.stderr);
+    assert.match(failure.stderr, /fixture-operation-failed/u);
+  });
+});
+
 /** 只模拟进程与 CDN 边界，真实读取此次发布文件并模拟写入临时 AWS 配置。
  * @param f - 临时发布仓库。
  * @param failure - 可选的进程失败边界。
