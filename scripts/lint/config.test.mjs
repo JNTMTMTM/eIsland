@@ -293,6 +293,16 @@ test('Node 和浏览器全局隔离，产物忽略而源码与声明文件纳入
   assert.equal(await eslint.isPathIgnored('sdk/src/index.ts'), false);
 });
 
+test('根目录 CSS 命令调用工具 workspace 的 Stylelint 18', () => {
+  assert.ok(scripts['lint:css'].startsWith('node scripts/lint/stylelint.mjs '));
+  assert.equal(scripts['lint:css:fix'], 'npm run lint:css -- --fix');
+  const entry = fileURLToPath(new URL('./stylelint.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [entry, '--version'], { encoding: 'utf8', timeout: 30_000 });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^18\./u);
+});
+
 test('CSS 规则检测 important、颜色名、ID 选择器；文档格式样例通过', async () => {
   const result = await stylelint.lint({ code: '#test { color: red !important; }\n', codeFilename: 'src/renderer/styles/lint-probe.css' });
   const [css] = result.results;
@@ -300,6 +310,19 @@ test('CSS 规则检测 important、颜色名、ID 选择器；文档格式样例
   ['selector-max-id', 'color-named', 'declaration-no-important'].forEach((rule) => assert.ok(css.warnings.some((warning) => warning.rule === rule), rule));
   const good = await stylelint.lint({ code: '.example {\n  color: #fff;\n\n}\n', codeFilename: 'src/renderer/styles/lint-probe.css' });
   assert.equal(good.errored, false, JSON.stringify(good.results.map(({ warnings }) => warnings)));
+});
+
+['css', 'scss'].forEach((extension) => {
+  test(`${extension} 格式规则兼容解析器并限制单行声明数量`, async () => {
+    const codeFilename = `src/renderer/styles/lint-probe.${extension}`;
+    const bad = await stylelint.lint({ codeFilename, code: '.example { color: #fff; margin: 0; }\n' });
+    const warnings = bad.results.flatMap((result) => result.warnings);
+    assert.ok(warnings.some((warning) => warning.rule === '@stylistic/scss/declaration-block-single-line-max-declarations'));
+    assert.ok(warnings.every((warning) => !/Unknown rule|does not read a stylesheet/u.test(warning.text)));
+    const code = extension === 'scss' ? '$foreground: #fff;\n\n.example {\n  color: $foreground;\n\n}\n' : '.example {\n  color: #fff;\n\n}\n';
+    const good = await stylelint.lint({ code, codeFilename });
+    assert.equal(good.errored, false, JSON.stringify(good.results.map(({ warnings: messages }) => messages)));
+  });
 });
 
 test('HTML 检测大写 doctype、缺失语言和图片替代文本', async () => {
