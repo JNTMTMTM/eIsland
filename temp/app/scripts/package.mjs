@@ -25,13 +25,23 @@
  */
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import withoutSigningSecrets from '../../../scripts/native/environment.mjs';
+import { loadEnvFile } from '../../../scripts/native/aws-upload.mjs';
 import { publicKey, requirePublicKey } from './config.mjs';
 import { adapterArtifacts } from './upload.mjs';
 
 const preview = process.argv.includes('--preview');
 if (process.argv.slice(2).some((arg) => arg !== '--preview')) throw new Error('Unknown package option');
+loadEnvFile(new URL('../../../.env', import.meta.url), process.env);
+const { version } = JSON.parse(await readFile(new URL('../../../package.json', import.meta.url), 'utf8'));
+await Promise.all(['package.json', 'package-lock.json'].map(async (name) => {
+  const address = new URL(`../${name}`, import.meta.url);
+  const metadata = JSON.parse(await readFile(address, 'utf8'));
+  metadata.version = version;
+  if (metadata.packages?.['']) metadata.packages[''].version = version;
+  await writeFile(address, `${JSON.stringify(metadata, null, 2)}\n`);
+}));
 const key = publicKey();
 if (!preview) requirePublicKey(key);
 const env = withoutSigningSecrets(process.env);
@@ -43,5 +53,5 @@ const require = createRequire(import.meta.url);
 });
 if (!preview) {
   const artifacts = await adapterArtifacts('dist');
-  await writeFile('dist/adapter-build.json', JSON.stringify({ version: '27.0.2', appId: 'com.eisland.app', publicKey: key, sha512: artifacts.sha512 }, null, 2), { mode: 0o600 });
+  await writeFile('dist/adapter-build.json', JSON.stringify({ version, appId: 'com.eisland.app', publicKey: key, sha512: artifacts.sha512 }, null, 2), { mode: 0o600 });
 }
