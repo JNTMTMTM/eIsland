@@ -24,14 +24,14 @@
  * @author 鸡哥
  */
 
-import { presets, standardScss } from './scripts/lint/stylelint-presets.mjs';
+import { plugins, presets, standardScss } from './scripts/lint/stylelint-presets.mjs';
 
 // FRONTEND_STANDARDS §2：CSS/SCSS 由 Stylelint 检查，避免 ESLint 将样式当作 JS。
 export default {
+  plugins,
   // SCSS 标准预设仍继承 Stylelint 17 的 CSS 规则，改用兼容 18 的 CSS 预设。
   // 保留 SCSS 推荐预设和下方标准规则，单行声明数量由 Stylistic 继续检查。
   extends: presets,
-  plugins: ['@stylistic/stylelint-plugin', 'stylelint-order'],
   ignoreFiles: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/build/**', '**/coverage/**', '**/.temp/**', '**/.cache/**'],
   reportNeedlessDisables: true,
   reportDescriptionlessDisables: true,

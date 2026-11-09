@@ -30,4 +30,9 @@ export const presets = [
   fileURLToPath(import.meta.resolve('stylelint-config-standard')),
   fileURLToPath(import.meta.resolve('stylelint-config-recommended-scss')),
 ];
+/** 从工具 workspace 定位插件，兼容完整安装时的嵌套依赖布局。 */
+export const plugins = [
+  fileURLToPath(import.meta.resolve('@stylistic/stylelint-plugin')),
+  fileURLToPath(import.meta.resolve('stylelint-order')),
+];
 export { default as standardScss } from 'stylelint-config-standard-scss';
