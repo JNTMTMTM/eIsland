@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-09T23:39:30.272Z
+> 生成时间：2026-11-09T23:41:03.430Z
 
 ## 27.0.2
 
@@ -4344,25 +4344,40 @@
 
 ## Unreleased
 
+- 2026-11-09 | 807bdbe8 | JNTMTMTM | Merge pull request #316 from JNTMTMTM/dependabot/npm_and_yarn/stylelint-18.0.0
+- 2026-11-09 | ddb700bf | eislandBot | docs: auto update CHANGE_LOG.md for #314 by @dependabot[bot] [skip ci]
 - 2026-11-09 | 8e931905 | JNTMTMTM | Merge pull request #314 from JNTMTMTM/dependabot/npm_and_yarn/js-yaml-5.5.0
+- 2026-11-09 | fdfc3b96 | 鸡哥 | Merge validated main before final CI
 - 2026-11-09 | d380daed | eislandBot | docs: auto update CHANGE_LOG.md for #315 by @dependabot[bot] [skip ci]
+- 2026-11-09 | d9cfbe72 | 鸡哥 | Merge native event delivery test repair
 - 2026-11-09 | 09cc1186 | JNTMTMTM | Merge pull request #315 from JNTMTMTM/dependabot/npm_and_yarn/get-windows-10.0.0
 - 2026-11-09 | 42ff942e | 鸡哥 | fix(test): wait for native preview subscriptions and event delivery
+- 2026-11-09 | c5e715c6 | 鸡哥 | Merge validated get-windows upgrade for final integration tests
+- 2026-11-09 | a3c45f66 | 鸡哥 | Merge validated YAML upgrade before final dependency integration
+- 2026-11-09 | 6af8a6c4 | 鸡哥 | fix(lint): resolve Stylelint plugins from the tool workspace
 - 2026-11-09 | c24f098d | 鸡哥 | fix(test): isolate external player after syncing dependency branch
+- 2026-11-09 | 0b18396f | 鸡哥 | fix(test): isolate external player in native smoke tests
 - 2026-11-09 | a74ff317 | 鸡哥 | Merge validated grouped dependency updates
 - 2026-11-09 | 72f775bf | 鸡哥 | fix(test): isolate external announcement player during desktop smoke
 - 2026-11-09 | 27fe4703 | 鸡哥 | Merge validated grouped dependency updates and resolve the YAML lockfile
+- 2026-11-09 | bd104738 | 鸡哥 | Merge refreshed Dependabot head and preserve the verified SCSS migration
 - 2026-11-09 | 67119ee1 | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
+- 2026-11-09 | 95fa3e06 | dependabot[bot] | chore(deps): bump stylelint from 17.16.0 to 18.0.0
 - 2026-11-09 | e1647478 | dependabot[bot] | chore(deps): bump js-yaml from 4.3.2 to 5.5.0
 - 2026-11-09 | 3ebc3ffe | 鸡哥 | Merge main before validating dependency upgrade
 - 2026-11-09 | b963be7a | 鸡哥 | Merge main before validating dependency upgrade
+- 2026-11-09 | bdb85f2e | 鸡哥 | Merge validated dependency updates and retain Stylelint migration
 - 2026-11-09 | e7a62e9c | eislandBot | docs: auto update CHANGE_LOG.md for #313 by @dependabot[bot] [skip ci]
+- 2026-11-09 | fe158d1a | 鸡哥 | fix: migrate Stylelint 18 and Stylistic 6 together without dropping SCSS checks
 - 2026-11-09 | 8039997d | JNTMTMTM | Merge pull request #313 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-c1133b0d41
 - 2026-11-09 | e5fa9f34 | eislandBot | docs: auto update CHANGE_LOG.md for #312 by @dependabot[bot] [skip ci]
 - 2026-11-09 | a07c0f7b | JNTMTMTM | Merge pull request #312 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-da9d74feb1
+- 2026-11-10 | df748842 | 鸡哥 | Merge main before validating Stylelint 18 migration
 - 2026-11-09 | d48ac7f4 | eislandBot | docs: auto update CHANGE_LOG.md for #318 by @JNTMTMTM [skip ci]
 - 2026-11-09 | 7dd1aec4 | JNTMTMTM | Merge pull request #318 from JNTMTMTM/dev
 - 2026-11-09 | 921941b6 | 鸡哥 | docs(announcement): add V27.0.2 release notes
+- 2026-11-09 | fbacc431 | dependabot[bot] | chore(deps): bump @stylistic/stylelint-plugin from 5.3.1 to 6.0.0
+- 2026-11-09 | 64a3bd8c | dependabot[bot] | chore(deps): bump stylelint from 17.16.0 to 18.0.0
 - 2026-11-09 | 81d386ad | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
 - 2026-11-09 | 8b9527ad | dependabot[bot] | chore(deps): bump js-yaml from 4.3.2 to 5.5.0
 - 2026-11-09 | adfaab2a | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 17 directories with 19 updates
