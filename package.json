@@ -70,7 +70,7 @@
     "lint:report": "node scripts/lint/eslint.mjs . --max-warnings=0 --format html --output-file reports/eslint.html",
     "lint:report:json": "node scripts/lint/eslint.mjs . --max-warnings=0 --format json --output-file reports/eslint.json",
     "lint:fix": "node scripts/lint/eslint.mjs . --fix --max-warnings=0",
-    "lint:css": "stylelint \"{src,web}/**/*.{css,scss}\" \"web/**/.vuepress/**/*.{css,scss}\" --max-warnings=0",
+    "lint:css": "node scripts/lint/stylelint.mjs \"{src,web}/**/*.{css,scss}\" \"web/**/.vuepress/**/*.{css,scss}\" --max-warnings=0",
     "lint:css:fix": "npm run lint:css -- --fix",
     "lint:html": "html-validate \"{src,web}/**/*.html\" --max-warnings=0",
     "lint:comments": "node scripts/lint/eslint.mjs . --config scripts/lint/comments.config.mjs --max-warnings=0",
