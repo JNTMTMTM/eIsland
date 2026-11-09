@@ -42,8 +42,9 @@ import { publicKey, requirePublicKey } from './config.mjs';
 export async function adapterArtifacts(directory) {
   const manifest = join(directory, 'latest.yml');
   const metadata = load(readFileSync(manifest, 'utf8'));
-  const name = 'eIsland-27.0.2-Setup.exe';
-  if (metadata?.version !== '27.0.2' || metadata.path !== name || metadata.files?.length !== 1 || metadata.files[0].url !== name) throw new Error('Expected legacy Electron 27.0.2 NSIS manifest');
+  const version = metadata?.version;
+  const name = `eIsland-${version}-Setup.exe`;
+  if ((typeof version !== 'string' || !/^\d+\.\d+\.\d+$/.test(version)) || metadata.path !== name || metadata.files?.length !== 1 || metadata.files[0].url !== name) throw new Error('Expected versioned Electron migration NSIS manifest');
   const file = join(directory, name);
   const hash = createHash('sha512'); let size = 0;
   await new Promise((resolveRead, reject) => {
@@ -57,7 +58,7 @@ export async function adapterArtifacts(directory) {
   const blockmap = `${file}.blockmap`;
   // 读取一次确认所有必需产物在触碰任何远端前均已就绪。
   readFileSync(blockmap);
-  return { manifest, sha512: digest, immutable: [file, blockmap], keys: [name, `${name}.blockmap`] };
+  return { version, manifest, sha512: digest, immutable: [file, blockmap], keys: [name, `${name}.blockmap`] };
 }
 
 /** 上传前用适配器内置的实际信任配置完整下载并验证目标，避免把用户困在适配器版本。
@@ -93,10 +94,10 @@ export async function uploadAdapter(argv = [], dependencies = {}) {
   const key = publicKey(env); requirePublicKey(key);
   const artifacts = await adapterArtifacts(dependencies.directory || resolve('dist'));
   const built = JSON.parse(readFileSync(join(dependencies.directory || resolve('dist'), 'adapter-build.json'), 'utf8'));
-  if (built.version !== '27.0.2' || built.appId !== 'com.eisland.app' || built.publicKey !== key || built.sha512 !== artifacts.sha512) throw new Error('Adapter build identity, public key or installer does not match; run package again');
+  if (built.version !== artifacts.version || built.appId !== 'com.eisland.app' || built.publicKey !== key || built.sha512 !== artifacts.sha512) throw new Error('Adapter build identity, public key or installer does not match; run package again');
   const targets = (dependencies.targets || uploadTargets(env)).filter((target) => target.provider !== 'minio');
   if (!targets.some((target) => target.provider === 'r2' && target.publicBase?.replace(/\/$/, '') === 'https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev')) throw new Error('The original Electron R2 update target is required');
-  const plan = { version: '27.0.2', mirrors: targets.map((target) => target.provider), installers: artifacts.keys, manifest: 'latest.yml' };
+  const plan = { version: artifacts.version, mirrors: targets.map((target) => target.provider), installers: artifacts.keys, manifest: 'latest.yml' };
   const purge = { accessKeyId: env.ESA_ACCESS_KEY_ID, accessKeySecret: env.ESA_ACCESS_KEY_SECRET, siteId: Number(env.ESA_ZONE_ID), files: ['https://eisland-server-download-cdn.pyisland.com/eisland-update/latest.yml', ...artifacts.keys.map((name) => `https://eisland-server-download-cdn.pyisland.com/eisland-update/${name}`)] };
   // 旧客户端缓存入口可能不同，必须明确配置，不复用指向 Tauri JSON 的 URL。
   if (env.EISLAND_ADAPTER_ESA_MANIFEST_URL) {
@@ -107,8 +108,8 @@ export async function uploadAdapter(argv = [], dependencies = {}) {
   if (!purge.accessKeyId || !purge.accessKeySecret || !Number.isSafeInteger(purge.siteId) || purge.siteId <= 0) throw new Error('Configure ESA_ACCESS_KEY_ID, ESA_ACCESS_KEY_SECRET and ESA_ZONE_ID for legacy cache purge');
   if (argv.includes('--dry-run')) { console.log(JSON.stringify(plan)); console.log('DRY RUN: no upload, CDN purge or online target verification performed'); return plan; }
   // 全量验证先于任何上传；主程序内置 ESA、R2 两个源均必须已经能提供正式目标。
-  await (dependencies.preflight || verifyPublishedTarget)('https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json', key);
-  await (dependencies.preflight || verifyPublishedTarget)('https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev/eisland-update/tauri/latest.json', key);
+  await (dependencies.preflight || verifyPublishedTarget)('https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/tauri-latest.yml', key);
+  await (dependencies.preflight || verifyPublishedTarget)('https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev/eisland-update/tauri/tauri-latest.yml', key);
   const binary = (dependencies.resolveAws || resolveAws)(withoutSigningSecrets(env));
   const sessions = [];
   try {
@@ -117,7 +118,7 @@ export async function uploadAdapter(argv = [], dependencies = {}) {
     sessions.forEach((session) => session.upload(artifacts.manifest, 'latest.yml', true));
     await (dependencies.purge || purgeNativeCache)(purge);
   } finally { sessions.forEach((session) => session.close()); }
-  console.log('Adapter 27.0.2 uploaded; legacy manifests published after all installer uploads');
+  console.log(`Adapter ${artifacts.version} uploaded; legacy manifests published after all installer uploads`);
   return plan;
 }
 

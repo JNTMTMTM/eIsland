@@ -4982,6 +4982,7 @@
     },
     "scripts": {
       "dev": "以开发模式启动 Tauri 应用",
+      "dev:local": "使用模拟数据在本地预览迁移助手界面",
       "build": "构建 Tauri 应用（不生成安装包）",
       "preview": "启动 Tauri 应用（不监听源码变化）",
       "test": "运行有效单元测试与 Tauri 原生测试",
@@ -5142,8 +5143,13 @@
     }
   },
   "migrationAdapter": {
+    "localPreview": {
+      "title": "本地预览",
+      "phase": "界面",
+      "simulated": "模拟数据 · 跳过更新检查"
+    },
     "brand": "eIsland",
-    "adapterVersion": "迁移助手 · 27.0.2",
+    "adapterVersion": "迁移助手 · {{version}}",
     "eyebrow": "新一代 eIsland",
     "language": "语言",
     "close": "关闭",
@@ -5176,7 +5182,7 @@
     "targetVersion": "Tauri 目标版本",
     "targetDirectory": "计划安装目录",
     "dataDirectory": "将使用的数据目录",
-    "startupNotice": "如需开机启动，请在新版本设置中关闭后重新开启，并核对 Windows 启动项。助手不会修改旧启动项。",
+    "startupNotice": "如需开机启动，请在新版设置中关闭后重新开启“开机启动”。",
     "openBackup": "打开已校验的备份",
     "progressBytes": "{{done}} / {{total}} MB",
     "unknownSize": "未知",
@@ -5185,76 +5191,88 @@
       "inspect": "检查新版本",
       "prepare": "备份并下载",
       "install": "打开安装程序",
-      "launch": "启动 eIsland"
+      "launch": "启动 eIsland",
+      "uninstallAndLaunch": "卸载旧版并启动"
     },
     "phases": {
       "installed": {
         "title": "新的 eIsland 已经安装",
-        "body": "已检测到兼容的 Tauri 版本，无需重复迁移。点击下方按钮直接启动；后续更新在 eIsland 内完成。"
+        "body": "已安装可用版本，可直接启动。后续更新在 eIsland 内完成。"
       },
       "welcome": {
         "title": "准备好，迎接新的 eIsland",
-        "body": "你已更新至 27.0.2 迁移助手。接下来，它将保护原数据，并下载 Tauri 27.0.3 或更新的正式版本。\n安装完成后，灵动岛将重新与你见面。"
+        "body": "迁移助手 {{version}} 会先备份数据，再下载并安装 eIsland {{targetVersion}} 或更新版本。"
       },
       "inspecting": {
         "title": "正在检查",
-        "body": "读取安装位置、原数据目录与所选源的官方更新清单。"
+        "body": "正在检查安装位置、数据目录和更新版本。"
       },
       "ready": {
         "title": "为迁移做好准备",
-        "body": "确认以下目录后继续。我们会先创建并校验独立备份，再下载安装包。原 Electron 目录不会被覆盖或自动卸载。"
+        "body": "确认以下版本和安装目录后继续。接下来会备份数据并下载安装包。"
       },
       "backing-up": {
         "title": "正在保护你的数据",
-        "body": "复制并逐文件校验原数据。请保持其他 eIsland 实例关闭。"
+        "body": "正在复制并校验文件，备份完成后开始下载。"
       },
       "downloading": {
         "title": "正在下载新的 eIsland",
-        "body": "数据备份已完成。下载完成后还会验证发布签名与签名版本。"
+        "body": "备份已完成，正在下载安装包。"
       },
       "verifying": {
         "title": "正在验证安装包",
-        "body": "仅接受由内置公钥验证通过、且签名版本与清单一致的安装包。"
+        "body": "正在检查安装包签名和版本。"
       },
       "prepared": {
         "title": "已准备就绪",
-        "body": "备份和签名检查均已完成。下一步会打开交互式安装程序，请保持上述计划安装目录，并完成 Windows 提示。"
+        "body": "备份和安装包检查已完成。确认安装目录和卸载选项后继续。"
       },
       "installing": {
         "title": "请完成安装程序",
-        "body": "请在安装窗口完成操作。迁移助手会等待安装退出，并检查注册版本与目标程序。不要关闭或重新启动旧版 eIsland。"
+        "body": "请按安装窗口的提示操作。完成后会自动检查安装结果。"
       },
       "complete": {
         "title": "欢迎回来",
-        "body": "已确认 Tauri 安装目录和版本。点击下方按钮启动 eIsland 并关闭迁移助手。独立备份将保留，旧卸载项不会自动删除。"
+        "body": "点击下方按钮启动 eIsland，并退出迁移助手。"
       },
       "cancelled": {
         "title": "准备已取消",
-        "body": "原数据保持不变。可以更换下载源后重新检查，已完成的备份仍会保留。"
+        "body": "可以重新检查版本后继续。已完成的备份会保留。"
       },
       "error": {
         "title": "这一步还没有完成",
-        "body": "请按下方提示处理后重试。"
+        "body": "查看下方原因后重试。"
       }
     },
     "errors": {
-      "missingKey": "此适配器尚未配置正式 Tauri 更新公钥，无法安全下载安装。请联系发布者提供已配置的版本。",
-      "invalidSource": "这个下载源没有接通，请选择其他源。",
-      "invalidManifest": "更新清单格式不正确，或并非受支持的 Tauri 安装包。",
-      "targetTooOld": "目标版本必须是 Tauri 27.0.3 或更新版本。",
-      "network": "更新源暂不可用，请检查网络或更换下载源。",
-      "invalidInstaller": "安装包不完整或格式不正确，请重新下载。",
-      "signatureRejected": "安装包签名或签名版本验证失败，已阻止安装。",
-      "backupLink": "数据目录包含链接或不安全路径，无法创建完整备份。请先手动整理并备份数据。",
-      "backupLimit": "原数据超过安全备份限制，请先手动备份并整理大文件。",
-      "dataChanged": "检测到目录或数据变化，请关闭其他实例后重新检查。",
-      "closeRunning": "检测到其他 eIsland 实例，请自行退出它们后重试；迁移助手不会强制结束进程。",
-      "backupMissing": "找不到完整备份标记，已阻止安装。",
-      "installOverlap": "新安装目录与旧版目录重叠，请联系发布者确认安装方式。",
-      "installNotConfirmed": "尚未确认目标安装目录与版本。请检查安装结果，并保持计划安装目录。",
-      "alreadyCurrent": "已检测到相同或更新的 Tauri 版本，无需再次迁移。请直接启动已安装的 eIsland。",
+      "missingKey": "缺少更新验证公钥，请联系发布者重新打包。",
+      "invalidSource": "下载源未配置，请更换下载源。",
+      "invalidManifest": "更新清单无效，请更换下载源或稍后重试。",
+      "targetTooOld": "需要 {{targetVersion}} 或更新版本的 eIsland。",
+      "network": "无法连接下载源，请检查网络或更换下载源。",
+      "invalidInstaller": "安装包不完整或格式错误，请重新下载。",
+      "signatureRejected": "安装包签名或版本验证失败，请重新下载或更换下载源。",
+      "backupLink": "数据目录包含链接或路径异常，无法备份。请检查目录后重试。",
+      "backupLimit": "数据量或文件数超过备份上限，请先手动备份并整理文件。",
+      "dataChanged": "数据或目录已变化，请退出其他 eIsland 后重新检查。",
+      "closeRunning": "请退出其他正在运行的 eIsland 后重试。",
+      "backupMissing": "备份不完整，无法安装。请重新备份。",
+      "installOverlap": "新旧安装目录重叠，请联系发布者。",
+      "installNotConfirmed": "未检测到预期的安装版本，请确认安装已完成且安装目录未更改。",
+      "alreadyCurrent": "已安装相同或更新版本，请直接启动 eIsland。",
       "windowsOnly": "迁移助手仅支持 Windows。",
-      "operationFailed": "操作未完成，请检查网络、磁盘空间与目录权限后重试。"
+      "operationFailed": "操作失败，请检查网络、磁盘空间和目录权限后重试。",
+      "invalidDirectory": "安装目录无效，请选择其他目录。",
+      "directoryNotEmpty": "该目录已有文件，请选择空目录或新建目录。",
+      "legacyUnavailable": "找不到可用的旧版卸载程序，请手动卸载旧版。",
+      "legacyUntrusted": "旧版卸载程序可被其他程序修改，已停止运行。请在 Windows 设置中手动卸载旧版。"
+    },
+    "chooseDirectory": "选择目录",
+    "removeLegacy": "安装完成后卸载旧版 eIsland",
+    "removeLegacyNote": "安装成功后打开旧版卸载程序，完成后启动新版。备份会保留。",
+    "legacyUninstallFailed": {
+      "title": "旧版未卸载",
+      "body": "旧版 eIsland 未完全卸载，新版已启动。请在 Windows 设置中手动卸载旧版。备份会保留。"
     }
   }
 }

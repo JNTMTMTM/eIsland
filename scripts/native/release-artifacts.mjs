@@ -37,11 +37,12 @@ export const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
  * @returns 已解析的选项。
  */
 export function releaseOptions(argv) {
-  const options = { dryRun: false, minioOnly: false, help: false };
+  const options = { dryRun: false, minioOnly: false, r2Only: false, help: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--dry-run') options.dryRun = true;
     else if (arg === '--minio-only') options.minioOnly = true;
+    else if (arg === '--r2-only') options.r2Only = true;
     else if (arg === '--skip-legacy-bridge') options.skipLegacyBridge = true;
     else if (arg === '--help' || arg === '-h') options.help = true;
     else if (['--target-dir', '--dist', '-d'].includes(arg)) {
@@ -51,6 +52,7 @@ export function releaseOptions(argv) {
     } else throw new Error(`Unknown release option: ${arg}`);
   }
   if (options.targetDir && options.dist) throw new Error('Use either --target-dir or --dist');
+  if (options.minioOnly && options.r2Only) throw new Error('Use either --minio-only or --r2-only');
   return options;
 }
 
@@ -150,7 +152,7 @@ export function nativeManifest(artifact, base) {
  * @returns 写入的清单路径。
  */
 export function writeManifest(artifact, manifest) {
-  const path = join(artifact.directory, 'tauri-latest.json');
+  const path = join(artifact.directory, 'tauri-latest.yml');
   writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
   return path;
 }

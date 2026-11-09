@@ -108,7 +108,7 @@ test('桌面 CI 只准备一次插件并直接构建原生测试程序', () => {
   assert.doesNotMatch(source, /run: npm run package/u);
 });
 
-test('安装器 CI 只准备一次插件且不执行正式上传', () => {
+test('安装器 CI 只准备一次插件并在显式发布时仅上传 R2 和 GitHub', () => {
   const source = readFileSync(new URL('../../.github/workflows/release-build-upload.yml', import.meta.url), 'utf8');
   assert.equal(Array.from(source.matchAll(/run: npm run package\s*$/gmu)).length, 1);
   assert.doesNotMatch(source, /run: npm run plugins:build/u);
@@ -116,7 +116,15 @@ test('安装器 CI 只准备一次插件且不执行正式上传', () => {
   assert.equal(Array.from(wrapper.matchAll(/execute\(\[join\(root, 'scripts\/native\/build-native\.mjs'/gu)).length, 1);
   assert.match(wrapper, /'build', '--bundles', 'nsis'/u);
   assert.match(wrapper, /TAURI_SIGNING_PRIVATE_KEY/u);
-  assert.doesNotMatch(source, /run:.*(?:npm run release(?:\s|:)|upload-release\.mjs)/u);
+  assert.match(source, /publish:[\s\S]*?type: boolean\s+default: false/u);
+  assert.match(source, /PUBLISH_REQUESTED:.*github\.event_name == 'workflow_dispatch' && inputs\.publish/u);
+  assert.match(source, /git merge-base --is-ancestor \$env:GITHUB_SHA origin\/main/u);
+  assert.match(source, /environment: release/u);
+  const publicationSteps = source.split(/^ {6}- /mu).filter((step) => /npm run release:upload-only|gh release (?:create|edit)/u.test(step));
+  assert.equal(publicationSteps.length, 3);
+  publicationSteps.forEach((step) => assert.match(step, /if: env\.EISLAND_PUBLISH == '1'/u));
+  assert.match(source, /run: npm run release:upload-only -- --r2-only\s*$/mu);
+  assert.doesNotMatch(source, /secrets\.(?:COS_|OSS_|MINIO_|ESA_)/u);
 });
 
 test('原生测试 CI 同时执行 API 和 Rust 测试', () => {
@@ -147,7 +155,7 @@ test('package 与 release 命令保持构建和上传职责', () => {
 ['test.yml', 'build-size-report.yml', 'e2e.yml', 'release-build-upload.yml'].forEach((file) => {
   test(`${file}: 原生工作流保留失败状态且不依赖 PR 写权限`, () => {
     const workflow = readFileSync(new URL(`../../.github/workflows/${file}`, import.meta.url), 'utf8');
-    assert.match(workflow, /contents: read/u);
+    assert.match(workflow, file === 'release-build-upload.yml' ? /contents: write/u : /contents: read/u);
     assert.doesNotMatch(workflow, /issues\.createComment|pull_request_target:|continue-on-error:\s*true/u);
     assert.doesNotMatch(workflow, /(?:electron-vite|electron-builder|install-electron)/u);
   });
@@ -164,7 +172,9 @@ test('原生桌面和安装器工作流上传实际产物', () => {
   assert.match(release, /run: npm run package/u);
   assert.match(release, /TAURI_SIGNING_PRIVATE_KEY/u);
   assert.match(release, /\*-setup\.exe\.sig/u);
-  assert.match(release, /bundle\/tauri-latest\.json/u);
+  assert.match(release, /bundle\/tauri-latest\.yml/u);
+  assert.match(release, /temp\/app\/dist\/\*\.exe/u);
+  assert.match(release, /temp\/app\/dist\/latest\.yml/u);
   assert.match(release, /if-no-files-found: error/u);
 });
 

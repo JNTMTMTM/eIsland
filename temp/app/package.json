@@ -8,6 +8,7 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:local": "vite --config vite.local.config.ts --mode local-preview",
     "build": "npm run build:native && electron-vite build",
     "build:native": "cargo build --locked --release --manifest-path native/verifier/Cargo.toml --target-dir native/verifier/target",
     "typecheck": "tsc --noEmit",
@@ -18,8 +19,8 @@
     "test:coverage": "vitest run --coverage",
     "package": "node scripts/package.mjs",
     "package:preview": "node scripts/package.mjs --preview",
-    "release:upload-only": "node scripts/upload.mjs",
-    "release": "npm run package && npm run release:upload-only"
+    "release:upload-only": "npm --prefix ../.. run release:upload-only --",
+    "release": "npm --prefix ../.. run release"
   },
   "dependencies": {
     "i18next": "26.5.12",

@@ -1,6 +1,6 @@
 {
   "name": "eisland",
-  "version": "27.0.1",
+  "version": "27.0.2",
   "description": "A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Tauri.",
   "author": "JNTMTMTM",
   "license": "GPL-3.0",
@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "tauri dev",
+    "dev:local": "npm --prefix temp/app run dev:local",
     "build": "tauri build --no-bundle",
     "preview": "tauri dev --no-watch",
     "test": "run-s test:unit test:api test:rust",

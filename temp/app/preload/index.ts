@@ -31,12 +31,14 @@ const api: AdapterApi = {
   getState: () => ipcRenderer.invoke(IPC.state),
   inspect: (source) => ipcRenderer.invoke(IPC.inspect, source),
   chooseLocal: () => ipcRenderer.invoke(IPC.local),
+  chooseDirectory: () => ipcRenderer.invoke(IPC.directory),
+  setRemoveLegacy: (remove) => ipcRenderer.invoke(IPC.removeLegacy, remove),
   prepare: () => ipcRenderer.invoke(IPC.prepare),
   install: () => ipcRenderer.invoke(IPC.install),
   cancel: () => ipcRenderer.invoke(IPC.cancel),
   dismissError: () => ipcRenderer.invoke(IPC.dismissError),
   openBackup: () => ipcRenderer.invoke(IPC.backup),
-  launch: () => ipcRenderer.invoke(IPC.launch),
+  launch: (notice) => ipcRenderer.invoke(IPC.launch, notice),
   close: () => ipcRenderer.invoke(IPC.close),
   onState: (callback) => {
     const listener = (event: Electron.IpcRendererEvent, state: AdapterState): void => { void event; callback(state); };

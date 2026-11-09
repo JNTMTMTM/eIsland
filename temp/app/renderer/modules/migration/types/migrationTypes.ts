@@ -31,13 +31,14 @@ export interface UseMigrationReturn {
   /** busy 来自 BUSY_PHASES，step 为导航步骤下标，error 优先显示 renderer 本地 IPC 失败。 */
   busy: boolean; step: number; error: string | null;
   setSource: (source: SourceId) => void; setLanguage: (language: string) => void;
-  primary: () => void; cancel: () => void; close: () => void; openBackup: () => void; dismissError: () => void;
+  primary: () => void; cancel: () => void; close: () => void; dismissError: () => void;
+  chooseDirectory: () => void; setRemoveLegacy: (remove: boolean) => void;
 }
 /** 语言菜单属性。 */
 export interface LanguageSelectProps { t: TFunction; language: string; onLanguage: (language: string) => void; }
 /** 标题栏属性；安装中禁止关闭窗口。 */
 export interface WizardHeaderProps extends LanguageSelectProps { onClose: () => void; installing: boolean; }
 /** 内容区属性。 */
-export interface MigrationContentProps { t: TFunction; state: AdapterState | null; error: string | null; source: SourceId; busy: boolean; onSource: (source: SourceId) => void; onBackup: () => void; onDismissError: () => void; }
+export interface MigrationContentProps { t: TFunction; state: AdapterState | null; error: string | null; source: SourceId; busy: boolean; onSource: (source: SourceId) => void; onDismissError: () => void; onDirectory: () => void; onRemoveLegacy: (remove: boolean) => void; }
 /** 底部操作栏属性。 */
 export interface WizardFooterProps { t: TFunction; state: AdapterState | null; busy: boolean; onPrimary: () => void; onCancel: () => void; }
