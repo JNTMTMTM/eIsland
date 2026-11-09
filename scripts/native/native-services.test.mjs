@@ -115,8 +115,13 @@ test('native services use real streams, resume data and concurrent local assets'
         const received = [];
         const stop = window.api.onSettingsChanged((channel) => received.push(channel));
         try {
-          await Promise.all(channels.map((channel) => window.__TAURI__.core.invoke('desktop_ipc', { channel: 'settings:preview', args: [channel, null] })));
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          // 公开接口会等待原生监听就绪；固定延时无法保证繁忙的 CI 已分发所有事件。
+          await Promise.all(channels.map((channel) => window.desktop.invoke('settings:preview', channel, null)));
+          const deadline = Date.now() + 5000;
+          while (channels.some((channel) => !received.includes(channel)) && Date.now() < deadline) {
+            // eslint-disable-next-line no-await-in-loop -- 等待本次调用的实际事件，超时后保留缺失通道断言。
+            await new Promise((resolve) => setTimeout(resolve, 20));
+          }
           return received;
         } finally { stop(); }
       }, channels);
