@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-09T23:03:31.880Z
+> 生成时间：2026-11-09T23:31:38.374Z
 
 ## 27.0.2
 
@@ -4344,11 +4344,18 @@
 
 ## Unreleased
 
+- 2026-11-09 | 09cc1186 | JNTMTMTM | Merge pull request #315 from JNTMTMTM/dependabot/npm_and_yarn/get-windows-10.0.0
+- 2026-11-09 | c24f098d | 鸡哥 | fix(test): isolate external player after syncing dependency branch
+- 2026-11-09 | a74ff317 | 鸡哥 | Merge validated grouped dependency updates
+- 2026-11-09 | 67119ee1 | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
+- 2026-11-09 | 3ebc3ffe | 鸡哥 | Merge main before validating dependency upgrade
+- 2026-11-09 | e7a62e9c | eislandBot | docs: auto update CHANGE_LOG.md for #313 by @dependabot[bot] [skip ci]
 - 2026-11-09 | 8039997d | JNTMTMTM | Merge pull request #313 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-c1133b0d41
 - 2026-11-09 | e5fa9f34 | eislandBot | docs: auto update CHANGE_LOG.md for #312 by @dependabot[bot] [skip ci]
 - 2026-11-09 | a07c0f7b | JNTMTMTM | Merge pull request #312 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-da9d74feb1
 - 2026-11-09 | d48ac7f4 | eislandBot | docs: auto update CHANGE_LOG.md for #318 by @JNTMTMTM [skip ci]
 - 2026-11-09 | 7dd1aec4 | JNTMTMTM | Merge pull request #318 from JNTMTMTM/dev
 - 2026-11-09 | 921941b6 | 鸡哥 | docs(announcement): add V27.0.2 release notes
+- 2026-11-09 | 81d386ad | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
 - 2026-11-09 | adfaab2a | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 17 directories with 19 updates
 - 2026-11-09 | c6d1acb9 | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
