@@ -30,9 +30,9 @@
     "test:coverage:native": "node scripts/native-coverage.mjs"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "~5.0.5",
+    "@vitest/coverage-v8": "~5.1.0",
     "node-gyp": "^13.1.0",
-    "vitest": "~5.0.5"
+    "vitest": "~5.1.0"
   },
   "files": [
     "*.js",
