@@ -1,7 +1,104 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-08T05:33:42.778Z
+> 生成时间：2026-11-09T19:05:30.075Z
+
+## 27.0.2
+
+- 2026-11-09 | 3de67fc0 | 鸡哥 | fix: complete paired release CLI imports before invoking operations
+- 2026-11-09 | bfcbb127 | 鸡哥 | test: align installer CI checks with paired release publication
+- 2026-11-08 | a41097dc | 鸡哥 | fix: wait for the in-place legacy uninstaller before checking the result
+- 2026-11-08 | 2e04c2b7 | 鸡哥 | Revert "docs: auto update CHANGE_LOG.md for release updater-sandbox-20261107-01 by @JNTMTMTM [skip ci]"
+- 2026-11-08 | 1e3b408a | 鸡哥 | Merge remote-tracking branch 'origin/main' into dev
+- 2026-11-08 | 9456c04d | 鸡哥 | fix: harden paired release publication and legacy uninstall handoff
+- 2026-11-08 | 6efccb5d | 鸡哥 | feat: enhance release workflow with R2 publication support and validation checks
+- 2026-11-08 | 7482f610 | 鸡哥 | chore: remove unused performance images from the repository
+- 2026-11-08 | 62f67f72 | eislandBot | docs: auto update CHANGE_LOG.md for release updater-sandbox-20261107-01 by @JNTMTMTM [skip ci]
+- 2026-11-07 | d339b22e | 鸡哥 | feat: enhance migration service with directory selection and legacy uninstall options
+- 2026-11-07 | 28077dc9 | 鸡哥 | feat(i18n): add local preview translations for Japanese, Simplified Chinese, and Traditional Chinese
+- 2026-11-07 | e937c20f | 鸡哥 | feat: enhance publicKey function to load environment variables from a specified file and add tests for key loading behavior
+- 2026-11-07 | 2de6b4a0 | 鸡哥 | chore: update version to 27.0.2 and refactor release process
+- 2026-11-07 | 3134322f | eislandBot | docs: auto update CHANGE_LOG.md for #310 by @JNTMTMTM [skip ci]
+- 2026-11-07 | 15e77b50 | JNTMTMTM | Merge pull request #310 from JNTMTMTM/dev
+- 2026-11-07 | 2993177f | 鸡哥 | refactor: update migration components and styles for improved consistency
+- 2026-11-07 | b92074ab | 鸡哥 | feat: remove outdated localization files for zh-CN, zh-TW, ja-JP, and en-US
+- 2026-11-06 | c4952288 | 鸡哥 | feat: enhance backup functionality with alias handling and additional tests
+- 2026-11-06 | 48c8cde0 | 鸡哥 | feat: add dismissError functionality to MigrationService and related components; update UI and tests
+- 2026-11-06 | e2c60a93 | 鸡哥 | feat: add lucide-react dependency and update WizardFooter with icon; enhance primary button styling
+- 2026-11-06 | c3b495c6 | 鸡哥 | Implement code changes to enhance functionality and improve performance
+- 2026-11-06 | dc0d10a3 | 鸡哥 | feat: implement language selection component with flag icons and keyboard navigation
+- 2026-11-06 | 6b579381 | 鸡哥 | feat: enhance migration UI with new source selection buttons and improved layout
+- 2026-11-06 | 0df8f238 | 鸡哥 | Refactor code structure for improved readability and maintainability
+- 2026-11-06 | 930b1be0 | 鸡哥 | feat: optimize lyrics fetching logic to prevent unnecessary requests based on translation settings
+- 2026-11-06 | bf1f7e20 | 鸡哥 | feat: refactor karaoke line parsing and enhance test coverage for synced lyrics extraction
+- 2026-11-06 | ed9ca5ae | 鸡哥 | feat: enhance TTML parsing to preserve symbol-only lines and punctuation
+- 2026-11-06 | be96cf68 | 鸡哥 | feat: synchronize playing state with lyrics animation and update styles for paused state
+- 2026-11-06 | d650f340 | 鸡哥 | feat: update version of windows-smtc-helper to 26.0.6 and enhance session management with new publish_update method
+- 2026-11-06 | 55cf2fec | 鸡哥 | feat: initialize isolated coverage target directory in native coverage workflow
+- 2026-11-05 | cab6e956 | 鸡哥 | feat: add adapter configuration, types, and error handling
+- 2026-11-05 | b402543f | 鸡哥 | feat: add .gitkeep to ensure temp directory is tracked
+- 2026-11-06 | e5609646 | eislandBot | docs: auto update CHANGE_LOG.md for #309 by @JNTMTMTM [skip ci]
+- 2026-11-05 | 7a53d428 | JNTMTMTM | Merge pull request #309 from JNTMTMTM/dev_rust
+- 2026-11-05 | ba62e012 | 鸡哥 | feat: adjust WebView2 focus handling to ensure proper file-drop target registration
+- 2026-11-05 | 381c3be3 | 鸡哥 | feat: enhance COM lifecycle assertions in icon extraction tests for improved reliability
+- 2026-11-05 | fe52e041 | 鸡哥 | feat: enhance file icon extraction with concurrent worker support and add comprehensive tests
+- 2026-11-05 | 251cae79 | 鸡哥 | feat: add performance diagnostics and enhance error reporting in native services
+- 2026-11-05 | ddeec964 | 鸡哥 | feat: implement native WebView2 connection handling and diagnostics for isolated testing
+- 2026-11-05 | 754059fb | 鸡哥 | feat: add eslint-plugin-react-refresh and update lint configurations for improved React support
+- 2026-11-05 | dfd9bb58 | 鸡哥 | fix: revert version number to 27.0.1 in package.json, package-lock.json, and tauri.conf.json
+- 2026-11-05 | 91002372 | 鸡哥 | feat: implement window stacking behavior for effects and improve visibility handling on Windows
+- 2026-11-04 | f4d4e538 | 鸡哥 | feat: enhance screenshot functionality with native plugin support and improved settings
+- 2026-11-04 | e478c988 | 鸡哥 | feat: update capture functionality and add new SVG icons for toolbar actions
+- 2026-11-04 | 358edb7f | 鸡哥 | feat: add updater verification and archive handling
+- 2026-11-04 | 7d06d5f8 | 鸡哥 | feat: adjust shadow behavior for splash screen on Windows
+- 2026-11-04 | 1551c84f | 鸡哥 | feat: add audio/video extraction functionality and related tests
+- 2026-11-05 | 191c8cb5 | 鸡哥 | feat: add infrastructure modules for native platform support
+- 2026-11-05 | 3ae144f8 | 鸡哥 | feat: add upload-release script for Tauri package publishing and cache purging
+- 2026-11-05 | 913593ff | 鸡哥 | feat: add type definitions for image compression, mail, media, navigation, net, performance, process, settings, updater, and window modules
+- 2026-11-04 | 369835e6 | 鸡哥 | feat: update build commands for music and plugins in Tauri configuration
+- 2026-11-04 | 3efefbe4 | 鸡哥 | feat(music): implement music service and authentication window
+- 2026-11-04 | da48697a | 鸡哥 | feat: add hardware and media services for volume and brightness control
+- 2026-11-04 | 8f78ebe6 | 鸡哥 | feat: enhance hotkey management and shortcut registration logic
+- 2026-11-04 | 477c7914 | 鸡哥 | feat: add support for transparency debugging in WebView2 and enhance window management
+- 2026-11-04 | 68ffaff5 | 鸡哥 | feat: implement native window clipping and raise functionality for Windows
+- 2026-11-03 | 2c19990e | eislandBot | docs: auto update CHANGE_LOG.md for #308 by @dependabot[bot] [skip ci]
+- 2026-11-03 | 5eede24c | JNTMTMTM | Merge pull request #308 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-7716e99581
+- 2026-11-03 | e9ec9c4a | 鸡哥 | Merge main into dependency updates and preserve docs Git plugin override
+- 2026-11-03 | 77ebe439 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 17 directories with 17 updates
+- 2026-11-03 | d576c033 | eislandBot | docs: auto update CHANGE_LOG.md for #306 by @dependabot[bot] [skip ci]
+- 2026-11-03 | 6cfb803a | JNTMTMTM | Merge pull request #306 from JNTMTMTM/dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.132
+- 2026-11-03 | b5d391c9 | 鸡哥 | fix(docs): use upgraded git plugin in Hope theme
+- 2026-11-03 | 686f8720 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
+- 2026-11-03 | 9783c084 | eislandBot | docs: auto update CHANGE_LOG.md for #305 by @dependabot[bot] [skip ci]
+- 2026-11-03 | 0d19f900 | JNTMTMTM | Merge pull request #305 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-f1957af932
+- 2026-11-03 | c134807a | eislandBot | docs: auto update CHANGE_LOG.md for #307 by @JNTMTMTM [skip ci]
+- 2026-11-03 | 034cfe91 | JNTMTMTM | Merge pull request #307 from JNTMTMTM/dev
+- 2026-11-02 | f80951b1 | 鸡哥 | feat(cli): enhance task management and output handling
+- 2026-11-02 | f6743194 | 鸡哥 | feat(test): update matrix report to include six projects and adjust related tests
+- 2026-11-02 | 03b60fca | 鸡哥 | feat(storage): implement delete functionality for storage entries and update UI components
+- 2026-11-01 | 4d02b8ab | 鸡哥 | feat(storage): add read-only storage view for eIsland app entries
+- 2026-11-01 | fee017ad | 鸡哥 | feat: rename CLI command to eisland-cli and update related documentation
+- 2026-11-01 | ecf7f72e | 鸡哥 | feat: enhance SMTC test functionality and UI
+- 2026-11-01 | 67130840 | 鸡哥 | feat: add SMTC (System Media Transport Controls) support and local testing interface
+- 2026-11-01 | 9cdf80ee | 鸡哥 | refactor: remove unused useWelcomeGate hook
+- 2026-11-01 | baec9837 | 鸡哥 | feat: enhance script picker with scrolling descriptions and dangerous tag positioning
+- 2026-11-01 | 6b109c1e | 鸡哥 | refactor(dashboard): update task box width and improve layout descriptions in documentation
+- 2026-11-01 | fff0b250 | 鸡哥 | refactor(cli): split ui into module structure and merge i18n into root locales
+- 2026-11-01 | 3da63873 | 鸡哥 | feat: update version to 26.0.0 in package.json and package-lock.json
+- 2026-11-01 | 6e37f916 | 鸡哥 | feat: add welcome screen and interactive dashboard layout with task management
+- 2026-11-01 | 71a52305 | 鸡哥 | feat: implement task manager and dashboard UI for concurrent script execution
+- 2026-11-01 | 1330c3de | 鸡哥 | feat(cli): add Vitest configuration and testing scripts for CLI
+- 2026-11-01 | 8dedbc11 | 鸡哥 | feat(cli): add interactive script picker and confirmation prompt
+- 2026-11-01 | fe8b8b18 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 16 directories with 16 updates
+- 2026-11-01 | fde78e40 | eislandBot | docs: auto update CHANGE_LOG.md for #304 by @JNTMTMTM [skip ci]
+- 2026-11-01 | 4dfb5bd7 | JNTMTMTM | Merge pull request #304 from JNTMTMTM/dev
+- 2026-11-01 | 4b982b8e | 鸡哥 | feat(tests): enhance startup tests with conditional execution based on helper availability
+- 2026-11-01 | 35f33052 | 鸡哥 | feat: enhance startup helper with error handling and async support for queries
+- 2026-11-01 | d5092783 | JNTMTMTM | Merge pull request #303 from binghao9312/feat/youtube-music-whitelist
+- 2026-11-01 | bd227b7e | 鸡哥 | feat(whitelist): unify YouTube Music PWA identifiers and enhance whitelist management
+- 2026-11-01 | 02e535f4 | binghao9312 | feat(music): add YouTube Music to player whitelist options
+- 2026-10-31 | 68fb68ff | 鸡哥 | refactor: replace ManagementObjectSearcher with P/Invoke for service enumeration
+- 2026-10-31 | cb6254ce | 鸡哥 | feat: add Windows startup helper plugin
 
 ## 27.0.1
 
@@ -4244,3 +4341,8 @@
 - 2026-03-30 | bb18a81d | 鸡哥 | feat: 初始化 eIsland 项目
 - 2026-03-30 | 044489f6 | 鸡哥 | chore: 更新 .gitignore 忽略 .claude 目录
 - 2026-03-30 | 1fc5faf8 | 鸡哥 | chore: 添加社区规范文档
+
+## Unreleased
+
+- 2026-11-09 | 7dd1aec4 | JNTMTMTM | Merge pull request #318 from JNTMTMTM/dev
+- 2026-11-09 | 921941b6 | 鸡哥 | docs(announcement): add V27.0.2 release notes

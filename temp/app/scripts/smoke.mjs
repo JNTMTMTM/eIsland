@@ -29,6 +29,7 @@ import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { _electron as electron } from '@playwright/test';
 import withoutSigningSecrets from '../../../scripts/native/environment.mjs';
+import { publicKey } from './config.mjs';
 
 const root = await mkdtemp(join(tmpdir(), 'eisland-adapter-webview-'));
 await mkdir(join(root, 'roaming/eIsland/eIsland_store'), { recursive: true });
@@ -74,7 +75,7 @@ try {
   await page.waitForFunction(() => [...document.querySelectorAll('fieldset img')].every((image) => image.complete && image.naturalWidth > 0));
   const boundary = await page.evaluate(() => ({ node: typeof globalThis.process, require: typeof globalThis.require, api: Object.keys(window.migration).sort() }));
   assert.equal(boundary.node, 'undefined'); assert.equal(boundary.require, 'undefined');
-  assert.deepEqual(boundary.api, ['cancel', 'chooseLocal', 'close', 'dismissError', 'getState', 'inspect', 'install', 'launch', 'onState', 'openBackup', 'prepare']);
+  assert.deepEqual(boundary.api, ['cancel', 'chooseDirectory', 'chooseLocal', 'close', 'dismissError', 'getState', 'inspect', 'install', 'launch', 'onState', 'openBackup', 'prepare', 'setRemoveLegacy']);
   const profile = await app.evaluate(({ app: host }) => host.getPath('userData'));
   assert.equal(profile, join(root, 'profile'));
   await mkdir('test-results', { recursive: true });
@@ -96,6 +97,13 @@ try {
   });
   assert.equal(denied.sandbox, true); assert.equal(denied.isolated, true);
   const state = await page.evaluate(() => window.migration.getState());
+  assert.equal(state.removeLegacy, false);
+  if (state.phase === 'welcome') {
+    await page.evaluate(() => window.migration.chooseDirectory());
+    await page.evaluate(() => window.migration.setRemoveLegacy(true));
+    assert.equal((await page.evaluate(() => window.migration.getState())).removeLegacy, false);
+  }
+  assert.equal(state.signingConfigured, Boolean(publicKey()), 'compiled adapter must match the configured public-key presence');
   if (!state.signingConfigured) {
     await page.getByRole('button', { name: '检查新版本' }).click();
     await page.getByRole('alert').waitFor();

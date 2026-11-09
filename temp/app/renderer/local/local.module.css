@@ -1,0 +1,40 @@
+.frame > main {
+  height: calc(100dvh - 54px);
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  height: 54px;
+  padding: 8px 16px;
+  color: #c7d3e9;
+  font-size: 12px;
+  background: #181b24;
+  border-bottom: 1px solid #343a49;
+}
+
+.toolbar select {
+  min-width: 0;
+  max-width: 300px;
+  padding: 6px 8px;
+  color: #e7e9ef;
+  background: #101116;
+  border: 1px solid #343a49;
+  border-radius: 6px;
+}
+
+.toolbar span {
+  margin-left: auto;
+  color: #919aaa;
+}
+
+@media (max-width: 700px) {
+  .toolbar span {
+    display: none;
+  }
+
+  .toolbar select {
+    flex: 1;
+  }
+}

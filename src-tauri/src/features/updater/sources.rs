@@ -64,25 +64,27 @@ pub(super) fn download_url(
 pub(super) fn endpoint(source: Option<&Value>, resolved: Option<&Value>) -> Result<reqwest::Url> {
     let raw = match source.and_then(Value::as_str) {
         Some("tencent-cos" | "aliyun-oss") => resolved.and_then(Value::as_str).filter(|value| !value.trim().is_empty()).ok_or("PRO update source requires a server-issued URL")?.to_owned(),
-        Some("github") => std::env::var("EISLAND_TAURI_UPDATE_GITHUB_URL").unwrap_or_else(|_| option_env!("EISLAND_TAURI_UPDATE_GITHUB_URL").unwrap_or("https://github.com/JNTMTMTM/eIsland/releases/latest/download/tauri-latest.json").into()),
-        Some("cloudflare-r2") => std::env::var("EISLAND_TAURI_UPDATE_R2_URL").unwrap_or_else(|_| option_env!("EISLAND_TAURI_UPDATE_R2_URL").unwrap_or("https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev/eisland-update/tauri/latest.json").into()),
-        _ => std::env::var("EISLAND_TAURI_UPDATE_ESA_URL").unwrap_or_else(|_| option_env!("EISLAND_TAURI_UPDATE_ESA_URL").unwrap_or("https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/latest.json").into()),
+        Some("github") => std::env::var("EISLAND_TAURI_UPDATE_GITHUB_URL").unwrap_or_else(|_| option_env!("EISLAND_TAURI_UPDATE_GITHUB_URL").unwrap_or("https://github.com/JNTMTMTM/eIsland/releases/latest/download/tauri-latest.yml").into()),
+        Some("cloudflare-r2") => std::env::var("EISLAND_TAURI_UPDATE_R2_URL").unwrap_or_else(|_| option_env!("EISLAND_TAURI_UPDATE_R2_URL").unwrap_or("https://pub-4c1e73c3c2004901aecd6ca014cb16bd.r2.dev/eisland-update/tauri/tauri-latest.yml").into()),
+        _ => std::env::var("EISLAND_TAURI_UPDATE_ESA_URL").unwrap_or_else(|_| option_env!("EISLAND_TAURI_UPDATE_ESA_URL").unwrap_or("https://eisland-server-download-cdn.pyisland.com/eisland-update/tauri/tauri-latest.yml").into()),
     };
     let mut url = reqwest::Url::parse(&raw).map_err(|_| "NATIVE_UPDATE_URL_INVALID")?;
-    if url.path().ends_with(".yml") || url.path().ends_with(".yaml") {
+    if (url.path().ends_with(".yml") || url.path().ends_with(".yaml"))
+        && !url.path().ends_with("/tauri-latest.yml")
+    {
         return Err("ELECTRON_UPDATE_MANIFEST_REJECTED: configure the native JSON feed".into());
     }
-    if !url.path().ends_with(".json") {
+    if !url.path().ends_with(".json") && !url.path().ends_with("/tauri-latest.yml") {
         if url.query().is_some() {
             return Err("NATIVE_UPDATE_SIGNED_DIRECTORY_URL_UNSUPPORTED".into());
         }
         let prefix = url.path().trim_end_matches('/');
         let path = if prefix.ends_with("/eisland-update") {
-            format!("{prefix}/tauri/latest.json")
+            format!("{prefix}/tauri/tauri-latest.yml")
         } else if prefix.ends_with("/tauri") {
-            format!("{prefix}/latest.json")
+            format!("{prefix}/tauri-latest.yml")
         } else {
-            format!("{prefix}/eisland-update/tauri/latest.json")
+            format!("{prefix}/eisland-update/tauri/tauri-latest.yml")
         };
         url.set_path(&path);
     }
