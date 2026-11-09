@@ -102,8 +102,9 @@ it('only builds a detached official-uninstaller plan after checking old and new 
   const f = await fixture();
   await writeFile(join(f.target, 'eisland.exe'), 'not an executable');
   const plan = await legacyUninstallPlan(f.legacy, f.target, f.config.ownExecutable, notice, trusted);
-  const request = JSON.parse(Buffer.from(plan.env.EISLAND_LEGACY_UNINSTALL_REQUEST!, 'base64').toString()) as { uninstaller: string; executable: string; pid: number; noticeTitle: string; noticeBody: string };
+  const request = JSON.parse(Buffer.from(plan.env.EISLAND_LEGACY_UNINSTALL_REQUEST!, 'base64').toString()) as { uninstaller: string; directory: string; executable: string; pid: number; noticeTitle: string; noticeBody: string };
   expect(request.uninstaller).toBe(await realpath(f.legacy.uninstaller!));
+  expect(request.directory).toBe(await realpath(f.legacy.directory));
   expect(request.executable).toBe(await realpath(join(f.target, 'eisland.exe')));
   expect(request.pid).toBe(process.pid);
   expect([request.noticeTitle, request.noticeBody]).toEqual([notice.title, notice.body]);
@@ -111,6 +112,7 @@ it('only builds a detached official-uninstaller plan after checking old and new 
   expect(script).toContain('WaitForExit');
   expect(script).toContain('Start-Process');
   expect(script).toContain('ExitCode');
+  expect(script).toContain("'_?='+$request.directory");
   expect(script).toContain('MessageBox');
   expect(script).not.toContain('Remove-Item');
   expect(script).not.toContain(f.old);

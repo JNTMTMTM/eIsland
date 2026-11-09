@@ -33,7 +33,8 @@ import type { Installation, LegacyNotice } from '../../shared/types/adapterTypes
 
 // 路径只通过环境中的 JSON 传入，禁止把目录或卸载命令拼接进 PowerShell 源码。
 // 卸载器非零退出、无法启动或旧版标记仍存在时视为失败；助手此时已退出，只能由该进程以本地化提示告知用户。
-const CLEANUP = `$ErrorActionPreference='Stop';$request=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:EISLAND_LEGACY_UNINSTALL_REQUEST))|ConvertFrom-Json;$owner=Get-Process -Id $request.pid -ErrorAction SilentlyContinue;if($owner -and $owner.Path -eq $request.ownExecutable){$owner.WaitForExit()};$failed=$false;try{if((Test-Path -LiteralPath $request.uninstaller -PathType Leaf) -and (Test-Path -LiteralPath $request.marker -PathType Leaf)){$process=Start-Process -FilePath $request.uninstaller -Wait -PassThru;if($process.ExitCode -ne 0){$failed=$true}}}catch{$failed=$true};if(Test-Path -LiteralPath $request.marker){$failed=$true};try{Start-Process -FilePath $request.executable|Out-Null}finally{if($failed){Add-Type -AssemblyName PresentationFramework;[void][Windows.MessageBox]::Show($request.noticeBody,$request.noticeTitle,'OK','Warning')}}`;
+// NSIS 卸载器默认把自身复制到临时目录后立即退出，提权后 -Wait 无法跟踪该副本；_?= 令其原地同步运行（必须为最后一个参数且不加引号）。
+const CLEANUP = `$ErrorActionPreference='Stop';$request=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:EISLAND_LEGACY_UNINSTALL_REQUEST))|ConvertFrom-Json;$owner=Get-Process -Id $request.pid -ErrorAction SilentlyContinue;if($owner -and $owner.Path -eq $request.ownExecutable){$owner.WaitForExit()};$failed=$false;try{if((Test-Path -LiteralPath $request.uninstaller -PathType Leaf) -and (Test-Path -LiteralPath $request.marker -PathType Leaf)){$process=Start-Process -FilePath $request.uninstaller -ArgumentList ('_?='+$request.directory) -Wait -PassThru;if($process.ExitCode -ne 0){$failed=$true}}}catch{$failed=$true};if(Test-Path -LiteralPath $request.marker){$failed=$true};try{Start-Process -FilePath $request.executable|Out-Null}finally{if($failed){Add-Type -AssemblyName PresentationFramework;[void][Windows.MessageBox]::Show($request.noticeBody,$request.noticeTitle,'OK','Warning')}}`;
 
 /** 仅为真实旧版安装项构建卸载计划，不接受注册表中的任意命令行。
  * @param legacy - 已识别的旧版安装项。
@@ -58,7 +59,7 @@ export async function legacyUninstallPlan(legacy: Installation, targetDirectory:
   if (directoriesOverlap(directory, target)) fail('installOverlap');
   const executable = await realpath(join(target, 'eisland.exe'));
   if (dirname(executable).toLowerCase() !== target.toLowerCase() || !(await stat(executable)).isFile()) fail('installNotConfirmed');
-  const request = { uninstaller, marker, executable, pid: process.pid, ownExecutable: resolve(ownExecutable), noticeTitle: notice.title, noticeBody: notice.body };
+  const request = { uninstaller, directory, marker, executable, pid: process.pid, ownExecutable: resolve(ownExecutable), noticeTitle: notice.title, noticeBody: notice.body };
   const env: NodeJS.ProcessEnv = { ...withoutSigningSecrets(process.env) as NodeJS.ProcessEnv, EISLAND_LEGACY_UNINSTALL_REQUEST: Buffer.from(JSON.stringify(request)).toString('base64') };
   return { env, args: ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-EncodedCommand', Buffer.from(CLEANUP, 'utf16le').toString('base64')] };
 }
