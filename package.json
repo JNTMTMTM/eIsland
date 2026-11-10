@@ -119,7 +119,7 @@
     "@eisland/windows-wifi-helper": "file:plugins/windows/eisland-windows-wifi-helper",
     "@gsap/react": "^2.1.2",
     "@multisystemsuite/timezone-engine-core": "^5.0.0",
-    "@tailwindcss/vite": "^4.3.4",
+    "@tailwindcss/vite": "^4.3.5",
     "colorthief": "^3.5.0",
     "date-fns": "4.4.0",
     "debug": "^4.4.3",
@@ -132,9 +132,9 @@
     "highcharts": "^13.1.1",
     "highcharts-react-official": "^3.2.3",
     "i18next": "^26.7.2",
-    "imapflow": "^2.10.2",
+    "imapflow": "^2.11.0",
     "katex": "^0.19.1",
-    "lunar-javascript": "^1.7.7",
+    "lunar-javascript": "^1.7.8",
     "lyric-resolver": "^0.1.6",
     "mailparser": "^3.14.2",
     "open": "^11.0.4",
@@ -149,7 +149,7 @@
     "systeminformation": "^5.33.19",
     "tesseract.js": "^7.0.0",
     "uapi-sdk-typescript": "^0.1.18",
-    "zustand": "^5.0.16"
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
     "js-yaml": "^5.5.0",
@@ -169,7 +169,7 @@
     "autoprefixer": "^10.6.2",
     "esbuild": "0.28.2",
     "ffmpeg-static": "^5.3.0",
-    "lucide-react": "^1.69.0",
+    "lucide-react": "^1.70.0",
     "node-abi": "^4.40.0",
     "npm-run-all2": "^9.0.4",
     "postcss": "^8.5.32",
