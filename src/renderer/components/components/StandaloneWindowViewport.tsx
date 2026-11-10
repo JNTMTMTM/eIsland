@@ -44,6 +44,7 @@ const RegisterContent = lazy(() => import('../states/register/RegisterContent').
 const ResetPasswordContent = lazy(() => import('../states/resetPassword').then((module) => ({ default: module.ResetPasswordContent })));
 const PaymentContent = lazy(() => import('../states/payment/PaymentContent').then((module) => ({ default: module.PaymentContent })));
 const MusicProvidersLoginContent = lazy(() => import('../states/musicProvidersLogin').then((module) => ({ default: module.MusicProvidersLoginContent })));
+const FileTransferContent = lazy(() => import('../states/fileTransfer').then((module) => ({ default: module.FileTransferContent })));
 
 interface StandaloneWindowViewportProps {
   activeTab: WindowTab;
@@ -75,7 +76,8 @@ export function StandaloneWindowViewport({ activeTab, state }: StandaloneWindowV
         {activeTab === 'settings' && state === 'resetPassword' && <ResetPasswordContent />}
         {activeTab === 'settings' && state === 'payment' && <PaymentContent />}
         {activeTab === 'settings' && state === 'musicProvidersLogin' && <MusicProvidersLoginContent />}
-        {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'resetPassword' && state !== 'payment' && state !== 'musicProvidersLogin' && <SettingsTab />}
+        {activeTab === 'settings' && state === 'fileTransfer' && <FileTransferContent />}
+        {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'resetPassword' && state !== 'payment' && state !== 'musicProvidersLogin' && state !== 'fileTransfer' && <SettingsTab />}
       </Suspense>
     </div>
   );

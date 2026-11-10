@@ -413,7 +413,7 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         window.api?.expandWindowLyrics(delayMs);
       } else if (state === 'lyricsTranslation') {
         window.api?.expandWindowLyricsTranslation(delayMs);
-      } else if (state === 'expanded') {
+      } else if (state === 'expanded' || state === 'fileTransfer') {
         window.api?.expandWindowFull(delayMs);
       } else if (state === 'maxExpand' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'setPassword' || state === 'bindOAuth' || state === 'bindEmail' || state === 'payment' || state === 'announcement' || state === 'questionnaire' || state === 'musicProvidersLogin') {
         window.api?.expandWindowSettings(delayMs);

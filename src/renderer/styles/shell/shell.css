@@ -91,6 +91,7 @@
 }
 
 .island-shell.shape-pill.expanded,
+.island-shell.shape-pill.fileTransfer,
 .island-shell.shape-pill.maxExpand,
 .island-shell.shape-pill.guide,
 .island-shell.shape-pill.login,
@@ -108,7 +109,8 @@
   border-radius: 26px;
 }
 
-.island-shell.shape-pill.expanded {
+.island-shell.shape-pill.expanded,
+.island-shell.shape-pill.fileTransfer {
   height: 164px;
 }
 
@@ -384,7 +386,8 @@
 }
 
 /** Expanded 状态 - 单击展开后的快捷操作面板（860x120） */
-.island-shell.expanded {
+.island-shell.expanded,
+.island-shell.fileTransfer {
   width: 860px;
   height: 150px;
   background: var(--color-island-bg);
@@ -392,7 +395,8 @@
   box-shadow: none;
 }
 
-.island-shell.expanded::before {
+.island-shell.expanded::before,
+.island-shell.fileTransfer::before {
   opacity: 0;
   pointer-events: none;
 }

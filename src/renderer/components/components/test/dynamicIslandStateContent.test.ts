@@ -55,6 +55,7 @@ vi.mock('../../states/setPassword', () => ({ SetPasswordContent: Object.assign(v
 vi.mock('../../states/bindOAuth', () => ({ BindOAuthContent: Object.assign(vi.fn(), { displayName: 'BindOAuthContent' }) }));
 vi.mock('../../states/bindEmail', () => ({ BindEmailContent: Object.assign(vi.fn(), { displayName: 'BindEmailContent' }) }));
 vi.mock('../../states/musicProvidersLogin', () => ({ MusicProvidersLoginContent: Object.assign(vi.fn(), { displayName: 'MusicProvidersLoginContent' }) }));
+vi.mock('../../states/fileTransfer', () => ({ FileTransferContent: Object.assign(vi.fn(), { displayName: 'FileTransferContent' }) }));
 beforeEach(() => {
   vi.clearAllMocks();
   resetState();
