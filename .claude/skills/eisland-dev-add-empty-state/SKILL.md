@@ -4,7 +4,7 @@ description: >
   为 eIsland 灵动岛添加一个新的空白状态机（IslandState）。当用户要求创建新状态、新页面、
   新界面（如登录页、设置子页面、独立面板）时使用此 skill。即使用户只说"加个新状态"或
   "创建一个 XX 页面"，也应触发。此 skill 覆盖从类型注册、窗口尺寸、CSS 样式到鼠标交互
-  行为的全部 12 个修改点，确保状态机完整可用。
+  行为的全部 14 个修改点，确保状态机完整可用。
 ---
 
 # eIsland: 添加空白状态机
@@ -130,13 +130,21 @@ if (state === 'newStateName') return <NewStateNameContent />;
 ```
 
 **6b.** `src/renderer/components/components/StandaloneWindowViewport.tsx`：
+该文件通过映射表 + `resolvePage()` 渲染，不要再写条件渲染链。只需两处修改：
 ```tsx
-import { NewStateNameContent } from '../states/newStateName';
-// 在 SettingsTab 守卫前添加：
-{activeTab === 'settings' && state === 'newStateName' && <NewStateNameContent />}
-// 更新 SettingsTab 排除条件：
-{activeTab === 'settings' && state !== '...' && state !== 'newStateName' && <SettingsTab />}
+// 1. 在其余 lazy 声明之后添加懒加载组件：
+const NewStateNameContent = lazy(() => import('../states/newStateName').then((module) => ({ default: module.NewStateNameContent })));
+
+// 2. 在 SETTINGS_STATE_PAGES 中添加一项（未命中的状态自动回退到 SettingsTab，无需维护排除条件）：
+const SETTINGS_STATE_PAGES: Partial<Record<string, LazyPage>> = {
+  // ...
+  newStateName: NewStateNameContent,
+};
 ```
+
+**6c.** 同步路由测试，否则新状态无 mock 会导致测试加载真实模块：
+- `components/components/test/dynamicIslandStateContent.test.ts`：添加 `vi.mock('../../states/newStateName', ...)`，并在 `it.each` 路由表中添加 `['newStateName', 'NewStateNameContent']`
+- `components/components/test/standaloneWindowViewport.test.ts`：同上，添加 mock 及 settings 路由表条目
 
 ### Step 7: CSS 窗口尺寸
 
@@ -208,7 +216,9 @@ npx tsc --noEmit --skipLibCheck
 - [ ] `components/states/<name>/index.ts` — 新文件
 - [ ] `components/states/<name>/<Name>Content.tsx` — 新文件
 - [ ] `components/components/DynamicIslandStateContent.tsx` — 渲染注册
-- [ ] `components/components/StandaloneWindowViewport.tsx` — 独立窗口渲染
+- [ ] `components/components/StandaloneWindowViewport.tsx` — lazy 声明 + `SETTINGS_STATE_PAGES` 条目
+- [ ] `components/components/test/dynamicIslandStateContent.test.ts` — mock + 路由表
+- [ ] `components/components/test/standaloneWindowViewport.test.ts` — mock + 路由表
 - [ ] `styles/shell/shell.css` — 窗口尺寸
 - [ ] `styles/auth/auth.css` — 如为认证页面
 - [ ] `components/hooks/useIslandHoverInteraction.ts` — 如需不收回
