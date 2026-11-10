@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { useFileTransferDrop } from '../states/fileTransfer/hooks/useFileTransferDrop';
 import usePageActivity from './usePageActivity';
 import type selectDynamicIslandState from '../utils/selectDynamicIslandState';
 import { useDynamicIslandShell } from './useDynamicIslandShell';
@@ -84,6 +85,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setHoverTab,
     setAnnouncement,
     setAgentVoiceInput,
+    setFileTransfer,
     timerData,
     setTimerData,
     setNotification,
@@ -290,6 +292,8 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     leaveTimerRef,
     forceClickToHover: shapeMode === 'pill',
   });
+
+  useFileTransferDrop({ state, setFileTransfer });
 
   const {
     shellClassName,

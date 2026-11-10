@@ -45,6 +45,7 @@ pub fn handles(channel: &str) -> bool {
             | "app:get-file-icon"
             | "app:open-file"
             | "app:open-in-explorer"
+            | "app:start-file-drag"
             | "app:save-image-as"
             | "app:resolve-shortcut"
             | "app:compute-file-hash"
@@ -213,6 +214,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
             return crate::features::wallpaper::video::extract(app, &a).await
         }
         "wallpaper:system:set" => return crate::features::wallpaper::set(app, &a).await,
+        "app:start-file-drag" => return start_file_drag(app, &a),
         "wallpaper:video:probe"
         | "wallpaper:video:prepare"
         | "wallpaper:video:cover"
@@ -244,6 +246,43 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
     } else {
         outcome
     }
+}
+/// 在主线程发起系统文件拖出；OLE/AppKit 拖放会阻塞事件循环直至放下或取消，因此不等待结果。
+fn start_file_drag(app: &AppHandle, paths: &Value) -> Result<Value> {
+    let files: Vec<PathBuf> = paths
+        .as_array()
+        .ok_or("Expected path list")?
+        .iter()
+        .filter_map(Value::as_str)
+        .map(PathBuf::from)
+        .filter(|path| path.is_absolute() && path.exists())
+        .collect();
+    if files.is_empty() {
+        return Ok(json!(false));
+    }
+    let window = app
+        .get_webview_window("main")
+        .ok_or("Main window unavailable")?;
+    // macOS 要求有效的拖拽图像，使用 1x1 透明 PNG 让系统只显示光标与复制标记。
+    let mut image = std::io::Cursor::new(Vec::new());
+    ::image::RgbaImage::new(1, 1)
+        .write_to(&mut image, ::image::ImageFormat::Png)
+        .map_err(|e| e.to_string())?;
+    let target = window.clone();
+    window
+        .run_on_main_thread(move || {
+            if let Err(error) = drag::start_drag(
+                &target,
+                drag::DragItem::Files(files),
+                drag::Image::Raw(image.into_inner()),
+                |_, _| {},
+                drag::Options::default(),
+            ) {
+                eprintln!("[files] start drag failed: {error}");
+            }
+        })
+        .map_err(|e| e.to_string())?;
+    Ok(json!(true))
 }
 fn text(value: &Value) -> Result<&str> {
     value

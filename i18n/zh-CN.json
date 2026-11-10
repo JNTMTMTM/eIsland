@@ -5274,5 +5274,19 @@
       "title": "旧版未卸载",
       "body": "旧版 eIsland 未完全卸载，新版已启动。请在 Windows 设置中手动卸载旧版。备份会保留。"
     }
+  },
+  "fileTransfer": {
+    "title": "文件中转站",
+    "count": "{{count}} 个文件",
+    "count_one": "{{count}} 个文件",
+    "count_other": "{{count}} 个文件",
+    "dropHint": "拖入文件",
+    "empty": "暂无中转文件",
+    "actions": {
+      "clear": "清空",
+      "close": "收起",
+      "locate": "在文件夹中显示",
+      "remove": "移出中转站"
+    }
   }
 }

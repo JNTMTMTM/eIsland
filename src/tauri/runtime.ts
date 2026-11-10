@@ -59,6 +59,27 @@ const dropReady = tauri.event.listen<NativeDrop>('tauri://drag-drop', ({ payload
   target?.dispatchEvent(new DragEvent('drop', { dataTransfer: transfer, bubbles: true, cancelable: true }));
 });
 
+/** 订阅系统文件拖入窗口事件；窗口开启鼠标穿透时系统不会投递该事件。
+ * @param callback - 接收拖入文件本机路径的回调。
+ * @returns 同步返回的取消订阅函数。
+ */
+export function onNativeDragEnter(callback: (paths: string[]) => void): () => void {
+  let active = true;
+  let unlisten: (() => void) | null = null;
+  const subscribe = async (): Promise<void> => {
+    const stop = await tauri.event.listen<NativeDrop>('tauri://drag-enter', ({ payload }) => {
+      if (active) callback(payload.paths);
+    });
+    if (active) unlisten = stop;
+    else stop();
+  };
+  subscribe().catch((error: unknown) => { console.error('[Desktop] drag-enter listener:', error); });
+  return () => {
+    active = false;
+    unlisten?.();
+  };
+}
+
 /** 读取通过原生选择器或系统拖放获得的真实路径。
  * @param file - 原生文件引用。
  * @returns 已绑定的路径；普通浏览器文件返回空字符串。

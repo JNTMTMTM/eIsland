@@ -55,6 +55,7 @@ chrono = { version = "0.4", features = ["clock", "serde"] }
 uuid = { version = "1", features = ["v4"] }
 regex = "1"
 hmac = "0.12"
+drag = "2.1.1"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.61.3", features = ["Foundation", "Graphics_Imaging", "Media_Ocr", "Storage", "Storage_Streams", "Globalization", "Win32_System_WinRT", "Win32_System_Com", "Win32_Foundation", "Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common"] }
