@@ -26,8 +26,8 @@
 
 import { ArrowDownToLine } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { type ReactElement } from 'react';
 import { FileTransferItemCard } from './FileTransferItemCard';
-import type { ReactElement } from 'react';
 import type { FileTransferListProps } from '../types/fileTransferTypes';
 
 /**

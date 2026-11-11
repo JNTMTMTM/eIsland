@@ -26,8 +26,8 @@
 
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { type ReactElement } from 'react';
 import { clearFileTransferItems } from '../../../../store/fileTransferStore';
-import type { ReactElement } from 'react';
 import type { FileTransferHeaderProps } from '../types/fileTransferTypes';
 
 /**

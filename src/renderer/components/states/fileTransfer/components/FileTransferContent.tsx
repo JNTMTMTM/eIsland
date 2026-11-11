@@ -24,12 +24,12 @@
  * @author 鸡哥
  */
 
+import { type ReactElement } from 'react';
 import { useFileTransferPanel } from '../hooks/useFileTransferPanel';
 import '../styles/file-transfer.css';
 import { FileTransferDropZone } from './FileTransferDropZone';
 import { FileTransferHeader } from './FileTransferHeader';
 import { FileTransferList } from './FileTransferList';
-import type { ReactElement } from 'react';
 
 /**
  * 文件中转站状态内容。

@@ -24,10 +24,9 @@
  * @author 鸡哥
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { FILE_TRANSFER_STORE_KEY, loadFileTransferItems, useFileTransferStore } from '../../../../store/fileTransferStore';
 import useIslandStore from '../../../../store/slices';
-import type { MouseEvent, PointerEvent } from 'react';
 import type { UseFileTransferPanelReturn } from '../types/fileTransferTypes';
 
 /**

@@ -26,9 +26,9 @@
 
 import { File, FolderSearch, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { type ReactElement } from 'react';
 import { removeFileTransferItem } from '../../../../store/fileTransferStore';
 import { useFileTransferItem } from '../hooks/useFileTransferItem';
-import type { ReactElement } from 'react';
 import type { FileTransferItemCardProps } from '../types/fileTransferTypes';
 
 /**

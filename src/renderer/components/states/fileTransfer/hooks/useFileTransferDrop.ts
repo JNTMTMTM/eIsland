@@ -42,6 +42,8 @@ export function useFileTransferDrop({ state, setFileTransfer }: UseFileTransferD
   stateRef.current = state;
 
   useEffect(() => {
+    // idle/歌词状态默认鼠标穿透，收不到原生拖入；useIslandHoverInteraction 轮询系统光标，
+    // 光标（包括拖动文件时）进入岛屿即关闭穿透，随后的拖动移动才会触发这里的 drag-enter。
     const unsubscribe = window.api.onNativeDragEnter((paths) => {
       if (paths.length > 0 && FILE_TRANSFER_DROP_STATES.has(stateRef.current)) setFileTransfer();
     });
