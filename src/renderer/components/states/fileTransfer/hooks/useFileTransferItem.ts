@@ -59,7 +59,9 @@ export function useFileTransferItem(path: string): UseFileTransferItemReturn {
     if (!origin) return;
     if (Math.hypot(event.clientX - origin.x, event.clientY - origin.y) < FILE_TRANSFER_DRAG_THRESHOLD) return;
     originRef.current = null;
-    window.api.startFileDrag([path]).catch(() => {});
+    window.api.startFileDrag([path]).catch((error: unknown) => {
+      console.error('[fileTransfer] start drag failed:', error);
+    });
   };
 
   const onPointerUp = (): void => {

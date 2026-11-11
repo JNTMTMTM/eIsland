@@ -25,7 +25,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useFileTransferStore } from '../../../../store/fileTransferStore';
+import { FILE_TRANSFER_STORE_KEY, loadFileTransferItems, useFileTransferStore } from '../../../../store/fileTransferStore';
 import useIslandStore from '../../../../store/slices';
 import type { MouseEvent, PointerEvent } from 'react';
 import type { UseFileTransferPanelReturn } from '../types/fileTransferTypes';
@@ -40,6 +40,14 @@ export function useFileTransferPanel(): UseFileTransferPanelReturn {
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const pressedTargetRef = useRef<EventTarget | null>(null);
   const [dropZoneActive, setDropZoneActive] = useState(false);
+
+  // 每个窗口的列表各自独立，挂载时及其他窗口写入后都从共享存储刷新。
+  useEffect(() => {
+    loadFileTransferItems().catch(() => {});
+    return window.api.onSettingsChanged((channel) => {
+      if (channel === `store:${FILE_TRANSFER_STORE_KEY}`) loadFileTransferItems().catch(() => {});
+    });
+  }, []);
 
   useEffect(() => window.api.onNativeDragPosition((position) => {
     const target = position && document.elementFromPoint(position.x, position.y);
@@ -70,11 +78,10 @@ export function useFileTransferPanel(): UseFileTransferPanelReturn {
     const pressedTarget = pressedTargetRef.current;
     pressedTargetRef.current = null;
     // 从卡片拖到空白处时，浏览器可能把点击派发给共同的父节点。
-    if (
-      event.target === pressedTarget
-      && event.target instanceof HTMLElement
-      && event.target.hasAttribute('data-file-transfer-dismiss')
-    ) {
+    if (event.target !== pressedTarget || !(event.target instanceof Element)) return;
+    // 以最近的标记区域或可交互元素为准：标记区域内的文字也可收起，卡片与按钮则不会。
+    const owner = event.target.closest('[data-file-transfer-dismiss], button, .file-transfer-card');
+    if (owner?.hasAttribute('data-file-transfer-dismiss')) {
       returnFromAuth();
     }
   };

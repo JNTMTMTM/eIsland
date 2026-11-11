@@ -26,7 +26,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_plugin_opener::OpenerExt;
 
 pub fn handles(channel: &str) -> bool {
@@ -45,7 +45,6 @@ pub fn handles(channel: &str) -> bool {
             | "app:get-file-icon"
             | "app:open-file"
             | "app:open-in-explorer"
-            | "app:start-file-drag"
             | "app:save-image-as"
             | "app:resolve-shortcut"
             | "app:compute-file-hash"
@@ -214,7 +213,6 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
             return crate::features::wallpaper::video::extract(app, &a).await
         }
         "wallpaper:system:set" => return crate::features::wallpaper::set(app, &a).await,
-        "app:start-file-drag" => return start_file_drag(app, &a),
         "wallpaper:video:probe"
         | "wallpaper:video:prepare"
         | "wallpaper:video:cover"
@@ -247,8 +245,9 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
         outcome
     }
 }
-/// 在主线程发起系统文件拖出；OLE/AppKit 拖放会阻塞事件循环直至放下或取消，因此不等待结果。
-fn start_file_drag(app: &AppHandle, paths: &Value) -> Result<Value> {
+/// 在发起调用的窗口上启动系统文件拖出，并返回原生拖拽的启动结果。
+/// OLE 拖放会在主线程阻塞至放下或取消，结果经通道异步等待，不占用主线程。
+pub async fn start_file_drag(window: &WebviewWindow, paths: &Value) -> Result<Value> {
     let files: Vec<PathBuf> = paths
         .as_array()
         .ok_or("Expected path list")?
@@ -260,28 +259,26 @@ fn start_file_drag(app: &AppHandle, paths: &Value) -> Result<Value> {
     if files.is_empty() {
         return Ok(json!(false));
     }
-    let window = app
-        .get_webview_window("main")
-        .ok_or("Main window unavailable")?;
     // macOS 要求有效的拖拽图像，使用 1x1 透明 PNG 让系统只显示光标与复制标记。
     let mut image = std::io::Cursor::new(Vec::new());
     ::image::RgbaImage::new(1, 1)
         .write_to(&mut image, ::image::ImageFormat::Png)
         .map_err(|e| e.to_string())?;
     let target = window.clone();
+    let (sender, receiver) = tokio::sync::oneshot::channel();
     window
         .run_on_main_thread(move || {
-            if let Err(error) = drag::start_drag(
+            let result = drag::start_drag(
                 &target,
                 drag::DragItem::Files(files),
                 drag::Image::Raw(image.into_inner()),
                 |_, _| {},
                 drag::Options::default(),
-            ) {
-                eprintln!("[files] start drag failed: {error}");
-            }
+            );
+            let _ = sender.send(result.map_err(|error| error.to_string()));
         })
         .map_err(|e| e.to_string())?;
+    receiver.await.map_err(|e| e.to_string())??;
     Ok(json!(true))
 }
 fn text(value: &Value) -> Result<&str> {

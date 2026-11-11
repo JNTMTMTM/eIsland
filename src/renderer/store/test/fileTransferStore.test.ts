@@ -20,7 +20,7 @@
 
 /**
  * @file fileTransferStore.test.ts
- * @description 文件中转站列表解析、合并与持久化恢复测试。
+ * @description 文件中转站列表解析、合并与串行比较快照持久化测试。
  * @author 鸡哥
  */
 
@@ -28,15 +28,37 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FILE_TRANSFER_STORE_KEY } from '../fileTransferStore';
 import { FILE_TRANSFER_MAX_ITEMS, getFileNameFromPath, mergeFileTransferPaths, parseFileTransferItems } from '../utils/fileTransferUtils';
 
-const api = { storeRead: vi.fn<(key: string) => Promise<unknown>>(), storeWrite: vi.fn<(key: string, data: unknown) => Promise<boolean>>() };
+const api = {
+  storeRead: vi.fn<(key: string, strict?: boolean) => Promise<unknown>>(),
+  storeCompareAndSwap: vi.fn<(key: string, expected: unknown, data: unknown) => Promise<'updated' | 'conflict' | 'error'>>(),
+};
+/** 模拟共享存储中的当前值，比较快照时按引用判断是否被其他窗口改写 */
+let stored: unknown = null;
+
+/**
+ * 读取模拟存储中的路径列表。
+ * @returns 已保存的路径。
+ */
+function storedPaths(): string[] {
+  return (stored as { path: string }[]).map((item) => item.path);
+}
 
 beforeEach(() => {
   vi.resetModules();
-  api.storeRead.mockReset();
-  api.storeWrite.mockReset().mockResolvedValue(true);
+  stored = null;
+  api.storeRead.mockReset().mockImplementation(() => Promise.resolve(stored));
+  api.storeCompareAndSwap.mockReset().mockImplementation((...[, expected, data]) => {
+    if (expected !== stored) return Promise.resolve('conflict');
+    stored = data;
+    return Promise.resolve('updated');
+  });
   vi.stubGlobal('window', { api });
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
-afterEach(() => { vi.unstubAllGlobals(); });
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe('fileTransferUtils', () => {
   it('extracts file names from Windows and POSIX paths', () => {
@@ -59,42 +81,72 @@ describe('fileTransferUtils', () => {
 });
 
 describe('fileTransferStore', () => {
-  it('restores saved items once and persists later changes', async () => {
-    api.storeRead.mockResolvedValue([{ path: '/saved', name: 'saved', addedAt: 1 }]);
+  it('restores saved items and persists later changes in order', async () => {
+    stored = [{ path: '/saved', name: 'saved', addedAt: 1 }];
     const store = await import('../fileTransferStore');
-    await Promise.all([store.loadFileTransferItems(), store.loadFileTransferItems()]);
-    expect(api.storeRead).toHaveBeenCalledOnce();
-    expect(api.storeWrite).not.toHaveBeenCalled();
+    await store.loadFileTransferItems();
+    expect(api.storeRead).toHaveBeenCalledWith(FILE_TRANSFER_STORE_KEY, true);
+    expect(api.storeCompareAndSwap).not.toHaveBeenCalled();
 
     store.addFileTransferPaths(['/new']);
     expect(store.useFileTransferStore.getState().items.map((item) => item.path)).toEqual(['/new', '/saved']);
     store.removeFileTransferItem('/saved');
     store.clearFileTransferItems();
-    expect(api.storeWrite.mock.calls.map(([key, data]) => [key, (data as { path: string }[]).map((item) => item.path)])).toEqual([
-      [FILE_TRANSFER_STORE_KEY, ['/new', '/saved']],
-      [FILE_TRANSFER_STORE_KEY, ['/new']],
-      [FILE_TRANSFER_STORE_KEY, []],
+    await store.loadFileTransferItems();
+    expect(api.storeCompareAndSwap.mock.calls.map(([, , data]) => (data as { path: string }[]).map((item) => item.path))).toEqual([
+      ['/new', '/saved'],
+      ['/new'],
+      [],
     ]);
+    expect(store.useFileTransferStore.getState().items).toEqual([]);
   });
 
-  it('keeps files dropped before restore completes without overwriting the saved list', async () => {
-    let resolveRead: (value: unknown) => void = () => {};
-    api.storeRead.mockReturnValue(new Promise((resolve) => { resolveRead = resolve; }));
+  it('applies additions and removals made before the first restore to the saved list', async () => {
+    stored = [{ path: '/saved', name: 'saved', addedAt: 1 }, { path: '/old', name: 'old', addedAt: 1 }];
     const store = await import('../fileTransferStore');
     const loading = store.loadFileTransferItems();
     store.addFileTransferPaths(['/early']);
-    expect(api.storeWrite).not.toHaveBeenCalled();
-
-    resolveRead([{ path: '/saved', name: 'saved', addedAt: 1 }]);
+    store.removeFileTransferItem('/old');
     await loading;
+    await store.loadFileTransferItems();
+    expect(storedPaths()).toEqual(['/early', '/saved']);
     expect(store.useFileTransferStore.getState().items.map((item) => item.path)).toEqual(['/early', '/saved']);
-    expect(api.storeWrite).toHaveBeenCalledOnce();
   });
 
-  it('starts empty when the saved list cannot be read', async () => {
-    api.storeRead.mockRejectedValue(new Error('io'));
+  it('merges with changes another window saved in between', async () => {
+    const store = await import('../fileTransferStore');
+    api.storeRead.mockImplementationOnce(() => {
+      const snapshot = stored;
+      // 读取后另一窗口抢先写入，本次比较快照失败并基于新列表重算。
+      stored = [{ path: '/other', name: 'other', addedAt: 1 }];
+      return Promise.resolve(snapshot);
+    });
+    store.addFileTransferPaths(['/mine']);
+    await store.loadFileTransferItems();
+    expect(api.storeCompareAndSwap).toHaveBeenCalledTimes(2);
+    expect(storedPaths()).toEqual(['/mine', '/other']);
+  });
+
+  it('never writes after a failed read and reverts the view to the saved list', async () => {
+    stored = [{ path: '/saved', name: 'saved', addedAt: 1 }];
     const store = await import('../fileTransferStore');
     await store.loadFileTransferItems();
-    expect(store.useFileTransferStore.getState()).toMatchObject({ items: [], loaded: true });
+    api.storeRead.mockRejectedValueOnce(new Error('io'));
+    store.clearFileTransferItems();
+    expect(store.useFileTransferStore.getState().items).toEqual([]);
+    await store.loadFileTransferItems();
+    expect(api.storeCompareAndSwap).not.toHaveBeenCalled();
+    expect(storedPaths()).toEqual(['/saved']);
+    expect(store.useFileTransferStore.getState().items.map((item) => item.path)).toEqual(['/saved']);
+    expect(console.error).toHaveBeenCalled();
+  });
+
+  it('withdraws files whose write failed', async () => {
+    const store = await import('../fileTransferStore');
+    api.storeCompareAndSwap.mockResolvedValueOnce('error');
+    store.addFileTransferPaths(['/lost']);
+    await store.loadFileTransferItems();
+    expect(stored).toBeNull();
+    expect(store.useFileTransferStore.getState().items).toEqual([]);
   });
 });

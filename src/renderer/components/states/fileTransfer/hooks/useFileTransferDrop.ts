@@ -25,7 +25,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { addFileTransferPaths, loadFileTransferItems } from '../../../../store/fileTransferStore';
+import { addFileTransferPaths } from '../../../../store/fileTransferStore';
+import useIslandStore from '../../../../store/slices';
 import { FILE_TRANSFER_DROP_STATES } from '../config/fileTransferConfig';
 import type { UseFileTransferDropOptions } from '../types/fileTransferTypes';
 
@@ -34,14 +35,11 @@ import type { UseFileTransferDropOptions } from '../types/fileTransferTypes';
  * @param options - 当前岛屿状态与切换入口。
  * @param options.state - 当前岛屿状态。
  * @param options.setFileTransfer - 切换到文件中转站状态。
+ * @returns 无返回值。
  */
 export function useFileTransferDrop({ state, setFileTransfer }: UseFileTransferDropOptions): void {
   const stateRef = useRef(state);
   stateRef.current = state;
-
-  useEffect(() => {
-    loadFileTransferItems().catch(() => {});
-  }, []);
 
   useEffect(() => {
     const unsubscribe = window.api.onNativeDragEnter((paths) => {
@@ -54,6 +52,8 @@ export function useFileTransferDrop({ state, setFileTransfer }: UseFileTransferD
      */
     const handleDrop = (event: DragEvent): void => {
       if (!FILE_TRANSFER_DROP_STATES.has(stateRef.current)) return;
+      // UI 锁定时无法展开中转站，不接收文件，避免文件被静默记录。
+      if (stateRef.current !== 'fileTransfer' && useIslandStore.getState().uiStateLocked) return;
       const paths = Array.from(event.dataTransfer?.files ?? [], (file) => window.api.getPathForFile(file)).filter(Boolean);
       if (paths.length === 0) return;
       event.preventDefault();

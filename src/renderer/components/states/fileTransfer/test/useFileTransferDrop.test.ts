@@ -20,7 +20,7 @@
 
 /**
  * @file useFileTransferDrop.test.ts
- * @description 文件拖入在允许状态下切换中转站、记录路径并在卸载时清理订阅的测试。
+ * @description 文件拖入在允许状态下切换中转站、记录路径、UI 锁定时拒收并在卸载时清理订阅的测试。
  * @author 鸡哥
  */
 
@@ -32,8 +32,10 @@ vi.mock('react', async (original) => {
   const { createHookReactMock } = await import('../../../hooks/test/startupHookHarness');
   return createHookReactMock(actual);
 });
-const store = vi.hoisted(() => ({ addFileTransferPaths: vi.fn(), loadFileTransferItems: vi.fn(() => Promise.resolve()) }));
+const store = vi.hoisted(() => ({ addFileTransferPaths: vi.fn() }));
 vi.mock('../../../../store/fileTransferStore', () => store);
+const island = vi.hoisted(() => ({ uiStateLocked: false }));
+vi.mock('../../../../store/slices', () => ({ default: { getState: () => island } }));
 
 let dragEnter: ((paths: string[]) => void) | null = null;
 const unsubscribe = vi.fn();
@@ -69,6 +71,7 @@ beforeEach(() => {
   resetHook();
   vi.clearAllMocks();
   dragEnter = null;
+  island.uiStateLocked = false;
   vi.stubGlobal('window', { api });
   vi.stubGlobal('document', documentBoundary);
 });
@@ -81,7 +84,6 @@ describe('useFileTransferDrop', () => {
   it.each(['idle', 'hover', 'lyrics', 'lyricsTranslation'])('opens the shelf on drag enter and records drops in %s', async (state) => {
     const setFileTransfer = vi.fn();
     await run(state, setFileTransfer);
-    expect(store.loadFileTransferItems).toHaveBeenCalledOnce();
 
     dragEnter?.(['C:\\a.txt']);
     expect(setFileTransfer).toHaveBeenCalledOnce();
@@ -107,6 +109,21 @@ describe('useFileTransferDrop', () => {
     drop(['/b']);
     expect(store.addFileTransferPaths).toHaveBeenCalledOnce();
     expect(setFileTransfer).not.toHaveBeenCalled();
+  });
+
+  it('rejects drops while the UI lock keeps the shelf closed', async () => {
+    island.uiStateLocked = true;
+    await run('idle', vi.fn());
+    const event = drop(['/a']);
+    expect(store.addFileTransferPaths).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('still accepts drops into an already open shelf while locked', async () => {
+    island.uiStateLocked = true;
+    await run('fileTransfer', vi.fn());
+    drop(['/b']);
+    expect(store.addFileTransferPaths).toHaveBeenCalledWith(['/b']);
   });
 
   it('unsubscribes native drag enter and the drop listener on unmount', async () => {
