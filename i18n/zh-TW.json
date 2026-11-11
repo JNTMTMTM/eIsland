@@ -3678,7 +3678,7 @@
       },
       "lyrics": {
         "enabledTitle": "歌詞功能",
-        "enabledHint": "關閉後不再發送歌詞相關網絡請求，不顯示歌詞，不切換到歌詞狀態",
+        "enabledHint": "關閉後不再發送歌詞相關網絡請求，不顯示歌詞；播放音樂時動態島只顯示歌名",
         "enabledToggle": "啟用歌詞功能",
         "translationTitle": "翻譯歌詞",
         "translationHint": "關閉後不顯示翻譯歌詞，不切換到翻譯歌詞狀態",

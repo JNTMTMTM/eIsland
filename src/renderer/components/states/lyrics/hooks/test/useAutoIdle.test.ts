@@ -50,6 +50,13 @@ describe('真实歌词播放状态回退', () => {
     renderWithHooks(() => useAutoIdle(playing, loading, lyrics, useIslandStore.getState().setIdle)); runEffects();
     expect(useIslandStore.getState().state).toBe(idle ? 'idle' : 'lyrics'); expect(collapseWindow).toHaveBeenCalledTimes(idle ? 1 : 0);
   });
+  it('只显示歌名时没有歌词也保持歌词状态，停止播放仍回到idle', () => {
+    const { setIdle } = useIslandStore.getState();
+    renderWithHooks(() => useAutoIdle(true, false, null, setIdle, true)); runEffects();
+    expect(useIslandStore.getState().state).toBe('lyrics');
+    renderWithHooks(() => useAutoIdle(false, false, null, setIdle, true)); runEffects();
+    expect(useIslandStore.getState().state).toBe('idle');
+  });
   it('同一输入不重复执行窗口动作，播放停止的最新依赖才触发真实idle', () => {
     const lines = [{ time_ms: 0, text: '歌词' }]; const {setIdle} = useIslandStore.getState();
     renderWithHooks(() => useAutoIdle(true, false, lines, setIdle)); runEffects();

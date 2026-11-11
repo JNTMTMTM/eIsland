@@ -28,25 +28,27 @@ import { useEffect } from 'react';
 import type { SyncedLyricLine } from '../../../../store/types';
 
 /**
- * 当音乐停止或歌词为空时，自动切回 idle 状态。
+ * 当音乐停止或歌词为空时，自动切回 idle 状态；只显示歌名时不因缺少歌词而切回。
  * @param isMusicPlaying - 是否正在播放音乐。
  * @param lyricsLoading - 歌词是否加载中。
  * @param syncedLyrics - 同步歌词数据。
  * @param setIdle - 切回 idle 的回调。
+ * @param songTitleMode - 是否只显示歌名。
  */
 export function useAutoIdle(
   isMusicPlaying: boolean,
   lyricsLoading: boolean,
   syncedLyrics: SyncedLyricLine[] | null,
   setIdle: () => void,
+  songTitleMode = false,
 ): void {
   useEffect(() => {
     if (!isMusicPlaying) {
       setIdle();
       return;
     }
-    if (!lyricsLoading && (!syncedLyrics || syncedLyrics.length === 0)) {
+    if (!songTitleMode && !lyricsLoading && (!syncedLyrics || syncedLyrics.length === 0)) {
       setIdle();
     }
-  }, [isMusicPlaying, lyricsLoading, syncedLyrics, setIdle]);
+  }, [isMusicPlaying, lyricsLoading, syncedLyrics, setIdle, songTitleMode]);
 }

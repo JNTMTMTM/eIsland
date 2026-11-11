@@ -27,7 +27,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { byClass, find, text } from '../../test/tree';
+import { useLyricsDisplayStore } from '../../../../store/lyricsDisplayStore';
 import { LyricsContent } from '../LyricsContent';
+import { SvgIcon } from '../../../../utils/SvgIcon';
 
 import { ScrollingText } from '../components/ScrollingText';
 import { KaraokeSyllableLine } from '../components/KaraokeSyllableLine';
@@ -38,16 +40,29 @@ const model = vi.hoisted(() => ({
   settings: { karaokeEnabled: false, clockEnabled: true, musicOuterGlowEffectEnabled: true },
   lyric: { currentIdx: 1, hasLyrics: true, isIntro: false, currentLine: { time_ms: 1000, text: 'Original', syllables: [{ text: 'Original', start_offset_ms: 0, duration_ms: 1000 }] }, currentText: 'Original', hasSyllables: false },
 }));
+// 测试替身不提供 React 调度器，把歌词显示开关的 zustand Hook 绑定到当前快照。
+vi.mock('../../../../store/lyricsDisplayStore', async (load) => {
+  const actual = await load<typeof import('../../../../store/lyricsDisplayStore')>();
+  const bound = Object.assign(<T,>(selector: (state: ReturnType<typeof actual.useLyricsDisplayStore.getState>) => T): T => selector(actual.useLyricsDisplayStore.getState()), actual.useLyricsDisplayStore);
+  return { ...actual, useLyricsDisplayStore: bound };
+});
 vi.mock('../../../../store/slices', () => ({ default: (selector: (state: typeof model.store) => unknown) => selector(model.store) }));
 vi.mock('../hooks/useLyricsSettings', () => ({ useLyricsSettings: () => model.settings }));
 vi.mock('../hooks/useBeijingClock', () => ({ useBeijingClock: () => '12:34' }));
 vi.mock('../hooks/useAutoIdle', () => ({ useAutoIdle: vi.fn() }));
 vi.mock('../hooks/useCurrentLyric', () => ({ useCurrentLyric: () => model.lyric }));
 vi.mock('../hooks/useKaraokeScrollProgress', () => ({ useKaraokeScrollProgress: () => 0.5 }));
-beforeEach(() => { model.store.lyricsLoading = false; model.lyric.isIntro = false; model.lyric.currentText = 'Original'; model.settings.karaokeEnabled = false; model.lyric.hasSyllables = false; model.settings.clockEnabled = true; model.store.isPlaying = true; });
+beforeEach(() => { useLyricsDisplayStore.setState({ lyricsEnabled: true }); model.store.lyricsLoading = false; model.lyric.isIntro = false; model.lyric.currentText = 'Original'; model.settings.karaokeEnabled = false; model.lyric.hasSyllables = false; model.settings.clockEnabled = true; model.store.isPlaying = true; });
 describe('LyricsContent', () => {
   it('renders clock, cover and plain lyric', () => { const root = ((LyricsContent() as TreeElement)); expect(text(root)).toContain('12:34'); expect(text(root)).toContain('Original'); expect(find(root, (node) => node.type === ScrollingText).props.scrollProgress).toBe(0.5); expect(byClass(root, 'idle-album-cover').props.className).toContain('glowing'); });
   it('prioritizes loading and intro over current text', () => { model.store.lyricsLoading = true; expect(text(((LyricsContent() as TreeElement)))).toContain('songTab.lyrics.loading'); model.store.lyricsLoading = false; model.lyric.isIntro = true; expect(text(((LyricsContent() as TreeElement)))).toContain('Song'); expect(text(((LyricsContent() as TreeElement)))).not.toContain('Original'); });
   it('renders empty fallback and omits disabled clock', () => { model.lyric.currentText = ''; model.settings.clockEnabled = false; const root = ((LyricsContent() as TreeElement)); expect(text(root)).toContain('songTab.lyrics.empty'); expect(text(root)).not.toContain('12:34'); });
+  it('reuses the intro metadata view when the lyrics feature is off', () => {
+    useLyricsDisplayStore.setState({ lyricsEnabled: false }); model.store.lyricsLoading = true;
+    const root = ((LyricsContent() as TreeElement));
+    expect(byClass(root, 'lyrics-intro-title-center').props.children).toBe('Song');
+    expect(byClass(root, 'lyrics-intro-icon').props.src).toBe(SvgIcon.MUSIC);
+    expect(text(root)).not.toContain('Artist'); expect(text(root)).not.toContain('Original'); expect(text(root)).not.toContain('songTab.lyrics.loading');
+  });
   it('forwards karaoke timing and marks paused glow', () => { model.settings.karaokeEnabled = true; model.lyric.hasSyllables = true; model.store.isPlaying = false; const root = ((LyricsContent() as TreeElement)); expect(find(root, (node) => node.type === KaraokeSyllableLine).props).toMatchObject({ lineStartMs: 1000, posMs: 1500 }); expect(byClass(root, 'idle-glow').props.className).toContain('paused'); });
 });

@@ -3678,7 +3678,7 @@
       },
       "lyrics": {
         "enabledTitle": "Lyrics Feature",
-        "enabledHint": "When disabled, no lyrics network requests are sent, lyrics are not displayed, and the island does not switch to lyrics state",
+        "enabledHint": "When disabled, no lyrics network requests are sent and lyrics are not displayed; while music plays the island shows only the song title",
         "enabledToggle": "Enable lyrics feature",
         "translationTitle": "Translation Lyrics",
         "translationHint": "When disabled, translation lyrics are not displayed and the island does not switch to translation lyrics state",

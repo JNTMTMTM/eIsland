@@ -27,6 +27,7 @@
 import { useShallow } from 'zustand/react/shallow';
 import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isSongTitleMode } from '../../../store/lyricsDisplayStore';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import { ALARM_SOUND_STOP_EVENT } from '../../../utils/audio/alarmSound';
@@ -152,7 +153,8 @@ export function NotificationContent({
   const dismiss = (): void => {
     window.dispatchEvent(new CustomEvent(ALARM_SOUND_STOP_EVENT));
     const store = useIslandStore.getState();
-    if (store.isMusicPlaying && store.coverImage && (store.syncedLyrics?.length || store.lyricsLoading)) {
+    const hasMusicLine = isSongTitleMode() ? Boolean(store.mediaInfo.title) : Boolean(store.syncedLyrics?.length || store.lyricsLoading);
+    if (store.isMusicPlaying && store.coverImage && hasMusicLine) {
       setLyrics();
     } else {
       setIdle();

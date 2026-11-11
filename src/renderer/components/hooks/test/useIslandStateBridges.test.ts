@@ -29,10 +29,17 @@ import { lifecycleHooks } from '../../components/test/contentLifecycleHarness';
 import { hookMocks } from '../../test/elementHarness';
 import { browser, renderWithHooks, resetBrowser, runEffects, settle, unmountHooks } from '../../states/register/hooks/test/authHookHarness';
 import useIslandStore from '../../../store/isLandStore';
+import { useLyricsDisplayStore } from '../../../store/lyricsDisplayStore';
 import { useIslandStateBridges } from '../useIslandStateBridges';
 vi.hoisted(() => { vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } })); });
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 vi.mock('react-i18next', async (load) => ({ ...(await load<typeof import('react-i18next')>()), useTranslation: () => ({ t: (key: string) => key }) }));
+// 测试替身不提供 React 调度器，把歌词显示开关的 zustand Hook 绑定到当前快照。
+vi.mock('../../../store/lyricsDisplayStore', async (load) => {
+  const actual = await load<typeof import('../../../store/lyricsDisplayStore')>();
+  const bound = Object.assign(<T,>(selector: (state: ReturnType<typeof actual.useLyricsDisplayStore.getState>) => T): T => selector(actual.useLyricsDisplayStore.getState()), actual.useLyricsDisplayStore);
+  return { ...actual, useLyricsDisplayStore: bound };
+});
 vi.mock('../../../store/isLandStore', async (load) => {
   const actual = await load<typeof import('../../../store/isLandStore')>();
   const bound = Object.assign(<T>(selector?: (state: ReturnType<typeof actual.default.getState>) => T) => selector ? selector(actual.default.getState()) : actual.default.getState(), actual.default);
@@ -51,7 +58,8 @@ const ipc = {
 beforeEach(() => {
   resetBrowser(); enabled.mockResolvedValue(true); translationEnabled.mockResolvedValue(true); settings = null; voice = null;
   vi.stubGlobal('window', Object.assign(browser, { api: { ...browser.api, ...ipc } }));
-  useIslandStore.setState({ uiStateLocked: false, currentPositionMs: 0 });
+  useIslandStore.setState({ uiStateLocked: false, currentPositionMs: 0, mediaInfo: { title: 'Song', artist: 'Singer', album: '', duration_ms: 0 } });
+  useLyricsDisplayStore.setState({ lyricsEnabled: true });
 });
 afterEach(() => { unmountHooks(); vi.unstubAllGlobals(); });
 /**
@@ -80,15 +88,52 @@ function commit(input: Options): void {
 async function mount(input: Options): Promise<void> {
   commit(input); await settle(); commit(input);
 }
+/**
+ * 模拟已保存并已加载的「歌词功能关闭」设置。
+ * @returns 无返回值。
+ */
+function titleMode(): void {
+  enabled.mockResolvedValue(false);
+  useLyricsDisplayStore.setState({ lyricsEnabled: false });
+}
+describe('useIslandStateBridges 只显示歌名', () => {
+  it('关闭歌词功能后，没有歌词的歌曲也进入歌词状态显示歌名', async () => {
+    titleMode();
+    const input = options({ syncedLyrics: null, lyricsLoading: false }); await mount(input);
+    expect(input.setLyrics).toHaveBeenCalled();
+  });
+  it('只显示歌名时不升级到翻译歌词', async () => {
+    titleMode();
+    const input = options({ translationLyrics: { status: 'available', lines: [{ time_ms: 0, text: 'Translated' }] } }); await mount(input);
+    expect(input.setLyrics).toHaveBeenCalled(); expect(input.setLyricsTranslation).not.toHaveBeenCalled();
+    commit({ ...input, state: 'lyrics' }); expect(input.setLyricsTranslation).not.toHaveBeenCalled();
+  });
+  it('只显示歌名时翻译歌词状态回退到歌词状态', async () => {
+    titleMode();
+    const input = options({ state: 'lyricsTranslation' }); await mount(input);
+    expect(input.setLyrics).toHaveBeenCalled();
+  });
+  it('没有歌名或未播放时不进入', async () => {
+    titleMode();
+    useIslandStore.setState({ mediaInfo: { title: '', artist: '', album: '', duration_ms: 0 } });
+    const noTitle = options({ syncedLyrics: null }); await mount(noTitle); expect(noTitle.setLyrics).not.toHaveBeenCalled();
+    useIslandStore.setState({ mediaInfo: { title: 'Song', artist: '', album: '', duration_ms: 0 } });
+    const paused = options({ isPlaying: false }); await mount(paused); expect(paused.setLyrics).not.toHaveBeenCalled();
+  });
+});
 describe('useIslandStateBridges 实际状态与设置', () => {
   it.each([
     { state: 'hover' }, { timerState: 'running' }, { isPlaying: false }, { syncedLyrics: null, lyricsLoading: false },
   ] satisfies Partial<Options>[])('不符合歌词显示条件时不切换：%s', async (patch) => {
     const input = options(patch); await mount(input); expect(input.setLyrics).not.toHaveBeenCalled(); expect(input.setLyricsTranslation).not.toHaveBeenCalled();
   });
-  it('歌词加载中可进入普通歌词，初始设置关闭后阻止进入', async () => {
+  it('歌词加载中可进入普通歌词；关闭歌词功能后只有带歌名的歌曲进入', async () => {
     const input = options({ syncedLyrics: null, lyricsLoading: true }); await mount(input); expect(input.setLyrics).toHaveBeenCalled();
-    settings?.('music:lyrics-enabled', false); vi.mocked(input.setLyrics).mockClear(); commit(input); expect(input.setLyrics).not.toHaveBeenCalled();
+    browser.dispatchEvent(new CustomEvent('island:setting-changed', { detail: { channel: 'music:lyrics-enabled', value: false } }));
+    expect(useLyricsDisplayStore.getState().lyricsEnabled).toBe(false);
+    vi.mocked(input.setLyrics).mockClear(); commit(input); expect(input.setLyrics).toHaveBeenCalled();
+    useIslandStore.setState({ mediaInfo: { title: '', artist: '', album: '', duration_ms: 0 } });
+    vi.mocked(input.setLyrics).mockClear(); commit(input); expect(input.setLyrics).not.toHaveBeenCalled();
   });
   it.each([
     null, { status: 'unsupported', lines: null }, { status: 'available', lines: null }, { status: 'available', lines: [] },
@@ -136,13 +181,13 @@ describe('useIslandStateBridges 实际状态与设置', () => {
   });
   it('状态改变重订阅语音且卸载移除原生与本地事件监听', async () => {
     const input = options({ state: 'hover', isPlaying: false }); await mount(input); commit({ ...input, state: 'idle' });
-    expect(unsubscribeVoice).toHaveBeenCalledOnce(); unmountHooks(); expect(unsubscribeVoice).toHaveBeenCalledTimes(2); expect(unsubscribeSettings).toHaveBeenCalledOnce();
+    expect(unsubscribeVoice).toHaveBeenCalledOnce(); unmountHooks(); expect(unsubscribeVoice).toHaveBeenCalledTimes(2); expect(unsubscribeSettings).toHaveBeenCalledTimes(2);
     expect(settings).toBeNull(); expect(voice).toBeNull();
     browser.dispatchEvent(new CustomEvent('island:setting-changed', { detail: { channel: 'music:lyrics-enabled', value: false } }));
     commit(input); expect(input.setLyrics).not.toHaveBeenCalled();
   });
   it('可选语音 IPC 缺失时设置订阅仍正常且可清理', async () => {
     vi.stubGlobal('window', Object.assign(browser, { api: { ...browser.api, onAgentVoiceInputState: undefined } }));
-    const input = options({ state: 'hover' }); await mount(input); expect(voice).toBeNull(); unmountHooks(); expect(unsubscribeSettings).toHaveBeenCalledOnce();
+    const input = options({ state: 'hover' }); await mount(input); expect(voice).toBeNull(); unmountHooks(); expect(unsubscribeSettings).toHaveBeenCalledTimes(2);
   });
 });
