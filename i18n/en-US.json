@@ -5284,7 +5284,6 @@
     "empty": "No files on the shelf",
     "actions": {
       "clear": "Clear",
-      "close": "Close",
       "locate": "Show in folder",
       "remove": "Remove from shelf"
     }

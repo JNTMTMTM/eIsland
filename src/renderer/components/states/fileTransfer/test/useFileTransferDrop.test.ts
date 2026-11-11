@@ -33,7 +33,7 @@ vi.mock('react', async (original) => {
   return createHookReactMock(actual);
 });
 const store = vi.hoisted(() => ({ addFileTransferPaths: vi.fn(), loadFileTransferItems: vi.fn(() => Promise.resolve()) }));
-vi.mock('../store/fileTransferStore', () => store);
+vi.mock('../../../../store/fileTransferStore', () => store);
 
 let dragEnter: ((paths: string[]) => void) | null = null;
 const unsubscribe = vi.fn();

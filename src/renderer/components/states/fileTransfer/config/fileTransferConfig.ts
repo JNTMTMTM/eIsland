@@ -24,12 +24,6 @@
  * @author 鸡哥
  */
 
-/** 中转文件列表的持久化存储键 */
-export const FILE_TRANSFER_STORE_KEY = 'file-transfer-items';
-
-/** 中转站最多保留的文件数，超出时丢弃最早加入的文件 */
-export const FILE_TRANSFER_MAX_ITEMS = 50;
-
 /** 允许系统文件拖入并进入中转站的岛屿状态 */
 export const FILE_TRANSFER_DROP_STATES: ReadonlySet<string> = new Set(['idle', 'hover', 'lyrics', 'lyricsTranslation', 'fileTransfer']);
 

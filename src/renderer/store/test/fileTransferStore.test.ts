@@ -25,8 +25,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FILE_TRANSFER_MAX_ITEMS, FILE_TRANSFER_STORE_KEY } from '../config/fileTransferConfig';
-import { getFileNameFromPath, mergeFileTransferPaths, parseFileTransferItems } from '../utils/fileTransferUtils';
+import { FILE_TRANSFER_STORE_KEY } from '../fileTransferStore';
+import { FILE_TRANSFER_MAX_ITEMS, getFileNameFromPath, mergeFileTransferPaths, parseFileTransferItems } from '../utils/fileTransferUtils';
 
 const api = { storeRead: vi.fn<(key: string) => Promise<unknown>>(), storeWrite: vi.fn<(key: string, data: unknown) => Promise<boolean>>() };
 
@@ -61,7 +61,7 @@ describe('fileTransferUtils', () => {
 describe('fileTransferStore', () => {
   it('restores saved items once and persists later changes', async () => {
     api.storeRead.mockResolvedValue([{ path: '/saved', name: 'saved', addedAt: 1 }]);
-    const store = await import('../store/fileTransferStore');
+    const store = await import('../fileTransferStore');
     await Promise.all([store.loadFileTransferItems(), store.loadFileTransferItems()]);
     expect(api.storeRead).toHaveBeenCalledOnce();
     expect(api.storeWrite).not.toHaveBeenCalled();
@@ -80,7 +80,7 @@ describe('fileTransferStore', () => {
   it('keeps files dropped before restore completes without overwriting the saved list', async () => {
     let resolveRead: (value: unknown) => void = () => {};
     api.storeRead.mockReturnValue(new Promise((resolve) => { resolveRead = resolve; }));
-    const store = await import('../store/fileTransferStore');
+    const store = await import('../fileTransferStore');
     const loading = store.loadFileTransferItems();
     store.addFileTransferPaths(['/early']);
     expect(api.storeWrite).not.toHaveBeenCalled();
@@ -93,7 +93,7 @@ describe('fileTransferStore', () => {
 
   it('starts empty when the saved list cannot be read', async () => {
     api.storeRead.mockRejectedValue(new Error('io'));
-    const store = await import('../store/fileTransferStore');
+    const store = await import('../fileTransferStore');
     await store.loadFileTransferItems();
     expect(store.useFileTransferStore.getState()).toMatchObject({ items: [], loaded: true });
   });

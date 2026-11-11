@@ -19,7 +19,7 @@
  */
 
 /**
- * @file index.ts
+ * @file fileTransfer.ts
  * @description 文件中转站类型定义
  * @author 鸡哥
  */

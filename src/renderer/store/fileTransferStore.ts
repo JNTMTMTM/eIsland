@@ -25,9 +25,11 @@
  */
 
 import { create } from 'zustand';
-import { FILE_TRANSFER_STORE_KEY } from '../config/fileTransferConfig';
-import { mergeFileTransferPaths, parseFileTransferItems } from '../utils/fileTransferUtils';
-import type { FileTransferItem } from '../types';
+import { mergeFileTransferPaths, parseFileTransferItems } from './utils/fileTransferUtils';
+import type { FileTransferItem } from './types/fileTransfer';
+
+/** 中转文件列表的持久化存储键 */
+export const FILE_TRANSFER_STORE_KEY = 'file-transfer-items';
 
 interface FileTransferState {
   items: FileTransferItem[];

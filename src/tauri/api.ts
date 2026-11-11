@@ -26,7 +26,7 @@
 
 import { TRAY_MENU_CHANNELS } from '../shared/trayMenu';
 import subscribeCliStatus from './cliStatusSubscription';
-import { desktop, getNativeFilePath, invokeBytes, onNativeDragEnter, selectNativeFiles } from './runtime';
+import { desktop, getNativeFilePath, invokeBytes, onNativeDragEnter, onNativeDragPosition, selectNativeFiles } from './runtime';
 import subscribeSettings from './settingsSubscription';
 import type {
   Point,
@@ -595,6 +595,12 @@ const api = {
    * @returns 取消监听函数
    */
   onNativeDragEnter: (callback: (paths: string[]) => void): (() => void) => onNativeDragEnter(callback),
+  /**
+   * 订阅系统文件拖动位置。
+   * @param callback - 接收当前视口坐标或结束时的 null。
+   * @returns 取消监听函数。
+   */
+  onNativeDragPosition,
   /**
    * 选择任意文件用于哈希校验
    * @returns 异步原生操作的string | null 结果。

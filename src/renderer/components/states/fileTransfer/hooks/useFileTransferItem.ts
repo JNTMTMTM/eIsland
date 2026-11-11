@@ -28,7 +28,8 @@ import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { FILE_TRANSFER_DRAG_THRESHOLD } from '../config/fileTransferConfig';
 
 interface UseFileTransferItemReturn {
-  icon: string | null;
+  iconBase64: string | null;
+  onIconError: () => void;
   onPointerDown: (event: PointerEvent<HTMLElement>) => void;
   onPointerMove: (event: PointerEvent<HTMLElement>) => void;
   onPointerUp: () => void;
@@ -40,16 +41,20 @@ interface UseFileTransferItemReturn {
  * @returns 文件图标与指针事件处理器。
  */
 export function useFileTransferItem(path: string): UseFileTransferItemReturn {
-  const [icon, setIcon] = useState<string | null>(null);
+  const [iconBase64, setIconBase64] = useState<string | null>(null);
   const originRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     window.api.getFileIcon(path).then((data) => {
-      if (!cancelled) setIcon(data);
+      if (!cancelled) setIconBase64(data);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [path]);
+
+  const onIconError = (): void => {
+    setIconBase64(null);
+  };
 
   const onPointerDown = (event: PointerEvent<HTMLElement>): void => {
     if (event.button !== 0) return;
@@ -70,5 +75,5 @@ export function useFileTransferItem(path: string): UseFileTransferItemReturn {
     window.api.openFile(path).catch(() => {});
   };
 
-  return { icon, onPointerDown, onPointerMove, onPointerUp };
+  return { iconBase64, onIconError, onPointerDown, onPointerMove, onPointerUp };
 }

@@ -20,15 +20,15 @@
 
 /**
  * @file FileTransferItemCard.tsx
- * @description 文件中转站中的单个文件卡片，操作按钮配色沿用快捷启动列表
+ * @description 文件中转站中的文件卡片，展示文件图标、名称与管理操作。
  * @author 鸡哥
  */
 
+import { File, FolderSearch, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SvgIcon } from '../../../../utils/SvgIcon';
+import { removeFileTransferItem } from '../../../../store/fileTransferStore';
 import { useFileTransferItem } from '../hooks/useFileTransferItem';
-import { removeFileTransferItem } from '../store/fileTransferStore';
-import type { FileTransferItem } from '../types';
+import type { FileTransferItem } from '../../../../store/types/fileTransfer';
 import type { ReactElement } from 'react';
 
 interface FileTransferItemCardProps {
@@ -43,22 +43,55 @@ interface FileTransferItemCardProps {
  */
 export function FileTransferItemCard({ item }: FileTransferItemCardProps): ReactElement {
   const { t } = useTranslation();
-  const { icon, onPointerDown, onPointerMove, onPointerUp } = useFileTransferItem(item.path);
+  const { iconBase64, onIconError, onPointerDown, onPointerMove, onPointerUp } =
+    useFileTransferItem(item.path);
 
   return (
-    <div className="group relative flex w-[84px] shrink-0 cursor-grab flex-col items-center justify-center gap-1 rounded-[10px] px-1.5 transition-colors duration-150 select-none hover:bg-[rgba(var(--color-text-rgb),0.05)] active:cursor-grabbing" title={item.path} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
-      {icon
-        ? <img className="size-7 rounded-[3px] object-contain" src={icon} alt="" draggable={false} />
-        : <img className="size-6 opacity-40 in-data-[theme=light]:invert" src={SvgIcon.ATTACHMENT} alt="" draggable={false} />}
-      <span className="w-full truncate text-center text-[11px] text-[rgba(var(--color-text-rgb),0.7)]">{item.name}</span>
-      <div className="absolute top-0.5 right-0.5 flex opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-        <button className="flex size-[18px] items-center justify-center rounded-[4px] transition-colors hover:bg-[rgba(120,200,255,0.12)]" type="button" title={t('fileTransfer.actions.locate')} aria-label={t('fileTransfer.actions.locate')} onPointerDown={(event) => event.stopPropagation()} onClick={() => { window.api.openInExplorer(item.path).catch(() => {}); }}>
-          <img className="size-2.5 opacity-60 in-data-[theme=light]:invert" src={SvgIcon.SEARCH} alt="" draggable={false} />
+    <li className="file-transfer-card">
+      <div
+        className="file-transfer-card-body"
+        title={item.path}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+      >
+        {iconBase64 ? (
+          <img
+            className="file-transfer-card-image"
+            src={`data:image/png;base64,${iconBase64}`}
+            alt=""
+            draggable={false}
+            onError={onIconError}
+          />
+        ) : (
+          <span className="file-transfer-card-placeholder">
+            <File className="file-transfer-card-icon" aria-hidden="true" />
+          </span>
+        )}
+        <span className="file-transfer-card-name">{item.name}</span>
+      </div>
+      <div className="file-transfer-card-actions">
+        <button
+          className="file-transfer-card-action file-transfer-card-locate"
+          type="button"
+          title={t('fileTransfer.actions.locate')}
+          aria-label={t('fileTransfer.actions.locate')}
+          onClick={() => {
+            window.api.openInExplorer(item.path).catch(() => {});
+          }}
+        >
+          <FolderSearch className="file-transfer-action-icon" aria-hidden="true" />
         </button>
-        <button className="flex size-[18px] items-center justify-center rounded-[4px] text-[10px] text-[rgba(255,100,100,0.5)] transition-colors hover:bg-[rgba(255,100,100,0.12)] hover:text-[rgba(255,100,100,0.9)]" type="button" title={t('fileTransfer.actions.remove')} aria-label={t('fileTransfer.actions.remove')} onPointerDown={(event) => event.stopPropagation()} onClick={() => removeFileTransferItem(item.path)}>
-          ×
+        <button
+          className="file-transfer-card-action file-transfer-destructive"
+          type="button"
+          title={t('fileTransfer.actions.remove')}
+          aria-label={t('fileTransfer.actions.remove')}
+          onClick={() => removeFileTransferItem(item.path)}
+        >
+          <X className="file-transfer-action-icon" aria-hidden="true" />
         </button>
       </div>
-    </div>
+    </li>
   );
 }

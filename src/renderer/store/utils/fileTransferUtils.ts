@@ -24,8 +24,10 @@
  * @author 鸡哥
  */
 
-import { FILE_TRANSFER_MAX_ITEMS } from '../config/fileTransferConfig';
-import type { FileTransferItem } from '../types';
+import type { FileTransferItem } from '../types/fileTransfer';
+
+/** 中转站最多保留的文件数，超出时丢弃最早加入的文件 */
+export const FILE_TRANSFER_MAX_ITEMS = 50;
 
 /**
  * 从本机路径中提取文件名，兼容 Windows 与 POSIX 分隔符。

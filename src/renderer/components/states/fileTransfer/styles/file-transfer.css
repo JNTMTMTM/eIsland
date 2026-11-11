@@ -1,0 +1,161 @@
+/*
+ * eIsland - https://github.com/JNTMTMTM/eIsland
+ * Copyright (C) 2026 JNTMTMTM
+ * Copyright (C) 2026 pyisland.com
+ * Licensed under the GNU General Public License (GPL-3.0 or later).
+ */
+
+/**
+ * @file file-transfer.css
+ * @description 文件中转站的面板、拖入区域和文件卡片样式。
+ * @author 鸡哥
+ */
+
+@reference "../../../../styles/reset/reset.css";
+
+.file-transfer-panel {
+  @apply flex size-full flex-col gap-1.5 px-4 py-2.5 text-[rgb(var(--color-text-rgb))] motion-safe:animate-[expandFadeIn_0.3s_cubic-bezier(0.25,1,0.5,1)_forwards];
+
+}
+
+.file-transfer-header {
+  @apply flex h-7 shrink-0 items-center justify-between gap-2;
+
+}
+
+.file-transfer-heading {
+  @apply flex min-w-0 items-center gap-2;
+
+}
+
+.file-transfer-title {
+  @apply truncate text-xs font-semibold;
+
+}
+
+.file-transfer-count {
+  @apply shrink-0 rounded-full bg-[rgba(var(--color-text-rgb),0.06)] px-2 py-0.5 text-[10px] text-[rgba(var(--color-text-rgb),0.68)] tabular-nums;
+
+}
+
+.file-transfer-clear {
+  @apply flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2 text-[11px] text-[rgba(var(--color-text-rgb),0.68)] transition-colors;
+
+}
+
+.file-transfer-grid {
+  @apply grid min-h-0 flex-1 auto-rows-[68px] grid-cols-[repeat(auto-fill,minmax(min(100%,112px),1fr))] content-start gap-1.5 overflow-x-hidden overflow-y-auto overscroll-y-contain pt-0.5 pb-1 [scrollbar-gutter:stable];
+
+}
+
+.file-transfer-grid::-webkit-scrollbar {
+  width: 3px;
+
+}
+
+.file-transfer-grid::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-[rgba(var(--color-text-rgb),0.24)];
+
+}
+
+.file-transfer-footer {
+  @apply flex shrink-0 items-center justify-center gap-1.5 text-[10px] leading-4 text-[rgba(var(--color-text-rgb),0.65)];
+
+}
+
+.file-transfer-drop-zone {
+  @apply flex min-h-0 flex-1 items-center justify-center gap-3 rounded-xl border border-dashed border-[rgba(var(--color-text-rgb),0.22)] bg-[rgba(var(--color-text-rgb),0.035)] motion-safe:transition-colors;
+
+}
+
+.file-transfer-drop-zone[data-drag-active="true"] {
+  @apply border-island-accent bg-island-accent/12;
+
+}
+
+.file-transfer-drop-icon {
+  @apply size-4 shrink-0 opacity-80;
+
+}
+
+.file-transfer-drop-copy {
+  @apply min-w-0;
+
+}
+
+.file-transfer-drop-hint {
+  @apply text-xs font-medium;
+
+}
+
+.file-transfer-empty-label {
+  @apply mt-0.5 text-[11px] text-[rgba(var(--color-text-rgb),0.65)];
+
+}
+
+.file-transfer-card {
+  @apply relative min-w-0 rounded-xl border border-[rgba(var(--color-text-rgb),0.09)] bg-[rgba(var(--color-text-rgb),0.05)] transition-colors hover:bg-[rgba(var(--color-text-rgb),0.09)];
+
+}
+
+.file-transfer-card-body {
+  @apply flex size-full cursor-grab flex-col items-center justify-center gap-1.5 rounded-[inherit] px-2 select-none active:cursor-grabbing;
+
+}
+
+.file-transfer-card-image {
+  @apply size-7 shrink-0 rounded-sm object-contain;
+
+}
+
+.file-transfer-card-placeholder {
+  @apply grid size-7 shrink-0 place-items-center rounded-md bg-[rgba(var(--color-text-rgb),0.08)];
+
+}
+
+.file-transfer-card-icon {
+  @apply size-4 opacity-70;
+
+}
+
+.file-transfer-card-name {
+  @apply w-full truncate text-center text-[11px] text-[rgba(var(--color-text-rgb),0.86)];
+
+}
+
+.file-transfer-card-actions {
+  @apply pointer-events-none absolute top-0.5 right-0.5 flex gap-0.5 opacity-0 transition-opacity;
+
+}
+
+.file-transfer-card:focus-within .file-transfer-card-actions {
+  @apply pointer-events-auto opacity-100;
+
+}
+
+@media (hover: hover) {
+  .file-transfer-card:hover .file-transfer-card-actions {
+    @apply pointer-events-auto opacity-100;
+
+  }
+}
+
+.file-transfer-card-action {
+  @apply grid size-[18px] cursor-pointer place-items-center rounded-sm text-[rgba(var(--color-text-rgb),0.75)] transition-colors;
+
+}
+
+.file-transfer-card-locate {
+  @apply hover:bg-[rgba(var(--color-text-rgb),0.12)];
+
+}
+
+.file-transfer-destructive {
+  @apply hover:bg-red-500/12 hover:text-red-300 in-data-[theme=light]:hover:text-red-700;
+
+}
+
+.file-transfer-action-icon {
+  @apply size-3;
+
+}

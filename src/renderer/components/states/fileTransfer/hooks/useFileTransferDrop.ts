@@ -25,8 +25,8 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { addFileTransferPaths, loadFileTransferItems } from '../../../../store/fileTransferStore';
 import { FILE_TRANSFER_DROP_STATES } from '../config/fileTransferConfig';
-import { addFileTransferPaths, loadFileTransferItems } from '../store/fileTransferStore';
 
 interface UseFileTransferDropOptions {
   state: string;

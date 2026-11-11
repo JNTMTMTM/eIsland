@@ -5284,7 +5284,6 @@
     "empty": "暂无中转文件",
     "actions": {
       "clear": "清空",
-      "close": "收起",
       "locate": "在文件夹中显示",
       "remove": "移出中转站"
     }
