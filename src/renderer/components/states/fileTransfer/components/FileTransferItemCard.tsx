@@ -28,12 +28,8 @@ import { File, FolderSearch, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { removeFileTransferItem } from '../../../../store/fileTransferStore';
 import { useFileTransferItem } from '../hooks/useFileTransferItem';
-import type { FileTransferItem } from '../../../../store/types/fileTransfer';
 import type { ReactElement } from 'react';
-
-interface FileTransferItemCardProps {
-  item: FileTransferItem;
-}
+import type { FileTransferItemCardProps } from '../types/fileTransferTypes';
 
 /**
  * 渲染文件卡片：拖动卡片可拖出文件，点击打开，悬停显示定位与移除操作。

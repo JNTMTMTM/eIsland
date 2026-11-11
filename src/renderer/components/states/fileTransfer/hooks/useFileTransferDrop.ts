@@ -27,11 +27,7 @@
 import { useEffect, useRef } from 'react';
 import { addFileTransferPaths, loadFileTransferItems } from '../../../../store/fileTransferStore';
 import { FILE_TRANSFER_DROP_STATES } from '../config/fileTransferConfig';
-
-interface UseFileTransferDropOptions {
-  state: string;
-  setFileTransfer: () => void;
-}
+import type { UseFileTransferDropOptions } from '../types/fileTransferTypes';
 
 /**
  * 监听系统文件拖入：拖入窗口即展开中转站，放下后记录文件路径。

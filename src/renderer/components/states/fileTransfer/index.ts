@@ -24,4 +24,4 @@
  * @author 鸡哥
  */
 
-export { FileTransferContent } from './FileTransferContent';
+export { FileTransferContent } from './components/FileTransferContent';

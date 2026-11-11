@@ -26,14 +26,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { FILE_TRANSFER_DRAG_THRESHOLD } from '../config/fileTransferConfig';
-
-interface UseFileTransferItemReturn {
-  iconBase64: string | null;
-  onIconError: () => void;
-  onPointerDown: (event: PointerEvent<HTMLElement>) => void;
-  onPointerMove: (event: PointerEvent<HTMLElement>) => void;
-  onPointerUp: () => void;
-}
+import type { UseFileTransferItemReturn } from '../types/fileTransferTypes';
 
 /**
  * 管理单个中转文件：移动超过阈值时拖出到其他应用，原地松开时打开文件。
