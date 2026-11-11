@@ -91,6 +91,18 @@ describe('actual content transition lifecycle', () => {
     expect(vi.getTimerCount()).toBe(0);
     expect(elementProps(findElement(next, (node) => elementProps(node)['data-island-state'] === 'hover')).hidden).toBe(false);
   });
+  it.each(['idle', 'hover', 'lyrics', 'lyricsTranslation'] as const)(
+    'shows the file shelf immediately when expanding from %s in performance mode',
+    (state) => {
+      render({ state });
+      const tree = render({ state: 'fileTransfer', children: createElement('section', {}, 'File Shelf') });
+      const layer = findElement(tree, (node) => elementProps(node)['data-island-state'] === 'fileTransfer');
+
+      expect(textContent(tree)).toBe('File Shelf');
+      expect(elementProps(layer)).toMatchObject({ hidden: false, inert: false });
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
   it('holds heavy entering content until the full duration and a real animation frame finish', () => {
     render();
     expect(textContent(render({ state: 'maxExpand', children: createElement('section', {}, 'Heavy') }))).toBe('Loading');

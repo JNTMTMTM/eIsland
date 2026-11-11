@@ -27,7 +27,7 @@
 @reference "../../../../styles/reset/reset.css";
 
 .file-transfer-panel {
-  @apply flex size-full flex-col gap-1.5 px-4 py-2.5 text-[rgb(var(--color-text-rgb))] motion-safe:animate-[expandFadeIn_0.3s_cubic-bezier(0.25,1,0.5,1)_forwards];
+  @apply flex size-full flex-col gap-1.5 px-4 py-2.5 text-[rgb(var(--color-text-rgb))];
 
 }
 
