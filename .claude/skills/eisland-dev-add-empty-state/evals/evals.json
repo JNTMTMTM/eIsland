@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "创建一个新的空白状态机 settingsWizard，大小和 maxExpand 一样，鼠标移出后不收回",
-      "expected_output": "12 个文件修改完成：IslandState 类型添加 'settingsWizard'，islandSlice 添加 setter + setIdle 守卫 + returnFromAuth，ISLAND_STATE_AREA 和 STATE_CONFIGS 添加条目，创建 states/settingsWizard/ 目录和组件，DynamicIslandStateContent 和 StandaloneWindowViewport 注册渲染，shell.css 添加 860x400 尺寸，useIslandHoverInteraction AUTH_STATES 和状态检查列表添加，useIslandSettingsSync 窗口展开分支添加。TypeScript 编译通过。",
+      "expected_output": "14 个文件修改完成：IslandState 类型添加 'settingsWizard'，islandSlice 添加 setter + setIdle 守卫 + returnFromAuth，ISLAND_STATE_AREA 和 STATE_CONFIGS 添加条目，创建 states/settingsWizard/ 目录和组件，DynamicIslandStateContent 注册渲染，StandaloneWindowViewport 添加 lazy 声明与 SETTINGS_STATE_PAGES 条目，两个路由测试添加 mock 与路由表条目，shell.css 添加 860x400 尺寸，useIslandHoverInteraction AUTH_STATES 和状态检查列表添加，useIslandSettingsSync 窗口展开分支添加。TypeScript 编译通过。",
       "files": []
     },
     {
@@ -16,7 +16,7 @@
     {
       "id": 3,
       "prompt": "新建一个 qishuiLogin 状态，跟 login 状态一样的行为，鼠标不收回，860x400 大小，认证页面样式",
-      "expected_output": "全部 12 个文件修改完成，且组件使用 auth-state-content 类名并导入 auth.css，auth.css 添加对应的 .island-shell.qishuiLogin 选择器。所有登录类状态枚举列表（AUTH_STATES、setIdle 守卫、returnFromAuth authStates、useIslandHoverInteraction 状态检查、useIslandSettingsSync 窗口展开）均包含 qishuiLogin。TypeScript 编译通过。",
+      "expected_output": "全部 14 个文件修改完成，且组件使用 auth-state-content 类名并导入 auth.css，auth.css 添加对应的 .island-shell.qishuiLogin 选择器。所有登录类状态枚举列表（AUTH_STATES、setIdle 守卫、returnFromAuth authStates、useIslandHoverInteraction 状态检查、useIslandSettingsSync 窗口展开）均包含 qishuiLogin。TypeScript 编译通过。",
       "files": []
     }
   ]

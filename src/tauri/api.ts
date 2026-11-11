@@ -26,7 +26,7 @@
 
 import { TRAY_MENU_CHANNELS } from '../shared/trayMenu';
 import subscribeCliStatus from './cliStatusSubscription';
-import { desktop, getNativeFilePath, invokeBytes, selectNativeFiles } from './runtime';
+import { desktop, getNativeFilePath, invokeBytes, onNativeDragEnter, onNativeDragPosition, selectNativeFiles } from './runtime';
 import subscribeSettings from './settingsSubscription';
 import type {
   Point,
@@ -583,6 +583,24 @@ const api = {
    * @returns 是否成功（路径不存在或非法时返回 false）
    */
   openInExplorer: (filePath: string): Promise<boolean> => desktop.invoke('app:open-in-explorer', filePath),
+  /**
+   * 将文件以系统拖放方式拖出到其他应用
+   * @param filePaths - 待拖出文件的本机绝对路径
+   * @returns 是否已发起拖拽（无可用文件时返回 false）
+   */
+  startFileDrag: (filePaths: string[]): Promise<boolean> => desktop.invoke('app:start-file-drag', filePaths),
+  /**
+   * 监听系统文件拖入灵动岛窗口
+   * @param callback - 接收拖入文件本机路径的回调
+   * @returns 取消监听函数
+   */
+  onNativeDragEnter: (callback: (paths: string[]) => void): (() => void) => onNativeDragEnter(callback),
+  /**
+   * 订阅系统文件拖动位置。
+   * @param callback - 接收当前视口坐标或结束时的 null。
+   * @returns 取消监听函数。
+   */
+  onNativeDragPosition,
   /**
    * 选择任意文件用于哈希校验
    * @returns 异步原生操作的string | null 结果。

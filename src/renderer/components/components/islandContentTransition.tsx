@@ -54,7 +54,8 @@ interface ContentTransition {
 }
 
 function isHeavyState(state: IslandState): boolean {
-  return ISLAND_STATE_AREA[state] >= ISLAND_STATE_AREA.expanded;
+  // 文件中转站需要在外壳展开时立即显示拖入区域及反馈。
+  return state !== 'fileTransfer' && ISLAND_STATE_AREA[state] >= ISLAND_STATE_AREA.expanded;
 }
 
 /**

@@ -5274,5 +5274,18 @@
       "title": "舊版未解除安裝",
       "body": "舊版 eIsland 未完全解除安裝，新版已啟動。請在 Windows 設定中手動解除安裝舊版。備份會保留。"
     }
+  },
+  "fileTransfer": {
+    "title": "檔案中轉站",
+    "count": "{{count}} 個檔案",
+    "count_one": "{{count}} 個檔案",
+    "count_other": "{{count}} 個檔案",
+    "dropHint": "拖入檔案",
+    "empty": "暫無中轉檔案",
+    "actions": {
+      "clear": "清空",
+      "locate": "在資料夾中顯示",
+      "remove": "移出中轉站"
+    }
   }
 }

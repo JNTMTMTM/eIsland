@@ -56,7 +56,7 @@ const listeners = new Map<string, (data: unknown) => void>();
 const unsubscriptions = new Map<string, ReturnType<typeof vi.fn>>();
 const subscriptions = ['onNowPlayingInfo', 'onSourceSwitchRequest', 'onUpdaterAvailable', 'onUpdaterDownloaded',
   'onExternalAgentStarted', 'onExternalAgentStopped', 'onClipboardUrlsDetected', 'onUpdaterStartupAutoCheckRequest',
-  'onUpdaterNotAvailable', 'onAgentVoiceInputState', 'onShapeModeChanged'] as const;
+  'onUpdaterNotAvailable', 'onAgentVoiceInputState', 'onShapeModeChanged', 'onNativeDragEnter'] as const;
 const native = {
   expandWindow: vi.fn(), expandWindowFull: vi.fn(), expandWindowLyrics: vi.fn(), expandWindowLyricsTranslation: vi.fn(),
   expandWindowSettings: vi.fn(), collapseWindow: vi.fn(), enableMousePassthrough: vi.fn(),

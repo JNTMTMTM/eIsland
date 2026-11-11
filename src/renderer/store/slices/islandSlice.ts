@@ -77,7 +77,7 @@ export const createIslandSlice: StateCreator<
 
   setIdle: (force?: boolean) => set((prev) => {
     if (prev.uiStateLocked && prev.state !== 'idle') return prev;
-    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement' || prev.state === 'questionnaire' || prev.state === 'musicProvidersLogin')) return prev;
+    if (!force && (prev.state === 'expanded' || prev.state === 'maxExpand' || prev.state === 'guide' || prev.state === 'login' || prev.state === 'register' || prev.state === 'resetPassword' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'payment' || prev.state === 'announcement' || prev.state === 'questionnaire' || prev.state === 'musicProvidersLogin' || prev.state === 'fileTransfer')) return prev;
     // 每次切换都传完整保护时长；快速反向切换时，原生画布可能仍比 prev.state 大。
     beginIslandWindowTransition(prev.state, 'idle');
     window.api?.collapseWindow(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
@@ -207,10 +207,24 @@ export const createIslandSlice: StateCreator<
     return { state: 'musicProvidersLogin' as never, authReturnState: nextAuthReturnState, musicProviderLogin: provider };
   }),
 
+  setFileTransfer: () => set((prev) => {
+    if (prev.uiStateLocked && prev.state !== 'fileTransfer') return prev;
+    const standalone = isStandaloneRenderer();
+    if (!standalone) {
+      beginIslandWindowTransition(prev.state, 'fileTransfer');
+      window.api?.expandWindowFull(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
+      window.api?.disableMousePassthrough();
+    }
+    const nextAuthReturnState = (prev.state === 'login' || prev.state === 'register' || prev.state === 'payment' || prev.state === 'setPassword' || prev.state === 'bindOAuth' || prev.state === 'bindEmail' || prev.state === 'musicProvidersLogin' || prev.state === 'fileTransfer')
+      ? prev.authReturnState
+      : (standalone ? 'maxExpand' : prev.state);
+    return { state: 'fileTransfer' as never, authReturnState: nextAuthReturnState };
+  }),
+
   returnFromAuth: () => set((prev) => {
     if (prev.uiStateLocked) return prev;
     const standalone = isStandaloneRenderer();
-    const authStates = ['login', 'register', 'payment', 'setPassword', 'bindOAuth', 'bindEmail', 'resetPassword', 'musicProvidersLogin'];
+    const authStates = ['login', 'register', 'payment', 'setPassword', 'bindOAuth', 'bindEmail', 'resetPassword', 'musicProvidersLogin', 'fileTransfer'];
     const returnState = prev.authReturnState ?? 'maxExpand';
     const target = authStates.includes(returnState) ? 'maxExpand' : returnState;
 

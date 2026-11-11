@@ -23,15 +23,21 @@
  * @description 原生 Tauri 命令、事件与文件拖放，保持窗口操作顺序和独立的业务并发。
  * @author 鸡哥
  */
+import type { Point } from './types/common';
+
 interface TauriRuntime {
   core: { invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> };
   event: { listen<T>(event: string, handler: (event: { payload: T }) => void): Promise<() => void> };
 }
 type Listener = (...args: unknown[]) => void;
-interface NativeDrop { paths: string[]; position: { x: number; y: number } }
+interface NativeDragPosition { position: Point }
+interface NativeDrop extends NativeDragPosition { paths: string[] }
 const tauri = (window as unknown as { __TAURI__: TauriRuntime }).__TAURI__;
 const listeners = new Map<string, Set<Listener>>();
 const nativeFiles = new WeakMap<File, string>();
+const dragEnterListeners = new Set<(paths: string[]) => void>();
+const dragPositionListeners = new Set<(position: Point | null) => void>();
+let dragPosition: Point | null = null;
 let queue: Promise<void> = Promise.resolve();
 
 /** 根据原生事件中的路径创建 File 引用，路径不会从浏览器文件名推测。
@@ -50,14 +56,60 @@ const ready = tauri.event.listen<{ channel: string; args: unknown[] }>('eisland-
     try { listener(...payload.args); } catch (error) { console.error('[Desktop] event listener:', error); }
   });
 });
+/** 将 WebView 物理坐标转换为 DOM 使用的视口坐标。
+ * @param position - 原生拖放事件的窗口内坐标。
+ * @returns CSS 像素坐标。
+ */
+function toClientPosition(position: Point): Point {
+  const ratio = window.devicePixelRatio || 1;
+  return { x: position.x / ratio, y: position.y / ratio };
+}
+
+/** 更新当前拖入位置，以便展开后才挂载的面板也能立即收到它。
+ * @param position - 物理坐标，拖放结束时为 null。
+ */
+function updateDragPosition(position: Point | null): void {
+  dragPosition = position && toClientPosition(position);
+  dragPositionListeners.forEach((listener) => listener(dragPosition));
+}
+
+const dragEnterReady = tauri.event.listen<NativeDrop>('tauri://drag-enter', ({ payload }) => {
+  updateDragPosition(payload.paths.length ? payload.position : null);
+  dragEnterListeners.forEach((listener) => listener(payload.paths));
+});
+const dragOverReady = tauri.event.listen<NativeDragPosition>('tauri://drag-over', ({ payload }) => {
+  if (dragPosition) updateDragPosition(payload.position);
+});
+const dragLeaveReady = tauri.event.listen('tauri://drag-leave', () => updateDragPosition(null));
+
 // Windows delivers file paths through the native WebView event instead of exposing File.path.
 const dropReady = tauri.event.listen<NativeDrop>('tauri://drag-drop', ({ payload }) => {
+  updateDragPosition(null);
   const transfer = new DataTransfer();
   filesForPaths(payload.paths).forEach((file) => transfer.items.add(file));
-  const ratio = window.devicePixelRatio || 1;
-  const target = document.elementFromPoint(payload.position.x / ratio, payload.position.y / ratio);
+  const { x, y } = toClientPosition(payload.position);
+  const target = document.elementFromPoint(x, y);
   target?.dispatchEvent(new DragEvent('drop', { dataTransfer: transfer, bubbles: true, cancelable: true }));
 });
+
+/** 订阅系统文件拖入窗口事件；窗口开启鼠标穿透时系统不会投递该事件。
+ * @param callback - 接收拖入文件本机路径的回调。
+ * @returns 同步返回的取消订阅函数。
+ */
+export function onNativeDragEnter(callback: (paths: string[]) => void): () => void {
+  dragEnterListeners.add(callback);
+  return () => { dragEnterListeners.delete(callback); };
+}
+
+/** 订阅系统文件拖动位置，注册时立即提供当前状态。
+ * @param callback - 接收视口坐标，文件移出或放下时收到 null。
+ * @returns 取消订阅函数。
+ */
+export function onNativeDragPosition(callback: (position: Point | null) => void): () => void {
+  dragPositionListeners.add(callback);
+  callback(dragPosition);
+  return () => { dragPositionListeners.delete(callback); };
+}
 
 /** 读取通过原生选择器或系统拖放获得的真实路径。
  * @param file - 原生文件引用。
@@ -136,7 +188,9 @@ export const desktop = {
 /** 确认原生事件注册已经完成，页面才可声明就绪。
  * @returns 所有原生订阅已经就绪。
  */
-export async function readyForDesktop(): Promise<void> { await Promise.all([ready, dropReady]); }
+export async function readyForDesktop(): Promise<void> {
+  await Promise.all([ready, dragEnterReady, dragOverReady, dragLeaveReady, dropReady]);
+}
 
 /** 将 Tauri 的 JSON 数组或图片 data URL 解码为浏览器二进制对象。
  * @param channel - 返回二进制数据的原生操作。

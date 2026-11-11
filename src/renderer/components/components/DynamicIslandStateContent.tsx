@@ -47,6 +47,7 @@ import { SetPasswordContent } from '../states/setPassword';
 import { BindOAuthContent } from '../states/bindOAuth';
 import { BindEmailContent } from '../states/bindEmail';
 import { MusicProvidersLoginContent } from '../states/musicProvidersLogin';
+import { FileTransferContent } from '../states/fileTransfer';
 import type { IslandState } from '../hooks/useDynamicIslandShell';
 
 interface DynamicIslandStateContentProps {
@@ -125,6 +126,7 @@ export function DynamicIslandStateContent({
   if (state === 'bindOAuth') return <BindOAuthContent />;
   if (state === 'bindEmail') return <BindEmailContent />;
   if (state === 'musicProvidersLogin') return <MusicProvidersLoginContent />;
+  if (state === 'fileTransfer') return <FileTransferContent />;
   if (state === 'payment') return <PaymentContent />;
   if (state === 'announcement') return <AnnouncementContent />;
   if (state === 'questionnaire') return <QuestionnaireContent />;

@@ -50,6 +50,7 @@ vi.mock('../../states/register/RegisterContent', () => ({ RegisterContent: Objec
 vi.mock('../../states/resetPassword', () => ({ ResetPasswordContent: Object.assign(vi.fn(), { displayName: 'ResetPasswordContent' }) }));
 vi.mock('../../states/payment/PaymentContent', () => ({ PaymentContent: Object.assign(vi.fn(), { displayName: 'PaymentContent' }) }));
 vi.mock('../../states/musicProvidersLogin', () => ({ MusicProvidersLoginContent: Object.assign(vi.fn(), { displayName: 'MusicProvidersLoginContent' }) }));
+vi.mock('../../states/fileTransfer', () => ({ FileTransferContent: Object.assign(vi.fn(), { displayName: 'FileTransferContent' }) }));
 beforeEach(() => {
   vi.clearAllMocks();
   resetState();
@@ -73,7 +74,7 @@ describe('StandaloneWindowViewport', () => {
     const loaded = await (children[0].type as unknown as { load: () => Promise<{default: {displayName: string}}> }).load();
     expect(loaded.default.displayName).toBe(expected);
   });
-  it.each([['login', 'LoginContent'], ['register', 'RegisterContent'], ['resetPassword', 'ResetPasswordContent'], ['payment', 'PaymentContent'], ['musicProvidersLogin', 'MusicProvidersLoginContent'], ['idle', 'SettingsTab']] as const)('routes settings authentication state %s to %s', async (state, expected) => {
+  it.each([['login', 'LoginContent'], ['register', 'RegisterContent'], ['resetPassword', 'ResetPasswordContent'], ['payment', 'PaymentContent'], ['musicProvidersLogin', 'MusicProvidersLoginContent'], ['fileTransfer', 'FileTransferContent'], ['idle', 'SettingsTab']] as const)('routes settings authentication state %s to %s', async (state, expected) => {
     const tree = StandaloneWindowViewport({ state, activeTab: 'settings' });
     const child = findElement(tree, (node) => typeof node.type === 'function');
     const loaded = await (child.type as unknown as { load: () => Promise<{default: {displayName: string}}> }).load();

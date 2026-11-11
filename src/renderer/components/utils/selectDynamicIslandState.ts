@@ -45,6 +45,7 @@ export default function selectDynamicIslandState(store: IIslandStore) {
     setHoverTab: store.setHoverTab,
     setAnnouncement: store.setAnnouncement,
     setAgentVoiceInput: store.setAgentVoiceInput,
+    setFileTransfer: store.setFileTransfer,
     setTimerData: store.setTimerData,
     setNotification: store.setNotification,
     handleNowPlayingUpdate: store.handleNowPlayingUpdate,

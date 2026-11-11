@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { lazy, Suspense, type JSX } from 'react';
+import { lazy, Suspense, type ComponentType, type JSX, type LazyExoticComponent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WindowTab } from '../config/standaloneWindowConfig';
 
@@ -44,6 +44,44 @@ const RegisterContent = lazy(() => import('../states/register/RegisterContent').
 const ResetPasswordContent = lazy(() => import('../states/resetPassword').then((module) => ({ default: module.ResetPasswordContent })));
 const PaymentContent = lazy(() => import('../states/payment/PaymentContent').then((module) => ({ default: module.PaymentContent })));
 const MusicProvidersLoginContent = lazy(() => import('../states/musicProvidersLogin').then((module) => ({ default: module.MusicProvidersLoginContent })));
+const FileTransferContent = lazy(() => import('../states/fileTransfer').then((module) => ({ default: module.FileTransferContent })));
+
+type LazyPage = LazyExoticComponent<ComponentType>;
+
+/** 普通标签页与页面组件的映射；settings 由 resolvePage 单独处理 */
+const TAB_PAGES: Record<Exclude<WindowTab, 'settings'>, LazyPage> = {
+  todo: TodoTab,
+  countdown: CountdownTab,
+  urlFavorites: UrlFavoritesTab,
+  album: AlbumTab,
+  mail: MailTab,
+  localFileSearch: LocalFileSearchTab,
+  clipboardHistory: ClipboardHistoryTab,
+  memo: MemoTab,
+  alarm: AlarmTab,
+  toolbox: ToolboxTab,
+};
+
+/** settings 标签页下需替换 SettingsTab 的岛屿状态页面 */
+const SETTINGS_STATE_PAGES: Partial<Record<string, LazyPage>> = {
+  login: LoginContent,
+  register: RegisterContent,
+  resetPassword: ResetPasswordContent,
+  payment: PaymentContent,
+  musicProvidersLogin: MusicProvidersLoginContent,
+  fileTransfer: FileTransferContent,
+};
+
+/**
+ * 解析当前标签页与岛屿状态对应的页面组件。
+ * @param activeTab - 当前激活的标签页。
+ * @param state - 当前岛屿状态。
+ * @returns 待渲染的懒加载页面组件。
+ */
+function resolvePage(activeTab: WindowTab, state: string): LazyPage {
+  if (activeTab === 'settings') return SETTINGS_STATE_PAGES[state] ?? SettingsTab;
+  return TAB_PAGES[activeTab];
+}
 
 interface StandaloneWindowViewportProps {
   activeTab: WindowTab;
@@ -57,25 +95,11 @@ interface StandaloneWindowViewportProps {
  */
 export function StandaloneWindowViewport({ activeTab, state }: StandaloneWindowViewportProps): JSX.Element {
   const { t } = useTranslation();
+  const Page = resolvePage(activeTab, state);
   return (
     <div className="cw-viewport">
       <Suspense fallback={<div role="status">{t('standalone.loading')}</div>}>
-        {activeTab === 'todo' && <TodoTab />}
-        {activeTab === 'countdown' && <CountdownTab />}
-        {activeTab === 'urlFavorites' && <UrlFavoritesTab />}
-        {activeTab === 'album' && <AlbumTab />}
-        {activeTab === 'mail' && <MailTab />}
-        {activeTab === 'localFileSearch' && <LocalFileSearchTab />}
-        {activeTab === 'clipboardHistory' && <ClipboardHistoryTab />}
-        {activeTab === 'memo' && <MemoTab />}
-        {activeTab === 'alarm' && <AlarmTab />}
-        {activeTab === 'toolbox' && <ToolboxTab />}
-        {activeTab === 'settings' && state === 'login' && <LoginContent />}
-        {activeTab === 'settings' && state === 'register' && <RegisterContent />}
-        {activeTab === 'settings' && state === 'resetPassword' && <ResetPasswordContent />}
-        {activeTab === 'settings' && state === 'payment' && <PaymentContent />}
-        {activeTab === 'settings' && state === 'musicProvidersLogin' && <MusicProvidersLoginContent />}
-        {activeTab === 'settings' && state !== 'login' && state !== 'register' && state !== 'resetPassword' && state !== 'payment' && state !== 'musicProvidersLogin' && <SettingsTab />}
+        <Page />
       </Suspense>
     </div>
   );

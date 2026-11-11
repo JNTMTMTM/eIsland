@@ -26,7 +26,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_plugin_opener::OpenerExt;
 
 pub fn handles(channel: &str) -> bool {
@@ -244,6 +244,42 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
     } else {
         outcome
     }
+}
+/// 在发起调用的窗口上启动系统文件拖出，并返回原生拖拽的启动结果。
+/// OLE 拖放会在主线程阻塞至放下或取消，结果经通道异步等待，不占用主线程。
+pub async fn start_file_drag(window: &WebviewWindow, paths: &Value) -> Result<Value> {
+    let files: Vec<PathBuf> = paths
+        .as_array()
+        .ok_or("Expected path list")?
+        .iter()
+        .filter_map(Value::as_str)
+        .map(PathBuf::from)
+        .filter(|path| path.is_absolute() && path.exists())
+        .collect();
+    if files.is_empty() {
+        return Ok(json!(false));
+    }
+    // macOS 要求有效的拖拽图像，使用 1x1 透明 PNG 让系统只显示光标与复制标记。
+    let mut image = std::io::Cursor::new(Vec::new());
+    ::image::RgbaImage::new(1, 1)
+        .write_to(&mut image, ::image::ImageFormat::Png)
+        .map_err(|e| e.to_string())?;
+    let target = window.clone();
+    let (sender, receiver) = tokio::sync::oneshot::channel();
+    window
+        .run_on_main_thread(move || {
+            let result = drag::start_drag(
+                &target,
+                drag::DragItem::Files(files),
+                drag::Image::Raw(image.into_inner()),
+                |_, _| {},
+                drag::Options::default(),
+            );
+            let _ = sender.send(result.map_err(|error| error.to_string()));
+        })
+        .map_err(|e| e.to_string())?;
+    receiver.await.map_err(|e| e.to_string())??;
+    Ok(json!(true))
 }
 fn text(value: &Value) -> Result<&str> {
     value

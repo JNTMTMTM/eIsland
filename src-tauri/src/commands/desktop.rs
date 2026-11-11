@@ -57,6 +57,9 @@ pub async fn desktop_ipc(
         return features::runtime::schedule(&app, window.label(), &args);
     }
     let value = args.first().unwrap_or(&Value::Null);
+    if channel == "app:start-file-drag" {
+        return features::files::start_file_drag(&window, value).await;
+    }
     if matches!(
         channel.as_str(),
         "island:autostart:get" | "island:autostart:set"

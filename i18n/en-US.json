@@ -5274,5 +5274,18 @@
       "title": "Old version not removed",
       "body": "The old eIsland was not fully uninstalled. The new version has started. Uninstall the old version manually from Windows Settings. Your backup is retained."
     }
+  },
+  "fileTransfer": {
+    "title": "File Shelf",
+    "count": "{{count}} files",
+    "count_one": "{{count}} file",
+    "count_other": "{{count}} files",
+    "dropHint": "Drop files",
+    "empty": "No files on the shelf",
+    "actions": {
+      "clear": "Clear",
+      "locate": "Show in folder",
+      "remove": "Remove from shelf"
+    }
   }
 }
