@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-11T19:58:00.266Z
+> 生成时间：2026-11-11T22:20:12.962Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,9 @@
 
 ## Unreleased
 
+- 2026-11-11 | 4f550996 | JNTMTMTM | Merge pull request #319 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-4be7de7c94
+- 2026-11-11 | b33549ce | 鸡哥 | fix(deps): update eslint-plugin-import-x to 4.18.1
+- 2026-11-11 | b23a6e28 | eislandBot | docs: auto update CHANGE_LOG.md for #320 by @JNTMTMTM [skip ci]
 - 2026-11-11 | 21845295 | JNTMTMTM | Merge pull request #320 from JNTMTMTM/dev
 - 2026-11-11 | f6165186 | 鸡哥 | refactor(fileTransfer): streamline React imports and enhance hook functionality
 - 2026-11-11 | b61579ed | 鸡哥 | feat(fileTransfer): implement file drag-and-drop functionality and improve state management
@@ -4351,6 +4354,7 @@
 - 2026-11-10 | 2c707007 | 鸡哥 | fix(fileTransfer): adjust padding for file transfer grid to improve layout
 - 2026-11-10 | 2c608521 | 鸡哥 | feat(fileTransfer): restructure file transfer components and hooks for improved organization and functionality
 - 2026-11-10 | 878b9878 | 鸡哥 | refactor(fileTransfer): reorganize file transfer logic and store management
+- 2026-11-10 | 630d8111 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 2 directories with 10 updates
 - 2026-11-09 | 8b75a078 | 鸡哥 | feat: implement file transfer functionality with drag-and-drop support
 - 2026-11-09 | 486cc20a | 鸡哥 | feat: update empty state skill to reflect 14 modification points and adjust evals for new state handling
 - 2026-11-09 | be983458 | 鸡哥 | feat: refactor StandaloneWindowViewport to use resolvePage for dynamic tab rendering
