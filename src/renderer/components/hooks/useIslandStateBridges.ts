@@ -107,24 +107,24 @@ export function useIslandStateBridges(options: UseIslandStateBridgesOptions): vo
   useEffect(() => {
     if (state !== 'idle') return;
     if (timerState !== 'idle') return;
-    // 只显示歌名时不依赖歌词，任何正在播放的歌曲都进入歌词状态展示歌名。
-    if (songTitleMode) {
-      if (isPlaying && hasSongTitle) setLyrics();
+    if (!isPlaying) return;
+    // 只显示歌名或未获取到歌词时，以前奏样式展示歌名；有歌词（或加载中）时才考虑翻译歌词。
+    const hasLyricLine = !songTitleMode && ((syncedLyrics?.length ?? 0) > 0 || lyricsLoading);
+    if (!hasLyricLine) {
+      if (hasSongTitle) setLyrics();
       return;
     }
-    if (isPlaying && ((syncedLyrics?.length ?? 0) > 0 || lyricsLoading)) {
-      const hasTranslation = translationLyrics?.status === 'available'
-        && Boolean(translationLyrics.lines && translationLyrics.lines.length > 0);
-      if (hasTranslation && lyricsTranslationEnabled) {
-        /** 原文与翻译完全一致时显示普通歌词 */
-        if (isCurrentTranslationIdentical) {
-          setLyrics();
-        } else {
-          setLyricsTranslation();
-        }
-      } else {
+    const hasTranslation = translationLyrics?.status === 'available'
+      && Boolean(translationLyrics.lines && translationLyrics.lines.length > 0);
+    if (hasTranslation && lyricsTranslationEnabled) {
+      /** 原文与翻译完全一致时显示普通歌词 */
+      if (isCurrentTranslationIdentical) {
         setLyrics();
+      } else {
+        setLyricsTranslation();
       }
+    } else {
+      setLyrics();
     }
   }, [state, timerState, isPlaying, syncedLyrics, lyricsLoading, translationLyrics, lyricsTranslationEnabled, isCurrentTranslationIdentical, songTitleMode, hasSongTitle, setLyrics, setLyricsTranslation]);
 

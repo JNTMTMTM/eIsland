@@ -130,9 +130,19 @@ describe('useIslandStateBridges 只显示歌名', () => {
 });
 describe('useIslandStateBridges 实际状态与设置', () => {
   it.each([
-    { state: 'hover' }, { timerState: 'running' }, { isPlaying: false }, { syncedLyrics: null, lyricsLoading: false },
+    { state: 'hover' }, { timerState: 'running' }, { isPlaying: false },
   ] satisfies Partial<Options>[])('不符合歌词显示条件时不切换：%s', async (patch) => {
     const input = options(patch); await mount(input); expect(input.setLyrics).not.toHaveBeenCalled(); expect(input.setLyricsTranslation).not.toHaveBeenCalled();
+  });
+  it('未获取到歌词时以前奏样式进入歌词状态，不使用翻译歌词', async () => {
+    const input = options({ syncedLyrics: null, lyricsLoading: false, translationLyrics: { status: 'available', lines: [{ time_ms: 0, text: 'Translated' }] } });
+    await mount(input);
+    expect(input.setLyrics).toHaveBeenCalled(); expect(input.setLyricsTranslation).not.toHaveBeenCalled();
+  });
+  it('未获取到歌词且没有歌名时保持 idle', async () => {
+    useIslandStore.setState({ mediaInfo: { title: '', artist: '', album: '', duration_ms: 0 } });
+    const input = options({ syncedLyrics: null, lyricsLoading: false }); await mount(input);
+    expect(input.setLyrics).not.toHaveBeenCalled();
   });
   it('歌词加载中可进入普通歌词；关闭歌词功能后只有带歌名的歌曲进入', async () => {
     const input = options({ syncedLyrics: null, lyricsLoading: true }); await mount(input); expect(input.setLyrics).toHaveBeenCalled();

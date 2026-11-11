@@ -159,6 +159,13 @@ describe('useIslandHoverInteraction 真实轮询和状态交互', () => {
     expect(input.setLyricsTranslation).not.toHaveBeenCalled();
     expect(input.setIdle).toHaveBeenCalledTimes(1 - lyricsCalls);
   });
+  it('歌词开启但未获取到歌词时离开 hover，以前奏样式进入歌词状态且不进入翻译', async () => {
+    const input = options('hover'); input.isHoveringRef.current = true; outside();
+    useIslandStore.setState({ isPlaying: true, syncedLyrics: null, lyricsLoading: false, mediaInfo: { title: 'Song', artist: '', album: '', duration_ms: 0 },
+      translationLyrics: { status: 'available', lines: [{ time_ms: 0, text: 'Translated' }] } });
+    await mount(input);
+    expect(input.setLyrics).toHaveBeenCalledOnce(); expect(input.setLyricsTranslation).not.toHaveBeenCalled(); expect(input.setIdle).not.toHaveBeenCalled();
+  });
   it('卸载清理轮询和两类定时器；进行中的定位响应不能改变状态', async () => {
     let resolve!: (value: Awaited<ReturnType<typeof mouse>>) => void;
     mouse.mockImplementationOnce(() => new Promise((accept) => { resolve = accept; }));

@@ -58,13 +58,13 @@ export function LyricsContent(): ReactElement {
 
   const { karaokeEnabled, clockEnabled, musicOuterGlowEffectEnabled } = useLyricsSettings();
   const clockText = useBeijingClock(clockEnabled);
-  useAutoIdle(isMusicPlaying, lyricsLoading, syncedLyrics, setIdle, songTitleMode);
+  useAutoIdle(isMusicPlaying, setIdle);
   const { currentIdx, hasLyrics, isIntro, currentLine, currentText, hasSyllables } = useCurrentLyric(syncedLyrics, lyricsLoading, currentPositionMs);
   const karaokeScrollProgress = useKaraokeScrollProgress(karaokeEnabled, currentLine, hasSyllables, isIntro, currentPositionMs);
 
   const [r, g, b] = dominantColor;
-  // 前奏与歌词功能关闭时共用同一套元数据展示：居中歌名与浮动音符。
-  const showSongMetadata = songTitleMode || (!lyricsLoading && isIntro);
+  // 前奏、未获取到歌词与歌词功能关闭时共用同一套元数据展示：居中歌名与浮动音符。
+  const showSongMetadata = songTitleMode || (!lyricsLoading && (!hasLyrics || isIntro));
 
   return (
     <div className="lyrics-content" data-playing={isPlaying}>

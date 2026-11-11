@@ -59,7 +59,7 @@ export function LyricsTranslationContent(): ReactElement {
 
   const { karaokeEnabled, clockEnabled, musicOuterGlowEffectEnabled } = useLyricsSettings();
   const clockText = useBeijingClock(clockEnabled);
-  useAutoIdle(isMusicPlaying, lyricsLoading, syncedLyrics, setIdle, songTitleMode);
+  useAutoIdle(isMusicPlaying, setIdle);
   const { currentIdx, isIntro, currentLine, currentText, hasSyllables } = useCurrentLyric(syncedLyrics, lyricsLoading, currentPositionMs);
 
   const translationText = useTranslationLyric(translationLines, currentIdx, currentPositionMs);

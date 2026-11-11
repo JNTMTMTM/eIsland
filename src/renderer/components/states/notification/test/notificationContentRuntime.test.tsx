@@ -41,7 +41,8 @@ const model = vi.hoisted(() => ({
     isMusicPlaying: false,
     coverImage: '',
     syncedLyrics: [] as string[] | undefined,
-    lyricsLoading: false
+    lyricsLoading: false,
+    mediaInfo: { title: '' }
   },
   token: vi.fn<() => string | null>(),
   source: vi.fn<typeof import('../../../../api/user/userAccountApi.profile').fetchUpdateSourceUrl>()
@@ -176,7 +177,8 @@ beforeEach(() => {
     isMusicPlaying: false,
     coverImage: '',
     syncedLyrics: [],
-    lyricsLoading: false
+    lyricsLoading: false,
+    mediaInfo: { title: '' }
   });
   model.token.mockReturnValue('token');
   model.source.mockResolvedValue({
@@ -204,12 +206,21 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe('NotificationContent real hooks', () => {
-  it.each([[false, 'cover', undefined, false, false], [true, '', [], false, false], [true, 'cover', undefined, false, false], [true, 'cover', [], true, true], [true, 'cover', ['lyric'], false, true]] as const)('dismiss music=%s cover=%s lyrics=%s loading=%s', async (playing, cover, lyrics, loading, expectLyrics) => {
+  it.each([
+    [false, 'cover', undefined, false, 'Song', false],
+    [true, '', [], false, '', false],
+    [true, 'cover', undefined, false, '', false],
+    [true, 'cover', [], true, '', true],
+    [true, 'cover', ['lyric'], false, '', true],
+    [true, '', ['lyric'], false, '', true],
+    [true, '', [], false, 'Song', true],
+  ] as const)('dismiss music=%s cover=%s lyrics=%s loading=%s title=%s', async (playing, cover, lyrics, loading, title, expectLyrics) => {
     Object.assign(model.store, {
       isMusicPlaying: playing,
       coverImage: cover,
       syncedLyrics: lyrics ? [...lyrics] : undefined,
-      lyricsLoading: loading
+      lyricsLoading: loading,
+      mediaInfo: { title }
     });
     await mount();
     expect(elements(run()).some((node) => node.props.className === 'notification-icon-default')).toBe(true);

@@ -27,7 +27,6 @@
 import { useShallow } from 'zustand/react/shallow';
 import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isSongTitleMode } from '../../../store/lyricsDisplayStore';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import { ALARM_SOUND_STOP_EVENT } from '../../../utils/audio/alarmSound';
@@ -153,10 +152,8 @@ export function NotificationContent({
   const dismiss = (): void => {
     window.dispatchEvent(new CustomEvent(ALARM_SOUND_STOP_EVENT));
     const store = useIslandStore.getState();
-    // 只显示歌名时不依赖封面与歌词，有歌名即可返回歌词状态。
-    const hasMusicLine = isSongTitleMode()
-      ? Boolean(store.mediaInfo.title)
-      : Boolean(store.coverImage && (store.syncedLyrics?.length || store.lyricsLoading));
+    // 有歌词、歌词加载中或有歌名（以前奏样式展示）时都返回歌词状态。
+    const hasMusicLine = Boolean(store.mediaInfo.title || store.syncedLyrics?.length || store.lyricsLoading);
     if (store.isMusicPlaying && hasMusicLine) {
       setLyrics();
     } else {
