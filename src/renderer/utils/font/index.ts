@@ -45,6 +45,9 @@ const FONT_MIME_MAP: Record<string, string> = {
   woff2: 'font/woff2',
 };
 
+/** 原生返回的授权字体 URL：本机签名资源服务或旧版 eisland-media 资源 */
+const AUTHORIZED_FONT_URL = /^(?:http:\/\/127\.0\.0\.1:\d+\/[\w-]+\.[\w-]+|eisland-media:\/\/asset\/[a-zA-Z0-9-]+)$/;
+
 /** 自定义字体条目 */
 interface CustomFont {
   name: string;
@@ -72,7 +75,7 @@ export function releaseCustomFonts(prefix: 'eIsland-UI' | 'eIsland-Lyrics'): voi
  */
 export function injectFontFace(familyName: string, base64Data: string, ext: string): string {
   let url: string;
-  if (/^eisland-media:\/\/asset\/[a-zA-Z0-9-]+$/.test(base64Data)) {
+  if (AUTHORIZED_FONT_URL.test(base64Data)) {
     url = base64Data;
   } else {
     // 兼容旧版本调用；新IPC只发送URL，不复制字体二进制或base64。
