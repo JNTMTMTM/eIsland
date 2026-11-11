@@ -28,6 +28,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { byClass, elements, find, invoke, text } from '../../test/tree';
 
+import { useLyricsDisplayStore } from '../../../../store/lyricsDisplayStore';
 import { NotificationContent } from '../NotificationContent';
 import type { TreeElement } from '../../test/tree';
 const api = { mediaAcceptSourceSwitch: vi.fn(), mediaRejectSourceSwitch: vi.fn(), updaterInstall: vi.fn().mockResolvedValue(true), updaterDownload: vi.fn().mockResolvedValue(true), updaterCheck: vi.fn().mockResolvedValue(true), restartApp: vi.fn().mockResolvedValue(true), storeRead: vi.fn().mockResolvedValue('github'), storeWrite: vi.fn().mockResolvedValue(true), clipboardOpenUrl: vi.fn().mockResolvedValue(true), clipboardUrlBlacklistAddDomain: vi.fn().mockResolvedValue(true), cliGlowHide: vi.fn() };
@@ -40,7 +41,7 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => k
 beforeEach(() => { slots.cursor = 0; slots.values = []; slots.effects = []; });
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-const model = vi.hoisted(() => ({ store: { setIdle: vi.fn(), setLyrics: vi.fn(), setNotification: vi.fn(), setMaxExpand: vi.fn(), setMaxExpandTab: vi.fn(), setCli: vi.fn(), setCliProvider: vi.fn(), isMusicPlaying: false, coverImage: '', syncedLyrics: [] as unknown[], lyricsLoading: false }, favorites: { favoriteUrlSet: new Set<string>(), setFavoriteUrlSet: vi.fn() }, progress: null as null | { percent: number; transferred: number; total: number; bytesPerSecond: number }, token: 'token', resolveSource: vi.fn().mockResolvedValue({ ok: true, data: { url: 'https://update.example.com' } }) }));
+const model = vi.hoisted(() => ({ store: { setIdle: vi.fn(), setLyrics: vi.fn(), setNotification: vi.fn(), setMaxExpand: vi.fn(), setMaxExpandTab: vi.fn(), setCli: vi.fn(), setCliProvider: vi.fn(), isMusicPlaying: false, coverImage: '', syncedLyrics: [] as unknown[], lyricsLoading: false, mediaInfo: { title: 'Song', artist: 'Artist' } }, favorites: { favoriteUrlSet: new Set<string>(), setFavoriteUrlSet: vi.fn() }, progress: null as null | { percent: number; transferred: number; total: number; bytesPerSecond: number }, token: 'token', resolveSource: vi.fn().mockResolvedValue({ ok: true, data: { url: 'https://update.example.com' } }) }));
 vi.mock('../../../../store/slices', () => ({ default: Object.assign(() => model.store, { getState: () => model.store }) }));
 vi.mock('../hooks/useNotificationFavorites', () => ({ useNotificationFavorites: () => model.favorites }));
 vi.mock('../hooks/useUpdateDownloadProgress', () => ({ useUpdateDownloadProgress: () => model.progress }));
@@ -50,7 +51,8 @@ vi.mock('../../../../api/user/userAccountApi', () => ({ fetchUpdateSourceUrl: mo
 function render(props: Partial<Parameters<typeof NotificationContent>[0]> = {}) { slots.cursor = 0; return ((NotificationContent({ title: 'Title', body: 'Body', ...props }) as TreeElement)); }
 function action(root: ReturnType<typeof render>, key: string) { return find(root, (node) => node.type === 'button' && text(node) === `notification.actions.${key}`); }
 beforeEach(() => {
-  model.progress = null; model.token = 'token'; model.store.isMusicPlaying = false; model.store.coverImage = ''; model.store.syncedLyrics = []; model.favorites.favoriteUrlSet = new Set();
+  model.progress = null; model.token = 'token'; model.store.isMusicPlaying = false; model.store.coverImage = ''; model.store.syncedLyrics = []; model.store.mediaInfo = { title: 'Song', artist: 'Artist' }; model.favorites.favoriteUrlSet = new Set();
+  useLyricsDisplayStore.setState({ lyricsEnabled: true });
   vi.useFakeTimers();
   const surface = Object.assign(new EventTarget(), { setTimeout, api });
   vi.stubGlobal('window', surface);
@@ -58,6 +60,8 @@ beforeEach(() => {
 describe('NotificationContent', () => {
   it('renders ordinary notification and completes or snoozes it', () => { const root = render({ breakReminderItemId: 'break' }); expect(text(root)).toContain('TitleBody'); invoke(action(root, 'snooze5m'), 'onClick'); expect(model.store.setIdle).toHaveBeenCalledOnce(); vi.advanceTimersByTime(5 * 60 * 1000); expect(model.store.setNotification).toHaveBeenCalledWith({ title: 'Title', body: 'Body', icon: undefined, breakReminderItemId: 'break' }); });
   it('dismisses into lyrics when music and synchronized lyrics are available', () => { model.store.isMusicPlaying = true; model.store.coverImage = 'cover'; model.store.syncedLyrics = ['line']; invoke(action(render(), 'complete'), 'onClick'); expect(model.store.setLyrics).toHaveBeenCalledOnce(); expect(model.store.setIdle).not.toHaveBeenCalled(); });
+  it('dismisses into the title-only lyrics state without cover art when lyrics are off', () => { useLyricsDisplayStore.setState({ lyricsEnabled: false }); model.store.isMusicPlaying = true; invoke(action(render(), 'complete'), 'onClick'); expect(model.store.setLyrics).toHaveBeenCalledOnce(); expect(model.store.setIdle).not.toHaveBeenCalled(); });
+  it('still requires cover art and lyrics to return to the lyrics state when lyrics are on', () => { model.store.isMusicPlaying = true; model.store.syncedLyrics = ['line']; invoke(action(render(), 'complete'), 'onClick'); expect(model.store.setLyrics).not.toHaveBeenCalled(); expect(model.store.setIdle).toHaveBeenCalledOnce(); });
   it('accepts and rejects media source switch', () => { const root = render({ type: 'source-switch' }); invoke(action(root, 'switch'), 'onClick'); invoke(action(root, 'ignore'), 'onClick'); expect(api.mediaAcceptSourceSwitch).toHaveBeenCalledOnce(); expect(api.mediaRejectSourceSwitch).toHaveBeenCalledOnce(); });
   it('installs ready update and displays its version', () => { const root = render({ type: 'update-ready', updateVersion: '2.0' }); expect(text(root)).toContain('v2.0'); invoke(action(root, 'installRestart'), 'onClick'); expect(api.updaterInstall).toHaveBeenCalledOnce(); });
   it('renders preparing and active download status while allowing hiding', () => { let root = render({ type: 'update-downloading' }); expect(text(root)).toContain('notification.update.downloadingPreparing'); model.progress = { percent: 50, transferred: 50, total: 100, bytesPerSecond: 10 }; root = render({ type: 'update-downloading' }); expect(text(root)).toContain('notification.update.downloadingBodyProgress'); invoke(action(root, 'hide'), 'onClick'); expect(model.store.setIdle).toHaveBeenCalledOnce(); });

@@ -54,7 +54,7 @@ export function LyricsContent(): ReactElement {
   const mediaInfo = useIslandStore((s) => s.mediaInfo);
   const setIdle = useIslandStore((s) => s.setIdle);
 
-  const songTitleMode = useLyricsDisplayStore((s) => !s.lyricsEnabled);
+  const songTitleMode = useLyricsDisplayStore((s) => s.lyricsEnabled === false);
 
   const { karaokeEnabled, clockEnabled, musicOuterGlowEffectEnabled } = useLyricsSettings();
   const clockText = useBeijingClock(clockEnabled);

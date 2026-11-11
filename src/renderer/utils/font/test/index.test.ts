@@ -84,6 +84,14 @@ describe('font memory lifetime', () => {
     expect(decode).not.toHaveBeenCalled();
     expect(createObjectURL).not.toHaveBeenCalled();
   });
+  it('accepts the same authorized URL on repeated calls', () => {
+    const url = 'http://127.0.0.1:51234/RTpcRm9udHNcYS50dGY.c2lnbmF0dXJl';
+    vi.stubGlobal('atob', vi.fn(() => { throw new Error('Unexpected base64 decode'); }));
+    ['eIsland-UI-A', 'eIsland-UI-B', 'eIsland-UI-C'].forEach((family) => {
+      injectFontFace(family, url, 'ttf');
+      expect(styles.get(`custom-font-${family}`)?.textContent).toContain(`url('${url}')`);
+    });
+  });
   it('loads only the selected fonts out of large imported lists', async () => {
     const fonts = Array.from({ length: 100 }, (value, i) => {
       void value;

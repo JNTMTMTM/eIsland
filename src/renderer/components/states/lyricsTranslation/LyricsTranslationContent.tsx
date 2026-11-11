@@ -26,7 +26,9 @@
 
 import { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
+import { useLyricsDisplayStore } from '../../../store/lyricsDisplayStore';
 import useIslandStore from '../../../store/slices';
+import { LyricsContent } from '../lyrics/LyricsContent';
 import { useLyricsSettings } from '../lyrics/hooks/useLyricsSettings';
 import { useBeijingClock } from '../lyrics/hooks/useBeijingClock';
 import { useAutoIdle } from '../lyrics/hooks/useAutoIdle';
@@ -51,12 +53,13 @@ export function LyricsTranslationContent(): ReactElement {
   const mediaInfo = useIslandStore((s) => s.mediaInfo);
   const setIdle = useIslandStore((s) => s.setIdle);
   const translationLyrics = useIslandStore((s) => s.translationLyrics);
+  const songTitleMode = useLyricsDisplayStore((s) => s.lyricsEnabled === false);
 
   const translationLines = translationLyrics?.status === 'available' ? translationLyrics.lines : null;
 
   const { karaokeEnabled, clockEnabled, musicOuterGlowEffectEnabled } = useLyricsSettings();
   const clockText = useBeijingClock(clockEnabled);
-  useAutoIdle(isMusicPlaying, lyricsLoading, syncedLyrics, setIdle);
+  useAutoIdle(isMusicPlaying, lyricsLoading, syncedLyrics, setIdle, songTitleMode);
   const { currentIdx, isIntro, currentLine, currentText, hasSyllables } = useCurrentLyric(syncedLyrics, lyricsLoading, currentPositionMs);
 
   const translationText = useTranslationLyric(translationLines, currentIdx, currentPositionMs);
@@ -71,6 +74,9 @@ export function LyricsTranslationContent(): ReactElement {
       useIslandStore.getState().setLyrics();
     }
   }, [currentIdx, currentText, translationText]);
+
+  // UI 锁定时无法切回歌词状态，歌词功能关闭后仍在此处只显示歌名，避免继续展示翻译。
+  if (songTitleMode) return <LyricsContent />;
 
   return (
     <LyricsTranslationContentView

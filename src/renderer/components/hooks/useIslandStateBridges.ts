@@ -70,8 +70,9 @@ export function useIslandStateBridges(options: UseIslandStateBridgesOptions): vo
   ));
 
   // 歌词功能关闭时不显示歌词，改为显示「歌名 - 歌手」。
-  const songTitleMode = useLyricsDisplayStore((store) => !store.lyricsEnabled);
+  const songTitleMode = useLyricsDisplayStore((store) => store.lyricsEnabled === false);
   const hasSongTitle = useIslandStore((store) => Boolean(store.mediaInfo.title));
+  const uiStateLocked = useIslandStore((store) => store.uiStateLocked);
   useEffect(() => subscribeLyricsEnabled(), []);
 
   const [lyricsTranslationEnabled, setLyricsTranslationEnabled] = useState<boolean>(true);
@@ -139,10 +140,11 @@ export function useIslandStateBridges(options: UseIslandStateBridgesOptions): vo
     }
   }, [state, translationLyrics, lyricsTranslationEnabled, isCurrentTranslationIdentical, songTitleMode, setLyricsTranslation]);
 
-  /** 翻译歌词关闭或只显示歌名时，从 lyricsTranslation 回退到 lyrics */
+  /** 翻译歌词关闭或只显示歌名时，从 lyricsTranslation 回退到 lyrics；UI 锁定期间无法切换，解锁后重试 */
   useEffect(() => {
+    if (uiStateLocked) return;
     if (state === 'lyricsTranslation' && (!lyricsTranslationEnabled || songTitleMode)) {
       setLyrics();
     }
-  }, [state, lyricsTranslationEnabled, songTitleMode, setLyrics]);
+  }, [state, lyricsTranslationEnabled, songTitleMode, uiStateLocked, setLyrics]);
 }

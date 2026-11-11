@@ -25,6 +25,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from 'zustand/vanilla';
+import { useLyricsDisplayStore } from '../../../store/lyricsDisplayStore';
 import { createMediaSlice } from '../../../store/slices/mediaSlice';
 import { useIslandNowPlayingSync } from '../useIslandNowPlayingSync';
 import { deferred, flushHookEffects, renderHook, resetHook, settleHook, unmountHook } from './startupHookHarness';
@@ -152,6 +153,8 @@ beforeEach(() => {
   nowPlaying = undefined;
   settingsChanged = undefined;
   vi.spyOn(console, 'log').mockImplementation(() => {});
+  // 每个用例从「尚未读取开关」开始，由各自的原生读取结果决定歌词是否启用。
+  useLyricsDisplayStore.setState({ lyricsEnabled: null });
   enabled.mockResolvedValue(true);
   translation.mockResolvedValue(true);
   karaokeEnabled.mockResolvedValue(false);
@@ -283,8 +286,17 @@ describe('useIslandNowPlayingSync runtime', () => {
       );
     }
   });
-  it('settings read failures retain defaults and rejected normal request publishes not-fetched translation/null lyrics', async () => {
-    [enabled, translation, karaokeEnabled, calibrate, delay].forEach((fn) => fn.mockRejectedValue(new Error('setting')));
+  it('lyrics switch read failure falls back to disabled and sends no lyric requests', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    enabled.mockRejectedValue(new Error('setting'));
+    mount();
+    await emit(song());
+    expect(leaves.normal).not.toHaveBeenCalled();
+    expect(leaves.karaoke).not.toHaveBeenCalled();
+    expect(options.setLyricsLoading).toHaveBeenLastCalledWith(false);
+  });
+  it('other settings read failures retain defaults and rejected normal request publishes not-fetched translation/null lyrics', async () => {
+    [translation, karaokeEnabled, calibrate, delay].forEach((fn) => fn.mockRejectedValue(new Error('setting')));
     leaves.normal.mockRejectedValue(new Error('lyrics'));
     mount();
     await emit(song());
@@ -294,6 +306,35 @@ describe('useIslandNowPlayingSync runtime', () => {
       lines: null
     });
     expect(leaves.karaoke).not.toHaveBeenCalled();
+  });
+  it('turning lyrics on for a playing track loads the skipped lyrics', async () => {
+    enabled.mockResolvedValue(false);
+    mount();
+    await emit(song());
+    expect(leaves.normal).not.toHaveBeenCalled();
+
+    useLyricsDisplayStore.setState({ lyricsEnabled: true });
+    await settleHook();
+    await settleHook();
+    expect(leaves.normal).toHaveBeenCalledOnce();
+    expect(options.setSyncedLyrics).toHaveBeenLastCalledWith(lyrics().lyrics);
+    expect(options.setLyricsLoading).toHaveBeenLastCalledWith(false);
+  });
+  it('turning lyrics off cancels the in-flight load and clears lyrics for the playing track', async () => {
+    const pendingLyrics = deferred<LyricsFetchResult>();
+    leaves.normal.mockReturnValue(pendingLyrics.promise);
+    mount();
+    await emit(song());
+    expect(leaves.normal).toHaveBeenCalledOnce();
+
+    useLyricsDisplayStore.setState({ lyricsEnabled: false });
+    expect(options.setSyncedLyrics).toHaveBeenLastCalledWith(null);
+    expect(options.setLyricsLoading).toHaveBeenLastCalledWith(false);
+    pendingLyrics.resolve(lyrics());
+    await settleHook();
+    await settleHook();
+    expect(options.setSyncedLyrics).toHaveBeenLastCalledWith(null);
+    expect(options.setSyncedLyrics).not.toHaveBeenCalledWith(lyrics().lyrics);
   });
   it('late settings completion after stop returns before either lyric request', async () => {
     const pending = deferred<boolean>();

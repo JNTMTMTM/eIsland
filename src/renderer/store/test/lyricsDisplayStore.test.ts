@@ -25,7 +25,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { LYRICS_ENABLED_CHANNEL, isSongTitleMode, subscribeLyricsEnabled, useLyricsDisplayStore } from '../lyricsDisplayStore';
+import { LYRICS_ENABLED_CHANNEL, isSongTitleMode, resolveLyricsEnabled, subscribeLyricsEnabled, useLyricsDisplayStore } from '../lyricsDisplayStore';
 
 let broadcast: ((channel: string, value: unknown) => void) | null = null;
 const unsubscribe = vi.fn(() => { broadcast = null; });
@@ -35,20 +35,35 @@ const api = {
   onSettingsChanged: vi.fn((callback: (channel: string, value: unknown) => void) => { broadcast = callback; return unsubscribe; }),
 };
 
+/**
+ * 等待已排队的 Promise 回调执行完毕。
+ * @returns 队列清空的 Promise。
+ */
+async function flush(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
 beforeEach(() => {
-  useLyricsDisplayStore.setState({ lyricsEnabled: true });
+  useLyricsDisplayStore.setState({ lyricsEnabled: null });
   vi.stubGlobal('window', Object.assign(surface, { api }));
 });
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('lyricsDisplayStore', () => {
+  it('starts unknown, which is not title mode', () => {
+    expect(useLyricsDisplayStore.getState().lyricsEnabled).toBeNull();
+    expect(isSongTitleMode()).toBe(false);
+  });
+
   it('loads the saved switch and follows broadcasts and local events until unsubscribed', async () => {
     const stop = subscribeLyricsEnabled();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
     expect(isSongTitleMode()).toBe(true);
 
     broadcast?.(LYRICS_ENABLED_CHANNEL, true);
@@ -66,11 +81,28 @@ describe('lyricsDisplayStore', () => {
     expect(isSongTitleMode()).toBe(true);
   });
 
-  it('keeps the default when the saved value cannot be read', async () => {
+  it('ignores a saved read that resolves after a newer settings event', async () => {
+    let resolveRead: (value: boolean) => void = () => {};
+    api.musicLyricsEnabledGet.mockReturnValueOnce(new Promise((resolve) => { resolveRead = resolve; }));
+    subscribeLyricsEnabled();
+    broadcast?.(LYRICS_ENABLED_CHANNEL, false);
+    resolveRead(true);
+    await flush();
+    expect(useLyricsDisplayStore.getState().lyricsEnabled).toBe(false);
+  });
+
+  it('treats a failed read as disabled so no lyric requests start', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     api.musicLyricsEnabledGet.mockRejectedValueOnce(new Error('ipc'));
-    subscribeLyricsEnabled()();
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(isSongTitleMode()).toBe(false);
+    await expect(resolveLyricsEnabled()).resolves.toBe(false);
+    expect(isSongTitleMode()).toBe(true);
+    expect(console.error).toHaveBeenCalled();
+  });
+
+  it('shares one native read between concurrent callers and skips reading once known', async () => {
+    api.musicLyricsEnabledGet.mockResolvedValueOnce(true);
+    await expect(Promise.all([resolveLyricsEnabled(), resolveLyricsEnabled()])).resolves.toEqual([true, true]);
+    await resolveLyricsEnabled();
+    expect(api.musicLyricsEnabledGet).toHaveBeenCalledOnce();
   });
 });

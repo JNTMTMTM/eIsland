@@ -153,8 +153,11 @@ export function NotificationContent({
   const dismiss = (): void => {
     window.dispatchEvent(new CustomEvent(ALARM_SOUND_STOP_EVENT));
     const store = useIslandStore.getState();
-    const hasMusicLine = isSongTitleMode() ? Boolean(store.mediaInfo.title) : Boolean(store.syncedLyrics?.length || store.lyricsLoading);
-    if (store.isMusicPlaying && store.coverImage && hasMusicLine) {
+    // 只显示歌名时不依赖封面与歌词，有歌名即可返回歌词状态。
+    const hasMusicLine = isSongTitleMode()
+      ? Boolean(store.mediaInfo.title)
+      : Boolean(store.coverImage && (store.syncedLyrics?.length || store.lyricsLoading));
+    if (store.isMusicPlaying && hasMusicLine) {
       setLyrics();
     } else {
       setIdle();

@@ -108,6 +108,13 @@ describe('useIslandStateBridges 只显示歌名', () => {
     expect(input.setLyrics).toHaveBeenCalled(); expect(input.setLyricsTranslation).not.toHaveBeenCalled();
     commit({ ...input, state: 'lyrics' }); expect(input.setLyricsTranslation).not.toHaveBeenCalled();
   });
+  it('UI 锁定时不切换，解锁后翻译歌词状态回退到歌词状态', async () => {
+    titleMode(); useIslandStore.setState({ uiStateLocked: true });
+    const input = options({ state: 'lyricsTranslation' }); await mount(input);
+    expect(input.setLyrics).not.toHaveBeenCalled();
+    useIslandStore.setState({ uiStateLocked: false }); commit(input);
+    expect(input.setLyrics).toHaveBeenCalled();
+  });
   it('只显示歌名时翻译歌词状态回退到歌词状态', async () => {
     titleMode();
     const input = options({ state: 'lyricsTranslation' }); await mount(input);

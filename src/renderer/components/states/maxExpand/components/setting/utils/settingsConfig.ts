@@ -565,7 +565,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '播放器白名单', desc: '只有白名单内的播放器才会触发歌曲信息获取', labelKey: 'settings.music.whitelist.title', descKey: 'settings.music.whitelist.hint', tab: 'music', musicPage: 'whitelist' },
   { label: '添加播放器', desc: '手动输入播放器进程名，或自动从当前 SMTC 会话中检测', labelKey: 'settings.music.whitelist.addTitle', descKey: 'settings.music.whitelist.addHint', tab: 'music', musicPage: 'whitelist' },
   // ── 歌曲设置 > 歌词源 ──
-  { label: '歌词功能', desc: '关闭后不再发送歌词相关网络请求，不显示歌词，不切换到歌词状态', labelKey: 'settings.music.lyrics.enabledTitle', descKey: 'settings.music.lyrics.enabledHint', tab: 'music', musicPage: 'lyrics' },
+  { label: '歌词功能', desc: '关闭后不再发送歌词相关网络请求，不显示歌词；播放音乐时灵动岛只显示歌名', labelKey: 'settings.music.lyrics.enabledTitle', descKey: 'settings.music.lyrics.enabledHint', tab: 'music', musicPage: 'lyrics' },
   { label: '翻译歌词', desc: '关闭后不显示翻译歌词，不切换到翻译歌词状态', labelKey: 'settings.music.lyrics.translationTitle', descKey: 'settings.music.lyrics.translationHint', tab: 'music', musicPage: 'lyrics' },
   { label: '歌词源', desc: '自动模式根据 SMTC 检测到的播放器进程选择对应源，失败后依次尝试其他源，最后使用 LRCLIB 兜底', labelKey: 'settings.music.lyrics.title', descKey: 'settings.music.lyrics.hint', tab: 'music', musicPage: 'lyrics' },
   { label: '歌词显示', desc: '控制歌词界面的展示效果', labelKey: 'settings.music.lyrics.displayTitle', descKey: 'settings.music.lyrics.displayHint', tab: 'music', musicPage: 'lyrics' },

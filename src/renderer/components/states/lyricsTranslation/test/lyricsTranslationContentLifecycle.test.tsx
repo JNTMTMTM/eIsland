@@ -42,6 +42,12 @@ vi.hoisted(() => {
 });
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 vi.mock('react-i18next', async (load) => ({ ...(await load<typeof import('react-i18next')>()), useTranslation: () => ({ t: (key: string) => key }) }));
+// 测试替身不提供 React 调度器，把歌词功能开关的 zustand Hook 绑定到当前快照。
+vi.mock('../../../../store/lyricsDisplayStore', async (load) => {
+  const actual = await load<typeof import('../../../../store/lyricsDisplayStore')>();
+  const bound = Object.assign(<T,>(selector: (state: ReturnType<typeof actual.useLyricsDisplayStore.getState>) => T): T => selector(actual.useLyricsDisplayStore.getState()), actual.useLyricsDisplayStore);
+  return { ...actual, useLyricsDisplayStore: bound };
+});
 vi.mock('../../../../store/slices', async (load) => {
   const actual = await load<typeof import('../../../../store/slices')>();
   return { ...actual, default: Object.assign(<T,>(selector: (state: ReturnType<typeof actual.default.getState>) => T): T => selector(actual.default.getState()), actual.default) };
