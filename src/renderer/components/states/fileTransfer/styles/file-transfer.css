@@ -1,8 +1,21 @@
 /*
- * eIsland - https://github.com/JNTMTMTM/eIsland
+ * eIsland - A sleek, Apple Dynamic Island inspired floating widget for Windows, built with Electron.
+ * https://github.com/JNTMTMTM/eIsland
+ *
  * Copyright (C) 2026 JNTMTMTM
  * Copyright (C) 2026 pyisland.com
- * Licensed under the GNU General Public License (GPL-3.0 or later).
+ *
+ * Original author: JNTMTMTM[](https://github.com/JNTMTMTM)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /**
@@ -45,6 +58,7 @@
 
 .file-transfer-grid {
   @apply grid min-h-0 flex-1 auto-rows-[68px] grid-cols-[repeat(auto-fill,minmax(min(100%,112px),1fr))] content-start gap-1.5 overflow-x-hidden overflow-y-auto overscroll-y-contain pt-0.5 pb-1 [scrollbar-gutter:stable];
+  @apply -me-2 pe-2;
 
 }
 
