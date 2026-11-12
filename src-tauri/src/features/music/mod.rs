@@ -156,6 +156,7 @@ impl Music {
             if matches!(
                 key,
                 "lyrics-karaoke"
+                    | "lyrics-enabled"
                     | "lyrics-calibrate-enabled"
                     | "lyrics-calibrate-delay"
                     | "music-smtc-unsubscribe-ms"

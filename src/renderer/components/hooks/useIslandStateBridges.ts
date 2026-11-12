@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { subscribeLyricsEnabled, useLyricsDisplayStore } from '../../store/lyricsDisplayStore';
 import type { SyncedLyricLine, TimerState } from '../../store/types';
 import type { TranslationLyricsResult } from '../../api/lyrics/lrcApi';
 import type { IslandState } from './useDynamicIslandShell';
@@ -68,18 +69,20 @@ export function useIslandStateBridges(options: UseIslandStateBridgesOptions): vo
       && isCurrentLyricIdenticalToTranslation(store.syncedLyrics, store.translationLyrics, store.currentPositionMs)
   ));
 
-  const [lyricsEnabled, setLyricsEnabled] = useState<boolean>(true);
+  // 歌词功能关闭时不显示歌词，改为显示「歌名 - 歌手」。
+  const songTitleMode = useLyricsDisplayStore((store) => store.lyricsEnabled === false);
+  const hasSongTitle = useIslandStore((store) => Boolean(store.mediaInfo.title));
+  const uiStateLocked = useIslandStore((store) => store.uiStateLocked);
+  useEffect(() => subscribeLyricsEnabled(), []);
+
   const [lyricsTranslationEnabled, setLyricsTranslationEnabled] = useState<boolean>(true);
   useEffect(() => {
-    window.api.musicLyricsEnabledGet().then(setLyricsEnabled).catch(() => {});
     window.api.musicLyricsTranslationEnabledGet().then(setLyricsTranslationEnabled).catch(() => {});
     const unsub = window.api.onSettingsChanged((channel, value) => {
-      if (channel === 'music:lyrics-enabled') setLyricsEnabled(value as boolean);
       if (channel === 'music:lyrics-translation-enabled') setLyricsTranslationEnabled(value as boolean);
     });
     const onLocal = (e: Event) => {
       const { channel, value } = (e as CustomEvent).detail;
-      if (channel === 'music:lyrics-enabled') setLyricsEnabled(value);
       if (channel === 'music:lyrics-translation-enabled') setLyricsTranslationEnabled(value);
     };
     window.addEventListener('island:setting-changed', onLocal);
@@ -102,41 +105,46 @@ export function useIslandStateBridges(options: UseIslandStateBridgesOptions): vo
   }, [state, setAgentVoiceInput, setIdle]);
 
   useEffect(() => {
-    if (!lyricsEnabled) return;
     if (state !== 'idle') return;
     if (timerState !== 'idle') return;
-    if (isPlaying && ((syncedLyrics?.length ?? 0) > 0 || lyricsLoading)) {
-      const hasTranslation = translationLyrics?.status === 'available'
-        && Boolean(translationLyrics.lines && translationLyrics.lines.length > 0);
-      if (hasTranslation && lyricsTranslationEnabled) {
-        /** 原文与翻译完全一致时显示普通歌词 */
-        if (isCurrentTranslationIdentical) {
-          setLyrics();
-        } else {
-          setLyricsTranslation();
-        }
-      } else {
-        setLyrics();
-      }
+    if (!isPlaying) return;
+    // 只显示歌名或未获取到歌词时，以前奏样式展示歌名；有歌词（或加载中）时才考虑翻译歌词。
+    const hasLyricLine = !songTitleMode && ((syncedLyrics?.length ?? 0) > 0 || lyricsLoading);
+    if (!hasLyricLine) {
+      if (hasSongTitle) setLyrics();
+      return;
     }
-  }, [state, timerState, isPlaying, syncedLyrics, lyricsLoading, translationLyrics, lyricsEnabled, lyricsTranslationEnabled, isCurrentTranslationIdentical, setLyrics, setLyricsTranslation]);
+    const hasTranslation = translationLyrics?.status === 'available'
+      && Boolean(translationLyrics.lines && translationLyrics.lines.length > 0);
+    if (hasTranslation && lyricsTranslationEnabled) {
+      /** 原文与翻译完全一致时显示普通歌词 */
+      if (isCurrentTranslationIdentical) {
+        setLyrics();
+      } else {
+        setLyricsTranslation();
+      }
+    } else {
+      setLyrics();
+    }
+  }, [state, timerState, isPlaying, syncedLyrics, lyricsLoading, translationLyrics, lyricsTranslationEnabled, isCurrentTranslationIdentical, songTitleMode, hasSongTitle, setLyrics, setLyricsTranslation]);
 
   /** 歌词状态下翻译歌词加载完成 → 升级到 lyricsTranslation（原文与翻译一致时保持 lyrics） */
   useEffect(() => {
     if (state !== 'lyrics') return;
-    if (!lyricsTranslationEnabled) return;
+    if (!lyricsTranslationEnabled || songTitleMode) return;
     const hasTranslation = translationLyrics?.status === 'available'
       && Boolean(translationLyrics.lines && translationLyrics.lines.length > 0);
     if (hasTranslation) {
       if (isCurrentTranslationIdentical) return;
       setLyricsTranslation();
     }
-  }, [state, translationLyrics, lyricsTranslationEnabled, isCurrentTranslationIdentical, setLyricsTranslation]);
+  }, [state, translationLyrics, lyricsTranslationEnabled, isCurrentTranslationIdentical, songTitleMode, setLyricsTranslation]);
 
-  /** 翻译歌词关闭时，从 lyricsTranslation 回退到 lyrics */
+  /** 翻译歌词关闭或只显示歌名时，从 lyricsTranslation 回退到 lyrics；UI 锁定期间无法切换，解锁后重试 */
   useEffect(() => {
-    if (state === 'lyricsTranslation' && !lyricsTranslationEnabled) {
+    if (uiStateLocked) return;
+    if (state === 'lyricsTranslation' && (!lyricsTranslationEnabled || songTitleMode)) {
       setLyrics();
     }
-  }, [state, lyricsTranslationEnabled, setLyrics]);
+  }, [state, lyricsTranslationEnabled, songTitleMode, uiStateLocked, setLyrics]);
 }

@@ -25,6 +25,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useLyricsDisplayStore } from '../../../store/lyricsDisplayStore';
 import type { LyricsFetchResult } from '../../../api/lyrics/lrcApi';
 import type { NowPlayingInfo } from '../../../store/types';
 
@@ -67,6 +68,8 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(10000);
   vi.clearAllMocks();
+  // 每个用例从「尚未读取开关」开始，由各自的原生读取结果决定歌词是否启用。
+  useLyricsDisplayStore.setState({ lyricsEnabled: null });
   lyricsEnabled.mockResolvedValue(false);
   fetchLyricsMock.mockResolvedValue(result);
   timestamp.mockResolvedValue({ isAvailable: false });

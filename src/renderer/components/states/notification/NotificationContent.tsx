@@ -152,7 +152,9 @@ export function NotificationContent({
   const dismiss = (): void => {
     window.dispatchEvent(new CustomEvent(ALARM_SOUND_STOP_EVENT));
     const store = useIslandStore.getState();
-    if (store.isMusicPlaying && store.coverImage && (store.syncedLyrics?.length || store.lyricsLoading)) {
+    // 有歌词、歌词加载中或有歌名（以前奏样式展示）时都返回歌词状态。
+    const hasMusicLine = Boolean(store.mediaInfo.title || store.syncedLyrics?.length || store.lyricsLoading);
+    if (store.isMusicPlaying && hasMusicLine) {
       setLyrics();
     } else {
       setIdle();

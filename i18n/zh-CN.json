@@ -3678,7 +3678,7 @@
       },
       "lyrics": {
         "enabledTitle": "歌词功能",
-        "enabledHint": "关闭后不再发送歌词相关网络请求，不显示歌词，不切换到歌词状态",
+        "enabledHint": "关闭后不再发送歌词相关网络请求，不显示歌词；播放音乐时灵动岛只显示歌名",
         "enabledToggle": "启用歌词功能",
         "translationTitle": "翻译歌词",
         "translationHint": "关闭后不显示翻译歌词，不切换到翻译歌词状态",

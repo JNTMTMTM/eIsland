@@ -26,6 +26,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useLyricsDisplayStore } from '../../../../store/lyricsDisplayStore';
+import { LyricsContent } from '../../lyrics/LyricsContent';
 import { LyricsTranslationContent } from '../LyricsTranslationContent';
 
 import { LyricsTranslationContentView } from '../components/LyricsTranslationContentView';
@@ -38,6 +40,12 @@ const model = vi.hoisted(() => ({
   settings: { karaokeEnabled: false, clockEnabled: true, musicOuterGlowEffectEnabled: true },
   lyric: { currentIdx: 1, hasLyrics: true, isIntro: false, currentLine: { time_ms: 1000, text: 'Original', syllables: [{ text: 'Original', start_offset_ms: 0, duration_ms: 1000 }] }, currentText: 'Original', hasSyllables: false },
 }));
+// 测试替身不提供 React 调度器，把歌词功能开关的 zustand Hook 绑定到当前快照。
+vi.mock('../../../../store/lyricsDisplayStore', async (load) => {
+  const actual = await load<typeof import('../../../../store/lyricsDisplayStore')>();
+  const bound = Object.assign(<T,>(selector: (state: ReturnType<typeof actual.useLyricsDisplayStore.getState>) => T): T => selector(actual.useLyricsDisplayStore.getState()), actual.useLyricsDisplayStore);
+  return { ...actual, useLyricsDisplayStore: bound };
+});
 vi.mock('../../../../store/slices', () => ({ default: (selector: (state: typeof model.store) => unknown) => selector(model.store) }));
 const translation = vi.hoisted(() => ({ useTranslationLyric: vi.fn(() => 'Translated') }));
 vi.mock('../../lyrics/hooks/useLyricsSettings', () => ({ useLyricsSettings: () => model.settings }));
@@ -46,9 +54,10 @@ vi.mock('../../lyrics/hooks/useAutoIdle', () => ({ useAutoIdle: vi.fn() }));
 vi.mock('../../lyrics/hooks/useCurrentLyric', () => ({ useCurrentLyric: () => model.lyric }));
 vi.mock('../hooks/useTranslationLyric', () => ({ useTranslationLyric: translation.useTranslationLyric }));
 vi.mock('../hooks/useTranslationFallback', () => ({ useTranslationFallback: vi.fn() }));
-beforeEach(() => { slots.cursor = 0; slots.values = []; slots.effects = []; });
+beforeEach(() => { slots.cursor = 0; slots.values = []; slots.effects = []; useLyricsDisplayStore.setState({ lyricsEnabled: true }); });
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe('LyricsTranslationContent', () => {
   it('forwards combined music, current lyric and translated text to view', () => { model.store.translationLyrics = { status: 'available', lines: [{ text: 'Translated' }] }; const root = ((LyricsTranslationContent() as TreeElement)); expect(root.type).toBe(LyricsTranslationContentView); expect(root.props).toMatchObject({ currentPositionMs: 1500, coverImage: 'cover.jpg', glowEnabled: true, clockEnabled: true, clockText: '12:34', mediaTitle: 'Song', currentText: 'Original', translationText: 'Translated' }); expect(translation.useTranslationLyric).toHaveBeenCalledWith(model.store.translationLyrics.lines, 1, 1500); });
+  it('renders the title-only lyrics view instead of translations when lyrics are off', () => { useLyricsDisplayStore.setState({ lyricsEnabled: false }); model.store.translationLyrics = { status: 'available', lines: [{ text: 'Translated' }] }; const root = ((LyricsTranslationContent() as TreeElement)); expect(root.type).toBe(LyricsContent); });
   it('passes null translation lines when unavailable', () => { model.store.translationLyrics = null; ((LyricsTranslationContent() as TreeElement)); expect(translation.useTranslationLyric).toHaveBeenCalledWith(null, 1, 1500); });
 });

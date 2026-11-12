@@ -340,7 +340,7 @@ export function MusicSettingsSection(props: MusicSettingsSectionProps): ReactEle
               <div className="settings-card">
                 <div className="settings-card-header">
                   <div className="settings-card-title">{t('settings.music.lyrics.enabledTitle', { defaultValue: '歌词功能' })}</div>
-                  <div className="settings-card-subtitle">{t('settings.music.lyrics.enabledHint', { defaultValue: '关闭后不再发送歌词相关网络请求，不显示歌词，不切换到歌词状态' })}</div>
+                  <div className="settings-card-subtitle">{t('settings.music.lyrics.enabledHint', { defaultValue: '关闭后不再发送歌词相关网络请求，不显示歌词；播放音乐时灵动岛只显示歌名' })}</div>
                 </div>
                 <div className="settings-card-inline-row">
                   <label className="settings-card-check">

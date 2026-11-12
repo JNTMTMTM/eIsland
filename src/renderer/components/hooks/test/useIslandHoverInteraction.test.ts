@@ -29,6 +29,7 @@ import { lifecycleHooks } from '../../components/test/contentLifecycleHarness';
 import { hookMocks } from '../../test/elementHarness';
 import { browser, renderWithHooks, resetBrowser, runEffects, settle, unmountHooks } from '../../states/register/hooks/test/authHookHarness';
 import useIslandStore from '../../../store/isLandStore';
+import { useLyricsDisplayStore } from '../../../store/lyricsDisplayStore';
 import { useIslandHoverInteraction } from '../useIslandHoverInteraction';
 vi.hoisted(() => { vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } })); });
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
@@ -42,6 +43,7 @@ beforeEach(() => {
   vi.stubGlobal('window', Object.assign(browser, { api: { ...browser.api, getMouseWindowState: mouse } }));
   useIslandStore.setState({ uiStateLocked: false, isPlaying: false, syncedLyrics: null, translationLyrics: null, lyricsLoading: false, currentPositionMs: 0,
     timerData: { ...useIslandStore.getState().timerData, state: 'idle' } });
+  useLyricsDisplayStore.setState({ lyricsEnabled: true });
 });
 afterEach(() => { unmountHooks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 /**
@@ -146,6 +148,23 @@ describe('useIslandHoverInteraction 真实轮询和状态交互', () => {
     await mount(input);
     expect(input.setLyricsTranslation).toHaveBeenCalledTimes(mode === 'different' ? 1 : 0);
     expect(input.setLyrics).toHaveBeenCalledTimes(mode === 'different' ? 0 : 1);
+  });
+  it.each([['Song', 1], ['', 0]] as const)('只显示歌名时离开 hover：歌名「%s」决定进入歌词状态且不进入翻译', async (title, lyricsCalls) => {
+    const input = options('hover'); input.isHoveringRef.current = true; outside();
+    useLyricsDisplayStore.setState({ lyricsEnabled: false });
+    useIslandStore.setState({ isPlaying: true, syncedLyrics: null, mediaInfo: { title, artist: '', album: '', duration_ms: 0 },
+      translationLyrics: { status: 'available', lines: [{ time_ms: 0, text: 'Translated' }] } });
+    await mount(input);
+    expect(input.setLyrics).toHaveBeenCalledTimes(lyricsCalls);
+    expect(input.setLyricsTranslation).not.toHaveBeenCalled();
+    expect(input.setIdle).toHaveBeenCalledTimes(1 - lyricsCalls);
+  });
+  it('歌词开启但未获取到歌词时离开 hover，以前奏样式进入歌词状态且不进入翻译', async () => {
+    const input = options('hover'); input.isHoveringRef.current = true; outside();
+    useIslandStore.setState({ isPlaying: true, syncedLyrics: null, lyricsLoading: false, mediaInfo: { title: 'Song', artist: '', album: '', duration_ms: 0 },
+      translationLyrics: { status: 'available', lines: [{ time_ms: 0, text: 'Translated' }] } });
+    await mount(input);
+    expect(input.setLyrics).toHaveBeenCalledOnce(); expect(input.setLyricsTranslation).not.toHaveBeenCalled(); expect(input.setIdle).not.toHaveBeenCalled();
   });
   it('卸载清理轮询和两类定时器；进行中的定位响应不能改变状态', async () => {
     let resolve!: (value: Awaited<ReturnType<typeof mouse>>) => void;

@@ -69,6 +69,29 @@ describe('font memory lifetime', () => {
     expect(createObjectURL).not.toHaveBeenCalled();
     expect(revokeObjectURL).not.toHaveBeenCalled();
   });
+  it('uses signed local asset server URLs returned by the native font reader', async () => {
+    const url = 'http://127.0.0.1:51234/RTpcRm9udHNcYS50dGY.c2lnbmF0dXJl_-';
+    const decode = vi.fn(() => { throw new Error('Unexpected base64 decode'); });
+    vi.stubGlobal('atob', decode);
+    readFontFile.mockResolvedValue({ path: 'E:\\Fonts\\a.ttf', data: '', url, ext: 'ttf', name: 'a' });
+    const values: Record<string, unknown> = {
+      'ui-font-family': 'custom:E:\\Fonts\\a.ttf', 'ui-custom-fonts': [{ name: 'a', path: 'E:\\Fonts\\a.ttf' }],
+    };
+    storeRead.mockImplementation((key: string) => Promise.resolve(values[key]));
+    await initFonts();
+    expect(styles.get('custom-font-eIsland-UI-a')?.textContent).toContain(`url('${url}') format('truetype')`);
+    expect(setProperty).toHaveBeenCalledWith('--island-ui-font', "'eIsland-UI-a', sans-serif");
+    expect(decode).not.toHaveBeenCalled();
+    expect(createObjectURL).not.toHaveBeenCalled();
+  });
+  it('accepts the same authorized URL on repeated calls', () => {
+    const url = 'http://127.0.0.1:51234/RTpcRm9udHNcYS50dGY.c2lnbmF0dXJl';
+    vi.stubGlobal('atob', vi.fn(() => { throw new Error('Unexpected base64 decode'); }));
+    ['eIsland-UI-A', 'eIsland-UI-B', 'eIsland-UI-C'].forEach((family) => {
+      injectFontFace(family, url, 'ttf');
+      expect(styles.get(`custom-font-${family}`)?.textContent).toContain(`url('${url}')`);
+    });
+  });
   it('loads only the selected fonts out of large imported lists', async () => {
     const fonts = Array.from({ length: 100 }, (value, i) => {
       void value;

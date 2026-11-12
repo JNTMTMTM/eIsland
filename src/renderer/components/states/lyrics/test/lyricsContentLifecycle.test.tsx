@@ -40,6 +40,12 @@ vi.hoisted(() => {
 });
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 vi.mock('react-i18next', async (load) => ({ ...(await load<typeof import('react-i18next')>()), useTranslation: () => ({ t: (key: string) => key }) }));
+// 测试替身不提供 React 调度器，把歌词显示开关的 zustand Hook 绑定到当前快照。
+vi.mock('../../../../store/lyricsDisplayStore', async (load) => {
+  const actual = await load<typeof import('../../../../store/lyricsDisplayStore')>();
+  const bound = Object.assign(<T,>(selector: (state: ReturnType<typeof actual.useLyricsDisplayStore.getState>) => T): T => selector(actual.useLyricsDisplayStore.getState()), actual.useLyricsDisplayStore);
+  return { ...actual, useLyricsDisplayStore: bound };
+});
 vi.mock('../../../../store/slices', async (load) => {
   const actual = await load<typeof import('../../../../store/slices')>();
   return { ...actual, default: Object.assign(<T,>(selector: (state: ReturnType<typeof actual.default.getState>) => T): T => selector(actual.default.getState()), actual.default) };
@@ -75,13 +81,15 @@ describe('真实普通歌词内容组合', () => {
     expect(findElement(root, (element) => element.props.className === 'idle-glow active').props.style).toEqual({ background: 'radial-gradient(ellipse at 10% 50%, rgba(10, 20, 30, 0.35) 0%, transparent 60%)' });
     vi.advanceTimersByTime(60000); root = renderWithHooks(LyricsContent); expect(textContent(root)).toContain('08:01');
   });
-  it('加载中显示三点，不自动闲置；无可用歌词停止加载才真实切idle', async () => {
+  it('加载中显示三点；未获取到歌词时保持歌词状态并以前奏样式显示歌名', async () => {
     useIslandStore.setState({ syncedLyrics: null, lyricsLoading: true }); let root = await commit();
     expect(elements(root).filter((element) => element.props.className === 'lyrics-loading-dot')).toHaveLength(3);
     expect(useIslandStore.getState().state).toBe('lyrics'); expect(contentApi.collapseWindow).not.toHaveBeenCalled();
     useIslandStore.setState({ lyricsLoading: false }); root = renderWithHooks(LyricsContent); runEffects();
-    expect(textContent(root)).toContain('songTab.lyrics.empty'); expect(useIslandStore.getState().state).toBe('idle');
-    expect(contentApi.collapseWindow).toHaveBeenCalledOnce(); expect(contentApi.enableMousePassthrough).toHaveBeenCalledOnce();
+    expect(findElement(root, (element) => element.props.className === 'lyrics-intro-title-center').props.children).toBe('Album title');
+    expect(elements(root).some((element) => element.props.className === 'lyrics-intro-icon')).toBe(true);
+    expect(textContent(root)).not.toContain('songTab.lyrics.empty');
+    expect(useIslandStore.getState().state).toBe('lyrics'); expect(contentApi.collapseWindow).not.toHaveBeenCalled();
   });
   it('真实前奏只显示歌曲标题，空歌词行显示空态而非逐字组件', async () => {
     useIslandStore.setState({ currentPositionMs: 999 }); let root = await commit();

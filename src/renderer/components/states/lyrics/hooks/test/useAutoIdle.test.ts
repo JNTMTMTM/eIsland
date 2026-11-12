@@ -30,7 +30,6 @@ import { hookMocks } from '../../../../test/elementHarness';
 import useIslandStore from '../../../../../store/slices';
 import { useAutoIdle } from '../useAutoIdle';
 import { resetStandalone, surface } from '../../../../hooks/test/standaloneIpcHarness';
-import type { SyncedLyricLine } from '../../../../../store/types';
 vi.hoisted(() => { vi.stubGlobal('window', Object.assign(new EventTarget(), { location: { hostname: 'localhost' } })); });
 vi.mock('react', async (load) => ({ ...(await load<typeof import('react')>()), ...hookMocks, ...lifecycleHooks }));
 const collapseWindow = vi.fn(); const enableMousePassthrough = vi.fn();
@@ -41,20 +40,17 @@ beforeEach(() => {
 afterEach(() => { unmountHooks(); vi.unstubAllGlobals(); });
 describe('真实歌词播放状态回退', () => {
   it.each([
-    { playing: false, loading: true, lyrics: null, idle: true },
-    { playing: true, loading: false, lyrics: null, idle: true },
-    { playing: true, loading: false, lyrics: [], idle: true },
-    { playing: true, loading: true, lyrics: null, idle: false },
-    { playing: true, loading: false, lyrics: [{ time_ms: 0, text: '歌词' }], idle: false },
-  ] satisfies Array<{ playing: boolean; loading: boolean; lyrics: SyncedLyricLine[] | null; idle: boolean }>)('播放$playing/加载$loading/空歌词条件触发idle=$idle', ({ playing, loading, lyrics, idle }) => {
-    renderWithHooks(() => useAutoIdle(playing, loading, lyrics, useIslandStore.getState().setIdle)); runEffects();
+    { playing: false, idle: true },
+    { playing: true, idle: false },
+  ])('播放$playing时触发idle=$idle（没有歌词也保持歌词状态，以前奏样式显示歌名）', ({ playing, idle }) => {
+    renderWithHooks(() => useAutoIdle(playing, useIslandStore.getState().setIdle)); runEffects();
     expect(useIslandStore.getState().state).toBe(idle ? 'idle' : 'lyrics'); expect(collapseWindow).toHaveBeenCalledTimes(idle ? 1 : 0);
   });
   it('同一输入不重复执行窗口动作，播放停止的最新依赖才触发真实idle', () => {
-    const lines = [{ time_ms: 0, text: '歌词' }]; const {setIdle} = useIslandStore.getState();
-    renderWithHooks(() => useAutoIdle(true, false, lines, setIdle)); runEffects();
-    renderWithHooks(() => useAutoIdle(true, false, lines, setIdle)); runEffects(); expect(collapseWindow).not.toHaveBeenCalled();
-    renderWithHooks(() => useAutoIdle(false, false, lines, setIdle)); runEffects();
+    const { setIdle } = useIslandStore.getState();
+    renderWithHooks(() => useAutoIdle(true, setIdle)); runEffects();
+    renderWithHooks(() => useAutoIdle(true, setIdle)); runEffects(); expect(collapseWindow).not.toHaveBeenCalled();
+    renderWithHooks(() => useAutoIdle(false, setIdle)); runEffects();
     expect(useIslandStore.getState().state).toBe('idle'); expect(collapseWindow).toHaveBeenCalledOnce();
   });
 });

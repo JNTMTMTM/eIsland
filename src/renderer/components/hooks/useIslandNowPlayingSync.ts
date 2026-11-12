@@ -30,6 +30,7 @@ import type { SyncedLyricLine } from '../../store/types';
 import type { TranslationLyricsResult } from '../../api/lyrics/lrcApi';
 import { fetchLyricsWithTranslation } from '../../api/lyrics/lrcApi';
 import { fetchKaraokeLyrics } from '../../api/lyrics/lrcs/karaoke';
+import { resolveLyricsEnabled, useLyricsDisplayStore } from '../../store/lyricsDisplayStore';
 import type { KaraokeLine } from '../../api/lyrics/lrcs/karaoke';
 
 interface UseIslandNowPlayingSyncOptions {
@@ -86,6 +87,9 @@ function logTranslationLyricsStatus(translation: TranslationLyricsResult): void 
 function logCalibrationStatus(status: string, message: string, details: Record<string, unknown> = {}): void {
   console.log(`[LyricsCalibrate] status=${status} ${message}`, details);
 }
+
+/** 歌词加载所需的曲目信息 */
+type LyricsTrack = { title: string; artist: string; deviceId?: string };
 
 /**
  * @description 同步系统播放信息、进度与歌词数据。
@@ -150,6 +154,8 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
     let currentSource = '';
     let playing = false;
     let hasPosition = false;
+    /** 当前曲目，歌词功能开关变化时据此重新加载或取消歌词 */
+    let currentTrack: LyricsTrack | null = null;
 
     const stopProgress = () => {
       if (progressTimerRef.current !== null) {
@@ -283,6 +289,131 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       else logCalibrationStatus(calibrationEnabled ? 'waiting-lyrics' : 'disabled', calibrationEnabled ? '校准已启用，等待歌词加载' : '校准已关闭，已取消待执行校准');
     });
 
+    /**
+     * 为指定曲目重新开始歌词加载：取消旧请求并清空歌词；歌词功能关闭时不发起请求。
+     * @param track - 当前曲目。
+     */
+    const startLyricsLoad = (track: LyricsTrack): void => {
+      requestVersion += 1;
+      hasLyrics = false;
+      clearCalibration();
+      setSyncedLyricsRef.current(null);
+      setTranslationLyricsRef.current(null);
+      if (useLyricsDisplayStore.getState().lyricsEnabled === false) {
+        setLyricsLoadingRef.current(false);
+        logCalibrationStatus('skipped', '歌词功能已关闭，不启动校准', { reason: 'lyrics-disabled' });
+        return;
+      }
+      setLyricsLoadingRef.current(true);
+      const capturedVersion = requestVersion;
+      const isCurrent = () => !disposed && requestVersion === capturedVersion;
+      const { title, artist, deviceId } = track;
+
+      const loadLyrics = async (): Promise<void> => {
+        // 尚未读取到开关时等待读取；读取失败按关闭处理，不发起歌词请求。
+        const lyricsEnabled = await resolveLyricsEnabled();
+        if (!isCurrent()) return;
+        if (!lyricsEnabled) {
+          setLyricsLoadingRef.current(false);
+          logCalibrationStatus('skipped', '歌词功能已关闭，不启动校准', { reason: 'lyrics-disabled' });
+          return;
+        }
+
+        let translationEnabled = true;
+        try {
+          translationEnabled = await window.api.musicLyricsTranslationEnabledGet();
+        } catch {
+          translationEnabled = true;
+        }
+
+        let karaokeEnabled = false;
+        try {
+          karaokeEnabled = await window.api.musicLyricsKaraokeGet();
+        } catch {
+          karaokeEnabled = false;
+        }
+
+        let calibrateEnabled = true;
+        let calibrateDelaySec = 20;
+        const capturedEnabledVersion = calibrationEnabledVersion;
+        const capturedDelayVersion = calibrationDelayVersion;
+        try {
+          calibrateEnabled = await window.api.musicLyricsCalibrateEnabledGet();
+          calibrateDelaySec = await window.api.musicLyricsCalibrateDelayGet();
+        } catch {
+          // use defaults
+        }
+        if (!isCurrent()) return;
+        if (capturedEnabledVersion === calibrationEnabledVersion) {
+          calibrationEnabled = calibrateEnabled;
+        }
+        if (capturedDelayVersion === calibrationDelayVersion) {
+          calibrationDelayMs = calibrateDelaySec * 1000;
+        }
+        logCalibrationStatus(calibrationEnabled ? 'waiting-lyrics' : 'disabled', calibrationEnabled ? '校准已启用，等待歌词加载' : '校准已关闭');
+
+        if (karaokeEnabled) {
+          try {
+            const karaoke = await withKaraokeTimeout(fetchKaraokeLyrics(title, artist, deviceId));
+            if (!isCurrent()) return;
+            if (karaoke && karaoke.length > 0) {
+              const mapped: SyncedLyricLine[] = karaoke.map((line: KaraokeLine) => ({
+                time_ms: line.time_ms,
+                text: line.text,
+                duration_ms: line.duration_ms,
+                syllables: line.syllables,
+              }));
+              setSyncedLyricsRef.current(mapped);
+              setLyricsLoadingRef.current(false);
+              hasLyrics = true;
+              if (calibrationEnabled) {
+                scheduleCalibration(calibrationDelayMs);
+              }
+
+              // 逐字成功且未开启翻译时，不再启动常规歌词链路。
+              if (!translationEnabled) return;
+              const normalResult = await fetchLyricsWithTranslation(title, artist, deviceId)
+                .catch(() => null);
+              if (!isCurrent()) return;
+              const translation = normalResult?.translation ?? notFetchedTranslationLyrics();
+              logTranslationLyricsStatus(translation);
+              if (translationEnabled) setTranslationLyricsRef.current(translation);
+              return;
+            }
+          } catch {
+            // fallback to normal lyrics source
+          }
+          if (!isCurrent()) return;
+        }
+
+        // 未开启逐字或逐字已失败时，才请求常规歌词。
+        const result = await fetchLyricsWithTranslation(title, artist, deviceId)
+          .catch(() => null);
+        if (!isCurrent()) return;
+        const translation = result?.translation ?? notFetchedTranslationLyrics();
+        logTranslationLyricsStatus(translation);
+        if (translationEnabled) setTranslationLyricsRef.current(translation);
+        const lyrics = result?.lyrics ?? null;
+        setSyncedLyricsRef.current(lyrics);
+        setLyricsLoadingRef.current(false);
+        hasLyrics = Boolean(lyrics?.length);
+        if (hasLyrics && calibrationEnabled) {
+          scheduleCalibration(calibrationDelayMs);
+        } else if (calibrationEnabled) {
+          logCalibrationStatus('skipped', '未获取到歌词，不启动校准', { reason: 'no-lyrics' });
+        }
+      };
+
+      void loadLyrics();
+    };
+
+    // 开关变化时当前曲目随之同步：关闭时取消进行中的请求并清空歌词，开启时补加载被跳过的歌词。
+    const unsubscribeLyricsEnabled = useLyricsDisplayStore.subscribe((next, previous) => {
+      // 首次读取（null → 已知值）由进行中的加载自行等待，只处理已知值之间的切换。
+      if (disposed || previous.lyricsEnabled === null || next.lyricsEnabled === null || next.lyricsEnabled === previous.lyricsEnabled) return;
+      if (currentTrack) startLyricsLoad(currentTrack);
+    });
+
     const applyNowPlaying = (info: NowPlayingInfo | null): void => {
       if (disposed) return;
       timelineVersion += 1;
@@ -302,6 +433,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       const newKey = info?.title ? JSON.stringify([currentSource, info.title, info.artist, info.album]) : '';
       if (!newKey) {
         requestVersion += 1;
+        currentTrack = null;
         songKeyRef.current = '';
         hasPosition = false;
         hasLyrics = false;
@@ -315,120 +447,11 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
 
       if (newKey && newKey !== songKeyRef.current) {
         songKeyRef.current = newKey;
-        requestVersion += 1;
-        hasLyrics = false;
         hasPosition = false;
         stopProgress();
-        clearCalibration();
-        setSyncedLyricsRef.current(null);
-        setTranslationLyricsRef.current(null);
-        setLyricsLoadingRef.current(true);
-        const capturedVersion = requestVersion;
-        const isCurrent = () => !disposed && requestVersion === capturedVersion;
-        const title = info!.title;
-        const artist = info!.artist;
-        const deviceId = info!.deviceId;
-
-        const loadLyrics = async (): Promise<void> => {
-          let lyricsEnabled = true;
-          try {
-            lyricsEnabled = await window.api.musicLyricsEnabledGet();
-          } catch {
-            lyricsEnabled = true;
-          }
-          if (!isCurrent()) return;
-          if (!lyricsEnabled) {
-            setLyricsLoadingRef.current(false);
-            logCalibrationStatus('skipped', '歌词功能已关闭，不启动校准', { reason: 'lyrics-disabled' });
-            return;
-          }
-
-          let translationEnabled = true;
-          try {
-            translationEnabled = await window.api.musicLyricsTranslationEnabledGet();
-          } catch {
-            translationEnabled = true;
-          }
-
-          let karaokeEnabled = false;
-          try {
-            karaokeEnabled = await window.api.musicLyricsKaraokeGet();
-          } catch {
-            karaokeEnabled = false;
-          }
-
-          let calibrateEnabled = true;
-          let calibrateDelaySec = 20;
-          const capturedEnabledVersion = calibrationEnabledVersion;
-          const capturedDelayVersion = calibrationDelayVersion;
-          try {
-            calibrateEnabled = await window.api.musicLyricsCalibrateEnabledGet();
-            calibrateDelaySec = await window.api.musicLyricsCalibrateDelayGet();
-          } catch {
-            // use defaults
-          }
-          if (!isCurrent()) return;
-          if (capturedEnabledVersion === calibrationEnabledVersion) {
-            calibrationEnabled = calibrateEnabled;
-          }
-          if (capturedDelayVersion === calibrationDelayVersion) {
-            calibrationDelayMs = calibrateDelaySec * 1000;
-          }
-          logCalibrationStatus(calibrationEnabled ? 'waiting-lyrics' : 'disabled', calibrationEnabled ? '校准已启用，等待歌词加载' : '校准已关闭');
-
-          if (karaokeEnabled) {
-            try {
-              const karaoke = await withKaraokeTimeout(fetchKaraokeLyrics(title, artist, deviceId));
-              if (!isCurrent()) return;
-              if (karaoke && karaoke.length > 0) {
-                const mapped: SyncedLyricLine[] = karaoke.map((line: KaraokeLine) => ({
-                  time_ms: line.time_ms,
-                  text: line.text,
-                  duration_ms: line.duration_ms,
-                  syllables: line.syllables,
-                }));
-                setSyncedLyricsRef.current(mapped);
-                setLyricsLoadingRef.current(false);
-                hasLyrics = true;
-                if (calibrationEnabled) {
-                  scheduleCalibration(calibrationDelayMs);
-                }
-
-                // 逐字成功且未开启翻译时，不再启动常规歌词链路。
-                if (!translationEnabled) return;
-                const normalResult = await fetchLyricsWithTranslation(title, artist, deviceId)
-                  .catch(() => null);
-                if (!isCurrent()) return;
-                const translation = normalResult?.translation ?? notFetchedTranslationLyrics();
-                logTranslationLyricsStatus(translation);
-                if (translationEnabled) setTranslationLyricsRef.current(translation);
-                return;
-              }
-            } catch {
-              // fallback to normal lyrics source
-            }
-            if (!isCurrent()) return;
-          }
-
-          // 未开启逐字或逐字已失败时，才请求常规歌词。
-          const result = await fetchLyricsWithTranslation(title, artist, deviceId)
-            .catch(() => null);
-          if (!isCurrent()) return;
-          const translation = result?.translation ?? notFetchedTranslationLyrics();
-          logTranslationLyricsStatus(translation);
-          if (translationEnabled) setTranslationLyricsRef.current(translation);
-          const lyrics = result?.lyrics ?? null;
-          setSyncedLyricsRef.current(lyrics);
-          setLyricsLoadingRef.current(false);
-          hasLyrics = Boolean(lyrics?.length);
-          if (hasLyrics && calibrationEnabled) {
-            scheduleCalibration(calibrationDelayMs);
-          } else if (calibrationEnabled) {
-            logCalibrationStatus('skipped', '未获取到歌词，不启动校准', { reason: 'no-lyrics' });
-          }
-        };
-
-        void loadLyrics();
+        const track: LyricsTrack = { title: info!.title, artist: info!.artist, deviceId: info!.deviceId };
+        currentTrack = track;
+        startLyricsLoad(track);
       }
 
       const cal = calTimerRef.current;
@@ -486,6 +509,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       songKeyRef.current = '';
       unsubscribe?.();
       unsubscribeCalibration?.();
+      unsubscribeLyricsEnabled();
       stopProgress();
       clearCalibration();
     };

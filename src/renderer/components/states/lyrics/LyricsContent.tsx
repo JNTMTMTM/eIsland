@@ -26,6 +26,7 @@
 
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLyricsDisplayStore } from '../../../store/lyricsDisplayStore';
 import useIslandStore from '../../../store/slices';
 import { SvgIcon } from '../../../utils/SvgIcon';
 import { useLyricsSettings } from './hooks/useLyricsSettings';
@@ -53,13 +54,17 @@ export function LyricsContent(): ReactElement {
   const mediaInfo = useIslandStore((s) => s.mediaInfo);
   const setIdle = useIslandStore((s) => s.setIdle);
 
+  const songTitleMode = useLyricsDisplayStore((s) => s.lyricsEnabled === false);
+
   const { karaokeEnabled, clockEnabled, musicOuterGlowEffectEnabled } = useLyricsSettings();
   const clockText = useBeijingClock(clockEnabled);
-  useAutoIdle(isMusicPlaying, lyricsLoading, syncedLyrics, setIdle);
+  useAutoIdle(isMusicPlaying, setIdle);
   const { currentIdx, hasLyrics, isIntro, currentLine, currentText, hasSyllables } = useCurrentLyric(syncedLyrics, lyricsLoading, currentPositionMs);
   const karaokeScrollProgress = useKaraokeScrollProgress(karaokeEnabled, currentLine, hasSyllables, isIntro, currentPositionMs);
 
   const [r, g, b] = dominantColor;
+  // 前奏、未获取到歌词与歌词功能关闭时共用同一套元数据展示：居中歌名与浮动音符。
+  const showSongMetadata = songTitleMode || (!lyricsLoading && (!hasLyrics || isIntro));
 
   return (
     <div className="lyrics-content" data-playing={isPlaying}>
@@ -87,20 +92,20 @@ export function LyricsContent(): ReactElement {
         <span className="lyrics-time">{clockText}</span>
       )}
 
-      {/* 右侧：歌词 / 前奏居中 */}
+      {/* 右侧：歌词 / 前奏居中；歌词功能关闭时只显示歌名 */}
       <div className="lyrics-right">
-        {lyricsLoading ? (
+        {showSongMetadata ? (
+          <>
+            <span className="lyrics-intro-title-center">{mediaInfo.title}</span>
+            <img src={SvgIcon.MUSIC} alt="" className="lyrics-intro-icon" />
+          </>
+        ) : lyricsLoading ? (
           <div className="lyrics-loading">
             <span className="lyrics-loading-dot" />
             <span className="lyrics-loading-dot" />
             <span className="lyrics-loading-dot" />
             <span className="lyrics-loading-label">{t('songTab.lyrics.loading')}</span>
           </div>
-        ) : isIntro ? (
-          <>
-            <span className="lyrics-intro-title-center">{mediaInfo.title}</span>
-            <img src={SvgIcon.MUSIC} alt="" className="lyrics-intro-icon" />
-          </>
         ) : currentText ? (
           <ScrollingText
             key={currentIdx}
