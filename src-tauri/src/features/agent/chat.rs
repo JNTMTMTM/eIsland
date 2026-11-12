@@ -457,6 +457,8 @@ pub async fn run(
                 )?;
                 let result = if tool == "web.search" {
                     web_search(request["token"].as_str().unwrap_or(""), &arguments).await
+                } else if tool == "kb.read" {
+                    kb_read(request["token"].as_str().unwrap_or(""), &arguments).await
                 } else {
                     local_tool(app,&json!({"tool":tool,"arguments":arguments,"workspaces":request["workspaces"]})).await
                 };
@@ -559,19 +561,7 @@ async fn web_search(token: &str, args: &Value) -> Value {
         return failure("web.search query must contain 1 to 500 characters", 0);
     }
     let result = async {
-        let base = if cfg!(debug_assertions) {
-            "https://test.server.pyisland.com/api"
-        } else {
-            "https://server.pyisland.com/api"
-        };
-        let response = crate::infrastructure::http::client()
-            .post(format!("{base}/v1/user/ai/agent/search"))
-            .timeout(Duration::from_secs(20))
-            .bearer_auth(token.trim())
-            .header("X-App-Name", "eisland")
-            .header("X-Client-Version", env!("CARGO_PKG_VERSION"))
-            .header("X-Timestamp", now().to_string())
-            .header("X-Nonce", uuid::Uuid::new_v4().to_string())
+        let response = server_request(token, "/v1/user/ai/agent/search")
             .json(&json!({"query":query,"limit":args["limit"].as_u64().unwrap_or(5).clamp(1,10)}))
             .send()
             .await
@@ -586,6 +576,56 @@ async fn web_search(token: &str, args: &Value) -> Value {
             return Err("Invalid SearXNG search response".to_owned());
         }
         Ok(response["data"].clone())
+    }
+    .await;
+    match result {
+        Ok(value) => {
+            json!({"success":true,"result":value,"error":"","durationMs":started.elapsed().as_millis()})
+        }
+        Err(error) => failure(&error, started.elapsed().as_millis()),
+    }
+}
+/// Builds an authenticated request to the eIsland server API used by server-executed tools.
+fn server_request(token: &str, path: &str) -> reqwest::RequestBuilder {
+    let base = if cfg!(debug_assertions) {
+        "https://test.server.pyisland.com/api"
+    } else {
+        "https://server.pyisland.com/api"
+    };
+    crate::infrastructure::http::client()
+        .post(format!("{base}{path}"))
+        .timeout(Duration::from_secs(20))
+        .bearer_auth(token.trim())
+        .header("X-App-Name", "eisland")
+        .header("X-Client-Version", env!("CARGO_PKG_VERSION"))
+        .header("X-Timestamp", now().to_string())
+        .header("X-Nonce", uuid::Uuid::new_v4().to_string())
+}
+/// Reads an eIsland knowledge-base topic from the server; the server's error (e.g. the list of valid topics) is passed through.
+async fn kb_read(token: &str, args: &Value) -> Value {
+    let started = Instant::now();
+    if token.trim().is_empty() {
+        return failure("Authentication required for kb.read", 0);
+    }
+    let topic = args["topic"].as_str().unwrap_or("").trim();
+    if topic.is_empty() || topic.chars().count() > 64 {
+        return failure("kb.read topic must contain 1 to 64 characters", 0);
+    }
+    let result = async {
+        let response = server_request(token, "/v1/user/ai/agent/kb/read")
+            .json(&json!({"topic":topic}))
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        let status = response.status();
+        let body = response_json(response).await?;
+        if body["success"] == true {
+            Ok(body["data"].clone())
+        } else {
+            Err(body["error"]
+                .as_str()
+                .map_or_else(|| format!("kb.read failed: HTTP {status}"), str::to_owned))
+        }
     }
     .await;
     match result {
