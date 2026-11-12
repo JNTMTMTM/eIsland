@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-11T22:20:12.962Z
+> 生成时间：2026-11-12T00:00:21.616Z
 
 ## 27.0.2
 
@@ -4344,7 +4344,13 @@
 
 ## Unreleased
 
+- 2026-11-11 | 952097b9 | JNTMTMTM | Merge pull request #322 from JNTMTMTM/dev
+- 2026-11-11 | c8e07fe9 | 鸡哥 | feat: enhance lyrics handling and state management across components
+- 2026-11-11 | 0d955418 | 鸡哥 | feat: enhance lyrics functionality and UI behavior
+- 2026-11-11 | e6a0d176 | 鸡哥 | feat: add lyrics display toggle functionality
+- 2026-11-11 | 3721aaf1 | eislandBot | docs: auto update CHANGE_LOG.md for #319 by @dependabot[bot] [skip ci]
 - 2026-11-11 | 4f550996 | JNTMTMTM | Merge pull request #319 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-4be7de7c94
+- 2026-11-11 | 1e001b65 | 鸡哥 | feat(font): add support for signed local asset server URLs in font loading
 - 2026-11-11 | b33549ce | 鸡哥 | fix(deps): update eslint-plugin-import-x to 4.18.1
 - 2026-11-11 | b23a6e28 | eislandBot | docs: auto update CHANGE_LOG.md for #320 by @JNTMTMTM [skip ci]
 - 2026-11-11 | 21845295 | JNTMTMTM | Merge pull request #320 from JNTMTMTM/dev
