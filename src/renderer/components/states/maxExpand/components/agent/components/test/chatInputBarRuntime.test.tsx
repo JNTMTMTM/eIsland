@@ -81,17 +81,17 @@ function find(tree: React.ReactNode,className:string): Node[] { return nodes(tre
  */
 function fire(node: Node,name = 'onClick',event?:unknown): unknown { return (node.props[name] as (event?:unknown) => unknown)(event); }
 
-it.each(['custom','ollama','mimo','minimax','deepseek'])('shows the actual %s reasoning label and propagates every permitted reasoning option', (provider) => {
+it.each(['custom','ollama','deepseek'])('shows the actual %s reasoning label and propagates every permitted reasoning option', (provider) => {
   props.selectedProvider = provider; const tree = ChatInputBar(props); const reasoning = nodes(tree).find((node) => node.type === 'select')!;
   ['low','medium','high'].forEach((value) => { fire(reasoning,'onChange',{ target:{ value } }); expect(props.setAiConfig).toHaveBeenLastCalledWith({ deepseekReasoningEffort:value }); });
-  const labels: Record<string,string> = { custom:'customReasoning',ollama:'ollamaReasoning',mimo:'mimoReasoning',minimax:'minimaxReasoning',deepseek:'deepseekReasoning' };
+  const labels: Record<string,string> = { custom:'customReasoning',ollama:'ollamaReasoning',deepseek:'deepseekReasoning' };
   expect(reasoning.props.title).toContain(labels[provider]);
 });
 
 it('executes every paid model and context selection with actual helpers and preserves configured model labels', () => {
   props.showModelDropdown = true;props.showContextDropdown = true;props.isProUser = true;props.hasCustomApiCredentials = true;props.isCustomApiModel = true;props.selectedModel = 'ollama';props.modelToggleIcon = 'model.svg';props.aiConfig.ollamaModel = 'local-model';
   const tree = ChatInputBar(props);const options = find(tree,'max-expand-chat-model-dropdown-item');
-  expect(options).toHaveLength(13); options.forEach((node) => fire(node));
+  expect(options).toHaveLength(7); options.forEach((node) => fire(node));
   expect(props.setAiConfig).toHaveBeenCalledWith({ model:'ollama' });expect(props.setAiConfig).toHaveBeenCalledWith({ model:'custom-api' });expect(props.setAiConfig).toHaveBeenLastCalledWith({ contextLimit:1_000_000 });
   const selects = nodes(tree).filter((node) => node.type === 'select');fire(selects[1],'onChange',{ target:{ value:'off' } });expect(props.setAiConfig).toHaveBeenLastCalledWith({ deepseekThinking:false });
   fire(selects[2],'onChange',{ target:{ value:'direct' } });expect(props.setAiConfig).toHaveBeenLastCalledWith({ customApiMode:'direct' });
@@ -100,8 +100,8 @@ it('executes every paid model and context selection with actual helpers and pres
 
 it.each([[false,true],[true,false],[false,false]] as const)('guards native clickable custom and paid choices for pro=%s credentials=%s', (pro,credentials) => {
   props.showModelDropdown = true;props.showContextDropdown = true;props.isProUser = pro;props.hasCustomApiCredentials = credentials;const tree = ChatInputBar(props);const options = find(tree,'max-expand-chat-model-dropdown-item');
-  fire(options[9]);expect(props.setAiConfig).not.toHaveBeenCalled();
-  if (!pro) { fire(options[1]);fire(options[12]);expect(props.setAiConfig).not.toHaveBeenCalled(); }
+  fire(options[3]);expect(props.setAiConfig).not.toHaveBeenCalled();
+  if (!pro) { fire(options[1]);fire(options[6]);expect(props.setAiConfig).not.toHaveBeenCalled(); }
 });
 
 it('executes all public visibility toggles and native input/drag forwarding', () => {

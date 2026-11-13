@@ -4091,10 +4091,8 @@
         "on": "オン"
       },
       "deepseekReasoningEffort": "DeepSeekの推論レベル",
-      "mimoReasoningEffort": "Mimoの推論レベル",
       "ollamaReasoningEffort": "推論レベル",
       "customReasoningEffort": "推論レベル",
-      "minimaxReasoningEffort": "MiniMaxの推論レベル",
       "deepseekReasoningEffortOptions": {
         "low": "低 (low)",
         "medium": "中 (medium)",

@@ -31,6 +31,5 @@ export {
   saveAgentMode,
   isClientLocalToolName,
   isHighRiskLocalToolName,
-  isMinimaxModel,
   isAcceptedAttachmentFile,
 } from '../utils/chatHelpers';

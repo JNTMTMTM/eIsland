@@ -210,58 +210,19 @@ describe('resolveAgentRouting', () => {
     expect(result.selectedModel).toBe('deepseek-v4-flash');
   });
 
-  it('downgrades mimo-v2.5-pro to deepseek-v4-flash for non-pro user', () => {
-    getRoleFromTokenMock.mockReturnValue('user');
-    const result = resolveAgentRouting(makeAiConfig({ model: 'mimo-v2.5-pro' }), 'token');
-    expect(result.selectedModel).toBe('deepseek-v4-flash');
-  });
-
-  it('downgrades MiniMax-M2.7-highspeed to deepseek-v4-flash for non-pro user', () => {
-    getRoleFromTokenMock.mockReturnValue('user');
-    const result = resolveAgentRouting(makeAiConfig({ model: 'MiniMax-M2.7-highspeed' }), 'token');
-    expect(result.selectedModel).toBe('deepseek-v4-flash');
-  });
-
-  it('downgrades MiniMax-M2.5-highspeed to deepseek-v4-flash for non-pro user', () => {
-    getRoleFromTokenMock.mockReturnValue('user');
-    const result = resolveAgentRouting(makeAiConfig({ model: 'MiniMax-M2.5-highspeed' }), 'token');
-    expect(result.selectedModel).toBe('deepseek-v4-flash');
-  });
-
   it('does not downgrade pro-tier model for pro user', () => {
     getRoleFromTokenMock.mockReturnValue('pro');
     const result = resolveAgentRouting(makeAiConfig({ model: 'deepseek-v4-pro' }), 'token');
     expect(result.selectedModel).toBe('deepseek-v4-pro');
   });
 
-  // --- Provider resolution for mimo models ---
+  // --- Retired MiMo / MiniMax models ---
 
-  it('returns mimo provider for mimo-* models', () => {
+  it.each(['mimo-v2.5', 'mimo-v2.5-pro', 'MiniMax-M2.7', 'MiniMax-M2.5-highspeed'])('falls back to deepseek-v4-flash for retired model %s', (model) => {
     getRoleFromTokenMock.mockReturnValue('pro');
-    const result = resolveAgentRouting(makeAiConfig({ model: 'mimo-v2.5' }), 'token');
-    expect(result.selectedModel).toBe('mimo-v2.5');
-    expect(result.selectedProvider).toBe('mimo');
-  });
-
-  it('returns mimo provider for mimo-v2.5-pro model (pro user)', () => {
-    getRoleFromTokenMock.mockReturnValue('pro');
-    const result = resolveAgentRouting(makeAiConfig({ model: 'mimo-v2.5-pro' }), 'token');
-    expect(result.selectedProvider).toBe('mimo');
-  });
-
-  // --- Provider resolution for MiniMax models ---
-
-  it('returns MiniMax provider for MiniMax-M2.7 model', () => {
-    getRoleFromTokenMock.mockReturnValue('pro');
-    const result = resolveAgentRouting(makeAiConfig({ model: 'MiniMax-M2.7' }), 'token');
-    expect(result.selectedModel).toBe('MiniMax-M2.7');
-    expect(result.selectedProvider).toBe('MiniMax');
-  });
-
-  it('returns MiniMax provider for MiniMax-M2.5 model', () => {
-    getRoleFromTokenMock.mockReturnValue('pro');
-    const result = resolveAgentRouting(makeAiConfig({ model: 'MiniMax-M2.5' }), 'token');
-    expect(result.selectedProvider).toBe('MiniMax');
+    const result = resolveAgentRouting(makeAiConfig({ model }), 'token');
+    expect(result.selectedModel).toBe('deepseek-v4-flash');
+    expect(result.selectedProvider).toBe('deepseek');
   });
 
   // --- agentMode passthrough ---

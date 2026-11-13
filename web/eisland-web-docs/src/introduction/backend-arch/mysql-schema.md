@@ -353,7 +353,7 @@ Per-model pricing configuration for the AI agent billing system. Prices are expr
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
 | `id` | BIGINT | NO | AUTO_INCREMENT | Primary key |
-| `model_name` | VARCHAR(100) | NO | — | Unique model identifier, e.g. `deepseek-chat`, `mimo-v2-pro` |
+| `model_name` | VARCHAR(100) | NO | — | Unique model identifier, e.g. `deepseek-v4-flash`, `deepseek-v4-pro` |
 | `input_price_fen_per_million` | BIGINT | NO | `0` | Price per million input tokens in fen |
 | `cached_input_price_fen_per_million` | BIGINT | NO | `0` | Price per million cached input tokens in fen (added via migration). Cached tokens are typically cheaper than fresh input tokens |
 | `output_price_fen_per_million` | BIGINT | NO | `0` | Price per million output tokens in fen |

@@ -1229,7 +1229,7 @@ The `agent` state provides the AI assistant chat interface with tool calling cap
 **Behavior Details:**
 - Real-time streaming responses
 - Tool calling (50+ tools available)
-- Multi-provider support (DeepSeek, MiMo, MiniMax)
+- Model providers: DeepSeek, Ollama, custom API
 - Thinking mode (chain-of-thought)
 - Chat session persistence
 - Token usage tracking

@@ -166,4 +166,4 @@ describe('AiChatTab', () => {
   });
 });
 
-vi.mock('../../utils/chatHelpers', () => ({ isMinimaxModel: (model: string) => model.startsWith('MiniMax-') }));
+vi.mock('../../utils/chatHelpers', () => ({}));
