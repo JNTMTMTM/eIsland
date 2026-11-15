@@ -28,7 +28,6 @@ jobs:
       fail-fast: false
       matrix:
         plugin:
-          - eisland-windows-application-icon-helper
           - eisland-windows-bluetooth-helper
           - eisland-windows-brightness-helper
           - eisland-windows-fullscreen-detector
@@ -119,7 +118,6 @@ jobs:
       fail-fast: false
       matrix:
         plugin:
-          - eisland-windows-application-icon-helper
           - eisland-windows-bluetooth-helper
           - eisland-windows-brightness-helper
           - eisland-windows-fullscreen-detector

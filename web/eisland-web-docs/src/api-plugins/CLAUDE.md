@@ -6,7 +6,7 @@ Every documentation file MUST use the correct icon in frontmatter based on its t
 
 | Type | Icon | Example |
 |------|------|---------|
-| Function/Method | `fa6-solid:code` | `getIconByPath` |
+| Function/Method | `fa6-solid:code` | `getPowerInfo` |
 | Interface/Type | `fa6-solid:table` | `BluetoothDeviceInfo` |
 | Class/Monitor | `fa6-solid:cubes` | `BluetoothMonitor` |
 | Enum | `fa6-solid:list` | `BatteryStatus` |

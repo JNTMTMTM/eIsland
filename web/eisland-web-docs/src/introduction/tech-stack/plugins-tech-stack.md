@@ -25,7 +25,6 @@ The plugin system includes Windows native helpers and independent macOS media an
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
 | **macOS Brightness Helper** | `eisland-macos-brightness-helper` | Native hardware brightness, DDC/CI fallback, and 500 ms polling |
 | **Brightness Helper** | `@eisland/windows-brightness-helper` | Screen brightness query, control, and real-time WMI event monitoring |
-| **Application Icon Helper** | `@eisland/windows-application-icon-helper` | Application icon extraction by process name, PID, path, or shortcut |
 | **Screenshot Helper** | `@eisland/windows-screenshot-helper` | Primary display screen capture as PNG via Win32 GDI APIs |
 | **Toast Listener** | `@eisland/windows-toast-listener` | Windows toast notification listening and suppression |
 
@@ -35,7 +34,7 @@ The plugin system includes Windows native helpers and independent macOS media an
 |----------|---------|-------------|---------|
 | **C + N-API** | Processes Attacker, Fullscreen Detector | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **C + .NET helper (spawnSync)** | Performance Monitor (temperature) | `node-gyp` + `dotnet build` | C addon + spawned .NET EXE |
-| **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Application Icon Helper, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
+| **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C# .NET EXE (spawnSync/spawn)** | Brightness Helper | `dotnet build` | Spawned .NET console EXE |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **Swift + C / Node-API** | macOS Brightness Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib`; DisplayServices / IOKit / DDC |
@@ -1706,77 +1705,6 @@ interface ToastNotificationSnapshot {
 | `index.js` | Public API — exports all functions |
 | `index.d.ts` | TypeScript type declarations |
 
-## Plugin: Windows Application Icon Helper
-
-### Package
-
-```
-@eisland/windows-application-icon-helper
-```
-
-### Purpose
-
-Extracts Windows application and process icons as PNG buffers. Supports lookup by process name, PID, executable path, or shortcut (.lnk) path. Used by eIsland to display application icons in the process manager and AI agent tool results.
-
-:::info
-This plugin uses **koffi FFI + .NET NativeAOT DLL** architecture. It wraps Windows Shell32 APIs (`ExtractAssociatedIconW`) and COM `IShellLink` for shortcut resolution.
-:::
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer (index.js + ffi-loader.js)                │
-│  getIconByProcessName / getIconByPid / getIconByPath /      │
-│  getIconByShortcutPath                                      │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ koffi FFI (direct DLL calls)
-┌──────────────────────────▼──────────────────────────────────┐
-│  eIslandAppIconHelper.dll (NativeAOT)                       │
-│  .NET 10 + Shell32 APIs                                     │
-├─────────────────────────────────────────────────────────────┤
-│  IconExtractor.cs       — Core icon extraction logic        │
-│  Exports.cs             — C-style exported functions        │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Exported Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `getIconByProcessName` | `(processName: string) → IconResult \| null` | Get icon by running process name |
-| `getIconByPid` | `(pid: number) → IconResult \| null` | Get icon by process ID |
-| `getIconByPath` | `(exePath: string) → IconResult \| null` | Get icon by executable file path |
-| `getIconByShortcutPath` | `(lnkPath: string) → IconResult \| null` | Get icon by shortcut (.lnk) path |
-
-### Result Structure
-
-```ts
-interface IconResult {
-  data: Buffer;      // PNG icon data
-  size: number;      // Icon data size in bytes
-  format: 'png';     // Image format (always 'png')
-}
-```
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `src/IconExtractor.cs` | Core icon extraction using `ExtractAssociatedIconW` and `IShellLink` |
-| `src/Exports.cs` | C-style exported functions for koffi FFI |
-| `src/eIslandAppIconHelper.csproj` | .NET 10 Native AOT project |
-| `ffi-loader.js` | koffi FFI loader — defines all DLL function signatures |
-| `index.js` | Public API — exports all icon functions |
-| `index.d.ts` | TypeScript type declarations |
-
-### Dependencies
-
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| **.NET** | 10.0 | Build-time only (self-contained DLL) |
-| **koffi** | ^2.9.1 | FFI library for calling DLL from Node.js |
-
 ## Plugin: Windows Screenshot Helper
 
 ### Package
@@ -1939,7 +1867,6 @@ expect(foreground === null || typeof foreground === 'object').toBe(true);
 | **Power Helper** | `power.test.ts`, `power.monitor.test.ts` | Shape validation, consistency, monitor tests |
 | **WiFi Helper** | `wifi.test.ts`, `wifi.monitor.test.ts` | Shape validation, consistency, monitor tests |
 | **Brightness Helper** | `brightness.test.ts`, `brightness.monitor.test.ts` | Shape validation, export verification, boundary value tests, monitor state management |
-| **Application Icon Helper** | `icon.test.ts` | Shape validation, export verification |
 | **Screenshot Helper** | `screenshot.test.ts` | Shape validation, export verification, PNG header validation |
 | **Toast Listener** | `windows-toast-listener.test.ts`, `windows-toast-listener.polling.test.ts` | Shape validation, export verification, polling tests |
 
@@ -2009,7 +1936,6 @@ Performance characteristics and optimization recommendations for each plugin:
 | **Power Helper** | ~1ms | In-memory `PowerManager` property reads; event-driven monitoring |
 | **WiFi Helper** | ~1ms | In-memory `NetworkInformation` profile reads; event-driven monitoring |
 | **Brightness Helper** | ~100–300ms | Process spawn + WMI query; event-driven monitoring |
-| **Application Icon Helper** | ~5–20ms | Shell32 `ExtractAssociatedIconW`; direct DLL call via koffi FFI |
 | **Toast Listener** | ~1–3ms | WinRT COM interop; event-driven monitoring |
 
 **Optimization Notes:**

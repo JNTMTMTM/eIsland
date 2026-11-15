@@ -24,7 +24,6 @@ eIsland uses ten native plugins to access Windows features that web technologies
 | **eisland-windows-power-helper** | C# (.NET) | — | Battery status and power event monitoring |
 | **eisland-windows-wifi-helper** | C# (.NET) | — | WiFi connection status and event monitoring |
 | **eisland-windows-brightness-helper** | C# (.NET) | — | Screen brightness query, control, and WMI event monitoring |
-| **eisland-windows-application-icon-helper** | C# (.NET) | Shell32 | Application icon extraction by process name, PID, path, or shortcut |
 | **eisland-windows-screenshot-helper** | C# (.NET) | GDI32 | Primary display screen capture as PNG |
 
 :::important

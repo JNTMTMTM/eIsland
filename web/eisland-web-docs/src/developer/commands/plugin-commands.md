@@ -29,7 +29,6 @@ npm run <script>
 | **macOS Media Helper** | `plugins/macos/eisland-macos-media-helper` | Swift + C / Node-API | Xcode tools via Node build script | ✅ | ✅ |
 | **Bluetooth Helper** | `eisland-windows-bluetooth-helper` | C# | dotnet | ✅ | ✅ |
 | **Brightness Helper** | `eisland-windows-brightness-helper` | C# | dotnet | ✅ | ✅ |
-| **Application Icon Helper** | `eisland-windows-application-icon-helper` | C# | dotnet | ✅ | ✅ |
 | **Screenshot Helper** | `eisland-windows-screenshot-helper` | C# | dotnet | ✅ | ✅ |
 
 ## Common Commands
@@ -76,7 +75,6 @@ Each plugin also has a dedicated root-level command for targeted builds and clea
 | WiFi Helper | `npm run plugin:build:wifi` | `npm run plugin:clean:wifi` |
 | Fullscreen Detector | `npm run plugin:build:fullscreen` | `npm run plugin:clean:fullscreen` |
 | Performance Monitor | `npm run plugin:build:perfmon` | `npm run plugin:clean:perfmon` |
-| Application Icon Helper | `npm run plugin:build:icon-helper` | `npm run plugin:clean:icon-helper` |
 | Screenshot Helper | `npm run plugin:build:screenshot-helper` | `npm run plugin:clean:screenshot-helper` |
 
 :::info NativeAOT Build Requirement
@@ -480,41 +478,6 @@ This is a pure .NET plugin that spawns a console EXE for WMI brightness operatio
 
 ---
 
-## Windows Application Icon Helper
-
-**Directory:** `plugins/windows/eisland-windows-application-icon-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet publish`
-
-:::info
-This is a pure .NET NativeAOT plugin that extracts Windows application icons using Shell32 APIs. It uses koffi FFI to call the native DLL from Node.js.
-:::
-
-### Build
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run build` | `dotnet publish src/eIslandAppIconHelper.csproj -c Release -r win-x64` | Build NativeAOT DLL |
-| `npm run clean` | `dotnet clean src/eIslandAppIconHelper.csproj` | Remove build artifacts |
-| `npm run rebuild` | `npm run clean && npm run build` | Full clean build |
-
-### Test
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm test` | `vitest run` | All unit tests |
-| `npm run test:icon` | `vitest run test/icon.test.ts` | Icon function tests only |
-
-### Smoke
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run smoke` | `node --experimental-strip-types test/icon.smoke.ts` | Full smoke — all icon functions |
-| `npm run smoke:process-name` | `node --experimental-strip-types test/icon.by-process-name.smoke.ts` | Process name lookup |
-| `npm run smoke:pid` | `node --experimental-strip-types test/icon.by-pid.smoke.ts` | PID lookup |
-| `npm run smoke:path` | `node --experimental-strip-types test/icon.by-path.smoke.ts` | Path lookup |
-| `npm run smoke:shortcut` | `node --experimental-strip-types test/icon.by-shortcut.smoke.ts` | Shortcut lookup |
-
----
-
 ## Windows Screenshot Helper
 
 **Directory:** `plugins/windows/eisland-windows-screenshot-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet publish`
@@ -569,7 +532,6 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | WiFi Helper (DLL) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build:ctypes` |
 | WiFi Helper (all) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build:all` |
 | Brightness Helper | `cd plugins/windows/eisland-windows-brightness-helper && npm run build` |
-| Application Icon Helper | `cd plugins/windows/eisland-windows-application-icon-helper && npm run build` |
 | Screenshot Helper | `cd plugins/windows/eisland-windows-screenshot-helper && npm run build` |
 | **All plugins** | `npm run plugins:build` (from root — builds all 10 plugins) |
 
@@ -586,7 +548,6 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | Power Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
 | WiFi Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
 | Brightness Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
-| Application Icon Helper | `npm test` · `npm run test:icon` |
 | Screenshot Helper | `npm test` · `npm run test:screenshot` |
 
 ### All Smoke Commands
@@ -602,5 +563,4 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | Power Helper | `npm run smoke` · `npm run smoke:monitor` |
 | WiFi Helper | `npm run smoke` · `npm run smoke:monitor` |
 | Brightness Helper | `npm run smoke` · `npm run smoke:monitor` |
-| Application Icon Helper | `npm run smoke` · `npm run smoke:process-name` · `npm run smoke:pid` · `npm run smoke:path` · `npm run smoke:shortcut` |
 | Screenshot Helper | `npm run smoke` |
