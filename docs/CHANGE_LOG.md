@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-12T00:00:21.616Z
+> 生成时间：2026-11-15T19:49:21.529Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,13 @@
 
 ## Unreleased
 
+- 2026-11-15 | 6e2cb7cb | JNTMTMTM | Merge pull request #323 from JNTMTMTM/dev
+- 2026-11-15 | 9630dedb | 鸡哥 | feat: update server_request and kb_read documentation to Chinese; add tests for kb_read token validation
+- 2026-11-12 | 2695d459 | 鸡哥 | feat: remove MIMO and MiniMax references from codebase and documentation
+- 2026-11-12 | 622aa7fd | 鸡哥 | feat: remove unused SVG files for MIMO and MINIMAX
+- 2026-11-12 | 4bb30c93 | 鸡哥 | feat: add kb.read functionality and refactor web_search to use server_request
+- 2026-11-11 | b7319f9b | 鸡哥 | feat: add installer and uninstaller icons for NSIS packaging
+- 2026-11-12 | f1dc89a8 | eislandBot | docs: auto update CHANGE_LOG.md for #322 by @JNTMTMTM [skip ci]
 - 2026-11-11 | 952097b9 | JNTMTMTM | Merge pull request #322 from JNTMTMTM/dev
 - 2026-11-11 | c8e07fe9 | 鸡哥 | feat: enhance lyrics handling and state management across components
 - 2026-11-11 | 0d955418 | 鸡哥 | feat: enhance lyrics functionality and UI behavior
