@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-15T19:49:21.529Z
+> 生成时间：2026-11-15T23:09:08.084Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,13 @@
 
 ## Unreleased
 
+- 2026-11-15 | b1230495 | JNTMTMTM | Merge pull request #324 from JNTMTMTM/dev
+- 2026-11-15 | 85834c7a | 鸡哥 | feat: add retired extensions for volume and brightness control; enhance brightness control documentation
+- 2026-11-15 | 008d3744 | 鸡哥 | Implement brightness control for macOS and Windows
+- 2026-11-15 | 37ba6245 | 鸡哥 | refactor: remove Windows Application Icon Helper plugin and related documentation
+- 2026-11-15 | a4a3a18d | 鸡哥 | feat: update mcp.json to use workspaceFolder variable and add config.toml for codegraph server
+- 2026-11-15 | 5b3d4598 | 鸡哥 | Refactor volume management in eIsland
+- 2026-11-15 | 52abbf1b | eislandBot | docs: auto update CHANGE_LOG.md for #323 by @JNTMTMTM [skip ci]
 - 2026-11-15 | 6e2cb7cb | JNTMTMTM | Merge pull request #323 from JNTMTMTM/dev
 - 2026-11-15 | 9630dedb | 鸡哥 | feat: update server_request and kb_read documentation to Chinese; add tests for kb_read token validation
 - 2026-11-12 | 2695d459 | 鸡哥 | feat: remove MIMO and MiniMax references from codebase and documentation
