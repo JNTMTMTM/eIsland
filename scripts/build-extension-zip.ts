@@ -51,20 +51,6 @@ const EXTENSIONS: ExtensionBuildConfig[] = [
     exeName: 'eIslandVolumeAnalyzer.exe',
     rid: 'win-x64',
   },
-  {
-    id: 'volume-helper',
-    pluginDir: 'plugins/windows/eisland-windows-volume-helper',
-    csproj: 'src/eIslandVolumeHelper.csproj',
-    exeName: 'eIslandVolumeHelper.exe',
-    rid: 'win-x64',
-  },
-  {
-    id: 'brightness-helper',
-    pluginDir: 'plugins/windows/eisland-windows-brightness-helper',
-    csproj: 'src/eIslandBrightnessReader.csproj',
-    exeName: 'eIslandBrightnessReader.exe',
-    rid: 'win-x64',
-  },
 ];
 
 const ROOT = resolve(import.meta.dirname, '..');

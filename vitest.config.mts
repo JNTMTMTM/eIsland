@@ -28,8 +28,8 @@ import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 
 /** 真实 Windows 插件测试会读取设备或发送系统命令，独立串行执行。 */
 const pluginIntegrationTests = [
-  'plugins/windows/**/test/{icon,bluetooth,brightness,fullscreen-detector,hardware-info,power,screenshot,smtc-helper,volume-analyzer,volume,wifi}.test.ts',
-  'plugins/windows/**/test/{bluetooth,brightness,power,volume,wifi}.monitor.test.ts',
+  'plugins/windows/**/test/{bluetooth,fullscreen-detector,hardware-info,power,screenshot,smtc-helper,volume-analyzer,wifi}.test.ts',
+  'plugins/windows/**/test/{bluetooth,power,wifi}.monitor.test.ts',
   'plugins/windows/**/test/{performance-monitor,windows-toast-listener}.polling.test.ts',
   'plugins/windows/**/test/windows-toast-listener.test.ts',
   'plugins/windows/**/test/smtc-helper.{play,pause,next,previous,timestamp}.test.ts',

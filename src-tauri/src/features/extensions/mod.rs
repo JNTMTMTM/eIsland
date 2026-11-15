@@ -42,13 +42,14 @@ struct Extension {
     description: &'static str,
     executable: &'static str,
 }
-const REGISTRY: [Extension; 3] = [
-    Extension {
-        id: "volume-analyzer",
-        name: "音频节拍分析器",
-        description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
-        executable: "eIslandVolumeAnalyzer.exe",
-    },
+const REGISTRY: [Extension; 1] = [Extension {
+    id: "volume-analyzer",
+    name: "音频节拍分析器",
+    description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
+    executable: "eIslandVolumeAnalyzer.exe",
+}];
+/// 已由内置原生实现取代的助手扩展，仅用于展示和卸载旧版本遗留的安装，不再提供安装。
+const RETIRED: [Extension; 2] = [
     Extension {
         id: "volume-helper",
         name: "音量控制助手",
@@ -98,18 +99,16 @@ fn registry(id: &str) -> Result<&'static Extension> {
         .find(|entry| entry.id == id)
         .ok_or_else(|| "Unknown extension".into())
 }
+/// 查找可卸载的扩展，包含已下线但可能仍有旧安装的助手。
+fn removable(id: &str) -> Result<&'static Extension> {
+    REGISTRY
+        .iter()
+        .chain(&RETIRED)
+        .find(|entry| entry.id == id)
+        .ok_or_else(|| "Unknown extension".into())
+}
 fn root(app: &AppHandle) -> Result<PathBuf> {
     Ok(crate::infrastructure::storage::data_dir(app).join("extensions"))
-}
-/// Prefer an installed feature extension, then the packaged native helper.
-pub(crate) fn resolve_native_helper(
-    app: &AppHandle,
-    component: &str,
-    file: &str,
-) -> Result<PathBuf> {
-    native_helper(app, component, file)
-        .map(Ok)
-        .unwrap_or_else(|| crate::infrastructure::resources::native_path(app, component, file))
 }
 fn base_url(app: &AppHandle, source: &str, resolved: &str) -> Result<String> {
     let value = match source {
@@ -161,7 +160,11 @@ fn status(app: &AppHandle, remote: &[Remote]) -> Result<Value> {
   let version=fs::read_to_string(directory.join(".version")).ok().map(|v|v.trim().to_owned());
   let remote=remote.iter().find(|value|value.id==extension.id).map(|value|value.version.clone()).unwrap_or_else(||app.package_info().version.to_string());
   json!({"id":extension.id,"name":extension.name,"description":extension.description,"availableVersion":remote,"installedVersion":if installed{version}else{None},"isInstalled":installed,"requiredRestart":true})
- }).collect::<Vec<_>>()))
+ }).chain(RETIRED.iter().filter(|extension|root.join(extension.id).exists()).map(|extension|{
+  // 下线助手没有可用新版本，以已安装版本作为可用版本，避免提示更新。
+  let version=fs::read_to_string(root.join(extension.id).join(".version")).map(|v|v.trim().to_owned()).unwrap_or_default();
+  json!({"id":extension.id,"name":extension.name,"description":extension.description,"availableVersion":version,"installedVersion":version,"isInstalled":true,"requiredRestart":true})
+ })).collect::<Vec<_>>()))
 }
 fn safe_remove(root: &Path, target: &Path) -> Result<()> {
     if target.parent() != Some(root) {
@@ -245,21 +248,6 @@ async fn install(app: &AppHandle, id: &str, base: &str) -> Result<()> {
     let _ = safe_remove(&root, &staging);
     result
 }
-/// Find an installed native helper while retaining the build-time plugin fallback.
-pub fn native_helper(app: &AppHandle, component: &str, file: &str) -> Option<PathBuf> {
-    let id = match component {
-        "volume" => "volume-helper",
-        "brightness" => "brightness-helper",
-        "volume-analyzer" => "volume-analyzer",
-        _ => return None,
-    };
-    let extension = registry(id).ok()?;
-    if file != extension.executable {
-        return None;
-    }
-    let path = root(app).ok()?.join(id).join(file);
-    path.is_file().then_some(path)
-}
 pub fn handles(channel: &str) -> bool {
     matches!(
         channel,
@@ -292,7 +280,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
         }
     } else {
         let _guard = MUTATION.lock().await;
-        match registry(id) {
+        match removable(id) {
             Ok(extension) => {
                 let root = root(app)?;
                 safe_remove(&root, &root.join(extension.id))
@@ -310,9 +298,9 @@ mod tests {
     use super::*;
     #[test]
     fn formal_yaml_preserves_published_sequence_wrapper_quotes_and_comments() {
-        let sequence = "- id: volume-helper\n  version: '1.2.3' # published comment\n  url: \"中文文件.zip?next=a:b#fragment\"\n  size: 42\n";
+        let sequence = "- id: volume-analyzer\n  version: '1.2.3' # published comment\n  url: \"中文文件.zip?next=a:b#fragment\"\n  size: 42\n";
         let result = metadata(sequence).unwrap();
-        assert_eq!(result[0].id, "volume-helper");
+        assert_eq!(result[0].id, "volume-analyzer");
         assert_eq!(result[0].url, "中文文件.zip?next=a:b#fragment");
         let wrapped = format!(
             "extensions:\n{}",
@@ -323,19 +311,27 @@ mod tests {
         );
         assert_eq!(metadata(&wrapped).unwrap()[0].version, "1.2.3");
         assert_eq!(
-            metadata(r#"[{"id":"volume-helper","version":"1.2.3","url":"package.zip"}]"#).unwrap()
-                [0]
-            .url,
+            metadata(r#"[{"id":"volume-analyzer","version":"1.2.3","url":"package.zip"}]"#)
+                .unwrap()[0]
+                .url,
             "package.zip"
         );
     }
     #[test]
+    fn retired_helpers_remain_removable_but_not_installable() {
+        for id in ["volume-helper", "brightness-helper"] {
+            assert_eq!(removable(id).unwrap().id, id);
+            assert!(registry(id).is_err());
+        }
+        assert!(removable("unknown").is_err());
+    }
+    #[test]
     fn formal_yaml_rejects_guessed_indentation_wrong_shapes_duplicate_keys_and_truncation() {
         for value in [
-            "extensions:\n - id: volume-helper\n version: 1.2.3\n url: file.zip",
-            "- id: volume-helper\n  id: brightness-helper\n  version: 1.2.3\n  url: file.zip",
+            "extensions:\n - id: volume-analyzer\n version: 1.2.3\n url: file.zip",
+            "- id: volume-analyzer\n  id: duplicate\n  version: 1.2.3\n  url: file.zip",
             "- id: [nested]\n  version: 1.2.3\n  url: file.zip",
-            "- id: volume-helper\n  url: [",
+            "- id: volume-analyzer\n  url: [",
             "unexpected: []",
         ] {
             assert!(metadata(value).is_err(), "{value}");
@@ -345,7 +341,7 @@ mod tests {
     #[test]
     fn parses_remote_native_versions() {
         let result = metadata(
-            "- id: volume-helper\n  version: 1.2.3\n  url: volume-helper-v1.2.3.zip\n  size: 42\n",
+            "- id: volume-analyzer\n  version: 1.2.3\n  url: volume-analyzer-v1.2.3.zip\n  size: 42\n",
         )
         .unwrap();
         assert_eq!(result.len(), 1);
@@ -373,20 +369,20 @@ mod tests {
         fs::create_dir(&root).unwrap();
         let archive = root.join("native.zip");
         let mut zip = ZipWriter::new(File::create(&archive).unwrap());
-        zip.start_file(REGISTRY[1].executable, SimpleFileOptions::default())
+        zip.start_file(REGISTRY[0].executable, SimpleFileOptions::default())
             .unwrap();
         zip.write_all(b"fixture-only").unwrap();
         zip.finish().unwrap();
         let directory = root.join("native");
-        extract(&archive, &directory, &REGISTRY[1]).unwrap();
-        assert!(directory.join(REGISTRY[1].executable).is_file());
+        extract(&archive, &directory, &REGISTRY[0]).unwrap();
+        assert!(directory.join(REGISTRY[0].executable).is_file());
         assert!(!directory.join("index.js").exists());
         let mut zip = ZipWriter::new(File::create(&archive).unwrap());
         zip.start_file("../outside", SimpleFileOptions::default())
             .unwrap();
         zip.write_all(b"outside").unwrap();
         zip.finish().unwrap();
-        assert!(extract(&archive, &root.join("bad"), &REGISTRY[1]).is_err());
+        assert!(extract(&archive, &root.join("bad"), &REGISTRY[0]).is_err());
         assert!(!root.parent().unwrap().join("outside").exists());
         assert!(safe_remove(&root, &root.parent().unwrap().join("outside")).is_err());
         fs::remove_dir_all(root).unwrap();

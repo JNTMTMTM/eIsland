@@ -28,10 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         plugin:
-          - eisland-windows-application-icon-helper
           - eisland-windows-bluetooth-helper
-          - eisland-windows-brightness-helper
-          - eisland-windows-volume-helper
           - eisland-windows-fullscreen-detector
           - eisland-windows-hardware-info-helper
           - eisland-windows-performance-monitor
@@ -45,9 +42,6 @@ jobs:
           - eisland-windows-wifi-helper
         include:
           - plugin: eisland-macos-media-helper
-            platform: macos
-            runner: macos-15
-          - plugin: eisland-macos-brightness-helper
             platform: macos
             runner: macos-15
 
@@ -120,10 +114,7 @@ jobs:
       fail-fast: false
       matrix:
         plugin:
-          - eisland-windows-application-icon-helper
           - eisland-windows-bluetooth-helper
-          - eisland-windows-brightness-helper
-          - eisland-windows-volume-helper
           - eisland-windows-fullscreen-detector
           - eisland-windows-hardware-info-helper
           - eisland-windows-performance-monitor
@@ -137,9 +128,6 @@ jobs:
           - eisland-windows-wifi-helper
         include:
           - plugin: eisland-macos-media-helper
-            platform: macos
-            runner: macos-15
-          - plugin: eisland-macos-brightness-helper
             platform: macos
             runner: macos-15
 

@@ -18,22 +18,31 @@
  * GNU General Public License for more details.
  */
 
-/**
- * @file volume.smoke.ts
- * @description Windows 默认播放设备主音量手动冒烟测试
- * @author 鸡哥
- */
+//! 屏幕亮度控制，需在阻塞线程中调用系统显示器接口。
 
-import type * as volumeTypes from '../';
+#[cfg(any(target_os = "macos", test))]
+mod ddc;
+#[cfg(target_os = "macos")]
+mod macos;
+#[cfg(windows)]
+mod windows;
 
-const volume = require('../') as typeof volumeTypes;
-const level = volume.getVolume();
+#[cfg(windows)]
+use self::windows as native;
+#[cfg(target_os = "macos")]
+use macos as native;
 
-console.log('=== Volume Helper Smoke Test ===');
-console.log(`Current volume: ${level === null ? 'N/A' : `${level}%`}`);
+#[cfg(any(windows, target_os = "macos"))]
+pub(crate) use native::{get, set};
 
-if (level !== null) {
-  console.log(`Set current volume result: ${volume.setVolume(level)}`);
+/// 读取当前亮度；不支持的平台始终返回 `None`。
+#[cfg(not(any(windows, target_os = "macos")))]
+pub(crate) fn get() -> Option<u8> {
+    None
 }
 
-console.log('=== Smoke Test Complete ===');
+/// 写入亮度；不支持的平台始终返回 `false`。
+#[cfg(not(any(windows, target_os = "macos")))]
+pub(crate) fn set(_percent: u8) -> bool {
+    false
+}

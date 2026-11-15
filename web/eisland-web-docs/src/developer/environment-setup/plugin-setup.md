@@ -23,8 +23,6 @@ eIsland uses ten native plugins to access Windows features that web technologies
 | **eisland-windows-bluetooth-helper** | C# (.NET) | — | Bluetooth device enumeration and real-time connection monitoring |
 | **eisland-windows-power-helper** | C# (.NET) | — | Battery status and power event monitoring |
 | **eisland-windows-wifi-helper** | C# (.NET) | — | WiFi connection status and event monitoring |
-| **eisland-windows-brightness-helper** | C# (.NET) | — | Screen brightness query, control, and WMI event monitoring |
-| **eisland-windows-application-icon-helper** | C# (.NET) | Shell32 | Application icon extraction by process name, PID, path, or shortcut |
 | **eisland-windows-screenshot-helper** | C# (.NET) | GDI32 | Primary display screen capture as PNG |
 
 :::important
@@ -237,7 +235,7 @@ eisland-windows-bluetooth-helper/
 All .NET Native AOT DLLs are built with `<SelfContained>true</SelfContained>` and `<StaticICU>true</StaticICU>`. This means **client machines do not need the .NET runtime installed** — all dependencies are statically linked into the DLL. The trade-off is a larger DLL size (~5MB per plugin).
 :::
 
-The Power and WiFi helpers follow the same architecture. The Brightness helper is different — it uses a .NET console EXE (not NativeAOT) because `System.Management` (WMI) is incompatible with NativeAOT.
+The Power and WiFi helpers follow the same architecture.
 :::
 
 ### Installation Summary
@@ -562,24 +560,6 @@ npm run smoke:monitor           # Monitor smoke test — event-driven tracking f
 
 :::tip
 The Bluetooth Helper smoke tests require a real Bluetooth adapter and at least one paired device to produce meaningful results. Without Bluetooth hardware, queries return empty arrays and the monitor reports no events.
-:::
-
-### Brightness Helper Tests
-
-The `eisland-windows-brightness-helper` plugin has query and monitor test files:
-
-```bash
-cd plugins/windows/eisland-windows-brightness-helper
-
-npm run test                    # All tests
-npm run test:query              # Query function tests (getBrightness, setBrightness)
-npm run test:monitor            # Monitor state management tests
-npm run smoke                   # Full smoke test — getBrightness, setBrightness
-npm run smoke:monitor           # Monitor smoke test — WMI event tracking for 15s
-```
-
-:::tip
-The Brightness Helper smoke tests require a display that supports WMI brightness control (most laptop built-in displays). On desktops without a backlight, `getBrightness()` returns `null` and `setBrightness()` returns `false`.
 :::
 
 ### Screenshot Helper Tests

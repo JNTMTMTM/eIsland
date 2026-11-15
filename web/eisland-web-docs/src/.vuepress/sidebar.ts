@@ -79,22 +79,6 @@ export default sidebar({
   ],
   "/api-plugins/": [
     {
-      text: "Windows Brightness Helper",
-      icon: "sun",
-      collapsible: true,
-      children: [
-        "display-graphics/brightness-helper/brightness-info.md",
-        "display-graphics/brightness-helper/get-brightness.md",
-        "display-graphics/brightness-helper/set-brightness.md",
-        "display-graphics/brightness-helper/brightness-monitor.md",
-      ],
-    },
-    {
-      text: "macOS Brightness Helper",
-      icon: "sun",
-      link: "display-graphics/macos-brightness-helper.md",
-    },
-    {
       text: "Windows Fullscreen Detector",
       icon: "maximize",
       collapsible: true,
@@ -117,18 +101,6 @@ export default sidebar({
         "display-graphics/screenshot-helper/capture-primary-display-png.md",
         "display-graphics/screenshot-helper/get-visible-windows.md",
         "display-graphics/screenshot-helper/get-last-error.md",
-      ],
-    },
-    {
-      text: "Windows Volume Helper",
-      icon: "volume-high",
-      collapsible: true,
-      children: [
-        "display-graphics/volume-helper/get-mute.md",
-        "display-graphics/volume-helper/set-mute.md",
-        "display-graphics/volume-helper/get-volume.md",
-        "display-graphics/volume-helper/set-volume.md",
-        "display-graphics/volume-helper/volume-monitor.md",
       ],
     },
     {
@@ -195,18 +167,6 @@ export default sidebar({
         "system-power/processes-attacker/process-failure.md",
         "system-power/processes-attacker/close-process.md",
         "system-power/processes-attacker/close-processes.md",
-      ],
-    },
-    {
-      text: "Windows Application Icon Helper",
-      icon: "icons",
-      collapsible: true,
-      children: [
-        "system-power/application-icon-helper/icon-result.md",
-        "system-power/application-icon-helper/get-icon-by-process-name.md",
-        "system-power/application-icon-helper/get-icon-by-pid.md",
-        "system-power/application-icon-helper/get-icon-by-path.md",
-        "system-power/application-icon-helper/get-icon-by-shortcut-path.md",
       ],
     },
     {

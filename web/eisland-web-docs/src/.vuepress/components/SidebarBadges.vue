@@ -31,9 +31,6 @@ import { useRoute } from 'vuepress/client'
 
 // ── name → badge type mapping ────────────────────────────────────
 const BADGE_MAP: Record<string, string> = {
-  // Brightness Helper
-  BrightnessInfo: 'interface',
-  BrightnessMonitor: 'monitor',
   // Fullscreen Detector
   NativeRect: 'interface',
   NativeMonitorInfo: 'interface',
@@ -78,8 +75,6 @@ const BADGE_MAP: Record<string, string> = {
   ToastNotificationChangeKind: 'enum',
   ToastNotificationChangedEvent: 'interface',
   ToastNotificationSnapshot: 'interface',
-  // Application Icon Helper
-  IconResult: 'interface',
   // Hardware Info Helper
   CpuInfo: 'interface',
   GpuInfo: 'interface',

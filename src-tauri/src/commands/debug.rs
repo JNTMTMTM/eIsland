@@ -50,12 +50,10 @@ pub(super) fn handle(
         #[cfg(debug_assertions)]
         "debug:system-services" => {
             let media = app.state::<std::sync::Arc<crate::features::media::Media>>();
-            let helper = crate::features::extensions::resolve_native_helper;
+            let helper = crate::infrastructure::resources::native_path;
             return Ok(json!({
                 "media":media.diagnostics(),
                 "performance":crate::features::system::performance_diagnostics(),
-                "volumeHelper":helper(&app,"volume","eIslandVolumeHelper.exe").ok(),
-                "brightnessHelper":helper(&app,"brightness","eIslandBrightnessReader.exe").ok(),
                 "smtcLibrary":helper(&app,"smtc","eIslandSmtcHelper.dll").ok(),
             }));
         }

@@ -202,7 +202,7 @@ impl Media {
                 .name("smtc-monitor".into())
                 .spawn(move || {
                     let result = (|| -> Result<()> {
-                        let path = crate::features::extensions::resolve_native_helper(
+                        let path = crate::infrastructure::resources::native_path(
                             &app,
                             "smtc",
                             "eIslandSmtcHelper.dll",

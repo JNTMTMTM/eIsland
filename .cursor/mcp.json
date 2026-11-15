@@ -7,7 +7,7 @@
         "serve",
         "--mcp",
         "--path",
-        "C:\\Users\\Administrator\\Desktop\\pyisland_project\\eIsland"
+        "${workspaceFolder}"
       ]
     }
   }
