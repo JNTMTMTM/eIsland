@@ -18,7 +18,7 @@
  * GNU General Public License for more details.
  */
 
-//! Brightness control runs in a blocking worker and accesses system display APIs.
+//! 屏幕亮度控制，需在阻塞线程中调用系统显示器接口。
 
 #[cfg(any(target_os = "macos", test))]
 mod ddc;
@@ -35,11 +35,13 @@ use macos as native;
 #[cfg(any(windows, target_os = "macos"))]
 pub(crate) use native::{get, set};
 
+/// 读取当前亮度；不支持的平台始终返回 `None`。
 #[cfg(not(any(windows, target_os = "macos")))]
 pub(crate) fn get() -> Option<u8> {
     None
 }
 
+/// 写入亮度；不支持的平台始终返回 `false`。
 #[cfg(not(any(windows, target_os = "macos")))]
 pub(crate) fn set(_percent: u8) -> bool {
     false

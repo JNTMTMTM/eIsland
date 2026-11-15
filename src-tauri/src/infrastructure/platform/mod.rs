@@ -28,18 +28,21 @@ pub(crate) mod smtc;
 pub(crate) mod volume;
 pub(crate) mod window;
 
+/// 当前线程的 COM 多线程套间守卫，仅在本守卫完成初始化时于析构时反初始化。
 #[cfg(windows)]
 pub(super) struct ComApartment(bool);
 
 #[cfg(windows)]
 impl ComApartment {
+    /// 进入 COM 多线程套间
+    /// @returns 守卫；线程已处于其他套间时复用且不负责反初始化；初始化失败时为 `None`
     pub(super) fn enter() -> Option<Self> {
         use windows::Win32::{
             Foundation::RPC_E_CHANGED_MODE,
             System::Com::{CoInitializeEx, COINIT_MULTITHREADED},
         };
         let status = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) };
-        // A blocking worker can already belong to a caller-owned STA.
+        // 阻塞线程可能已属于调用方持有的 STA，此时直接复用。
         (status.is_ok() || status == RPC_E_CHANGED_MODE).then_some(Self(status.is_ok()))
     }
 }

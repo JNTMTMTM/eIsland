@@ -18,18 +18,27 @@
  * GNU General Public License for more details.
  */
 
-//! System volume and mute on the current default playback device.
+//! 当前默认播放设备的系统音量与静音控制。
 
 use crate::shared::Result;
 use serde_json::{json, Value};
 
+/// 音量操作类型，每次执行都会重新解析默认播放设备。
 pub(crate) enum Operation {
+    /// 读取主音量百分比
     Get,
+    /// 设置主音量百分比（0~100）
     Set(u8),
+    /// 读取静音状态
     GetMute,
+    /// 切换静音状态
     ToggleMute,
 }
 
+/// 在阻塞线程中执行音量操作
+/// @param operation - 要执行的音量操作
+/// @returns `Get` 为音量百分比或 `null`；`Set` 为是否写入成功；
+/// `GetMute`/`ToggleMute` 为（切换后的）静音状态或 `null`；阻塞任务失败时返回错误
 pub(crate) async fn run(operation: Operation) -> Result<Value> {
     tauri::async_runtime::spawn_blocking(move || execute(operation))
         .await
@@ -90,15 +99,18 @@ mod native {
         }
     }
 
+    /// 读取主音量（0.0~1.0），设备不可用时为 `None`。
     pub(super) fn level() -> Option<f32> {
         output(|device| unsafe { device.GetMasterVolumeLevelScalar() })
     }
 
+    /// 写入主音量（0.0~1.0），返回是否成功。
     pub(super) fn set_level(value: f32) -> bool {
         output(|device| unsafe { device.SetMasterVolumeLevelScalar(value, &GUID::zeroed()) })
             .is_some()
     }
 
+    /// 读取静音状态，`toggle` 为 `true` 时先切换；返回最终状态，失败时为 `None`。
     pub(super) fn mute(toggle: bool) -> Option<bool> {
         output(|device| unsafe {
             let muted = device.GetMute()?.as_bool();
@@ -124,7 +136,7 @@ mod native {
         ptr::{null, NonNull},
     };
 
-    // AudioHardwareService's virtual main volume covers devices with only channel controls.
+    // AudioHardwareService 的虚拟主音量可覆盖只有声道音量控件的设备。
     const VOLUME_SELECTORS: [u32; 2] = [
         kAudioDevicePropertyVolumeScalar,
         u32::from_be_bytes(*b"vmvc"),
@@ -141,7 +153,7 @@ mod native {
     fn read<T: Default>(id: AudioObjectID, property: AudioObjectPropertyAddress) -> Option<T> {
         let mut value = T::default();
         let mut size = size_of::<T>() as u32;
-        // Callers pair each selector with its HAL scalar type (u32 or f32).
+        // 调用方需让每个选择器与其 HAL 标量类型（u32 或 f32）一一对应。
         let status = unsafe {
             AudioObjectGetPropertyData(
                 id,
@@ -156,7 +168,7 @@ mod native {
     }
 
     fn write<T>(id: AudioObjectID, property: AudioObjectPropertyAddress, value: T) -> bool {
-        // The property and scalar are borrowed for the duration of the HAL call.
+        // property 与标量仅在 HAL 调用期间被借用。
         let status = unsafe {
             AudioObjectSetPropertyData(
                 id,
@@ -181,6 +193,7 @@ mod native {
         .filter(|id| *id != kAudioObjectUnknown)
     }
 
+    /// 读取主音量（0.0~1.0），设备不可用时为 `None`。
     pub(super) fn level() -> Option<f32> {
         let id = output()?;
         VOLUME_SELECTORS
@@ -188,6 +201,7 @@ mod native {
             .find_map(|selector| read(id, address(selector, kAudioObjectPropertyScopeOutput)))
     }
 
+    /// 写入主音量（0.0~1.0），返回是否成功。
     pub(super) fn set_level(value: f32) -> bool {
         output().is_some_and(|id| {
             VOLUME_SELECTORS.into_iter().any(|selector| {
@@ -200,6 +214,7 @@ mod native {
         })
     }
 
+    /// 读取静音状态，`toggle` 为 `true` 时先切换；返回最终状态，失败时为 `None`。
     pub(super) fn mute(toggle: bool) -> Option<bool> {
         let id = output()?;
         let property = address(kAudioDevicePropertyMute, kAudioObjectPropertyScopeOutput);

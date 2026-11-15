@@ -18,7 +18,7 @@
  * GNU General Public License for more details.
  */
 
-//! DisplayServices for system panels, with IOKit and DDC/CI fallbacks.
+//! macOS 亮度控制：DisplayServices 负责系统面板，IOKit 与 DDC/CI 作为回退。
 
 use super::ddc::{self, Reply};
 use libloading::Library;
@@ -35,7 +35,7 @@ struct DisplayServices {
 
 impl DisplayServices {
     fn load() -> Option<Self> {
-        // Resolve private system symbols at runtime so their absence allows the IOKit fallback.
+        // 运行时解析私有系统符号，缺失时仍可回退到 IOKit。
         unsafe {
             let framework = Library::new(
                 "/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices",
@@ -139,49 +139,84 @@ fn property(
     unsafe { IORegistryEntryCreateCFProperty(port, Some(&key), None, 0) }
 }
 
-fn ddc_brightness(ids: &[u32], percent: Option<u8>) -> Option<u8> {
-    #[cfg(target_arch = "aarch64")]
-    let targets = arm::targets();
-    #[cfg(target_arch = "x86_64")]
-    let targets = intel::targets(ids);
-    #[cfg(target_arch = "aarch64")]
-    let _ = ids;
+#[cfg(target_arch = "aarch64")]
+use arm::Target as DdcTarget;
+#[cfg(target_arch = "x86_64")]
+use intel::Target as DdcTarget;
 
-    let query = ddc::packet(None);
-    let mut updated = None;
-    for target in targets {
-        let mut reply = Reply::default();
-        if !target.exchange(&query, Some(&mut reply)) {
-            continue;
-        }
-        let Some((current, maximum)) = ddc::range(&reply) else {
-            continue;
-        };
-        let Some(percent) = percent else {
-            return Some((f64::from(current) * 100. / f64::from(maximum)).round() as u8);
-        };
-        let value = (f64::from(percent) * f64::from(maximum) / 100.).round() as u16;
-        if target.exchange(&ddc::packet(Some(value)), None) {
-            updated = Some(percent);
-        }
+fn ddc_targets(ids: &[u32]) -> Vec<DdcTarget> {
+    #[cfg(target_arch = "aarch64")]
+    {
+        let _ = ids;
+        arm::targets()
     }
-    updated
+    #[cfg(target_arch = "x86_64")]
+    {
+        intel::targets(ids).collect()
+    }
 }
 
+fn ddc_range(target: &DdcTarget) -> Option<(u16, u16)> {
+    let mut reply = Reply::default();
+    target
+        .exchange(&ddc::packet(None), Some(&mut reply))
+        .then(|| ddc::range(&reply))
+        .flatten()
+}
+
+fn ddc_get(ids: &[u32]) -> Option<u8> {
+    ddc_targets(ids).iter().find_map(|target| {
+        let (current, maximum) = ddc_range(target)?;
+        Some((f64::from(current) * 100. / f64::from(maximum)).round() as u8)
+    })
+}
+
+/// 向全部可读的 DDC/CI 外接显示器写入亮度，按显示器返回各自是否成功。
+fn ddc_set(ids: &[u32], percent: u8) -> Vec<bool> {
+    ddc_targets(ids)
+        .iter()
+        .filter_map(|target| {
+            let (_, maximum) = ddc_range(target)?;
+            let value = (f64::from(percent) * f64::from(maximum) / 100.).round() as u16;
+            Some(target.exchange(&ddc::packet(Some(value)), None))
+        })
+        .collect()
+}
+
+/// 读取当前亮度
+/// @description 优先读取内置屏或主显示器的系统面板接口，否则读取首个可读的 DDC/CI 外接显示器。
+/// @returns 亮度百分比（0~100）；没有可读显示器时返回 `None`
 pub(crate) fn get() -> Option<u8> {
     let ids = displays();
     let level = panels(&ids).find_map(Panel::raw_level);
     level
         .map(|level| (f64::from(level) * 100.).round() as u8)
-        .or_else(|| ddc_brightness(&ids, None))
+        .or_else(|| ddc_get(&ids))
 }
 
+/// 将亮度写入全部支持亮度调节的显示器
+/// @description 每台显示器依次尝试可读的面板接口，任一接口写入成功即视为该显示器成功；
+/// 没有面板接口的显示器再经 DDC/CI 写入。不支持亮度调节的显示器跳过，不计为失败。
+/// @param percent - 目标亮度百分比（0~100）
+/// @returns 至少有一台可调显示器且全部写入成功时为 `true`；部分失败或无可调显示器时为 `false`
 pub(crate) fn set(percent: u8) -> bool {
     let ids = displays();
-    if let Some(panel) = panels(&ids).find(|panel| panel.raw_level().is_some()) {
-        return panel.set(percent);
+    let mut outcomes = Vec::new();
+    let mut unpaneled = Vec::new();
+    for id in &ids {
+        let mut readable = panels(std::slice::from_ref(id))
+            .filter(|panel| panel.raw_level().is_some())
+            .peekable();
+        if readable.peek().is_none() {
+            unpaneled.push(*id);
+            continue;
+        }
+        outcomes.push(readable.any(|panel| panel.set(percent)));
     }
-    ddc_brightness(&ids, Some(percent)).is_some()
+    // Apple 芯片的 DDC/CI 目标无法映射回显示器 ID，因此会遍历全部外接目标；
+    // 只有 DDC 读取成功的目标才会写入，同时支持两种接口的显示器会写入相同百分比。
+    outcomes.extend(ddc_set(&unpaneled, percent));
+    !outcomes.is_empty() && outcomes.into_iter().all(|updated| updated)
 }
 
 #[cfg(target_arch = "aarch64")]
@@ -227,7 +262,7 @@ mod arm {
 
     impl Target {
         fn open(entry: u32, api: &'static AvService) -> Option<Self> {
-            // Only external display proxies support DDC/CI. Never send I2C to the built-in panel.
+            // 只有外接显示器代理支持 DDC/CI，禁止向内置屏发送 I2C。
             let location = property(entry, "Location")?.downcast::<CFString>().ok()?;
             if location.to_string() != "External" {
                 return None;
@@ -240,8 +275,12 @@ mod arm {
             Some(Self { id, service, api })
         }
 
+        /// 发送 DDC/CI 帧，可选读取应答
+        /// @param packet - `ddc::packet` 生成的完整帧
+        /// @param reply - 传入时读取应答到该缓冲区；`None` 表示只写入
+        /// @returns 写入（及读取）均成功时为 `true`
         pub(super) fn exchange(&self, packet: &[u8], reply: Option<&mut Reply>) -> bool {
-            // IOAVService takes the DDC source address as the offset; read checksums exclude it.
+            // IOAVService 以 DDC 源地址作为偏移量，读取请求的校验和不包含该地址。
             let mut bytes = packet[1..].to_vec();
             if reply.is_some() {
                 *bytes.last_mut().unwrap() ^= 0x51;
@@ -274,6 +313,8 @@ mod arm {
         }
     }
 
+    /// 枚举外接显示器的 DDC/CI 目标
+    /// @returns 按注册表 ID 排序的目标；IOAVService 不可用时为空
     pub(super) fn targets() -> Vec<Target> {
         static AV_SERVICE: OnceLock<Option<AvService>> = OnceLock::new();
         let mut targets = Vec::new();
@@ -283,8 +324,8 @@ mod arm {
         let Some(matching) = (unsafe { IOServiceMatching(c"DCPAVServiceProxy".as_ptr()) }) else {
             return targets;
         };
-        // IOServiceGetMatchingServices consumes a CFDictionary. A mutable dictionary
-        // returned by IOServiceMatching is a Core Foundation subtype of CFDictionary.
+        // IOServiceGetMatchingServices 接收 CFDictionary；IOServiceMatching 返回的
+        // 可变字典是 CFDictionary 的 Core Foundation 子类型。
         let matching = unsafe { CFRetained::cast_unchecked(matching) };
         let mut iterator = 0;
         if unsafe {
@@ -321,6 +362,9 @@ mod intel {
 
     type DisplayPort = unsafe extern "C" fn(u32) -> u32;
 
+    /// 查询显示器对应的帧缓冲服务端口
+    /// @param id - CoreGraphics 显示器 ID
+    /// @returns 帧缓冲端口；查询失败时为 `None`
     pub(super) fn framebuffer(id: u32) -> Option<u32> {
         static PORT: OnceLock<Option<(Library, DisplayPort)>> = OnceLock::new();
         let (_, get_port) = PORT
@@ -332,12 +376,12 @@ mod intel {
                 Some((framework, get_port))
             })
             .as_ref()?;
-        // The display service is borrowed from CoreGraphics.
+        // 显示器服务端口归 CoreGraphics 所有，此处只借用不释放。
         let service = unsafe { get_port(id) };
         (service != 0).then_some(service)
     }
 
-    // ABI of the 64-bit IOI2CRequest in IOKit/i2c/IOI2CInterface.h.
+    // 对应 IOKit/i2c/IOI2CInterface.h 中 64 位 IOI2CRequest 的 ABI。
     #[repr(C, packed(4))]
     #[derive(Default)]
     struct I2cRequest {
@@ -418,6 +462,10 @@ mod intel {
             })
         }
 
+        /// 发送 DDC/CI 帧，可选读取应答
+        /// @param packet - `ddc::packet` 生成的完整帧
+        /// @param reply - 传入时读取应答到该缓冲区；`None` 表示只写入
+        /// @returns 请求成功且应答长度符合预期时为 `true`
         pub(super) fn exchange(&self, packet: &[u8], reply: Option<&mut Reply>) -> bool {
             let mut outgoing = packet.to_vec();
             let mut request = I2cRequest {
@@ -444,6 +492,9 @@ mod intel {
         }
     }
 
+    /// 枚举给定外接显示器的全部 I2C 总线目标
+    /// @param ids - CoreGraphics 显示器 ID，内置屏会被过滤
+    /// @returns 可打开的 DDC/CI 目标
     pub(super) fn targets(ids: &[u32]) -> impl Iterator<Item = Target> + '_ {
         ids.iter()
             .copied()

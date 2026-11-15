@@ -18,7 +18,7 @@
  * GNU General Public License for more details.
  */
 
-//! WMI handles built-in panels and DXVA2 handles external DDC/CI monitors.
+//! Windows 亮度控制：WMI 负责内置屏，DXVA2 负责支持 DDC/CI 的外接显示器。
 
 use crate::infrastructure::platform::ComApartment;
 use std::ptr::{null, null_mut};
@@ -82,24 +82,28 @@ fn wmi<T>(operation: impl FnOnce(&IWbemServices) -> Option<T>) -> Option<T> {
     }
 }
 
-fn first_instance(service: &IWbemServices, query: &str) -> Option<IWbemClassObject> {
-    let mut entry = [None];
-    let mut count = 0;
-    unsafe {
-        let cursor = service
-            .ExecQuery(
-                &BSTR::from("WQL"),
-                &BSTR::from(query),
-                WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-                None,
-            )
-            .ok()?;
-        cursor
-            .Next(WMI_TIMEOUT_MS, &mut entry, &mut count)
-            .ok()
-            .ok()?;
+fn instances(service: &IWbemServices, query: &str) -> Vec<IWbemClassObject> {
+    let Ok(cursor) = (unsafe {
+        service.ExecQuery(
+            &BSTR::from("WQL"),
+            &BSTR::from(query),
+            WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+            None,
+        )
+    }) else {
+        return Vec::new();
+    };
+    let mut rows = Vec::new();
+    loop {
+        let mut entry = [None];
+        let mut count = 0;
+        let status = unsafe { cursor.Next(WMI_TIMEOUT_MS, &mut entry, &mut count) };
+        if status.is_err() || count == 0 {
+            break;
+        }
+        rows.extend(entry[0].take());
     }
-    entry[0].take()
+    rows
 }
 
 fn property(entry: &IWbemClassObject, name: PCWSTR) -> Option<VARIANT> {
@@ -108,15 +112,27 @@ fn property(entry: &IWbemClassObject, name: PCWSTR) -> Option<VARIANT> {
     Some(value)
 }
 
-fn set_wmi(service: &IWbemServices, percent: u8) -> Option<()> {
-    let panel = first_instance(
+/// 向全部活动的 WMI 内置屏写入亮度，按面板返回各自是否成功。
+fn set_wmi(service: &IWbemServices, percent: u8) -> Vec<bool> {
+    let panels = instances(
         service,
         "SELECT * FROM WmiMonitorBrightnessMethods WHERE Active = TRUE",
-    )?;
-    let path = BSTR::try_from(&property(&panel, w!("__RELPATH"))?).ok()?;
+    );
+    if panels.is_empty() {
+        return Vec::new();
+    }
+    let Some(input) = wmi_input(service, percent) else {
+        return vec![false; panels.len()];
+    };
+    panels
+        .iter()
+        .map(|panel| wmi_invoke(service, panel, &input).is_some())
+        .collect()
+}
+
+fn wmi_input(service: &IWbemServices, percent: u8) -> Option<IWbemClassObject> {
     let mut class = None;
     let mut signature = None;
-    let mut result = None;
     unsafe {
         service
             .GetObject(
@@ -134,15 +150,27 @@ fn set_wmi(service: &IWbemServices, percent: u8) -> Option<()> {
         input
             .Put(w!("Brightness"), 0, &VARIANT::from(percent), 0)
             .ok()?;
-        // WMI represents CIM_UINT32 properties with VT_I4.
+        // WMI 以 VT_I4 承载 CIM_UINT32 属性。
         input.Put(w!("Timeout"), 0, &VARIANT::from(0i32), 0).ok()?;
+        Some(input)
+    }
+}
+
+fn wmi_invoke(
+    service: &IWbemServices,
+    panel: &IWbemClassObject,
+    input: &IWbemClassObject,
+) -> Option<()> {
+    let path = BSTR::try_from(&property(panel, w!("__RELPATH"))?).ok()?;
+    let mut result = None;
+    unsafe {
         service
             .ExecMethod(
                 &path,
                 &BSTR::from("WmiSetBrightness"),
                 WBEM_FLAG_RETURN_IMMEDIATELY,
                 None,
-                &input,
+                input,
                 None,
                 Some(&mut result),
             )
@@ -185,7 +213,7 @@ fn monitors() -> impl Iterator<Item = PhysicalMonitors> {
         _: *mut RECT,
         data: LPARAM,
     ) -> i32 {
-        // EnumDisplayMonitors invokes this callback synchronously with our vector pointer.
+        // EnumDisplayMonitors 同步调用此回调，data 指向下方的 displays 向量。
         unsafe { &mut *(data as *mut Vec<HMONITOR>) }.push(monitor);
         1
     }
@@ -207,12 +235,17 @@ fn monitor_range(handle: HANDLE) -> Option<(u32, u32, u32)> {
     (ok != 0 && minimum <= maximum).then_some((minimum, current, maximum))
 }
 
+/// 读取当前亮度
+/// @description 优先读取首个活动的 WMI 内置屏，否则读取首个可读的 DDC/CI 外接显示器。
+/// @returns 亮度百分比（0~100）；没有可读显示器时返回 `None`
 pub(crate) fn get() -> Option<u8> {
     wmi(|service| {
-        let panel = first_instance(
+        let panel = instances(
             service,
             "SELECT CurrentBrightness FROM WmiMonitorBrightness WHERE Active = TRUE",
-        )?;
+        )
+        .into_iter()
+        .next()?;
         let value = u32::try_from(&property(&panel, w!("CurrentBrightness"))?).ok()?;
         Some(value.min(100) as u8)
     })
@@ -231,11 +264,12 @@ pub(crate) fn get() -> Option<u8> {
     })
 }
 
+/// 将亮度写入全部支持亮度调节的显示器
+/// @description WMI 内置屏与 DXVA2 外接显示器都会写入；不支持亮度调节的显示器跳过，不计为失败。
+/// @param percent - 目标亮度百分比（0~100）
+/// @returns 至少有一台可调显示器且全部写入成功时为 `true`；部分失败或无可调显示器时为 `false`
 pub(crate) fn set(percent: u8) -> bool {
-    if wmi(|service| set_wmi(service, percent)).is_some() {
-        return true;
-    }
-    let mut updated = false;
+    let mut outcomes = wmi(|service| Some(set_wmi(service, percent))).unwrap_or_default();
     for group in monitors() {
         for monitor in &group.0 {
             let Some((min, _, max)) = monitor_range(monitor.hPhysicalMonitor) else {
@@ -243,8 +277,8 @@ pub(crate) fn set(percent: u8) -> bool {
             };
             let value =
                 min + (f64::from(percent) * f64::from(max - min) / 100.).round_ties_even() as u32;
-            updated |= unsafe { SetMonitorBrightness(monitor.hPhysicalMonitor, value) } != 0;
+            outcomes.push(unsafe { SetMonitorBrightness(monitor.hPhysicalMonitor, value) } != 0);
         }
     }
-    updated
+    !outcomes.is_empty() && outcomes.into_iter().all(|updated| updated)
 }

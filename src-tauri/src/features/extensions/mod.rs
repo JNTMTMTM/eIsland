@@ -48,6 +48,21 @@ const REGISTRY: [Extension; 1] = [Extension {
     description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
     executable: "eIslandVolumeAnalyzer.exe",
 }];
+/// 已由内置原生实现取代的助手扩展，仅用于展示和卸载旧版本遗留的安装，不再提供安装。
+const RETIRED: [Extension; 2] = [
+    Extension {
+        id: "volume-helper",
+        name: "音量控制助手",
+        description: "Windows 默认播放设备音量查询、控制与监听（Core Audio COM）",
+        executable: "eIslandVolumeHelper.exe",
+    },
+    Extension {
+        id: "brightness-helper",
+        name: "亮度控制助手",
+        description: "Windows 屏幕亮度查询与控制（WMI / DDC/CI），支持亮度事件监听",
+        executable: "eIslandBrightnessReader.exe",
+    },
+];
 #[derive(Default, Debug, Deserialize)]
 struct Remote {
     id: String,
@@ -81,6 +96,14 @@ fn metadata(raw: &str) -> Result<Vec<Remote>> {
 fn registry(id: &str) -> Result<&'static Extension> {
     REGISTRY
         .iter()
+        .find(|entry| entry.id == id)
+        .ok_or_else(|| "Unknown extension".into())
+}
+/// 查找可卸载的扩展，包含已下线但可能仍有旧安装的助手。
+fn removable(id: &str) -> Result<&'static Extension> {
+    REGISTRY
+        .iter()
+        .chain(&RETIRED)
         .find(|entry| entry.id == id)
         .ok_or_else(|| "Unknown extension".into())
 }
@@ -137,7 +160,11 @@ fn status(app: &AppHandle, remote: &[Remote]) -> Result<Value> {
   let version=fs::read_to_string(directory.join(".version")).ok().map(|v|v.trim().to_owned());
   let remote=remote.iter().find(|value|value.id==extension.id).map(|value|value.version.clone()).unwrap_or_else(||app.package_info().version.to_string());
   json!({"id":extension.id,"name":extension.name,"description":extension.description,"availableVersion":remote,"installedVersion":if installed{version}else{None},"isInstalled":installed,"requiredRestart":true})
- }).collect::<Vec<_>>()))
+ }).chain(RETIRED.iter().filter(|extension|root.join(extension.id).exists()).map(|extension|{
+  // 下线助手没有可用新版本，以已安装版本作为可用版本，避免提示更新。
+  let version=fs::read_to_string(root.join(extension.id).join(".version")).map(|v|v.trim().to_owned()).unwrap_or_default();
+  json!({"id":extension.id,"name":extension.name,"description":extension.description,"availableVersion":version,"installedVersion":version,"isInstalled":true,"requiredRestart":true})
+ })).collect::<Vec<_>>()))
 }
 fn safe_remove(root: &Path, target: &Path) -> Result<()> {
     if target.parent() != Some(root) {
@@ -253,7 +280,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
         }
     } else {
         let _guard = MUTATION.lock().await;
-        match registry(id) {
+        match removable(id) {
             Ok(extension) => {
                 let root = root(app)?;
                 safe_remove(&root, &root.join(extension.id))
@@ -289,6 +316,14 @@ mod tests {
                 .url,
             "package.zip"
         );
+    }
+    #[test]
+    fn retired_helpers_remain_removable_but_not_installable() {
+        for id in ["volume-helper", "brightness-helper"] {
+            assert_eq!(removable(id).unwrap().id, id);
+            assert!(registry(id).is_err());
+        }
+        assert!(removable("unknown").is_err());
     }
     #[test]
     fn formal_yaml_rejects_guessed_indentation_wrong_shapes_duplicate_keys_and_truncation() {

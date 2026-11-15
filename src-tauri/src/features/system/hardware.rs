@@ -39,11 +39,8 @@ enum Kind {
     Volume,
     Brightness,
 }
-#[derive(Default)]
-struct Pending {
-    value: Option<u8>,
-    waiters: Vec<oneshot::Sender<bool>>,
-}
+/// 待写入的目标值及其请求方；新请求会取代尚未开始写入的旧请求。
+type Pending = Option<(u8, oneshot::Sender<bool>)>;
 struct Control {
     kind: Kind,
     cache: Mutex<Option<(Instant, Value)>>,
@@ -63,7 +60,7 @@ impl Control {
             kind,
             cache: Mutex::new(None),
             gate: tokio::sync::Mutex::new(()),
-            pending: Mutex::new(Pending::default()),
+            pending: Mutex::new(None),
             notify: Notify::new(),
         })
     }
@@ -85,21 +82,26 @@ impl Control {
         *self.cache.lock().unwrap() = Some((Instant::now(), result.clone()));
         Ok(result)
     }
-    async fn set(&self, value: u8, mut shutdown: watch::Receiver<bool>) -> bool {
+    /// 提交写入请求并等待其真实结果
+    /// @description 尚未开始写入就被新值取代或因停止服务而丢弃的请求返回 `false`；
+    /// 已开始的原生写入无法取消，即使期间停止服务也返回其实际结果。
+    /// @param value - 目标百分比（0~100）
+    /// @param shutdown - 停止服务信号
+    /// @returns 该值是否已成功写入
+    async fn set(&self, value: u8, shutdown: watch::Receiver<bool>) -> bool {
         let (sender, receiver) = oneshot::channel();
         {
             let mut pending = self.pending.lock().unwrap();
             if *shutdown.borrow() {
                 return false;
             }
-            pending.value = Some(value);
-            pending.waiters.push(sender);
+            if let Some((_, superseded)) = pending.replace((value, sender)) {
+                let _ = superseded.send(false);
+            }
         }
         self.notify.notify_one();
-        tokio::select! {
-            result = receiver => result.unwrap_or(false),
-            _ = shutdown.changed() => false,
-        }
+        // 停止服务时工作线程会答复或丢弃全部请求，接收端不会永久挂起。
+        receiver.await.unwrap_or(false)
     }
 }
 impl Hardware {
@@ -118,18 +120,13 @@ fn setter(control: Arc<Control>, mut shutdown: watch::Receiver<bool>) {
     tauri::async_runtime::spawn(async move {
         'worker: loop {
             tokio::select! { _ = shutdown.changed() => break, _ = control.notify.notified() => {} }
-            let mut waiters = Vec::new();
             loop {
-                let target = {
-                    let mut pending = control.pending.lock().unwrap();
-                    waiters.append(&mut pending.waiters);
-                    pending.value.take()
-                };
-                let Some(target) = target else {
+                let Some((target, waiter)) = control.pending.lock().unwrap().take() else {
                     break;
                 };
                 let guard = control.gate.lock().await;
                 if *shutdown.borrow() {
+                    // 尚未开始写入，丢弃 waiter 即向请求方返回 false。
                     break 'worker;
                 }
                 *control.cache.lock().unwrap() = None;
@@ -148,25 +145,15 @@ fn setter(control: Arc<Control>, mut shutdown: watch::Receiver<bool>) {
                 }
                 *control.cache.lock().unwrap() = None;
                 drop(guard);
+                let _ = waiter.send(success);
                 if *shutdown.borrow() {
                     break 'worker;
                 }
-                let pending = control.pending.lock().unwrap();
-                if pending.value.is_some() {
-                    drop(pending);
-                    continue;
-                }
-                drop(pending);
-                waiters.drain(..).for_each(|w| {
-                    let _ = w.send(success);
-                });
-                break;
             }
         }
-        let mut pending = control.pending.lock().unwrap();
-        pending.waiters.drain(..).for_each(|w| {
-            let _ = w.send(false);
-        });
+        if let Some((_, waiter)) = control.pending.lock().unwrap().take() {
+            let _ = waiter.send(false);
+        }
     });
 }
 

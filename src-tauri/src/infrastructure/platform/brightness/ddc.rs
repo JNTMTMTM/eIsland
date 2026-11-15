@@ -18,10 +18,14 @@
  * GNU General Public License for more details.
  */
 
-//! VESA DDC/CI brightness frames for the macOS I2C transports.
+//! 供 macOS I2C 传输层使用的 VESA DDC/CI 亮度帧。
 
+/// DDC/CI「读取 VCP 0x10（亮度）」应答帧的固定 11 字节缓冲区。
 pub(super) type Reply = [u8; 11];
 
+/// 生成亮度 VCP 帧
+/// @param value - `Some` 生成设置亮度帧（显示器原始刻度）；`None` 生成读取亮度帧
+/// @returns 含源地址与校验和的完整帧
 pub(super) fn packet(value: Option<u16>) -> Vec<u8> {
     let mut packet = if let Some(value) = value {
         let [high, low] = value.to_be_bytes();
@@ -37,6 +41,9 @@ fn checksum(seed: u8, bytes: &[u8]) -> u8 {
     bytes.iter().fold(seed, |sum, byte| sum ^ byte)
 }
 
+/// 解析亮度读取应答
+/// @param reply - 显示器返回的应答帧
+/// @returns `(当前值, 最大值)`；帧头、VCP 代码、校验和或取值范围不合法时为 `None`
 pub(super) fn range(reply: &Reply) -> Option<(u16, u16)> {
     if reply[..5] != [0x6e, 0x88, 0x02, 0, 0x10] || reply[10] != checksum(0x50, &reply[..10]) {
         return None;
