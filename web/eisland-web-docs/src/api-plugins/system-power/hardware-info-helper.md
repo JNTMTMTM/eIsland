@@ -11,11 +11,7 @@ icon: microchip
 
 ## Overview
 
-This plugin provides synchronous query functions for reading hardware specifications. Unlike the [Performance Monitor](./performance-monitor.md), which tracks real-time resource usage (CPU load, memory usage, temperatures), this plugin returns **static hardware details** such as model names, core counts, clock speeds, capacities, and serial numbers.
-
-:::tip
-Use this plugin when you need to display hardware specifications in a settings page or system info panel. For real-time monitoring data, use [Performance Monitor](./performance-monitor.md) instead.
-:::
+This plugin provides synchronous queries for hardware specifications such as model names, core counts, clock speeds, capacities, and serial numbers.
 
 ## Installation
 

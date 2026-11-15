@@ -30,7 +30,7 @@ import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 const pluginIntegrationTests = [
   'plugins/windows/**/test/{bluetooth,fullscreen-detector,hardware-info,power,screenshot,smtc-helper,volume-analyzer,wifi}.test.ts',
   'plugins/windows/**/test/{bluetooth,power,wifi}.monitor.test.ts',
-  'plugins/windows/**/test/{performance-monitor,windows-toast-listener}.polling.test.ts',
+  'plugins/windows/**/test/windows-toast-listener.polling.test.ts',
   'plugins/windows/**/test/windows-toast-listener.test.ts',
   'plugins/windows/**/test/smtc-helper.{play,pause,next,previous,timestamp}.test.ts',
 ];

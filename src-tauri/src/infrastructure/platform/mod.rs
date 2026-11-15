@@ -25,8 +25,11 @@ pub(crate) mod brightness;
 pub(crate) mod screenshot;
 #[cfg(windows)]
 pub(crate) mod smtc;
+pub(crate) mod telemetry;
 pub(crate) mod volume;
 pub(crate) mod window;
+#[cfg(windows)]
+mod wmi;
 
 /// 当前线程的 COM 多线程套间守卫，仅在本守卫完成初始化时于析构时反初始化。
 #[cfg(windows)]

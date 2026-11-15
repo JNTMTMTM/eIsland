@@ -23,9 +23,8 @@
  * @author 鸡哥
  */
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, realpathSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { prepareFfprobe } from './prepare-ffprobe.mjs';
@@ -48,22 +47,9 @@ if (process.platform === 'win32') {
     if (result.error) throw result.error;
     if (result.status !== 0) throw new Error(`Native plugin publish failed: ${name}`);
   };
-  // Keep intermediate files on the OS temp drive. The sensor reader ships its own runtime.
-  const temperatureStage = resolve(process.env.EISLAND_NATIVE_STAGING_DIR || tmpdir(), 'eisland-native-publish', rid, 'temperature');
-  const temperatureSource = resolve(temperatureStage, 'source');
-  mkdirSync(temperatureSource, { recursive: true });
-  const temperatureProject = resolve(root, 'plugins/windows/eisland-windows-performance-monitor/temperature-helper');
-  readdirSync(temperatureProject, { withFileTypes: true }).filter((file) => file.isFile() && /\.(cs|csproj)$/.test(file.name))
-    .forEach((file) => copyFileSync(resolve(temperatureProject, file.name), resolve(temperatureSource, file.name)));
-  const temperature = spawnSync('dotnet', ['publish', resolve(temperatureSource, 'eIslandTemperatureReader.csproj'),
-    '-c', 'Release', '-r', rid, '--self-contained', 'true', '-o', resolve(output, 'temperature'),
-    `-p:BaseIntermediateOutputPath=${resolve(temperatureStage, 'obj')}/`, `-p:BaseOutputPath=${resolve(temperatureStage, 'bin')}/`],
-  { cwd: root, stdio: 'inherit', windowsHide: true });
-  if (temperature.error) throw temperature.error;
-  if (temperature.status !== 0) throw new Error('Native temperature collector publish failed');
   // Tauri bundles the resource tree recursively, including files from older local builds.
   for (const legacyRid of ['win-x64', 'win-arm64', 'win-x86']) {
-    for (const component of ['volume', 'brightness']) {
+    for (const component of ['volume', 'brightness', 'temperature']) {
       const legacy = resolve(nativeResources, legacyRid, component);
       if (!existsSync(legacy)) continue;
       const expected = resolve(realpathSync(root), 'src-tauri/resources/native', legacyRid, component);

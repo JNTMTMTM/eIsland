@@ -21,7 +21,6 @@ npm run <script>
 | Plugin | Directory | Language | Build Tool | Tests | Smoke |
 |--------|-----------|----------|------------|-------|-------|
 | **Fullscreen Detector** | `eisland-windows-fullscreen-detector` | C | node-gyp | ✅ | ✅ |
-| **Performance Monitor** | `eisland-windows-performance-monitor` | C + C# | node-gyp + dotnet | ✅ | ✅ |
 | **Processes Attacker** | `eisland-windows-processes-attacker` | C | node-gyp | ❌ | ❌ |
 | **Toast Listener** | `eisland-windows-toast-listener` | C++ | node-gyp | ✅ | ✅ |
 | **SMTC Helper** | `eisland-windows-smtc-helper` | C# | dotnet | ✅ | ✅ |
@@ -49,9 +48,9 @@ Run from the **project root** to build or clean the Windows plugins at once. Bui
 
 | Command | Description |
 |---------|-------------|
-| `npm run test:plugins:build` | Prepare the 13 Windows plugins required by the integration test suite |
-| `npm run plugins:clean` | Clean the 13 configured Windows plugins in parallel |
-| `npm run plugins:build` | Prepare FFmpeg, SMTC, screenshot capture, and temperature resources for the Windows bundle |
+| `npm run test:plugins:build` | Prepare the Windows plugins used by the integration tests |
+| `npm run plugins:clean` | Clean configured Windows plugins in parallel |
+| `npm run plugins:build` | Prepare FFmpeg, SMTC, and screenshot capture resources for the Windows bundle |
 | `npm run native` | Compatibility alias for `plugins:build`; only builds native helpers |
 
 `plugins:build` downloads FFmpeg when missing. The individual `plugin:build:*` commands remain available for plugin development.
@@ -71,7 +70,6 @@ Each plugin also has a dedicated root-level command for targeted builds and clea
 | Toast Listener | `npm run plugin:build:toast` | `npm run plugin:clean:toast` |
 | WiFi Helper | `npm run plugin:build:wifi` | `npm run plugin:clean:wifi` |
 | Fullscreen Detector | `npm run plugin:build:fullscreen` | `npm run plugin:clean:fullscreen` |
-| Performance Monitor | `npm run plugin:build:perfmon` | `npm run plugin:clean:perfmon` |
 | Screenshot Helper | `npm run plugin:build:screenshot-helper` | `npm run plugin:clean:screenshot-helper` |
 
 :::info NativeAOT Build Requirement
@@ -108,37 +106,6 @@ export PATH="/c/Program Files (x86)/Microsoft Visual Studio/Installer:$PATH"
 |---------|--------|-------------|
 | `npm run smoke` | `node --experimental-strip-types test/fullscreen-detector.smoke.ts` | Full smoke — `getFullscreenWindows()`, `isAnyFullscreenWindow()` |
 | `npm run smoke:polling` | `node --experimental-strip-types test/fullscreen-detector.polling.smoke.ts` | Polling smoke — multiple reads over time |
-
----
-
-## Windows Performance Monitor
-
-**Directory:** `plugins/windows/eisland-windows-performance-monitor` &nbsp;|&nbsp; **Language:** C + C# &nbsp;|&nbsp; **Build:** `node-gyp rebuild && dotnet build`
-
-:::note
-This plugin has a dual build: the C addon is compiled by node-gyp, and the .NET temperature helper is compiled by `dotnet build`.
-:::
-
-### Build
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run build` | `node-gyp rebuild && dotnet build temperature-helper/...csproj -c Release` | Build C addon + .NET helper |
-| `npm run clean` | `node-gyp clean && dotnet clean temperature-helper/...csproj` | Remove all build artifacts |
-| `npm run rebuild` | `node-gyp clean && node-gyp rebuild && dotnet build temperature-helper/...csproj -c Release` | Full clean build |
-
-### Test
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm test` | `vitest run` | All tests — CPU, memory, temperature, hardware shape validation |
-
-### Smoke
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run smoke` | `node --experimental-strip-types test/performance-monitor.smoke.ts` | Full smoke — `getCpu()`, `getMemory()`, `getTemperature()`, `getHardwareList()` |
-| `npm run smoke:polling` | `node --experimental-strip-types test/performance-monitor.polling.smoke.ts` | Polling smoke — multiple reads over time |
 
 ---
 
@@ -431,7 +398,6 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | Plugin | Command |
 |--------|---------|
 | Fullscreen Detector | `cd plugins/windows/eisland-windows-fullscreen-detector && npm run build` |
-| Performance Monitor | `cd plugins/windows/eisland-windows-performance-monitor && npm run build` |
 | Processes Attacker | `cd plugins/windows/eisland-windows-processes-attacker && npm run build` |
 | Toast Listener | `cd plugins/windows/eisland-windows-toast-listener && npm run build` |
 | SMTC Helper (exe) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build` |
@@ -454,7 +420,6 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | Plugin | Commands |
 |--------|----------|
 | Fullscreen Detector | `npm test` · `npm run test:polling` |
-| Performance Monitor | `npm test` |
 | Processes Attacker | _(no tests)_ |
 | Toast Listener | `npm test` · `npm run test:polling` |
 | SMTC Helper | `npm test` · `npm run test:play` · `npm run test:pause` · `npm run test:next` · `npm run test:previous` · `npm run test:timestamp` · `npm run test:ctypes` |
@@ -468,7 +433,6 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | Plugin | Commands |
 |--------|----------|
 | Fullscreen Detector | `npm run smoke` · `npm run smoke:polling` |
-| Performance Monitor | `npm run smoke` · `npm run smoke:polling` |
 | Processes Attacker | _(no smoke)_ |
 | Toast Listener | `npm run smoke` · `npm run smoke:polling` · `npm run smoke:event` · `npm run smoke:suppression` |
 | SMTC Helper | `npm run smoke` · `npm run smoke:play` · `npm run smoke:pause` · `npm run smoke:next` · `npm run smoke:previous` · `npm run smoke:status` · `npm run smoke:seek` · `npm run smoke:monitor` · `npm run smoke:timestamp` |

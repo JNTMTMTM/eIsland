@@ -30,7 +30,7 @@ All properties in the returned objects may be `null` if the corresponding WMI pr
 Use this function to display CPU specifications in a system information panel, hardware inventory, or diagnostic tool.
 
 :::note
-This function returns static hardware specifications (model name, core count, max clock speed), not real-time metrics like current CPU usage. For real-time CPU monitoring, use [`getCpu()`](../performance-monitor/get-cpu.md) from the Performance Monitor plugin.
+This function returns static hardware specifications such as model name, core count, and maximum clock speed. The desktop Performance Monitor displays current CPU usage.
 :::
 
 :::tip

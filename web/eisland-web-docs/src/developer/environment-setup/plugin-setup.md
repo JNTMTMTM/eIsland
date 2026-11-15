@@ -16,7 +16,6 @@ eIsland uses ten native plugins to access Windows features that web technologies
 | Plugin | Language | Windows Libraries | Purpose |
 |--------|----------|-------------------|---------|
 | **eisland-windows-fullscreen-detector** | C | user32, dwmapi | Detects fullscreen applications |
-| **eisland-windows-performance-monitor** | C + .NET | — | CPU, memory, and temperature monitoring |
 | **eisland-windows-processes-attacker** | C | kernel32 | Process management |
 | **eisland-windows-toast-listener** | C++ | runtimeobject | Windows notification listener |
 | **eisland-windows-smtc-helper** | C# (.NET) | — | System Media Transport Controls (play, pause, next, previous, status) |
@@ -36,7 +35,7 @@ All plugins are compiled using **node-gyp** or **dotnet publish**, which require
 | **Node.js** | 24.22.1 | JavaScript runtime for node-gyp |
 | **npm** | >= 10.x | Package manager |
 | **Visual Studio Build Tools 2022** | Latest | C/C++ compiler toolchain |
-| **.NET 10 SDK** | >= 10.0 | Build .NET Native AOT plugins and temperature-helper |
+| **.NET 10 SDK** | >= 10.0 | Build .NET Native AOT plugins |
 | **Python** | >= 3.10 | SMTC ctypes DLL testing |
 | **Git** | Latest | Version control |
 
@@ -155,33 +154,15 @@ vcpkg automatically downloads the source, compiles it with MSVC, and installs he
 
 #### .NET Components
 
-The `eisland-windows-performance-monitor` plugin includes a .NET helper application (`eIslandTemperatureReader`) that reads hardware temperature sensors using LibreHardwareMonitorLib. The `eisland-windows-smtc-helper` plugin is a pure .NET console application that controls Windows media playback via SMTC APIs.
+The `eisland-windows-smtc-helper` plugin is a pure .NET console application that controls Windows media playback via SMTC APIs.
 
 | Component | ID | Description |
 |-----------|-----|-------------|
-| **.NET 10 SDK** | `Microsoft.Component.NetFX` | Required for building the `eIslandTemperatureReader` console application (`net10.0` target) |
+| **.NET 10 SDK** | `Microsoft.Component.NetFX` | Required for building .NET plugins that target `net10.0` |
 | **.NET Framework 4.8 development tools** | `Microsoft.VisualStudio.Component.ManagedDesktop` | .NET Framework targeting support — required for some NuGet packages and tooling |
 | **ClickOnce Build Tools** | `Microsoft.VisualStudio.Component.ClickOnce.BuildTools` | Deployment packaging tools — used for creating self-contained .NET deployments |
 
 :::details .NET Component Architecture
-The temperature helper has a specific build chain:
-
-```
-eisland-windows-performance-monitor/
-├── binding.gyp              # C plugin → compiled by node-gyp (MSVC)
-├── src/
-│   ├── performance_monitor.c
-│   └── performance_core.c
-└── temperature-helper/
-    └── eIslandTemperatureReader.csproj   # .NET console app
-        └── TargetFramework: net10.0
-        └── NuGet: LibreHardwareMonitorLib
-```
-
-1. **node-gyp** compiles the C source files using MSVC v143
-2. **dotnet build** compiles the .NET console application using .NET 10 SDK
-3. At runtime, the C plugin calls the .NET executable to read temperature data
-
 The SMTC helper is a pure .NET application with two build targets:
 
 ```
@@ -267,7 +248,7 @@ Use this checklist in the Visual Studio Build Tools 2022 installer (**Individual
 
 ## .NET 10 SDK
 
-The `temperature-helper` and `smtc-helper` components target .NET 10.0. Install the .NET 10 SDK separately if not included with the Build Tools installer.
+The SMTC helper targets .NET 10.0. Install the .NET 10 SDK separately if not included with the Build Tools installer.
 
 ### Installation
 
@@ -703,11 +684,7 @@ winget install Microsoft.DotNet.SDK.10
 # Verify installation
 dotnet --list-sdks  # Should show 10.x.x
 
-# Rebuild the temperature helper
-cd plugins/windows/eisland-windows-performance-monitor/temperature-helper
-dotnet build
-
-# Or rebuild the SMTC helper
+# Rebuild the SMTC helper
 cd plugins/windows/eisland-windows-smtc-helper
 npm run build
 ```

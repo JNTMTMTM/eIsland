@@ -119,7 +119,6 @@ Native modules (C/C++ addons) are loaded in the Main Process with sandbox disabl
 |--------|---------|----------|
 | `@eisland/windows-processes-attacker` | Terminate processes by name/PID | Windows only |
 | `@eisland/windows-fullscreen-detector` | Detect fullscreen windows | Windows only |
-| `@eisland/windows-performance-monitor` | CPU, memory, temperature snapshots | Windows only |
 
 ```ts
 // Loading native modules in Main Process

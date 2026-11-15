@@ -129,7 +129,6 @@ eIsland uses four custom-built plugins that communicate directly with the Window
 | Plugin | What It Does |
 |--------|--------------|
 | **Windows Fullscreen Detector** | Detects when a fullscreen application (like a game or video) is running, so the island can automatically hide itself and avoid blocking your view. |
-| **Windows Performance Monitor** | Reads your computer's CPU usage, memory consumption, and temperature sensors with minimal overhead, providing data for the system monitor widget. |
 | **Windows Toast Listener** | Monitors Windows notification center for new toast notifications, allowing the island to display notification previews. |
 | **Windows Processes Attacker** | Manages Windows processes — used to close specific applications when needed (e.g., during cleanup or automation). |
 

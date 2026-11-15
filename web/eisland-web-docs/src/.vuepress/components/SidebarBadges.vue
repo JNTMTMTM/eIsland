@@ -48,14 +48,6 @@ const BADGE_MAP: Record<string, string> = {
   EnergySaverStatus: 'enum',
   PowerInfo: 'interface',
   PowerMonitor: 'monitor',
-  // Performance Monitor
-  TemperatureCategory: 'enum',
-  CpuSnapshot: 'interface',
-  MemorySnapshot: 'interface',
-  TemperatureReading: 'interface',
-  TemperatureSnapshot: 'interface',
-  HardwareDevice: 'interface',
-  HardwareListSnapshot: 'interface',
   // Processes Attacker
   ProcessCloseResult: 'interface',
   ProcessFailure: 'interface',

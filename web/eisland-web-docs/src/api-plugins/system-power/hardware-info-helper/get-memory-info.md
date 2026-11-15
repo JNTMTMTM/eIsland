@@ -30,7 +30,7 @@ Empty DIMM slots are not reported. A system with 4 slots and 2 sticks returns an
 Use this function to display installed RAM details, check memory configuration, or verify that all slots are populated.
 
 :::note
-This returns physical memory module data, not runtime memory usage. For current memory utilization, use [`getMemory()`](../performance-monitor/get-memory.md) from the Performance Monitor plugin.
+This returns physical memory module data. The desktop Performance Monitor displays current memory usage.
 :::
 
 :::tip

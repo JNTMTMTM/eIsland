@@ -254,8 +254,6 @@ test('native services use real streams, resume data and concurrent local assets'
       t.diagnostic(`Native brightness level: ${level}`);
     });
     await t.test('native performance sampling warms real sensors without blocking IPC', async () => {
-      const helper = join(dirname(binary), 'native', 'win-x64', 'temperature', 'eIslandTemperatureReader.exe');
-      assert(existsSync(helper), 'sensor collector must ship in its own native resource directory');
       const initial = await invoke('system:performance-snapshot:get');
       assert(initial.cpu && initial.memory);
       // 最大频率和温度在虚拟机上可以永久不可用，采样完成状态必须独立于读数。
@@ -271,6 +269,8 @@ test('native services use real streams, resume data and concurrent local assets'
       t.diagnostic(`Completed native performance sample: ${JSON.stringify(sampling)}`);
       assert.equal(missing, null);
       assert(Array.isArray(sampling.metrics.maxClockMhz), 'collector must publish its completed result');
+      assert(Array.isArray(sampling.metrics.temperature.readings));
+      assert(sampling.metrics.temperature.readings.every(({ temperatureCelsius }) => temperatureCelsius > 0 && temperatureCelsius <= 200));
       const warm = await invoke('system:performance-snapshot:get', {}, false);
       assert(warm.cpu.speedMaxGhz === null || (Number.isFinite(warm.cpu.speedMaxGhz) && warm.cpu.speedMaxGhz > 0));
       assert(warm.cpu.loadPercent >= 0 && warm.cpu.loadPercent <= 100);
