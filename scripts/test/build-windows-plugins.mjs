@@ -35,7 +35,6 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const framework = 'net10.0-windows10.0.19041.0';
 const builds = [
   ['bluetooth-helper', `src/bin/Release/${framework}/win-x64/native/eIslandBluetoothHelper.dll`],
-  ['brightness-helper', 'src/bin/Release/net10.0/eIslandBrightnessReader.exe'],
   ['fullscreen-detector', 'build/Release/windows_fullscreen_detector.node'],
   ['hardware-info-helper', 'src/bin/Release/net10.0/eIslandHardwareInfoReader.exe'],
   ['performance-monitor', 'build/Release/windows_performance_monitor.node'],

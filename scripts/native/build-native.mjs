@@ -48,7 +48,6 @@ if (process.platform === 'win32') {
     if (result.error) throw result.error;
     if (result.status !== 0) throw new Error(`Native plugin publish failed: ${name}`);
   };
-  publish('brightness-helper', 'eIslandBrightnessReader.csproj', resolve(output, 'brightness'));
   // Keep intermediate files on the OS temp drive. The sensor reader ships its own runtime.
   const temperatureStage = resolve(process.env.EISLAND_NATIVE_STAGING_DIR || tmpdir(), 'eisland-native-publish', rid, 'temperature');
   const temperatureSource = resolve(temperatureStage, 'source');
@@ -64,13 +63,15 @@ if (process.platform === 'win32') {
   if (temperature.status !== 0) throw new Error('Native temperature collector publish failed');
   // Tauri bundles the resource tree recursively, including files from older local builds.
   for (const legacyRid of ['win-x64', 'win-arm64', 'win-x86']) {
-    const legacy = resolve(nativeResources, legacyRid, 'volume');
-    if (!existsSync(legacy)) continue;
-    const expected = resolve(realpathSync(root), 'src-tauri/resources/native', legacyRid, 'volume');
-    if (realpathSync(legacy).toLowerCase() !== expected.toLowerCase()) {
-      throw new Error(`Refusing to remove redirected native resource: ${legacy}`);
+    for (const component of ['volume', 'brightness']) {
+      const legacy = resolve(nativeResources, legacyRid, component);
+      if (!existsSync(legacy)) continue;
+      const expected = resolve(realpathSync(root), 'src-tauri/resources/native', legacyRid, component);
+      if (realpathSync(legacy).toLowerCase() !== expected.toLowerCase()) {
+        throw new Error(`Refusing to remove redirected native resource: ${legacy}`);
+      }
+      rmSync(legacy, { recursive: true });
     }
-    rmSync(legacy, { recursive: true });
   }
   const smtc = resolve(output, 'smtc');
   const staging = resolve(root, 'src-tauri/target/native-publish', rid, 'smtc');

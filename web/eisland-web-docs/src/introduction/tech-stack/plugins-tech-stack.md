@@ -6,12 +6,14 @@ icon: toolbox
 # Plugins Tech Stack
 
 :::warning
-This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration. The independent [macOS Brightness Helper](../../api-plugins/display-graphics/macos-brightness-helper.md) uses the same build toolchain with DisplayServices, IOKit, and external DDC/CI backends.
+This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration.
+
+The desktop app handles hardware brightness in Rust. Windows uses WMI and DXVA2. macOS uses DisplayServices, IOKit, and DDC/CI where the display supports it.
 :::
 
 ## Overview
 
-The plugin system includes Windows native helpers and independent macOS media and brightness helpers:
+The plugin system includes Windows native helpers and an independent macOS media helper.
 
 | Plugin | Package | Purpose |
 |--------|---------|---------|
@@ -23,8 +25,6 @@ The plugin system includes Windows native helpers and independent macOS media an
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
-| **macOS Brightness Helper** | `eisland-macos-brightness-helper` | Native hardware brightness, DDC/CI fallback, and 500 ms polling |
-| **Brightness Helper** | `@eisland/windows-brightness-helper` | Screen brightness query, control, and real-time WMI event monitoring |
 | **Screenshot Helper** | `@eisland/windows-screenshot-helper` | Primary display screen capture as PNG via Win32 GDI APIs |
 | **Toast Listener** | `@eisland/windows-toast-listener` | Windows toast notification listening and suppression |
 
@@ -35,9 +35,7 @@ The plugin system includes Windows native helpers and independent macOS media an
 | **C + N-API** | Processes Attacker, Fullscreen Detector | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **C + .NET helper (spawnSync)** | Performance Monitor (temperature) | `node-gyp` + `dotnet build` | C addon + spawned .NET EXE |
 | **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
-| **C# .NET EXE (spawnSync/spawn)** | Brightness Helper | `dotnet build` | Spawned .NET console EXE |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
-| **Swift + C / Node-API** | macOS Brightness Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib`; DisplayServices / IOKit / DDC |
 | **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
 **Common Characteristics:**
@@ -1427,203 +1425,6 @@ npm run build:all      # Both
 You **must** call `wf_free_string()` on any pointer returned by `wf_get_*` functions to avoid memory leaks. The koffi FFI layer in Node.js handles this automatically.
 :::
 
-## Plugin: Windows Brightness Helper
-
-### Package
-
-```
-@eisland/windows-brightness-helper
-```
-
-### Purpose
-
-Provides screen brightness query, control, and real-time monitoring via WMI. Used by eIsland to display and adjust the user's screen brightness, and to react to brightness changes made through hardware keys or system settings.
-
-:::info
-Unlike the Bluetooth, Power, and WiFi Helpers which use **koffi FFI + NativeAOT DLL**, the Brightness Helper uses a **.NET console EXE** spawned via `spawnSync` (queries) and `spawn` (monitoring). This is because `System.Management` (WMI) is incompatible with NativeAOT — the COM interop layer breaks during AOT compilation.
-:::
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer (index.js)                                │
-│  Queries: getBrightness() / setBrightness() via spawnSync   │
-│  Monitor: BrightnessMonitor (EventEmitter) via spawn        │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ spawnSync / spawn (child process)
-┌──────────────────────────▼──────────────────────────────────┐
-│  eIslandBrightnessReader.exe (.NET 10 Console App)          │
-│  System.Management + WMI (root\wmi)                         │
-├─────────────────────────────────────────────────────────────┤
-│  Program.cs                                                 │
-│  CLI entry point: get / set <n> / monitor                   │
-│  BrightnessHelper (static class)                            │
-│  ├─ GetBrightness()    → WmiMonitorBrightness               │
-│  ├─ SetBrightness(n)   → WmiMonitorBrightnessMethods        │
-│  └─ Monitor()          → WmiMonitorBrightnessEvent          │
-└─────────────────────────────────────────────────────────────┘
-```
-
-:::tip
-The `monitor` command uses `ManagementEventWatcher` to subscribe to `WmiMonitorBrightnessEvent` — a true WMI event subscription. The .NET process blocks until an event fires, then writes a JSON line to stdout. The Node.js `BrightnessMonitor` reads these lines via `spawn` stdout `data` events. This is **event-driven, not polling**.
-:::
-
-### Exported Functions
-
-#### Queries
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `getBrightness` | `() → BrightnessInfo \| null` | Current screen brightness snapshot |
-| `setBrightness` | `(brightness: number) → boolean` | Set brightness (0–100), clamped. Returns `true` on success |
-
-#### BrightnessMonitor
-
-| Export | Type | Description |
-|--------|------|-------------|
-| `BrightnessMonitor` | `class extends EventEmitter` | Real-time brightness monitor via WMI events |
-
-**Events:**
-
-| Event | Callback | Description |
-|-------|----------|-------------|
-| `brightness-changed` | `(brightness: number, timestamp: number) => void` | Brightness changed (hardware key, system setting, or API) |
-| `error` | `(err: Error) => void` | Monitor process error |
-
-### Result Structure
-
-```ts
-interface BrightnessInfo {
-  currentBrightness: number;   // 0–100, current brightness percentage
-  levels: number[] | null;     // Supported brightness levels (0–100), typically 0–100 in steps of 1
-  instanceName: string | null; // WMI monitor instance name (e.g., "DISPLAY\BOE381E\5&...")
-}
-```
-
-:::important
-The `levels` array contains all supported brightness values. Most laptop displays support 101 levels (0–100). External monitors connected via DDC/CI may support fewer levels or none at all. If WMI brightness data is unavailable (e.g., desktop with no backlight), `getBrightness()` returns `null`.
-:::
-
-### CLI Modes
-
-The .NET helper is a CLI tool invoked with a single argument:
-
-| Invocation | Mode | Output |
-|------------|------|--------|
-| `eIslandBrightnessReader.exe get` | Query (default) | `BrightnessInfo` JSON |
-| `eIslandBrightnessReader.exe set <0-100>` | Set brightness | `{ success: true, brightness: N }` JSON |
-| `eIslandBrightnessReader.exe monitor` | Event monitor | Stream of `{ brightness, timestamp }` JSON lines |
-
-**Monitor output format** (one line per brightness change):
-
-```json
-{"brightness":75,"timestamp":1719700000000}
-```
-
-The monitor process stays alive until stdin is closed or a termination signal is received. The Node.js layer kills the process on `monitor.stop()`.
-
-### Key Implementation Details
-
-**WMI Queries:**
-
-```csharp
-// Get current brightness
-using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT * FROM WmiMonitorBrightness");
-foreach (ManagementObject obj in searcher.Get())
-{
-    var currentBrightness = (byte)obj["CurrentBrightness"];
-    var levels = obj["Level"] as byte[];
-    var instanceName = obj["InstanceName"] as string;
-}
-
-// Set brightness
-using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT * FROM WmiMonitorBrightnessMethods");
-foreach (ManagementObject obj in searcher.Get())
-{
-    var inParams = obj.GetMethodParameters("WmiSetBrightness");
-    inParams["Brightness"] = brightness;
-    inParams["Timeout"] = (uint)0;
-    obj.InvokeMethod("WmiSetBrightness", inParams, null);
-}
-```
-
-**WMI Event Subscription:**
-
-```csharp
-using var watcher = new ManagementEventWatcher(@"root\wmi", "SELECT * FROM WmiMonitorBrightnessEvent");
-watcher.EventArrived += (sender, e) =>
-{
-    var brightness = (byte)e.NewEvent.Properties["Brightness"].Value;
-    Console.WriteLine(JsonSerializer.Serialize(new { brightness, timestamp }));
-};
-watcher.Start();
-```
-
-:::warning
-`System.Management` uses COM interop internally. The `Timeout` parameter in `WmiSetBrightness` must be cast to `uint`, not `int`, or the WMI call fails with a type mismatch error.
-:::
-
-**Why Not NativeAOT?**
-
-Both `System.Management` and `Microsoft.Management.Infrastructure` produce fatal COM interop errors under NativeAOT:
-
-- `System.Management`: `WbemContext..ctor()` always throws — the Wbem COM classes cannot be instantiated
-- `Microsoft.Management.Infrastructure`: `DeserializerCallbacks` delegate marshalling data is missing
-
-The .NET console EXE approach avoids this entirely — `System.Management` works perfectly under the standard .NET runtime.
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `src/eIslandBrightnessReader.csproj` | .NET 10 console app project file |
-| `src/Program.cs` | CLI entry point (`get`/`set`/`monitor`) + `BrightnessHelper` static class |
-| `index.js` | Public API — `getBrightness()`, `setBrightness()`, `BrightnessMonitor` class |
-| `index.d.ts` | TypeScript type declarations |
-
-### Build
-
-```bash
-cd plugins/windows/eisland-windows-brightness-helper
-npm run build    # dotnet build src/eIslandBrightnessReader.csproj -c Release
-```
-
-Output: `src/bin/Release/net10.0/eIslandBrightnessReader.exe`
-
-### Dependencies
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Management" Version="10.0.0-preview.3.25171.5" />
-  </ItemGroup>
-</Project>
-```
-
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| **.NET** | 10.0 | Runtime (required on client — this is NOT a self-contained build; WMI is incompatible with NativeAOT) |
-| **System.Management** | 10.0.0-preview.3 | WMI access (`ManagementObjectSearcher`, `ManagementEventWatcher`) |
-
-### Performance
-
-| Metric | Value |
-|--------|-------|
-| Query latency | ~100–300ms (process spawn + WMI query) |
-| Set latency | ~100–300ms (process spawn + WMI method invocation) |
-| Monitor startup | ~100ms (process spawn + WMI event subscription) |
-| Event detection | Event-driven (WMI `WmiMonitorBrightnessEvent`, zero polling) |
-| Memory | Process exits after each query; monitor process ~15MB resident |
-
-:::note
-Query and set operations spawn a new .NET process each time, incurring ~100ms startup overhead. For frequent polling, consider using the `BrightnessMonitor` event-driven approach instead of repeated `getBrightness()` calls.
-:::
-
 ## Plugin: Windows Toast Listener
 
 ### Package
@@ -1866,7 +1667,6 @@ expect(foreground === null || typeof foreground === 'object').toBe(true);
 | **Bluetooth Helper** | `bluetooth.test.ts`, `bluetooth.monitor.test.ts` | Shape validation, export verification, monitor state management |
 | **Power Helper** | `power.test.ts`, `power.monitor.test.ts` | Shape validation, consistency, monitor tests |
 | **WiFi Helper** | `wifi.test.ts`, `wifi.monitor.test.ts` | Shape validation, consistency, monitor tests |
-| **Brightness Helper** | `brightness.test.ts`, `brightness.monitor.test.ts` | Shape validation, export verification, boundary value tests, monitor state management |
 | **Screenshot Helper** | `screenshot.test.ts` | Shape validation, export verification, PNG header validation |
 | **Toast Listener** | `windows-toast-listener.test.ts`, `windows-toast-listener.polling.test.ts` | Shape validation, export verification, polling tests |
 
@@ -1914,8 +1714,6 @@ Plugins power several AI agent tools:
 | `monitor.memory` | Performance Monitor | `getMemory()` |
 | `monitor.temperature` | Performance Monitor | `getTemperature()` |
 | `monitor.gpu` | Performance Monitor | `getHardwareList()` |
-| `brightness.get` | Brightness Helper | `getBrightness()` |
-| `brightness.set` | Brightness Helper | `setBrightness(level)` |
 
 ## Performance Characteristics
 
@@ -1935,7 +1733,6 @@ Performance characteristics and optimization recommendations for each plugin:
 | **Bluetooth Helper** | ~10–50ms | WinRT `FindAllAsync` + `FromIdAsync`; event-driven monitoring |
 | **Power Helper** | ~1ms | In-memory `PowerManager` property reads; event-driven monitoring |
 | **WiFi Helper** | ~1ms | In-memory `NetworkInformation` profile reads; event-driven monitoring |
-| **Brightness Helper** | ~100–300ms | Process spawn + WMI query; event-driven monitoring |
 | **Toast Listener** | ~1–3ms | WinRT COM interop; event-driven monitoring |
 
 **Optimization Notes:**
@@ -1946,7 +1743,6 @@ Performance characteristics and optimization recommendations for each plugin:
 - SMTC commands are direct DLL calls (~1-5ms via koffi FFI); monitoring is event-driven (zero polling)
 - Power and WiFi helpers use in-memory WinRT property reads (~1ms) — suitable for frequent polling
 - Application icon queries are fast (~5-20ms) but should be cached to avoid repeated Shell32 calls
-- Brightness queries spawn a .NET process each time — use the `BrightnessMonitor` event-driven approach for frequent updates
 
 :::warning
 Temperature queries involve .NET process startup and WMI queries, resulting in high latency (500–2000ms). Recommended polling interval is 5–10 seconds to avoid frequent calls impacting performance.

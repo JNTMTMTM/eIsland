@@ -240,6 +240,19 @@ test('native services use real streams, resume data and concurrent local assets'
         assert.equal(await invoke('system:volume:get'), level);
       }
     });
+    await t.test('native brightness reads and writes through the existing API without an extension', async () => {
+      const extensions = await invoke('extension:list');
+      assert(!extensions.some(({ id }) => id === 'brightness-helper'));
+      const level = await invoke('system:brightness:get');
+      assert(level === null || (Number.isInteger(level) && level >= 0 && level <= 100));
+      assert.equal(await invoke('system:brightness:set', 'invalid'), false);
+      if (level !== null) {
+        const writes = await Promise.all([level, level, level].map((value) => invoke('system:brightness:set', value)));
+        assert.deepEqual(writes, [true, true, true]);
+        assert.equal(await invoke('system:brightness:get'), level);
+      }
+      t.diagnostic(`Native brightness level: ${level}`);
+    });
     await t.test('native performance sampling warms real sensors without blocking IPC', async () => {
       const helper = join(dirname(binary), 'native', 'win-x64', 'temperature', 'eIslandTemperatureReader.exe');
       assert(existsSync(helper), 'sensor collector must ship in its own native resource directory');

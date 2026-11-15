@@ -18,19 +18,29 @@
  * GNU General Public License for more details.
  */
 
-/**
- * @file vitest.config.mts
- * @description Vitest 测试配置
- * @author 鸡哥
- */
+//! Brightness control runs in a blocking worker and accesses system display APIs.
 
-import { defineConfig } from 'vitest/config';
+#[cfg(any(target_os = "macos", test))]
+mod ddc;
+#[cfg(target_os = "macos")]
+mod macos;
+#[cfg(windows)]
+mod windows;
 
-export default defineConfig({
-  test: {
-    environment: 'node',
-    include: ['test/**/*.test.ts'],
-    clearMocks: true,
-    restoreMocks: true,
-  },
-});
+#[cfg(windows)]
+use self::windows as native;
+#[cfg(target_os = "macos")]
+use macos as native;
+
+#[cfg(any(windows, target_os = "macos"))]
+pub(crate) use native::{get, set};
+
+#[cfg(not(any(windows, target_os = "macos")))]
+pub(crate) fn get() -> Option<u8> {
+    None
+}
+
+#[cfg(not(any(windows, target_os = "macos")))]
+pub(crate) fn set(_percent: u8) -> bool {
+    false
+}

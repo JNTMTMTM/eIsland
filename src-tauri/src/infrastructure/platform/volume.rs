@@ -66,39 +66,22 @@ fn percent(scalar: f32) -> Option<u8> {
 
 #[cfg(windows)]
 mod native {
+    use crate::infrastructure::platform::ComApartment;
     use windows::{
         core::GUID,
         Win32::{
-            Foundation::RPC_E_CHANGED_MODE,
             Media::Audio::{
                 eMultimedia, eRender, Endpoints::IAudioEndpointVolume, IMMDeviceEnumerator,
                 MMDeviceEnumerator,
             },
-            System::Com::{
-                CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED,
-            },
+            System::Com::{CoCreateInstance, CLSCTX_ALL},
         },
     };
-
-    struct Apartment(bool);
-
-    impl Drop for Apartment {
-        fn drop(&mut self) {
-            if self.0 {
-                unsafe { CoUninitialize() };
-            }
-        }
-    }
 
     fn output<T>(
         action: impl FnOnce(IAudioEndpointVolume) -> windows::core::Result<T>,
     ) -> Option<T> {
-        // The blocking worker may already have a caller-owned COM apartment.
-        let status = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) };
-        let _apartment = Apartment(status.is_ok());
-        if status.is_err() && status != RPC_E_CHANGED_MODE {
-            return None;
-        }
+        let _apartment = ComApartment::enter()?;
         unsafe {
             let devices: IMMDeviceEnumerator =
                 CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).ok()?;

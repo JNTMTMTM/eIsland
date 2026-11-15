@@ -79,22 +79,6 @@ export default sidebar({
   ],
   "/api-plugins/": [
     {
-      text: "Windows Brightness Helper",
-      icon: "sun",
-      collapsible: true,
-      children: [
-        "display-graphics/brightness-helper/brightness-info.md",
-        "display-graphics/brightness-helper/get-brightness.md",
-        "display-graphics/brightness-helper/set-brightness.md",
-        "display-graphics/brightness-helper/brightness-monitor.md",
-      ],
-    },
-    {
-      text: "macOS Brightness Helper",
-      icon: "sun",
-      link: "display-graphics/macos-brightness-helper.md",
-    },
-    {
       text: "Windows Fullscreen Detector",
       icon: "maximize",
       collapsible: true,

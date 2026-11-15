@@ -201,27 +201,6 @@ async fn read_limit(reader: impl tokio::io::AsyncRead + Unpin, limit: usize) -> 
     }
     Ok(bytes)
 }
-/// Read one bounded line from a persistent helper without allocating an unbounded line.
-pub async fn read_line(
-    reader: &mut (impl tokio::io::AsyncBufRead + Unpin),
-    limit: usize,
-) -> Result<Option<String>> {
-    use tokio::io::{AsyncBufReadExt, AsyncReadExt};
-    let mut bytes = Vec::new();
-    let count = (&mut *reader)
-        .take(limit as u64 + 1)
-        .read_until(b'\n', &mut bytes)
-        .await
-        .map_err(|e| e.to_string())?;
-    if count > limit {
-        return Err("Process line output limit exceeded".into());
-    }
-    Ok(if count == 0 {
-        None
-    } else {
-        Some(decode(&bytes))
-    })
-}
 /// Run a finite command with separate bounded streams, timeout and cancellation. Dropping
 /// the future also kills the child; process errors always reap it before returning.
 type StderrListener = Box<dyn FnMut(&str) + Send>;
@@ -421,23 +400,6 @@ mod execution_tests {
                     .await
                     .is_err()
             );
-        });
-    }
-    #[test]
-    fn helper_lines_are_bounded_before_allocation_and_end_at_eof() {
-        tauri::async_runtime::block_on(async {
-            let mut reader = tokio::io::BufReader::new(&b"abc\nxyz"[..]);
-            assert_eq!(
-                read_line(&mut reader, 4).await.unwrap().as_deref(),
-                Some("abc\n")
-            );
-            assert_eq!(
-                read_line(&mut reader, 4).await.unwrap().as_deref(),
-                Some("xyz")
-            );
-            assert!(read_line(&mut reader, 4).await.unwrap().is_none());
-            let mut reader = tokio::io::BufReader::new(&b"oversize"[..]);
-            assert!(read_line(&mut reader, 4).await.is_err());
         });
     }
     #[cfg(windows)]

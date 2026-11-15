@@ -25,10 +25,8 @@ npm run <script>
 | **Processes Attacker** | `eisland-windows-processes-attacker` | C | node-gyp | ❌ | ❌ |
 | **Toast Listener** | `eisland-windows-toast-listener` | C++ | node-gyp | ✅ | ✅ |
 | **SMTC Helper** | `eisland-windows-smtc-helper` | C# | dotnet | ✅ | ✅ |
-| **macOS Brightness Helper** | `plugins/macos/eisland-macos-brightness-helper` | Swift + C / Node-API | Xcode tools via Node build script | ✅ | ✅ |
 | **macOS Media Helper** | `plugins/macos/eisland-macos-media-helper` | Swift + C / Node-API | Xcode tools via Node build script | ✅ | ✅ |
 | **Bluetooth Helper** | `eisland-windows-bluetooth-helper` | C# | dotnet | ✅ | ✅ |
-| **Brightness Helper** | `eisland-windows-brightness-helper` | C# | dotnet | ✅ | ✅ |
 | **Screenshot Helper** | `eisland-windows-screenshot-helper` | C# | dotnet | ✅ | ✅ |
 
 ## Common Commands
@@ -53,7 +51,7 @@ Run from the **project root** to build or clean the Windows plugins at once. Bui
 |---------|-------------|
 | `npm run test:plugins:build` | Prepare the 13 Windows plugins required by the integration test suite |
 | `npm run plugins:clean` | Clean the 13 configured Windows plugins in parallel |
-| `npm run plugins:build` | Publish the volume, brightness, SMTC and temperature components and prepare FFmpeg to `src-tauri/resources/native/<RID>` |
+| `npm run plugins:build` | Prepare FFmpeg, SMTC, screenshot capture, and temperature resources for the Windows bundle |
 | `npm run native` | Compatibility alias for `plugins:build`; only builds native helpers |
 
 `plugins:build` downloads FFmpeg when missing. The individual `plugin:build:*` commands remain available for plugin development.
@@ -67,7 +65,6 @@ Each plugin also has a dedicated root-level command for targeted builds and clea
 | Plugin | Build | Clean |
 |--------|-------|-------|
 | Bluetooth Helper | `npm run plugin:build:bluetooth` | `npm run plugin:clean:bluetooth` |
-| Brightness Helper | `npm run plugin:build:brightness` | `npm run plugin:clean:brightness` |
 | Power Helper | `npm run plugin:build:power` | `npm run plugin:clean:power` |
 | Processes Attacker | `npm run plugin:build:processes` | `npm run plugin:clean:processes` |
 | SMTC Helper | `npm run plugin:build:smtc` | `npm run plugin:clean:smtc` |
@@ -245,55 +242,6 @@ This is a pure .NET plugin with two build targets: a console exe (for Node.js) a
 
 ---
 
-## macOS Brightness Helper
-
-**Directory:** `plugins/macos/eisland-macos-brightness-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-brightness-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
-
-:::info
-See the [API reference](../../api-plugins/display-graphics/macos-brightness-helper.md) for target selection, polling, DDC limits, and native packaging. Development requires Xcode Command Line Tools and Node.js 24.22.1 for the locked Vitest toolchain.
-:::
-
-### Build / Usage
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm ci` | npm dependency installation | Install locked development dependencies |
-| `npm run build` | `node scripts/build.mjs` | Build host architecture and native logic tests |
-| `npm run build:all` | `node scripts/build.mjs --all` | Build arm64 and x64 prebuilds |
-| `npm pack` | Runs `prepack` | Build both architectures and create the npm archive |
-
-### Test
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm test` | Vitest after native test compilation on macOS | Run 44 checks on macOS; 25 JS, loader, and build-guard checks on other hosts |
-| `npm run test:coverage` | Vitest with V8 coverage after native test compilation on macOS | Report runtime JS coverage under `coverage/js/` |
-| `npm run test:coverage:native` | `node scripts/native-coverage.mjs` | Build isolated Swift / C instrumentation and report LLVM coverage under `coverage/native/` (macOS only) |
-| `npm run smoke` | `node test/smoke.cjs` | Print the real hardware brightness snapshot |
-| `npm run smoke:monitor` | `node test/smoke.cjs --monitor` | Observe manual changes for 8 seconds |
-| `npm run smoke:verify-set` | `node test/smoke.cjs --verify-set` | Verify a five-point system brightness change, events, and restoration |
-| `npm run test:plugins -- brightnessRuntime.test.mjs` | Root Vitest plugins project | Run after building the plugin |
-
-:::note
-The default smoke only reads. The setting smoke attempts restoration even after failure, and rejects DDC fallback because it may affect multiple displays. Native tests require macOS. Development tests and smoke scripts are excluded from the npm archive.
-:::
-
-Native coverage requires an existing host build and Node headers (`npm run build`); instrumented files stay in `build/native-coverage/`, and production prebuilds remain unchanged. Reports do not include build scripts or OS frameworks.
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `scripts/native-coverage.mjs` | LLVM instrumentation and separate native reports |
-| `test/nativeLoaderRuntime.test.mjs` | Platform, architecture, cache, and ASAR tests |
-| `src/BrightnessCore.swift` | Hardware target selection and normalization |
-| `src/NativeDisplays.swift` / `src/DDCProtocol.swift` | Native backends, DDC transfer, and protocol validation |
-| `src/addon.c` | Node-API binding |
-| `test/brightnessRuntime.test.mjs` / `test/NativeCoreTests.swift` | Vitest and compiled Swift tests |
-| `test/smoke.cjs` | Hardware diagnostics and reversible setting verification |
-
----
-
 ## macOS Media Helper
 
 **Directory:** `plugins/macos/eisland-macos-media-helper` &nbsp;|&nbsp; **Package:** `eisland-macos-media-helper` &nbsp;|&nbsp; **Language:** Swift + C / Node-API
@@ -445,39 +393,6 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 
 ---
 
-## Windows Brightness Helper
-
-**Directory:** `plugins/windows/eisland-windows-brightness-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build`
-
-:::info
-This is a pure .NET plugin that spawns a console EXE for WMI brightness operations. Unlike the Bluetooth/Power/WiFi Helpers, it does not use NativeAOT or koffi FFI — `System.Management` (WMI) is incompatible with NativeAOT.
-:::
-
-### Build
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run build` | `dotnet build src/eIslandBrightnessReader.csproj -c Release` | Build the .NET console exe |
-| `npm run clean` | `dotnet clean src/eIslandBrightnessReader.csproj` | Remove build artifacts |
-| `npm run rebuild` | `npm run clean && npm run build` | Full clean build |
-
-### Test
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm test` | `vitest run` | All tests — export verification, shape validation, boundary values, monitor tests |
-| `npm run test:query` | `vitest run test/brightness.test.ts` | Query function tests only |
-| `npm run test:monitor` | `vitest run test/brightness.monitor.test.ts` | Monitor tests only |
-
-### Smoke
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run smoke` | `node --experimental-strip-types test/brightness.smoke.ts` | Full smoke — `getBrightness()`, `setBrightness()` |
-| `npm run smoke:monitor` | `node --experimental-strip-types test/brightness.monitor.smoke.ts` | Monitor smoke — WMI event tracking for 15s |
-
----
-
 ## Windows Screenshot Helper
 
 **Directory:** `plugins/windows/eisland-windows-screenshot-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet publish`
@@ -531,7 +446,6 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | WiFi Helper (exe) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build` |
 | WiFi Helper (DLL) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build:ctypes` |
 | WiFi Helper (all) | `cd plugins/windows/eisland-windows-wifi-helper && npm run build:all` |
-| Brightness Helper | `cd plugins/windows/eisland-windows-brightness-helper && npm run build` |
 | Screenshot Helper | `cd plugins/windows/eisland-windows-screenshot-helper && npm run build` |
 | **All plugins** | `npm run plugins:build` (from root — builds all 10 plugins) |
 
@@ -547,7 +461,6 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | Bluetooth Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
 | Power Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
 | WiFi Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
-| Brightness Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
 | Screenshot Helper | `npm test` · `npm run test:screenshot` |
 
 ### All Smoke Commands
@@ -562,5 +475,4 @@ This is a pure .NET NativeAOT plugin that captures the primary display as PNG us
 | Bluetooth Helper | `npm run smoke` · `npm run smoke:monitor` |
 | Power Helper | `npm run smoke` · `npm run smoke:monitor` |
 | WiFi Helper | `npm run smoke` · `npm run smoke:monitor` |
-| Brightness Helper | `npm run smoke` · `npm run smoke:monitor` |
 | Screenshot Helper | `npm run smoke` |

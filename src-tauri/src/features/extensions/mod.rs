@@ -42,20 +42,12 @@ struct Extension {
     description: &'static str,
     executable: &'static str,
 }
-const REGISTRY: [Extension; 2] = [
-    Extension {
-        id: "volume-analyzer",
-        name: "音频节拍分析器",
-        description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
-        executable: "eIslandVolumeAnalyzer.exe",
-    },
-    Extension {
-        id: "brightness-helper",
-        name: "亮度控制助手",
-        description: "Windows 屏幕亮度查询与控制（WMI / DDC/CI），支持亮度事件监听",
-        executable: "eIslandBrightnessReader.exe",
-    },
-];
+const REGISTRY: [Extension; 1] = [Extension {
+    id: "volume-analyzer",
+    name: "音频节拍分析器",
+    description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
+    executable: "eIslandVolumeAnalyzer.exe",
+}];
 #[derive(Default, Debug, Deserialize)]
 struct Remote {
     id: String,
@@ -94,16 +86,6 @@ fn registry(id: &str) -> Result<&'static Extension> {
 }
 fn root(app: &AppHandle) -> Result<PathBuf> {
     Ok(crate::infrastructure::storage::data_dir(app).join("extensions"))
-}
-/// Prefer an installed feature extension, then the packaged native helper.
-pub(crate) fn resolve_native_helper(
-    app: &AppHandle,
-    component: &str,
-    file: &str,
-) -> Result<PathBuf> {
-    native_helper(app, component, file)
-        .map(Ok)
-        .unwrap_or_else(|| crate::infrastructure::resources::native_path(app, component, file))
 }
 fn base_url(app: &AppHandle, source: &str, resolved: &str) -> Result<String> {
     let value = match source {
@@ -239,20 +221,6 @@ async fn install(app: &AppHandle, id: &str, base: &str) -> Result<()> {
     let _ = safe_remove(&root, &staging);
     result
 }
-/// Find an installed native helper while retaining the build-time plugin fallback.
-pub fn native_helper(app: &AppHandle, component: &str, file: &str) -> Option<PathBuf> {
-    let id = match component {
-        "brightness" => "brightness-helper",
-        "volume-analyzer" => "volume-analyzer",
-        _ => return None,
-    };
-    let extension = registry(id).ok()?;
-    if file != extension.executable {
-        return None;
-    }
-    let path = root(app).ok()?.join(id).join(file);
-    path.is_file().then_some(path)
-}
 pub fn handles(channel: &str) -> bool {
     matches!(
         channel,
@@ -326,7 +294,7 @@ mod tests {
     fn formal_yaml_rejects_guessed_indentation_wrong_shapes_duplicate_keys_and_truncation() {
         for value in [
             "extensions:\n - id: volume-analyzer\n version: 1.2.3\n url: file.zip",
-            "- id: volume-analyzer\n  id: brightness-helper\n  version: 1.2.3\n  url: file.zip",
+            "- id: volume-analyzer\n  id: duplicate\n  version: 1.2.3\n  url: file.zip",
             "- id: [nested]\n  version: 1.2.3\n  url: file.zip",
             "- id: volume-analyzer\n  url: [",
             "unexpected: []",
@@ -366,20 +334,20 @@ mod tests {
         fs::create_dir(&root).unwrap();
         let archive = root.join("native.zip");
         let mut zip = ZipWriter::new(File::create(&archive).unwrap());
-        zip.start_file(REGISTRY[1].executable, SimpleFileOptions::default())
+        zip.start_file(REGISTRY[0].executable, SimpleFileOptions::default())
             .unwrap();
         zip.write_all(b"fixture-only").unwrap();
         zip.finish().unwrap();
         let directory = root.join("native");
-        extract(&archive, &directory, &REGISTRY[1]).unwrap();
-        assert!(directory.join(REGISTRY[1].executable).is_file());
+        extract(&archive, &directory, &REGISTRY[0]).unwrap();
+        assert!(directory.join(REGISTRY[0].executable).is_file());
         assert!(!directory.join("index.js").exists());
         let mut zip = ZipWriter::new(File::create(&archive).unwrap());
         zip.start_file("../outside", SimpleFileOptions::default())
             .unwrap();
         zip.write_all(b"outside").unwrap();
         zip.finish().unwrap();
-        assert!(extract(&archive, &root.join("bad"), &REGISTRY[1]).is_err());
+        assert!(extract(&archive, &root.join("bad"), &REGISTRY[0]).is_err());
         assert!(!root.parent().unwrap().join("outside").exists());
         assert!(safe_remove(&root, &root.parent().unwrap().join("outside")).is_err());
         fs::remove_dir_all(root).unwrap();
