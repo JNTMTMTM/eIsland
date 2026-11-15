@@ -29,18 +29,6 @@ LLM provider settings and agent configuration properties.
 | mihtnelis.agent.llm.deepseek.thinking | Enable thinking mode |
 | mihtnelis.agent.llm.deepseek.reasoning-effort | Reasoning effort level |
 
-### MiMo
-
-| Property | Description |
-|---|---|
-| mihtnelis.agent.llm.mimo.* | Same structure as DeepSeek |
-
-### MiniMax
-
-| Property | Description |
-|---|---|
-| mihtnelis.agent.llm.minimax.* | Same structure as DeepSeek |
-
 :::tip
 Provider configuration supports custom API credentials for Pro users.
 :::

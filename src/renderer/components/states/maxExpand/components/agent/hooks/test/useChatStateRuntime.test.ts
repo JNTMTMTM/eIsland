@@ -96,7 +96,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('useChatState model and user runtime', () => {
-  it.each([['user', 'deepseek-v4-pro', 'deepseek-v4-flash', 'deepseek'], ['user', 'mimo-v2.5-pro', 'deepseek-v4-flash', 'deepseek'], ['user', 'MiniMax-M2.7-highspeed', 'deepseek-v4-flash', 'deepseek'], ['user', 'MiniMax-M2.5-highspeed', 'deepseek-v4-flash', 'deepseek'], ['user', 'mimo-v2.5', 'mimo-v2.5', 'mimo'], ['user', 'MiniMax-M2.5', 'MiniMax-M2.5', 'minimax'], ['pro', 'deepseek-v4-pro', 'deepseek-v4-pro', 'deepseek'], ['admin', 'ollama', 'ollama', 'ollama'], ['pro', 'unknown', 'deepseek-v4-flash', 'deepseek']])('role %s requested %s selects %s', (accountRole, model, selectedModel, provider) => {
+  it.each([['user', 'deepseek-v4-pro', 'deepseek-v4-flash', 'deepseek'], ['user', 'mimo-v2.5', 'deepseek-v4-flash', 'deepseek'], ['pro', 'MiniMax-M2.5', 'deepseek-v4-flash', 'deepseek'], ['pro', 'deepseek-v4-pro', 'deepseek-v4-pro', 'deepseek'], ['admin', 'ollama', 'ollama', 'ollama'], ['pro', 'unknown', 'deepseek-v4-flash', 'deepseek']])('role %s requested %s selects %s', (accountRole, model, selectedModel, provider) => {
     role(accountRole);
     runtime.store.getState().setAiConfig({
       model,

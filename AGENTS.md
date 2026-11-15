@@ -76,9 +76,9 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **When feature scope changes, agent prompts must be updated in the same task.**
 
-- If you add/remove/change any user-facing eIsland feature, also sync corresponding agent prompt descriptions in `eisland-server/server`.
+- If you add/remove/change any user-facing eIsland feature, also sync the agent knowledge base in `eisland-server/server/server-agent/src/main/resources/kb/*.md` (feature details live there, one topic per file; the `# title` and `> summary` lines feed the topic list in every prompt). Agent tools and behavior rules still live in the prompt builders in `eisland-server/server`.
 - Treat prompt sync as part of Definition of Done; do not mark the task complete if prompts are stale.
-- At minimum, verify all affected prompt builders mention the new capability consistently.
+- At minimum, verify the affected knowledge-base topics describe the new capability (add a new topic file if none fits), and that all affected prompt builders stay consistent for tool or behavior changes. If production reads docs from `MIHTNELIS_AGENT_KB_DIR`, rebuild the index in the admin console (Agent 管理 → 知识库索引) after updating them.
 - If uncertain which prompts are affected, explicitly ask and confirm before finishing.
 
 ## 6. i18n Completeness (UI Change Gate)

@@ -95,7 +95,6 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('CODING');
     expect(SvgIcon).toHaveProperty('VERIFIED');
     expect(SvgIcon).toHaveProperty('VOLUME');
-    expect(SvgIcon).toHaveProperty('MIMO');
     expect(SvgIcon).toHaveProperty('OLLAMA');
     expect(SvgIcon).toHaveProperty('PIN_ON_TOP');
     expect(SvgIcon).toHaveProperty('BOOKMARK');
@@ -110,7 +109,6 @@ describe('SvgIcon', () => {
     expect(SvgIcon).toHaveProperty('UPDATE_TIME');
     expect(SvgIcon).toHaveProperty('PLUGIN');
     expect(SvgIcon).toHaveProperty('MARKET');
-    expect(SvgIcon).toHaveProperty('MINIMAX');
     expect(SvgIcon).toHaveProperty('BREAK');
     expect(SvgIcon).toHaveProperty('PROLONGED_SITTING');
     expect(SvgIcon).toHaveProperty('DRINKING_WATER');

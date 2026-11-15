@@ -4091,10 +4091,8 @@
         "on": "开启"
       },
       "deepseekReasoningEffort": "DeepSeek 推理强度",
-      "mimoReasoningEffort": "Mimo 推理强度",
       "ollamaReasoningEffort": "思考强度",
       "customReasoningEffort": "推理强度",
-      "minimaxReasoningEffort": "MiniMax 推理强度",
       "deepseekReasoningEffortOptions": {
         "low": "低 (low)",
         "medium": "中 (medium)",

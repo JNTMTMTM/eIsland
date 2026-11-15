@@ -35,9 +35,6 @@ import {
   CONTEXT_LIMIT_OPTIONS,
   type AgentMode,
 } from '../config/chatConstants';
-import {
-  isMinimaxModel,
-} from '../utils/chatHelpers';
 
 /** ChatInputBar 组件 Props */
 interface ChatInputBarProps {
@@ -216,15 +213,11 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
                   </button>
                   {showModelDropdown && (
                     <div className="max-expand-chat-model-dropdown-list">
-                      {(['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed', 'MiniMax-M2.5', 'MiniMax-M2.5-highspeed', 'ollama'] as const).map((m) => {
+                      {(['deepseek-v4-flash', 'deepseek-v4-pro', 'ollama'] as const).map((m) => {
                         const isOllama = m === 'ollama';
-                        const isPro = m === 'deepseek-v4-pro'
-                          || m === 'mimo-v2.5-pro'
-                          || m === 'MiniMax-M2.7-highspeed'
-                          || m === 'MiniMax-M2.5-highspeed'
-                          || isOllama;
+                        const isPro = m === 'deepseek-v4-pro' || isOllama;
                         const disabled = isPro && !isProUser;
-                        const icon = isOllama ? SvgIcon.OLLAMA : (m.startsWith('mimo-') ? SvgIcon.MIMO : (isMinimaxModel(m) ? SvgIcon.MINIMAX : SvgIcon.DEEPSEEK));
+                        const icon = isOllama ? SvgIcon.OLLAMA : SvgIcon.DEEPSEEK;
                         const label = isOllama ? (aiConfig.ollamaModel ? `ollama (${aiConfig.ollamaModel})` : 'ollama') : m;
                         return (
                           <button
@@ -266,7 +259,7 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
               </div>
               {/* 推理强度 */}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>{selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : selectedProvider === 'minimax' ? t('settings.ai.minimaxReasoningEffort', { defaultValue: 'MiniMax 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>{selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}</span>
                 <select
                   className="max-expand-chat-web-access-policy-select"
                   value={aiConfig.deepseekReasoningEffort}
@@ -276,8 +269,8 @@ export function ChatInputBar(props: ChatInputBarProps): ReactElement {
                       deepseekReasoningEffort: value === 'low' || value === 'high' ? value : 'medium',
                     });
                   }}
-                  title={selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : selectedProvider === 'minimax' ? t('settings.ai.minimaxReasoningEffort', { defaultValue: 'MiniMax 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
-                  aria-label={selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : selectedProvider === 'mimo' ? t('settings.ai.mimoReasoningEffort', { defaultValue: 'Mimo 推理强度' }) : selectedProvider === 'minimax' ? t('settings.ai.minimaxReasoningEffort', { defaultValue: 'MiniMax 推理强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                  title={selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
+                  aria-label={selectedProvider === 'custom' ? t('settings.ai.customReasoningEffort', { defaultValue: '推理强度' }) : selectedProvider === 'ollama' ? t('settings.ai.ollamaReasoningEffort', { defaultValue: '思考强度' }) : t('settings.ai.deepseekReasoningEffort', { defaultValue: 'DeepSeek 推理强度' })}
                 >
                   <option value="low">{t('settings.ai.deepseekReasoningEffortOptions.low', { defaultValue: '低 (low)' })}</option>
                   <option value="medium">{t('settings.ai.deepseekReasoningEffortOptions.medium', { defaultValue: '中 (medium)' })}</option>

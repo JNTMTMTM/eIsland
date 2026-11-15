@@ -41,7 +41,6 @@ import {
   type AgentMode,
 } from '../config/chatConstants';
 import {
-  isMinimaxModel,
   loadAgentMode,
   saveAgentMode,
 } from '../utils/chatHelpers';
@@ -110,7 +109,7 @@ export interface ChatState {
   hasLoginSession: boolean;
   userAvatarUrl: string | null;
   /** derived */
-  availableModels: readonly ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed', 'MiniMax-M2.5', 'MiniMax-M2.5-highspeed', 'ollama', 'custom-api'];
+  availableModels: readonly ['deepseek-v4-flash', 'deepseek-v4-pro', 'ollama', 'custom-api'];
   isProUser: boolean;
   selectedModel: string;
   isOllamaModel: boolean;
@@ -172,7 +171,7 @@ export interface ChatState {
 export function useChatState(): ChatState {
   const { t } = useTranslation();
 
-  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed', 'MiniMax-M2.5', 'MiniMax-M2.5-highspeed', 'ollama', 'custom-api'] as const;
+  const availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'ollama', 'custom-api'] as const;
 
   const localTokenForRole = readLocalToken();
   const isProUser = useMemo(() => {
@@ -270,10 +269,7 @@ export function useChatState(): ChatState {
       ? aiConfig.model
       : 'deepseek-v4-flash';
     if (m === 'custom-api' && (!isProUser || !hasCustomApiCredentials)) return 'deepseek-v4-flash';
-    if (!isProUser && (m === 'deepseek-v4-pro'
-      || m === 'mimo-v2.5-pro'
-      || m === 'MiniMax-M2.7-highspeed'
-      || m === 'MiniMax-M2.5-highspeed')) return 'deepseek-v4-flash';
+    if (!isProUser && m === 'deepseek-v4-pro') return 'deepseek-v4-flash';
     return m;
   })();
   const isOllamaModel = selectedModel === 'ollama';
@@ -283,18 +279,10 @@ export function useChatState(): ChatState {
     : 'custom-api';
   const selectedProvider = isCustomApiModel
     ? 'custom'
-    : (isOllamaModel
-      ? 'ollama'
-      : (selectedModel.startsWith('mimo-')
-        ? 'mimo'
-        : (isMinimaxModel(selectedModel) ? 'minimax' : 'deepseek')));
+    : (isOllamaModel ? 'ollama' : 'deepseek');
   const modelToggleIcon = isCustomApiModel
     ? SvgIcon.AI
-    : (isOllamaModel
-      ? SvgIcon.OLLAMA
-      : (selectedModel.startsWith('mimo-')
-        ? SvgIcon.MIMO
-        : (isMinimaxModel(selectedModel) ? SvgIcon.MINIMAX : (selectedModel.toLowerCase().includes('deepseek') ? SvgIcon.DEEPSEEK : null))));
+    : (isOllamaModel ? SvgIcon.OLLAMA : SvgIcon.DEEPSEEK);
   const ollamaDisplayLabel = aiConfig.ollamaModel ? `ollama (${aiConfig.ollamaModel})` : 'ollama';
 
   // ── agent 模式 ──

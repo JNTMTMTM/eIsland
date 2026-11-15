@@ -28,7 +28,6 @@ import useIslandStore from '../../../../store/isLandStore';
 import { getRoleFromToken } from '../../../../utils/userAccount';
 import { loadLocationFromStorage } from '../../../../store/utils/storage';
 import { buildMihtnelisContext } from '../../../states/maxExpand/components/agent/utils/chatUtils';
-import { isMinimaxModel } from '../../../states/maxExpand/components/agent/utils/chatHelpers';
 import { loadAgentMode } from './agentMode';
 
 type AiConfig = ReturnType<typeof useIslandStore.getState>['aiConfig'];
@@ -37,7 +36,7 @@ interface AgentRouting {
   isOllama: boolean;
   useCustomApi: boolean;
   selectedModel: string;
-  selectedProvider: 'ollama' | 'custom' | 'mimo' | 'MiniMax' | 'deepseek';
+  selectedProvider: 'ollama' | 'custom' | 'deepseek';
   agentMode: string;
 }
 
@@ -47,7 +46,7 @@ interface AgentContextAndSkills {
   resolvedSkills: Array<{ name: string; content: string }> | undefined;
 }
 
-const AVAILABLE_MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro', 'mimo-v2.5', 'mimo-v2.5-pro', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed', 'MiniMax-M2.5', 'MiniMax-M2.5-highspeed'];
+const AVAILABLE_MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro'];
 
 /**
  * @description 解析 Agent 运行路由配置。
@@ -67,18 +66,15 @@ export function resolveAgentRouting(aiConfig: AiConfig, token: string): AgentRou
       ? (aiConfig.customApiModel?.trim() || 'gpt-4o-mini')
       : (AVAILABLE_MODELS.includes(aiConfig.model) ? aiConfig.model : 'deepseek-v4-flash');
 
-  const selectedModel = (!isProUser && (
-    selectedModelBase === 'deepseek-v4-pro'
-    || selectedModelBase === 'mimo-v2.5-pro'
-    || selectedModelBase === 'MiniMax-M2.7-highspeed'
-    || selectedModelBase === 'MiniMax-M2.5-highspeed'
-  )) ? 'deepseek-v4-flash' : selectedModelBase;
+  const selectedModel = (!isProUser && selectedModelBase === 'deepseek-v4-pro')
+    ? 'deepseek-v4-flash'
+    : selectedModelBase;
 
   const selectedProvider: AgentRouting['selectedProvider'] = isOllama
     ? 'ollama'
     : useCustomApi
       ? 'custom'
-      : (selectedModel.startsWith('mimo-') ? 'mimo' : (isMinimaxModel(selectedModel) ? 'MiniMax' : 'deepseek'));
+      : 'deepseek';
 
   return {
     isOllama,

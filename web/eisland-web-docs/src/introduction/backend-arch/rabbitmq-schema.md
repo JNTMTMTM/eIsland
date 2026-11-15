@@ -246,7 +246,7 @@ The agent billing domain has two queues: one for balance deduction persistence (
 public record AgentBillingDeductMessage(
     String username,             // Username whose balance was deducted
     String amountFen,            // Deducted amount in fen (decimal string, 8 places)
-    String modelName,            // AI model name: deepseek-chat, mimo-v2-pro, etc.
+    String modelName,            // AI model name: deepseek-v4-flash, deepseek-v4-pro, etc.
     int inputTokens,             // Input tokens consumed
     int outputTokens,            // Output tokens generated
     String lastError             // Error from previous failed attempt

@@ -55,12 +55,12 @@ describe('ChatInputBar', () => {
   it('guards paid model choices and custom API credentials', () => {
     const tree = render(Component, { ...props, showModelDropdown: true });
     (value(tree, '.max-expand-chat-model-dropdown-item', 'onClick', 1) as () => void)();
-    (value(tree, '.max-expand-chat-model-dropdown-item', 'onClick', 9) as () => void)();
+    (value(tree, '.max-expand-chat-model-dropdown-item', 'onClick', 3) as () => void)();
     expect(props.setAiConfig).not.toHaveBeenCalled();
     trigger(tree, '.max-expand-chat-model-dropdown-item', 'onClick');
     expect(props.setAiConfig).toHaveBeenCalledWith({ model: 'deepseek-v4-flash' });
     const paid = render(Component, { ...props, showModelDropdown: true, isProUser: true, hasCustomApiCredentials: true });
-    (value(paid, '.max-expand-chat-model-dropdown-item', 'onClick', 9) as () => void)();
+    (value(paid, '.max-expand-chat-model-dropdown-item', 'onClick', 3) as () => void)();
     expect(props.setAiConfig).toHaveBeenLastCalledWith({ model: 'custom-api' });
     expect(props.setShowModelDropdown).toHaveBeenCalledWith(false);
   });
@@ -127,4 +127,4 @@ describe('ChatInputBar', () => {
   });
 });
 
-vi.mock('../../utils/chatHelpers', () => ({ isMinimaxModel: (model: string) => model.startsWith('MiniMax-') }));
+vi.mock('../../utils/chatHelpers', () => ({}));

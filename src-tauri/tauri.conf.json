@@ -32,7 +32,9 @@
     "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "installerIcon": "../resources/icon/eisland_256x256.ico",
+        "uninstallerIcon": "../resources/icon/eisland_256x256.ico"
       }
     }
   },

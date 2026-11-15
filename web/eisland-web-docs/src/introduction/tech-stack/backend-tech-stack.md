@@ -1559,7 +1559,7 @@ The system supports multiple LLM providers with independent configuration:
 mihtnelis:
   agent:
     default-provider: deepseek  # Default provider
-    allowed-providers: deepseek,mimo,minimax  # Allowed providers
+    allowed-providers: deepseek  # Allowed providers
     max-input-chars: 8000  # Maximum input length
     llm:
       gateway: langchain4j  # Gateway mode (langchain4j or spring-ai)
@@ -1570,16 +1570,6 @@ mihtnelis:
         model: deepseek-chat
         thinking: false  # Enable thinking mode
         reasoning-effort: medium  # low/medium/high
-      mimo:
-        enabled: false
-        base-url: https://api.mimo.ai
-        api-key: ${MIMO_API_KEY}
-        model: mimo-v2.5
-      minimax:
-        enabled: false
-        base-url: https://api.minimax.chat
-        api-key: ${MINIMAX_API_KEY}
-        model: MiniMax-M2.5
 ```
 
 **Provider Properties:**

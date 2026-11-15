@@ -4091,10 +4091,8 @@
         "on": "On"
       },
       "deepseekReasoningEffort": "DeepSeek Reasoning Effort",
-      "mimoReasoningEffort": "Mimo Reasoning Effort",
       "ollamaReasoningEffort": "Reasoning Effort",
       "customReasoningEffort": "Reasoning Effort",
-      "minimaxReasoningEffort": "MiniMax Reasoning Effort",
       "deepseekReasoningEffortOptions": {
         "low": "Low (low)",
         "medium": "Medium (medium)",

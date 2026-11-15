@@ -457,6 +457,8 @@ pub async fn run(
                 )?;
                 let result = if tool == "web.search" {
                     web_search(request["token"].as_str().unwrap_or(""), &arguments).await
+                } else if tool == "kb.read" {
+                    kb_read(request["token"].as_str().unwrap_or(""), &arguments).await
                 } else {
                     local_tool(app,&json!({"tool":tool,"arguments":arguments,"workspaces":request["workspaces"]})).await
                 };
@@ -559,19 +561,7 @@ async fn web_search(token: &str, args: &Value) -> Value {
         return failure("web.search query must contain 1 to 500 characters", 0);
     }
     let result = async {
-        let base = if cfg!(debug_assertions) {
-            "https://test.server.pyisland.com/api"
-        } else {
-            "https://server.pyisland.com/api"
-        };
-        let response = crate::infrastructure::http::client()
-            .post(format!("{base}/v1/user/ai/agent/search"))
-            .timeout(Duration::from_secs(20))
-            .bearer_auth(token.trim())
-            .header("X-App-Name", "eisland")
-            .header("X-Client-Version", env!("CARGO_PKG_VERSION"))
-            .header("X-Timestamp", now().to_string())
-            .header("X-Nonce", uuid::Uuid::new_v4().to_string())
+        let response = server_request(token, "/v1/user/ai/agent/search")
             .json(&json!({"query":query,"limit":args["limit"].as_u64().unwrap_or(5).clamp(1,10)}))
             .send()
             .await
@@ -586,6 +576,56 @@ async fn web_search(token: &str, args: &Value) -> Value {
             return Err("Invalid SearXNG search response".to_owned());
         }
         Ok(response["data"].clone())
+    }
+    .await;
+    match result {
+        Ok(value) => {
+            json!({"success":true,"result":value,"error":"","durationMs":started.elapsed().as_millis()})
+        }
+        Err(error) => failure(&error, started.elapsed().as_millis()),
+    }
+}
+/// 构造访问 eIsland 服务端 API 的鉴权请求，供服务端执行的工具复用。
+fn server_request(token: &str, path: &str) -> reqwest::RequestBuilder {
+    let base = if cfg!(debug_assertions) {
+        "https://test.server.pyisland.com/api"
+    } else {
+        "https://server.pyisland.com/api"
+    };
+    crate::infrastructure::http::client()
+        .post(format!("{base}{path}"))
+        .timeout(Duration::from_secs(20))
+        .bearer_auth(token.trim())
+        .header("X-App-Name", "eisland")
+        .header("X-Client-Version", env!("CARGO_PKG_VERSION"))
+        .header("X-Timestamp", now().to_string())
+        .header("X-Nonce", uuid::Uuid::new_v4().to_string())
+}
+/// 从服务端读取 eIsland 知识库主题；服务端返回的错误（如可用主题列表）原样透传。
+async fn kb_read(token: &str, args: &Value) -> Value {
+    let started = Instant::now();
+    if token.trim().is_empty() {
+        return failure("Authentication required for kb.read", 0);
+    }
+    let topic = args["topic"].as_str().unwrap_or("").trim();
+    if topic.is_empty() || topic.chars().count() > 64 {
+        return failure("kb.read topic must contain 1 to 64 characters", 0);
+    }
+    let result = async {
+        let response = server_request(token, "/v1/user/ai/agent/kb/read")
+            .json(&json!({"topic":topic}))
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        let status = response.status();
+        let body = response_json(response).await?;
+        if body["success"] == true {
+            Ok(body["data"].clone())
+        } else {
+            Err(body["error"]
+                .as_str()
+                .map_or_else(|| format!("kb.read failed: HTTP {status}"), str::to_owned))
+        }
     }
     .await;
     match result {
@@ -678,5 +718,23 @@ mod tests {
             p.feed("ink>answer", true),
             vec![(false, "answer".into(), 1)]
         );
+    }
+    #[tokio::test]
+    async fn kb_read_rejects_missing_token_and_invalid_topic_before_request() {
+        let empty_token = kb_read("  ", &json!({"topic":"music"})).await;
+        assert_eq!(empty_token["success"], false);
+        assert_eq!(empty_token["error"], "Authentication required for kb.read");
+        for args in [
+            json!({}),
+            json!({"topic":"   "}),
+            json!({"topic":"a".repeat(65)}),
+        ] {
+            let result = kb_read("token", &args).await;
+            assert_eq!(result["success"], false, "args={args}");
+            assert_eq!(
+                result["error"],
+                "kb.read topic must contain 1 to 64 characters"
+            );
+        }
     }
 }
