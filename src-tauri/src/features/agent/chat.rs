@@ -585,7 +585,7 @@ async fn web_search(token: &str, args: &Value) -> Value {
         Err(error) => failure(&error, started.elapsed().as_millis()),
     }
 }
-/// Builds an authenticated request to the eIsland server API used by server-executed tools.
+/// 构造访问 eIsland 服务端 API 的鉴权请求，供服务端执行的工具复用。
 fn server_request(token: &str, path: &str) -> reqwest::RequestBuilder {
     let base = if cfg!(debug_assertions) {
         "https://test.server.pyisland.com/api"
@@ -601,7 +601,7 @@ fn server_request(token: &str, path: &str) -> reqwest::RequestBuilder {
         .header("X-Timestamp", now().to_string())
         .header("X-Nonce", uuid::Uuid::new_v4().to_string())
 }
-/// Reads an eIsland knowledge-base topic from the server; the server's error (e.g. the list of valid topics) is passed through.
+/// 从服务端读取 eIsland 知识库主题；服务端返回的错误（如可用主题列表）原样透传。
 async fn kb_read(token: &str, args: &Value) -> Value {
     let started = Instant::now();
     if token.trim().is_empty() {
@@ -718,5 +718,23 @@ mod tests {
             p.feed("ink>answer", true),
             vec![(false, "answer".into(), 1)]
         );
+    }
+    #[tokio::test]
+    async fn kb_read_rejects_missing_token_and_invalid_topic_before_request() {
+        let empty_token = kb_read("  ", &json!({"topic":"music"})).await;
+        assert_eq!(empty_token["success"], false);
+        assert_eq!(empty_token["error"], "Authentication required for kb.read");
+        for args in [
+            json!({}),
+            json!({"topic":"   "}),
+            json!({"topic":"a".repeat(65)}),
+        ] {
+            let result = kb_read("token", &args).await;
+            assert_eq!(result["success"], false, "args={args}");
+            assert_eq!(
+                result["error"],
+                "kb.read topic must contain 1 to 64 characters"
+            );
+        }
     }
 }

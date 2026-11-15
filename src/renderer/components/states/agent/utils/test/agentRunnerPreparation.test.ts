@@ -216,7 +216,7 @@ describe('resolveAgentRouting', () => {
     expect(result.selectedModel).toBe('deepseek-v4-pro');
   });
 
-  // --- Retired MiMo / MiniMax models ---
+  // --- 已下线的 MiMo / MiniMax 模型 ---
 
   it.each(['mimo-v2.5', 'mimo-v2.5-pro', 'MiniMax-M2.7', 'MiniMax-M2.5-highspeed'])('falls back to deepseek-v4-flash for retired model %s', (model) => {
     getRoleFromTokenMock.mockReturnValue('pro');
