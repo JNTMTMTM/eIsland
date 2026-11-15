@@ -113,10 +113,9 @@ async fn close(mut session: Session) {
     }
 }
 async fn open(app: &AppHandle) -> Result<Session> {
-    // The helper shares the already bundled volume runtime; it does not require system-wide .NET.
-    let path = crate::features::extensions::resolve_native_helper(
+    let path = crate::infrastructure::resources::native_path(
         app,
-        "volume",
+        "temperature",
         "eIslandTemperatureReader.exe",
     )?;
     let mut command = crate::infrastructure::child_process::command(path);

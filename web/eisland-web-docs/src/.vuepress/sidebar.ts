@@ -120,18 +120,6 @@ export default sidebar({
       ],
     },
     {
-      text: "Windows Volume Helper",
-      icon: "volume-high",
-      collapsible: true,
-      children: [
-        "display-graphics/volume-helper/get-mute.md",
-        "display-graphics/volume-helper/set-mute.md",
-        "display-graphics/volume-helper/get-volume.md",
-        "display-graphics/volume-helper/set-volume.md",
-        "display-graphics/volume-helper/volume-monitor.md",
-      ],
-    },
-    {
       text: "Windows Bluetooth Helper",
       icon: "server",
       collapsible: true,

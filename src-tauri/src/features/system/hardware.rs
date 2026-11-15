@@ -19,6 +19,7 @@
  */
 
 use crate::features::extensions::resolve_native_helper as native_path;
+use crate::infrastructure::platform::volume::{self, Operation};
 use crate::shared::Result;
 use serde_json::{json, Value};
 use std::{
@@ -41,26 +42,6 @@ enum Kind {
     Volume,
     Brightness,
 }
-impl Kind {
-    fn component(self) -> &'static str {
-        match self {
-            Self::Volume => "volume",
-            Self::Brightness => "brightness",
-        }
-    }
-    fn executable(self) -> &'static str {
-        match self {
-            Self::Volume => "eIslandVolumeHelper.exe",
-            Self::Brightness => "eIslandBrightnessReader.exe",
-        }
-    }
-    fn field(self) -> &'static str {
-        match self {
-            Self::Volume => "level",
-            Self::Brightness => "currentBrightness",
-        }
-    }
-}
 #[derive(Default)]
 struct Pending {
     value: Option<u8>,
@@ -79,7 +60,6 @@ pub struct Hardware {
     shutdown: watch::Sender<bool>,
     volume: Arc<Control>,
     brightness: Arc<Control>,
-    mute: tokio::sync::Mutex<()>,
 }
 impl Control {
     fn new(kind: Kind) -> Arc<Self> {
@@ -94,27 +74,36 @@ impl Control {
     }
     async fn get(&self, app: &AppHandle) -> Result<Value> {
         let _guard = self.gate.lock().await;
+        if matches!(self.kind, Kind::Volume) {
+            // Resolve the default output on every read so device switches are visible immediately.
+            return volume::run(Operation::Get).await;
+        }
         if let Some((at, value)) = self.cache.lock().unwrap().as_ref() {
-            let event_driven = self.monitoring.load(Ordering::Acquire)
-                && (matches!(self.kind, Kind::Volume) || value["source"] == "wmi");
+            let event_driven = self.monitoring.load(Ordering::Acquire) && value["source"] == "wmi";
             if event_driven || at.elapsed() < Duration::from_millis(250) {
-                return Ok(value[self.kind.field()].clone());
+                return Ok(value["currentBrightness"].clone());
             }
         }
-        let value = call(app, self.kind, &["get".into()]).await?;
-        let result = value[self.kind.field()].clone();
+        let value = call_brightness(app, &["get".into()]).await?;
+        let result = value["currentBrightness"].clone();
         *self.cache.lock().unwrap() = Some((Instant::now(), value));
         Ok(result)
     }
-    async fn set(&self, value: u8) -> bool {
+    async fn set(&self, value: u8, mut shutdown: watch::Receiver<bool>) -> bool {
         let (sender, receiver) = oneshot::channel();
         {
             let mut pending = self.pending.lock().unwrap();
+            if *shutdown.borrow() {
+                return false;
+            }
             pending.value = Some(value);
             pending.waiters.push(sender);
         }
         self.notify.notify_one();
-        receiver.await.unwrap_or(false)
+        tokio::select! {
+            result = receiver => result.unwrap_or(false),
+            _ = shutdown.changed() => false,
+        }
     }
 }
 impl Hardware {
@@ -125,20 +114,19 @@ impl Hardware {
             shutdown,
             volume: Control::new(Kind::Volume),
             brightness: Control::new(Kind::Brightness),
-            mute: tokio::sync::Mutex::new(()),
         }
     }
 }
 
-fn command(app: &AppHandle, kind: Kind) -> Result<Command> {
-    let path = native_path(app, kind.component(), kind.executable())?;
+fn brightness_command(app: &AppHandle) -> Result<Command> {
+    let path = native_path(app, "brightness", "eIslandBrightnessReader.exe")?;
     Ok(crate::infrastructure::child_process::command(path))
 }
 
 /// Bound both execution time and output size; dropping the timed-out child kills it.
-async fn call(app: &AppHandle, kind: Kind, args: &[String]) -> Result<Value> {
+async fn call_brightness(app: &AppHandle, args: &[String]) -> Result<Value> {
     use crate::infrastructure::child_process::{self, Options};
-    let mut command = command(app, kind)?;
+    let mut command = brightness_command(app)?;
     command.args(args);
     let output = child_process::run(
         command,
@@ -154,7 +142,7 @@ async fn call(app: &AppHandle, kind: Kind, args: &[String]) -> Result<Value> {
 
 fn setter(app: AppHandle, control: Arc<Control>, mut shutdown: watch::Receiver<bool>) {
     tauri::async_runtime::spawn(async move {
-        loop {
+        'worker: loop {
             tokio::select! { _ = shutdown.changed() => break, _ = control.notify.notified() => {} }
             let mut waiters = Vec::new();
             loop {
@@ -167,19 +155,24 @@ fn setter(app: AppHandle, control: Arc<Control>, mut shutdown: watch::Receiver<b
                     break;
                 };
                 let guard = control.gate.lock().await;
+                if *shutdown.borrow() {
+                    break 'worker;
+                }
                 *control.cache.lock().unwrap() = None;
-                let result = call(&app, control.kind, &["set".into(), target.to_string()]).await;
-                let success = result.as_ref().is_ok_and(|v| v["success"] == true);
+                let result = match control.kind {
+                    Kind::Volume => volume::run(Operation::Set(target)).await,
+                    Kind::Brightness => call_brightness(&app, &["set".into(), target.to_string()])
+                        .await
+                        .map(|value| value["success"].clone()),
+                };
+                let success = result.as_ref().is_ok_and(|value| value == true);
                 if let Err(error) = result {
-                    eprintln!("[Hardware] {} set: {error}", control.kind.component());
+                    eprintln!("[Hardware] set: {error}");
                 }
                 *control.cache.lock().unwrap() = None;
                 drop(guard);
                 if *shutdown.borrow() {
-                    waiters.into_iter().for_each(|w| {
-                        let _ = w.send(false);
-                    });
-                    return;
+                    break 'worker;
                 }
                 let pending = control.pending.lock().unwrap();
                 if pending.value.is_some() {
@@ -205,7 +198,7 @@ async fn monitor(
     control: &Control,
     shutdown: &mut watch::Receiver<bool>,
 ) -> Result<()> {
-    let mut command = command(app, control.kind)?;
+    let mut command = brightness_command(app)?;
     command
         .arg("monitor")
         .stdin(Stdio::piped())
@@ -222,11 +215,10 @@ async fn monitor(
                 let Some(line) = line.map_err(|e|e.to_string())? else { return Err("Hardware monitor closed stdout".into()); };
                 if line.len() > 65536 { return Err("Hardware monitor output exceeds limit".into()); }
                 if let Ok(event) = serde_json::from_str::<Value>(&line) {
-                    let value = match control.kind { Kind::Volume => event["level"].clone(), Kind::Brightness => event["brightness"].clone() };
+                    let value = &event["brightness"];
                     if value.is_number() {
                         control.monitoring.store(true,Ordering::Release);
-                        let mut snapshot = json!({}); snapshot[control.kind.field()] = value;
-                        if matches!(control.kind,Kind::Brightness) { snapshot["source"] = json!("wmi"); }
+                        let snapshot = json!({"currentBrightness": value, "source": "wmi"});
                         *control.cache.lock().unwrap() = Some((Instant::now(),snapshot));
                     } else if event["error"].is_string() || event["eventName"] == "error" {
                         control.monitoring.store(false,Ordering::Release);
@@ -243,29 +235,29 @@ pub fn start(app: &AppHandle) {
     app.manage(Hardware::new());
     let hardware = app.state::<Hardware>();
     let shutdown = hardware.shutdown.subscribe();
+    setter(app.clone(), hardware.volume.clone(), shutdown.clone());
     if !cfg!(windows) {
         return;
     }
-    for control in [hardware.volume.clone(), hardware.brightness.clone()] {
-        setter(app.clone(), control.clone(), shutdown.clone());
-        let app = app.clone();
-        let mut shutdown = shutdown.clone();
-        tauri::async_runtime::spawn(async move {
-            for attempt in 0..3 {
-                if *shutdown.borrow() {
-                    return;
-                }
-                if let Err(error) = monitor(&app, &control, &mut shutdown).await {
-                    eprintln!("[Hardware] {} monitor: {error}", control.kind.component());
-                }
-                control.monitoring.store(false, Ordering::Release);
-                if *shutdown.borrow() {
-                    return;
-                }
-                tokio::select! { _ = shutdown.changed() => return, _ = tokio::time::sleep(Duration::from_secs(2_u64.pow(attempt + 1))) => {} }
+    let control = hardware.brightness.clone();
+    setter(app.clone(), control.clone(), shutdown.clone());
+    let app = app.clone();
+    let mut shutdown = shutdown;
+    tauri::async_runtime::spawn(async move {
+        for attempt in 0..3 {
+            if *shutdown.borrow() {
+                return;
             }
-        });
-    }
+            if let Err(error) = monitor(&app, &control, &mut shutdown).await {
+                eprintln!("[Hardware] brightness monitor: {error}");
+            }
+            control.monitoring.store(false, Ordering::Release);
+            if *shutdown.borrow() {
+                return;
+            }
+            tokio::select! { _ = shutdown.changed() => return, _ = tokio::time::sleep(Duration::from_secs(2_u64.pow(attempt + 1))) => {} }
+        }
+    });
 }
 
 pub fn stop(app: &AppHandle) {
@@ -300,25 +292,13 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
         return Ok(Value::Null);
     } // Existing SMTC API has no application-volume control.
     if matches!(channel, "media:get-muted" | "media:toggle-muted") {
-        let _guard = hardware.mute.lock().await;
-        let current = call(app, Kind::Volume, &["get-mute".into()]).await?;
-        if channel == "media:get-muted" {
-            return Ok(current["muted"].clone());
-        }
-        let Some(muted) = current["muted"].as_bool() else {
-            return Ok(Value::Null);
-        };
-        let result = call(
-            app,
-            Kind::Volume,
-            &["set-mute".into(), (!muted).to_string()],
-        )
-        .await?;
-        return Ok(if result["success"] == true {
-            json!(!muted)
+        let _guard = hardware.volume.gate.lock().await;
+        return volume::run(if channel == "media:get-muted" {
+            Operation::GetMute
         } else {
-            Value::Null
-        });
+            Operation::ToggleMute
+        })
+        .await;
     }
     let control = if channel.starts_with("system:volume:") {
         &hardware.volume
@@ -335,7 +315,15 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
     else {
         return Ok(json!(false));
     };
+    if matches!(control.kind, Kind::Brightness) && !cfg!(windows) {
+        return Ok(json!(false));
+    }
     Ok(json!(
-        control.set(value.round().clamp(0., 100.) as u8).await
+        control
+            .set(
+                value.round().clamp(0., 100.) as u8,
+                hardware.shutdown.subscribe()
+            )
+            .await
     ))
 }

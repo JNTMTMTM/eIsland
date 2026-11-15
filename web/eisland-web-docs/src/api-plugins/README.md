@@ -20,7 +20,6 @@ Complete API reference for all eIsland native plugins. Windows plugins provide s
 | [macOS Brightness Helper](display-graphics/macos-brightness-helper.md) | Hardware brightness query, control, and polling events |
 | [Windows Fullscreen Detector](display-graphics/fullscreen-detector.md) | Fullscreen window detection |
 | [Windows Screenshot Helper](display-graphics/screenshot-helper.md) | Primary display screen capture |
-| [Windows Volume Helper](display-graphics/volume-helper.md) | Playback device volume and mute control |
 
 ### Connectivity
 

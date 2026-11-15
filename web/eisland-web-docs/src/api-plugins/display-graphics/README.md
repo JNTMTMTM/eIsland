@@ -16,4 +16,3 @@ Plugins for screen display management and graphics detection. The macOS Brightne
 | [macOS Brightness Helper](macos-brightness-helper.md) | Hardware brightness query, control, and polling events |
 | [Windows Fullscreen Detector](fullscreen-detector.md) | Fullscreen window detection |
 | [Windows Screenshot Helper](screenshot-helper.md) | Primary display screen capture |
-| [Windows Volume Helper](volume-helper.md) | Playback device volume monitoring and control |

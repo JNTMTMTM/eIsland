@@ -24,4 +24,5 @@
 pub(crate) mod screenshot;
 #[cfg(windows)]
 pub(crate) mod smtc;
+pub(crate) mod volume;
 pub(crate) mod window;

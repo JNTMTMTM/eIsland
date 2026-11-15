@@ -1401,6 +1401,7 @@ dependencies = [
  "minisign",
  "minisign-verify",
  "native-tls",
+ "objc2-core-audio",
  "rand 0.9.5",
  "regex",
  "reqwest",

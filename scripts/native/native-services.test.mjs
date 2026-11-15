@@ -226,9 +226,23 @@ test('native services use real streams, resume data and concurrent local assets'
       assert(existsSync(prepared.playbackPath));
       assert(prepared.coverPath && existsSync(prepared.coverPath));
     });
+    await t.test('native system volume remains available through the existing API without an extension', async () => {
+      const extensions = await invoke('extension:list');
+      assert(!extensions.some(({ id }) => id === 'volume-helper'));
+      const level = await invoke('system:volume:get');
+      const muted = await invoke('media:get-muted');
+      assert(level === null || (Number.isInteger(level) && level >= 0 && level <= 100));
+      assert(muted === null || typeof muted === 'boolean');
+      assert.equal(await invoke('system:volume:set', 'invalid'), false);
+      if (level !== null) {
+        const writes = await Promise.all([level, level, level].map((value) => invoke('system:volume:set', value)));
+        assert.deepEqual(writes, [true, true, true]);
+        assert.equal(await invoke('system:volume:get'), level);
+      }
+    });
     await t.test('native performance sampling warms real sensors without blocking IPC', async () => {
-      const helper = join(dirname(binary), 'native', 'win-x64', 'volume', 'eIslandTemperatureReader.exe');
-      assert(existsSync(helper), 'sensor collector must ship with the shared native runtime');
+      const helper = join(dirname(binary), 'native', 'win-x64', 'temperature', 'eIslandTemperatureReader.exe');
+      assert(existsSync(helper), 'sensor collector must ship in its own native resource directory');
       const initial = await invoke('system:performance-snapshot:get');
       assert(initial.cpu && initial.memory);
       // 最大频率和温度在虚拟机上可以永久不可用，采样完成状态必须独立于读数。

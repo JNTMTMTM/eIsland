@@ -42,18 +42,12 @@ struct Extension {
     description: &'static str,
     executable: &'static str,
 }
-const REGISTRY: [Extension; 3] = [
+const REGISTRY: [Extension; 2] = [
     Extension {
         id: "volume-analyzer",
         name: "音频节拍分析器",
         description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
         executable: "eIslandVolumeAnalyzer.exe",
-    },
-    Extension {
-        id: "volume-helper",
-        name: "音量控制助手",
-        description: "Windows 默认播放设备音量查询、控制与监听（Core Audio COM）",
-        executable: "eIslandVolumeHelper.exe",
     },
     Extension {
         id: "brightness-helper",
@@ -248,7 +242,6 @@ async fn install(app: &AppHandle, id: &str, base: &str) -> Result<()> {
 /// Find an installed native helper while retaining the build-time plugin fallback.
 pub fn native_helper(app: &AppHandle, component: &str, file: &str) -> Option<PathBuf> {
     let id = match component {
-        "volume" => "volume-helper",
         "brightness" => "brightness-helper",
         "volume-analyzer" => "volume-analyzer",
         _ => return None,
@@ -310,9 +303,9 @@ mod tests {
     use super::*;
     #[test]
     fn formal_yaml_preserves_published_sequence_wrapper_quotes_and_comments() {
-        let sequence = "- id: volume-helper\n  version: '1.2.3' # published comment\n  url: \"中文文件.zip?next=a:b#fragment\"\n  size: 42\n";
+        let sequence = "- id: volume-analyzer\n  version: '1.2.3' # published comment\n  url: \"中文文件.zip?next=a:b#fragment\"\n  size: 42\n";
         let result = metadata(sequence).unwrap();
-        assert_eq!(result[0].id, "volume-helper");
+        assert_eq!(result[0].id, "volume-analyzer");
         assert_eq!(result[0].url, "中文文件.zip?next=a:b#fragment");
         let wrapped = format!(
             "extensions:\n{}",
@@ -323,19 +316,19 @@ mod tests {
         );
         assert_eq!(metadata(&wrapped).unwrap()[0].version, "1.2.3");
         assert_eq!(
-            metadata(r#"[{"id":"volume-helper","version":"1.2.3","url":"package.zip"}]"#).unwrap()
-                [0]
-            .url,
+            metadata(r#"[{"id":"volume-analyzer","version":"1.2.3","url":"package.zip"}]"#)
+                .unwrap()[0]
+                .url,
             "package.zip"
         );
     }
     #[test]
     fn formal_yaml_rejects_guessed_indentation_wrong_shapes_duplicate_keys_and_truncation() {
         for value in [
-            "extensions:\n - id: volume-helper\n version: 1.2.3\n url: file.zip",
-            "- id: volume-helper\n  id: brightness-helper\n  version: 1.2.3\n  url: file.zip",
+            "extensions:\n - id: volume-analyzer\n version: 1.2.3\n url: file.zip",
+            "- id: volume-analyzer\n  id: brightness-helper\n  version: 1.2.3\n  url: file.zip",
             "- id: [nested]\n  version: 1.2.3\n  url: file.zip",
-            "- id: volume-helper\n  url: [",
+            "- id: volume-analyzer\n  url: [",
             "unexpected: []",
         ] {
             assert!(metadata(value).is_err(), "{value}");
@@ -345,7 +338,7 @@ mod tests {
     #[test]
     fn parses_remote_native_versions() {
         let result = metadata(
-            "- id: volume-helper\n  version: 1.2.3\n  url: volume-helper-v1.2.3.zip\n  size: 42\n",
+            "- id: volume-analyzer\n  version: 1.2.3\n  url: volume-analyzer-v1.2.3.zip\n  size: 42\n",
         )
         .unwrap();
         assert_eq!(result.len(), 1);

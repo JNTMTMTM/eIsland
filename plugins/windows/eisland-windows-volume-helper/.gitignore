@@ -1,7 +1,0 @@
-node_modules/
-src/bin/
-src/obj/
-*.log
-*.pdb
-.DS_Store
-Thumbs.db

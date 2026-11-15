@@ -23,8 +23,7 @@
  * @author 鸡哥
  */
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -36,7 +35,8 @@ if (process.platform === 'win32') {
   const architecture = process.env.TAURI_ENV_ARCH ?? process.arch;
   const rid = { x86_64: 'win-x64', x64: 'win-x64', aarch64: 'win-arm64', arm64: 'win-arm64', x86: 'win-x86', ia32: 'win-x86' }[architecture];
   if (!rid) throw new Error(`Unsupported native architecture: ${architecture}`);
-  const output = resolve(root, 'src-tauri/resources/native', rid);
+  const nativeResources = resolve(root, 'src-tauri/resources/native');
+  const output = resolve(nativeResources, rid);
   /** 发布一个插件，失败时中断打包，避免发布缺失的原生功能。
    * @param name - 插件目录后缀。
    * @param project - C# 项目文件名。
@@ -48,10 +48,8 @@ if (process.platform === 'win32') {
     if (result.error) throw result.error;
     if (result.status !== 0) throw new Error(`Native plugin publish failed: ${name}`);
   };
-  publish('volume-helper', 'eIslandVolumeHelper.csproj', resolve(output, 'volume'));
   publish('brightness-helper', 'eIslandBrightnessReader.csproj', resolve(output, 'brightness'));
-  // Reuse the volume helper's self-contained .NET runtime instead of bundling a third copy.
-  // Intermediate/publish files live on the OS temp drive, where space is independent of the checkout.
+  // Keep intermediate files on the OS temp drive. The sensor reader ships its own runtime.
   const temperatureStage = resolve(process.env.EISLAND_NATIVE_STAGING_DIR || tmpdir(), 'eisland-native-publish', rid, 'temperature');
   const temperatureSource = resolve(temperatureStage, 'source');
   mkdirSync(temperatureSource, { recursive: true });
@@ -59,28 +57,21 @@ if (process.platform === 'win32') {
   readdirSync(temperatureProject, { withFileTypes: true }).filter((file) => file.isFile() && /\.(cs|csproj)$/.test(file.name))
     .forEach((file) => copyFileSync(resolve(temperatureProject, file.name), resolve(temperatureSource, file.name)));
   const temperature = spawnSync('dotnet', ['publish', resolve(temperatureSource, 'eIslandTemperatureReader.csproj'),
-    '-c', 'Release', '-r', rid, '--self-contained', 'true', '-o', resolve(temperatureStage, 'publish'),
+    '-c', 'Release', '-r', rid, '--self-contained', 'true', '-o', resolve(output, 'temperature'),
     `-p:BaseIntermediateOutputPath=${resolve(temperatureStage, 'obj')}/`, `-p:BaseOutputPath=${resolve(temperatureStage, 'bin')}/`],
   { cwd: root, stdio: 'inherit', windowsHide: true });
   if (temperature.error) throw temperature.error;
   if (temperature.status !== 0) throw new Error('Native temperature collector publish failed');
-  const shared = resolve(output, 'volume');
-  const volumeDependencies = JSON.parse(readFileSync(resolve(shared, 'eIslandVolumeHelper.deps.json'), 'utf8'));
-  const runtimeFiles = new Set(Object.values(volumeDependencies.targets).flatMap((target) =>
-    Object.entries(target).filter(([name]) => name.startsWith('runtimepack.')).flatMap(([, dependency]) =>
-      ['runtime', 'native', 'resources'].flatMap((kind) => Object.keys(dependency[kind] || {})))));
-  const digest = (file) => createHash('sha256').update(readFileSync(file)).digest('hex');
-  const copyShared = (source, destination) => {
-    mkdirSync(destination, { recursive: true });
-    readdirSync(source, { withFileTypes: true }).forEach((file) => {
-      const from = resolve(source, file.name);
-      const to = resolve(destination, file.name);
-      if (file.isDirectory()) copyShared(from, to);
-      else if (!existsSync(to) || !runtimeFiles.has(file.name)) copyFileSync(from, to);
-      else if (digest(from) !== digest(to)) throw new Error(`Shared .NET runtime mismatch: ${file.name}; rebuild the volume runtime and temperature collector together`);
-    });
-  };
-  copyShared(resolve(temperatureStage, 'publish'), shared);
+  // Tauri bundles the resource tree recursively, including files from older local builds.
+  for (const legacyRid of ['win-x64', 'win-arm64', 'win-x86']) {
+    const legacy = resolve(nativeResources, legacyRid, 'volume');
+    if (!existsSync(legacy)) continue;
+    const expected = resolve(realpathSync(root), 'src-tauri/resources/native', legacyRid, 'volume');
+    if (realpathSync(legacy).toLowerCase() !== expected.toLowerCase()) {
+      throw new Error(`Refusing to remove redirected native resource: ${legacy}`);
+    }
+    rmSync(legacy, { recursive: true });
+  }
   const smtc = resolve(output, 'smtc');
   const staging = resolve(root, 'src-tauri/target/native-publish', rid, 'smtc');
   publish('smtc-helper', 'eIslandSmtcHelper.csproj', staging);

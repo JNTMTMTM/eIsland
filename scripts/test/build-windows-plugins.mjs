@@ -45,7 +45,6 @@ const builds = [
   ['smtc-helper', `src/bin/Release/${framework}/win-x64/native/eIslandSmtcHelper.dll`],
   ['toast-listener', 'build/Release/eisland_windows_toast_listener.node'],
   ['volume-analyzer', 'src/bin/Release/net10.0/eIslandVolumeAnalyzer.exe'],
-  ['volume-helper', 'src/bin/Release/net10.0/eIslandVolumeHelper.exe'],
   ['wifi-helper', `src/bin/Release/${framework}/win-x64/native/eIslandWifiHelper.dll`],
 ];
 

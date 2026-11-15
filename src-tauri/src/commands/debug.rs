@@ -54,7 +54,6 @@ pub(super) fn handle(
             return Ok(json!({
                 "media":media.diagnostics(),
                 "performance":crate::features::system::performance_diagnostics(),
-                "volumeHelper":helper(&app,"volume","eIslandVolumeHelper.exe").ok(),
                 "brightnessHelper":helper(&app,"brightness","eIslandBrightnessReader.exe").ok(),
                 "smtcLibrary":helper(&app,"smtc","eIslandSmtcHelper.dll").ok(),
             }));
