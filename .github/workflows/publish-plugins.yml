@@ -29,7 +29,6 @@ jobs:
       matrix:
         plugin:
           - eisland-windows-bluetooth-helper
-          - eisland-windows-fullscreen-detector
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
           - eisland-windows-smtc-helper
@@ -112,7 +111,6 @@ jobs:
       matrix:
         plugin:
           - eisland-windows-bluetooth-helper
-          - eisland-windows-fullscreen-detector
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
           - eisland-windows-smtc-helper

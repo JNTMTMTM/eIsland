@@ -15,7 +15,6 @@ eIsland uses ten native plugins to access Windows features that web technologies
 
 | Plugin | Language | Windows Libraries | Purpose |
 |--------|----------|-------------------|---------|
-| **eisland-windows-fullscreen-detector** | C | user32, dwmapi | Detects fullscreen applications |
 | **eisland-windows-processes-attacker** | C | kernel32 | Process management |
 | **eisland-windows-toast-listener** | C++ | runtimeobject | Windows notification listener |
 | **eisland-windows-smtc-helper** | C# (.NET) | — | System Media Transport Controls (play, pause, next, previous, status) |
@@ -97,7 +96,7 @@ MSVC (Microsoft Visual C++) v143 is the C/C++ compiler toolchain shipped with Vi
 | **Windows 10/11 SDK (Latest)** | `Microsoft.VisualStudio.Component.Windows11SDK.*` | Windows API headers and libraries — provides `windows.h`, `user32.h`, `dwmapi.h`, and other system headers used by the plugins |
 
 :::note
-The Windows SDK provides the header files (`.h`) and import libraries (`.lib`) that allow the plugins to call Windows API functions. The `fullscreen-detector` uses `user32.lib` and `dwmapi.lib` from the SDK; the `processes-attacker` uses `kernel32.lib`; the `toast-listener` uses `runtimeobject.lib`.
+The Windows SDK provides the header files (`.h`) and import libraries (`.lib`) that allow the plugins to call Windows API functions. The `processes-attacker` uses `kernel32.lib`; the `toast-listener` uses `runtimeobject.lib`. Fullscreen detection is built into the Rust desktop backend.
 :::
 
 #### CMake and Testing Tools
@@ -301,21 +300,21 @@ Each plugin has a `binding.gyp` file that tells node-gyp how to compile the nati
 
 | Field | Purpose |
 |-------|---------|
-| `target_name` | Output binary name (e.g., `windows_fullscreen_detector`) |
+| `target_name` | Output binary name (e.g., `eisland_windows_processes_attacker`) |
 | `sources` | List of C/C++ source files to compile |
 | `defines` | Preprocessor macros (e.g., `WIN32_LEAN_AND_MEAN`, `NAPI_VERSION=8`) |
 | `libraries` | Windows system libraries to link (e.g., `user32.lib`, `kernel32.lib`) |
 | `msvs_settings` | MSVC-specific compiler and linker options |
 
-:::details Example binding.gyp — eisland-windows-fullscreen-detector
+:::details Example binding.gyp — eisland-windows-processes-attacker
 ```json
 {
   "targets": [
     {
-      "target_name": "windows_fullscreen_detector",
-      "sources": ["src/fullscreen_detector.c", "src/fullscreen_core.c"],
+      "target_name": "eisland_windows_processes_attacker",
+      "sources": ["src/processes_attacker.c", "src/string_utils.c", "src/process_ops.c", "src/napi_helpers.c", "src/napi_binding.c"],
       "defines": ["WIN32_LEAN_AND_MEAN", "NAPI_VERSION=8"],
-      "libraries": ["user32.lib", "dwmapi.lib"],
+      "libraries": ["kernel32.lib"],
       "msvs_settings": {
         "VCCLCompilerTool": {
           "AdditionalOptions": ["/GL-"]
@@ -417,14 +416,14 @@ The `postinstall` script runs `electron-builder install-app-deps`, which trigger
 To build a single plugin independently:
 
 ```bash
-cd plugins/windows/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-processes-attacker
 npm run build    # Runs: node-gyp rebuild
 ```
 
 ### Rebuild After Code Changes
 
 ```bash
-cd plugins/windows/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-processes-attacker
 npm run rebuild  # Runs: node-gyp clean && node-gyp rebuild
 ```
 
@@ -463,7 +462,7 @@ sdk/
 Each plugin has its own test suite using Vitest:
 
 ```bash
-cd plugins/windows/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-processes-attacker
 
 # Run all tests
 npm run test
@@ -579,7 +578,7 @@ If you prefer the full Visual Studio IDE instead of VS Code:
 4. Use the **Developer Command Prompt** for node-gyp commands:
 
 ```bash
-cd plugins\windows\eisland-windows-fullscreen-detector
+cd plugins\windows\eisland-windows-processes-attacker
 npm run build
 ```
 
@@ -610,7 +609,7 @@ cd sdk
 npm run build
 
 # 6. Build a plugin
-cd ../plugins/windows/eisland-windows-fullscreen-detector
+cd ../plugins/windows/eisland-windows-processes-attacker
 npm run build
 
 # 7. Run tests

@@ -16,7 +16,6 @@ Complete API reference for all eIsland native plugins. Windows plugins provide s
 
 | Plugin | Description |
 |--------|-------------|
-| [Windows Fullscreen Detector](display-graphics/fullscreen-detector.md) | Fullscreen window detection |
 
 ### Connectivity
 

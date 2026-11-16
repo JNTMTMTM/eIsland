@@ -19,6 +19,7 @@
  */
 
 use crate::features::windowing as windows;
+use crate::infrastructure::platform::fullscreen;
 use crate::shared::Result;
 use crate::state::Desktop;
 use serde_json::json;
@@ -49,7 +50,10 @@ fn should_hide(app: &AppHandle) -> Result<bool> {
                 .unwrap_or_default(),
         )
     };
-    if !fullscreen && names.is_empty() {
+    if fullscreen && fullscreen::any()? {
+        return Ok(true);
+    }
+    if names.is_empty() {
         return Ok(false);
     }
     let candidates = xcap::Window::all().map_err(|e| e.to_string())?;
@@ -64,27 +68,6 @@ fn should_hide(app: &AppHandle) -> Result<bool> {
                 .is_some_and(|name| names.contains(&normalize(&name)))
         {
             return Ok(true);
-        }
-        if fullscreen {
-            let Ok(monitor) = window.current_monitor() else {
-                continue;
-            };
-            let title = window.title().unwrap_or_default();
-            if title.is_empty()
-                || matches!(
-                    title.as_str(),
-                    "Program Manager" | "Windows Input Experience"
-                )
-            {
-                continue;
-            }
-            if window.x().ok() == monitor.x().ok()
-                && window.y().ok() == monitor.y().ok()
-                && window.width().ok() == monitor.width().ok()
-                && window.height().ok() == monitor.height().ok()
-            {
-                return Ok(true);
-            }
         }
     }
     Ok(false)

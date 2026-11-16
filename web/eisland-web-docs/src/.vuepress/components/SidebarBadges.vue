@@ -31,10 +31,6 @@ import { useRoute } from 'vuepress/client'
 
 // ── name → badge type mapping ────────────────────────────────────
 const BADGE_MAP: Record<string, string> = {
-  // Fullscreen Detector
-  NativeRect: 'interface',
-  NativeMonitorInfo: 'interface',
-  FullscreenWindowInfo: 'interface',
   // Bluetooth Helper
   BluetoothDeviceInfo: 'interface',
   BluetoothMonitor: 'monitor',

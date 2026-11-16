@@ -20,7 +20,6 @@ The plugin system includes Windows native helpers and an independent macOS media
 | Plugin | Package | Purpose |
 |--------|---------|---------|
 | **Processes Attacker** | `@eisland/windows-processes-attacker` | Terminate processes by name or PID |
-| **Fullscreen Detector** | `@eisland/windows-fullscreen-detector` | Detect foreground fullscreen windows |
 | **SMTC Helper** | `@eisland/windows-smtc-helper` | System Media Transport Controls (play, pause, next, previous, status) |
 | **macOS Media Helper** | `eisland-macos-media-helper` | Current-source metadata, artwork, timeline, events, and asynchronous playback commands |
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
@@ -32,7 +31,7 @@ The plugin system includes Windows native helpers and an independent macOS media
 
 | Category | Plugins | Build System | Runtime |
 |----------|---------|-------------|---------|
-| **C + N-API** | Processes Attacker, Fullscreen Detector | `node-gyp` | Native `.node` addon loaded by Node.js |
+| **C + N-API** | Processes Attacker | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
@@ -53,10 +52,10 @@ Each plugin uses a `binding.gyp` file to define compilation targets:
 {
   "targets": [
     {
-      "target_name": "windows_fullscreen_detector",
-      "sources": ["src/fullscreen_detector.c", "src/fullscreen_core.c"],
+      "target_name": "eisland_windows_processes_attacker",
+      "sources": ["src/processes_attacker.c", "src/string_utils.c", "src/process_ops.c", "src/napi_helpers.c", "src/napi_binding.c"],
       "defines": ["WIN32_LEAN_AND_MEAN", "NAPI_VERSION=8"],
-      "libraries": ["user32.lib", "dwmapi.lib"]
+      "libraries": ["kernel32.lib"]
     }
   ]
 }
@@ -85,7 +84,6 @@ All plugins target **NAPI_VERSION=8**, providing:
 | Plugin | Libraries | Purpose |
 |--------|-----------|---------|
 | **Processes Attacker** | `kernel32.lib` | Process enumeration (`CreateToolhelp32Snapshot`), termination (`TerminateProcess`) |
-| **Fullscreen Detector** | `user32.lib`, `dwmapi.lib` | Window enumeration (`EnumWindows`), DWM frame bounds (`DwmGetWindowAttribute`) |
 
 ## Plugin: Windows Processes Attacker
 
@@ -197,143 +195,9 @@ bool close_matching_processes(const ProcessTarget* target, ProcessCloseResult* r
 | `string_utils.c` | Wide-string normalization and matching |
 | `types.h` | Shared type definitions (`ProcessTarget`, `ProcessCloseResult`) |
 
-## Plugin: Windows Fullscreen Detector
+## Native Fullscreen Detection
 
-### Package
-
-```
-@eisland/windows-fullscreen-detector
-```
-
-### Purpose
-
-Detects whether any window is currently in fullscreen mode. Used by eIsland to auto-hide the dynamic island when a user enters fullscreen (e.g., watching a video, gaming, or presenting).
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer                                           │
-│  getForegroundFullscreenWindow()                            │
-│  getFullscreenWindows()                                     │
-│  isAnyFullscreenWindow()                                    │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ N-API
-┌──────────────────────────▼──────────────────────────────────┐
-│  fullscreen_detector.c                                      │
-│  N-API binding: EnumWindows callback → JS array conversion  │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│  fullscreen_core.c                                          │
-│  Window filtering + monitor bounds comparison               │
-│  DwmGetWindowAttribute(DWMWA_EXTENDED_FRAME_BOUNDS)         │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Exported Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `getForegroundFullscreenWindow` | `() → FullscreenWindowInfo \| null` | Returns the foreground window if it is fullscreen, otherwise `null` |
-| `getFullscreenWindows` | `() → FullscreenWindowInfo[]` | Returns all currently fullscreen windows across all monitors |
-| `isAnyFullscreenWindow` | `() → boolean` | Quick boolean check — `true` if the foreground window is fullscreen |
-
-### Result Structure
-
-```ts
-interface FullscreenWindowInfo {
-  hwnd: string;                    // Window handle as hex string (e.g., "0x1a2b3c")
-  title: string;                   // Window title
-  processId: number;               // Owning process ID
-  bounds: NativeRect;              // Window bounds (DWM-adjusted)
-  monitor: NativeMonitorInfo;      // Monitor the window is on
-  isForeground: boolean;           // Whether this is the foreground window
-}
-
-interface NativeRect {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
-}
-
-interface NativeMonitorInfo extends NativeRect {
-  isPrimary: boolean;              // Whether this is the primary monitor
-}
-```
-
-### Fullscreen Detection Algorithm
-
-The detection uses a **bounds-comparison approach** with DWM awareness:
-
-```c
-BOOL get_fullscreen_info(HWND hwnd, FullscreenWindowInfo* info) {
-  // 1. Filter candidate windows
-  if (!is_candidate_window(hwnd)) return FALSE;
-
-  // 2. Get DWM-adjusted window bounds
-  RECT bounds;
-  DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &bounds, sizeof(RECT));
-
-  // 3. Get monitor that owns this window
-  HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-  GetMonitorInfoW(monitor, &monitor_info);
-
-  // 4. Compare window bounds to monitor bounds (with tolerance)
-  if (!is_rect_close_to_monitor(&bounds, &monitor_info.rcMonitor))
-    return FALSE;
-
-  // 5. Populate result
-  info->hwnd = hwnd;
-  info->bounds = bounds;
-  info->monitor_info = monitor_info;
-  GetWindowThreadProcessId(hwnd, &info->process_id);
-  GetWindowTextW(hwnd, info->title, TITLE_BUFFER_LENGTH);
-  return TRUE;
-}
-```
-
-**Window Filtering Rules:**
-
-| Check | API | Purpose |
-|-------|-----|---------|
-| Valid window | `IsWindow(hwnd)` | Skip destroyed windows |
-| Visible | `IsWindowVisible(hwnd)` | Skip hidden windows |
-| Not minimized | `!IsIconic(hwnd)` | Skip minimized windows |
-| Not disabled | `!(style & WS_DISABLED)` | Skip disabled windows |
-| Not tool window | `!(ex_style & WS_EX_TOOLWINDOW)` | Skip floating tool windows |
-
-**Bounds Comparison:**
-
-```c
-#define FULLSCREEN_TOLERANCE_PX 2
-
-static BOOL is_rect_close_to_monitor(const RECT* window_rect, const RECT* monitor_rect) {
-  return abs(window_rect->left - monitor_rect->left) <= FULLSCREEN_TOLERANCE_PX &&
-         abs(window_rect->top - monitor_rect->top) <= FULLSCREEN_TOLERANCE_PX &&
-         abs(window_rect->right - monitor_rect->right) <= FULLSCREEN_TOLERANCE_PX &&
-         abs(window_rect->bottom - monitor_rect->bottom) <= FULLSCREEN_TOLERANCE_PX;
-}
-```
-
-A 2-pixel tolerance handles windows that report slightly off-monitor bounds (common with DWM compositing).
-
-**Multi-Monitor Support:**
-
-- `EnumWindows` iterates all top-level windows across all monitors
-- `MonitorFromWindow` resolves which monitor owns each window
-- Each result includes the monitor's `rcMonitor` bounds and `isPrimary` flag
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `fullscreen_detector.c` | N-API binding layer, JS value construction |
-| `fullscreen_core.c` | Core detection logic, window enumeration callback |
-| `fullscreen_types.h` | Shared type definitions (`FullscreenWindowInfo`, `WindowList`) |
+Fullscreen auto-hide runs directly in Rust: `features/windowing/auto_hide.rs` calls `infrastructure/platform/fullscreen`. Windows uses Win32/DWM with a 2-pixel edge tolerance. macOS compares CoreGraphics onscreen window and display bounds in logical coordinates. Neither platform needs the retired Node.js addon.
 
 ## Plugin: Windows Bluetooth Helper
 
@@ -988,33 +852,13 @@ it('returns CPU snapshot shape after baseline warmup', () => {
 });
 ```
 
-**Export Verification:**
-
-Tests confirm all expected functions are exported:
-
-```ts
-it('exports detector methods', () => {
-  expect(typeof detector.getForegroundFullscreenWindow).toBe('function');
-  expect(typeof detector.getFullscreenWindows).toBe('function');
-  expect(typeof detector.isAnyFullscreenWindow).toBe('function');
-});
-```
-
-**Nullable Result Handling:**
-
-Tests handle functions that may return `null` depending on system state:
-
-```ts
-const foreground = detector.getForegroundFullscreenWindow();
-expect(foreground === null || typeof foreground === 'object').toBe(true);
-```
+Fullscreen detection is covered by Rust boundary tests and native Win32 window-state tests, including untitled windows, hidden/minimized/tool windows, and the application's own process.
 
 ### Test Coverage by Plugin
 
 | Plugin | Test Files | Test Types |
 |--------|------------|------------|
 | **Processes Attacker** | _(manual testing)_ | — |
-| **Fullscreen Detector** | `fullscreen-detector.test.ts`, `fullscreen-detector.polling.test.ts` | Shape validation, export verification |
 | **SMTC Helper** | `smtc-helper.test.ts`, `smtc-helper.play.test.ts`, `smtc-helper.pause.test.ts`, `smtc-helper.next.test.ts`, `smtc-helper.previous.test.ts`, `smtc-helper.timestamp.test.ts` | Shape validation, export verification, command tests |
 | **Bluetooth Helper** | `bluetooth.test.ts`, `bluetooth.monitor.test.ts` | Shape validation, export verification, monitor state management |
 | **Power Helper** | `power.test.ts`, `power.monitor.test.ts` | Shape validation, consistency, monitor tests |
@@ -1027,16 +871,7 @@ expect(foreground === null || typeof foreground === 'object').toBe(true);
 
 Plugins are loaded in the Electron main process via `require()`:
 
-```ts
-// Example: Loading the fullscreen detector
-const detector = require('@eisland/windows-fullscreen-detector');
-
-// Check if any window is fullscreen
-if (detector.isAnyFullscreenWindow()) {
-  // Auto-hide the island
-  mainWindow.hide();
-}
-```
+Fullscreen auto-hide uses the Rust backend described above. Remaining legacy plugin packages expose their own JavaScript entry points.
 
 ### IPC Domain Integration
 
@@ -1071,7 +906,6 @@ Performance characteristics and optimization recommendations for each plugin:
 | Plugin | Call Latency | Notes |
 |--------|-------------|-------|
 | **Processes Attacker** | ~1–5ms | Snapshot-based enumeration, single `TerminateProcess` call per match |
-| **Fullscreen Detector** | ~1–3ms | `EnumWindows` iterates all top-level windows; early-exit for `isAnyFullscreenWindow` |
 | **SMTC Helper** | ~50–200ms | Spawns a .NET process; WinRT session manager + media property reads |
 | **SMTC Helper (FFI)** | ~1–5ms | Direct DLL call via koffi FFI; no process spawn |
 | **Bluetooth Helper** | ~10–50ms | WinRT `FindAllAsync` + `FromIdAsync`; event-driven monitoring |

@@ -118,16 +118,8 @@ Native modules (C/C++ addons) are loaded in the Main Process with sandbox disabl
 | Module | Purpose | Platform |
 |--------|---------|----------|
 | `@eisland/windows-processes-attacker` | Terminate processes by name/PID | Windows only |
-| `@eisland/windows-fullscreen-detector` | Detect fullscreen windows | Windows only |
 
-```ts
-// Loading native modules in Main Process
-const detector = require('@eisland/windows-fullscreen-detector');
-
-if (detector.isAnyFullscreenWindow()) {
-  mainWindow.hide(); // Auto-hide when fullscreen app detected
-}
-```
+Fullscreen auto-hide is implemented in the Rust desktop backend using Win32/DWM on Windows and CoreGraphics on macOS. It does not load a Node.js addon.
 
 ### Window Architecture
 

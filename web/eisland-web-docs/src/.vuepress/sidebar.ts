@@ -79,19 +79,6 @@ export default sidebar({
   ],
   "/api-plugins/": [
     {
-      text: "Windows Fullscreen Detector",
-      icon: "maximize",
-      collapsible: true,
-      children: [
-        "display-graphics/fullscreen-detector/native-rect.md",
-        "display-graphics/fullscreen-detector/native-monitor-info.md",
-        "display-graphics/fullscreen-detector/fullscreen-window-info.md",
-        "display-graphics/fullscreen-detector/get-foreground-fullscreen-window.md",
-        "display-graphics/fullscreen-detector/get-fullscreen-windows.md",
-        "display-graphics/fullscreen-detector/is-any-fullscreen-window.md",
-      ],
-    },
-    {
       text: "Windows Bluetooth Helper",
       icon: "server",
       collapsible: true,

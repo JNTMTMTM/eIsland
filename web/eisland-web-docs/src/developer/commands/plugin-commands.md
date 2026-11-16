@@ -20,7 +20,6 @@ npm run <script>
 
 | Plugin | Directory | Language | Build Tool | Tests | Smoke |
 |--------|-----------|----------|------------|-------|-------|
-| **Fullscreen Detector** | `eisland-windows-fullscreen-detector` | C | node-gyp | ✅ | ✅ |
 | **Processes Attacker** | `eisland-windows-processes-attacker` | C | node-gyp | ❌ | ❌ |
 | **Toast Listener** | `eisland-windows-toast-listener` | C++ | node-gyp | ✅ | ✅ |
 | **SMTC Helper** | `eisland-windows-smtc-helper` | C# | dotnet | ✅ | ✅ |
@@ -68,7 +67,6 @@ Each plugin also has a dedicated root-level command for targeted builds and clea
 | SMTC Helper | `npm run plugin:build:smtc` | `npm run plugin:clean:smtc` |
 | Toast Listener | `npm run plugin:build:toast` | `npm run plugin:clean:toast` |
 | WiFi Helper | `npm run plugin:build:wifi` | `npm run plugin:clean:wifi` |
-| Fullscreen Detector | `npm run plugin:build:fullscreen` | `npm run plugin:clean:fullscreen` |
 
 :::info NativeAOT Build Requirement
 Building NativeAOT DLLs (`npm run build:ctypes` for SMTC, Bluetooth, Power, WiFi helpers) requires `vswhere.exe` in PATH. If the build fails with `'vswhere.exe' is not recognized`, add it:
@@ -76,34 +74,6 @@ Building NativeAOT DLLs (`npm run build:ctypes` for SMTC, Bluetooth, Power, WiFi
 export PATH="/c/Program Files (x86)/Microsoft Visual Studio/Installer:$PATH"
 ```
 :::
-
----
-
-## Windows Fullscreen Detector
-
-**Directory:** `plugins/windows/eisland-windows-fullscreen-detector` &nbsp;|&nbsp; **Language:** C &nbsp;|&nbsp; **Build:** `node-gyp rebuild`
-
-### Build
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run build` | `node-gyp rebuild` | Compile the native addon |
-| `npm run clean` | `node-gyp clean` | Remove `build/` directory |
-| `npm run rebuild` | `node-gyp clean && node-gyp rebuild` | Full clean build |
-
-### Test
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm test` | `vitest run` | All tests — shape validation, export verification |
-| `npm run test:polling` | `vitest run test/fullscreen-detector.polling.test.ts` | Polling-mode tests only |
-
-### Smoke
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run smoke` | `node --experimental-strip-types test/fullscreen-detector.smoke.ts` | Full smoke — `getFullscreenWindows()`, `isAnyFullscreenWindow()` |
-| `npm run smoke:polling` | `node --experimental-strip-types test/fullscreen-detector.polling.smoke.ts` | Polling smoke — multiple reads over time |
 
 ---
 
@@ -364,7 +334,6 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 
 | Plugin | Command |
 |--------|---------|
-| Fullscreen Detector | `cd plugins/windows/eisland-windows-fullscreen-detector && npm run build` |
 | Processes Attacker | `cd plugins/windows/eisland-windows-processes-attacker && npm run build` |
 | Toast Listener | `cd plugins/windows/eisland-windows-toast-listener && npm run build` |
 | SMTC Helper (exe) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build` |
@@ -385,7 +354,6 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 
 | Plugin | Commands |
 |--------|----------|
-| Fullscreen Detector | `npm test` · `npm run test:polling` |
 | Processes Attacker | _(no tests)_ |
 | Toast Listener | `npm test` · `npm run test:polling` |
 | SMTC Helper | `npm test` · `npm run test:play` · `npm run test:pause` · `npm run test:next` · `npm run test:previous` · `npm run test:timestamp` · `npm run test:ctypes` |
@@ -397,7 +365,6 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 
 | Plugin | Commands |
 |--------|----------|
-| Fullscreen Detector | `npm run smoke` · `npm run smoke:polling` |
 | Processes Attacker | _(no smoke)_ |
 | Toast Listener | `npm run smoke` · `npm run smoke:polling` · `npm run smoke:event` · `npm run smoke:suppression` |
 | SMTC Helper | `npm run smoke` · `npm run smoke:play` · `npm run smoke:pause` · `npm run smoke:next` · `npm run smoke:previous` · `npm run smoke:status` · `npm run smoke:seek` · `npm run smoke:monitor` · `npm run smoke:timestamp` |

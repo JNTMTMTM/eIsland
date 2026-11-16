@@ -147,7 +147,7 @@ The `postinstall` script automatically runs `electron-builder install-app-deps` 
 :::
 
 :::warning
-`npm install` will automatically compile the native C/C++ plugins (`eisland-windows-fullscreen-detector`, `windows-toast-listener`, `windows-processes-attacker`). This requires:
+`npm install` will automatically compile the native C/C++ plugins (`windows-toast-listener`, `windows-processes-attacker`). This requires:
 
 - **Visual Studio Build Tools 2022** — with the **"Desktop development with C++"** workload installed
 

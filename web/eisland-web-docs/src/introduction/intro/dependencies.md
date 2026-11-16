@@ -144,8 +144,6 @@ Windows Native Plugins are only available on Windows. They require the Windows S
 Each plugin links against specific Windows system libraries:
 
 - **kernel32.lib** — Used by `windows-processes-attacker` for process management (creating, terminating, and querying processes).
-- **user32.lib** — Used by `eisland-windows-fullscreen-detector` for window management APIs (finding windows, checking their state).
-- **dwmapi.lib** — Used by `eisland-windows-fullscreen-detector` for Desktop Window Manager APIs (detecting fullscreen mode).
 - **runtimeobject.lib** — Used by `windows-toast-listener` for Windows Runtime APIs (accessing the notification center).
 :::
 
