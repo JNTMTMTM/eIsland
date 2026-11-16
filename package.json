@@ -125,7 +125,7 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "stock-api": "^2.7.5",
-    "systeminformation": "^5.33.20",
+    "systeminformation": "^5.33.22",
     "tesseract.js": "^7.0.0",
     "uapi-sdk-typescript": "^0.1.18",
     "zustand": "^5.1.0"
@@ -136,7 +136,7 @@
     "@alicloud/esa20240910": "^3.16.1",
     "@alicloud/openapi-client": "^0.4.15",
     "@alicloud/tea-util": "^1.4.11",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@tauri-apps/cli": "^2.12.4",
     "@types/dompurify": "^3.2.0",
     "@types/node": "^24.19.2",
