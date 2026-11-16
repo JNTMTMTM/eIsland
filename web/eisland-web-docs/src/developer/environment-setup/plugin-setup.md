@@ -15,15 +15,12 @@ eIsland uses ten native plugins to access Windows features that web technologies
 
 | Plugin | Language | Windows Libraries | Purpose |
 |--------|----------|-------------------|---------|
-| **eisland-windows-fullscreen-detector** | C | user32, dwmapi | Detects fullscreen applications |
-| **eisland-windows-performance-monitor** | C + .NET | — | CPU, memory, and temperature monitoring |
 | **eisland-windows-processes-attacker** | C | kernel32 | Process management |
 | **eisland-windows-toast-listener** | C++ | runtimeobject | Windows notification listener |
 | **eisland-windows-smtc-helper** | C# (.NET) | — | System Media Transport Controls (play, pause, next, previous, status) |
 | **eisland-windows-bluetooth-helper** | C# (.NET) | — | Bluetooth device enumeration and real-time connection monitoring |
 | **eisland-windows-power-helper** | C# (.NET) | — | Battery status and power event monitoring |
 | **eisland-windows-wifi-helper** | C# (.NET) | — | WiFi connection status and event monitoring |
-| **eisland-windows-screenshot-helper** | C# (.NET) | GDI32 | Primary display screen capture as PNG |
 
 :::important
 All plugins are compiled using **node-gyp** or **dotnet publish**, which requires Visual Studio Build Tools 2022 as the native compiler. The `npm run plugins:build` command in the root project automatically triggers these builds.
@@ -36,7 +33,7 @@ All plugins are compiled using **node-gyp** or **dotnet publish**, which require
 | **Node.js** | 24.22.1 | JavaScript runtime for node-gyp |
 | **npm** | >= 10.x | Package manager |
 | **Visual Studio Build Tools 2022** | Latest | C/C++ compiler toolchain |
-| **.NET 10 SDK** | >= 10.0 | Build .NET Native AOT plugins and temperature-helper |
+| **.NET 10 SDK** | >= 10.0 | Build .NET Native AOT plugins |
 | **Python** | >= 3.10 | SMTC ctypes DLL testing |
 | **Git** | Latest | Version control |
 
@@ -99,7 +96,7 @@ MSVC (Microsoft Visual C++) v143 is the C/C++ compiler toolchain shipped with Vi
 | **Windows 10/11 SDK (Latest)** | `Microsoft.VisualStudio.Component.Windows11SDK.*` | Windows API headers and libraries — provides `windows.h`, `user32.h`, `dwmapi.h`, and other system headers used by the plugins |
 
 :::note
-The Windows SDK provides the header files (`.h`) and import libraries (`.lib`) that allow the plugins to call Windows API functions. The `fullscreen-detector` uses `user32.lib` and `dwmapi.lib` from the SDK; the `processes-attacker` uses `kernel32.lib`; the `toast-listener` uses `runtimeobject.lib`.
+The Windows SDK provides the header files (`.h`) and import libraries (`.lib`) that allow the plugins to call Windows API functions. The `processes-attacker` uses `kernel32.lib`; the `toast-listener` uses `runtimeobject.lib`. Fullscreen detection is built into the Rust desktop backend.
 :::
 
 #### CMake and Testing Tools
@@ -155,33 +152,15 @@ vcpkg automatically downloads the source, compiles it with MSVC, and installs he
 
 #### .NET Components
 
-The `eisland-windows-performance-monitor` plugin includes a .NET helper application (`eIslandTemperatureReader`) that reads hardware temperature sensors using LibreHardwareMonitorLib. The `eisland-windows-smtc-helper` plugin is a pure .NET console application that controls Windows media playback via SMTC APIs.
+The `eisland-windows-smtc-helper` plugin is a pure .NET console application that controls Windows media playback via SMTC APIs.
 
 | Component | ID | Description |
 |-----------|-----|-------------|
-| **.NET 10 SDK** | `Microsoft.Component.NetFX` | Required for building the `eIslandTemperatureReader` console application (`net10.0` target) |
+| **.NET 10 SDK** | `Microsoft.Component.NetFX` | Required for building .NET plugins that target `net10.0` |
 | **.NET Framework 4.8 development tools** | `Microsoft.VisualStudio.Component.ManagedDesktop` | .NET Framework targeting support — required for some NuGet packages and tooling |
 | **ClickOnce Build Tools** | `Microsoft.VisualStudio.Component.ClickOnce.BuildTools` | Deployment packaging tools — used for creating self-contained .NET deployments |
 
 :::details .NET Component Architecture
-The temperature helper has a specific build chain:
-
-```
-eisland-windows-performance-monitor/
-├── binding.gyp              # C plugin → compiled by node-gyp (MSVC)
-├── src/
-│   ├── performance_monitor.c
-│   └── performance_core.c
-└── temperature-helper/
-    └── eIslandTemperatureReader.csproj   # .NET console app
-        └── TargetFramework: net10.0
-        └── NuGet: LibreHardwareMonitorLib
-```
-
-1. **node-gyp** compiles the C source files using MSVC v143
-2. **dotnet build** compiles the .NET console application using .NET 10 SDK
-3. At runtime, the C plugin calls the .NET executable to read temperature data
-
 The SMTC helper is a pure .NET application with two build targets:
 
 ```
@@ -267,7 +246,7 @@ Use this checklist in the Visual Studio Build Tools 2022 installer (**Individual
 
 ## .NET 10 SDK
 
-The `temperature-helper` and `smtc-helper` components target .NET 10.0. Install the .NET 10 SDK separately if not included with the Build Tools installer.
+The SMTC helper targets .NET 10.0. Install the .NET 10 SDK separately if not included with the Build Tools installer.
 
 ### Installation
 
@@ -321,21 +300,21 @@ Each plugin has a `binding.gyp` file that tells node-gyp how to compile the nati
 
 | Field | Purpose |
 |-------|---------|
-| `target_name` | Output binary name (e.g., `windows_fullscreen_detector`) |
+| `target_name` | Output binary name (e.g., `eisland_windows_processes_attacker`) |
 | `sources` | List of C/C++ source files to compile |
 | `defines` | Preprocessor macros (e.g., `WIN32_LEAN_AND_MEAN`, `NAPI_VERSION=8`) |
 | `libraries` | Windows system libraries to link (e.g., `user32.lib`, `kernel32.lib`) |
 | `msvs_settings` | MSVC-specific compiler and linker options |
 
-:::details Example binding.gyp — eisland-windows-fullscreen-detector
+:::details Example binding.gyp — eisland-windows-processes-attacker
 ```json
 {
   "targets": [
     {
-      "target_name": "windows_fullscreen_detector",
-      "sources": ["src/fullscreen_detector.c", "src/fullscreen_core.c"],
+      "target_name": "eisland_windows_processes_attacker",
+      "sources": ["src/processes_attacker.c", "src/string_utils.c", "src/process_ops.c", "src/napi_helpers.c", "src/napi_binding.c"],
       "defines": ["WIN32_LEAN_AND_MEAN", "NAPI_VERSION=8"],
-      "libraries": ["user32.lib", "dwmapi.lib"],
+      "libraries": ["kernel32.lib"],
       "msvs_settings": {
         "VCCLCompilerTool": {
           "AdditionalOptions": ["/GL-"]
@@ -437,14 +416,14 @@ The `postinstall` script runs `electron-builder install-app-deps`, which trigger
 To build a single plugin independently:
 
 ```bash
-cd plugins/windows/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-processes-attacker
 npm run build    # Runs: node-gyp rebuild
 ```
 
 ### Rebuild After Code Changes
 
 ```bash
-cd plugins/windows/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-processes-attacker
 npm run rebuild  # Runs: node-gyp clean && node-gyp rebuild
 ```
 
@@ -483,7 +462,7 @@ sdk/
 Each plugin has its own test suite using Vitest:
 
 ```bash
-cd plugins/windows/eisland-windows-fullscreen-detector
+cd plugins/windows/eisland-windows-processes-attacker
 
 # Run all tests
 npm run test
@@ -562,22 +541,6 @@ npm run smoke:monitor           # Monitor smoke test — event-driven tracking f
 The Bluetooth Helper smoke tests require a real Bluetooth adapter and at least one paired device to produce meaningful results. Without Bluetooth hardware, queries return empty arrays and the monitor reports no events.
 :::
 
-### Screenshot Helper Tests
-
-The `eisland-windows-screenshot-helper` plugin has screenshot capture test files:
-
-```bash
-cd plugins/windows/eisland-windows-screenshot-helper
-
-npm run test                    # All tests
-npm run test:screenshot         # Screenshot capture and PNG validation tests
-npm run smoke                   # Smoke test — capture and validate primary display
-```
-
-:::tip
-The Screenshot Helper smoke test captures the actual primary display and validates the PNG header bytes. It requires a display connected to the system. On headless or remote desktop environments without a physical display, the capture may fail.
-:::
-
 ## IDE Configuration
 
 ### Visual Studio Code
@@ -615,7 +578,7 @@ If you prefer the full Visual Studio IDE instead of VS Code:
 4. Use the **Developer Command Prompt** for node-gyp commands:
 
 ```bash
-cd plugins\windows\eisland-windows-fullscreen-detector
+cd plugins\windows\eisland-windows-processes-attacker
 npm run build
 ```
 
@@ -646,7 +609,7 @@ cd sdk
 npm run build
 
 # 6. Build a plugin
-cd ../plugins/windows/eisland-windows-fullscreen-detector
+cd ../plugins/windows/eisland-windows-processes-attacker
 npm run build
 
 # 7. Run tests
@@ -703,11 +666,7 @@ winget install Microsoft.DotNet.SDK.10
 # Verify installation
 dotnet --list-sdks  # Should show 10.x.x
 
-# Rebuild the temperature helper
-cd plugins/windows/eisland-windows-performance-monitor/temperature-helper
-dotnet build
-
-# Or rebuild the SMTC helper
+# Rebuild the SMTC helper
 cd plugins/windows/eisland-windows-smtc-helper
 npm run build
 ```

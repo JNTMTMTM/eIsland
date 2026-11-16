@@ -8,6 +8,8 @@ icon: toolbox
 :::warning
 This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration.
 
+The desktop performance monitor reads CPU, memory, and disk usage in Rust. Windows reads CPU clocks through PowrProf, GPU inventory and usage through DXGI and PDH, and available temperatures through ACPI, WDDM, and storage drivers. macOS uses available system temperature sensors. Unavailable readings remain empty.
+
 The desktop app handles hardware brightness in Rust. Windows uses WMI and DXVA2. macOS uses DisplayServices, IOKit, and DDC/CI where the display supports it.
 :::
 
@@ -18,23 +20,19 @@ The plugin system includes Windows native helpers and an independent macOS media
 | Plugin | Package | Purpose |
 |--------|---------|---------|
 | **Processes Attacker** | `@eisland/windows-processes-attacker` | Terminate processes by name or PID |
-| **Fullscreen Detector** | `@eisland/windows-fullscreen-detector` | Detect foreground fullscreen windows |
-| **Performance Monitor** | `@eisland/windows-performance-monitor` | CPU, memory, and temperature snapshots |
 | **SMTC Helper** | `@eisland/windows-smtc-helper` | System Media Transport Controls (play, pause, next, previous, status) |
 | **macOS Media Helper** | `eisland-macos-media-helper` | Current-source metadata, artwork, timeline, events, and asynchronous playback commands |
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
-| **Screenshot Helper** | `@eisland/windows-screenshot-helper` | Primary display screen capture as PNG via Win32 GDI APIs |
 | **Toast Listener** | `@eisland/windows-toast-listener` | Windows toast notification listening and suppression |
 
 **Architecture Categories:**
 
 | Category | Plugins | Build System | Runtime |
 |----------|---------|-------------|---------|
-| **C + N-API** | Processes Attacker, Fullscreen Detector | `node-gyp` | Native `.node` addon loaded by Node.js |
-| **C + .NET helper (spawnSync)** | Performance Monitor (temperature) | `node-gyp` + `dotnet build` | C addon + spawned .NET EXE |
-| **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
+| **C + N-API** | Processes Attacker | `node-gyp` | Native `.node` addon loaded by Node.js |
+| **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
@@ -54,10 +52,10 @@ Each plugin uses a `binding.gyp` file to define compilation targets:
 {
   "targets": [
     {
-      "target_name": "windows_fullscreen_detector",
-      "sources": ["src/fullscreen_detector.c", "src/fullscreen_core.c"],
+      "target_name": "eisland_windows_processes_attacker",
+      "sources": ["src/processes_attacker.c", "src/string_utils.c", "src/process_ops.c", "src/napi_helpers.c", "src/napi_binding.c"],
       "defines": ["WIN32_LEAN_AND_MEAN", "NAPI_VERSION=8"],
-      "libraries": ["user32.lib", "dwmapi.lib"]
+      "libraries": ["kernel32.lib"]
     }
   ]
 }
@@ -86,8 +84,6 @@ All plugins target **NAPI_VERSION=8**, providing:
 | Plugin | Libraries | Purpose |
 |--------|-----------|---------|
 | **Processes Attacker** | `kernel32.lib` | Process enumeration (`CreateToolhelp32Snapshot`), termination (`TerminateProcess`) |
-| **Fullscreen Detector** | `user32.lib`, `dwmapi.lib` | Window enumeration (`EnumWindows`), DWM frame bounds (`DwmGetWindowAttribute`) |
-| **Performance Monitor** | _(none linked)_ | Uses `GetSystemTimes`, `GlobalMemoryStatusEx` from kernel32 (auto-linked) |
 
 ## Plugin: Windows Processes Attacker
 
@@ -199,710 +195,9 @@ bool close_matching_processes(const ProcessTarget* target, ProcessCloseResult* r
 | `string_utils.c` | Wide-string normalization and matching |
 | `types.h` | Shared type definitions (`ProcessTarget`, `ProcessCloseResult`) |
 
-## Plugin: Windows Fullscreen Detector
+## Native Fullscreen Detection
 
-### Package
-
-```
-@eisland/windows-fullscreen-detector
-```
-
-### Purpose
-
-Detects whether any window is currently in fullscreen mode. Used by eIsland to auto-hide the dynamic island when a user enters fullscreen (e.g., watching a video, gaming, or presenting).
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer                                           │
-│  getForegroundFullscreenWindow()                            │
-│  getFullscreenWindows()                                     │
-│  isAnyFullscreenWindow()                                    │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ N-API
-┌──────────────────────────▼──────────────────────────────────┐
-│  fullscreen_detector.c                                      │
-│  N-API binding: EnumWindows callback → JS array conversion  │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│  fullscreen_core.c                                          │
-│  Window filtering + monitor bounds comparison               │
-│  DwmGetWindowAttribute(DWMWA_EXTENDED_FRAME_BOUNDS)         │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Exported Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `getForegroundFullscreenWindow` | `() → FullscreenWindowInfo \| null` | Returns the foreground window if it is fullscreen, otherwise `null` |
-| `getFullscreenWindows` | `() → FullscreenWindowInfo[]` | Returns all currently fullscreen windows across all monitors |
-| `isAnyFullscreenWindow` | `() → boolean` | Quick boolean check — `true` if the foreground window is fullscreen |
-
-### Result Structure
-
-```ts
-interface FullscreenWindowInfo {
-  hwnd: string;                    // Window handle as hex string (e.g., "0x1a2b3c")
-  title: string;                   // Window title
-  processId: number;               // Owning process ID
-  bounds: NativeRect;              // Window bounds (DWM-adjusted)
-  monitor: NativeMonitorInfo;      // Monitor the window is on
-  isForeground: boolean;           // Whether this is the foreground window
-}
-
-interface NativeRect {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
-}
-
-interface NativeMonitorInfo extends NativeRect {
-  isPrimary: boolean;              // Whether this is the primary monitor
-}
-```
-
-### Fullscreen Detection Algorithm
-
-The detection uses a **bounds-comparison approach** with DWM awareness:
-
-```c
-BOOL get_fullscreen_info(HWND hwnd, FullscreenWindowInfo* info) {
-  // 1. Filter candidate windows
-  if (!is_candidate_window(hwnd)) return FALSE;
-
-  // 2. Get DWM-adjusted window bounds
-  RECT bounds;
-  DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &bounds, sizeof(RECT));
-
-  // 3. Get monitor that owns this window
-  HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-  GetMonitorInfoW(monitor, &monitor_info);
-
-  // 4. Compare window bounds to monitor bounds (with tolerance)
-  if (!is_rect_close_to_monitor(&bounds, &monitor_info.rcMonitor))
-    return FALSE;
-
-  // 5. Populate result
-  info->hwnd = hwnd;
-  info->bounds = bounds;
-  info->monitor_info = monitor_info;
-  GetWindowThreadProcessId(hwnd, &info->process_id);
-  GetWindowTextW(hwnd, info->title, TITLE_BUFFER_LENGTH);
-  return TRUE;
-}
-```
-
-**Window Filtering Rules:**
-
-| Check | API | Purpose |
-|-------|-----|---------|
-| Valid window | `IsWindow(hwnd)` | Skip destroyed windows |
-| Visible | `IsWindowVisible(hwnd)` | Skip hidden windows |
-| Not minimized | `!IsIconic(hwnd)` | Skip minimized windows |
-| Not disabled | `!(style & WS_DISABLED)` | Skip disabled windows |
-| Not tool window | `!(ex_style & WS_EX_TOOLWINDOW)` | Skip floating tool windows |
-
-**Bounds Comparison:**
-
-```c
-#define FULLSCREEN_TOLERANCE_PX 2
-
-static BOOL is_rect_close_to_monitor(const RECT* window_rect, const RECT* monitor_rect) {
-  return abs(window_rect->left - monitor_rect->left) <= FULLSCREEN_TOLERANCE_PX &&
-         abs(window_rect->top - monitor_rect->top) <= FULLSCREEN_TOLERANCE_PX &&
-         abs(window_rect->right - monitor_rect->right) <= FULLSCREEN_TOLERANCE_PX &&
-         abs(window_rect->bottom - monitor_rect->bottom) <= FULLSCREEN_TOLERANCE_PX;
-}
-```
-
-A 2-pixel tolerance handles windows that report slightly off-monitor bounds (common with DWM compositing).
-
-**Multi-Monitor Support:**
-
-- `EnumWindows` iterates all top-level windows across all monitors
-- `MonitorFromWindow` resolves which monitor owns each window
-- Each result includes the monitor's `rcMonitor` bounds and `isPrimary` flag
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `fullscreen_detector.c` | N-API binding layer, JS value construction |
-| `fullscreen_core.c` | Core detection logic, window enumeration callback |
-| `fullscreen_types.h` | Shared type definitions (`FullscreenWindowInfo`, `WindowList`) |
-
-## Plugin: Windows Performance Monitor
-
-### Package
-
-```
-@eisland/windows-performance-monitor
-```
-
-### Purpose
-
-Provides low-overhead system performance snapshots for CPU usage, memory utilization, and hardware temperatures. Used by the eIsland system monitoring UI and the AI agent's `monitor.*` tools.
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer (index.js)                                │
-│  getCpu() / getMemory()  ← native binding                   │
-│  getTemperature() / getHardwareList() ← .NET helper process │
-└────────┬──────────────────────────────────┬─────────────────┘
-         │ N-API                            │ spawnSync
-┌────────▼───────────────┐    ┌─────────────▼─────────────────┐
-│  performance_monitor.c │    │  eIslandTemperatureReader.exe │
-│  N-API binding         │    │  .NET 10 + LibreHardware      │
-├────────────────────────┤    │  MonitorLib                   │
-│  performance_core.c    │    ├───────────────────────────────┤
-│  GetSystemTimes        │    │  TemperatureCollector         │
-│  GlobalMemoryStatusEx  │    │  HardwareListCollector        │
-└────────────────────────┘    └───────────────────────────────┘
-```
-
-### Exported Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `getCpu` | `() → CpuSnapshot` | CPU usage percentage (delta-based) |
-| `getMemory` | `() → MemorySnapshot` | Memory usage (total, used, available) |
-| `getTemperature` | `() → TemperatureSnapshot` | Hardware temperature readings via .NET helper |
-| `getHardwareList` | `() → HardwareListSnapshot` | CPU and GPU device enumeration via .NET helper |
-
-### CPU Snapshot
-
-```ts
-interface CpuSnapshot {
-  usagePercent: number;    // 0–100, CPU usage since last call
-  hasBaseline: boolean;    // false on first call (no prior delta)
-}
-```
-
-**Implementation:**
-
-```c
-bool get_cpu_snapshot(CpuSnapshot* snapshot) {
-  FILETIME idle_time, kernel_time, user_time;
-  GetSystemTimes(&idle_time, &kernel_time, &user_time);
-
-  // Delta calculation
-  ULONGLONG total_delta = (kernel - last_kernel) + (user - last_user);
-  ULONGLONG idle_delta = idle - last_idle;
-
-  snapshot->usage_percent = clamp_percent(
-    (double)(total_delta - idle_delta) * 100.0 / (double)total_delta
-  );
-}
-```
-
-- Uses `GetSystemTimes` for kernel-level CPU time accounting
-- **Delta-based**: each call computes usage since the previous call
-- First call returns `hasBaseline: false` (no prior data for delta)
-- `clamp_percent` ensures values stay within [0, 100]
-
-### Memory Snapshot
-
-```ts
-interface MemorySnapshot {
-  totalBytes: number;       // Total physical memory
-  usedBytes: number;        // Total - Available
-  availableBytes: number;   // Available physical memory
-  usagePercent: number;     // 0–100
-}
-```
-
-**Implementation:**
-
-```c
-bool get_memory_snapshot(MemorySnapshot* snapshot) {
-  MEMORYSTATUSEX status;
-  status.dwLength = sizeof(status);
-  GlobalMemoryStatusEx(&status);
-
-  snapshot->total_bytes = status.ullTotalPhys;
-  snapshot->available_bytes = status.ullAvailPhys;
-  snapshot->used_bytes = status.ullTotalPhys - status.ullAvailPhys;
-  snapshot->usage_percent = (double)used * 100.0 / (double)total;
-}
-```
-
-- Uses `GlobalMemoryStatusEx` for system-wide memory stats
-- Returns raw bytes (as `double` to avoid JS number precision limits)
-
-### Temperature Snapshot
-
-```ts
-interface TemperatureSnapshot {
-  isAvailable: boolean;                    // Whether readings were obtained
-  readings: TemperatureReading[];          // Individual sensor readings
-  maxTemperatureCelsius: number | null;    // Highest temperature across all sensors
-}
-
-interface TemperatureReading {
-  id: string;                              // Sensor identifier
-  label: string;                           // Human-readable label
-  category: 'cpu' | 'gpu' | 'motherboard' | 'storage' | 'unknown';
-  temperatureCelsius: number;              // Temperature in °C
-  source: 'libre-hardware-monitor';        // Data source
-}
-```
-
-### Hardware List Snapshot
-
-```ts
-interface HardwareListSnapshot {
-  isAvailable: boolean;       // Whether hardware was enumerated
-  cpus: HardwareDevice[];     // CPU devices
-  gpus: HardwareDevice[];     // GPU devices
-}
-
-interface HardwareDevice {
-  id: string;
-  name: string;
-  category: 'cpu' | 'gpu';
-  hardwareType: string;       // e.g., "Cpu", "GpuNvidia", "GpuAmd"
-  source: 'libre-hardware-monitor';
-}
-```
-
-### .NET Temperature Helper
-
-:::info
-Temperature and hardware enumeration use a separate **.NET 10 console application** (`eIslandTemperatureReader.exe`) that wraps **LibreHardwareMonitorLib**. It operates as a CLI tool — invoked via `spawnSync`, reads hardware sensors, outputs JSON to stdout, then exits.
-:::
-
-#### Why a Separate Process?
-
-- LibreHardwareMonitorLib requires COM interop and WMI access, which can destabilize a long-running process
-- Cannot be safely loaded into the Electron main process (crash risk, memory leaks, handle leaks)
-- Separate process provides crash isolation — if it fails, the main app continues unaffected
-- `spawnSync` with a 5-second timeout ensures the main process never blocks indefinitely
-- Process exits after each invocation — no lingering state or resource accumulation
-
-#### Entry Point
-
-```csharp
-// Program.cs
-var command = args.FirstOrDefault() ?? "temperature";
-var computer = new Computer
-{
-    IsCpuEnabled = true,
-    IsGpuEnabled = true,
-    IsMotherboardEnabled = true,
-    IsStorageEnabled = true,
-};
-
-computer.Open();
-
-var payload = command == "hardware-list"
-    ? JsonSerializer.Serialize(HardwareListCollector.Collect(computer))
-    : JsonSerializer.Serialize(TemperatureCollector.Collect(computer));
-
-Console.WriteLine(payload);
-computer.Close();
-```
-
-**CLI Modes:**
-
-| Invocation | Mode | Output |
-|------------|------|--------|
-| `eIslandTemperatureReader.exe` | Temperature (default) | `TemperatureSnapshot` JSON |
-| `eIslandTemperatureReader.exe temperature` | Temperature | `TemperatureSnapshot` JSON |
-| `eIslandTemperatureReader.exe hardware-list` | Hardware enumeration | `HardwareListSnapshot` JSON |
-
-The `Computer` object from LibreHardwareMonitorLib is configured to enable all hardware categories (CPU, GPU, motherboard, storage). `computer.Open()` initializes WMI subscriptions and COM interfaces; `computer.Close()` releases them.
-
-#### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Program.cs                                                 │
-│  CLI entry point — parses args, opens Computer, dispatches  │
-└────────────┬──────────────────────────┬─────────────────────┘
-             │                          │
-    ┌────────▼───────────┐    ┌────────▼──────────────────┐
-    │ TemperatureCollector│    │ HardwareListCollector      │
-    │ .Collect(computer)  │    │ .Collect(computer)         │
-    └────────┬────────────┘    └────────┬──────────────────┘
-             │                          │
-    ┌────────▼──────────────────────────▼──────────────────┐
-    │ HardwareCategoryMapper                               │
-    │ Maps HardwareType → category string                   │
-    └──────────────────────────────────────────────────────┘
-             │
-    ┌────────▼────────────┐
-    │ Snapshots.cs         │
-    │ Data models (POCOs)  │
-    └──────────────────────┘
-```
-
-#### TemperatureCollector
-
-Recursively traverses the hardware tree and collects all temperature sensor readings:
-
-```csharp
-static class TemperatureCollector
-{
-    public static TemperatureSnapshot Collect(Computer computer)
-    {
-        var readings = new List<TemperatureReading>();
-
-        foreach (var hardware in computer.Hardware)
-        {
-            CollectHardwareTemperatures(hardware, readings);
-        }
-
-        return new TemperatureSnapshot
-        {
-            IsAvailable = readings.Count > 0,
-            Readings = readings,
-            MaxTemperatureCelsius = readings.Count == 0
-                ? null
-                : readings.Max(r => r.TemperatureCelsius),
-        };
-    }
-
-    private static void CollectHardwareTemperatures(
-        IHardware hardware, List<TemperatureReading> readings)
-    {
-        hardware.Update();  // Refresh sensor values
-
-        // Recurse into sub-hardware (e.g., CPU cores under a CPU package)
-        foreach (var sub in hardware.SubHardware)
-            CollectHardwareTemperatures(sub, readings);
-
-        // Collect temperature sensors
-        foreach (var sensor in hardware.Sensors)
-        {
-            if (sensor.SensorType != SensorType.Temperature || sensor.Value is null)
-                continue;
-
-            readings.Add(new TemperatureReading
-            {
-                Id = $"{hardware.Identifier}/{sensor.Identifier}",
-                Label = string.IsNullOrWhiteSpace(sensor.Name)
-                    ? hardware.Name
-                    : $"{hardware.Name} {sensor.Name}",
-                Category = HardwareCategoryMapper.Map(hardware.HardwareType),
-                TemperatureCelsius = Math.Round(sensor.Value.Value, 1),
-                Source = "libre-hardware-monitor",
-            });
-        }
-    }
-}
-```
-
-**Key behaviors:**
-
-- **Recursive traversal**: `hardware.SubHardware` contains child devices (e.g., individual CPU cores, GPU memory controllers). The collector walks the full tree.
-- **`hardware.Update()`**: Triggers a fresh read of all sensors for this hardware node. Must be called before accessing `sensor.Value`.
-- **Sensor filtering**: Only `SensorType.Temperature` sensors with non-null values are collected.
-- **ID format**: `{hardware.Identifier}/{sensor.Identifier}` — unique across the hardware tree, e.g., `cpu/0/temperature/2`.
-- **Label fallback**: If `sensor.Name` is empty, uses `hardware.Name` alone.
-- **Precision**: Temperature values are rounded to 1 decimal place (`Math.Round(value, 1)`).
-
-#### HardwareListCollector
-
-Enumerates CPU and GPU devices from the hardware tree:
-
-```csharp
-static class HardwareListCollector
-{
-    public static HardwareListSnapshot Collect(Computer computer)
-    {
-        var cpus = new List<HardwareDevice>();
-        var gpus = new List<HardwareDevice>();
-
-        foreach (var hardware in computer.Hardware)
-        {
-            CollectHardwareDevice(hardware, cpus, gpus);
-        }
-
-        return new HardwareListSnapshot
-        {
-            IsAvailable = cpus.Count > 0 || gpus.Count > 0,
-            Cpus = cpus,
-            Gpus = gpus,
-        };
-    }
-
-    private static void CollectHardwareDevice(
-        IHardware hardware, List<HardwareDevice> cpus, List<HardwareDevice> gpus)
-    {
-        hardware.Update();
-
-        var category = HardwareCategoryMapper.Map(hardware.HardwareType);
-        if (category == "cpu")
-            cpus.Add(CreateHardwareDevice(hardware, category));
-        else if (category == "gpu")
-            gpus.Add(CreateHardwareDevice(hardware, category));
-
-        // Recurse into sub-hardware
-        foreach (var sub in hardware.SubHardware)
-            CollectHardwareDevice(sub, cpus, gpus);
-    }
-
-    private static HardwareDevice CreateHardwareDevice(
-        IHardware hardware, string category) => new()
-    {
-        Id = hardware.Identifier.ToString(),
-        Name = hardware.Name,
-        Category = category,
-        HardwareType = hardware.HardwareType.ToString(),
-        Source = "libre-hardware-monitor",
-    };
-}
-```
-
-**Key behaviors:**
-
-- **Category filtering**: Only `"cpu"` and `"gpu"` devices are collected. Motherboard and storage devices are excluded from the hardware list (but their temperature sensors are still collected by `TemperatureCollector`).
-- **`HardwareType` mapping**: The raw `HardwareType` enum value (e.g., `GpuNvidia`, `GpuAmd`, `GpuIntel`) is preserved as a string in the `HardwareType` field for downstream differentiation.
-
-#### HardwareCategoryMapper
-
-Maps LibreHardwareMonitor's `HardwareType` enum to simplified category strings:
-
-```csharp
-static class HardwareCategoryMapper
-{
-    public static string Map(HardwareType hardwareType) => hardwareType switch
-    {
-        HardwareType.Cpu                            => "cpu",
-        HardwareType.GpuAmd
-            or HardwareType.GpuIntel
-            or HardwareType.GpuNvidia               => "gpu",
-        HardwareType.Motherboard                    => "motherboard",
-        HardwareType.Storage                        => "storage",
-        _                                           => "unknown",
-    };
-}
-```
-
-**Mapping Table:**
-
-| `HardwareType` | Category | Examples |
-|----------------|----------|----------|
-| `Cpu` | `cpu` | Intel Core, AMD Ryzen |
-| `GpuNvidia` | `gpu` | NVIDIA GeForce, RTX series |
-| `GpuAmd` | `gpu` | AMD Radeon, RX series |
-| `GpuIntel` | `gpu` | Intel Arc, integrated graphics |
-| `Motherboard` | `motherboard` | ASUS, MSI, Gigabyte boards |
-| `Storage` | `storage` | NVMe SSDs, SATA drives |
-| _(other)_ | `unknown` | SuperIO, TBalancer, etc. |
-
-#### Snapshots (Data Models)
-
-All data models use C# `required` init-only properties and provide static `Empty` singletons for fallback scenarios:
-
-```csharp
-sealed class TemperatureSnapshot
-{
-    public static TemperatureSnapshot Empty { get; } = new()
-    {
-        IsAvailable = false,
-        Readings = [],
-        MaxTemperatureCelsius = null,
-    };
-
-    public required bool IsAvailable { get; init; }
-    public required List<TemperatureReading> Readings { get; init; }
-    public required double? MaxTemperatureCelsius { get; init; }
-}
-
-sealed class TemperatureReading
-{
-    public required string Id { get; init; }
-    public required string Label { get; init; }
-    public required string Category { get; init; }
-    public required double TemperatureCelsius { get; init; }
-    public required string Source { get; init; }
-}
-
-sealed class HardwareListSnapshot
-{
-    public static HardwareListSnapshot Empty { get; } = new()
-    {
-        IsAvailable = false,
-        Cpus = [],
-        Gpus = [],
-    };
-
-    public required bool IsAvailable { get; init; }
-    public required List<HardwareDevice> Cpus { get; init; }
-    public required List<HardwareDevice> Gpus { get; init; }
-}
-
-sealed class HardwareDevice
-{
-    public required string Id { get; init; }
-    public required string Name { get; init; }
-    public required string Category { get; init; }
-    public required string HardwareType { get; init; }
-    public required string Source { get; init; }
-}
-```
-
-**Design decisions:**
-
-- **`sealed` classes**: No inheritance needed; enables JIT optimizations.
-- **`required` init-only properties**: Enforced at compile time — prevents incomplete construction.
-- **`Empty` singletons**: Used as fallback when the helper binary is missing or crashes. Serialized to JSON as `{"isAvailable":false,"readings":[],...}`.
-- **JSON serialization**: Uses `JsonSerializerDefaults.Web` for camelCase property naming (matching the TypeScript interfaces).
-
-#### JSON Output Format
-
-**Temperature mode** (`eIslandTemperatureReader.exe`):
-
-```json
-{
-  "isAvailable": true,
-  "readings": [
-    {
-      "id": "cpu/0/temperature/0",
-      "label": "CPU Package",
-      "category": "cpu",
-      "temperatureCelsius": 52.3,
-      "source": "libre-hardware-monitor"
-    },
-    {
-      "id": "gpu-nvidia/0/temperature/0",
-      "label": "NVIDIA GeForce RTX 4070 GPU Core",
-      "category": "gpu",
-      "temperatureCelsius": 41.0,
-      "source": "libre-hardware-monitor"
-    }
-  ],
-  "maxTemperatureCelsius": 52.3
-}
-```
-
-**Hardware list mode** (`eIslandTemperatureReader.exe hardware-list`):
-
-```json
-{
-  "isAvailable": true,
-  "cpus": [
-    {
-      "id": "cpu/0",
-      "name": "Intel Core i7-13700K",
-      "category": "cpu",
-      "hardwareType": "Cpu",
-      "source": "libre-hardware-monitor"
-    }
-  ],
-  "gpus": [
-    {
-      "id": "gpu-nvidia/0",
-      "name": "NVIDIA GeForce RTX 4070",
-      "category": "gpu",
-      "hardwareType": "GpuNvidia",
-      "source": "libre-hardware-monitor"
-    }
-  ]
-}
-```
-
-#### Invocation from Node.js
-
-The main plugin's `index.js` bridges the .NET helper via synchronous child process execution:
-
-```js
-function readHelperSnapshot(args, fallback) {
-  const readerPath = findTemperatureReader();
-  if (!readerPath) return fallback;
-
-  const result = spawnSync(readerPath, args, {
-    encoding: 'utf8',
-    windowsHide: true,    // Hide console window on Windows
-    timeout: 5000,         // 5-second hard timeout
-  });
-
-  if (result.status !== 0 || result.error || !result.stdout) {
-    return fallback;
-  }
-
-  return JSON.parse(result.stdout);
-}
-```
-
-**Binary resolution order:**
-
-```js
-const temperatureReaderCandidates = [
-  path.join(__dirname, 'temperature-helper', 'bin', 'Release', 'net10.0', 'eIslandTemperatureReader.exe'),
-  path.join(__dirname, 'temperature-helper', 'bin', 'Debug', 'net10.0', 'eIslandTemperatureReader.exe'),
-];
-```
-
-**Fallback Behavior:**
-
-| Condition | Result |
-|-----------|--------|
-| Binary not found | `emptyTemperatureSnapshot` / `emptyHardwareListSnapshot` |
-| Process exits with non-zero status | Fallback |
-| Process times out (>5s) | Fallback |
-| stdout is empty | Fallback |
-| JSON parse error | Fallback |
-| Success | Parsed snapshot object |
-
-#### Dependencies
-
-```xml
-<!-- eIslandTemperatureReader.csproj -->
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
-  </ItemGroup>
-</Project>
-```
-
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| **.NET** | 10.0 | Runtime (required on client — this is NOT a NativeAOT build) |
-| **LibreHardwareMonitorLib** | 0.9.6 | Hardware sensor access via WMI/COM |
-
-#### Build
-
-The .NET helper is built alongside the native addon:
-
-```bash
-# Build native addon + .NET helper
-npm run build
-
-# Equivalent to:
-node-gyp rebuild
-dotnet build temperature-helper/eIslandTemperatureReader.csproj -c Release
-```
-
-Output: `temperature-helper/bin/Release/net10.0/eIslandTemperatureReader.exe`
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `performance_monitor.c` | N-API binding layer, exports `getCpu` and `getMemory` |
-| `performance_core.c` | Core implementation using Win32 APIs |
-| `performance_types.h` | Shared type definitions (`CpuSnapshot`, `MemorySnapshot`) |
-| `index.js` | Entry point, loads native binding, adds `getTemperature`/`getHardwareList` |
-| `index.d.ts` | TypeScript type declarations |
-| `temperature-helper/Program.cs` | .NET CLI entry point, opens `Computer`, dispatches to collectors |
-| `temperature-helper/TemperatureCollector.cs` | Recursive temperature sensor collection |
-| `temperature-helper/HardwareListCollector.cs` | CPU/GPU device enumeration |
-| `temperature-helper/HardwareCategoryMapper.cs` | `HardwareType` → category string mapping |
-| `temperature-helper/Snapshots.cs` | Data models with `Empty` fallback singletons |
+Fullscreen auto-hide runs directly in Rust: `features/windowing/auto_hide.rs` calls `infrastructure/platform/fullscreen`. Windows uses Win32/DWM with a 2-pixel edge tolerance. macOS compares CoreGraphics onscreen window and display bounds in logical coordinates. Neither platform needs the retired Node.js addon.
 
 ## Plugin: Windows Bluetooth Helper
 
@@ -1506,87 +801,9 @@ interface ToastNotificationSnapshot {
 | `index.js` | Public API — exports all functions |
 | `index.d.ts` | TypeScript type declarations |
 
-## Plugin: Windows Screenshot Helper
+## Desktop screenshots
 
-### Package
-
-```
-@eisland/windows-screenshot-helper
-```
-
-### Purpose
-
-Captures the primary display as a PNG image buffer. Uses Win32 GDI APIs (`GetDC`, `CreateCompatibleBitmap`, `BitBlt`) to perform screen capture, then encodes the result to PNG inside the Native AOT DLL. Used by eIsland for screenshot and screen recording features.
-
-:::info
-This plugin uses **koffi FFI + .NET NativeAOT DLL** architecture. It wraps Windows GDI APIs for screen capture and `System.Drawing.Common` for PNG encoding.
-:::
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer (index.js + ffi-loader.js)                │
-│  capturePrimaryDisplayPng / getLastError                     │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ koffi FFI (direct DLL calls)
-┌──────────────────────────▼──────────────────────────────────┐
-│  eIslandScreenshotHelper.dll (NativeAOT)                    │
-│  .NET 10 + GDI APIs + System.Drawing.Common                 │
-├─────────────────────────────────────────────────────────────┤
-│  ScreenCapture.cs       — Core GDI screen capture logic     │
-│  ScExports.cs           — C-style exported functions        │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Exported Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `capturePrimaryDisplayPng` | `() → ScreenshotResult \| null` | Capture the primary display as PNG |
-| `getLastError` | `() → string` | Get the last error message from the DLL |
-
-### Result Structure
-
-```ts
-interface ScreenshotResult {
-  data: Buffer;      // PNG screenshot data
-  size: number;      // Screenshot data size in bytes
-  format: 'png';     // Image format (always 'png')
-}
-```
-
-### Key Implementation Details
-
-The capture uses a GDI device context chain:
-
-1. `GetDC(IntPtr.Zero)` — acquires the screen device context
-2. `CreateCompatibleDC` + `CreateCompatibleBitmap` — creates a compatible memory DC and bitmap
-3. `BitBlt(SRCCOPY | CAPTUREBLT)` — copies screen content to the bitmap
-4. `Image.FromHbitmap` + `Image.Save(stream, ImageFormat.Png)` — encodes to PNG
-5. Proper cleanup in `finally` block (`SelectObject`, `DeleteObject`, `DeleteDC`, `ReleaseDC`)
-
-The PNG bytes are base64-encoded in the DLL, returned as a CoTaskMem string, then decoded into a Node.js `Buffer` by the FFI loader.
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `src/ScreenCapture.cs` | Core screen capture using Win32 GDI APIs |
-| `src/ScExports.cs` | C-style exported functions for koffi FFI |
-| `src/Program.cs` | Native AOT library entry point (empty Main) |
-| `src/eIslandScreenshotHelper.csproj` | .NET 10 Native AOT project |
-| `ffi-loader.js` | koffi FFI loader — defines all DLL function signatures |
-| `index.js` | Public API — exports capture and error functions |
-| `index.d.ts` | TypeScript type declarations |
-
-### Dependencies
-
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| **.NET** | 10.0 | Build-time only (self-contained DLL) |
-| **koffi** | ^2.9.1 | FFI library for calling DLL from Node.js |
-| **System.Drawing.Common** | 10.0.0-preview.2 | PNG encoding via `Image.Save` |
+The Rust desktop uses Win32 GDI on Windows and automatically retries with xcap in compatibility mode when GDI fails. macOS 14 and later use ScreenCaptureKit with Screen Recording permission. Earlier macOS versions use the xcap compatibility path. The application encodes the primary display and region captures as PNG and preserves the desktop layout across monitors.
 
 ## Testing
 
@@ -1635,39 +852,17 @@ it('returns CPU snapshot shape after baseline warmup', () => {
 });
 ```
 
-**Export Verification:**
-
-Tests confirm all expected functions are exported:
-
-```ts
-it('exports detector methods', () => {
-  expect(typeof detector.getForegroundFullscreenWindow).toBe('function');
-  expect(typeof detector.getFullscreenWindows).toBe('function');
-  expect(typeof detector.isAnyFullscreenWindow).toBe('function');
-});
-```
-
-**Nullable Result Handling:**
-
-Tests handle functions that may return `null` depending on system state:
-
-```ts
-const foreground = detector.getForegroundFullscreenWindow();
-expect(foreground === null || typeof foreground === 'object').toBe(true);
-```
+Fullscreen detection is covered by Rust boundary tests and native Win32 window-state tests, including untitled windows, hidden/minimized/tool windows, and the application's own process.
 
 ### Test Coverage by Plugin
 
 | Plugin | Test Files | Test Types |
 |--------|------------|------------|
 | **Processes Attacker** | _(manual testing)_ | — |
-| **Fullscreen Detector** | `fullscreen-detector.test.ts`, `fullscreen-detector.polling.test.ts` | Shape validation, export verification |
-| **Performance Monitor** | `performance-monitor.test.ts` | Shape validation, range checks |
 | **SMTC Helper** | `smtc-helper.test.ts`, `smtc-helper.play.test.ts`, `smtc-helper.pause.test.ts`, `smtc-helper.next.test.ts`, `smtc-helper.previous.test.ts`, `smtc-helper.timestamp.test.ts` | Shape validation, export verification, command tests |
 | **Bluetooth Helper** | `bluetooth.test.ts`, `bluetooth.monitor.test.ts` | Shape validation, export verification, monitor state management |
 | **Power Helper** | `power.test.ts`, `power.monitor.test.ts` | Shape validation, consistency, monitor tests |
 | **WiFi Helper** | `wifi.test.ts`, `wifi.monitor.test.ts` | Shape validation, consistency, monitor tests |
-| **Screenshot Helper** | `screenshot.test.ts` | Shape validation, export verification, PNG header validation |
 | **Toast Listener** | `windows-toast-listener.test.ts`, `windows-toast-listener.polling.test.ts` | Shape validation, export verification, polling tests |
 
 ## Integration with Electron
@@ -1676,16 +871,7 @@ expect(foreground === null || typeof foreground === 'object').toBe(true);
 
 Plugins are loaded in the Electron main process via `require()`:
 
-```ts
-// Example: Loading the fullscreen detector
-const detector = require('@eisland/windows-fullscreen-detector');
-
-// Check if any window is fullscreen
-if (detector.isAnyFullscreenWindow()) {
-  // Auto-hide the island
-  mainWindow.hide();
-}
-```
+Fullscreen auto-hide uses the Rust backend described above. Remaining legacy plugin packages expose their own JavaScript entry points.
 
 ### IPC Domain Integration
 
@@ -1709,11 +895,7 @@ Plugins power several AI agent tools:
 | Tool | Plugin | Function Used |
 |------|--------|---------------|
 | `win.close` | Processes Attacker | `closeProcess(target)` |
-| `win.list` | Fullscreen Detector | `getFullscreenWindows()` |
-| `monitor.cpu` | Performance Monitor | `getCpu()` |
-| `monitor.memory` | Performance Monitor | `getMemory()` |
-| `monitor.temperature` | Performance Monitor | `getTemperature()` |
-| `monitor.gpu` | Performance Monitor | `getHardwareList()` |
+| `win.list` | None (Rust backend, `features/agent/system_tools.rs`) | `system:open-windows:with-icons:get`, with an optional `filter` matched against process name and title |
 
 ## Performance Characteristics
 
@@ -1724,10 +906,6 @@ Performance characteristics and optimization recommendations for each plugin:
 | Plugin | Call Latency | Notes |
 |--------|-------------|-------|
 | **Processes Attacker** | ~1–5ms | Snapshot-based enumeration, single `TerminateProcess` call per match |
-| **Fullscreen Detector** | ~1–3ms | `EnumWindows` iterates all top-level windows; early-exit for `isAnyFullscreenWindow` |
-| **Performance Monitor (CPU)** | <0.1ms | `GetSystemTimes` is a single kernel call |
-| **Performance Monitor (Memory)** | <0.1ms | `GlobalMemoryStatusEx` is a single kernel call |
-| **Performance Monitor (Temperature)** | ~500–2000ms | Spawns a .NET process; includes process startup + WMI queries |
 | **SMTC Helper** | ~50–200ms | Spawns a .NET process; WinRT session manager + media property reads |
 | **SMTC Helper (FFI)** | ~1–5ms | Direct DLL call via koffi FFI; no process spawn |
 | **Bluetooth Helper** | ~10–50ms | WinRT `FindAllAsync` + `FromIdAsync`; event-driven monitoring |
@@ -1738,15 +916,10 @@ Performance characteristics and optimization recommendations for each plugin:
 **Optimization Notes:**
 
 - CPU and memory snapshots are nearly zero-cost — suitable for polling at 1-second intervals
-- Temperature queries are expensive due to the .NET helper process — recommended at 5–10 second intervals
 - The fullscreen detector avoids COM/WMI — pure Win32 window API calls
 - SMTC commands are direct DLL calls (~1-5ms via koffi FFI); monitoring is event-driven (zero polling)
 - Power and WiFi helpers use in-memory WinRT property reads (~1ms) — suitable for frequent polling
 - Application icon queries are fast (~5-20ms) but should be cached to avoid repeated Shell32 calls
-
-:::warning
-Temperature queries involve .NET process startup and WMI queries, resulting in high latency (500–2000ms). Recommended polling interval is 5–10 seconds to avoid frequent calls impacting performance.
-:::
 
 ## Plugin: Windows SMTC Helper
 

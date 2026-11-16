@@ -20,21 +20,14 @@
 
 //! Windows 亮度控制：WMI 负责内置屏，DXVA2 负责支持 DDC/CI 的外接显示器。
 
-use crate::infrastructure::platform::ComApartment;
+use crate::infrastructure::platform::wmi::{instances, property, with_service};
 use std::ptr::{null, null_mut};
 use windows::{
-    core::{w, BSTR, PCWSTR},
+    core::{w, BSTR},
     Win32::System::{
-        Com::{
-            CoCreateInstance, CoSetProxyBlanket, CLSCTX_INPROC_SERVER, EOAC_NONE,
-            RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE,
-        },
-        Rpc::{RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE},
         Variant::VARIANT,
         Wmi::{
-            IWbemClassObject, IWbemLocator, IWbemServices, WbemLocator,
-            WBEM_FLAG_CONNECT_USE_MAX_WAIT, WBEM_FLAG_FORWARD_ONLY, WBEM_FLAG_RETURN_IMMEDIATELY,
-            WBEM_GENERIC_FLAG_TYPE,
+            IWbemClassObject, IWbemServices, WBEM_FLAG_RETURN_IMMEDIATELY, WBEM_GENERIC_FLAG_TYPE,
         },
     },
 };
@@ -49,68 +42,6 @@ use windows_sys::Win32::{
 
 const WMI_TIMEOUT_MS: i32 = 1000;
 const METHODS: &str = "WmiMonitorBrightnessMethods";
-
-fn wmi<T>(operation: impl FnOnce(&IWbemServices) -> Option<T>) -> Option<T> {
-    let _apartment = ComApartment::enter()?;
-    unsafe {
-        let locator: IWbemLocator =
-            CoCreateInstance(&WbemLocator, None, CLSCTX_INPROC_SERVER).ok()?;
-        let empty = BSTR::new();
-        let service = locator
-            .ConnectServer(
-                &BSTR::from(r"root\wmi"),
-                &empty,
-                &empty,
-                &empty,
-                WBEM_FLAG_CONNECT_USE_MAX_WAIT.0,
-                &empty,
-                None,
-            )
-            .ok()?;
-        CoSetProxyBlanket(
-            &service,
-            RPC_C_AUTHN_WINNT,
-            RPC_C_AUTHZ_NONE,
-            None,
-            RPC_C_AUTHN_LEVEL_CALL,
-            RPC_C_IMP_LEVEL_IMPERSONATE,
-            None,
-            EOAC_NONE,
-        )
-        .ok()?;
-        operation(&service)
-    }
-}
-
-fn instances(service: &IWbemServices, query: &str) -> Vec<IWbemClassObject> {
-    let Ok(cursor) = (unsafe {
-        service.ExecQuery(
-            &BSTR::from("WQL"),
-            &BSTR::from(query),
-            WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-            None,
-        )
-    }) else {
-        return Vec::new();
-    };
-    let mut rows = Vec::new();
-    loop {
-        let mut entry = [None];
-        let mut count = 0;
-        let status = unsafe { cursor.Next(WMI_TIMEOUT_MS, &mut entry, &mut count) };
-        if status.is_err() || count == 0 {
-            break;
-        }
-        rows.extend(entry[0].take());
-    }
-    rows
-}
-
-fn property(entry: &IWbemClassObject, name: PCWSTR) -> Option<VARIANT> {
-    let mut value = VARIANT::default();
-    unsafe { entry.Get(name, 0, &mut value, None, None).ok()? };
-    Some(value)
-}
 
 /// 向全部活动的 WMI 内置屏写入亮度，按面板返回各自是否成功。
 fn set_wmi(service: &IWbemServices, percent: u8) -> Vec<bool> {
@@ -239,7 +170,7 @@ fn monitor_range(handle: HANDLE) -> Option<(u32, u32, u32)> {
 /// @description 优先读取首个活动的 WMI 内置屏，否则读取首个可读的 DDC/CI 外接显示器。
 /// @returns 亮度百分比（0~100）；没有可读显示器时返回 `None`
 pub(crate) fn get() -> Option<u8> {
-    wmi(|service| {
+    with_service(|service| {
         let panel = instances(
             service,
             "SELECT CurrentBrightness FROM WmiMonitorBrightness WHERE Active = TRUE",
@@ -269,7 +200,7 @@ pub(crate) fn get() -> Option<u8> {
 /// @param percent - 目标亮度百分比（0~100）
 /// @returns 至少有一台可调显示器且全部写入成功时为 `true`；部分失败或无可调显示器时为 `false`
 pub(crate) fn set(percent: u8) -> bool {
-    let mut outcomes = wmi(|service| Some(set_wmi(service, percent))).unwrap_or_default();
+    let mut outcomes = with_service(|service| Some(set_wmi(service, percent))).unwrap_or_default();
     for group in monitors() {
         for monitor in &group.0 {
             let Some((min, _, max)) = monitor_range(monitor.hPhysicalMonitor) else {

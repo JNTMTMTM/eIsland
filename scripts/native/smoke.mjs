@@ -80,7 +80,7 @@ async function pageFor(label, attempts = 80) {
  * @returns Rust 返回值。
  */
 async function ipc(page, channel, ...args) {
-  if (channel === 'window:close' || channel === 'capture-cancel') {
+  if (channel === 'window:close') {
     const closed = page.waitForEvent('close');
     await page.evaluate(({ channel, args }) => window.desktop.send(channel, ...args), { channel, args });
     await closed;
@@ -95,6 +95,9 @@ async function ipc(page, channel, ...args) {
  */
 async function captureMode(main, engine) {
   await ipc(main, 'store:write', 'screenshot-engine', engine);
+  await assert.rejects(main.evaluate(() => window.__TAURI__.core.invoke('capture_pixels')), /restricted to capture/);
+  // macOS 不读取截图模式设置，系统支持时始终使用 ScreenCaptureKit。
+  const expectedSource = engine === 'js' && process.platform === 'win32' ? 'compatibility' : 'native';
   const captureLogOffset = stderr.length;
   const primary = await ipc(main, 'system:screenshot');
   assert.equal(typeof primary, 'string');
@@ -104,8 +107,13 @@ async function captureMode(main, engine) {
   assert(bytes.readUInt32BE(16) > 0 && bytes.readUInt32BE(20) > 0);
   await ipc(main, 'system:screenshot:region:start');
   const capture = await pageFor('capture');
-  await capture.waitForFunction((source) => document.getElementById('captureSourceBadge')?.dataset.captureSource === source, engine);
+  await capture.waitForFunction((source) => document.getElementById('captureSourceBadge')?.dataset.captureSource === source, expectedSource);
   await capture.waitForFunction(() => document.getElementById('bg-canvas').width > 300);
+  await main.waitForFunction(async () => {
+    const windows = await window.__TAURI__.core.invoke('desktop_ipc', { channel: 'debug:windows', args: [] });
+    return windows.some((candidate) => candidate.label === 'capture' && candidate.visible);
+  });
+  await assert.rejects(capture.evaluate(() => window.__TAURI__.core.invoke('capture_pixels')), /No screenshot pixels available/);
   await capture.waitForFunction(() => {
     const icons = Array.from(document.querySelectorAll('.capture-btn-icon'));
     return icons.length > 0 && icons.every((icon) => icon.complete && icon.naturalWidth > 0 && icon.naturalHeight > 0);
@@ -116,8 +124,14 @@ async function captureMode(main, engine) {
   await capture.mouse.up();
   await capture.locator('#toolbar').waitFor({ state: 'visible' });
   await capture.locator('#toolbar').screenshot({ path: resolve(output, `capture-toolbar-${engine}.png`) });
-  if (engine === 'plugin') assert(!stderr.slice(captureLogOffset).includes('[Capture] Screenshot plugin unavailable:'), 'Primary and region plugin capture must both succeed');
-  await ipc(capture, 'capture-cancel');
+  if (engine === 'plugin') assert(!stderr.slice(captureLogOffset).includes('[Capture] Win32 GDI failed:'), 'Primary and region GDI capture must both succeed');
+  const closed = capture.waitForEvent('close');
+  if (engine === 'plugin') {
+    await capture.mouse.click(120, 120, { button: 'right' });
+  } else {
+    await capture.locator('#btnCancel').click({ button: 'right' });
+  }
+  await closed;
 }
 try {
   browser = await connectNative(app, `http://127.0.0.1:${port}`, { diagnostics: () => stderr });

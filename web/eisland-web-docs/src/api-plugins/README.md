@@ -16,8 +16,6 @@ Complete API reference for all eIsland native plugins. Windows plugins provide s
 
 | Plugin | Description |
 |--------|-------------|
-| [Windows Fullscreen Detector](display-graphics/fullscreen-detector.md) | Fullscreen window detection |
-| [Windows Screenshot Helper](display-graphics/screenshot-helper.md) | Primary display screen capture |
 
 ### Connectivity
 
@@ -31,9 +29,7 @@ Complete API reference for all eIsland native plugins. Windows plugins provide s
 | Plugin | Description |
 |--------|-------------|
 | [Windows Power Helper](system-power/power-helper.md) | Battery and power status monitoring |
-| [Windows Performance Monitor](system-power/performance-monitor.md) | CPU, memory, and temperature monitoring |
 | [Windows Processes Attacker](system-power/processes-attacker.md) | Process termination utilities |
-| [Windows Hardware Info Helper](system-power/hardware-info-helper.md) | Static hardware information query (CPU, GPU, memory, disk, etc.) |
 
 ### Media & Notifications
 

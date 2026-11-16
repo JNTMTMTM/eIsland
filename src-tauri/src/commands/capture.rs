@@ -26,11 +26,22 @@ use crate::shared::Result;
 use serde_json::{json, Value};
 use tauri::{AppHandle, WebviewWindow};
 
+/// 仅允许当前截图窗口通过二进制 IPC 领取原始像素。
+#[tauri::command]
+pub(crate) fn capture_pixels(
+    window: WebviewWindow,
+    app: AppHandle,
+) -> Result<tauri::ipc::Response> {
+    source(&window, "capture")?;
+    capture::take_pixels(&app).map(tauri::ipc::Response::new)
+}
+
 pub(super) fn handles(channel: &str) -> bool {
     matches!(
         channel,
         "system:screenshot:region:start"
             | "system:screenshot"
+            | "capture-frame-rendered"
             | "capture-cancel"
             | "capture-complete"
             | "capture-save"
@@ -50,6 +61,10 @@ pub(super) async fn handle(
             return Ok(json!(true));
         }
         "system:screenshot" => return capture::primary(&app).await,
+        "capture-frame-rendered" => {
+            source(&window, "capture")?;
+            capture::show(&window)?;
+        }
         "capture-cancel" => {
             source(&window, "capture")?;
             capture::close(&app)?;

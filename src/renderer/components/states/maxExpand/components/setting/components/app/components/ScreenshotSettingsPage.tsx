@@ -138,6 +138,7 @@ function TranslateLangDropdown({
  */
 export function ScreenshotSettingsPage(): ReactElement {
   const { t } = useTranslation();
+  const isMac = typeof navigator !== 'undefined' && /Macintosh/.test(navigator.userAgent);
   const [sourceLang, setSourceLang] = useState('auto');
   const [targetLang, setTargetLang] = useState('en');
   const [screenshotEngine, setScreenshotEngine] = useState<'plugin' | 'js'>('plugin');
@@ -198,26 +199,28 @@ export function ScreenshotSettingsPage(): ReactElement {
               {t('settings.app.screenshotSettings.engineHint')}
             </div>
           </div>
-          <div className="settings-card-inline-row">
-            <label className="settings-card-check">
-              <input
-                type="radio"
-                name="screenshot-engine"
-                checked={screenshotEngine === 'plugin'}
-                onChange={() => { handleScreenshotEngineChange('plugin'); }}
-              />
-              {t('settings.app.screenshotSettings.enginePlugin')}
-            </label>
-            <label className="settings-card-check">
-              <input
-                type="radio"
-                name="screenshot-engine"
-                checked={screenshotEngine === 'js'}
-                onChange={() => { handleScreenshotEngineChange('js'); }}
-              />
-              {t('settings.app.screenshotSettings.engineJs')}
-            </label>
-          </div>
+          {!isMac && (
+            <div className="settings-card-inline-row">
+              <label className="settings-card-check">
+                <input
+                  type="radio"
+                  name="screenshot-engine"
+                  checked={screenshotEngine === 'plugin'}
+                  onChange={() => { handleScreenshotEngineChange('plugin'); }}
+                />
+                {t('settings.app.screenshotSettings.engineNative')}
+              </label>
+              <label className="settings-card-check">
+                <input
+                  type="radio"
+                  name="screenshot-engine"
+                  checked={screenshotEngine === 'js'}
+                  onChange={() => { handleScreenshotEngineChange('js'); }}
+                />
+                {t('settings.app.screenshotSettings.engineCompatibility')}
+              </label>
+            </div>
+          )}
         </div>
         <div className="settings-card">
           <div className="settings-card-header">

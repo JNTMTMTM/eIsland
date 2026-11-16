@@ -21,6 +21,30 @@
 use crate::shared::geometry::Rect;
 use tauri::WebviewWindow;
 
+/// 在窗口首次显示前禁用 Windows 桌面合成过渡。
+#[cfg(windows)]
+pub fn disable_transitions(window: &WebviewWindow) -> Result<(), String> {
+    use windows_sys::Win32::{
+        Foundation::HWND,
+        Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_TRANSITIONS_FORCEDISABLED},
+    };
+
+    let hwnd = window.hwnd().map_err(|error| error.to_string())?.0 as HWND;
+    let disabled = 1i32;
+    let result = unsafe {
+        DwmSetWindowAttribute(
+            hwnd,
+            DWMWA_TRANSITIONS_FORCEDISABLED as u32,
+            std::ptr::from_ref(&disabled).cast(),
+            std::mem::size_of_val(&disabled) as u32,
+        )
+    };
+    if result < 0 {
+        return Err(format!("DwmSetWindowAttribute failed: {result:#010x}"));
+    }
+    Ok(())
+}
+
 /// Clip the reserved backing canvas to the currently visible island in device pixels.
 #[cfg(windows)]
 pub fn clip(window: &WebviewWindow, backing: Rect, visible: Rect) -> Result<(), String> {
