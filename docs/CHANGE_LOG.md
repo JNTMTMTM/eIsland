@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-15T23:09:08.084Z
+> 生成时间：2026-11-16T03:10:54.132Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,16 @@
 
 ## Unreleased
 
+- 2026-11-15 | 66f0b1b9 | JNTMTMTM | Merge pull request #334 from JNTMTMTM/dev
+- 2026-11-15 | 45844c82 | 鸡哥 | feat(i18n): add source labels for capture modes in English, Japanese, and Chinese
+- 2026-11-15 | a643d3fa | 鸡哥 | Remove capture source labels JSON file for localization
+- 2026-11-15 | 4b919700 | 鸡哥 | Refactor fullscreen detection: Remove fullscreen detector plugin and implement native fullscreen detection in Rust for both Windows and macOS
+- 2026-11-15 | c62994c0 | 鸡哥 | Remove deprecated hardware info helper documentation files for Bluetooth, CPU, Disk, GPU, Memory, Monitor, Motherboard, and Network Adapter APIs.
+- 2026-11-15 | 23635362 | 鸡哥 | feat(capture): enhance capture cancellation with context menu support
+- 2026-11-15 | eba1baee | 鸡哥 | feat(capture): implement pixel capture functionality and enhance screenshot handling
+- 2026-11-15 | 304ce720 | 鸡哥 | Refactor screenshot functionality and remove deprecated components
+- 2026-11-15 | b35d0dd8 | 鸡哥 | feat(telemetry): add hardware telemetry support for Windows and macOS
+- 2026-11-15 | f3f51bf8 | eislandBot | docs: auto update CHANGE_LOG.md for #324 by @JNTMTMTM [skip ci]
 - 2026-11-15 | b1230495 | JNTMTMTM | Merge pull request #324 from JNTMTMTM/dev
 - 2026-11-15 | 85834c7a | 鸡哥 | feat: add retired extensions for volume and brightness control; enhance brightness control documentation
 - 2026-11-15 | 008d3744 | 鸡哥 | Implement brightness control for macOS and Windows
