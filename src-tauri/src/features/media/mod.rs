@@ -307,15 +307,31 @@ fn publish(app: &AppHandle, payload: Value) -> Result<()> {
 /// 供开发 CLI 读取 Windows 会话，跳过桌面窗口及单实例注册。
 #[cfg(windows)]
 pub(crate) fn run_smtc_cli() -> bool {
-    if std::env::args_os().nth(1).as_deref() != Some(std::ffi::OsStr::new("--smtc-sessions")) {
-        return false;
-    }
-    match crate::infrastructure::platform::smtc::list_sessions() {
-        Ok(sessions) => println!("{}", json!(sessions)),
-        Err(error) => {
-            eprintln!("[SMTC] {error}");
-            std::process::exit(1);
-        }
+    use crate::infrastructure::platform::smtc;
+    use std::io::Write;
+    let watch = match std::env::args_os()
+        .nth(1)
+        .as_deref()
+        .and_then(std::ffi::OsStr::to_str)
+    {
+        Some("--smtc-sessions") => false,
+        // 开发 CLI 持续读取时复用同一进程，每秒输出一行快照。
+        Some("--smtc-sessions-watch") => true,
+        _ => return false,
+    };
+    let result = if watch {
+        smtc::watch_sessions(std::time::Duration::from_secs(1), |sessions| {
+            let mut stdout = std::io::stdout().lock();
+            writeln!(stdout, "{}", json!(sessions))
+                .and_then(|()| stdout.flush())
+                .is_ok()
+        })
+    } else {
+        smtc::list_sessions().map(|sessions| println!("{}", json!(sessions)))
+    };
+    if let Err(error) = result {
+        eprintln!("[SMTC] {error}");
+        std::process::exit(1);
     }
     true
 }

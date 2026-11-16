@@ -47,10 +47,14 @@ use windows_future::{AsyncOperationCompletedHandler, AsyncStatus, IAsyncOperatio
 
 const MEDIA: u8 = 1;
 const CLOCK: u8 = 2;
+const RETRY: u8 = 4;
+const MEDIA_RETRIES: u8 = 3;
 const TICKS_PER_SECOND: f64 = 10_000_000.;
 const EPOCH_TICKS: i64 = 116_444_736_000_000_000;
 const ARTWORK_BUDGET: usize = 4 * 1024 * 1024;
 const READ_TIMEOUT: Duration = Duration::from_secs(1);
+/// 元数据与封面在独立线程读取，可以等待较慢的网络封面而不阻塞其他会话。
+const MEDIA_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// 阻塞线程上的 WinRT 操作必须有超时，避免卡住的播放器阻塞后续通知或媒体控制。
 fn wait<T: RuntimeType>(
@@ -73,21 +77,34 @@ fn wait<T: RuntimeType>(
     task.GetResults().map_err(|error| error.to_string())
 }
 
-fn read_artwork(reference: &IRandomAccessStreamReference) -> Option<String> {
-    let stream = wait(reference.OpenReadAsync(), READ_TIMEOUT).ok()?;
-    let size = stream.Size().ok()?;
+/// 读取流失败或超时返回错误以便重试；图片过大或无法解码返回 `None`。
+fn read_artwork(
+    reference: &IRandomAccessStreamReference,
+    timeout: Duration,
+) -> Result<Option<String>> {
+    let stream = wait(reference.OpenReadAsync(), timeout)?;
+    let size = stream.Size().map_err(|error| error.to_string())?;
     if size == 0 || size > 8 * 1024 * 1024 {
-        return None;
+        return Ok(None);
     }
-    let reader = DataReader::CreateDataReader(&stream.GetInputStreamAt(0).ok()?).ok()?;
+    let input = stream
+        .GetInputStreamAt(0)
+        .map_err(|error| error.to_string())?;
+    let reader = DataReader::CreateDataReader(&input).map_err(|error| error.to_string())?;
     let load = reader
         .LoadAsync(size as u32)
         .and_then(|op| op.cast::<IAsyncOperation<u32>>());
-    if wait(load, READ_TIMEOUT).ok()? != size as u32 {
-        return None;
+    if wait(load, timeout)? != size as u32 {
+        return Err("SMTC artwork stream ended early".into());
     }
     let mut bytes = vec![0; size as usize];
-    reader.ReadBytes(&mut bytes).ok()?;
+    reader
+        .ReadBytes(&mut bytes)
+        .map_err(|error| error.to_string())?;
+    Ok(decode_artwork(bytes))
+}
+
+fn decode_artwork(bytes: Vec<u8>) -> Option<String> {
     let mut image_reader = image::ImageReader::new(Cursor::new(bytes))
         .with_guessed_format()
         .ok()?;
@@ -110,19 +127,32 @@ fn read_artwork(reference: &IRandomAccessStreamReference) -> Option<String> {
     ))
 }
 
-fn read_media(session: &Session, artwork: bool) -> Result<(Value, Option<String>)> {
-    let props = wait(session.TryGetMediaPropertiesAsync(), READ_TIMEOUT)?;
+struct MediaRead {
+    metadata: Value,
+    cover: Option<String>,
+    /// 封面读取失败时为 false：元数据仍可使用，但需要重试封面。
+    complete: bool,
+}
+
+fn read_media(session: &Session, artwork: bool, timeout: Duration) -> Result<MediaRead> {
+    let props = wait(session.TryGetMediaPropertiesAsync(), timeout)?;
     let metadata = json!({
         "title": props.Title().unwrap_or_default().to_string_lossy(),
         "artist": props.Artist().unwrap_or_default().to_string_lossy(),
         "albumTitle": props.AlbumTitle().unwrap_or_default().to_string_lossy(),
     });
-    let cover = if artwork {
-        props.Thumbnail().ok().as_ref().and_then(read_artwork)
-    } else {
-        None
+    let (cover, complete) = match props.Thumbnail().ok().filter(|_| artwork) {
+        Some(reference) => match read_artwork(&reference, timeout) {
+            Ok(cover) => (cover, true),
+            Err(_) => (None, false),
+        },
+        None => (None, true),
     };
-    Ok((metadata, cover))
+    Ok(MediaRead {
+        metadata,
+        cover,
+        complete,
+    })
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -217,6 +247,10 @@ struct Subscription {
     events: [Option<i64>; 3],
     dirty: Arc<AtomicU8>,
     clock: TimelineClock,
+    /// 后台读取线程写入的元数据结果，由监控线程取走。
+    finished: Arc<Mutex<Option<Result<MediaRead>>>>,
+    reading: bool,
+    attempts: u8,
 }
 
 impl Subscription {
@@ -226,6 +260,9 @@ impl Subscription {
             events: [None; 3],
             dirty: Arc::new(AtomicU8::new(MEDIA | CLOCK)),
             clock: TimelineClock::default(),
+            finished: Arc::new(Mutex::new(None)),
+            reading: false,
+            attempts: 0,
         };
         let notify = || {
             let dirty = subscription.dirty.clone();
@@ -258,6 +295,51 @@ impl Subscription {
         )?);
         Ok(subscription)
     }
+
+    /// 在独立线程读取元数据与封面，慢播放器不会拖延其他会话的播放状态更新。
+    fn start_media_read(&mut self, wake: &SyncSender<()>) {
+        self.reading = true;
+        let session = self.session.clone();
+        let finished = self.finished.clone();
+        let wake = wake.clone();
+        let spawned = std::thread::Builder::new()
+            .name("smtc-media".into())
+            .spawn(move || {
+                let apartment = super::ComApartment::enter();
+                let result = match apartment {
+                    Some(_) => read_media(&session, true, MEDIA_TIMEOUT),
+                    None => Err("Cannot initialize SMTC COM".into()),
+                };
+                // 会话引用须在本线程退出 COM 套间之前释放。
+                drop(session);
+                *finished.lock().unwrap() = Some(result);
+                let _ = wake.try_send(());
+                drop(apartment);
+            });
+        if let Err(error) = spawned {
+            *self.finished.lock().unwrap() = Some(Err(error.to_string()));
+        }
+    }
+
+    /// 取走已完成的读取结果；读取失败或封面不完整时在次数上限内安排重试。
+    fn take_media(&mut self, id: &str) -> Option<(Value, Option<String>)> {
+        let result = self.finished.lock().unwrap().take()?;
+        self.reading = false;
+        let (media, complete) = match result {
+            Ok(read) => (Some((read.metadata, read.cover)), read.complete),
+            Err(error) => {
+                eprintln!("[SMTC] Cannot read media for {id}: {error}");
+                (None, false)
+            }
+        };
+        if complete {
+            self.attempts = 0;
+        } else if self.attempts < MEDIA_RETRIES {
+            self.attempts += 1;
+            self.dirty.fetch_or(RETRY, Ordering::Release);
+        }
+        media
+    }
 }
 
 impl Drop for Subscription {
@@ -274,9 +356,9 @@ impl Drop for Subscription {
     }
 }
 
-#[derive(Default)]
 pub(crate) struct Api {
     snapshots: Mutex<BTreeMap<String, (Session, Value)>>,
+    manager: Manager,
 }
 
 impl Api {
@@ -302,13 +384,30 @@ impl Api {
     /// 对应用选中的精确会话发出媒体指令。
     pub(crate) fn command(&self, source: &str, name: &str, value: Option<f64>) -> Result<()> {
         let _apartment = super::ComApartment::enter().ok_or("Cannot initialize SMTC COM")?;
-        let session = self
+        let cached = self
             .snapshots
             .lock()
             .unwrap()
             .get(source)
-            .map(|(session, _)| session.clone())
-            .ok_or("No active media session")?;
+            .map(|(session, _)| session.clone());
+        // 播放器可能以相同来源重建会话，发送指令前重新查询，避免发给已失效的旧会话。
+        let session = match self.manager.GetSessions() {
+            Ok(sessions) => {
+                let live: Vec<Session> = sessions
+                    .into_iter()
+                    .filter(|session| {
+                        session
+                            .SourceAppUserModelId()
+                            .is_ok_and(|id| id.to_string_lossy() == source)
+                    })
+                    .collect();
+                cached
+                    .filter(|session| live.contains(session))
+                    .or_else(|| live.into_iter().next())
+            }
+            Err(_) => cached,
+        }
+        .ok_or("No active media session")?;
         let operation = match name {
             "play" => session.TryPlayAsync(),
             "pause" => session.TryPauseAsync(),
@@ -362,6 +461,10 @@ impl Monitor {
                 Ok(())
             }))
             .map_err(|error| error.to_string())?;
+        let api = Arc::new(Api {
+            snapshots: Mutex::new(BTreeMap::new()),
+            manager: manager.clone(),
+        });
         Ok(Self {
             subscriptions: BTreeMap::new(),
             manager,
@@ -370,7 +473,7 @@ impl Monitor {
             topology_sampled: None,
             wake,
             receiver,
-            api: Arc::new(Api::default()),
+            api,
             _apartment: apartment,
         })
     }
@@ -386,10 +489,21 @@ impl Monitor {
             .map_err(|error| error.to_string())?;
         let mut current = BTreeMap::new();
         for session in sessions {
-            if let Ok(id) = session.SourceAppUserModelId() {
-                if !id.is_empty() {
-                    current.entry(id.to_string_lossy()).or_insert(session);
-                }
+            let Some(id) = session
+                .SourceAppUserModelId()
+                .ok()
+                .filter(|id| !id.is_empty())
+                .map(|id| id.to_string_lossy())
+            else {
+                continue;
+            };
+            // 同一来源有多个会话时保留已订阅的那个，避免每次同步在会话间来回切换。
+            let subscribed = self
+                .subscriptions
+                .get(&id)
+                .is_some_and(|subscription| subscription.session == session);
+            if subscribed || !current.contains_key(&id) {
+                current.insert(id, session);
             }
         }
         self.subscriptions.retain(|id, subscription| {
@@ -425,16 +539,31 @@ impl Monitor {
                 .is_none_or(|sample| sample.elapsed() >= Duration::from_secs(5))
         {
             self.topology_sampled = Some(Instant::now());
-            self.sync_sessions(&mut changes)?;
+            if let Err(error) = self.sync_sessions(&mut changes) {
+                // 保留会话变更通知，下一轮立即重新同步。
+                self.topology_dirty.store(true, Ordering::Release);
+                return Err(error);
+            }
         }
         for (id, watched) in &mut self.subscriptions {
+            let media = watched.take_media(id);
             let flags = watched.dirty.swap(0, Ordering::AcqRel);
-            if flags == 0 {
+            if flags & MEDIA != 0 {
+                watched.attempts = 0;
+            }
+            if flags & (MEDIA | RETRY) != 0 {
+                if watched.reading {
+                    // 上一次读取尚未结束，保留请求，待其完成后再读取最新属性。
+                    watched
+                        .dirty
+                        .fetch_or(flags & (MEDIA | RETRY), Ordering::Release);
+                } else {
+                    watched.start_media_read(&self.wake);
+                }
+            }
+            if flags & CLOCK == 0 && media.is_none() {
                 continue;
             }
-            let media = (flags & MEDIA != 0)
-                .then(|| read_media(&watched.session, true).ok())
-                .flatten();
             let (playback, timeline) = read_clock(&watched.session, &mut watched.clock);
             let delta = self
                 .api
@@ -482,28 +611,26 @@ impl Api {
         let (current, snapshot) = entries
             .entry(id.into())
             .or_insert_with(|| (session.clone(), json!({"sourceAppId":id})));
-        let replaced = current != session;
-        if replaced {
+        // 同一来源重新订阅时保留已有元数据，新会话读取完成后按差异更新，避免界面闪烁。
+        if current != session {
             *current = session.clone();
-            snapshot["media"] = Value::Null;
-            snapshot["timeline"] = Value::Null;
         }
         if let Some((metadata, cover)) = media {
-            delta["mediaChanged"] = json!(true);
-            delta["media"] = metadata.clone();
             let cover = json!(cover);
-            if replaced || snapshot["media"]["thumbnail"] != cover {
+            if snapshot["media"]["thumbnail"] != cover {
                 delta["artworkChanged"] = json!(true);
                 delta["thumbnail"] = cover.clone();
             }
-            snapshot["media"] = metadata;
-            snapshot["media"]["thumbnail"] = cover;
-        } else if replaced {
-            delta["mediaChanged"] = json!(true);
-            delta["artworkChanged"] = json!(true);
+            let mut next = metadata.clone();
+            next["thumbnail"] = cover;
+            if snapshot["media"] != next {
+                delta["mediaChanged"] = json!(true);
+                delta["media"] = metadata;
+            }
+            snapshot["media"] = next;
         }
         snapshot["playback"] = playback;
-        if !timeline.is_null() || replaced {
+        if !timeline.is_null() {
             snapshot["timeline"] = timeline;
         }
         delta
@@ -514,6 +641,23 @@ impl Api {
 pub(crate) fn list_sessions() -> Result<Vec<Value>> {
     let _apartment = super::ComApartment::enter().ok_or("Cannot initialize SMTC COM")?;
     let manager = wait(Manager::RequestAsync(), Duration::from_secs(4))?;
+    collect_sessions(&manager)
+}
+
+/// 复用同一个管理器持续输出快照，`emit` 返回 false（如输出管道已关闭）时结束。
+pub(crate) fn watch_sessions(
+    interval: Duration,
+    mut emit: impl FnMut(&[Value]) -> bool,
+) -> Result<()> {
+    let _apartment = super::ComApartment::enter().ok_or("Cannot initialize SMTC COM")?;
+    let manager = wait(Manager::RequestAsync(), Duration::from_secs(4))?;
+    while emit(&collect_sessions(&manager)?) {
+        std::thread::sleep(interval);
+    }
+    Ok(())
+}
+
+fn collect_sessions(manager: &Manager) -> Result<Vec<Value>> {
     let sessions = manager.GetSessions().map_err(|error| error.to_string())?;
     let mut result = Vec::new();
     for session in sessions {
@@ -521,9 +665,9 @@ pub(crate) fn list_sessions() -> Result<Vec<Value>> {
         if id.is_empty() {
             continue;
         }
-        let media = read_media(&session, false)
+        let media = read_media(&session, false, READ_TIMEOUT)
             .ok()
-            .map(|(metadata, _)| metadata);
+            .map(|read| read.metadata);
         let (playback, timeline) = read_clock(&session, &mut TimelineClock::default());
         result.push(json!({"sourceAppId":id.to_string_lossy(),"media":media,"playback":playback,"timeline":timeline}));
     }

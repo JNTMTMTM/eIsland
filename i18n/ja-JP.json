@@ -5083,6 +5083,10 @@
         "empty": "メディアセッションがありません。任意のプレーヤーで再生してください。",
         "unknown": "未提供",
         "noTimeline": "アプリが再生位置を提供していません",
+        "binaryMissing": "eisland.exe が見つかりません。npm run build:e2e を実行するか EISLAND_SMTC_BINARY を設定してください。",
+        "binaryOutdated": "{{file}} は古いため継続読み取りに対応していません。npm run build:e2e を再実行してください。",
+        "invalidSnapshot": "SMTC セッションのスナップショットが無効です。",
+        "exited": "読み取りプロセスが終了しました（コード {{code}}）。まもなく再起動します。",
         "hint": "Esc 戻る · 毎秒更新",
         "fields": {
           "title": "タイトル",

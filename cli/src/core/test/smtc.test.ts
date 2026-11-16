@@ -20,7 +20,7 @@
 
 /**
  * @file smtc.test.ts
- * @description 验证 SMTC 原生快照转换、平台判断及定时读取的并发控制和取消行为
+ * @description 验证 SMTC 原生快照转换、平台判断及常驻读取的停止与重启行为
  * @author 鸡哥
  */
 
@@ -63,40 +63,62 @@ describe('isSmtcSupported', () => {
   });
 });
 
+type OnSessions = (sessions: NativeSession[]) => void;
+
+/**
+ * 模拟常驻读取进程：保存回调与停止信号，停止后 resolve
+ * @returns 读取函数及测试控制句柄
+ */
+function fakeStream() {
+  const calls: { signal: AbortSignal; emit: OnSessions }[] = [];
+  const stream = vi.fn((root: string, signal: AbortSignal, emit: OnSessions) => {
+    calls.push({ signal, emit });
+    return new Promise<void>((resolve) => signal.addEventListener('abort', () => resolve(), { once: true }));
+  });
+  return { stream, calls };
+}
+
 describe('watchSmtc', () => {
-  it('每次查询读取全部会话', async () => {
-    const read = vi.fn().mockResolvedValue([raw(), raw({ sourceAppId: 'Games.exe' })]);
+  it('同一读取进程的每份快照都会回调全部会话', async () => {
+    const { stream, calls } = fakeStream();
     const onUpdate = vi.fn<(sessions: SmtcSession[]) => void>();
-    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), read);
-    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 2);
-    expect(read).toHaveBeenCalledWith('/repo', expect.any(AbortSignal));
+    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), stream);
+    await vi.advanceTimersByTimeAsync(0);
+    calls[0].emit([raw(), raw({ sourceAppId: 'Games.exe' })]);
+    calls[0].emit([raw()]);
+    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 3);
+    expect(stream).toHaveBeenCalledTimes(1);
+    expect(stream).toHaveBeenCalledWith('/repo', expect.any(AbortSignal), expect.any(Function));
     expect(onUpdate).toHaveBeenCalledTimes(2);
     expect(onUpdate.mock.calls[0][0].map((session) => session.app)).toEqual(['Spotify.exe', 'Games.exe']);
     watcher.stop();
   });
 
-  it('上次查询未结束时跳过轮询，停止后忽略迟到的结果', async () => {
-    const deferred = Promise.withResolvers<NativeSession[]>();
-    const read = vi.fn<(_root: string, _signal: AbortSignal) => Promise<NativeSession[]>>(() => deferred.promise);
+  it('停止后结束读取进程并忽略迟到的结果', async () => {
+    const { stream, calls } = fakeStream();
     const onUpdate = vi.fn();
-    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), read);
-    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 3);
-    expect(read).toHaveBeenCalledTimes(1);
-    const [[, signal]] = read.mock.calls;
+    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), stream);
+    await vi.advanceTimersByTimeAsync(0);
     watcher.stop();
-    expect(signal.aborted).toBe(true);
-    deferred.resolve([raw()]);
-    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 2);
+    expect(calls[0].signal.aborted).toBe(true);
+    calls[0].emit([raw()]);
+    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 3);
     expect(onUpdate).not.toHaveBeenCalled();
+    expect(stream).toHaveBeenCalledTimes(1);
   });
 
-  it('报告读取错误，下一次查询可以恢复', async () => {
-    const read = vi.fn().mockRejectedValueOnce(new Error('read failed')).mockResolvedValue([raw()]);
+  it('读取进程退出时报告错误，间隔后重启', async () => {
+    const { stream, calls } = fakeStream();
+    stream.mockRejectedValueOnce(new Error('read failed'));
     const onError = vi.fn();
     const onUpdate = vi.fn();
-    const watcher = watchSmtc('/repo', onUpdate, onError, read);
-    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 2);
+    const watcher = watchSmtc('/repo', onUpdate, onError, stream);
+    await vi.advanceTimersByTimeAsync(0);
     expect(onError).toHaveBeenCalledWith('read failed');
+    expect(stream).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS);
+    expect(stream).toHaveBeenCalledTimes(2);
+    calls[0].emit([raw()]);
     expect(onUpdate).toHaveBeenCalledWith([toSmtcSession(raw())]);
     watcher.stop();
   });

@@ -25,10 +25,13 @@
  * @author 鸡哥
  */
 
-import { execFile } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { execFile, spawn } from 'node:child_process';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { createInterface } from 'node:readline';
 import { promisify } from 'node:util';
+
+import { t } from './i18n';
 
 /** 播放状态，按 WinRT GlobalSystemMediaTransportControlsSessionPlaybackStatus 枚举顺序 */
 export type SmtcStatus = 'closed' | 'opened' | 'changing' | 'stopped' | 'playing' | 'paused' | 'unknown';
@@ -61,8 +64,12 @@ export interface NativeSession {
   timeline: { position: number; duration: number; sampledAtMs?: number } | null;
 }
 
-/** 读取当前会话，界面卸载时取消尚未结束的请求。 */
-type ReadSessions = (root: string, signal: AbortSignal) => Promise<NativeSession[]>;
+/** 持续读取会话：每收到一份快照回调一次；读取进程意外结束时 reject，停止信号触发后 resolve。 */
+type StreamSessions = (
+  root: string,
+  signal: AbortSignal,
+  onSessions: (sessions: NativeSession[]) => void,
+) => Promise<void>;
 
 /** 读取句柄 */
 export interface SmtcWatcher {
@@ -70,8 +77,11 @@ export interface SmtcWatcher {
   stop: () => void;
 }
 
-/** 读取间隔 */
+/** 读取间隔，同时作为读取进程退出后的重启间隔 */
 export const SMTC_INTERVAL_MS = 1000;
+
+/** 持续输出会话快照的参数，旧版可执行文件不包含该参数 */
+const WATCH_FLAG = '--smtc-sessions-watch';
 
 const PLAYBACK_STATUS: readonly SmtcStatus[] = ['closed', 'opened', 'changing', 'stopped', 'playing', 'paused'];
 
@@ -87,29 +97,97 @@ export function isSmtcSupported(platform: NodeJS.Platform = process.platform): b
 const execute = promisify(execFile);
 
 /**
- * 调用项目中已构建的 Rust 可执行文件读取会话。
+ * 按 Cargo 的规则解析构建目录：相对的 CARGO_TARGET_DIR 基于 src-tauri，否则读取 cargo metadata。
  * @param root - 仓库根目录
- * @param signal - 停止查询的信号
- * @returns 当前所有 Windows 媒体会话
+ * @returns 构建目录绝对路径；Cargo 不可用时回退到 src-tauri/target
  */
-async function readSessions(root: string, signal: AbortSignal): Promise<NativeSession[]> {
-  const target = path.resolve(root, process.env.CARGO_TARGET_DIR || 'src-tauri/target');
+async function cargoTargetDirectory(root: string): Promise<string> {
+  const tauri = path.join(root, 'src-tauri');
+  const configured = process.env.CARGO_TARGET_DIR;
+  if (configured) return path.resolve(tauri, configured);
+  try {
+    const { stdout } = await execute(
+      'cargo',
+      ['metadata', '--no-deps', '--format-version', '1', '--offline', '--manifest-path', path.join(tauri, 'Cargo.toml')],
+      { cwd: tauri, encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024 },
+    );
+    const target: unknown = (JSON.parse(stdout) as { target_directory?: unknown }).target_directory;
+    if (typeof target === 'string' && path.isAbsolute(target)) return target;
+  } catch {
+    // 未安装 Cargo 或离线解析失败时使用默认目录。
+  }
+  return path.join(tauri, 'target');
+}
+
+/**
+ * 选择最新构建的可执行文件，并确认其支持持续读取参数。
+ * @param root - 仓库根目录
+ * @returns 可执行文件路径
+ */
+async function findBinary(root: string): Promise<string> {
   const override = process.env.EISLAND_SMTC_BINARY;
+  const target = override ? '' : await cargoTargetDirectory(root);
   const candidates = override
     ? [path.resolve(root, override)]
     : ['debug', 'release'].map((profile) => path.join(target, profile, 'eisland.exe'));
-  const binary = candidates.find((file) => existsSync(file));
-  if (!binary) throw new Error('eisland.exe not found. Run npm run build:e2e or set EISLAND_SMTC_BINARY.');
-  const { stdout } = await execute(binary, ['--smtc-sessions'], {
-    signal,
-    encoding: 'utf8',
-    windowsHide: true,
-    timeout: 10_000,
-    maxBuffer: 1024 * 1024,
+  const builds = await Promise.all(candidates.map(async (file) => {
+    try {
+      return { file, modified: (await stat(file)).mtimeMs };
+    } catch {
+      return null;
+    }
+  }));
+  const [newest] = builds
+    .filter((build) => build !== null)
+    .sort((left, right) => right.modified - left.modified);
+  if (!newest) throw new Error(t('devCli.localTest.smtc.binaryMissing'));
+  // 旧版本不认识该参数，会直接启动完整的桌面应用。
+  if (!(await readFile(newest.file)).includes(WATCH_FLAG)) {
+    throw new Error(t('devCli.localTest.smtc.binaryOutdated', { file: newest.file }));
+  }
+  return newest.file;
+}
+
+/**
+ * 启动一个常驻的 Rust 读取进程，每秒解析一行会话快照。
+ * @param root - 仓库根目录
+ * @param signal - 停止读取并结束子进程的信号
+ * @param onSessions - 收到一份快照时回调
+ * @returns 停止后 resolve；进程意外退出或输出无效时 reject
+ */
+async function streamSessions(
+  root: string,
+  signal: AbortSignal,
+  onSessions: (sessions: NativeSession[]) => void,
+): Promise<void> {
+  const binary = await findBinary(root);
+  if (signal.aborted) return;
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(binary, [WATCH_FLAG], { signal, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stderr = '';
+    child.stderr.setEncoding('utf8').on('data', (chunk: string) => {
+      stderr = (stderr + chunk).slice(-2000);
+    });
+    createInterface({ input: child.stdout }).on('line', (line) => {
+      try {
+        const result: unknown = JSON.parse(line);
+        if (!Array.isArray(result)) throw new Error(t('devCli.localTest.smtc.invalidSnapshot'));
+        onSessions(result as NativeSession[]);
+      } catch (error) {
+        child.kill();
+        const invalid = error instanceof SyntaxError || !(error instanceof Error);
+        reject(invalid ? new Error(t('devCli.localTest.smtc.invalidSnapshot')) : error);
+      }
+    });
+    child.once('error', (error) => {
+      if (signal.aborted) resolve();
+      else reject(error);
+    });
+    child.once('close', (code) => {
+      if (signal.aborted) resolve();
+      else reject(new Error(stderr.trim() || t('devCli.localTest.smtc.exited', { code: String(code) })));
+    });
   });
-  const result: unknown = JSON.parse(stdout);
-  if (!Array.isArray(result)) throw new Error('Invalid SMTC session snapshot.');
-  return result as NativeSession[];
 }
 
 /**
@@ -131,38 +209,40 @@ export function toSmtcSession(raw: NativeSession): SmtcSession {
 }
 
 /**
- * 每秒读取媒体会话。上一轮尚未完成时跳过本次查询。
+ * 通过常驻读取进程每秒接收媒体会话，进程退出后报告错误并按间隔重启。
  * @param root - 仓库根目录
- * @param onUpdate - 成功读取全部会话时回调
+ * @param onUpdate - 收到全部会话时回调
  * @param onError - 读取失败时回调
- * @param read - 原生会话读取函数，可在测试中替换
+ * @param stream - 原生会话读取函数，可在测试中替换
  * @returns 可停止的读取句柄
  */
 export function watchSmtc(
   root: string,
   onUpdate: (sessions: SmtcSession[]) => void,
   onError: (message: string) => void,
-  read: ReadSessions = readSessions,
+  stream: StreamSessions = streamSessions,
 ): SmtcWatcher {
   const controller = new AbortController();
-  let pending = false;
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- 定时回调处理读取错误，停止时取消子进程。
-  const timer = setInterval(async () => {
-    if (pending) return;
-    pending = true;
-    try {
-      const sessions = await read(root, controller.signal);
-      if (!controller.signal.aborted) onUpdate(sessions.map(toSmtcSession));
-    } catch (error) {
-      if (!controller.signal.aborted) onError(error instanceof Error ? error.message : String(error));
-    } finally {
-      pending = false;
-    }
-  }, SMTC_INTERVAL_MS);
+  const { signal } = controller;
+  let timer: NodeJS.Timeout | undefined;
+  const schedule = (ms: number): void => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- 回调内部处理全部读取错误，停止时由信号结束子进程。
+    timer = setTimeout(async () => {
+      try {
+        await stream(root, signal, (sessions) => {
+          if (!signal.aborted) onUpdate(sessions.map(toSmtcSession));
+        });
+      } catch (error) {
+        if (!signal.aborted) onError(error instanceof Error ? error.message : String(error));
+      }
+      if (!signal.aborted) schedule(SMTC_INTERVAL_MS);
+    }, ms);
+  };
+  schedule(0);
 
   return {
     stop: () => {
-      clearInterval(timer);
+      clearTimeout(timer);
       controller.abort();
     },
   };

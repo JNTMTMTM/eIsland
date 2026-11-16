@@ -5083,6 +5083,10 @@
         "empty": "目前沒有媒體工作階段，請先在任意播放器中播放內容。",
         "unknown": "未提供",
         "noTimeline": "應用程式未提供播放進度",
+        "binaryMissing": "找不到 eisland.exe，請先執行 npm run build:e2e 或設定 EISLAND_SMTC_BINARY。",
+        "binaryOutdated": "{{file}} 版本過舊，不支援持續讀取，請重新執行 npm run build:e2e。",
+        "invalidSnapshot": "SMTC 工作階段快照無效。",
+        "exited": "讀取程序已結束（代碼 {{code}}），稍後自動重新啟動。",
         "hint": "Esc 返回 · 每秒重新整理",
         "fields": {
           "title": "標題",

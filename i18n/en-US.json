@@ -5083,6 +5083,10 @@
         "empty": "No media sessions. Start playing something in any player.",
         "unknown": "not provided",
         "noTimeline": "The app does not report playback progress",
+        "binaryMissing": "eisland.exe not found. Run npm run build:e2e or set EISLAND_SMTC_BINARY.",
+        "binaryOutdated": "{{file}} is too old to stream sessions. Run npm run build:e2e again.",
+        "invalidSnapshot": "Invalid SMTC session snapshot.",
+        "exited": "The reader process exited (code {{code}}). Restarting shortly.",
         "hint": "Esc back · refreshes every second",
         "fields": {
           "title": "Title",

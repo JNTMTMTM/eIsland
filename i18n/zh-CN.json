@@ -5083,6 +5083,10 @@
         "empty": "当前没有媒体会话，请先在任意播放器中播放内容。",
         "unknown": "未提供",
         "noTimeline": "应用未提供播放进度",
+        "binaryMissing": "未找到 eisland.exe，请先运行 npm run build:e2e 或设置 EISLAND_SMTC_BINARY。",
+        "binaryOutdated": "{{file}} 版本过旧，不支持持续读取，请重新运行 npm run build:e2e。",
+        "invalidSnapshot": "SMTC 会话快照无效。",
+        "exited": "读取进程已退出（代码 {{code}}），稍后自动重启。",
         "hint": "Esc 返回 · 每秒刷新",
         "fields": {
           "title": "标题",
