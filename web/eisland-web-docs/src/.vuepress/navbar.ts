@@ -30,7 +30,7 @@ export default navbar([
   { text: "HOME", link: "/", icon: "house" },
   { text: "OVERALL", link: "/introduction/", icon: "book-open" },
   { text: "DEVELOPER", link: "/developer/", icon: "code" },
-  { text: "[API] PLUGINS", link: "/api-plugins/", icon: "plug" },
+  { text: "[API] NATIVE", link: "/api-plugins/", icon: "plug" },
   { text: "[API] BACKEND", link: "/api-backend/", icon: "server" },
   { text: "[API] FRONTEND", link: "/api-frontend/", icon: "display" },
   { text: "GitHub", link: "https://github.com/JNTMTMTM/eIsland", icon: "fa6-brands:github" },

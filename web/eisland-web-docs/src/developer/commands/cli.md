@@ -49,7 +49,6 @@ Run `npm run dev` inside `cli/` to rebuild on every change (`vite build --watch`
 
 ```bash
 eisland-cli test main                       # npm run test:main
-eisland-cli plugin build power               # npm run plugin:build:power
 eisland-cli run test:renderer -- --watch    # npm run test:renderer -- --watch
 eisland-cli list plugin                     # list only the plugin group
 ```

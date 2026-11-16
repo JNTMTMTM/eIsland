@@ -42,14 +42,9 @@ struct Extension {
     description: &'static str,
     executable: &'static str,
 }
-const REGISTRY: [Extension; 1] = [Extension {
-    id: "volume-analyzer",
-    name: "音频节拍分析器",
-    description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
-    executable: "eIslandVolumeAnalyzer.exe",
-}];
-/// 已由内置原生实现取代的助手扩展，仅用于展示和卸载旧版本遗留的安装，不再提供安装。
-const RETIRED: [Extension; 2] = [
+const REGISTRY: &[Extension] = &[];
+/// 已下线的扩展仅用于展示和卸载旧版本遗留的安装。
+const RETIRED: [Extension; 3] = [
     Extension {
         id: "volume-helper",
         name: "音量控制助手",
@@ -61,6 +56,12 @@ const RETIRED: [Extension; 2] = [
         name: "亮度控制助手",
         description: "Windows 屏幕亮度查询与控制（WMI / DDC/CI），支持亮度事件监听",
         executable: "eIslandBrightnessReader.exe",
+    },
+    Extension {
+        id: "volume-analyzer",
+        name: "音频节拍分析器",
+        description: "进程级音频频谱分析、振幅检测与 BPM 识别，用于跑马灯节拍特效",
+        executable: "eIslandVolumeAnalyzer.exe",
     },
 ];
 #[derive(Default, Debug, Deserialize)]
@@ -259,7 +260,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
     if channel == "extension:list" {
         let source = id;
         let resolved = args.get(1).and_then(Value::as_str).unwrap_or("");
-        let versions = if source.is_empty() {
+        let versions = if REGISTRY.is_empty() || source.is_empty() {
             vec![]
         } else {
             let base = base_url(app, source, resolved)?;
@@ -298,9 +299,9 @@ mod tests {
     use super::*;
     #[test]
     fn formal_yaml_preserves_published_sequence_wrapper_quotes_and_comments() {
-        let sequence = "- id: volume-analyzer\n  version: '1.2.3' # published comment\n  url: \"中文文件.zip?next=a:b#fragment\"\n  size: 42\n";
+        let sequence = "- id: fixture-extension\n  version: '1.2.3' # published comment\n  url: \"中文文件.zip?next=a:b#fragment\"\n  size: 42\n";
         let result = metadata(sequence).unwrap();
-        assert_eq!(result[0].id, "volume-analyzer");
+        assert_eq!(result[0].id, "fixture-extension");
         assert_eq!(result[0].url, "中文文件.zip?next=a:b#fragment");
         let wrapped = format!(
             "extensions:\n{}",
@@ -311,7 +312,7 @@ mod tests {
         );
         assert_eq!(metadata(&wrapped).unwrap()[0].version, "1.2.3");
         assert_eq!(
-            metadata(r#"[{"id":"volume-analyzer","version":"1.2.3","url":"package.zip"}]"#)
+            metadata(r#"[{"id":"fixture-extension","version":"1.2.3","url":"package.zip"}]"#)
                 .unwrap()[0]
                 .url,
             "package.zip"
@@ -319,7 +320,7 @@ mod tests {
     }
     #[test]
     fn retired_helpers_remain_removable_but_not_installable() {
-        for id in ["volume-helper", "brightness-helper"] {
+        for id in ["volume-helper", "brightness-helper", "volume-analyzer"] {
             assert_eq!(removable(id).unwrap().id, id);
             assert!(registry(id).is_err());
         }
@@ -328,10 +329,10 @@ mod tests {
     #[test]
     fn formal_yaml_rejects_guessed_indentation_wrong_shapes_duplicate_keys_and_truncation() {
         for value in [
-            "extensions:\n - id: volume-analyzer\n version: 1.2.3\n url: file.zip",
-            "- id: volume-analyzer\n  id: duplicate\n  version: 1.2.3\n  url: file.zip",
+            "extensions:\n - id: fixture-extension\n version: 1.2.3\n url: file.zip",
+            "- id: fixture-extension\n  id: duplicate\n  version: 1.2.3\n  url: file.zip",
             "- id: [nested]\n  version: 1.2.3\n  url: file.zip",
-            "- id: volume-analyzer\n  url: [",
+            "- id: fixture-extension\n  url: [",
             "unexpected: []",
         ] {
             assert!(metadata(value).is_err(), "{value}");
@@ -341,7 +342,7 @@ mod tests {
     #[test]
     fn parses_remote_native_versions() {
         let result = metadata(
-            "- id: volume-analyzer\n  version: 1.2.3\n  url: volume-analyzer-v1.2.3.zip\n  size: 42\n",
+            "- id: fixture-extension\n  version: 1.2.3\n  url: fixture-extension-v1.2.3.zip\n  size: 42\n",
         )
         .unwrap();
         assert_eq!(result.len(), 1);
@@ -354,14 +355,14 @@ mod tests {
         assert!(valid_version("27.0.1-beta.1"));
     }
     #[test]
-    fn native_registry_does_not_require_javascript() {
-        assert!(REGISTRY
-            .iter()
-            .all(|entry| entry.executable.ends_with(".exe")));
-    }
-    #[test]
     fn archive_extraction_requires_native_executable_and_blocks_traversal() {
         use zip::{write::SimpleFileOptions, ZipWriter};
+        let extension = Extension {
+            id: "fixture-extension",
+            name: "Fixture",
+            description: "Native extension test fixture",
+            executable: "fixture.exe",
+        };
         let root = std::env::temp_dir().join(format!(
             "eisland-native-extension-test-{:016x}",
             rand::random::<u64>()
@@ -369,20 +370,20 @@ mod tests {
         fs::create_dir(&root).unwrap();
         let archive = root.join("native.zip");
         let mut zip = ZipWriter::new(File::create(&archive).unwrap());
-        zip.start_file(REGISTRY[0].executable, SimpleFileOptions::default())
+        zip.start_file(extension.executable, SimpleFileOptions::default())
             .unwrap();
         zip.write_all(b"fixture-only").unwrap();
         zip.finish().unwrap();
         let directory = root.join("native");
-        extract(&archive, &directory, &REGISTRY[0]).unwrap();
-        assert!(directory.join(REGISTRY[0].executable).is_file());
+        extract(&archive, &directory, &extension).unwrap();
+        assert!(directory.join(extension.executable).is_file());
         assert!(!directory.join("index.js").exists());
         let mut zip = ZipWriter::new(File::create(&archive).unwrap());
         zip.start_file("../outside", SimpleFileOptions::default())
             .unwrap();
         zip.write_all(b"outside").unwrap();
         zip.finish().unwrap();
-        assert!(extract(&archive, &root.join("bad"), &REGISTRY[0]).is_err());
+        assert!(extract(&archive, &root.join("bad"), &extension).is_err());
         assert!(!root.parent().unwrap().join("outside").exists());
         assert!(safe_remove(&root, &root.parent().unwrap().join("outside")).is_err());
         fs::remove_dir_all(root).unwrap();

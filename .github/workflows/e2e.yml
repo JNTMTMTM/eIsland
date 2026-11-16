@@ -9,7 +9,6 @@ on:
       - 'scripts/test/**'
       - 'i18n/**'
       - 'resources/**'
-      - 'plugins/**'
       - 'package*.json'
       - 'vite.config.ts'
       - '.github/workflows/e2e.yml'

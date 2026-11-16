@@ -7,7 +7,6 @@ updates:
       - /
       - /sdk
       - /web/*
-      - /plugins/windows/*
     schedule:
       interval: weekly
       day: monday
@@ -18,25 +17,6 @@ updates:
       prefix: chore(deps)
     groups:
       npm-minor-patch:
-        patterns:
-          - '*'
-        update-types:
-          - minor
-          - patch
-
-  - package-ecosystem: nuget
-    directories:
-      - /plugins/windows/eisland-windows-startup-helper/src
-    schedule:
-      interval: weekly
-      day: monday
-      time: '09:00'
-      timezone: Asia/Shanghai
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: chore(deps)
-    groups:
-      nuget-minor-patch:
         patterns:
           - '*'
         update-types:

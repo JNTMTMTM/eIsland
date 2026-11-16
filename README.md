@@ -61,7 +61,7 @@ Use a published Windows x64 installer from [Releases](https://github.com/JNTMTMT
 
 ### Build from source
 
-Requirements: Node.js `24.22.1` (see [`.nvmrc`](.nvmrc)), Rust with the Windows MSVC toolchain, WebView2, the .NET 10 SDK and Visual Studio C++ build tools for the native plugins.
+Requirements: Node.js `24.22.1` (see [`.nvmrc`](.nvmrc)), Rust with the Windows MSVC toolchain, Visual Studio C++ build tools, and WebView2.
 
 ```sh
 git clone https://github.com/JNTMTMTM/eIsland.git
@@ -69,7 +69,7 @@ cd eIsland
 npm ci --ignore-scripts
 npm ci --prefix cli --ignore-scripts
 npm ci --prefix temp/app --ignore-scripts
-npm run plugins:build # build native plugins separately
+npm run plugins:build # prepare FFmpeg and ffprobe
 npm run dev                 # start Tauri with hot reload
 npm run package             # Tauri NSIS and same-version migration adapter
 ```

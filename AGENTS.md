@@ -107,12 +107,6 @@ Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` s
 
 - After modifying files under `plugins/<platform>/<name>/`, check if `plugins/<platform>/<name>/package.json` version was incremented.
 - Follow semver: patch for bug fixes, minor for new features, major for breaking changes.
-- The `publish-plugins.yml` workflow skips publish when the version is unchanged — forgetting the bump means the change never ships.
-
-**Creating a new plugin requires registering it in `.github/workflows/publish-plugins.yml`.**
-
-- Add the plugin name to both `publish-npm` and `publish-gpr` job matrices.
-- Without registration, the new plugin will never be published to npm or GitHub Packages.
 
 ## 10. Pull Request Merge Method
 

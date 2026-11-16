@@ -33,8 +33,7 @@ src/
     ├── environment-setup/       # Environment configuration
     │   ├── README.md            # Category index
     │   ├── frontend-setup.md
-    │   ├── backend-setup.md
-    │   └── plugin-setup.md
+    │   └── backend-setup.md
     ├── commands/                # npm/Maven script reference
     │   ├── README.md            # Category index
     │   ├── dev-commands.md
@@ -42,7 +41,6 @@ src/
     │   ├── quality-commands.md
     │   ├── release-commands.md
     │   ├── package-commands.md
-    │   ├── plugin-commands.md
     │   └── esa-commands.md
     ├── code-quality/            # Coding and comment quality standards
     │   ├── README.md            # Category index

@@ -111,15 +111,7 @@ registerHotkeyHandlers({ getMainWindow, getIslandPositionOffset });
 
 ### Native Module Integration
 
-:::warning
-Native modules (C/C++ addons) are loaded in the Main Process with sandbox disabled. These modules provide low-level Windows system capabilities. For detailed plugin implementations, see [Plugins Tech Stack](../tech-stack/plugins-tech-stack.md).
-:::
-
-| Module | Purpose | Platform |
-|--------|---------|----------|
-| `@eisland/windows-processes-attacker` | Terminate processes by name/PID | Windows only |
-
-On Windows, the Rust desktop backend implements fullscreen auto-hide using Win32/DWM.
+On Windows, the Rust desktop backend uses Win32/DWM for fullscreen auto-hide and calls the system process tools for Agent window management. See the [native desktop tech stack](../tech-stack/plugins-tech-stack.md) for the Rust system services.
 
 ### Window Architecture
 

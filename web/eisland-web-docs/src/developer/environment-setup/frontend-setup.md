@@ -19,7 +19,6 @@ The eIsland frontend is an **Electron + React + TypeScript** desktop application
 | **npm** | >= 10.x | Package manager | 11.15.0 |
 | **Git** | Latest | Version control | 2.53.0.windows.2 |
 | **VS Build Tools 2022** | Latest | Compile native C/C++ plugins | "Desktop development with C++" workload |
-| **.NET 10 SDK** | >= 10.0 | Build .NET native plugins | 10.0 |
 
 :::warning
 Use Node.js 24.22.1 LTS for development and CI. This version supports the native TypeScript execution used by the build scripts.
@@ -142,21 +141,7 @@ Always push to `origin` (your fork), never to `upstream` (the main repository). 
 npm install
 ```
 
-:::tip
-The `postinstall` script automatically runs `electron-builder install-app-deps` to rebuild native modules for Electron's Node.js version.
-:::
-
-:::warning
-`npm install` will automatically compile the native C/C++ plugins (`windows-toast-listener`, `windows-processes-attacker`). This requires:
-
-- **Visual Studio Build Tools 2022** — with the **"Desktop development with C++"** workload installed
-
-If you see `MSB8036: The Windows SDK version was not found` or `node-gyp` build errors, install the build tools:
-
-1. Download [Visual Studio Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-2. In the installer, select **"Desktop development with C++"** workload
-4. Restart your terminal and run `npm install` again
-:::
+The root `postinstall` script installs the CLI workspace dependencies.
 
 ## Development Commands
 

@@ -23,4 +23,3 @@ The eIsland project spans three development domains, each with its own toolchain
 |----------|-------------|
 | [Frontend Setup](frontend-setup.md) | Node.js, pnpm, Electron, React, and frontend IDE configuration |
 | [Backend Setup](backend-setup.md) | Java JDK, Maven, MySQL, Redis, RabbitMQ, and backend IDE configuration |
-| [Plugin Setup](plugin-setup.md) | Plugin development toolchain, scaffolding, and testing environment |

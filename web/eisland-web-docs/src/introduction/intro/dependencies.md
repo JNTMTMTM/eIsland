@@ -122,31 +122,6 @@ To contribute a new language translation, developers add translation files to th
 Security is a top priority. DOMPurify acts as a safety filter — it removes any potentially harmful code from external content before the app displays it. This protects users from cross-site scripting (XSS) attacks that could otherwise compromise the application.
 :::
 
-## Windows Native Plugins
-
-eIsland uses four custom-built plugins that communicate directly with the Windows operating system for features that web technologies alone cannot provide.
-
-| Plugin | What It Does |
-|--------|--------------|
-| **Windows Fullscreen Detector** | Detects when a fullscreen application (like a game or video) is running, so the island can automatically hide itself and avoid blocking your view. |
-| **Windows Toast Listener** | Monitors Windows notification center for new toast notifications, allowing the island to display notification previews. |
-| **Windows Processes Attacker** | Manages Windows processes — used to close specific applications when needed (e.g., during cleanup or automation). |
-
-:::note
-These plugins are written in C and C++ for maximum performance and use Windows system libraries (kernel32, user32, dwmapi) to access low-level operating system features.
-:::
-
-:::warning
-Windows Native Plugins are only available on Windows. They require the Windows SDK and a C/C++ compiler (node-gyp) to build from source. These plugins will not work on macOS or Linux.
-:::
-
-:::details Native System Libraries Used by Plugins
-Each plugin links against specific Windows system libraries:
-
-- **kernel32.lib** — Used by `windows-processes-attacker` for process management (creating, terminating, and querying processes).
-- **runtimeobject.lib** — Used by `windows-toast-listener` for Windows Runtime APIs (accessing the notification center).
-:::
-
 ## Auto-Update
 
 | Library | What It Does |
@@ -221,7 +196,6 @@ These are tools developers use to build, test, and package eIsland. They are not
 
 | Tool | What It Does |
 |------|--------------|
-| **Node-Gyp** | Compiles the native C/C++ plugins into binaries that Windows can execute. Required for building the four Windows Native Plugins. |
 
 :::details How the Build Pipeline Works
 The build process follows these steps:
