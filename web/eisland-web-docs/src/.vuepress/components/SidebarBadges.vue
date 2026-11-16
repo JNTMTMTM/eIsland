@@ -31,10 +31,6 @@ import { useRoute } from 'vuepress/client'
 
 // ── name → badge type mapping ────────────────────────────────────
 const BADGE_MAP: Record<string, string> = {
-  // Fullscreen Detector
-  NativeRect: 'interface',
-  NativeMonitorInfo: 'interface',
-  FullscreenWindowInfo: 'interface',
   // Bluetooth Helper
   BluetoothDeviceInfo: 'interface',
   BluetoothMonitor: 'monitor',
@@ -48,14 +44,6 @@ const BADGE_MAP: Record<string, string> = {
   EnergySaverStatus: 'enum',
   PowerInfo: 'interface',
   PowerMonitor: 'monitor',
-  // Performance Monitor
-  TemperatureCategory: 'enum',
-  CpuSnapshot: 'interface',
-  MemorySnapshot: 'interface',
-  TemperatureReading: 'interface',
-  TemperatureSnapshot: 'interface',
-  HardwareDevice: 'interface',
-  HardwareListSnapshot: 'interface',
   // Processes Attacker
   ProcessCloseResult: 'interface',
   ProcessFailure: 'interface',
@@ -75,17 +63,6 @@ const BADGE_MAP: Record<string, string> = {
   ToastNotificationChangeKind: 'enum',
   ToastNotificationChangedEvent: 'interface',
   ToastNotificationSnapshot: 'interface',
-  // Hardware Info Helper
-  CpuInfo: 'interface',
-  GpuInfo: 'interface',
-  MemorySlotInfo: 'interface',
-  DiskInfo: 'interface',
-  NetworkAdapterInfo: 'interface',
-  MotherboardInfo: 'interface',
-  MonitorInfo: 'interface',
-  // Screenshot Helper
-  ScreenshotResult: 'interface',
-  VisibleWindowBounds: 'interface',
   // Volume Helper
   VolumeMonitor: 'monitor',
   // Volume Analyzer

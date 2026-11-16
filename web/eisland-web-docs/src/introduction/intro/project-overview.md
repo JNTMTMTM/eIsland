@@ -81,7 +81,7 @@ eIsland provides a rich set of functional modules covering music, productivity t
 ### Information Display
 - Weather information with location detection (powered by [QWeather API](../backend-arch/redis-schema.md#db-11--qweather-cache--tencent-tmt-quota))
 - Calendar integration with lunar dates
-- Performance monitoring widgets (via [Performance Monitor Plugin](../tech-stack/plugins-tech-stack.md#plugin-windows-performance-monitor))
+- Performance monitoring widgets for CPU, GPU, memory, and disk usage and available temperatures
 
 ### Entertainment
 - Built-in mini-games (2048, Gomoku) with [leaderboard system](../backend-arch/mysql-schema.md#mini-game-domain)

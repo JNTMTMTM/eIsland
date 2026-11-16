@@ -55,7 +55,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
     let channel = channel.to_owned();
     let args = args.to_vec();
     let metrics = if channel == "system:performance-snapshot:get" {
-        performance::sample(&app)
+        performance::sample()
     } else {
         Value::Null
     };
@@ -400,22 +400,9 @@ mod icon_tests;
 fn gpus() -> Vec<Value> {
     #[cfg(windows)]
     {
-        use windows::Win32::Graphics::Dxgi::{
-            CreateDXGIFactory1, IDXGIFactory1, DXGI_ADAPTER_FLAG_SOFTWARE,
-        };
-        let Ok(factory) = (unsafe { CreateDXGIFactory1::<IDXGIFactory1>() }) else {
-            return Vec::new();
-        };
+        use crate::infrastructure::platform::telemetry::{adapter_id, adapters};
         let mut values = Vec::new();
-        let mut index = 0;
-        while let Ok(adapter) = unsafe { factory.EnumAdapters1(index) } {
-            index += 1;
-            let Ok(info) = (unsafe { adapter.GetDesc1() }) else {
-                continue;
-            };
-            if info.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 != 0 {
-                continue;
-            }
+        for info in adapters() {
             let length = info
                 .Description
                 .iter()
@@ -428,7 +415,7 @@ fn gpus() -> Vec<Value> {
                 0x8086 => "Intel",
                 _ => "",
             };
-            values.push(json!({"vendor":vendor,"model":model,"vramTotalMb":info.DedicatedVideoMemory/1048576,"loadPercent":null,"temperatureCelsius":null,"_luid":format!("luid_0x{:08x}_0x{:08x}",info.AdapterLuid.HighPart as u32,info.AdapterLuid.LowPart)}));
+            values.push(json!({"vendor":vendor,"model":model,"vramTotalMb":info.DedicatedVideoMemory/1048576,"loadPercent":null,"temperatureCelsius":null,"_luid":adapter_id(info.AdapterLuid)}));
         }
         values
     }

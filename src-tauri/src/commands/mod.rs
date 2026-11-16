@@ -25,7 +25,7 @@ pub(crate) mod desktop;
 mod input;
 mod services;
 
-mod capture;
+pub(crate) mod capture;
 #[cfg(debug_assertions)]
 mod debug;
 mod lifecycle;

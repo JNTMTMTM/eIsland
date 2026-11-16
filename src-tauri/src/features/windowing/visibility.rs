@@ -23,7 +23,7 @@
 use super::{create, emit, main_window, reposition};
 use crate::infrastructure::platform::window as native;
 use crate::shared::Result;
-use crate::state::Desktop;
+use crate::state::{Desktop, WindowState};
 use serde_json::json;
 use tauri::AppHandle;
 use tauri::Manager;
@@ -31,24 +31,24 @@ use tauri::Manager;
 pub fn show_main(app: &AppHandle) -> Result<()> {
     let existed = app.get_webview_window("main").is_some();
     let window = create(app, "main")?;
-    {
-        let state = app.state::<Desktop>();
-        let mut s = state.inner.lock().unwrap();
-        s.manually_hidden = false;
-        s.auto_hidden = false;
-        s.manual_show_override = true;
-        s.visibility_generation += 1;
-    }
+    clear_hidden(&mut app.state::<Desktop>().inner.lock().unwrap());
     if app.get_webview_window("capture").is_some()
-        || app
-            .state::<Desktop>()
-            .inner
-            .lock()
-            .unwrap()
-            .capture_starting
+        || app.state::<Desktop>().inner.lock().unwrap().capture_active
     {
         return Ok(());
     }
+    present_main(app, &window, existed)
+}
+
+/// 清除隐藏标记并使延迟中的隐藏任务失效。调用方需持有状态锁。
+fn clear_hidden(s: &mut WindowState) {
+    s.manually_hidden = false;
+    s.auto_hidden = false;
+    s.manual_show_override = true;
+    s.visibility_generation += 1;
+}
+
+fn present_main(app: &AppHandle, window: &tauri::WebviewWindow, existed: bool) -> Result<()> {
     if !existed {
         reposition(app)?;
         return Ok(());
@@ -107,15 +107,37 @@ pub fn show_standalone(app: &AppHandle) -> Result<()> {
 
 pub fn restore_after_capture(app: &AppHandle) -> Result<()> {
     let state = app.state::<Desktop>();
-    let hidden = {
+    // 判断与清除隐藏标记在同一把锁内完成，避免并发的隐藏请求被覆盖。
+    let (show, restart) = {
         let mut s = state.inner.lock().unwrap();
         s.capture_payload = None;
-        s.manually_hidden || s.auto_hidden
+        s.capture_pixels = None;
+        s.capture_renderer_ready = false;
+        s.capture_closing = false;
+        let restart = std::mem::take(&mut s.capture_restart);
+        let show = !restart && !(s.manually_hidden || s.auto_hidden);
+        if show {
+            clear_hidden(&mut s);
+        }
+        (show, restart)
     };
-    if !hidden {
-        show_main(app)?;
+    let result = if show {
+        let existed = app.get_webview_window("main").is_some();
+        create(app, "main").and_then(|window| present_main(app, &window, existed))
+    } else {
+        Ok(())
+    };
+    state.inner.lock().unwrap().capture_active = false;
+    if restart {
+        // 旧选区窗口销毁期间收到的截图请求，在状态释放后重新执行，主窗口保持隐藏。
+        let app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            if let Err(error) = crate::features::capture::start(&app).await {
+                eprintln!("[Capture] restart: {error}");
+            }
+        });
     }
-    Ok(())
+    result
 }
 
 pub fn startup_complete(app: &AppHandle) -> Result<()> {

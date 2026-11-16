@@ -26,6 +26,10 @@
 /* eslint no-use-before-define: ["error", { "functions": false }] -- 绘图函数声明会提升，事件回调按交互顺序组织。 */
 /* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsFor": ["el", "cv", "ctx"] }] -- Canvas 绘图和 DOM 布局必须修改传入的原生对象。 */
 import { desktop } from '../tauri/runtime';
+import zhCN from '../../i18n/zh-CN.json';
+import zhTW from '../../i18n/zh-TW.json';
+import enUS from '../../i18n/en-US.json';
+import jaJP from '../../i18n/ja-JP.json';
 
 const bgCanvas = document.getElementById('bg-canvas');
 const drawCanvas = document.getElementById('draw-canvas');
@@ -90,7 +94,6 @@ const HANDLE_SIZE = 5;
 const HANDLE_HIT = 8;
 const MAX_HISTORY = 10;
 const historyStack = [];
-let currentCaptureObjectUrl = '';
 let captureLanguage = 'zh-CN';
 let captureWindowRects = [];
 let hoverWindowRect = null;
@@ -102,9 +105,18 @@ let recognizedText = '';
 let translationCache = null;
 let displayedImageVersion = 'original';
 
+let captureSourceLanguage = 'zh-CN';
+
+/** 截图后端标签取自根目录语言包，与应用其他界面共用同一翻译来源。 */
+const captureSourceLabels = {
+  'zh-CN': zhCN.capture.source,
+  'zh-TW': zhTW.capture.source,
+  'en-US': enUS.capture.source,
+  'ja-JP': jaJP.capture.source,
+};
+
 const CAPTURE_I18N = {
   'zh-CN': {
-    source: { plugin: '使用插件', js: '使用js' },
     tools: {
       select: '选区',
       mosaic: '马赛克',
@@ -145,7 +157,6 @@ const CAPTURE_I18N = {
     },
   },
   'en-US': {
-    source: { plugin: 'Using plugin', js: 'Using JS' },
     tools: {
       select: 'Select',
       mosaic: 'Mosaic',
@@ -199,6 +210,7 @@ function tCapture(key) {
 
 function applyCaptureLanguage(language) {
   captureLanguage = normalizeCaptureLanguage(language);
+  captureSourceLanguage = Object.hasOwn(captureSourceLabels, language) ? language : captureLanguage;
   document.documentElement.lang = captureLanguage;
   Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
     el.textContent = tCapture(el.dataset.i18n);
@@ -210,7 +222,7 @@ function applyCaptureLanguage(language) {
     el.setAttribute('aria-label', tCapture(el.dataset.i18nAriaLabel));
   });
   updateTranslateButtonLabel();
-  setCaptureSource(captureSourceBadge?.dataset.captureSource || 'js');
+  setCaptureSource(captureSourceBadge?.dataset.captureSource);
 }
 
 async function initCaptureLanguage() {
@@ -264,8 +276,8 @@ function drawBackground() {
     return;
   }
 
-  const sourceScaleX = bgImage.naturalWidth / capturePhysicalScreen.width;
-  const sourceScaleY = bgImage.naturalHeight / capturePhysicalScreen.height;
+  const sourceScaleX = bgImage.width / capturePhysicalScreen.width;
+  const sourceScaleY = bgImage.height / capturePhysicalScreen.height;
   captureDisplays.forEach((display) => {
     const source = display.physicalBounds;
     const target = display.bounds;
@@ -467,11 +479,16 @@ function updateSizeInfo(mx, my) {
   sizeInfo.style.top = `${Math.min(my + 12, H - 28)}px`;
 }
 
+/**
+ * 按当前语言显示实际使用的截图后端。
+ * @param source - 原生或兼容后端标识。
+ * @returns 无。
+ */
 function setCaptureSource(source) {
   if (!captureSourceBadge) return;
-  const safeSource = source === 'plugin' ? 'plugin' : 'js';
-  captureSourceBadge.dataset.captureSource = safeSource;
-  captureSourceBadge.textContent = CAPTURE_I18N[captureLanguage].source[safeSource];
+  if (source !== 'native' && source !== 'compatibility') return;
+  captureSourceBadge.dataset.captureSource = source;
+  captureSourceBadge.textContent = captureSourceLabels[captureSourceLanguage][source];
 }
 
 function showToolbar() {
@@ -793,8 +810,8 @@ function cropSelectionWithAnnotations() {
     captureVirtualScreen && capturePhysicalScreen && captureDisplays.length > 0,
   );
   const sourceCanvas = usesCompositedBackground ? bgCanvas : bgImage;
-  const scaleX = usesCompositedBackground ? 1 : bgImage.naturalWidth / W;
-  const scaleY = usesCompositedBackground ? 1 : bgImage.naturalHeight / H;
+  const scaleX = usesCompositedBackground ? 1 : bgImage.width / W;
+  const scaleY = usesCompositedBackground ? 1 : bgImage.height / H;
 
   const sx = Math.round(selX * scaleX);
   const sy = Math.round(selY * scaleY);
@@ -820,15 +837,11 @@ function cropSelectionWithAnnotations() {
 
 /**
  * 释放截图页中的大对象资源
- * @description 截图窗口销毁前主动释放 URL、位图与历史栈，降低内存峰值残留
+ * @description 截图窗口销毁前释放位图与历史栈
  */
 function releaseCaptureResources() {
-  if (currentCaptureObjectUrl) {
-    URL.revokeObjectURL(currentCaptureObjectUrl);
-    currentCaptureObjectUrl = '';
-  }
-
   historyStack.length = 0;
+  bgImage?.close?.();
   bgImage = null;
   captureDisplays = [];
   captureVirtualScreen = null;
@@ -840,7 +853,12 @@ function releaseCaptureResources() {
   });
 }
 
-desktop.on('capture-image', (data) => {
+/**
+ * 接收选区截图，绘制首帧后通知后端显示窗口。
+ * @param data - 截图尺寸、坐标和窗口元数据。
+ * @returns 首帧已绘制。
+ */
+async function displayCapture(data) {
   resetTranslationCache();
   scaleFactor = data.scaleFactor || 1;
   captureDisplays = Array.isArray(data.displays) ? data.displays : [];
@@ -849,41 +867,30 @@ desktop.on('capture-image', (data) => {
   setCaptureSource(data.captureSource);
   setVisibleWindowRects(data.visibleWindows, captureVirtualScreen);
 
-  if (currentCaptureObjectUrl) {
-    URL.revokeObjectURL(currentCaptureObjectUrl);
-    currentCaptureObjectUrl = '';
+  const { width, height } = capturePhysicalScreen;
+  const pixels = new Uint8ClampedArray(await window.__TAURI__.core.invoke('capture_pixels'));
+  const image = new ImageData(pixels, width, height);
+  if (typeof createImageBitmap === 'function') {
+    bgImage = await createImageBitmap(image);
+  } else {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').putImageData(image, 0, 0);
+    bgImage = canvas;
   }
+  initCanvases();
+  await desktop.invoke('capture-frame-rendered');
+}
 
-  let imageSrc = data.imageDataURL || '';
-  if (data.imageBytes && data.imageBytes.length > 0) {
-    const blob = new Blob([data.imageBytes], { type: 'image/png' });
-    currentCaptureObjectUrl = URL.createObjectURL(blob);
-    imageSrc = currentCaptureObjectUrl;
+desktop.on('capture-image', async (data) => {
+  try {
+    await displayCapture(data);
+  } catch (error) {
+    console.error('[Capture] Could not display screenshot', error);
+    releaseCaptureResources();
+    desktop.send('capture-cancel');
   }
-
-  if (!imageSrc) {
-    return;
-  }
-
-  const img = new Image();
-  img.onload = () => {
-    bgImage = img;
-    initCanvases();
-
-    if (currentCaptureObjectUrl) {
-      URL.revokeObjectURL(currentCaptureObjectUrl);
-      currentCaptureObjectUrl = '';
-    }
-  };
-
-  img.onerror = () => {
-    if (currentCaptureObjectUrl) {
-      URL.revokeObjectURL(currentCaptureObjectUrl);
-      currentCaptureObjectUrl = '';
-    }
-  };
-
-  img.src = imageSrc;
 });
 
 tempCanvas.addEventListener('mousedown', (e) => {
@@ -1253,6 +1260,12 @@ document.getElementById('btnSave').addEventListener('click', () => {
 document.getElementById('btnCancel').addEventListener('click', () => {
   desktop.send('capture-cancel');
 });
+
+document.addEventListener('contextmenu', (event) => {
+  if (event.button !== 2) return;
+  event.preventDefault();
+  desktop.send('capture-cancel');
+}, { capture: true });
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && ocrPanel.style.display === 'flex') {

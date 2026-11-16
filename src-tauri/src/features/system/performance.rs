@@ -18,38 +18,23 @@
  * GNU General Public License for more details.
  */
 
-use crate::shared::Result;
+use crate::infrastructure::platform::telemetry;
 use serde_json::{json, Value};
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Mutex, OnceLock,
+        Mutex,
     },
     time::{Duration, Instant},
 };
-use tauri::AppHandle;
-use tokio::{
-    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
-    process::{Child, ChildStdin, ChildStdout},
-    sync::Notify,
-};
-
-const OUTPUT_LIMIT: u64 = 1024 * 1024;
-static CACHE: OnceLock<Mutex<Option<(Instant, Value)>>> = OnceLock::new();
-static SESSION: tokio::sync::Mutex<Option<Session>> = tokio::sync::Mutex::const_new(None);
+static CACHE: Mutex<Option<(Instant, Value)>> = Mutex::new(None);
 static RUNNING: AtomicBool = AtomicBool::new(false);
 static STOPPED: AtomicBool = AtomicBool::new(false);
-static STOP: Notify = Notify::const_new();
-struct Session {
-    child: Child,
-    input: ChildStdin,
-    output: BufReader<ChildStdout>,
-}
 
 /// Debug acceptance checks distinguish a completed collection from optional sensor availability.
 #[cfg(debug_assertions)]
 pub(crate) fn diagnostics() -> Value {
-    let current = CACHE.get().and_then(|cache| cache.lock().unwrap().clone());
+    let current = CACHE.lock().unwrap().clone();
     json!({
         "sampled": current.is_some(),
         "running": RUNNING.load(Ordering::Acquire),
@@ -59,9 +44,8 @@ pub(crate) fn diagnostics() -> Value {
 
 /// Sampling is demand driven: returning the previous bounded snapshot keeps UI polling responsive.
 /// Only one collector can run, and no further work occurs while the performance panel is closed.
-pub fn sample(app: &AppHandle) -> Value {
-    let cache = CACHE.get_or_init(|| Mutex::new(None));
-    let current = cache.lock().unwrap().clone();
+pub fn sample() -> Value {
+    let current = CACHE.lock().unwrap().clone();
     if STOPPED.load(Ordering::Acquire) {
         return current.map(|(_, value)| value).unwrap_or(Value::Null);
     }
@@ -75,184 +59,45 @@ pub fn sample(app: &AppHandle) -> Value {
         .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
         .is_ok()
     {
-        let app = app.clone();
-        tauri::async_runtime::spawn(async move {
-            if STOPPED.load(Ordering::Acquire) {
-                RUNNING.store(false, Ordering::Release);
-                return;
-            }
-            let value =
-                tokio::select! { value=collect(&app)=>Some(value), _=STOP.notified()=>None };
-            if let Some(value) = value {
-                *CACHE.get().unwrap().lock().unwrap() = Some((Instant::now(), value));
+        tauri::async_runtime::spawn(async {
+            if !STOPPED.load(Ordering::Acquire) {
+                let result = tauri::async_runtime::spawn_blocking(collect).await;
+                if let Ok(metrics) = result {
+                    if !STOPPED.load(Ordering::Acquire) {
+                        *CACHE.lock().unwrap() = Some((Instant::now(), metrics));
+                    }
+                }
             }
             RUNNING.store(false, Ordering::Release);
         });
     }
     current.map(|(_, value)| value).unwrap_or(Value::Null)
 }
+
 pub fn stop() {
     STOPPED.store(true, Ordering::Release);
-    STOP.notify_one();
-    tauri::async_runtime::spawn(async {
-        if let Some(session) = SESSION.lock().await.take() {
-            close(session).await;
-        }
-        #[cfg(windows)]
-        pdh::stop();
-    });
-}
-async fn close(mut session: Session) {
-    // EOF is the existing C# server's shutdown protocol, including Computer.Close cleanup.
-    drop(session.input);
-    if tokio::time::timeout(Duration::from_secs(2), session.child.wait())
-        .await
-        .is_err()
-    {
-        let _ = session.child.kill().await;
-    }
-}
-async fn open(app: &AppHandle) -> Result<Session> {
-    let path = crate::infrastructure::resources::native_path(
-        app,
-        "temperature",
-        "eIslandTemperatureReader.exe",
-    )?;
-    let mut command = crate::infrastructure::child_process::command(path);
-    command
-        .arg("server")
-        .stdin(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null())
-        .kill_on_drop(true);
-    let mut child = crate::infrastructure::child_process::spawn(&mut command, true)?;
-    let input = child
-        .stdin
-        .take()
-        .ok_or("Temperature helper stdin unavailable")?;
-    let output = BufReader::new(
-        child
-            .stdout
-            .take()
-            .ok_or("Temperature helper stdout unavailable")?,
-    );
-    Ok(Session {
-        child,
-        input,
-        output,
-    })
-}
-async fn temperature(app: &AppHandle) -> Result<Value> {
-    let mut session = SESSION.lock().await;
-    if session.is_none() {
-        *session = Some(open(app).await?);
-    }
-    let result = tokio::time::timeout(Duration::from_secs(8), async {
-        let session = session.as_mut().unwrap();
-        session
-            .input
-            .write_all(b"snapshot\n")
-            .await
-            .map_err(|e| e.to_string())?;
-        session.input.flush().await.map_err(|e| e.to_string())?;
-        let mut output = Vec::new();
-        let count = (&mut session.output)
-            .take(OUTPUT_LIMIT + 1)
-            .read_until(b'\n', &mut output)
-            .await
-            .map_err(|e| e.to_string())?;
-        if count == 0 || count as u64 > OUTPUT_LIMIT || output.last() != Some(&b'\n') {
-            return Err("Temperature helper output exceeds limit or closed".to_owned());
-        }
-        serde_json::from_slice(&output).map_err(|e| e.to_string())
-    })
-    .await
-    .map_err(|_| "Temperature helper timed out".to_owned())
-    .and_then(|value| value);
-    if result.is_err() {
-        if let Some(child) = session.take() {
-            close(child).await;
-        }
-    }
-    result
-}
-async fn maximum_clock() -> Value {
-    static CLOCK: tokio::sync::Mutex<Option<Value>> = tokio::sync::Mutex::const_new(None);
-    let mut cache = CLOCK.lock().await;
-    if let Some(value) = cache.as_ref() {
-        return value.clone();
-    }
     #[cfg(windows)]
-    {
-        use crate::infrastructure::child_process::{self, Options};
-        let command=child_process::powershell_command("$ErrorActionPreference='Stop';@((Get-CimInstance Win32_Processor -ErrorAction Stop).MaxClockSpeed)|ConvertTo-Json -Compress");
-        if let Ok(output) = child_process::run(
-            command,
-            Options {
-                timeout: Duration::from_secs(5),
-                stdout_limit: 4096,
-                managed: true,
-                ..Options::default()
-            },
-        )
-        .await
-        {
-            if let Ok(value) = serde_json::from_slice::<Value>(&output.stdout) {
-                let values = if let Some(items) = value.as_array() {
-                    items.clone()
-                } else {
-                    vec![value]
-                };
-                let value = json!(values
-                    .into_iter()
-                    .filter_map(|value| value.as_f64())
-                    .filter(|value| value.is_finite() && *value > 0.)
-                    .collect::<Vec<_>>());
-                *cache = Some(value.clone());
-                return value;
-            }
-        }
-    }
-    let value = json!([]);
-    *cache = Some(value.clone());
-    value
+    tauri::async_runtime::spawn_blocking(pdh::stop);
 }
-async fn collect(app: &AppHandle) -> Value {
-    let temps = temperature(app);
-    let clock = maximum_clock();
-    let gpu = async {
-        #[cfg(windows)]
-        {
-            tauri::async_runtime::spawn_blocking(pdh::sample)
-                .await
-                .unwrap_or(Value::Null)
-        }
-        #[cfg(not(windows))]
-        {
-            Value::Null
-        }
-    };
-    let (temperature, max_clock, gpu) = tokio::join!(temps, clock, gpu);
-    let mut value = temperature.unwrap_or(Value::Null);
-    if !value.is_object() {
-        value = json!({});
-    }
-    value["maxClockMhz"] = max_clock;
-    value["gpuLoads"] = gpu;
-    value
+
+fn collect() -> Value {
+    let readings = telemetry::temperatures();
+    #[cfg(windows)]
+    let (clocks, gpu_temperatures, gpu_loads) = (
+        telemetry::cpu_clocks(),
+        json!(telemetry::gpu_temperatures()),
+        pdh::sample(),
+    );
+    #[cfg(not(windows))]
+    let (clocks, gpu_temperatures, gpu_loads) = (Vec::<u32>::new(), Value::Null, Value::Null);
+    json!({
+        "temperature": {"isAvailable": !readings.is_empty() || gpu_temperatures.as_object().is_some_and(|values| !values.is_empty()), "readings": readings},
+        "maxClockMhz": clocks,
+        "gpuTemperatures": gpu_temperatures,
+        "gpuLoads": gpu_loads,
+    })
 }
-fn normalized(value: &str) -> String {
-    value
-        .chars()
-        .filter(|c| c.is_ascii_alphanumeric())
-        .flat_map(char::to_lowercase)
-        .collect()
-}
-fn reading(value: &Value) -> Option<f64> {
-    value
-        .as_f64()
-        .filter(|v| v.is_finite() && *v > 0. && *v <= 200.)
-}
+
 fn maximum(values: impl Iterator<Item = f64>) -> Option<f64> {
     values.reduce(f64::max)
 }
@@ -262,66 +107,37 @@ pub fn augment(snapshot: &mut Value, metrics: &Value, selection: &Value) {
         .as_array()
         .and_then(|values| maximum(values.iter().filter_map(Value::as_f64)))
         .map(|mhz| mhz / 1000.));
-    let readings = metrics["temperature"]["readings"]
-        .as_array()
-        .cloned()
-        .unwrap_or_default();
-    snapshot["cpu"]["temperatureCelsius"] = json!(maximum(
-        readings
-            .iter()
-            .filter(|item| item["category"] == "cpu")
-            .filter_map(|item| reading(&item["temperatureCelsius"]))
-    ));
+    let hottest = |category: &str| {
+        maximum(
+            metrics["temperature"]["readings"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter(|item| item["category"] == category)
+                .filter_map(|item| {
+                    telemetry::valid_temperature(item["temperatureCelsius"].as_f64()?)
+                }),
+        )
+    };
+    snapshot["cpu"]["temperatureCelsius"] = json!(hottest("cpu"));
     if selection["disk"]
         .as_str()
         .is_none_or(|disk| disk == "all" || disk.is_empty())
     {
-        snapshot["disk"]["temperatureCelsius"] = json!(maximum(
-            readings
-                .iter()
-                .filter(|item| item["category"] == "storage")
-                .filter_map(|item| reading(&item["temperatureCelsius"]))
-        ));
+        snapshot["disk"]["temperatureCelsius"] = json!(hottest("storage"));
     }
-    if !snapshot["gpu"].is_null() {
-        let name = normalized(snapshot["gpu"]["model"].as_str().unwrap_or(""));
-        let devices = metrics["hardwareList"]["gpus"]
-            .as_array()
-            .cloned()
-            .unwrap_or_default();
-        let device = devices.iter().find(|device| {
-            let device = normalized(device["name"].as_str().unwrap_or(""));
-            !device.is_empty()
-                && !name.is_empty()
-                && (device.contains(&name) || name.contains(&device))
-        });
-        snapshot["gpu"]["temperatureCelsius"] = json!(maximum(
-            readings
-                .iter()
-                .filter(|item| {
-                    if item["category"] != "gpu" {
-                        return false;
-                    }
-                    if let Some(device) = device {
-                        let id = device["id"].as_str().unwrap_or("");
-                        !id.is_empty()
-                            && item["id"].as_str().is_some_and(|item| item.starts_with(id))
-                    } else {
-                        let label = normalized(item["label"].as_str().unwrap_or(""));
-                        !name.is_empty() && label.contains(&name)
-                    }
-                })
-                .filter_map(|item| reading(&item["temperatureCelsius"]))
-        ));
-        let luid = snapshot["gpu"]["_luid"].as_str().unwrap_or("");
+    if let Some(gpu) = snapshot["gpu"].as_object_mut() {
+        let luid = gpu.remove("_luid");
+        let luid = luid.as_ref().and_then(Value::as_str).unwrap_or("");
+        let temperature = metrics["gpuTemperatures"][luid]
+            .as_f64()
+            .and_then(telemetry::valid_temperature);
         let load = metrics["gpuLoads"][luid]
             .as_f64()
             .filter(|v| v.is_finite())
             .map(|v| v.clamp(0., 100.));
-        snapshot["gpu"]["loadPercent"] = json!(load);
-        if let Some(gpu) = snapshot["gpu"].as_object_mut() {
-            gpu.remove("_luid");
-        }
+        gpu.insert("temperatureCelsius".into(), json!(temperature));
+        gpu.insert("loadPercent".into(), json!(load));
     }
 }
 
@@ -447,6 +263,9 @@ mod pdh {
     }
     pub fn sample() -> Value {
         let mut query = QUERY.lock().unwrap();
+        if STOPPED.load(Ordering::Acquire) {
+            return Value::Null;
+        }
         if query.is_none() {
             *query = Query::open();
         }
@@ -456,6 +275,7 @@ mod pdh {
         QUERY.lock().unwrap().take();
     }
 }
+#[cfg(any(windows, test))]
 fn engine_key(instance: &str) -> Option<(String, String)> {
     let (_, tail) = instance.split_once("luid_")?;
     let (luid, engine) = tail.split_once("_phys_")?;
@@ -471,7 +291,16 @@ mod tests {
     #[test]
     fn telemetry_is_from_matching_devices_and_preserves_unavailable_values() {
         let mut snapshot = json!({"cpu":{},"disk":{},"gpu":{"model":"NVIDIA Test GPU","_luid":"luid_0x00000000_0x00000001"}});
-        let metrics = json!({"maxClockMhz":[4500],"gpuLoads":{"luid_0x00000000_0x00000001":23.5},"hardwareList":{"gpus":[{"id":"/gpu-nvidia/0","name":"NVIDIA Test GPU"}]},"temperature":{"readings":[{"category":"cpu","temperatureCelsius":54.},{"category":"gpu","id":"/gpu-nvidia/0/temperature/0","temperatureCelsius":61.},{"category":"gpu","id":"/gpu-intel/0/temperature/0","temperatureCelsius":90.},{"category":"storage","temperatureCelsius":40.}]}});
+        let metrics = json!({
+            "maxClockMhz":[4500],
+            "gpuLoads":{"luid_0x00000000_0x00000001":23.5},
+            "gpuTemperatures":{"luid_0x00000000_0x00000001":61.,"luid_0x00000000_0x00000002":90.},
+            "temperature":{"readings":[
+                {"category":"cpu","temperatureCelsius":54.},
+                {"category":"system","temperatureCelsius":85.},
+                {"category":"storage","temperatureCelsius":40.}
+            ]}
+        });
         augment(&mut snapshot, &metrics, &json!({}));
         assert_eq!(snapshot["cpu"]["speedMaxGhz"], 4.5);
         assert_eq!(snapshot["cpu"]["temperatureCelsius"], 54.);

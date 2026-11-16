@@ -24,7 +24,7 @@ use crate::shared::geometry::Rect;
 use serde_json::{json, Value};
 mod window;
 use std::{path::PathBuf, sync::Mutex};
-use window::WindowState;
+pub(crate) use window::WindowState;
 
 pub struct Desktop {
     pub inner: Mutex<WindowState>,
@@ -74,7 +74,11 @@ impl Desktop {
                 main_ready: false,
                 splash_done: false,
                 capture_payload: None,
-                capture_starting: false,
+                capture_pixels: None,
+                capture_renderer_ready: false,
+                capture_active: false,
+                capture_closing: false,
+                capture_restart: false,
                 closing_effects: Default::default(),
                 effect_generation: 0,
             }),
