@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-16T03:10:54.132Z
+> 生成时间：2026-11-16T04:41:02.521Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,8 @@
 
 ## Unreleased
 
+- 2026-11-15 | 2b201d41 | dependabot[bot] | chore(deps): upgrade i18next and react-i18next together (#330)
+- 2026-11-16 | f6b3f554 | eislandBot | docs: auto update CHANGE_LOG.md for #334 by @JNTMTMTM [skip ci]
 - 2026-11-15 | 66f0b1b9 | JNTMTMTM | Merge pull request #334 from JNTMTMTM/dev
 - 2026-11-15 | 45844c82 | 鸡哥 | feat(i18n): add source labels for capture modes in English, Japanese, and Chinese
 - 2026-11-15 | a643d3fa | 鸡哥 | Remove capture source labels JSON file for localization
