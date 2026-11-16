@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-16T04:41:02.521Z
+> 生成时间：2026-11-16T04:43:00.817Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,10 @@
 
 ## Unreleased
 
+- 2026-11-15 | 59b433dd | dependabot[bot] | chore(deps): bump stylelint-config-standard-scss from 17.0.0 to 18.0.0 (#333)
+- 2026-11-15 | c45d1678 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 10 updates (#329)
+- 2026-11-15 | 5e51eeba | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments (#325)
+- 2026-11-16 | fd802f48 | eislandBot | docs: auto update CHANGE_LOG.md for #330 by @dependabot[bot] [skip ci]
 - 2026-11-15 | 2b201d41 | dependabot[bot] | chore(deps): upgrade i18next and react-i18next together (#330)
 - 2026-11-16 | f6b3f554 | eislandBot | docs: auto update CHANGE_LOG.md for #334 by @JNTMTMTM [skip ci]
 - 2026-11-15 | 66f0b1b9 | JNTMTMTM | Merge pull request #334 from JNTMTMTM/dev
