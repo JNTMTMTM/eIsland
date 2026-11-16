@@ -118,6 +118,11 @@ Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` s
 - Add the plugin name to both `publish-npm` and `publish-gpr` job matrices.
 - Without registration, the new plugin will never be published to npm or GitHub Packages.
 
+## 10. Pull Request Merge Method
+
+- Use **Create a merge commit** for every pull request. With GitHub CLI, run `gh pr merge <number> --merge`.
+- Do not use squash or rebase merges. A merge commit preserves the source branch's commits and the merge point in Git Graph after the source branch is deleted.
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
