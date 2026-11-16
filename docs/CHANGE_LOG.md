@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-16T04:54:50.115Z
+> 生成时间：2026-11-16T21:43:59.863Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,13 @@
 
 ## Unreleased
 
+- 2026-11-16 | 7bb7f01b | JNTMTMTM | refactor: 使用 rust 重写 smtc 辅助程序 (#335)
+- 2026-11-16 | 70831f87 | 鸡哥 | feat(smtc): implement continuous session reading and improve error handling feat(i18n): add error messages for binary issues in multiple languages refactor(smtc): enhance media reading logic with retries and timeouts test(smtc): update tests for new continuous reading behavior and error handling
+- 2026-11-16 | dba6ad35 | 鸡哥 | Refactor platform-specific code for macOS removal
+- 2026-11-16 | 80b260af | 鸡哥 | Remove macOS Media Helper plugin and related files
+- 2026-11-15 | 36ee38b6 | 鸡哥 | refactor: remove SMTC Helper plugin references and update documentation
+- 2026-11-15 | 957dc1a7 | 鸡哥 | feat(package): add hasInstallScript property to package entries
+- 2026-11-16 | 0e34b7b0 | eislandBot | docs: auto update CHANGE_LOG.md for #332 by @dependabot[bot] [skip ci]
 - 2026-11-15 | 56fe173a | dependabot[bot] | chore(deps): bump stylelint-config-recommended-scss (#332)
 - 2026-11-16 | 4dd5e461 | eislandBot | docs: auto update CHANGE_LOG.md for #333 by @dependabot[bot] [skip ci]
 - 2026-11-15 | 59b433dd | dependabot[bot] | chore(deps): bump stylelint-config-standard-scss from 17.0.0 to 18.0.0 (#333)
