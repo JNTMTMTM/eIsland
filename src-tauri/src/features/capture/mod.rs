@@ -121,38 +121,39 @@ pub async fn primary(app: &AppHandle) -> Result<Value> {
     result
 }
 
-/// Capture every monitor before showing the overlay; bitmap coordinates are physical pixels.
+/// 启动一次选区截图。在恢复主窗口前忽略重复触发。
 pub async fn start(app: &AppHandle) -> Result<()> {
-    if app.get_webview_window("capture").is_some() {
-        return Ok(());
-    }
     {
         let state = app.state::<Desktop>();
         let mut s = state.inner.lock().unwrap();
-        if s.capture_starting {
+        if s.capture_active {
             return Ok(());
         }
-        s.capture_starting = true;
+        s.capture_active = true;
     }
-    let result = capture_hidden_desktop(app).await;
-    app.state::<Desktop>()
-        .inner
-        .lock()
-        .unwrap()
-        .capture_starting = false;
-    if let Err(error) = result {
-        windows::restore_after_capture(app)?;
+    if let Err(error) = capture_hidden_desktop(app).await {
+        close(app)?;
         return Err(error);
     }
     Ok(())
 }
 
 async fn capture_hidden_desktop(app: &AppHandle) -> Result<()> {
-    windows::main_window(app)?
-        .hide()
-        .map_err(|e| e.to_string())?;
-    tokio::time::sleep(std::time::Duration::from_millis(80)).await;
-    capture_desktop(app).await
+    let main = windows::main_window(app)?;
+    main.hide().map_err(|e| e.to_string())?;
+
+    let capture_app = app.clone();
+    let frame = tauri::async_runtime::spawn_blocking(move || {
+        // 保留合成器清除主窗口的时间，这段等待与隐藏 WebView 初始化重叠。
+        std::thread::sleep(std::time::Duration::from_millis(80));
+        let frame = capture_frame(&capture_app, true)?;
+        Ok::<_, String>((frame, visible_windows()?))
+    });
+
+    // 隐藏的 WebView 与系统抓屏同时启动。收到像素并绘制前不会显示选区窗口。
+    let window = windows::create(app, "capture")?;
+    let (frame, visible_windows) = frame.await.map_err(|e| e.to_string())??;
+    install_frame(app, &window, frame, visible_windows)
 }
 
 fn capture_displays(all: bool) -> Result<Frame> {
@@ -238,7 +239,7 @@ fn frame_from_displays(
 }
 
 /// 在统一的像素密度下拼接屏幕，保留系统坐标以对齐选区和可见窗口。
-fn compose_desktop(shots: Vec<(Screen, RgbaImage)>, source: &'static str) -> Result<Frame> {
+fn compose_desktop(mut shots: Vec<(Screen, RgbaImage)>, source: &'static str) -> Result<Frame> {
     let first = shots.first().ok_or("No monitors available")?.0;
     let (mut x, mut y) = (first.x, first.y);
     let (mut right, mut bottom) = (i64::from(x), i64::from(y));
@@ -272,6 +273,14 @@ fn compose_desktop(shots: Vec<(Screen, RgbaImage)>, source: &'static str) -> Res
     if u64::from(width) * u64::from(height) > 160_000_000 {
         return Err("Virtual desktop exceeds capture limit".into());
     }
+    if matches!(shots.as_slice(), [(_, image)] if image.dimensions() == (width, height)) {
+        return Ok(Frame {
+            image: shots.pop().unwrap().1,
+            screen,
+            scale,
+            source,
+        });
+    }
     let mut image = RgbaImage::new(width, height);
     for (display, shot) in shots {
         let width = display.width * scale;
@@ -296,51 +305,46 @@ fn compose_desktop(shots: Vec<(Screen, RgbaImage)>, source: &'static str) -> Res
     })
 }
 
-async fn capture_desktop(app: &AppHandle) -> Result<()> {
-    let capture_app = app.clone();
-    let (image, screen, scale, source, visible_windows) =
-        tauri::async_runtime::spawn_blocking(move || {
-            let frame = capture_frame(&capture_app, true)?;
-            let image = STANDARD.encode(frame.png()?);
-            let visible_windows = xcap::Window::all()
-                .map_err(|e| e.to_string())?
-                .iter()
-                .filter_map(|window| {
-                    if window.pid().ok()? == std::process::id() || window.is_minimized().ok()? {
-                        return None;
-                    }
-                    Some(json!({
-                        "x":window.x().ok()?, "y":window.y().ok()?,
-                        "width":window.width().ok()?, "height":window.height().ok()?,
-                        "title":window.title().ok()?
-                    }))
-                })
-                .collect::<Vec<_>>();
-            Ok::<_, String>((
-                image,
-                frame.screen,
-                frame.scale,
-                frame.source,
-                visible_windows,
-            ))
+fn visible_windows() -> Result<Vec<Value>> {
+    Ok(xcap::Window::all()
+        .map_err(|e| e.to_string())?
+        .iter()
+        .filter_map(|window| {
+            if window.pid().ok()? == std::process::id() || window.is_minimized().ok()? {
+                return None;
+            }
+            Some(json!({
+                "x": window.x().ok()?, "y": window.y().ok()?,
+                "width": window.width().ok()?, "height": window.height().ok()?,
+                "title": window.title().ok()?
+            }))
         })
-        .await
-        .map_err(|e| e.to_string())??;
-    let Screen {
-        x,
-        y,
-        width,
-        height,
-    } = screen;
-    let desktop = json!({"x":x,"y":y,"width":width,"height":height});
+        .collect())
+}
+
+fn install_frame(
+    app: &AppHandle,
+    window: &tauri::WebviewWindow,
+    frame: Frame,
+    visible_windows: Vec<Value>,
+) -> Result<()> {
+    let Frame {
+        image,
+        screen:
+            Screen {
+                x,
+                y,
+                width,
+                height,
+            },
+        scale,
+        source,
+    } = frame;
     let payload = json!({
-        "imageDataURL":format!("data:image/png;base64,{image}"),
-        "virtualScreen":desktop,
-        "physicalScreen":{"x":i64::from(x)*i64::from(scale),"y":i64::from(y)*i64::from(scale),"width":width*scale,"height":height*scale},
-        "displays":[], "scaleFactor":scale, "captureSource":source, "visibleWindows":visible_windows
+        "virtualScreen": {"x": x, "y": y, "width": width, "height": height},
+        "physicalScreen": {"x": i64::from(x) * i64::from(scale), "y": i64::from(y) * i64::from(scale), "width": image.width(), "height": image.height()},
+        "displays": [], "scaleFactor": scale, "captureSource": source, "visibleWindows": visible_windows
     });
-    app.state::<Desktop>().inner.lock().unwrap().capture_payload = Some(payload);
-    let window = windows::create(app, "capture")?;
     #[cfg(target_os = "macos")]
     {
         // AppKit 和窗口边界使用显示器点坐标，截图以独立的像素密度保存。
@@ -363,27 +367,66 @@ async fn capture_desktop(app: &AppHandle) -> Result<()> {
             .set_zoom(1. / window.scale_factor().map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
     }
-    Ok(())
+    {
+        let state = app.state::<Desktop>();
+        let mut s = state.inner.lock().unwrap();
+        s.capture_pixels = Some(image.into_raw());
+        s.capture_payload = Some(payload);
+    }
+    send_frame_if_ready(app)
 }
 
+/// 选区渲染器可以在抓屏之前或之后就绪。
 pub fn ready(app: &AppHandle) -> Result<()> {
-    let payload = app
-        .state::<Desktop>()
+    app.state::<Desktop>()
         .inner
         .lock()
         .unwrap()
-        .capture_payload
-        .clone();
-    if let (Some(payload), Some(window)) = (payload, app.get_webview_window("capture")) {
+        .capture_renderer_ready = true;
+    send_frame_if_ready(app)
+}
+
+fn send_frame_if_ready(app: &AppHandle) -> Result<()> {
+    let payload = {
+        let state = app.state::<Desktop>();
+        let mut s = state.inner.lock().unwrap();
+        if !s.capture_renderer_ready {
+            return Ok(());
+        }
+        s.capture_payload.take()
+    };
+    if let Some(payload) = payload {
         windows::emit(app, "capture", "capture-image", json!([payload]))?;
-        window.show().map_err(|e| e.to_string())?;
-        window.set_focus().map_err(|e| e.to_string())?;
     }
     Ok(())
 }
+
+/// 领取当前截图的 RGBA 像素，交付后立即从 Rust 状态中移除。
+pub(crate) fn take_pixels(app: &AppHandle) -> Result<Vec<u8>> {
+    app.state::<Desktop>()
+        .inner
+        .lock()
+        .unwrap()
+        .capture_pixels
+        .take()
+        .ok_or_else(|| "No screenshot pixels available".into())
+}
+
+/// 第一帧已绘制后显示选区窗口。
+pub(crate) fn show(window: &tauri::WebviewWindow) -> Result<()> {
+    #[cfg(windows)]
+    if let Err(error) = crate::infrastructure::platform::window::disable_transitions(window) {
+        eprintln!("[Capture] Could not disable window transitions: {error}");
+    }
+
+    window.show().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())
+}
+
 pub fn close(app: &AppHandle) -> Result<()> {
     if let Some(window) = app.get_webview_window("capture") {
-        window.destroy().map_err(|e| e.to_string())?;
+        // Destroyed 事件负责恢复主窗口并释放本次截图状态。
+        return window.destroy().map_err(|e| e.to_string());
     }
     windows::restore_after_capture(app)
 }

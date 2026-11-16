@@ -95,6 +95,7 @@ async function ipc(page, channel, ...args) {
  */
 async function captureMode(main, engine) {
   await ipc(main, 'store:write', 'screenshot-engine', engine);
+  await assert.rejects(main.evaluate(() => window.__TAURI__.core.invoke('capture_pixels')), /restricted to capture/);
   const expectedSource = engine === 'js' ? 'compatibility' : 'native';
   const captureLogOffset = stderr.length;
   const primary = await ipc(main, 'system:screenshot');
@@ -107,6 +108,11 @@ async function captureMode(main, engine) {
   const capture = await pageFor('capture');
   await capture.waitForFunction((source) => document.getElementById('captureSourceBadge')?.dataset.captureSource === source, expectedSource);
   await capture.waitForFunction(() => document.getElementById('bg-canvas').width > 300);
+  await main.waitForFunction(async () => {
+    const windows = await window.__TAURI__.core.invoke('desktop_ipc', { channel: 'debug:windows', args: [] });
+    return windows.some((candidate) => candidate.label === 'capture' && candidate.visible);
+  });
+  await assert.rejects(capture.evaluate(() => window.__TAURI__.core.invoke('capture_pixels')), /No screenshot pixels available/);
   await capture.waitForFunction(() => {
     const icons = Array.from(document.querySelectorAll('.capture-btn-icon'));
     return icons.length > 0 && icons.every((icon) => icon.complete && icon.naturalWidth > 0 && icon.naturalHeight > 0);

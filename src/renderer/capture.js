@@ -91,7 +91,6 @@ const HANDLE_SIZE = 5;
 const HANDLE_HIT = 8;
 const MAX_HISTORY = 10;
 const historyStack = [];
-let currentCaptureObjectUrl = '';
 let captureLanguage = 'zh-CN';
 let captureWindowRects = [];
 let hoverWindowRect = null;
@@ -266,8 +265,8 @@ function drawBackground() {
     return;
   }
 
-  const sourceScaleX = bgImage.naturalWidth / capturePhysicalScreen.width;
-  const sourceScaleY = bgImage.naturalHeight / capturePhysicalScreen.height;
+  const sourceScaleX = bgImage.width / capturePhysicalScreen.width;
+  const sourceScaleY = bgImage.height / capturePhysicalScreen.height;
   captureDisplays.forEach((display) => {
     const source = display.physicalBounds;
     const target = display.bounds;
@@ -800,8 +799,8 @@ function cropSelectionWithAnnotations() {
     captureVirtualScreen && capturePhysicalScreen && captureDisplays.length > 0,
   );
   const sourceCanvas = usesCompositedBackground ? bgCanvas : bgImage;
-  const scaleX = usesCompositedBackground ? 1 : bgImage.naturalWidth / W;
-  const scaleY = usesCompositedBackground ? 1 : bgImage.naturalHeight / H;
+  const scaleX = usesCompositedBackground ? 1 : bgImage.width / W;
+  const scaleY = usesCompositedBackground ? 1 : bgImage.height / H;
 
   const sx = Math.round(selX * scaleX);
   const sy = Math.round(selY * scaleY);
@@ -827,15 +826,11 @@ function cropSelectionWithAnnotations() {
 
 /**
  * 释放截图页中的大对象资源
- * @description 截图窗口销毁前主动释放 URL、位图与历史栈，降低内存峰值残留
+ * @description 截图窗口销毁前释放位图与历史栈
  */
 function releaseCaptureResources() {
-  if (currentCaptureObjectUrl) {
-    URL.revokeObjectURL(currentCaptureObjectUrl);
-    currentCaptureObjectUrl = '';
-  }
-
   historyStack.length = 0;
+  bgImage?.close?.();
   bgImage = null;
   captureDisplays = [];
   captureVirtualScreen = null;
@@ -847,7 +842,12 @@ function releaseCaptureResources() {
   });
 }
 
-desktop.on('capture-image', (data) => {
+/**
+ * 接收选区截图，绘制首帧后通知后端显示窗口。
+ * @param data - 截图尺寸、坐标和窗口元数据。
+ * @returns 首帧已绘制。
+ */
+async function displayCapture(data) {
   resetTranslationCache();
   scaleFactor = data.scaleFactor || 1;
   captureDisplays = Array.isArray(data.displays) ? data.displays : [];
@@ -856,41 +856,30 @@ desktop.on('capture-image', (data) => {
   setCaptureSource(data.captureSource);
   setVisibleWindowRects(data.visibleWindows, captureVirtualScreen);
 
-  if (currentCaptureObjectUrl) {
-    URL.revokeObjectURL(currentCaptureObjectUrl);
-    currentCaptureObjectUrl = '';
+  const { width, height } = capturePhysicalScreen;
+  const pixels = new Uint8ClampedArray(await window.__TAURI__.core.invoke('capture_pixels'));
+  const image = new ImageData(pixels, width, height);
+  if (typeof createImageBitmap === 'function') {
+    bgImage = await createImageBitmap(image);
+  } else {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').putImageData(image, 0, 0);
+    bgImage = canvas;
   }
+  initCanvases();
+  await desktop.invoke('capture-frame-rendered');
+}
 
-  let imageSrc = data.imageDataURL || '';
-  if (data.imageBytes && data.imageBytes.length > 0) {
-    const blob = new Blob([data.imageBytes], { type: 'image/png' });
-    currentCaptureObjectUrl = URL.createObjectURL(blob);
-    imageSrc = currentCaptureObjectUrl;
+desktop.on('capture-image', async (data) => {
+  try {
+    await displayCapture(data);
+  } catch (error) {
+    console.error('[Capture] Could not display screenshot', error);
+    releaseCaptureResources();
+    desktop.send('capture-cancel');
   }
-
-  if (!imageSrc) {
-    return;
-  }
-
-  const img = new Image();
-  img.onload = () => {
-    bgImage = img;
-    initCanvases();
-
-    if (currentCaptureObjectUrl) {
-      URL.revokeObjectURL(currentCaptureObjectUrl);
-      currentCaptureObjectUrl = '';
-    }
-  };
-
-  img.onerror = () => {
-    if (currentCaptureObjectUrl) {
-      URL.revokeObjectURL(currentCaptureObjectUrl);
-      currentCaptureObjectUrl = '';
-    }
-  };
-
-  img.src = imageSrc;
 });
 
 tempCanvas.addEventListener('mousedown', (e) => {

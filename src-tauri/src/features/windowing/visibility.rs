@@ -29,6 +29,10 @@ use tauri::AppHandle;
 use tauri::Manager;
 
 pub fn show_main(app: &AppHandle) -> Result<()> {
+    show_main_window(app, false)
+}
+
+fn show_main_window(app: &AppHandle, restoring_capture: bool) -> Result<()> {
     let existed = app.get_webview_window("main").is_some();
     let window = create(app, "main")?;
     {
@@ -39,13 +43,9 @@ pub fn show_main(app: &AppHandle) -> Result<()> {
         s.manual_show_override = true;
         s.visibility_generation += 1;
     }
-    if app.get_webview_window("capture").is_some()
-        || app
-            .state::<Desktop>()
-            .inner
-            .lock()
-            .unwrap()
-            .capture_starting
+    if !restoring_capture
+        && (app.get_webview_window("capture").is_some()
+            || app.state::<Desktop>().inner.lock().unwrap().capture_active)
     {
         return Ok(());
     }
@@ -110,12 +110,17 @@ pub fn restore_after_capture(app: &AppHandle) -> Result<()> {
     let hidden = {
         let mut s = state.inner.lock().unwrap();
         s.capture_payload = None;
+        s.capture_pixels = None;
+        s.capture_renderer_ready = false;
         s.manually_hidden || s.auto_hidden
     };
-    if !hidden {
-        show_main(app)?;
-    }
-    Ok(())
+    let result = if hidden {
+        Ok(())
+    } else {
+        show_main_window(app, true)
+    };
+    state.inner.lock().unwrap().capture_active = false;
+    result
 }
 
 pub fn startup_complete(app: &AppHandle) -> Result<()> {

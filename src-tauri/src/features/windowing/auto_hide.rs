@@ -93,12 +93,7 @@ fn should_hide(app: &AppHandle) -> Result<bool> {
 pub fn check(app: &AppHandle) -> Result<()> {
     if app.get_webview_window("main").is_none()
         || app.get_webview_window("capture").is_some()
-        || app
-            .state::<Desktop>()
-            .inner
-            .lock()
-            .unwrap()
-            .capture_starting
+        || app.state::<Desktop>().inner.lock().unwrap().capture_active
     {
         return Ok(());
     }

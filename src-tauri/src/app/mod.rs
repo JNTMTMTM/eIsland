@@ -65,7 +65,10 @@ pub(crate) fn run() {
                 })
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![commands::desktop::desktop_ipc])
+        .invoke_handler(tauri::generate_handler![
+            commands::desktop::desktop_ipc,
+            commands::capture::capture_pixels
+        ])
         .setup(setup::initialize)
         .build(tauri::generate_context!())
         .expect("Failed to initialize eIsland")
