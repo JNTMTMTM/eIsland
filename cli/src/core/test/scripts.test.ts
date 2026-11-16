@@ -39,7 +39,7 @@ writeFileSync(join(root, 'package.json'), JSON.stringify({
     dev: 'tauri dev',
     test: 'vitest run',
     'test:main': 'npm run test:rust',
-    'plugin:build:smtc': 'cd smtc && npm run build',
+    'plugin:build:power': 'cd power && npm run build',
     'plugin:build:wifi': 'cd wifi && npm run build',
     'release:upload': 'node upload.ts',
     'esa:purge-all': 'node purge.ts --purge-all',
@@ -53,9 +53,9 @@ afterAll(() => rmSync(root, { recursive: true, force: true }));
 describe('loadScripts', () => {
   it('按声明顺序读取脚本并标记分组', () => {
     expect(entries.map((entry) => entry.name)).toEqual([
-      'dev', 'test', 'test:main', 'plugin:build:smtc', 'plugin:build:wifi', 'release:upload', 'esa:purge-all', 'postinstall',
+      'dev', 'test', 'test:main', 'plugin:build:power', 'plugin:build:wifi', 'release:upload', 'esa:purge-all', 'postinstall',
     ]);
-    expect(entries.find((entry) => entry.name === 'plugin:build:smtc')?.group).toBe('plugin');
+    expect(entries.find((entry) => entry.name === 'plugin:build:power')?.group).toBe('plugin');
   });
 
   it('将发布上传与 CDN 清理标记为危险脚本', () => {
@@ -105,7 +105,7 @@ describe('groupScripts', () => {
 
 describe('resolveScript', () => {
   it('以 : 拼接分段精确匹配', () => {
-    expect(resolveScript(entries, ['plugin', 'build', 'smtc'])).toMatchObject({ kind: 'found', entry: { name: 'plugin:build:smtc' } });
+    expect(resolveScript(entries, ['plugin', 'build', 'power'])).toMatchObject({ kind: 'found', entry: { name: 'plugin:build:power' } });
   });
 
   it('接受完整脚本名', () => {
@@ -119,7 +119,7 @@ describe('resolveScript', () => {
   it('分段不完整时返回前缀候选', () => {
     const result = resolveScript(entries, ['plugin', 'build']);
     expect(result.kind).toBe('prefix');
-    expect(result.kind === 'prefix' && result.matches.map((entry) => entry.name)).toEqual(['plugin:build:smtc', 'plugin:build:wifi']);
+    expect(result.kind === 'prefix' && result.matches.map((entry) => entry.name)).toEqual(['plugin:build:power', 'plugin:build:wifi']);
   });
 
   it('拼写错误时给出相近建议', () => {

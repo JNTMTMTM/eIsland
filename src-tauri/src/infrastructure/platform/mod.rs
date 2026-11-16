@@ -22,7 +22,7 @@
 
 pub(crate) mod brightness;
 pub(crate) mod fullscreen;
-#[cfg(any(windows, target_os = "macos"))]
+#[cfg(windows)]
 pub(crate) mod screenshot;
 #[cfg(windows)]
 pub(crate) mod smtc;

@@ -59,9 +59,6 @@ jobs:
         with:
           workspaces: src-tauri -> ${{ env.EISLAND_REFACTOR_RUST_TARGET_DIR }}
           shared-key: native-refactor-coverage
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.0.x'
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Install pinned stable LLVM coverage driver
@@ -77,7 +74,7 @@ jobs:
             if ($install.ExitCode -ne 0) { throw "WebView2 install failed: $($install.ExitCode)" }
           }
           Get-ChildItem "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe" -ErrorAction SilentlyContinue | ForEach-Object { $_.VersionInfo | Select-Object FileName, ProductVersion }
-      - name: Prepare converter, probe and native plugin resources
+      - name: Prepare converter and probe
         run: npm run plugins:build
       - name: Prepare temporary updater test identity using the shared helper
         run: node scripts/native/test-signing.mjs prepare

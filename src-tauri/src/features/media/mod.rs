@@ -35,8 +35,6 @@ pub struct Media {
     sessions: Mutex<Sessions>,
     unsubscribe_ms: AtomicU64,
     #[cfg(windows)]
-    recovery: Mutex<std::collections::BTreeMap<String, Value>>,
-    #[cfg(windows)]
     api: Mutex<Option<Arc<crate::infrastructure::platform::smtc::Api>>>,
     #[cfg(windows)]
     command_gate: Mutex<()>,
@@ -58,8 +56,6 @@ impl Media {
             stopped: Arc::new(AtomicBool::new(false)),
             sessions: Mutex::new(Sessions::new(Vec::new())),
             unsubscribe_ms: AtomicU64::new(0),
-            #[cfg(windows)]
-            recovery: Mutex::new(std::collections::BTreeMap::new()),
             #[cfg(windows)]
             api: Mutex::new(None),
             #[cfg(windows)]
@@ -85,57 +81,36 @@ impl Media {
         Ok(result)
     }
     fn update(&self, app: &AppHandle, changes: &[Value], full: bool) -> Result<()> {
-        // A pruned session can emit a timeline-only delta. Resolve it from the DLL's
-        // retained snapshot; retry a busy snapshot on native wait timeouts as well.
+        // 恢复被业务 TTL 清理的会话，读取原生监控线程已合并的元数据和封面。
         #[cfg(windows)]
-        let changes = {
+        let incoming = {
             let sessions = self.sessions.lock().unwrap();
-            let mut recovery = self.recovery.lock().unwrap();
-            if full {
-                recovery.clear();
-            }
-            let mut incoming = Vec::new();
-            for change in changes {
-                let Some(id) = change["sourceAppId"].as_str() else {
-                    continue;
-                };
-                if !full
-                    && change["removed"] != true
-                    && change["mediaChanged"] != true
-                    && !sessions.entries.contains_key(id)
-                {
-                    recovery.insert(id.to_owned(), change.clone());
-                } else {
-                    recovery.remove(id);
-                    incoming.push(change.clone());
-                }
-            }
-            drop(sessions);
-            if !recovery.is_empty() {
-                let api = self.api.lock().unwrap().clone();
-                if let Some(Ok(snapshots)) = api.map(|api| api.snapshot(true)) {
-                    for (id, delta) in recovery.iter() {
-                        if let Some(snapshot) = snapshots
-                            .iter()
-                            .find(|value| value["sourceAppId"].as_str() == Some(id.as_str()))
+            let api = self.api.lock().unwrap().clone();
+            changes
+                .iter()
+                .map(|change| {
+                    let mut change = change.clone();
+                    if !full && change["removed"] != true && change["mediaChanged"] != true {
+                        if let Some(id) = change["sourceAppId"]
+                            .as_str()
+                            .filter(|id| !sessions.entries.contains_key(*id))
                         {
-                            let mut delta = delta.clone();
-                            delta["mediaChanged"] = json!(true);
-                            delta["artworkChanged"] = json!(true);
-                            delta["media"] = snapshot["media"].clone();
-                            delta["thumbnail"] = snapshot["media"]["thumbnail"].clone();
-                            delta["playback"] = snapshot["playback"].clone();
-                            delta["timeline"] = snapshot["timeline"].clone();
-                            incoming.push(delta);
+                            if let Some(snapshot) =
+                                api.as_ref().and_then(|api| api.session_snapshot(id))
+                            {
+                                change["mediaChanged"] = json!(true);
+                                change["artworkChanged"] = json!(true);
+                                change["thumbnail"] = snapshot["media"]["thumbnail"].clone();
+                                change["media"] = snapshot["media"].clone();
+                            }
                         }
                     }
-                    recovery.clear();
-                }
-            }
-            incoming
+                    change
+                })
+                .collect::<Vec<_>>()
         };
-        #[cfg(not(windows))]
-        let changes = changes.to_vec();
+        #[cfg(windows)]
+        let changes = incoming.as_slice();
         if changes.is_empty() && !full {
             return Ok(());
         }
@@ -143,7 +118,7 @@ impl Media {
             sessions.set_unsubscribe_ms(self.unsubscribe_ms.load(Ordering::Acquire));
             let before = sessions.summary();
             let pending_before = sessions.pending.clone();
-            sessions.apply(&changes, full);
+            sessions.apply(changes, full);
             let after = sessions.summary();
             let media_changed = full
                 || changes.iter().any(|c| {
@@ -202,27 +177,20 @@ impl Media {
                 .name("smtc-monitor".into())
                 .spawn(move || {
                     let result = (|| -> Result<()> {
-                        let path = crate::infrastructure::resources::native_path(
-                            &app,
-                            "smtc",
-                            "eIslandSmtcHelper.dll",
-                        )?;
-                        let api =
-                            Arc::new(crate::infrastructure::platform::smtc::Api::load(&path)?);
-                        api.start()?;
+                        let mut monitor = crate::infrastructure::platform::smtc::Monitor::open()?;
+                        monitor.refresh()?;
+                        let api = monitor.api();
                         *media.api.lock().unwrap() = Some(api.clone());
                         let result = (|| -> Result<()> {
-                            media.update(&app, &api.snapshot(true)?, true)?;
+                            media.update(&app, &api.snapshot(), true)?;
                             while !stopped.load(Ordering::Acquire) {
-                                let changes = api.wait_for_changes()?;
-                                let recover = !media.recovery.lock().unwrap().is_empty();
-                                if !changes.is_empty() || recover {
-                                    media.update(&app, &changes, false)?;
+                                match monitor.wait_for_changes() {
+                                    Ok(changes) => media.update(&app, &changes, false)?,
+                                    Err(error) => eprintln!("[SMTC] Refresh: {error}"),
                                 }
                             }
                             Ok(())
                         })();
-                        api.stop();
                         *media.api.lock().unwrap() = None;
                         result
                     })();
@@ -336,6 +304,38 @@ fn publish(app: &AppHandle, payload: Value) -> Result<()> {
     )
     .map_err(|e| e.to_string())
 }
+/// 供开发 CLI 读取 Windows 会话，跳过桌面窗口及单实例注册。
+#[cfg(windows)]
+pub(crate) fn run_smtc_cli() -> bool {
+    use crate::infrastructure::platform::smtc;
+    use std::io::Write;
+    let watch = match std::env::args_os()
+        .nth(1)
+        .as_deref()
+        .and_then(std::ffi::OsStr::to_str)
+    {
+        Some("--smtc-sessions") => false,
+        // 开发 CLI 持续读取时复用同一进程，每秒输出一行快照。
+        Some("--smtc-sessions-watch") => true,
+        _ => return false,
+    };
+    let result = if watch {
+        smtc::watch_sessions(std::time::Duration::from_secs(1), |sessions| {
+            let mut stdout = std::io::stdout().lock();
+            writeln!(stdout, "{}", json!(sessions))
+                .and_then(|()| stdout.flush())
+                .is_ok()
+        })
+    } else {
+        smtc::list_sessions().map(|sessions| println!("{}", json!(sessions)))
+    };
+    if let Err(error) = result {
+        eprintln!("[SMTC] {error}");
+        std::process::exit(1);
+    }
+    true
+}
+
 pub fn handles(channel: &str) -> bool {
     matches!(
         channel,
@@ -362,19 +362,7 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
             let api = media.api.lock().unwrap().clone();
             #[cfg(windows)]
             if let Some(api) = api {
-                let snapshots = tauri::async_runtime::spawn_blocking(move || {
-                    let mut last_error = "SMTC snapshot unavailable".to_owned();
-                    for _ in 0..3 {
-                        match api.snapshot(true) {
-                            Ok(snapshots) => return Ok(snapshots),
-                            Err(error) => last_error = error,
-                        }
-                        std::thread::sleep(std::time::Duration::from_millis(20));
-                    }
-                    Err(last_error)
-                })
-                .await
-                .map_err(|e| e.to_string())??;
+                let snapshots = api.snapshot();
                 let sources = snapshots.iter().map(|session| json!({
                     "sourceAppId":session["sourceAppId"],"isPlaying":state::playing(session),
                     "hasTitle":session["media"]["title"].as_str().is_some_and(|title| !title.is_empty()),

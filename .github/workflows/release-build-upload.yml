@@ -60,9 +60,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.0.x'
       - name: Install build dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Install isolated adapter dependencies

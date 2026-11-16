@@ -21,12 +21,17 @@
 /**
  * @file smtc.ts
  * @description 本机 SMTC（系统媒体传输控件）全部播放实例读取
- * @description 直接加载仓库内的 eisland-windows-smtc-helper 插件，启动其会话监控后每秒同步读取全部会话
+ * @description 通过项目的 Rust 可执行文件读取 Windows 媒体会话
  * @author 鸡哥
  */
 
-import { createRequire } from 'node:module';
+import { execFile, spawn } from 'node:child_process';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { createInterface } from 'node:readline';
+import { promisify } from 'node:util';
+
+import { t } from './i18n';
 
 /** 播放状态，按 WinRT GlobalSystemMediaTransportControlsSessionPlaybackStatus 枚举顺序 */
 export type SmtcStatus = 'closed' | 'opened' | 'changing' | 'stopped' | 'playing' | 'paused' | 'unknown';
@@ -51,37 +56,32 @@ export interface SmtcSession {
   updated: number;
 }
 
-/** 插件返回的会话快照，仅声明 CLI 用到的字段 */
-export interface HelperSession {
+/** 原生会话快照，仅声明 CLI 用到的字段 */
+export interface NativeSession {
   sourceAppId: string;
   media: { title: string; artist: string; albumTitle: string } | null;
   playback: { playbackStatus: number } | null;
   timeline: { position: number; duration: number; sampledAtMs?: number } | null;
 }
 
-/** 插件的会话监控器 */
-export interface HelperMonitor {
-  start: () => void;
-  stop: () => void;
-  getMediaSessions: () => HelperSession[];
-  on: (event: 'error', listener: (error: Error) => void) => unknown;
-}
-
-/** 插件模块入口 */
-export interface HelperModule {
-  SmtcMonitor: new () => HelperMonitor;
-}
+/** 持续读取会话：每收到一份快照回调一次；读取进程意外结束时 reject，停止信号触发后 resolve。 */
+type StreamSessions = (
+  root: string,
+  signal: AbortSignal,
+  onSessions: (sessions: NativeSession[]) => void,
+) => Promise<void>;
 
 /** 读取句柄 */
 export interface SmtcWatcher {
-  /** 停止读取并关闭插件监控 */
+  /** 停止读取并取消当前查询 */
   stop: () => void;
 }
 
-/** 插件在仓库中的位置 */
-export const SMTC_HELPER_DIR = path.join('plugins', 'windows', 'eisland-windows-smtc-helper');
-/** 读取间隔 */
+/** 读取间隔，同时作为读取进程退出后的重启间隔 */
 export const SMTC_INTERVAL_MS = 1000;
+
+/** 持续输出会话快照的参数，旧版可执行文件不包含该参数 */
+const WATCH_FLAG = '--smtc-sessions-watch';
 
 const PLAYBACK_STATUS: readonly SmtcStatus[] = ['closed', 'opened', 'changing', 'stopped', 'playing', 'paused'];
 
@@ -94,22 +94,108 @@ export function isSmtcSupported(platform: NodeJS.Platform = process.platform): b
   return platform === 'win32';
 }
 
+const execute = promisify(execFile);
+
 /**
- * 加载仓库内的 SMTC 插件
- * @description 插件为 CommonJS 并通过 koffi 加载原生 DLL，需在运行时按仓库路径加载，不能打包进 CLI
+ * 按 Cargo 的规则解析构建目录：相对的 CARGO_TARGET_DIR 基于 src-tauri，否则读取 cargo metadata。
  * @param root - 仓库根目录
- * @returns 插件模块
+ * @returns 构建目录绝对路径；Cargo 不可用时回退到 src-tauri/target
  */
-export function loadSmtcHelper(root: string): HelperModule {
-  return createRequire(import.meta.url)(path.join(root, SMTC_HELPER_DIR)) as HelperModule;
+async function cargoTargetDirectory(root: string): Promise<string> {
+  const tauri = path.join(root, 'src-tauri');
+  const configured = process.env.CARGO_TARGET_DIR;
+  if (configured) return path.resolve(tauri, configured);
+  try {
+    const { stdout } = await execute(
+      'cargo',
+      ['metadata', '--no-deps', '--format-version', '1', '--offline', '--manifest-path', path.join(tauri, 'Cargo.toml')],
+      { cwd: tauri, encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024 },
+    );
+    const target: unknown = (JSON.parse(stdout) as { target_directory?: unknown }).target_directory;
+    if (typeof target === 'string' && path.isAbsolute(target)) return target;
+  } catch {
+    // 未安装 Cargo 或离线解析失败时使用默认目录。
+  }
+  return path.join(tauri, 'target');
 }
 
 /**
- * 将插件快照转换为 CLI 会话
- * @param raw - 插件返回的会话快照
+ * 选择最新构建的可执行文件，并确认其支持持续读取参数。
+ * @param root - 仓库根目录
+ * @returns 可执行文件路径
+ */
+async function findBinary(root: string): Promise<string> {
+  const override = process.env.EISLAND_SMTC_BINARY;
+  const target = override ? '' : await cargoTargetDirectory(root);
+  const candidates = override
+    ? [path.resolve(root, override)]
+    : ['debug', 'release'].map((profile) => path.join(target, profile, 'eisland.exe'));
+  const builds = await Promise.all(candidates.map(async (file) => {
+    try {
+      return { file, modified: (await stat(file)).mtimeMs };
+    } catch {
+      return null;
+    }
+  }));
+  const [newest] = builds
+    .filter((build) => build !== null)
+    .sort((left, right) => right.modified - left.modified);
+  if (!newest) throw new Error(t('devCli.localTest.smtc.binaryMissing'));
+  // 旧版本不认识该参数，会直接启动完整的桌面应用。
+  if (!(await readFile(newest.file)).includes(WATCH_FLAG)) {
+    throw new Error(t('devCli.localTest.smtc.binaryOutdated', { file: newest.file }));
+  }
+  return newest.file;
+}
+
+/**
+ * 启动一个常驻的 Rust 读取进程，每秒解析一行会话快照。
+ * @param root - 仓库根目录
+ * @param signal - 停止读取并结束子进程的信号
+ * @param onSessions - 收到一份快照时回调
+ * @returns 停止后 resolve；进程意外退出或输出无效时 reject
+ */
+async function streamSessions(
+  root: string,
+  signal: AbortSignal,
+  onSessions: (sessions: NativeSession[]) => void,
+): Promise<void> {
+  const binary = await findBinary(root);
+  if (signal.aborted) return;
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(binary, [WATCH_FLAG], { signal, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stderr = '';
+    child.stderr.setEncoding('utf8').on('data', (chunk: string) => {
+      stderr = (stderr + chunk).slice(-2000);
+    });
+    createInterface({ input: child.stdout }).on('line', (line) => {
+      try {
+        const result: unknown = JSON.parse(line);
+        if (!Array.isArray(result)) throw new Error(t('devCli.localTest.smtc.invalidSnapshot'));
+        onSessions(result as NativeSession[]);
+      } catch (error) {
+        child.kill();
+        const invalid = error instanceof SyntaxError || !(error instanceof Error);
+        reject(invalid ? new Error(t('devCli.localTest.smtc.invalidSnapshot')) : error);
+      }
+    });
+    child.once('error', (error) => {
+      if (signal.aborted) resolve();
+      else reject(error);
+    });
+    child.once('close', (code) => {
+      if (signal.aborted) resolve();
+      else reject(new Error(stderr.trim() || t('devCli.localTest.smtc.exited', { code: String(code) })));
+    });
+  });
+}
+
+/**
+ * 将原生快照转换为 CLI 会话
+ * @param raw - 原生会话快照
  * @returns 会话
  */
-export function toSmtcSession(raw: HelperSession): SmtcSession {
+export function toSmtcSession(raw: NativeSession): SmtcSession {
   return {
     app: raw.sourceAppId,
     title: raw.media?.title ?? '',
@@ -123,44 +209,41 @@ export function toSmtcSession(raw: HelperSession): SmtcSession {
 }
 
 /**
- * 启动插件监控并定时读取全部会话
- * @description 插件监控启动后会话列表需要短暂时间填充，因此首次读取放在第一个间隔之后
+ * 通过常驻读取进程每秒接收媒体会话，进程退出后报告错误并按间隔重启。
  * @param root - 仓库根目录
- * @param onUpdate - 每次读取到全部会话时回调
- * @param onError - 插件加载、启动或读取失败时回调
- * @param load - 插件加载函数，默认 loadSmtcHelper，测试时可替换
- * @returns 读取句柄
+ * @param onUpdate - 收到全部会话时回调
+ * @param onError - 读取失败时回调
+ * @param stream - 原生会话读取函数，可在测试中替换
+ * @returns 可停止的读取句柄
  */
 export function watchSmtc(
   root: string,
   onUpdate: (sessions: SmtcSession[]) => void,
   onError: (message: string) => void,
-  load: (root: string) => HelperModule = loadSmtcHelper,
+  stream: StreamSessions = streamSessions,
 ): SmtcWatcher {
-  const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-  let monitor: HelperMonitor;
-  try {
-    const { SmtcMonitor } = load(root);
-    monitor = new SmtcMonitor();
-    monitor.on('error', (error) => onError(error.message));
-    monitor.start();
-  } catch (error) {
-    onError(message(error));
-    return { stop: () => {} };
-  }
-
-  const timer = setInterval(() => {
-    try {
-      onUpdate(monitor.getMediaSessions().map(toSmtcSession));
-    } catch (error) {
-      onError(message(error));
-    }
-  }, SMTC_INTERVAL_MS);
+  const controller = new AbortController();
+  const { signal } = controller;
+  let timer: NodeJS.Timeout | undefined;
+  const schedule = (ms: number): void => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- 回调内部处理全部读取错误，停止时由信号结束子进程。
+    timer = setTimeout(async () => {
+      try {
+        await stream(root, signal, (sessions) => {
+          if (!signal.aborted) onUpdate(sessions.map(toSmtcSession));
+        });
+      } catch (error) {
+        if (!signal.aborted) onError(error instanceof Error ? error.message : String(error));
+      }
+      if (!signal.aborted) schedule(SMTC_INTERVAL_MS);
+    }, ms);
+  };
+  schedule(0);
 
   return {
     stop: () => {
-      clearInterval(timer);
-      monitor.stop();
+      clearTimeout(timer);
+      controller.abort();
     },
   };
 }

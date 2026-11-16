@@ -49,7 +49,7 @@ Run `npm run dev` inside `cli/` to rebuild on every change (`vite build --watch`
 
 ```bash
 eisland-cli test main                       # npm run test:main
-eisland-cli plugin build smtc               # npm run plugin:build:smtc
+eisland-cli plugin build power               # npm run plugin:build:power
 eisland-cli run test:renderer -- --watch    # npm run test:renderer -- --watch
 eisland-cli list plugin                     # list only the plugin group
 ```
@@ -129,11 +129,11 @@ The Local tests screen lists tests that check system features of this machine. P
 | Storage | View and delete the entries the eIsland app keeps in `eIsland_store`, with size, modified time, and formatted JSON |
 
 :::info
-The SMTC test uses the repository's own plugin, `plugins/windows/eisland-windows-smtc-helper`. The CLI loads it at runtime from the repository root (it is a CommonJS package that loads a native DLL through koffi, so it is not bundled into the CLI). The test starts the plugin's `SmtcMonitor`, calls `getMediaSessions()` once per second, and stops the monitor when you leave the test.
+The SMTC test reads Windows media sessions once per second through the Rust desktop executable. It uses the same WinRT session and timeline APIs as the desktop app.
 :::
 
 :::warning
-The plugin's DLL must be built first. If the test reports `Unable to find eIslandSmtcHelper.dll`, run `npm install` (its `postinstall` builds the DLL) or `npm run build` inside `plugins/windows/eisland-windows-smtc-helper`. Building requires the .NET SDK.
+Build the desktop executable with `npm run build:e2e`. The CLI looks for `eisland.exe` under the Cargo target directory. Set `EISLAND_SMTC_BINARY` to use another build.
 :::
 
 :::note

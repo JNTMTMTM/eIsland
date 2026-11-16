@@ -96,8 +96,7 @@ async function ipc(page, channel, ...args) {
 async function captureMode(main, engine) {
   await ipc(main, 'store:write', 'screenshot-engine', engine);
   await assert.rejects(main.evaluate(() => window.__TAURI__.core.invoke('capture_pixels')), /restricted to capture/);
-  // macOS 不读取截图模式设置，系统支持时始终使用 ScreenCaptureKit。
-  const expectedSource = engine === 'js' && process.platform === 'win32' ? 'compatibility' : 'native';
+  const expectedSource = engine === 'plugin' && process.platform === 'win32' ? 'native' : 'compatibility';
   const captureLogOffset = stderr.length;
   const primary = await ipc(main, 'system:screenshot');
   assert.equal(typeof primary, 'string');
@@ -358,10 +357,18 @@ try {
   assert((await ipc(main, 'debug:windows')).some((w) => w.label === 'agent-voice-input' && w.visible), 'STT effect must stay visible when topmost is restored');
   await ipc(menu, 'tray-menu:close');
   await ipc(main, 'agent-voice-input:hide');
-  if (process.platform === 'win32') await captureMode(main, 'plugin');
-  await captureMode(main, 'js');
+  if (process.platform === 'darwin') {
+    await assert.rejects(ipc(main, 'system:screenshot'), /Screen capture is unavailable/);
+    await assert.rejects(ipc(main, 'system:screenshot:region:start'), /Screen capture is unavailable/);
+    assert.equal(await ipc(main, 'screenshot-hotkey:get'), '');
+    assert.equal(await ipc(main, 'screenshot-hotkey:set', 'Alt+A'), false);
+    await assert.rejects(ipc(main, 'system:performance-snapshot:get'), /Performance monitoring is unavailable/);
+  } else {
+    if (process.platform === 'win32') await captureMode(main, 'plugin');
+    await captureMode(main, 'js');
+    assert.equal(typeof await ipc(main, 'system:performance-snapshot:get'), 'object');
+  }
   await assert.rejects(ipc(main, 'store:read', '../secrets'), /Invalid store key/);
-  assert.equal(typeof await ipc(main, 'system:performance-snapshot:get'), 'object');
   assert.deepEqual(errors, [], 'main page must remain mounted without runtime exceptions');
   await main.screenshot({ path: resolve(output, 'main.png'), omitBackground: true });
   console.log('PASS: real WebView2 main, guide, standalone, tray, capture, voice, glow, transitions, scale, shortcut suspend/save/resume, sender checks');

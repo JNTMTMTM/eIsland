@@ -155,7 +155,7 @@ describe('runCli', () => {
 
   it('分段不完整时列出候选', async () => {
     expect(await cli('plugin', 'build')).toBe(1);
-    expect(errors.join('\n')).toContain('plugin:build:smtc');
+    expect(errors.join('\n')).toContain('plugin:build:power');
   });
 
   it('拼写错误时给出建议', async () => {

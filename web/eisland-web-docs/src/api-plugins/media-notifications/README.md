@@ -7,12 +7,10 @@ icon: bell
 # Media & Notifications
 
 :::info
-Plugins for media playback control and system notification management. Windows SMTC supports multiple media sessions; the macOS Media Helper observes the system current source.
+Plugins for Windows audio analysis and system notifications. The desktop app reads and controls media sessions through Windows SMTC.
 :::
 
 | Plugin | Description |
 |--------|-------------|
-| [Windows SMTC Helper](smtc-helper.md) | System Media Transport Controls |
-| [macOS Media Helper](macos-media-helper.md) | Swift + Node-API media metadata, artwork, timeline, and asynchronous controls |
 | [Windows Toast Listener](toast-listener.md) | Toast notification listening and suppression |
 | [Windows Volume Analyzer](volume-analyzer.md) | Process-specific audio analysis (frequency, amplitude, beat) |

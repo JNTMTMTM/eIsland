@@ -43,7 +43,7 @@ interface Reading {
 }
 
 /**
- * 进入测试时启动插件监控，离开时停止
+ * 进入测试时启动原生会话查询，离开时停止
  * @param props - SMTC 测试入参
  * @param props.root - 仓库根目录
  * @param props.onBack - 返回本机测试列表回调

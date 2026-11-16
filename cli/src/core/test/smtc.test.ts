@@ -20,29 +20,15 @@
 
 /**
  * @file smtc.test.ts
- * @description 验证 SMTC 插件快照转换、平台判断，以及插件监控的启动、定时读取全部会话、错误与停止处理
+ * @description 验证 SMTC 原生快照转换、平台判断及常驻读取的停止与重启行为
  * @author 鸡哥
  */
 
-import { existsSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { isSmtcSupported, SMTC_INTERVAL_MS, toSmtcSession, watchSmtc } from '../smtc';
+import type { NativeSession, SmtcSession } from '../smtc';
 
-import {
-  afterEach, beforeEach, describe, expect, it, vi,
-} from 'vitest';
-
-import {
-  isSmtcSupported, SMTC_HELPER_DIR, SMTC_INTERVAL_MS, toSmtcSession, watchSmtc,
-} from '../smtc';
-
-import type {
-  HelperModule, HelperMonitor, HelperSession, SmtcSession,
-} from '../smtc';
-
-const ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
-
-const raw = (overrides: Partial<HelperSession> = {}): HelperSession => ({
+const raw = (overrides: Partial<NativeSession> = {}): NativeSession => ({
   sourceAppId: 'Spotify.exe',
   media: { title: 'Song', artist: 'Singer', albumTitle: 'Album' },
   playback: { playbackStatus: 4 },
@@ -50,38 +36,8 @@ const raw = (overrides: Partial<HelperSession> = {}): HelperSession => ({
   ...overrides,
 });
 
-/** 模拟插件监控器 */
-const monitor = {
-  start: vi.fn(),
-  stop: vi.fn(),
-  getMediaSessions: vi.fn((): HelperSession[] => []),
-  on: vi.fn(),
-};
-
-/** 插件监控器替身，方法均委托给共享的模拟函数，便于断言 */
-class FakeMonitor implements HelperMonitor {
-  start = monitor.start;
-
-  stop = monitor.stop;
-
-  getMediaSessions = monitor.getMediaSessions;
-
-  on = monitor.on;
-}
-
-/**
- * 模拟插件模块
- * @returns 构造监控器替身的模块
- */
-const fakeModule = (): HelperModule => ({ SmtcMonitor: FakeMonitor });
-
-beforeEach(() => {
-  vi.useFakeTimers();
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-});
+beforeEach(() => { vi.useFakeTimers(); });
+afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); });
 
 describe('toSmtcSession', () => {
   it('转换媒体、状态与时间线字段', () => {
@@ -107,54 +63,63 @@ describe('isSmtcSupported', () => {
   });
 });
 
-describe('watchSmtc', () => {
-  it('插件路径指向仓库内的 SMTC 插件', () => {
-    expect(existsSync(path.join(ROOT, SMTC_HELPER_DIR, 'package.json'))).toBe(true);
-  });
+type OnSessions = (sessions: NativeSession[]) => void;
 
-  it('从仓库根目录加载插件并启动监控，每个间隔读取全部会话', () => {
-    const load = vi.fn(fakeModule);
+/**
+ * 模拟常驻读取进程：保存回调与停止信号，停止后 resolve
+ * @returns 读取函数及测试控制句柄
+ */
+function fakeStream() {
+  const calls: { signal: AbortSignal; emit: OnSessions }[] = [];
+  const stream = vi.fn((root: string, signal: AbortSignal, emit: OnSessions) => {
+    calls.push({ signal, emit });
+    return new Promise<void>((resolve) => signal.addEventListener('abort', () => resolve(), { once: true }));
+  });
+  return { stream, calls };
+}
+
+describe('watchSmtc', () => {
+  it('同一读取进程的每份快照都会回调全部会话', async () => {
+    const { stream, calls } = fakeStream();
     const onUpdate = vi.fn<(sessions: SmtcSession[]) => void>();
-    monitor.getMediaSessions.mockReturnValue([raw(), raw({ sourceAppId: 'Games.exe', timeline: null })]);
-    watchSmtc('/repo', onUpdate, vi.fn(), load);
-    expect(load).toHaveBeenCalledWith('/repo');
-    expect(monitor.start).toHaveBeenCalledTimes(1);
-    expect(onUpdate).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(SMTC_INTERVAL_MS * 2);
+    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), stream);
+    await vi.advanceTimersByTimeAsync(0);
+    calls[0].emit([raw(), raw({ sourceAppId: 'Games.exe' })]);
+    calls[0].emit([raw()]);
+    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 3);
+    expect(stream).toHaveBeenCalledTimes(1);
+    expect(stream).toHaveBeenCalledWith('/repo', expect.any(AbortSignal), expect.any(Function));
     expect(onUpdate).toHaveBeenCalledTimes(2);
     expect(onUpdate.mock.calls[0][0].map((session) => session.app)).toEqual(['Spotify.exe', 'Games.exe']);
-  });
-
-  it('插件加载或启动失败时回调错误且不再读取', () => {
-    const onError = vi.fn();
-    const watcher = watchSmtc('/repo', vi.fn(), onError, () => {
-      throw new Error('Unable to find eIslandSmtcHelper.dll');
-    });
-    expect(onError).toHaveBeenCalledWith('Unable to find eIslandSmtcHelper.dll');
-    expect(() => watcher.stop()).not.toThrow();
-  });
-
-  it('读取失败或监控报错时回调错误', () => {
-    const onError = vi.fn();
-    monitor.getMediaSessions.mockImplementation(() => {
-      throw new Error('read failed');
-    });
-    watchSmtc('/repo', vi.fn(), onError, fakeModule);
-    vi.advanceTimersByTime(SMTC_INTERVAL_MS);
-    expect(onError).toHaveBeenCalledWith('read failed');
-    const [[event, listener]] = monitor.on.mock.calls as [string, (error: Error) => void][];
-    expect(event).toBe('error');
-    listener(new Error('monitor failed'));
-    expect(onError).toHaveBeenCalledWith('monitor failed');
-  });
-
-  it('停止后关闭插件监控且不再读取', () => {
-    const onUpdate = vi.fn();
-    monitor.getMediaSessions.mockReturnValue([]);
-    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), fakeModule);
     watcher.stop();
-    vi.advanceTimersByTime(SMTC_INTERVAL_MS * 3);
-    expect(monitor.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('停止后结束读取进程并忽略迟到的结果', async () => {
+    const { stream, calls } = fakeStream();
+    const onUpdate = vi.fn();
+    const watcher = watchSmtc('/repo', onUpdate, vi.fn(), stream);
+    await vi.advanceTimersByTimeAsync(0);
+    watcher.stop();
+    expect(calls[0].signal.aborted).toBe(true);
+    calls[0].emit([raw()]);
+    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS * 3);
     expect(onUpdate).not.toHaveBeenCalled();
+    expect(stream).toHaveBeenCalledTimes(1);
+  });
+
+  it('读取进程退出时报告错误，间隔后重启', async () => {
+    const { stream, calls } = fakeStream();
+    stream.mockRejectedValueOnce(new Error('read failed'));
+    const onError = vi.fn();
+    const onUpdate = vi.fn();
+    const watcher = watchSmtc('/repo', onUpdate, onError, stream);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(onError).toHaveBeenCalledWith('read failed');
+    expect(stream).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(SMTC_INTERVAL_MS);
+    expect(stream).toHaveBeenCalledTimes(2);
+    calls[0].emit([raw()]);
+    expect(onUpdate).toHaveBeenCalledWith([toSmtcSession(raw())]);
+    watcher.stop();
   });
 });

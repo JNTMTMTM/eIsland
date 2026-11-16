@@ -47,17 +47,6 @@ const BADGE_MAP: Record<string, string> = {
   // Processes Attacker
   ProcessCloseResult: 'interface',
   ProcessFailure: 'interface',
-  // SMTC Helper
-  TimelineProperties: 'interface',
-  PlaybackControls: 'interface',
-  MediaStatus: 'interface',
-  CommandResult: 'interface',
-  TimestampInfo: 'interface',
-  MediaProps: 'interface',
-  PlaybackInfo: 'interface',
-  TimelineProps: 'interface',
-  SessionSnapshot: 'interface',
-  SmtcMonitor: 'monitor',
   // Toast Listener
   ToastAccessStatus: 'enum',
   ToastNotificationChangeKind: 'enum',

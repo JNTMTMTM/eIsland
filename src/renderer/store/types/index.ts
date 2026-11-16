@@ -89,7 +89,7 @@ export interface MediaInfo {
   duration_ms: number;
 }
 
-/** NowPlaying 原始数据结构（来自 @eisland/windows-smtc-helper SmtcMonitor） */
+/** NowPlaying 原始数据结构（来自 Rust 媒体服务） */
 export type NowPlayingInfo = {
   title: string;
   artist: string;

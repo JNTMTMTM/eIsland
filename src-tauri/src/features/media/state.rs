@@ -70,7 +70,7 @@ impl Sessions {
             self.last_seen.clear();
             self.last_cleanup_at = now;
         } else if self.unsubscribe_ms > 0 && now.saturating_sub(self.last_cleanup_at) >= 30_000 {
-            // Match the original runtime cache TTL. The DLL remains subscribed, and no
+            // Match the original runtime cache TTL. The native monitor remains subscribed, and no
             // wall-clock timer clears a paused track while no media event is arriving.
             self.last_cleanup_at = now;
             let refreshed: std::collections::BTreeSet<_> = changes

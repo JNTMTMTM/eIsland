@@ -20,12 +20,6 @@
 
 //! 截图平台接口。
 
-#[cfg(target_os = "macos")]
-mod macos;
-#[cfg(windows)]
 mod windows;
 
-#[cfg(target_os = "macos")]
-pub(crate) use macos::{capture, DisplayRequest};
-#[cfg(windows)]
 pub(crate) use windows::capture;

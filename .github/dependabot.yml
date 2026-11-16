@@ -8,7 +8,6 @@ updates:
       - /sdk
       - /web/*
       - /plugins/windows/*
-      - /plugins/macos/*
     schedule:
       interval: weekly
       day: monday

@@ -20,22 +20,23 @@
 
 //! 全屏自动隐藏所需的原生窗口检测，不依赖 Node 插件或外部进程。
 
-#[cfg(target_os = "macos")]
-mod macos;
 #[cfg(windows)]
 mod windows;
 
-#[cfg(target_os = "macos")]
-pub(crate) use macos::any;
 #[cfg(windows)]
 pub(crate) use windows::any;
 
 /// 比较同一坐标系中的四条边，保留旧检测器的 2 单位容差。
-/// Windows 使用物理像素；macOS 的窗口和显示器统一使用全局逻辑坐标。
+#[cfg(any(not(target_os = "macos"), test))]
 fn fills_display(window: [f64; 4], display: [f64; 4]) -> bool {
     [window, display].iter().all(|rect| {
         rect.iter().all(|edge| edge.is_finite()) && rect[2] > rect[0] && rect[3] > rect[1]
     }) && window.iter().zip(display).all(|(a, b)| (a - b).abs() <= 2.)
+}
+
+#[cfg(target_os = "macos")]
+pub(crate) fn any() -> Result<bool, String> {
+    Ok(false)
 }
 
 /// 其他平台沿用 Rust 窗口枚举，读取失败时不把缺失尺寸当成相等。

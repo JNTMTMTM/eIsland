@@ -6,22 +6,20 @@ icon: toolbox
 # Plugins Tech Stack
 
 :::warning
-This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration.
+This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes.
 
-The desktop performance monitor reads CPU, memory, and disk usage in Rust. Windows reads CPU clocks through PowrProf, GPU inventory and usage through DXGI and PDH, and available temperatures through ACPI, WDDM, and storage drivers. macOS uses available system temperature sensors. Unavailable readings remain empty.
+On Windows, the Rust desktop performance monitor reads CPU, memory, and disk usage. It reads CPU clocks through PowrProf, GPU inventory and usage through DXGI and PDH, and available temperatures through ACPI, WDDM, and storage drivers. Unavailable readings remain empty.
 
-The desktop app handles hardware brightness in Rust. Windows uses WMI and DXVA2. macOS uses DisplayServices, IOKit, and DDC/CI where the display supports it.
+The Rust desktop app controls brightness on Windows through WMI for internal displays and DXVA2 for compatible external displays.
 :::
 
 ## Overview
 
-The plugin system includes Windows native helpers and an independent macOS media helper.
+The plugin system includes Windows native helpers.
 
 | Plugin | Package | Purpose |
 |--------|---------|---------|
 | **Processes Attacker** | `@eisland/windows-processes-attacker` | Terminate processes by name or PID |
-| **SMTC Helper** | `@eisland/windows-smtc-helper` | System Media Transport Controls (play, pause, next, previous, status) |
-| **macOS Media Helper** | `eisland-macos-media-helper` | Current-source metadata, artwork, timeline, events, and asynchronous playback commands |
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
@@ -32,13 +30,12 @@ The plugin system includes Windows native helpers and an independent macOS media
 | Category | Plugins | Build System | Runtime |
 |----------|---------|-------------|---------|
 | **C + N-API** | Processes Attacker | `node-gyp` | Native `.node` addon loaded by Node.js |
-| **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
+| **C# NativeAOT + koffi FFI** | Bluetooth, Power, WiFi | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
-| **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
 **Common Characteristics:**
 
-- **Platform**: Windows helpers use `"os": ["win32"]`; macOS helpers use `"os": ["darwin"]` with separate arm64 and x64 prebuilds.
+- **Platform**: Windows helpers use `"os": ["win32"]`.
 - **License**: GPL-3.0
 - **TypeScript**: `.d.ts` type declarations provided
 
@@ -197,7 +194,7 @@ bool close_matching_processes(const ProcessTarget* target, ProcessCloseResult* r
 
 ## Native Fullscreen Detection
 
-Fullscreen auto-hide runs directly in Rust: `features/windowing/auto_hide.rs` calls `infrastructure/platform/fullscreen`. Windows uses Win32/DWM with a 2-pixel edge tolerance. macOS compares CoreGraphics onscreen window and display bounds in logical coordinates. Neither platform needs the retired Node.js addon.
+Fullscreen auto-hide on Windows runs in Rust. `features/windowing/auto_hide.rs` calls `infrastructure/platform/fullscreen`, which compares Win32/DWM window bounds with display bounds using a 2-pixel tolerance.
 
 ## Plugin: Windows Bluetooth Helper
 
@@ -212,7 +209,7 @@ Fullscreen auto-hide runs directly in Rust: `features/windowing/auto_hide.rs` ca
 Provides Bluetooth device enumeration and real-time connection state monitoring. Used by eIsland to detect paired/connected Bluetooth devices (headphones, speakers, etc.) and respond to connection/disconnection events.
 
 :::info
-Like the SMTC Helper, this plugin uses the **koffi FFI + .NET Native AOT DLL** architecture. It wraps the `Windows.Devices.Bluetooth` and `Windows.Devices.Enumeration` WinRT APIs.
+This plugin uses the **koffi FFI + .NET Native AOT DLL** architecture. It wraps the `Windows.Devices.Bluetooth` and `Windows.Devices.Enumeration` WinRT APIs.
 :::
 
 ### Architecture
@@ -349,7 +346,7 @@ npm run build:all      # Both
 | **koffi** | ^2.9.1 | FFI library for calling DLL from Node.js |
 
 :::tip Self-Contained Deployment
-All .NET Native AOT DLLs (Bluetooth, Power, WiFi, SMTC) are built with `<SelfContained>true</SelfContained>` and `<StaticICU>true</StaticICU>`. Client machines do **not** need the .NET runtime installed.
+All .NET Native AOT DLLs (Bluetooth, Power, WiFi) are built with `<SelfContained>true</SelfContained>` and `<StaticICU>true</StaticICU>`. Client machines do **not** need the .NET runtime installed.
 :::
 
 ### Performance
@@ -803,7 +800,7 @@ interface ToastNotificationSnapshot {
 
 ## Desktop screenshots
 
-The Rust desktop uses Win32 GDI on Windows and automatically retries with xcap in compatibility mode when GDI fails. macOS 14 and later use ScreenCaptureKit with Screen Recording permission. Earlier macOS versions use the xcap compatibility path. The application encodes the primary display and region captures as PNG and preserves the desktop layout across monitors.
+On Windows, the Rust desktop uses Win32 GDI and automatically retries with xcap in compatibility mode when GDI fails. The application encodes primary display and region captures as PNG and preserves the desktop layout across monitors.
 
 ## Testing
 
@@ -859,7 +856,6 @@ Fullscreen detection is covered by Rust boundary tests and native Win32 window-s
 | Plugin | Test Files | Test Types |
 |--------|------------|------------|
 | **Processes Attacker** | _(manual testing)_ | — |
-| **SMTC Helper** | `smtc-helper.test.ts`, `smtc-helper.play.test.ts`, `smtc-helper.pause.test.ts`, `smtc-helper.next.test.ts`, `smtc-helper.previous.test.ts`, `smtc-helper.timestamp.test.ts` | Shape validation, export verification, command tests |
 | **Bluetooth Helper** | `bluetooth.test.ts`, `bluetooth.monitor.test.ts` | Shape validation, export verification, monitor state management |
 | **Power Helper** | `power.test.ts`, `power.monitor.test.ts` | Shape validation, consistency, monitor tests |
 | **WiFi Helper** | `wifi.test.ts`, `wifi.monitor.test.ts` | Shape validation, consistency, monitor tests |
@@ -906,8 +902,6 @@ Performance characteristics and optimization recommendations for each plugin:
 | Plugin | Call Latency | Notes |
 |--------|-------------|-------|
 | **Processes Attacker** | ~1–5ms | Snapshot-based enumeration, single `TerminateProcess` call per match |
-| **SMTC Helper** | ~50–200ms | Spawns a .NET process; WinRT session manager + media property reads |
-| **SMTC Helper (FFI)** | ~1–5ms | Direct DLL call via koffi FFI; no process spawn |
 | **Bluetooth Helper** | ~10–50ms | WinRT `FindAllAsync` + `FromIdAsync`; event-driven monitoring |
 | **Power Helper** | ~1ms | In-memory `PowerManager` property reads; event-driven monitoring |
 | **WiFi Helper** | ~1ms | In-memory `NetworkInformation` profile reads; event-driven monitoring |
@@ -917,498 +911,9 @@ Performance characteristics and optimization recommendations for each plugin:
 
 - CPU and memory snapshots are nearly zero-cost — suitable for polling at 1-second intervals
 - The fullscreen detector avoids COM/WMI — pure Win32 window API calls
-- SMTC commands are direct DLL calls (~1-5ms via koffi FFI); monitoring is event-driven (zero polling)
 - Power and WiFi helpers use in-memory WinRT property reads (~1ms) — suitable for frequent polling
 - Application icon queries are fast (~5-20ms) but should be cached to avoid repeated Shell32 calls
 
-## Plugin: Windows SMTC Helper
+## Windows Media Sessions
 
-### Package
-
-```
-@eisland/windows-smtc-helper
-```
-
-### Purpose
-
-Provides control over Windows System Media Transport Controls (SMTC) — the standard media playback interface that appears in the Windows notification center and on the lock screen. Used by eIsland to display and control currently playing media from any source (Spotify, QQ Music, Chrome, etc.).
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer (index.js + smtc-monitor.js + ffi-loader) │
-│  Commands: play / pause / next / previous / seek / stop ... │
-│  Monitor:  SmtcMonitor (EventEmitter) via koffi FFI         │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ koffi FFI (direct DLL calls)
-┌──────────────────────────▼──────────────────────────────────┐
-│  eIslandSmtcCtypes.dll (NativeAOT)                          │
-│  .NET 10 + Windows.Media.Control                            │
-├─────────────────────────────────────────────────────────────┤
-│  SmtcExports.cs        — C-style exported functions         │
-│  SmtcController.cs     — Command execution (play/pause/…)   │
-│  SmtcSessionMonitor.cs — Event-driven session monitoring    │
-│  SmtcJsonContext.cs    — Source-generated JSON serialization│
-│  Snapshots.cs          — Data models                        │
-└─────────────────────────────────────────────────────────────┘
-        ▲                           ▲
-        │                           │
-  ┌─────┴──────┐            ┌───────┴────────┐
-  │  Node.js   │            │ Python / C /   │
-  │  (koffi)   │            │ any FFI lang   │
-  └────────────┘            └────────────────┘
-```
-
-:::info
-Unlike other plugins that use C + N-API, the SMTC Helper is a **pure C# .NET application** compiled as a NativeAOT DLL. Node.js accesses it via **koffi** (a zero-compile FFI library), eliminating native addon build issues. The DLL also works from Python ctypes or any language with C FFI support.
-:::
-
-:::tip
-The plugin provides two integration modes:
-
-1. **Commands** — synchronous function calls (`play`, `pause`, `seek`, etc.) for media control
-2. **Monitor** — event-driven session tracking (`SmtcMonitor` class) for real-time state updates, replacing the need for a separate monitoring package
-:::
-
-### Exported Functions
-
-#### Commands
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `play` | `() → CommandResult` | Resume playback of the current media session |
-| `pause` | `() → CommandResult` | Pause the current media session |
-| `next` | `() → CommandResult` | Skip to the next track |
-| `previous` | `() → CommandResult` | Skip to the previous track |
-| `getStatus` | `() → MediaStatus` | Get the full snapshot of the current media session |
-| `getTimestamp` | `() → TimestampInfo` | Lightweight playback timestamp (no media metadata), optimized for lyrics calibration |
-| `seek` | `(seconds: number) → CommandResult` | Seek to a position in seconds |
-| `stop` | `() → CommandResult` | Stop playback |
-| `setShuffle` | `(active: boolean) → CommandResult` | Toggle shuffle mode |
-| `setRepeatMode` | `(mode: number) → CommandResult` | Set repeat mode (0=None, 1=Track, 2=List) |
-| `setPlaybackRate` | `(rate: number) → CommandResult` | Set playback rate (1.0 = normal) |
-
-#### SmtcMonitor
-
-| Export | Type | Description |
-|--------|------|-------------|
-| `SmtcMonitor` | `class extends EventEmitter` | Real-time SMTC session monitor |
-
-**Events** (compatible with `@coooookies/windows-smtc-monitor`):
-
-| Event | Callback | Description |
-|-------|----------|-------------|
-| `session-added` | `(sourceAppId: string, media: MediaProps) => void` | New media session detected |
-| `session-removed` | `(sourceAppId: string) => void` | Media session closed |
-| `session-media-changed` | `(sourceAppId: string, media: MediaProps) => void` | Track metadata changed |
-| `session-playback-changed` | `(sourceAppId: string, playback: PlaybackInfo) => void` | Play/pause/stop state changed |
-| `session-timeline-changed` | `(sourceAppId: string, timeline: TimelineProps) => void` | Playback position updated |
-
-### MediaStatus
-
-```ts
-interface MediaStatus {
-  isAvailable: boolean;
-  title: string | null;
-  artist: string | null;
-  albumTitle: string | null;
-  albumArtist: string | null;
-  trackNumber: number | null;
-  genres: string[] | null;
-  playbackStatus: 'playing' | 'paused' | 'stopped' | 'closed' | 'opened' | 'changing' | 'unknown';
-  isShuffleActive: boolean | null;
-  repeatMode: number | null;
-  playbackRate: number | null;
-  sourceAppUserModelId: string | null;
-  thumbnail: string | null;               // data:image/jpeg;base64,...
-  timeline: TimelineProperties | null;
-  controls: PlaybackControls | null;
-}
-
-interface TimelineProperties {
-  startTime: number;       // seconds
-  endTime: number;         // seconds
-  position: number;        // seconds
-  minSeekTime: number;     // seconds
-  maxSeekTime: number;     // seconds
-}
-
-interface PlaybackControls {
-  isPlayEnabled: boolean;
-  isPauseEnabled: boolean;
-  isNextEnabled: boolean;
-  isPreviousEnabled: boolean;
-  isStopEnabled: boolean;
-  isRecordEnabled: boolean;
-  isFastForwardEnabled: boolean;
-  isRewindEnabled: boolean;
-  isChannelUpEnabled: boolean;
-  isChannelDownEnabled: boolean;
-}
-
-interface CommandResult {
-  success: boolean;
-  error: string | null;
-}
-
-interface TimestampInfo {
-  isAvailable: boolean;
-  playbackStatus: 'playing' | 'paused' | 'stopped' | 'closed' | 'opened' | 'changing' | 'unknown';
-  timeline: TimelineProperties | null;
-}
-```
-
-:::tip
-`getTimestamp()` is a lightweight alternative to `getStatus()` — it returns only playback status and timeline position without fetching media metadata (title, artist, album art, etc.). This makes it ideal for lyrics calibration where only the playback position is needed.
-:::
-
-### C# Implementation
-
-#### SmtcController
-
-The core controller uses `GlobalSystemMediaTransportControlsSessionManager` to access the active media session:
-
-```csharp
-public static class SmtcController
-{
-    private static async Task<GlobalSystemMediaTransportControlsSession?> GetCurrentSessionAsync()
-    {
-        var manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-        return manager.GetCurrentSession();
-    }
-
-    public static async Task<CommandResult> PlayAsync()
-    {
-        var session = await GetCurrentSessionAsync();
-        if (session == null)
-            return CommandResult.Fail("No active media session.");
-
-        var success = await session.TryPlayAsync();
-        return success ? CommandResult.Ok : CommandResult.Fail("Play command was rejected.");
-    }
-
-    // Pause, Next, Previous follow the same pattern...
-}
-```
-
-**Key behaviors:**
-
-- `RequestAsync()` acquires the session manager — requires a UI thread or `CoreApplication` context
-- `GetCurrentSession()` returns `null` if no app is currently playing media
-- `TryPlayAsync()` / `TryPauseAsync()` return `false` if the media source rejects the command
-- `SourceAppUserModelId` identifies the media source (e.g., `"QQMusic.exe"`, `"Spotify.exe"`)
-- Thumbnail is read as a stream, converted to base64, and returned as a `data:image/jpeg;base64,...` data URI
-
-#### Timeline Properties
-
-Timeline data is read from `session.GetTimelineProperties()` and converted to seconds:
-
-```csharp
-var timeline = session.GetTimelineProperties();
-var timelineProperties = new TimelineProperties
-{
-    StartTime = timeline.StartTime.TotalSeconds,
-    EndTime = timeline.EndTime.TotalSeconds,
-    Position = timeline.Position.TotalSeconds,
-    MinSeekTime = timeline.MinSeekTime.TotalSeconds,
-    MaxSeekTime = timeline.MaxSeekTime.TotalSeconds,
-};
-```
-
-:::note
-Some media sources (like QQ Music) report `minSeekTime` and `maxSeekTime` as 0, even though seeking works. This is a limitation of the media source's SMTC implementation, not the plugin.
-:::
-
-#### Playback Controls
-
-The `PlaybackControls` object reports which transport buttons the media source has enabled:
-
-```csharp
-var controls = new PlaybackControls
-{
-    IsPlayEnabled = playbackInfo.Controls.IsPlayEnabled,
-    IsPauseEnabled = playbackInfo.Controls.IsPauseEnabled,
-    IsNextEnabled = playbackInfo.Controls.IsNextEnabled,
-    IsPreviousEnabled = playbackInfo.Controls.IsPreviousEnabled,
-    // ... and so on
-};
-```
-
-### SmtcMonitor Usage
-
-```typescript
-import { SmtcMonitor } from '@eisland/windows-smtc-helper';
-
-const monitor = new SmtcMonitor();
-
-monitor.on('session-added', (sourceAppId, media) => {
-  console.log(`Now playing: ${media.title} — ${media.artist}`);
-});
-
-monitor.on('session-playback-changed', (sourceAppId, playback) => {
-  console.log(`Status: ${playback.playbackStatus}`); // 4=playing, 5=paused
-});
-
-monitor.on('session-timeline-changed', (sourceAppId, timeline) => {
-  console.log(`Position: ${timeline.position.toFixed(1)}s`);
-});
-
-monitor.start();
-// ... later
-monitor.stop();
-```
-
-:::note
-The `SmtcMonitor` uses WinRT event callbacks (`MediaPropertiesChanged`, `PlaybackInfoChanged`, `TimelinePropertiesChanged`) for zero-polling real-time updates. Timeline events are throttled to 200ms intervals. The `getMediaSessions()` method returns a synchronous snapshot of all active sessions.
-:::
-
-### CLI Modes
-
-| Invocation | Mode | Output |
-|------------|------|--------|
-| `eIslandSmtcHelper.exe status` | Status (default) | `MediaStatus` JSON |
-| `eIslandSmtcHelper.exe play` | Play | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe pause` | Pause | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe next` | Next | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe previous` | Previous | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe seek <seconds>` | Seek | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe stop` | Stop | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe set-shuffle <0|1>` | Shuffle | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe set-repeat-mode <0|1|2>` | Repeat | `CommandResult` JSON |
-| `eIslandSmtcHelper.exe set-playback-rate <rate>` | Rate | `CommandResult` JSON |
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `src/Program.cs` | CLI entry point, argument parsing, JSON output |
-| `src/SmtcController.cs` | SMTC command execution (play, pause, seek, stop, shuffle, repeat, rate) |
-| `src/SmtcSessionMonitor.cs` | Event-driven session monitoring engine (WinRT callbacks + Win32 events) |
-| `src/Snapshots.cs` | Data models (`MediaStatus`, `CommandResult`, `SessionInfo`, `MediaMetadata`, etc.) |
-| `ffi-loader.js` | koffi FFI loader — defines all DLL function signatures |
-| `smtc-monitor.js` | `SmtcMonitor` EventEmitter — wraps DLL monitoring into Node.js events |
-| `index.js` | Public API — exports commands + `SmtcMonitor` |
-
-### Build
-
-```bash
-cd plugins/windows/eisland-windows-smtc-helper
-npm run build    # Runs: dotnet build src/eIslandSmtcHelper.csproj -c Release
-```
-
-Output: `src/bin/Release/net10.0-windows10.0.19041.0/eIslandSmtcHelper.exe`
-
-:::warning
-The SMTC helper targets `net10.0-windows10.0.19041.0` to access WinRT APIs. This requires the Windows 10 SDK (10.0.19041.0) or later installed alongside the .NET 10 SDK.
-:::
-
-### Dependencies
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-  </PropertyGroup>
-</Project>
-```
-
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| **.NET** | 10.0 | Build-time only (self-contained DLL — no runtime needed on client) |
-| **Windows 10 SDK** | 10.0.19041.0+ | WinRT API projections for `Windows.Media.Control` |
-
-:::tip Self-Contained Deployment
-The SMTC Helper DLL is built with `<SelfContained>true</SelfContained>` and `<StaticICU>true</StaticICU>`, so all .NET and ICU dependencies are statically linked. Client machines do **not** need the .NET runtime installed.
-:::
-
-### Example Output
-
-**getStatus() with QQ Music playing:**
-
-```json
-{
-  "isAvailable": true,
-  "title": "Chasing Gold and Gloory",
-  "artist": "Gruup24",
-  "albumTitle": "Chasing Gold and Gloory",
-  "albumArtist": "",
-  "trackNumber": 0,
-  "genres": null,
-  "playbackStatus": "playing",
-  "isShuffleActive": null,
-  "repeatMode": null,
-  "playbackRate": null,
-  "sourceAppUserModelId": "QQMusic.exe",
-  "thumbnail": "data:image/jpeg;base64,/9j/4AAQ...",
-  "timeline": {
-    "startTime": 0,
-    "endTime": 229.277,
-    "position": 134.091,
-    "minSeekTime": 0,
-    "maxSeekTime": 0
-  },
-  "controls": {
-    "isPlayEnabled": false,
-    "isPauseEnabled": true,
-    "isNextEnabled": true,
-    "isPreviousEnabled": true,
-    "isStopEnabled": false,
-    "isRecordEnabled": false,
-    "isFastForwardEnabled": false,
-    "isRewindEnabled": false,
-    "isChannelUpEnabled": false,
-    "isChannelDownEnabled": false
-  }
-}
-```
-
-### ctypes DLL (NativeAOT)
-
-The plugin also ships a **NativeAOT-compiled DLL** (`eIslandSmtcCtypes.dll`) that exports C-style functions for use from Python, C, or any language with FFI support.
-
-#### Build
-
-```bash
-cd plugins/windows/eisland-windows-smtc-helper
-npm run build:ctypes    # dotnet publish smtc-ctypes/eIslandSmtcCtypes.csproj -c Release -r win-x64
-```
-
-Output: `smtc-ctypes/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/eIslandSmtcCtypes.dll`
-
-:::warning
-Building the NativeAOT DLL requires `vswhere.exe` in PATH. If the build fails with `'vswhere.exe' is not recognized`, add it:
-```bash
-export PATH="/c/Program Files (x86)/Microsoft Visual Studio/Installer:$PATH"
-```
-:::
-
-#### Exported C Functions
-
-**Commands:**
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `smtc_play` | `() → int` | Play. Returns 0=success, 1=failure |
-| `smtc_pause` | `() → int` | Pause. Returns 0=success, 1=failure |
-| `smtc_next` | `() → int` | Next track. Returns 0=success, 1=failure |
-| `smtc_previous` | `() → int` | Previous track. Returns 0=success, 1=failure |
-| `smtc_seek` | `(double seconds) → int` | Seek to position. Returns 0=success |
-| `smtc_stop` | `() → int` | Stop playback. Returns 0=success |
-| `smtc_set_shuffle` | `(int active) → int` | Set shuffle (0=off, 1=on). Returns 0=success |
-| `smtc_set_repeat_mode` | `(int mode) → int` | Set repeat (0=None, 1=Track, 2=List). Returns 0=success |
-| `smtc_set_playback_rate` | `(double rate) → int` | Set playback rate. Returns 0=success |
-| `smtc_get_status` | `() → char*` | Get status JSON. Returns NULL on failure |
-| `smtc_get_timestamp` | `() → char*` | Get lightweight timestamp JSON (no media metadata). Returns NULL on failure |
-| `smtc_free_string` | `(char*) → void` | Free a string returned by status/error functions |
-| `smtc_get_last_error` | `() → char*` | Get last error message |
-
-**Monitoring:**
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `smtc_start_monitoring` | `() → int` | Start session monitoring. Returns 0=success |
-| `smtc_stop_monitoring` | `() → int` | Stop session monitoring. Returns 0=success |
-| `smtc_wait_for_changes` | `(int timeoutMs) → int` | Block until change or timeout. 0=changed, 1=timeout |
-| `smtc_get_sessions_changed` | `() → int` | Read change counter (atomic) |
-| `smtc_get_all_sessions` | `() → char*` | Get all sessions as JSON array |
-| `smtc_get_session` | `(char* appId) → char*` | Get specific session by source app ID |
-
-:::danger
-You **must** call `smtc_free_string()` on any pointer returned by `smtc_get_status()`, `smtc_get_timestamp()`, `smtc_get_last_error()`, `smtc_get_all_sessions()`, or `smtc_get_session()` to avoid memory leaks. The koffi FFI layer in Node.js handles this automatically.
-:::
-
-#### Python Usage
-
-```python
-import ctypes, json
-
-dll = ctypes.CDLL("./eIslandSmtcCtypes.dll")
-
-dll.smtc_get_status.restype = ctypes.c_void_p
-dll.smtc_get_timestamp.restype = ctypes.c_void_p
-dll.smtc_free_string.argtypes = [ctypes.c_void_p]
-
-# Full status (includes media metadata)
-ptr = dll.smtc_get_status()
-if ptr:
-    status = json.loads(ctypes.string_at(ptr).decode("utf-8"))
-    dll.smtc_free_string(ptr)
-    print(status["title"], status["artist"])
-
-# Lightweight timestamp (playback position only, no metadata)
-ptr = dll.smtc_get_timestamp()
-if ptr:
-    ts = json.loads(ctypes.string_at(ptr).decode("utf-8"))
-    dll.smtc_free_string(ptr)
-    print(ts["playbackStatus"], ts["timeline"]["position"])
-
-dll.smtc_play()    # Returns 0 on success
-dll.smtc_pause()   # Returns 0 on success
-```
-
-#### NativeAOT Implementation Notes
-
-The NativeAOT DLL has two key implementation details:
-
-**1. STA Thread for WinRT**
-
-WinRT async APIs require COM STA initialization. Each exported function spawns a dedicated STA thread:
-
-```csharp
-private static T RunOnSTAThread<T>(Func<Task<T>> asyncFunc)
-{
-    T result = default!;
-    Exception? ex = null;
-    var thread = new Thread(() =>
-    {
-        CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED);
-        result = asyncFunc().GetAwaiter().GetResult();
-    });
-    thread.SetApartmentState(ApartmentState.STA);
-    thread.Start();
-    thread.Join();
-    if (ex != null) throw ex;
-    return result;
-}
-```
-
-**2. JSON Source Generation**
-
-NativeAOT disables reflection-based serialization. A source generator context provides compile-time JSON serialization:
-
-```csharp
-[JsonSerializable(typeof(MediaStatus))]
-[JsonSerializable(typeof(CommandResult))]
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-internal partial class SmtcJsonContext : JsonSerializerContext { }
-```
-
-#### Source Files (ctypes)
-
-| File | Responsibility |
-|------|---------------|
-| `smtc-ctypes/eIslandSmtcCtypes.csproj` | NativeAOT class library project |
-| `smtc-ctypes/SmtcExports.cs` | C-style exported functions (commands + monitoring) |
-| `smtc-ctypes/SmtcJsonContext.cs` | JSON source generator for NativeAOT serialization |
-
-#### Performance
-
-| Metric | Value |
-|--------|-------|
-| Command latency (FFI) | ~1-5ms (direct DLL call, no process spawn) |
-| Command latency (EXE CLI) | ~50-200ms (process startup overhead) |
-| Session detection | Event-driven (WinRT `SessionsChanged` callback) |
-| Timeline updates | Event-driven (`TimelinePropertiesChanged`, 200ms throttle) |
-| Memory | Single DLL loaded once; ~5MB resident |
-
-#### Testing
-
-```bash
-# Build the DLL first
-npm run build:ctypes
-
-# Run Python test
-npm run test:ctypes    # python test/smtc_ctypes_test.py
-```
+The Rust desktop host subscribes to Windows Media Control (SMTC) session changes and reads metadata, playback state, timeline, and artwork. Media commands target the selected session. The development CLI reads the same WinRT data through the desktop executable.
