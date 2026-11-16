@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-16T21:43:59.863Z
+> 生成时间：2026-11-16T22:16:18.867Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,9 @@
 
 ## Unreleased
 
+- 2026-11-16 | 8bc7af31 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git from 2.0.0-rc.132 to 2.0.0-rc.137 in /web/eisland-web-docs (#337)
+- 2026-11-16 | 79cc2a09 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 5 directories with 5 updates (#336)
+- 2026-11-16 | c30853e7 | eislandBot | docs: auto update CHANGE_LOG.md for #335 by @JNTMTMTM [skip ci]
 - 2026-11-16 | 7bb7f01b | JNTMTMTM | refactor: 使用 rust 重写 smtc 辅助程序 (#335)
 - 2026-11-16 | 70831f87 | 鸡哥 | feat(smtc): implement continuous session reading and improve error handling feat(i18n): add error messages for binary issues in multiple languages refactor(smtc): enhance media reading logic with retries and timeouts test(smtc): update tests for new continuous reading behavior and error handling
 - 2026-11-16 | dba6ad35 | 鸡哥 | Refactor platform-specific code for macOS removal
