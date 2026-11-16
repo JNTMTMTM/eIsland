@@ -26,6 +26,7 @@
 /* eslint no-use-before-define: ["error", { "functions": false }] -- 绘图函数声明会提升，事件回调按交互顺序组织。 */
 /* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsFor": ["el", "cv", "ctx"] }] -- Canvas 绘图和 DOM 布局必须修改传入的原生对象。 */
 import { desktop } from '../tauri/runtime';
+import captureSourceLabels from './capture-source-labels.json';
 
 const bgCanvas = document.getElementById('bg-canvas');
 const drawCanvas = document.getElementById('draw-canvas');
@@ -102,9 +103,10 @@ let recognizedText = '';
 let translationCache = null;
 let displayedImageVersion = 'original';
 
+let captureSourceLanguage = 'zh-CN';
+
 const CAPTURE_I18N = {
   'zh-CN': {
-    source: { plugin: '使用插件', js: '使用js' },
     tools: {
       select: '选区',
       mosaic: '马赛克',
@@ -145,7 +147,6 @@ const CAPTURE_I18N = {
     },
   },
   'en-US': {
-    source: { plugin: 'Using plugin', js: 'Using JS' },
     tools: {
       select: 'Select',
       mosaic: 'Mosaic',
@@ -199,6 +200,7 @@ function tCapture(key) {
 
 function applyCaptureLanguage(language) {
   captureLanguage = normalizeCaptureLanguage(language);
+  captureSourceLanguage = Object.hasOwn(captureSourceLabels, language) ? language : captureLanguage;
   document.documentElement.lang = captureLanguage;
   Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
     el.textContent = tCapture(el.dataset.i18n);
@@ -210,7 +212,7 @@ function applyCaptureLanguage(language) {
     el.setAttribute('aria-label', tCapture(el.dataset.i18nAriaLabel));
   });
   updateTranslateButtonLabel();
-  setCaptureSource(captureSourceBadge?.dataset.captureSource || 'js');
+  setCaptureSource(captureSourceBadge?.dataset.captureSource);
 }
 
 async function initCaptureLanguage() {
@@ -467,11 +469,16 @@ function updateSizeInfo(mx, my) {
   sizeInfo.style.top = `${Math.min(my + 12, H - 28)}px`;
 }
 
+/**
+ * 按当前语言显示实际使用的截图后端。
+ * @param source - 原生或兼容后端标识。
+ * @returns 无。
+ */
 function setCaptureSource(source) {
   if (!captureSourceBadge) return;
-  const safeSource = source === 'plugin' ? 'plugin' : 'js';
-  captureSourceBadge.dataset.captureSource = safeSource;
-  captureSourceBadge.textContent = CAPTURE_I18N[captureLanguage].source[safeSource];
+  if (source !== 'native' && source !== 'compatibility') return;
+  captureSourceBadge.dataset.captureSource = source;
+  captureSourceBadge.textContent = captureSourceLabels[captureSourceLanguage][source];
 }
 
 function showToolbar() {

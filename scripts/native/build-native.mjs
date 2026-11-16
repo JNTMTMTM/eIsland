@@ -49,7 +49,7 @@ if (process.platform === 'win32') {
   };
   // Tauri bundles the resource tree recursively, including files from older local builds.
   for (const legacyRid of ['win-x64', 'win-arm64', 'win-x86']) {
-    for (const component of ['volume', 'brightness', 'temperature']) {
+    for (const component of ['volume', 'brightness', 'temperature', 'screenshot']) {
       const legacy = resolve(nativeResources, legacyRid, component);
       if (!existsSync(legacy)) continue;
       const expected = resolve(realpathSync(root), 'src-tauri/resources/native', legacyRid, component);
@@ -65,11 +65,6 @@ if (process.platform === 'win32') {
   mkdirSync(smtc, { recursive: true });
   // dotnet publish's output contains the Native AOT library, not the intermediate managed DLL.
   copyFileSync(resolve(staging, 'eIslandSmtcHelper.dll'), resolve(smtc, 'eIslandSmtcHelper.dll'));
-  const screenshot = resolve(output, 'screenshot');
-  const screenshotStage = resolve(root, 'src-tauri/target/native-publish', rid, 'screenshot');
-  publish('screenshot-helper', 'eIslandScreenshotHelper.csproj', screenshotStage);
-  mkdirSync(screenshot, { recursive: true });
-  copyFileSync(resolve(screenshotStage, 'eIslandScreenshotHelper.dll'), resolve(screenshot, 'eIslandScreenshotHelper.dll'));
   const ffmpeg = resolve(root, 'src-tauri/resources/native/ffmpeg');
   mkdirSync(ffmpeg, { recursive: true });
   const ffmpegBinary = createRequire(import.meta.url)('ffmpeg-static');

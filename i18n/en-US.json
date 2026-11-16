@@ -28,10 +28,6 @@
     }
   },
   "capture": {
-    "source": {
-      "plugin": "Using plugin",
-      "js": "Using JS"
-    },
     "tools": {
       "select": "Select",
       "mosaic": "Mosaic",
@@ -3076,9 +3072,9 @@
         "title": "Screenshot Settings",
         "hint": "Configure screenshot related settings.",
         "engineTitle": "Screenshot Engine",
-        "engineHint": "Plugin mode uses the native Windows screenshot plugin and supports multiple monitors. It automatically falls back to JS mode if the plugin is unavailable.",
-        "enginePlugin": "Plugin Mode",
-        "engineJs": "JS Mode",
+        "engineHint": "Windows uses native capture by default and falls back to compatibility mode if capture fails. macOS selects a system capture method automatically.",
+        "engineNative": "Native mode",
+        "engineCompatibility": "Compatibility mode",
         "ocrEngineTitle": "OCR Engine",
         "ocrEngineHint": "Local OCR uses Tesseract.js on this device without uploading images; server OCR uses cloud recognition and billing.",
         "ocrEngineLocal": "Local OCR",
@@ -5017,7 +5013,6 @@
       "plugin:build:toast": "Build the toast notification listener plugin",
       "plugin:build:wifi": "Build the Wi-Fi helper plugin",
       "plugin:build:fullscreen": "Build the fullscreen detector plugin",
-      "plugin:build:screenshot-helper": "Build the screenshot helper plugin",
       "plugin:clean:bluetooth": "Clean build output of the Bluetooth helper plugin",
       "plugin:clean:volume-analyzer": "Clean build output of the volume analyzer plugin",
       "plugin:clean:power": "Clean build output of the power helper plugin",
@@ -5026,7 +5021,6 @@
       "plugin:clean:toast": "Clean build output of the toast notification listener plugin",
       "plugin:clean:wifi": "Clean build output of the Wi-Fi helper plugin",
       "plugin:clean:fullscreen": "Clean build output of the fullscreen detector plugin",
-      "plugin:clean:screenshot-helper": "Clean build output of the screenshot helper plugin",
       "plugins:build": "Build and prepare native plugins independently",
       "plugins:clean": "Clean build output of all Windows native plugins",
       "lint": "Run ESLint on the repository with zero warnings allowed",

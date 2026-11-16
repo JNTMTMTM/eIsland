@@ -36,7 +36,6 @@ jobs:
           - eisland-windows-smtc-helper
           - eisland-windows-startup-helper
           - eisland-windows-toast-listener
-          - eisland-windows-screenshot-helper
           - eisland-windows-volume-analyzer
           - eisland-windows-wifi-helper
         include:
@@ -121,7 +120,6 @@ jobs:
           - eisland-windows-smtc-helper
           - eisland-windows-startup-helper
           - eisland-windows-toast-listener
-          - eisland-windows-screenshot-helper
           - eisland-windows-volume-analyzer
           - eisland-windows-wifi-helper
         include:

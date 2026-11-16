@@ -75,9 +75,6 @@ const BADGE_MAP: Record<string, string> = {
   NetworkAdapterInfo: 'interface',
   MotherboardInfo: 'interface',
   MonitorInfo: 'interface',
-  // Screenshot Helper
-  ScreenshotResult: 'interface',
-  VisibleWindowBounds: 'interface',
   // Volume Helper
   VolumeMonitor: 'monitor',
   // Volume Analyzer

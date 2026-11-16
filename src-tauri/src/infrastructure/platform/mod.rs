@@ -21,7 +21,7 @@
 //! 原生平台接口，编译平台边界在此声明。
 
 pub(crate) mod brightness;
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "macos"))]
 pub(crate) mod screenshot;
 #[cfg(windows)]
 pub(crate) mod smtc;

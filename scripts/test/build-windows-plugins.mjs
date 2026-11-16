@@ -38,7 +38,6 @@ const builds = [
   ['fullscreen-detector', 'build/Release/windows_fullscreen_detector.node'],
   ['hardware-info-helper', 'src/bin/Release/net10.0/eIslandHardwareInfoReader.exe'],
   ['power-helper', `src/bin/Release/${framework}/win-x64/native/eIslandPowerHelper.dll`],
-  ['screenshot-helper', `src/bin/Release/${framework}/win-x64/native/eIslandScreenshotHelper.dll`],
   ['smtc-helper', `src/bin/Release/${framework}/win-x64/native/eIslandSmtcHelper.dll`],
   ['toast-listener', 'build/Release/eisland_windows_toast_listener.node'],
   ['volume-analyzer', 'src/bin/Release/net10.0/eIslandVolumeAnalyzer.exe'],

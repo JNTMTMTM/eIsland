@@ -28,10 +28,6 @@
     "loading": "読み込み中…"
   },
   "capture": {
-    "source": {
-      "plugin": "プラグインを使用",
-      "js": "JS を使用"
-    },
     "tools": {
       "select": "範囲選択",
       "mosaic": "モザイク",
@@ -3076,9 +3072,9 @@
         "title": "スクリーンショット設定",
         "hint": "スクリーンショットに関する設定です。",
         "engineTitle": "スクリーンショットエンジン",
-        "engineHint": "プラグインモードは Windows ネイティブの撮影プラグインを使用し、複数のディスプレイに対応します。プラグインを利用できない場合は JS モードへ自動的に切り替わります。",
-        "enginePlugin": "プラグインモード",
-        "engineJs": "JS モード",
+        "engineHint": "Windows では標準でネイティブキャプチャを使い、失敗した場合は互換モードに切り替えます。macOS ではシステムのキャプチャ方式を自動で選択します。",
+        "engineNative": "ネイティブモード",
+        "engineCompatibility": "互換モード",
         "ocrEngineTitle": "OCR エンジン",
         "ocrEngineHint": "ローカル OCR は Tesseract.js を使ってデバイス上で認識し、画像をアップロードしません。サーバー OCR はクラウドで認識し、料金が発生します。",
         "ocrEngineLocal": "ローカル OCR",
@@ -5017,7 +5013,6 @@
       "plugin:build:toast": "トースト通知リスナープラグインをビルド",
       "plugin:build:wifi": "Wi-Fi ヘルパープラグインをビルド",
       "plugin:build:fullscreen": "全画面検出プラグインをビルド",
-      "plugin:build:screenshot-helper": "スクリーンショットヘルパープラグインをビルド",
       "plugin:clean:bluetooth": "Bluetooth ヘルパープラグインのビルド成果物を削除",
       "plugin:clean:volume-analyzer": "音量アナライザープラグインのビルド成果物を削除",
       "plugin:clean:power": "電源ヘルパープラグインのビルド成果物を削除",
@@ -5026,7 +5021,6 @@
       "plugin:clean:toast": "トースト通知リスナープラグインのビルド成果物を削除",
       "plugin:clean:wifi": "Wi-Fi ヘルパープラグインのビルド成果物を削除",
       "plugin:clean:fullscreen": "全画面検出プラグインのビルド成果物を削除",
-      "plugin:clean:screenshot-helper": "スクリーンショットヘルパープラグインのビルド成果物を削除",
       "plugins:build": "ネイティブプラグインを個別にビルドして準備",
       "plugins:clean": "すべての Windows ネイティブプラグインのビルド成果物を削除",
       "lint": "リポジトリに ESLint を実行（警告ゼロ）",

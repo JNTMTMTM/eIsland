@@ -26,7 +26,6 @@ The plugin system includes Windows native helpers and an independent macOS media
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
-| **Screenshot Helper** | `@eisland/windows-screenshot-helper` | Primary display screen capture as PNG via Win32 GDI APIs |
 | **Toast Listener** | `@eisland/windows-toast-listener` | Windows toast notification listening and suppression |
 
 **Architecture Categories:**
@@ -34,7 +33,7 @@ The plugin system includes Windows native helpers and an independent macOS media
 | Category | Plugins | Build System | Runtime |
 |----------|---------|-------------|---------|
 | **C + N-API** | Processes Attacker, Fullscreen Detector | `node-gyp` | Native `.node` addon loaded by Node.js |
-| **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi, Screenshot Helper | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
+| **C# NativeAOT + koffi FFI** | SMTC, Bluetooth, Power, WiFi | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
@@ -938,87 +937,9 @@ interface ToastNotificationSnapshot {
 | `index.js` | Public API — exports all functions |
 | `index.d.ts` | TypeScript type declarations |
 
-## Plugin: Windows Screenshot Helper
+## Desktop screenshots
 
-### Package
-
-```
-@eisland/windows-screenshot-helper
-```
-
-### Purpose
-
-Captures the primary display as a PNG image buffer. Uses Win32 GDI APIs (`GetDC`, `CreateCompatibleBitmap`, `BitBlt`) to perform screen capture, then encodes the result to PNG inside the Native AOT DLL. Used by eIsland for screenshot and screen recording features.
-
-:::info
-This plugin uses **koffi FFI + .NET NativeAOT DLL** architecture. It wraps Windows GDI APIs for screen capture and `System.Drawing.Common` for PNG encoding.
-:::
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  JavaScript Layer (index.js + ffi-loader.js)                │
-│  capturePrimaryDisplayPng / getLastError                     │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ koffi FFI (direct DLL calls)
-┌──────────────────────────▼──────────────────────────────────┐
-│  eIslandScreenshotHelper.dll (NativeAOT)                    │
-│  .NET 10 + GDI APIs + System.Drawing.Common                 │
-├─────────────────────────────────────────────────────────────┤
-│  ScreenCapture.cs       — Core GDI screen capture logic     │
-│  ScExports.cs           — C-style exported functions        │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Exported Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `capturePrimaryDisplayPng` | `() → ScreenshotResult \| null` | Capture the primary display as PNG |
-| `getLastError` | `() → string` | Get the last error message from the DLL |
-
-### Result Structure
-
-```ts
-interface ScreenshotResult {
-  data: Buffer;      // PNG screenshot data
-  size: number;      // Screenshot data size in bytes
-  format: 'png';     // Image format (always 'png')
-}
-```
-
-### Key Implementation Details
-
-The capture uses a GDI device context chain:
-
-1. `GetDC(IntPtr.Zero)` — acquires the screen device context
-2. `CreateCompatibleDC` + `CreateCompatibleBitmap` — creates a compatible memory DC and bitmap
-3. `BitBlt(SRCCOPY | CAPTUREBLT)` — copies screen content to the bitmap
-4. `Image.FromHbitmap` + `Image.Save(stream, ImageFormat.Png)` — encodes to PNG
-5. Proper cleanup in `finally` block (`SelectObject`, `DeleteObject`, `DeleteDC`, `ReleaseDC`)
-
-The PNG bytes are base64-encoded in the DLL, returned as a CoTaskMem string, then decoded into a Node.js `Buffer` by the FFI loader.
-
-### Source Files
-
-| File | Responsibility |
-|------|---------------|
-| `src/ScreenCapture.cs` | Core screen capture using Win32 GDI APIs |
-| `src/ScExports.cs` | C-style exported functions for koffi FFI |
-| `src/Program.cs` | Native AOT library entry point (empty Main) |
-| `src/eIslandScreenshotHelper.csproj` | .NET 10 Native AOT project |
-| `ffi-loader.js` | koffi FFI loader — defines all DLL function signatures |
-| `index.js` | Public API — exports capture and error functions |
-| `index.d.ts` | TypeScript type declarations |
-
-### Dependencies
-
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| **.NET** | 10.0 | Build-time only (self-contained DLL) |
-| **koffi** | ^2.9.1 | FFI library for calling DLL from Node.js |
-| **System.Drawing.Common** | 10.0.0-preview.2 | PNG encoding via `Image.Save` |
+The Rust desktop uses Win32 GDI on Windows and automatically retries with xcap in compatibility mode when GDI fails. macOS 14 and later use ScreenCaptureKit with Screen Recording permission. Earlier macOS versions use the xcap compatibility path. The application encodes the primary display and region captures as PNG and preserves the desktop layout across monitors.
 
 ## Testing
 
@@ -1098,7 +1019,6 @@ expect(foreground === null || typeof foreground === 'object').toBe(true);
 | **Bluetooth Helper** | `bluetooth.test.ts`, `bluetooth.monitor.test.ts` | Shape validation, export verification, monitor state management |
 | **Power Helper** | `power.test.ts`, `power.monitor.test.ts` | Shape validation, consistency, monitor tests |
 | **WiFi Helper** | `wifi.test.ts`, `wifi.monitor.test.ts` | Shape validation, consistency, monitor tests |
-| **Screenshot Helper** | `screenshot.test.ts` | Shape validation, export verification, PNG header validation |
 | **Toast Listener** | `windows-toast-listener.test.ts`, `windows-toast-listener.polling.test.ts` | Shape validation, export verification, polling tests |
 
 ## Integration with Electron

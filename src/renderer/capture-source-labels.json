@@ -1,0 +1,18 @@
+{
+  "zh-CN": {
+    "native": "原生模式",
+    "compatibility": "兼容模式"
+  },
+  "zh-TW": {
+    "native": "原生模式",
+    "compatibility": "相容模式"
+  },
+  "en-US": {
+    "native": "Native mode",
+    "compatibility": "Compatibility mode"
+  },
+  "ja-JP": {
+    "native": "ネイティブモード",
+    "compatibility": "互換モード"
+  }
+}

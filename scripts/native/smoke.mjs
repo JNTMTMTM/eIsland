@@ -95,6 +95,7 @@ async function ipc(page, channel, ...args) {
  */
 async function captureMode(main, engine) {
   await ipc(main, 'store:write', 'screenshot-engine', engine);
+  const expectedSource = engine === 'js' ? 'compatibility' : 'native';
   const captureLogOffset = stderr.length;
   const primary = await ipc(main, 'system:screenshot');
   assert.equal(typeof primary, 'string');
@@ -104,7 +105,7 @@ async function captureMode(main, engine) {
   assert(bytes.readUInt32BE(16) > 0 && bytes.readUInt32BE(20) > 0);
   await ipc(main, 'system:screenshot:region:start');
   const capture = await pageFor('capture');
-  await capture.waitForFunction((source) => document.getElementById('captureSourceBadge')?.dataset.captureSource === source, engine);
+  await capture.waitForFunction((source) => document.getElementById('captureSourceBadge')?.dataset.captureSource === source, expectedSource);
   await capture.waitForFunction(() => document.getElementById('bg-canvas').width > 300);
   await capture.waitForFunction(() => {
     const icons = Array.from(document.querySelectorAll('.capture-btn-icon'));
@@ -116,7 +117,7 @@ async function captureMode(main, engine) {
   await capture.mouse.up();
   await capture.locator('#toolbar').waitFor({ state: 'visible' });
   await capture.locator('#toolbar').screenshot({ path: resolve(output, `capture-toolbar-${engine}.png`) });
-  if (engine === 'plugin') assert(!stderr.slice(captureLogOffset).includes('[Capture] Screenshot plugin unavailable:'), 'Primary and region plugin capture must both succeed');
+  if (engine === 'plugin') assert(!stderr.slice(captureLogOffset).includes('[Capture] Win32 GDI failed:'), 'Primary and region GDI capture must both succeed');
   await ipc(capture, 'capture-cancel');
 }
 try {

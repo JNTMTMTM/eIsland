@@ -28,10 +28,6 @@
     "loading": "載入中…"
   },
   "capture": {
-    "source": {
-      "plugin": "使用插件",
-      "js": "使用js"
-    },
     "tools": {
       "select": "選區",
       "mosaic": "馬賽克",
@@ -3076,9 +3072,9 @@
         "title": "截圖設置",
         "hint": "截圖相關配置。",
         "engineTitle": "截圖引擎",
-        "engineHint": "插件模式使用 Windows 原生截圖插件，支援多顯示器；插件無法使用時自動回退 JS 模式。",
-        "enginePlugin": "插件模式",
-        "engineJs": "JS 模式",
+        "engineHint": "Windows 預設使用原生截圖，失敗時會自動切換到相容模式。macOS 會自動選擇系統截圖方式。",
+        "engineNative": "原生模式",
+        "engineCompatibility": "相容模式",
         "ocrEngineTitle": "OCR 識別方案",
         "ocrEngineHint": "本地 OCR 使用 Tesseract.js 在設備上識別，不上傳圖片；服務端 OCR 使用雲端識別和計費。",
         "ocrEngineLocal": "本地 OCR",
@@ -5017,7 +5013,6 @@
       "plugin:build:toast": "建置系統通知監聽外掛",
       "plugin:build:wifi": "建置 Wi-Fi 助手外掛",
       "plugin:build:fullscreen": "建置全螢幕偵測外掛",
-      "plugin:build:screenshot-helper": "建置截圖助手外掛",
       "plugin:clean:bluetooth": "清除藍牙助手外掛建置產物",
       "plugin:clean:volume-analyzer": "清除音量分析器外掛建置產物",
       "plugin:clean:power": "清除電源助手外掛建置產物",
@@ -5026,7 +5021,6 @@
       "plugin:clean:toast": "清除系統通知監聽外掛建置產物",
       "plugin:clean:wifi": "清除 Wi-Fi 助手外掛建置產物",
       "plugin:clean:fullscreen": "清除全螢幕偵測外掛建置產物",
-      "plugin:clean:screenshot-helper": "清除截圖助手外掛建置產物",
       "plugins:build": "獨立建置並準備原生外掛",
       "plugins:clean": "清除全部 Windows 原生外掛建置產物",
       "lint": "對儲存庫執行 ESLint（不允許警告）",

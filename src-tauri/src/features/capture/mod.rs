@@ -24,118 +24,94 @@ use crate::features::windowing as windows;
 use crate::shared::Result;
 use crate::state::Desktop;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use image::{DynamicImage, RgbaImage};
+use image::{ImageEncoder, RgbaImage};
 use serde_json::{json, Value};
 use tauri::{AppHandle, Manager};
 
-struct Frame {
-    png: Vec<u8>,
+#[derive(Clone, Copy)]
+struct Screen {
     x: i32,
     y: i32,
     width: u32,
     height: u32,
+}
+
+struct Frame {
+    image: RgbaImage,
+    screen: Screen,
+    scale: u32,
     source: &'static str,
 }
+
 impl Frame {
-    fn from_png(png: Vec<u8>, x: i32, y: i32, source: &'static str) -> Result<Self> {
-        let (width, height) =
-            image::ImageReader::with_format(std::io::Cursor::new(&png), image::ImageFormat::Png)
-                .into_dimensions()
-                .map_err(|e| e.to_string())?;
-        if width == 0 || height == 0 || width as u64 * height as u64 > 160_000_000 {
-            return Err("Virtual desktop exceeds capture limit".into());
-        }
-        Ok(Self {
-            png,
-            x,
-            y,
-            width,
-            height,
-            source,
-        })
+    fn png(&self) -> Result<Vec<u8>> {
+        let mut bytes = Vec::new();
+        image::codecs::png::PngEncoder::new(&mut bytes)
+            .write_image(
+                self.image.as_raw(),
+                self.image.width(),
+                self.image.height(),
+                image::ExtendedColorType::Rgba8,
+            )
+            .map_err(|e| e.to_string())?;
+        Ok(bytes)
     }
 }
 
-fn engine(app: &AppHandle) -> String {
+#[cfg(windows)]
+fn prefers_compatibility(app: &AppHandle) -> bool {
+    // 保留旧版截图设置值。js 指向 Rust 的兼容后端。
     app.state::<Desktop>()
         .store
         .lock()
         .unwrap()
-        .value("screenshot-engine", json!("plugin"))
+        .value("screenshot-engine", Value::Null)
         .as_str()
-        .unwrap_or("plugin")
-        .to_owned()
+        == Some("js")
 }
 
-/// 旧 js 设置值继续表示兼容后端；只有实际插件成功才标记为插件截图。
-fn select_capture<T>(
-    engine: &str,
-    plugin: impl FnOnce() -> Result<T>,
-    compatible: impl FnOnce() -> Result<T>,
-) -> Result<T> {
-    if engine != "js" {
-        match plugin() {
+#[cfg(windows)]
+fn native_frame(all: bool) -> Result<Frame> {
+    let (x, y, image) = crate::infrastructure::platform::screenshot::capture(all)?;
+    let screen = Screen {
+        x,
+        y,
+        width: image.width(),
+        height: image.height(),
+    };
+    Ok(Frame {
+        image,
+        screen,
+        scale: 1,
+        source: "native",
+    })
+}
+
+fn capture_frame(_app: &AppHandle, all: bool) -> Result<Frame> {
+    #[cfg(windows)]
+    if !prefers_compatibility(_app) {
+        match native_frame(all) {
             Ok(frame) => return Ok(frame),
-            Err(error) => eprintln!(
-                "[Capture] Screenshot plugin unavailable: {error}; using compatibility capture"
-            ),
+            Err(error) => {
+                eprintln!("[Capture] Win32 GDI failed: {error}; using compatibility capture")
+            }
         }
     }
-    compatible()
+    capture_displays(all)
 }
 
-fn plugin_frame(app: &AppHandle, all: bool) -> Result<Frame> {
-    #[cfg(windows)]
-    {
-        use windows_sys::Win32::UI::WindowsAndMessaging::{
-            GetSystemMetrics, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
-        };
-        let path = crate::infrastructure::resources::native_path(
-            app,
-            "screenshot",
-            "eIslandScreenshotHelper.dll",
-        )?;
-        let (x, y) = if all {
-            unsafe {
-                (
-                    GetSystemMetrics(SM_XVIRTUALSCREEN),
-                    GetSystemMetrics(SM_YVIRTUALSCREEN),
-                )
-            }
-        } else {
-            (0, 0)
-        };
-        let png = crate::infrastructure::platform::screenshot::capture(&path, all)?;
-        Frame::from_png(png, x, y, "plugin")
-    }
-    #[cfg(not(windows))]
-    {
-        let _ = (app, all);
-        Err("Screenshot plugin is only available on Windows".into())
-    }
-}
-
-fn capture_frame(app: &AppHandle, selected: &str, all: bool) -> Result<Frame> {
-    select_capture(
-        selected,
-        || plugin_frame(app, all),
-        || compatible_frame(all),
-    )
-}
-
-/// 按设置截取主显示器，不打开 WebView；截图插件失败时保留兼容后端。
+/// 截取主显示器并返回 PNG data URL。
 pub async fn primary(app: &AppHandle) -> Result<Value> {
     static BUSY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
     if BUSY.swap(true, std::sync::atomic::Ordering::AcqRel) {
         return Ok(Value::Null);
     }
-    let selected = engine(app);
     let app = app.clone();
     let result = tauri::async_runtime::spawn_blocking(move || {
-        let frame = capture_frame(&app, &selected, false)?;
+        let frame = capture_frame(&app, false)?;
         Ok(json!(format!(
             "data:image/png;base64,{}",
-            STANDARD.encode(frame.png)
+            STANDARD.encode(frame.png()?)
         )))
     })
     .await
@@ -179,95 +155,214 @@ async fn capture_hidden_desktop(app: &AppHandle) -> Result<()> {
     capture_desktop(app).await
 }
 
-fn compatible_frame(all: bool) -> Result<Frame> {
-    let monitors = xcap::Monitor::all().map_err(|e| e.to_string())?;
+fn capture_displays(all: bool) -> Result<Frame> {
+    let mut monitors = xcap::Monitor::all().map_err(|e| e.to_string())?;
     if monitors.is_empty() {
         return Err("No monitors available".into());
     }
     if !all {
-        let monitor = monitors
+        let primary = monitors
             .iter()
-            .find(|monitor| monitor.is_primary().unwrap_or(false))
-            .unwrap_or(&monitors[0]);
-        let image = monitor.capture_image().map_err(|e| e.to_string())?;
-        let mut png = std::io::Cursor::new(Vec::new());
-        DynamicImage::ImageRgba8(image)
-            .write_to(&mut png, image::ImageFormat::Png)
-            .map_err(|e| e.to_string())?;
-        return Frame::from_png(png.into_inner(), 0, 0, "js");
+            .position(|monitor| monitor.is_primary().unwrap_or(false));
+        monitors = vec![monitors.swap_remove(primary.unwrap_or(0))];
     }
-    let mut shots = Vec::new();
-    for monitor in monitors {
-        let x = monitor.x().map_err(|e| e.to_string())?;
-        let y = monitor.y().map_err(|e| e.to_string())?;
-        let image = monitor.capture_image().map_err(|e| e.to_string())?;
-        shots.push((x, y, image));
-    }
-    let x = shots.iter().map(|(x, _, _)| *x).min().unwrap();
-    let y = shots.iter().map(|(_, y, _)| *y).min().unwrap();
-    let right = shots
+
+    let screens: Vec<_> = monitors
         .iter()
-        .map(|(x, _, i)| *x as i64 + i.width() as i64)
-        .max()
-        .unwrap();
-    let bottom = shots
-        .iter()
-        .map(|(_, y, i)| *y as i64 + i.height() as i64)
-        .max()
-        .unwrap();
-    let width = (right - x as i64) as u32;
-    let height = (bottom - y as i64) as u32;
-    if width as u64 * height as u64 > 160_000_000 {
-        return Err("Virtual desktop exceeds capture limit".into());
-    }
-    let mut canvas = RgbaImage::new(width, height);
-    for (sx, sy, image) in shots {
-        image::imageops::overlay(&mut canvas, &image, (sx - x) as i64, (sy - y) as i64);
-    }
-    let mut bytes = std::io::Cursor::new(Vec::new());
-    DynamicImage::ImageRgba8(canvas)
-        .write_to(&mut bytes, image::ImageFormat::Png)
+        .map(|monitor| {
+            Ok::<_, xcap::XCapError>(Screen {
+                x: monitor.x()?,
+                y: monitor.y()?,
+                width: monitor.width()?,
+                height: monitor.height()?,
+            })
+        })
+        .collect::<std::result::Result<_, _>>()
         .map_err(|e| e.to_string())?;
-    Frame::from_png(bytes.into_inner(), x, y, "js")
+
+    #[cfg(target_os = "macos")]
+    {
+        use crate::infrastructure::platform::screenshot::{capture, DisplayRequest};
+
+        let displays = monitors
+            .iter()
+            .zip(&screens)
+            .map(|(monitor, screen)| {
+                Ok::<_, xcap::XCapError>(DisplayRequest {
+                    id: monitor.id()?,
+                    width: screen.width,
+                    height: screen.height,
+                })
+            })
+            .collect::<std::result::Result<_, _>>()
+            .map_err(|e| e.to_string())?;
+        if let Some(images) = capture(displays)? {
+            return frame_from_displays(screens, images, all, "native");
+        }
+    }
+
+    let images = monitors
+        .iter()
+        .map(xcap::Monitor::capture_image)
+        .collect::<std::result::Result<_, _>>()
+        .map_err(|e| e.to_string())?;
+    frame_from_displays(screens, images, all, "compatibility")
 }
 
-async fn capture_desktop(app: &AppHandle) -> Result<()> {
-    let selected = engine(app);
-    let capture_app = app.clone();
-    let (frame, visible_windows) = tauri::async_runtime::spawn_blocking(move || {
-        let frame = capture_frame(&capture_app, &selected, true)?;
-        let visible_windows = xcap::Window::all().map_err(|e|e.to_string())?.iter().filter_map(|window| {
-        if window.pid().ok()? == std::process::id() || window.is_minimized().ok()? { return None; }
-        Some(json!({"x":window.x().ok()?,"y":window.y().ok()?,"width":window.width().ok()?,"height":window.height().ok()?,"title":window.title().ok()?}))
-    }).collect::<Vec<_>>();
-        Ok::<_, String>((frame, visible_windows))
-    }).await.map_err(|e| e.to_string())??;
-    let Frame {
-        png,
+fn frame_from_displays(
+    screens: Vec<Screen>,
+    mut images: Vec<RgbaImage>,
+    all: bool,
+    source: &'static str,
+) -> Result<Frame> {
+    if !all {
+        let image = images.pop().ok_or("No primary display image")?;
+        let pixels = u64::from(image.width()) * u64::from(image.height());
+        if !(1..=160_000_000).contains(&pixels) {
+            return Err("Invalid primary display dimensions".into());
+        }
+        let screen = Screen {
+            x: 0,
+            y: 0,
+            width: image.width(),
+            height: image.height(),
+        };
+        return Ok(Frame {
+            image,
+            screen,
+            scale: 1,
+            source,
+        });
+    }
+    compose_desktop(screens.into_iter().zip(images).collect(), source)
+}
+
+/// 在统一的像素密度下拼接屏幕，保留系统坐标以对齐选区和可见窗口。
+fn compose_desktop(shots: Vec<(Screen, RgbaImage)>, source: &'static str) -> Result<Frame> {
+    let first = shots.first().ok_or("No monitors available")?.0;
+    let (mut x, mut y) = (first.x, first.y);
+    let (mut right, mut bottom) = (i64::from(x), i64::from(y));
+    let mut scale = 1;
+    for (screen, image) in &shots {
+        if screen.width == 0 || screen.height == 0 || image.width() == 0 || image.height() == 0 {
+            return Err("Invalid display dimensions".into());
+        }
+        x = x.min(screen.x);
+        y = y.min(screen.y);
+        right = right.max(i64::from(screen.x) + i64::from(screen.width));
+        bottom = bottom.max(i64::from(screen.y) + i64::from(screen.height));
+        scale = scale
+            .max(image.width().div_ceil(screen.width))
+            .max(image.height().div_ceil(screen.height));
+    }
+    let width = u32::try_from(right - i64::from(x)).map_err(|e| e.to_string())?;
+    let height = u32::try_from(bottom - i64::from(y)).map_err(|e| e.to_string())?;
+    let screen = Screen {
         x,
         y,
         width,
         height,
+    };
+    let width = width
+        .checked_mul(scale)
+        .ok_or("Virtual desktop exceeds capture limit")?;
+    let height = height
+        .checked_mul(scale)
+        .ok_or("Virtual desktop exceeds capture limit")?;
+    if u64::from(width) * u64::from(height) > 160_000_000 {
+        return Err("Virtual desktop exceeds capture limit".into());
+    }
+    let mut image = RgbaImage::new(width, height);
+    for (display, shot) in shots {
+        let width = display.width * scale;
+        let height = display.height * scale;
+        let shot = if shot.dimensions() == (width, height) {
+            shot
+        } else {
+            image::imageops::resize(&shot, width, height, image::imageops::FilterType::Triangle)
+        };
+        image::imageops::overlay(
+            &mut image,
+            &shot,
+            (i64::from(display.x) - i64::from(x)) * i64::from(scale),
+            (i64::from(display.y) - i64::from(y)) * i64::from(scale),
+        );
+    }
+    Ok(Frame {
+        image,
+        screen,
+        scale,
         source,
-    } = frame;
-    let physical = json!({"x":x,"y":y,"width":width,"height":height});
+    })
+}
+
+async fn capture_desktop(app: &AppHandle) -> Result<()> {
+    let capture_app = app.clone();
+    let (image, screen, scale, source, visible_windows) =
+        tauri::async_runtime::spawn_blocking(move || {
+            let frame = capture_frame(&capture_app, true)?;
+            let image = STANDARD.encode(frame.png()?);
+            let visible_windows = xcap::Window::all()
+                .map_err(|e| e.to_string())?
+                .iter()
+                .filter_map(|window| {
+                    if window.pid().ok()? == std::process::id() || window.is_minimized().ok()? {
+                        return None;
+                    }
+                    Some(json!({
+                        "x":window.x().ok()?, "y":window.y().ok()?,
+                        "width":window.width().ok()?, "height":window.height().ok()?,
+                        "title":window.title().ok()?
+                    }))
+                })
+                .collect::<Vec<_>>();
+            Ok::<_, String>((
+                image,
+                frame.screen,
+                frame.scale,
+                frame.source,
+                visible_windows,
+            ))
+        })
+        .await
+        .map_err(|e| e.to_string())??;
+    let Screen {
+        x,
+        y,
+        width,
+        height,
+    } = screen;
+    let desktop = json!({"x":x,"y":y,"width":width,"height":height});
     let payload = json!({
-        "imageDataURL":format!("data:image/png;base64,{}", STANDARD.encode(png)),
-        "virtualScreen":physical, "physicalScreen":physical,
-        "displays":[], "scaleFactor":1, "captureSource":source, "visibleWindows":visible_windows
+        "imageDataURL":format!("data:image/png;base64,{image}"),
+        "virtualScreen":desktop,
+        "physicalScreen":{"x":i64::from(x)*i64::from(scale),"y":i64::from(y)*i64::from(scale),"width":width*scale,"height":height*scale},
+        "displays":[], "scaleFactor":scale, "captureSource":source, "visibleWindows":visible_windows
     });
     app.state::<Desktop>().inner.lock().unwrap().capture_payload = Some(payload);
     let window = windows::create(app, "capture")?;
-    // Device-pixel canvas keeps selection coordinates identical to the captured bitmap.
-    window
-        .set_position(tauri::PhysicalPosition::new(x, y))
-        .map_err(|e| e.to_string())?;
-    window
-        .set_size(tauri::PhysicalSize::new(width, height))
-        .map_err(|e| e.to_string())?;
-    window
-        .set_zoom(1. / window.scale_factor().map_err(|e| e.to_string())?)
-        .map_err(|e| e.to_string())?;
+    #[cfg(target_os = "macos")]
+    {
+        // AppKit 和窗口边界使用显示器点坐标，截图以独立的像素密度保存。
+        window
+            .set_position(tauri::LogicalPosition::new(x, y))
+            .map_err(|e| e.to_string())?;
+        window
+            .set_size(tauri::LogicalSize::new(width, height))
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        window
+            .set_position(tauri::PhysicalPosition::new(x, y))
+            .map_err(|e| e.to_string())?;
+        window
+            .set_size(tauri::PhysicalSize::new(width, height))
+            .map_err(|e| e.to_string())?;
+        window
+            .set_zoom(1. / window.scale_factor().map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 
@@ -334,47 +429,56 @@ pub fn save(payload: &Value) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use image::Rgba;
 
     #[test]
-    fn plugin_selection_never_silently_replaces_the_requested_backend() {
-        let value = select_capture("plugin", || Ok("plugin"), || panic!("Unexpected fallback"));
-        assert_eq!(value.unwrap(), "plugin");
+    fn desktop_keeps_negative_origins_and_mixed_density_display_positions() {
+        let left = Screen {
+            x: -2,
+            y: 0,
+            width: 2,
+            height: 2,
+        };
+        let top = Screen {
+            x: 0,
+            y: -1,
+            width: 1,
+            height: 1,
+        };
+        let red = Rgba([255, 0, 0, 255]);
+        let blue = Rgba([0, 0, 255, 255]);
+        let frame = compose_desktop(
+            vec![
+                (left, RgbaImage::from_pixel(2, 2, red)),
+                (top, RgbaImage::from_pixel(2, 2, blue)),
+            ],
+            "native",
+        )
+        .unwrap();
+
+        let screen = frame.screen;
         assert_eq!(
-            select_capture("js", || panic!("Plugin must not run"), || Ok("js")).unwrap(),
-            "js"
+            (screen.x, screen.y, screen.width, screen.height, frame.scale),
+            (-2, -1, 3, 3, 2)
         );
-        assert_eq!(
-            select_capture("invalid", || Ok("plugin"), || panic!("Unexpected fallback")).unwrap(),
-            "plugin"
-        );
+        let png = image::load_from_memory(&frame.png().unwrap())
+            .unwrap()
+            .into_rgba8();
+        assert_eq!(png.dimensions(), (6, 6));
+        assert_eq!(*png.get_pixel(0, 2), red);
+        assert_eq!(*png.get_pixel(4, 0), blue);
+        assert_eq!(png.get_pixel(0, 0)[3], 0);
     }
 
     #[test]
-    fn unavailable_plugin_falls_back_and_preserves_compatibility_errors() {
-        assert_eq!(
-            select_capture("plugin", || Err("Missing DLL".into()), || Ok("js")).unwrap(),
-            "js"
-        );
-        let failure: Result<()> = select_capture(
-            "plugin",
-            || Err("Plugin failed".into()),
-            || Err("No monitors available".into()),
-        );
-        assert_eq!(failure.unwrap_err(), "No monitors available");
-    }
-
-    #[test]
-    fn png_metadata_keeps_negative_virtual_origins_and_rejects_invalid_data() {
-        let mut png = std::io::Cursor::new(Vec::new());
-        DynamicImage::ImageRgba8(RgbaImage::new(2, 3))
-            .write_to(&mut png, image::ImageFormat::Png)
-            .unwrap();
-        let frame = Frame::from_png(png.into_inner(), -1920, -1080, "plugin").unwrap();
-        assert_eq!(
-            (frame.x, frame.y, frame.width, frame.height),
-            (-1920, -1080, 2, 3)
-        );
-        assert_eq!(frame.source, "plugin");
-        assert!(Frame::from_png(b"not a PNG".to_vec(), 0, 0, "plugin").is_err());
+    fn desktop_rejects_empty_or_oversized_geometry_before_allocating() {
+        assert!(compose_desktop(Vec::new(), "native").is_err());
+        let screen = Screen {
+            x: 0,
+            y: 0,
+            width: u32::MAX,
+            height: 2,
+        };
+        assert!(compose_desktop(vec![(screen, RgbaImage::new(1, 1))], "native").is_err());
     }
 }
