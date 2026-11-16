@@ -45,6 +45,12 @@ beforeEach(() => {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('real internationalization entry initialization', () => {
+  it('keeps intentionally empty translations blank', async () => {
+    const { default: i18n } = await import('../index');
+    expect(i18n.t('settings.weather.proBadge')).toBe('');
+    expect(i18n.t('settings.update.proOnlyTag')).toBe('');
+  });
+
   it.each([['zh-CN', 'zh-CN'], ['en-US', 'en-US'], ['zh-HK', 'zh-TW'], ['zh-MO', 'zh-TW'], ['zh-Hant', 'zh-TW'], ['ja-JP', 'ja-JP'], ['unknown', 'zh-CN']])('uses persisted locale %s before the browser locale', async (raw, expected) => {
     getItem.mockReturnValue(raw);
     const { default: i18n, getLanguage } = await import('../index');
