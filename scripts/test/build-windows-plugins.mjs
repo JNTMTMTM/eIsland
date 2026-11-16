@@ -36,7 +36,6 @@ const framework = 'net10.0-windows10.0.19041.0';
 const builds = [
   ['bluetooth-helper', `src/bin/Release/${framework}/win-x64/native/eIslandBluetoothHelper.dll`],
   ['fullscreen-detector', 'build/Release/windows_fullscreen_detector.node'],
-  ['hardware-info-helper', 'src/bin/Release/net10.0/eIslandHardwareInfoReader.exe'],
   ['power-helper', `src/bin/Release/${framework}/win-x64/native/eIslandPowerHelper.dll`],
   ['smtc-helper', `src/bin/Release/${framework}/win-x64/native/eIslandSmtcHelper.dll`],
   ['toast-listener', 'build/Release/eisland_windows_toast_listener.node'],

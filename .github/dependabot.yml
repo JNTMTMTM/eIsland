@@ -27,7 +27,6 @@ updates:
 
   - package-ecosystem: nuget
     directories:
-      - /plugins/windows/eisland-windows-hardware-info-helper/src
       - /plugins/windows/eisland-windows-startup-helper/src
     schedule:
       interval: weekly

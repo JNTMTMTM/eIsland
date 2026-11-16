@@ -67,14 +67,6 @@ const BADGE_MAP: Record<string, string> = {
   ToastNotificationChangeKind: 'enum',
   ToastNotificationChangedEvent: 'interface',
   ToastNotificationSnapshot: 'interface',
-  // Hardware Info Helper
-  CpuInfo: 'interface',
-  GpuInfo: 'interface',
-  MemorySlotInfo: 'interface',
-  DiskInfo: 'interface',
-  NetworkAdapterInfo: 'interface',
-  MotherboardInfo: 'interface',
-  MonitorInfo: 'interface',
   // Volume Helper
   VolumeMonitor: 'monitor',
   // Volume Analyzer
