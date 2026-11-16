@@ -45,7 +45,7 @@ pub(crate) async fn run(operation: Operation) -> Result<Value> {
         .map_err(|error| error.to_string())
 }
 
-#[cfg(any(windows, target_os = "macos"))]
+#[cfg(windows)]
 fn execute(operation: Operation) -> Value {
     match operation {
         Operation::Get => json!(native::level().and_then(percent)),
@@ -55,7 +55,7 @@ fn execute(operation: Operation) -> Value {
     }
 }
 
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(not(windows))]
 fn execute(operation: Operation) -> Value {
     match operation {
         Operation::Set(value) => {
@@ -66,7 +66,7 @@ fn execute(operation: Operation) -> Value {
     }
 }
 
-#[cfg(any(windows, target_os = "macos"))]
+#[cfg(windows)]
 fn percent(scalar: f32) -> Option<u8> {
     scalar
         .is_finite()
@@ -122,111 +122,7 @@ mod native {
     }
 }
 
-#[cfg(target_os = "macos")]
-mod native {
-    use objc2_core_audio::{
-        kAudioDevicePropertyMute, kAudioDevicePropertyVolumeScalar,
-        kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyElementMain,
-        kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyScopeOutput, kAudioObjectSystemObject,
-        kAudioObjectUnknown, AudioObjectGetPropertyData, AudioObjectID, AudioObjectPropertyAddress,
-        AudioObjectSetPropertyData,
-    };
-    use std::{
-        mem::size_of,
-        ptr::{null, NonNull},
-    };
-
-    // AudioHardwareService 的虚拟主音量可覆盖只有声道音量控件的设备。
-    const VOLUME_SELECTORS: [u32; 2] = [
-        kAudioDevicePropertyVolumeScalar,
-        u32::from_be_bytes(*b"vmvc"),
-    ];
-
-    fn address(selector: u32, scope: u32) -> AudioObjectPropertyAddress {
-        AudioObjectPropertyAddress {
-            mSelector: selector,
-            mScope: scope,
-            mElement: kAudioObjectPropertyElementMain,
-        }
-    }
-
-    fn read<T: Default>(id: AudioObjectID, property: AudioObjectPropertyAddress) -> Option<T> {
-        let mut value = T::default();
-        let mut size = size_of::<T>() as u32;
-        // 调用方需让每个选择器与其 HAL 标量类型（u32 或 f32）一一对应。
-        let status = unsafe {
-            AudioObjectGetPropertyData(
-                id,
-                NonNull::from(&property),
-                0,
-                null(),
-                NonNull::from(&mut size),
-                NonNull::from(&mut value).cast(),
-            )
-        };
-        (status == 0 && size == size_of::<T>() as u32).then_some(value)
-    }
-
-    fn write<T>(id: AudioObjectID, property: AudioObjectPropertyAddress, value: T) -> bool {
-        // property 与标量仅在 HAL 调用期间被借用。
-        let status = unsafe {
-            AudioObjectSetPropertyData(
-                id,
-                NonNull::from(&property),
-                0,
-                null(),
-                size_of::<T>() as u32,
-                NonNull::from(&value).cast(),
-            )
-        };
-        status == 0
-    }
-
-    fn output() -> Option<AudioObjectID> {
-        read(
-            kAudioObjectSystemObject as AudioObjectID,
-            address(
-                kAudioHardwarePropertyDefaultOutputDevice,
-                kAudioObjectPropertyScopeGlobal,
-            ),
-        )
-        .filter(|id| *id != kAudioObjectUnknown)
-    }
-
-    /// 读取主音量（0.0~1.0），设备不可用时为 `None`。
-    pub(super) fn level() -> Option<f32> {
-        let id = output()?;
-        VOLUME_SELECTORS
-            .into_iter()
-            .find_map(|selector| read(id, address(selector, kAudioObjectPropertyScopeOutput)))
-    }
-
-    /// 写入主音量（0.0~1.0），返回是否成功。
-    pub(super) fn set_level(value: f32) -> bool {
-        output().is_some_and(|id| {
-            VOLUME_SELECTORS.into_iter().any(|selector| {
-                write(
-                    id,
-                    address(selector, kAudioObjectPropertyScopeOutput),
-                    value,
-                )
-            })
-        })
-    }
-
-    /// 读取静音状态，`toggle` 为 `true` 时先切换；返回最终状态，失败时为 `None`。
-    pub(super) fn mute(toggle: bool) -> Option<bool> {
-        let id = output()?;
-        let property = address(kAudioDevicePropertyMute, kAudioObjectPropertyScopeOutput);
-        let muted = read::<u32>(id, property)? != 0;
-        if toggle && !write(id, property, u32::from(!muted)) {
-            return None;
-        }
-        Some(muted ^ toggle)
-    }
-}
-
-#[cfg(all(test, any(windows, target_os = "macos")))]
+#[cfg(all(test, windows))]
 mod tests {
     use super::percent;
 

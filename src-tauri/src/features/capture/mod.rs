@@ -28,6 +28,14 @@ use image::{ImageEncoder, RgbaImage};
 use serde_json::{json, Value};
 use tauri::{AppHandle, Manager};
 
+/// 在启动截屏或修改窗口状态前检查平台是否支持截图。
+pub(crate) fn check_supported() -> Result<()> {
+    if cfg!(target_os = "macos") {
+        return Err("Screen capture is unavailable on this platform".into());
+    }
+    Ok(())
+}
+
 #[derive(Clone, Copy)]
 struct Screen {
     x: i32,
@@ -102,6 +110,7 @@ fn capture_frame(_app: &AppHandle, all: bool) -> Result<Frame> {
 
 /// 截取主显示器并返回 PNG data URL。
 pub async fn primary(app: &AppHandle) -> Result<Value> {
+    check_supported()?;
     static BUSY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
     if BUSY.swap(true, std::sync::atomic::Ordering::AcqRel) {
         return Ok(Value::Null);
@@ -123,6 +132,7 @@ pub async fn primary(app: &AppHandle) -> Result<Value> {
 
 /// 启动一次选区截图。进行中的重复触发会被忽略；旧选区窗口正在销毁时，请求在恢复后重新执行。
 pub async fn start(app: &AppHandle) -> Result<()> {
+    check_supported()?;
     {
         let state = app.state::<Desktop>();
         let mut s = state.inner.lock().unwrap();
@@ -183,32 +193,6 @@ fn capture_displays(all: bool) -> Result<Frame> {
         })
         .collect::<std::result::Result<_, _>>()
         .map_err(|e| e.to_string())?;
-
-    #[cfg(target_os = "macos")]
-    {
-        use crate::infrastructure::platform::screenshot::{capture, DisplayRequest};
-
-        let displays = monitors
-            .iter()
-            .zip(&screens)
-            .map(|(monitor, screen)| {
-                Ok::<_, xcap::XCapError>(DisplayRequest {
-                    id: monitor.id()?,
-                    width: screen.width,
-                    height: screen.height,
-                })
-            })
-            .collect::<std::result::Result<_, _>>()
-            .map_err(|e| e.to_string())?;
-        match capture(displays) {
-            Ok(Some(images)) => return frame_from_displays(screens, images, all, "native"),
-            Ok(None) => {}
-            // 系统接口超时或单屏失败时仍尝试兼容后端；权限缺失时兼容后端也会返回错误。
-            Err(error) => {
-                eprintln!("[Capture] ScreenCaptureKit failed: {error}; using compatibility capture")
-            }
-        }
-    }
 
     let images = monitors
         .iter()
@@ -353,28 +337,15 @@ fn install_frame(
         "physicalScreen": {"x": i64::from(x) * i64::from(scale), "y": i64::from(y) * i64::from(scale), "width": image.width(), "height": image.height()},
         "displays": [], "scaleFactor": scale, "captureSource": source, "visibleWindows": visible_windows
     });
-    #[cfg(target_os = "macos")]
-    {
-        // AppKit 和窗口边界使用显示器点坐标，截图以独立的像素密度保存。
-        window
-            .set_position(tauri::LogicalPosition::new(x, y))
-            .map_err(|e| e.to_string())?;
-        window
-            .set_size(tauri::LogicalSize::new(width, height))
-            .map_err(|e| e.to_string())?;
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        window
-            .set_position(tauri::PhysicalPosition::new(x, y))
-            .map_err(|e| e.to_string())?;
-        window
-            .set_size(tauri::PhysicalSize::new(width, height))
-            .map_err(|e| e.to_string())?;
-        window
-            .set_zoom(1. / window.scale_factor().map_err(|e| e.to_string())?)
-            .map_err(|e| e.to_string())?;
-    }
+    window
+        .set_position(tauri::PhysicalPosition::new(x, y))
+        .map_err(|e| e.to_string())?;
+    window
+        .set_size(tauri::PhysicalSize::new(width, height))
+        .map_err(|e| e.to_string())?;
+    window
+        .set_zoom(1. / window.scale_factor().map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
     {
         let state = app.state::<Desktop>();
         let mut s = state.inner.lock().unwrap();

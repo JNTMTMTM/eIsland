@@ -182,6 +182,7 @@ async fn run(app: &AppHandle, tool: &str, args: &Value) -> Result<Value> {
         }
         "win.list"|"win.minimize"|"win.maximize"|"win.restore"|"win.close"=>window_tool(app,tool,args).await,
         "win.screenshot"=>{
+            crate::features::capture::check_supported()?;
             let path=PathBuf::from(required(args,"savePath")?);
             tauri::async_runtime::spawn_blocking(move||{if let Some(parent)=path.parent(){std::fs::create_dir_all(parent).map_err(|e|e.to_string())?;}let monitors=xcap::Monitor::all().map_err(|e|e.to_string())?;let monitor=monitors.iter().find(|monitor|monitor.is_primary().unwrap_or(false)).or_else(||monitors.first()).ok_or("No screen available")?;let screenshot=monitor.capture_image().map_err(|e|e.to_string())?;screenshot.save(&path).map_err(|e|e.to_string())?;Ok(json!({"path":path,"size":std::fs::metadata(&path).map_err(|e|e.to_string())?.len(),"fileName":path.file_name().map(|name|name.to_string_lossy())}))}).await.map_err(|e|e.to_string())?
         }

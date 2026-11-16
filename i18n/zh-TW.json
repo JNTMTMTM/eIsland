@@ -3076,7 +3076,7 @@
         "title": "截圖設置",
         "hint": "截圖相關配置。",
         "engineTitle": "截圖引擎",
-        "engineHint": "Windows 預設使用原生截圖，失敗時會自動切換到相容模式。macOS 會自動選擇系統截圖方式。",
+        "engineHint": "Windows 預設使用原生截圖，失敗時會自動切換到相容模式。",
         "engineNative": "原生模式",
         "engineCompatibility": "相容模式",
         "ocrEngineTitle": "OCR 識別方案",

@@ -39,7 +39,7 @@ pub(crate) fn valid_temperature(value: f64) -> Option<f64> {
     (value.is_finite() && value > 0. && value <= 200.).then_some(value)
 }
 
-#[cfg(any(windows, target_os = "macos", test))]
+#[cfg(any(windows, test))]
 fn temperature(category: &'static str, label: String, value: f64) -> Option<Temperature> {
     Some(Temperature {
         category,
@@ -48,7 +48,7 @@ fn temperature(category: &'static str, label: String, value: f64) -> Option<Temp
     })
 }
 
-#[cfg(any(windows, target_os = "macos", test))]
+#[cfg(any(windows, test))]
 fn thermal_zone_category(label: &str) -> &'static str {
     if label.to_ascii_lowercase().contains("cpu") {
         "cpu"
@@ -58,25 +58,7 @@ fn thermal_zone_category(label: &str) -> &'static str {
     }
 }
 
-#[cfg(target_os = "macos")]
-pub(crate) fn temperatures() -> Vec<Temperature> {
-    sysinfo::Components::new_with_refreshed_list()
-        .iter()
-        .filter_map(|sensor| {
-            let label = sensor.label();
-            let category = if label.to_ascii_lowercase().contains("ssd")
-                || label.to_ascii_lowercase().contains("nand")
-            {
-                "storage"
-            } else {
-                thermal_zone_category(label)
-            };
-            temperature(category, label.to_owned(), f64::from(sensor.temperature()?))
-        })
-        .collect()
-}
-
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(not(windows))]
 pub(crate) fn temperatures() -> Vec<Temperature> {
     Vec::new()
 }

@@ -20,29 +20,20 @@
 
 //! 屏幕亮度控制，需在阻塞线程中调用系统显示器接口。
 
-#[cfg(any(target_os = "macos", test))]
-mod ddc;
-#[cfg(target_os = "macos")]
-mod macos;
 #[cfg(windows)]
 mod windows;
 
 #[cfg(windows)]
-use self::windows as native;
-#[cfg(target_os = "macos")]
-use macos as native;
-
-#[cfg(any(windows, target_os = "macos"))]
-pub(crate) use native::{get, set};
+pub(crate) use self::windows::{get, set};
 
 /// 读取当前亮度；不支持的平台始终返回 `None`。
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(not(windows))]
 pub(crate) fn get() -> Option<u8> {
     None
 }
 
 /// 写入亮度；不支持的平台始终返回 `false`。
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(not(windows))]
 pub(crate) fn set(_percent: u8) -> bool {
     false
 }

@@ -3076,7 +3076,7 @@
         "title": "スクリーンショット設定",
         "hint": "スクリーンショットに関する設定です。",
         "engineTitle": "スクリーンショットエンジン",
-        "engineHint": "Windows では標準でネイティブキャプチャを使い、失敗した場合は互換モードに切り替えます。macOS ではシステムのキャプチャ方式を自動で選択します。",
+        "engineHint": "Windows では標準でネイティブキャプチャを使い、失敗した場合は互換モードに切り替えます。",
         "engineNative": "ネイティブモード",
         "engineCompatibility": "互換モード",
         "ocrEngineTitle": "OCR エンジン",

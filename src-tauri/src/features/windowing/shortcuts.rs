@@ -25,7 +25,6 @@ use super::{
     actions::{menu_action, set_shape, store_write},
 };
 use crate::{
-    features::capture,
     shared::{geometry::Point, Result},
     state::Desktop,
 };
@@ -36,6 +35,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 const SHORTCUTS: &[(&str, &str)] = &[
     ("hide-hotkey", "Alt+X"),
     ("quit-hotkey", "Alt+C"),
+    #[cfg(not(target_os = "macos"))]
     ("screenshot-hotkey", "Alt+A"),
     ("toggle-shape-mode-hotkey", "Alt+E"),
     ("agent-voice-input-hotkey", "Alt+P"),
@@ -50,6 +50,13 @@ const SHORTCUTS: &[(&str, &str)] = &[
 ];
 
 pub(crate) fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Option<Value>> {
+    if cfg!(target_os = "macos") {
+        match channel {
+            "screenshot-hotkey:get" => return Ok(Some(json!(""))),
+            "screenshot-hotkey:set" => return Ok(Some(json!(false))),
+            _ => {}
+        }
+    }
     if channel == "hotkey:suspend" {
         app.global_shortcut()
             .unregister_all()
@@ -174,10 +181,11 @@ pub fn shortcut_action(app: &AppHandle, pressed: &str) -> Result<()> {
             app.exit(0);
             Ok(())
         }
+        #[cfg(not(target_os = "macos"))]
         Some("screenshot-hotkey") => {
             let handle = app.clone();
             tauri::async_runtime::spawn(async move {
-                if let Err(error) = capture::start(&handle).await {
+                if let Err(error) = crate::features::capture::start(&handle).await {
                     eprintln!("[Capture] {error}");
                 }
             });

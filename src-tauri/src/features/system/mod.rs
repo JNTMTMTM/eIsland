@@ -48,6 +48,9 @@ pub fn handles(channel: &str) -> bool {
         )
 }
 pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Value> {
+    if cfg!(target_os = "macos") && channel == "system:performance-snapshot:get" {
+        return Err("Performance monitoring is unavailable on this platform".into());
+    }
     if hardware::handles(channel) {
         return hardware::handle(app, channel, args).await;
     }
@@ -145,7 +148,7 @@ fn work(_app: &AppHandle, channel: &str, args: &[Value]) -> Result<Value> {
             );
         }
         return Ok(
-            json!({"timestamp":crate::shared::time::now_ms(),"host":{"hostname":System::host_name().unwrap_or_default(),"platform":if cfg!(windows){"win32"}else if cfg!(target_os="macos"){"darwin"}else{std::env::consts::OS},"release":System::os_version().unwrap_or_default(),"arch":match std::env::consts::ARCH{"x86_64"=>"x64","x86"=>"ia32",arch=>arch},"uptimeSeconds":System::uptime()},"cpu":{"manufacturer":cpu.map(|c|c.vendor_id()).unwrap_or(""),"brand":cpu.map(|c|c.brand()).unwrap_or(""),"cores":system.cpus().len(),"physicalCores":System::physical_core_count().unwrap_or(system.cpus().len()),"speedGhz":cpu.map(|c|c.frequency()as f64/1000.),"speedMaxGhz":null,"loadPercent":load,"temperatureCelsius":null},"memory":{"totalBytes":system.total_memory(),"usedBytes":system.used_memory(),"availableBytes":system.available_memory(),"usagePercent":if system.total_memory()>0{system.used_memory()as f64/system.total_memory()as f64*100.}else{0.}},"gpu":gpu,"disk":{"totalBytes":total,"usedBytes":total.saturating_sub(available),"usagePercent":if total>0{(total-available)as f64/total as f64*100.}else{0.},"temperatureCelsius":null},"hardwareOptions":{"cpu":if include{cpu_options}else{Vec::new()},"gpu":gpu_options,"disk":if include{disk_options}else{Vec::new()}}}),
+            json!({"timestamp":crate::shared::time::now_ms(),"host":{"hostname":System::host_name().unwrap_or_default(),"platform":if cfg!(windows){"win32"}else{std::env::consts::OS},"release":System::os_version().unwrap_or_default(),"arch":match std::env::consts::ARCH{"x86_64"=>"x64","x86"=>"ia32",arch=>arch},"uptimeSeconds":System::uptime()},"cpu":{"manufacturer":cpu.map(|c|c.vendor_id()).unwrap_or(""),"brand":cpu.map(|c|c.brand()).unwrap_or(""),"cores":system.cpus().len(),"physicalCores":System::physical_core_count().unwrap_or(system.cpus().len()),"speedGhz":cpu.map(|c|c.frequency()as f64/1000.),"speedMaxGhz":null,"loadPercent":load,"temperatureCelsius":null},"memory":{"totalBytes":system.total_memory(),"usedBytes":system.used_memory(),"availableBytes":system.available_memory(),"usagePercent":if system.total_memory()>0{system.used_memory()as f64/system.total_memory()as f64*100.}else{0.}},"gpu":gpu,"disk":{"totalBytes":total,"usedBytes":total.saturating_sub(available),"usagePercent":if total>0{(total-available)as f64/total as f64*100.}else{0.},"temperatureCelsius":null},"hardwareOptions":{"cpu":if include{cpu_options}else{Vec::new()},"gpu":gpu_options,"disk":if include{disk_options}else{Vec::new()}}}),
         );
     }
     system.refresh_processes_specifics(

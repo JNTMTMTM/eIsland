@@ -3076,7 +3076,7 @@
         "title": "截图设置",
         "hint": "截图相关配置。",
         "engineTitle": "截图引擎",
-        "engineHint": "Windows 默认使用原生截图，失败时自动切换到兼容模式。macOS 自动选择系统截图方式。",
+        "engineHint": "Windows 默认使用原生截图，失败时自动切换到兼容模式。",
         "engineNative": "原生模式",
         "engineCompatibility": "兼容模式",
         "ocrEngineTitle": "OCR 识别方案",

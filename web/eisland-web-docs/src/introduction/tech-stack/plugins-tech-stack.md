@@ -8,9 +8,9 @@ icon: toolbox
 :::warning
 This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes.
 
-The desktop performance monitor reads CPU, memory, and disk usage in Rust. Windows reads CPU clocks through PowrProf, GPU inventory and usage through DXGI and PDH, and available temperatures through ACPI, WDDM, and storage drivers. macOS uses available system temperature sensors. Unavailable readings remain empty.
+On Windows, the Rust desktop performance monitor reads CPU, memory, and disk usage. It reads CPU clocks through PowrProf, GPU inventory and usage through DXGI and PDH, and available temperatures through ACPI, WDDM, and storage drivers. Unavailable readings remain empty.
 
-The desktop app handles hardware brightness in Rust. Windows uses WMI and DXVA2. macOS uses DisplayServices, IOKit, and DDC/CI where the display supports it.
+The Rust desktop app controls brightness on Windows through WMI for internal displays and DXVA2 for compatible external displays.
 :::
 
 ## Overview
@@ -194,7 +194,7 @@ bool close_matching_processes(const ProcessTarget* target, ProcessCloseResult* r
 
 ## Native Fullscreen Detection
 
-Fullscreen auto-hide runs directly in Rust: `features/windowing/auto_hide.rs` calls `infrastructure/platform/fullscreen`. Windows uses Win32/DWM with a 2-pixel edge tolerance. macOS compares CoreGraphics onscreen window and display bounds in logical coordinates. Neither platform needs the retired Node.js addon.
+Fullscreen auto-hide on Windows runs in Rust. `features/windowing/auto_hide.rs` calls `infrastructure/platform/fullscreen`, which compares Win32/DWM window bounds with display bounds using a 2-pixel tolerance.
 
 ## Plugin: Windows Bluetooth Helper
 
@@ -800,7 +800,7 @@ interface ToastNotificationSnapshot {
 
 ## Desktop screenshots
 
-The Rust desktop uses Win32 GDI on Windows and automatically retries with xcap in compatibility mode when GDI fails. macOS 14 and later use ScreenCaptureKit with Screen Recording permission. Earlier macOS versions use the xcap compatibility path. The application encodes the primary display and region captures as PNG and preserves the desktop layout across monitors.
+On Windows, the Rust desktop uses Win32 GDI and automatically retries with xcap in compatibility mode when GDI fails. The application encodes primary display and region captures as PNG and preserves the desktop layout across monitors.
 
 ## Testing
 

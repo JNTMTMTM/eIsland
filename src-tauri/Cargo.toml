@@ -63,16 +63,6 @@ windows = { version = "0.61.3", features = ["Foundation", "Graphics_Imaging", "M
 libloading = "0.8"
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Devices_Display", "Win32_Graphics_Gdi", "Win32_Graphics_Dwm", "Win32_UI_WindowsAndMessaging", "Win32_UI_Shell", "Win32_Storage_FileSystem", "Win32_System_DataExchange", "Win32_System_Performance", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_Security", "Wdk_Graphics_Direct3D", "Win32_Devices_DeviceAndDriverInstallation", "Win32_System_IO", "Win32_System_Ioctl", "Win32_System_Power"] }
 
-[target.'cfg(target_os = "macos")'.dependencies]
-block2 = "0.6"
-libloading = "0.8"
-objc2 = "0.6"
-objc2-core-audio = { version = "0.3.2", default-features = false, features = ["AudioHardware"] }
-objc2-core-foundation = { version = "0.3.2", default-features = false, features = ["std", "CFArray", "CFDictionary", "CFNumber", "CFString"] }
-objc2-core-graphics = { version = "0.3.2", default-features = false, features = ["CGDirectDisplay", "CGDisplayConfiguration", "CGError", "CGGeometry", "CGBitmapContext", "CGColorSpace", "CGContext", "CGImage", "CGWindow", "libc"] }
-objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSArray", "NSError", "NSString"] }
-objc2-io-kit = { version = "0.3.2", default-features = false, features = ["graphics", "libc"] }
-
 [features]
 custom-protocol = ["tauri/custom-protocol"]
 

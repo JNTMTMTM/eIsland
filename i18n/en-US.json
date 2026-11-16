@@ -3076,7 +3076,7 @@
         "title": "Screenshot Settings",
         "hint": "Configure screenshot related settings.",
         "engineTitle": "Screenshot Engine",
-        "engineHint": "Windows uses native capture by default and falls back to compatibility mode if capture fails. macOS selects a system capture method automatically.",
+        "engineHint": "Windows uses native capture by default and falls back to compatibility mode if capture fails.",
         "engineNative": "Native mode",
         "engineCompatibility": "Compatibility mode",
         "ocrEngineTitle": "OCR Engine",
