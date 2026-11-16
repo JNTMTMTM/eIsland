@@ -24,7 +24,9 @@
  * @author 鸡哥
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import i18n from 'i18next';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import zhCN from '../../../../../../i18n/zh-CN.json';
 import { fetchLyrics, fetchLyricsWithTranslation } from '../index';
 import { fetchKaraokeLyrics } from '../karaoke';
 
@@ -67,6 +69,10 @@ class LyricsSocket {
     this.onclose?.();
   }
 }
+
+beforeAll(async () => {
+  await i18n.init({ lng: 'zh-CN', resources: { 'zh-CN': { translation: zhCN } } });
+});
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -159,6 +165,19 @@ describe('real provider source selection', () => {
     expect(netFetch.mock.calls[0][0]).toContain('/api/search/get/web');
   });
 
+  it('stops at the Qishui instrumental notice without requesting other providers', async () => {
+    qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: true });
+    const result = await fetchLyricsWithTranslation('Song', 'Artist', '汽水音乐');
+    expect(result?.lyrics).toEqual([{ time_ms: 0, text: '纯音乐，请欣赏' }]);
+    expect(netFetch).not.toHaveBeenCalled();
+  });
+
+  it('still falls back when Qishui has no lyrics for a vocal track', async () => {
+    qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: false });
+    expect(await fetchLyrics('Song', 'Artist', '汽水音乐')).toEqual(expected);
+    expect(netFetch.mock.calls[0][0]).toContain('/api/search/get/web');
+  });
+
   it.each(['kugou.exe', 'unknown.exe'])('returns null after all real providers fail for %s', async (appId) => {
     netFetch.mockResolvedValue({ ok: false, status: 503, body: '' });
     qishuiSearch.mockResolvedValue({ songs: [] });
@@ -185,5 +204,11 @@ describe('karaoke real source detection fallback', () => {
   it('recovers when detection rejects', async () => {
     detect.mockRejectedValue(new Error('SMTC unavailable'));
     expect((await fetchKaraokeLyrics('Song', 'Artist'))?.[0].text).toBe('Hello');
+  });
+  it('stops at the Qishui instrumental notice without requesting other karaoke providers', async () => {
+    qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: true });
+    const result = await fetchKaraokeLyrics('Song', 'Artist', '汽水音乐');
+    expect(result).toEqual([{ time_ms: 0, duration_ms: 0, text: '纯音乐，请欣赏', syllables: [] }]);
+    expect(netFetch).not.toHaveBeenCalled();
   });
 });

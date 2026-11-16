@@ -561,7 +561,15 @@ async fn lyrics(music: &Music, app: &AppHandle, id: &str) -> Result<Value> {
     } else {
         content
     };
-    Ok(json!({"provider":"qishui","id":id,"auth":auth,"lyric":content,"tlyric":translation}))
+    // 汽水对纯音乐不返回歌词内容，仅以 vocal=2 标记；前端据此显示纯音乐提示，不再回退其他歌词源。
+    let vocal = [&track["vocal"], &data["seo_track"]["track"]["vocal"]]
+        .into_iter()
+        .find(|value| !value.is_null())
+        .unwrap_or(&Value::Null);
+    let instrumental = content.is_empty() && num(vocal, 0.) == 2.;
+    Ok(
+        json!({"provider":"qishui","id":id,"auth":auth,"lyric":content,"tlyric":translation,"instrumental":instrumental}),
+    )
 }
 fn membership(value: &Value) -> &'static str {
     fn contains(value: &Value, names: &[&str], positive: bool) -> bool {

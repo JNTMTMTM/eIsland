@@ -904,7 +904,8 @@
       "all": "全部歌詞",
       "loading": "正在加載歌詞",
       "empty": "暫無歌詞",
-      "enjoyMusic": "享受音樂"
+      "enjoyMusic": "享受音樂",
+      "instrumental": "純音樂，請欣賞"
     },
     "onboarding": {
       "title": "音樂總覽",

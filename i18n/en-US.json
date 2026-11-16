@@ -904,7 +904,8 @@
       "all": "All lyrics",
       "loading": "Loading lyrics",
       "empty": "No lyrics",
-      "enjoyMusic": "Enjoy the music"
+      "enjoyMusic": "Enjoy the music",
+      "instrumental": "Instrumental. Enjoy the music"
     },
     "onboarding": {
       "title": "Music Overview",

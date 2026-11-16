@@ -24,13 +24,19 @@
  * @author 鸡哥
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import i18n from 'i18next';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import zhCN from '../../../../../../../../i18n/zh-CN.json';
 import { fetchKaraokeFromSodaMusic } from '../sodaMusic';
 
 const qishuiSearch = vi.fn<(query: string, options: { limit: number }) => Promise<{ songs?: unknown; loggedIn?: boolean; publicCatalog?: boolean }>>();
 const qishuiLyrics = vi.fn<(id: string) => Promise<unknown>>();
 const song = { id: 'id', providerSongId: 'provider', name: 'Song', artists: [{ name: 'Artist' }], album: 'Album', duration: 1000 };
 const expected = [{ time_ms: 1000, duration_ms: 500, text: 'Hello', syllables: [{ start_offset_ms: 0, duration_ms: 500, text: 'Hello' }] }];
+
+beforeAll(async () => {
+  await i18n.init({ lng: 'zh-CN', resources: { 'zh-CN': { translation: zhCN } } });
+});
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -68,6 +74,11 @@ describe('SodaMusic real karaoke provider boundaries', () => {
   it.each([null, {}, { auth: 123 }, { lyric: 123 }, { lyric: '' }, { lyric: 'untimed' }])('returns null for invalid detail %j', async (detail) => {
     qishuiLyrics.mockResolvedValue(detail);
     expect(await fetchKaraokeFromSodaMusic('Song', 'Artist')).toBeNull();
+  });
+  it('returns a syllable-free instrumental notice for instrumental tracks', async () => {
+    qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: true });
+    const result = await fetchKaraokeFromSodaMusic('Song', 'Artist');
+    expect(result).toEqual([{ time_ms: 0, duration_ms: 0, text: '纯音乐，请欣赏', syllables: [] }]);
   });
   it('uses unknown authorization when valid lyrics omit auth', async () => {
     qishuiLyrics.mockResolvedValue({ lyric: '[1000,500]<0,500,0>Hello' });
