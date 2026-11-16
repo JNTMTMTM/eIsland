@@ -1250,6 +1250,12 @@ document.getElementById('btnCancel').addEventListener('click', () => {
   desktop.send('capture-cancel');
 });
 
+document.addEventListener('contextmenu', (event) => {
+  if (event.button !== 2) return;
+  event.preventDefault();
+  desktop.send('capture-cancel');
+}, { capture: true });
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && ocrPanel.style.display === 'flex') {
     resetOcrResult();

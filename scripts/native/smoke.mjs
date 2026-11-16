@@ -80,7 +80,7 @@ async function pageFor(label, attempts = 80) {
  * @returns Rust 返回值。
  */
 async function ipc(page, channel, ...args) {
-  if (channel === 'window:close' || channel === 'capture-cancel') {
+  if (channel === 'window:close') {
     const closed = page.waitForEvent('close');
     await page.evaluate(({ channel, args }) => window.desktop.send(channel, ...args), { channel, args });
     await closed;
@@ -124,7 +124,13 @@ async function captureMode(main, engine) {
   await capture.locator('#toolbar').waitFor({ state: 'visible' });
   await capture.locator('#toolbar').screenshot({ path: resolve(output, `capture-toolbar-${engine}.png`) });
   if (engine === 'plugin') assert(!stderr.slice(captureLogOffset).includes('[Capture] Win32 GDI failed:'), 'Primary and region GDI capture must both succeed');
-  await ipc(capture, 'capture-cancel');
+  const closed = capture.waitForEvent('close');
+  if (engine === 'plugin') {
+    await capture.mouse.click(120, 120, { button: 'right' });
+  } else {
+    await capture.locator('#btnCancel').click({ button: 'right' });
+  }
+  await closed;
 }
 try {
   browser = await connectNative(app, `http://127.0.0.1:${port}`, { diagnostics: () => stderr });
