@@ -17,7 +17,6 @@ eIsland uses ten native plugins to access Windows features that web technologies
 |--------|----------|-------------------|---------|
 | **eisland-windows-processes-attacker** | C | kernel32 | Process management |
 | **eisland-windows-toast-listener** | C++ | runtimeobject | Windows notification listener |
-| **eisland-windows-smtc-helper** | C# (.NET) | — | System Media Transport Controls (play, pause, next, previous, status) |
 | **eisland-windows-bluetooth-helper** | C# (.NET) | — | Bluetooth device enumeration and real-time connection monitoring |
 | **eisland-windows-power-helper** | C# (.NET) | — | Battery status and power event monitoring |
 | **eisland-windows-wifi-helper** | C# (.NET) | — | WiFi connection status and event monitoring |
@@ -34,7 +33,6 @@ All plugins are compiled using **node-gyp** or **dotnet publish**, which require
 | **npm** | >= 10.x | Package manager |
 | **Visual Studio Build Tools 2022** | Latest | C/C++ compiler toolchain |
 | **.NET 10 SDK** | >= 10.0 | Build .NET Native AOT plugins |
-| **Python** | >= 3.10 | SMTC ctypes DLL testing |
 | **Git** | Latest | Version control |
 
 :::warning
@@ -152,70 +150,7 @@ vcpkg automatically downloads the source, compiles it with MSVC, and installs he
 
 #### .NET Components
 
-The `eisland-windows-smtc-helper` plugin is a pure .NET console application that controls Windows media playback via SMTC APIs.
-
-| Component | ID | Description |
-|-----------|-----|-------------|
-| **.NET 10 SDK** | `Microsoft.Component.NetFX` | Required for building .NET plugins that target `net10.0` |
-| **.NET Framework 4.8 development tools** | `Microsoft.VisualStudio.Component.ManagedDesktop` | .NET Framework targeting support — required for some NuGet packages and tooling |
-| **ClickOnce Build Tools** | `Microsoft.VisualStudio.Component.ClickOnce.BuildTools` | Deployment packaging tools — used for creating self-contained .NET deployments |
-
-:::details .NET Component Architecture
-The SMTC helper is a pure .NET application with two build targets:
-
-```
-eisland-windows-smtc-helper/
-├── package.json
-├── index.js               # JS entry point, spawns .NET helper
-├── index.d.ts             # TypeScript type declarations
-├── src/
-│   └── eIslandSmtcHelper.csproj   # .NET console app (for Node.js)
-│       └── TargetFramework: net10.0-windows10.0.19041.0
-│       └── Uses: Windows.Media.Control (WinRT)
-└── smtc-ctypes/
-    └── eIslandSmtcCtypes.csproj   # NativeAOT DLL (for Python ctypes / FFI)
-        └── TargetFramework: net10.0-windows10.0.19041.0
-        └── PublishAot: true
-        └── SelfContained: true
-        └── StaticICU: true
-```
-
-1. **dotnet build** compiles the .NET console application using .NET 10 SDK + Windows SDK
-2. **dotnet publish** compiles the self-contained NativeAOT DLL (requires `vswhere.exe` in PATH)
-3. At runtime, `index.js` spawns the .NET executable via `spawnSync` with CLI arguments
-4. The .NET app outputs JSON to stdout and exits
-
-The Bluetooth helper follows the same architecture as the SMTC helper:
-
-```
-eisland-windows-bluetooth-helper/
-├── package.json
-├── index.js               # JS entry point (exports queries + BluetoothMonitor)
-├── index.d.ts             # TypeScript type declarations
-├── ffi-loader.js          # koffi FFI loader for the NativeAOT DLL
-├── bluetooth-monitor.js   # EventEmitter wrapper for device monitoring
-├── src/
-│   └── eIslandBluetoothHelper.csproj  # .NET class library
-│       └── TargetFramework: net10.0-windows10.0.19041.0
-│       └── Uses: Windows.Devices.Bluetooth (WinRT)
-└── bt-ctypes/
-    └── eIslandBluetoothCtypes.csproj  # NativeAOT DLL (for koffi FFI)
-        └── TargetFramework: net10.0-windows10.0.19041.0
-        └── PublishAot: true
-        └── SelfContained: true
-        └── StaticICU: true
-```
-
-1. **dotnet build** compiles the .NET class library
-2. **dotnet publish** compiles the self-contained NativeAOT DLL (requires `vswhere.exe` in PATH)
-3. At runtime, `index.js` loads the DLL via koffi FFI and calls C-style exported functions
-
-:::important Self-Contained Native AOT
-All .NET Native AOT DLLs are built with `<SelfContained>true</SelfContained>` and `<StaticICU>true</StaticICU>`. This means **client machines do not need the .NET runtime installed** — all dependencies are statically linked into the DLL. The trade-off is a larger DLL size (~5MB per plugin).
-:::
-
-The Power and WiFi helpers follow the same architecture.
-:::
+The standalone C# plugins require the .NET 10 SDK.
 
 ### Installation Summary
 
@@ -246,7 +181,7 @@ Use this checklist in the Visual Studio Build Tools 2022 installer (**Individual
 
 ## .NET 10 SDK
 
-The SMTC helper targets .NET 10.0. Install the .NET 10 SDK separately if not included with the Build Tools installer.
+The remaining standalone C# plugins target .NET 10.0. Install the .NET 10 SDK separately if not included with the Build Tools installer.
 
 ### Installation
 
@@ -291,7 +226,6 @@ plugin-name/
 :::note
 New or migrated suites use `vitest.config.mts`; some existing plugins still use `.ts`. Follow the filename in each plugin's `package.json` test script and update its `--config` paths when renaming the configuration.
 
-The `eisland-windows-smtc-helper` plugin uses C# instead of C/C++. Its `src/` directory contains `.cs` files and a `.csproj` project file instead of C sources and `binding.gyp`.
 :::
 
 ### binding.gyp Configuration
@@ -485,28 +419,6 @@ npm run smoke:polling
 | **Polling tests** | `*.polling.test.ts` | Tests that verify the plugin works correctly in polling (non-event) mode |
 :::
 
-### SMTC Helper Tests
-
-The `eisland-windows-smtc-helper` plugin has per-command test files:
-
-```bash
-cd plugins/windows/eisland-windows-smtc-helper
-
-npm run test                    # All tests
-npm run test:play               # Play command tests
-npm run test:pause              # Pause command tests
-npm run test:next               # Next command tests
-npm run test:previous           # Previous command tests
-npm run test:timestamp          # Timestamp (getTimestamp) tests
-npm run smoke                   # Full smoke test
-npm run smoke:play              # Play smoke test
-npm run smoke:pause             # Pause smoke test
-npm run smoke:next              # Next smoke test
-npm run smoke:previous          # Previous smoke test
-npm run smoke:status            # Status-only smoke test
-npm run smoke:timestamp         # Timestamp smoke test
-```
-
 ### Toast Listener Special Tests
 
 The `eisland-windows-toast-listener` plugin has additional test modes:
@@ -666,9 +578,9 @@ winget install Microsoft.DotNet.SDK.10
 # Verify installation
 dotnet --list-sdks  # Should show 10.x.x
 
-# Rebuild the SMTC helper
-cd plugins/windows/eisland-windows-smtc-helper
-npm run build
+# Build the standalone Power Helper
+cd plugins/windows/eisland-windows-power-helper
+npm run build:all
 ```
 
 ### NativeAOT Build Fails — 'vswhere.exe' is not recognized

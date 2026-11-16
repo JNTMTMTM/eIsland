@@ -31,7 +31,6 @@ jobs:
           - eisland-windows-bluetooth-helper
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
-          - eisland-windows-smtc-helper
           - eisland-windows-startup-helper
           - eisland-windows-toast-listener
           - eisland-windows-volume-analyzer
@@ -113,7 +112,6 @@ jobs:
           - eisland-windows-bluetooth-helper
           - eisland-windows-power-helper
           - eisland-windows-processes-attacker
-          - eisland-windows-smtc-helper
           - eisland-windows-startup-helper
           - eisland-windows-toast-listener
           - eisland-windows-volume-analyzer

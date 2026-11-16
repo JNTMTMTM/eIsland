@@ -21,12 +21,14 @@
 /**
  * @file smtc.ts
  * @description 本机 SMTC（系统媒体传输控件）全部播放实例读取
- * @description 直接加载仓库内的 eisland-windows-smtc-helper 插件，启动其会话监控后每秒同步读取全部会话
+ * @description 通过项目的 Rust 可执行文件读取 Windows 媒体会话
  * @author 鸡哥
  */
 
-import { createRequire } from 'node:module';
+import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { promisify } from 'node:util';
 
 /** 播放状态，按 WinRT GlobalSystemMediaTransportControlsSessionPlaybackStatus 枚举顺序 */
 export type SmtcStatus = 'closed' | 'opened' | 'changing' | 'stopped' | 'playing' | 'paused' | 'unknown';
@@ -51,35 +53,23 @@ export interface SmtcSession {
   updated: number;
 }
 
-/** 插件返回的会话快照，仅声明 CLI 用到的字段 */
-export interface HelperSession {
+/** 原生会话快照，仅声明 CLI 用到的字段 */
+export interface NativeSession {
   sourceAppId: string;
   media: { title: string; artist: string; albumTitle: string } | null;
   playback: { playbackStatus: number } | null;
   timeline: { position: number; duration: number; sampledAtMs?: number } | null;
 }
 
-/** 插件的会话监控器 */
-export interface HelperMonitor {
-  start: () => void;
-  stop: () => void;
-  getMediaSessions: () => HelperSession[];
-  on: (event: 'error', listener: (error: Error) => void) => unknown;
-}
-
-/** 插件模块入口 */
-export interface HelperModule {
-  SmtcMonitor: new () => HelperMonitor;
-}
+/** 读取当前会话，界面卸载时取消尚未结束的请求。 */
+type ReadSessions = (root: string, signal: AbortSignal) => Promise<NativeSession[]>;
 
 /** 读取句柄 */
 export interface SmtcWatcher {
-  /** 停止读取并关闭插件监控 */
+  /** 停止读取并取消当前查询 */
   stop: () => void;
 }
 
-/** 插件在仓库中的位置 */
-export const SMTC_HELPER_DIR = path.join('plugins', 'windows', 'eisland-windows-smtc-helper');
 /** 读取间隔 */
 export const SMTC_INTERVAL_MS = 1000;
 
@@ -94,22 +84,40 @@ export function isSmtcSupported(platform: NodeJS.Platform = process.platform): b
   return platform === 'win32';
 }
 
+const execute = promisify(execFile);
+
 /**
- * 加载仓库内的 SMTC 插件
- * @description 插件为 CommonJS 并通过 koffi 加载原生 DLL，需在运行时按仓库路径加载，不能打包进 CLI
+ * 调用项目中已构建的 Rust 可执行文件读取会话。
  * @param root - 仓库根目录
- * @returns 插件模块
+ * @param signal - 停止查询的信号
+ * @returns 当前所有 Windows 媒体会话
  */
-export function loadSmtcHelper(root: string): HelperModule {
-  return createRequire(import.meta.url)(path.join(root, SMTC_HELPER_DIR)) as HelperModule;
+async function readSessions(root: string, signal: AbortSignal): Promise<NativeSession[]> {
+  const target = path.resolve(root, process.env.CARGO_TARGET_DIR || 'src-tauri/target');
+  const override = process.env.EISLAND_SMTC_BINARY;
+  const candidates = override
+    ? [path.resolve(root, override)]
+    : ['debug', 'release'].map((profile) => path.join(target, profile, 'eisland.exe'));
+  const binary = candidates.find((file) => existsSync(file));
+  if (!binary) throw new Error('eisland.exe not found. Run npm run build:e2e or set EISLAND_SMTC_BINARY.');
+  const { stdout } = await execute(binary, ['--smtc-sessions'], {
+    signal,
+    encoding: 'utf8',
+    windowsHide: true,
+    timeout: 10_000,
+    maxBuffer: 1024 * 1024,
+  });
+  const result: unknown = JSON.parse(stdout);
+  if (!Array.isArray(result)) throw new Error('Invalid SMTC session snapshot.');
+  return result as NativeSession[];
 }
 
 /**
- * 将插件快照转换为 CLI 会话
- * @param raw - 插件返回的会话快照
+ * 将原生快照转换为 CLI 会话
+ * @param raw - 原生会话快照
  * @returns 会话
  */
-export function toSmtcSession(raw: HelperSession): SmtcSession {
+export function toSmtcSession(raw: NativeSession): SmtcSession {
   return {
     app: raw.sourceAppId,
     title: raw.media?.title ?? '',
@@ -123,44 +131,39 @@ export function toSmtcSession(raw: HelperSession): SmtcSession {
 }
 
 /**
- * 启动插件监控并定时读取全部会话
- * @description 插件监控启动后会话列表需要短暂时间填充，因此首次读取放在第一个间隔之后
+ * 每秒读取媒体会话。上一轮尚未完成时跳过本次查询。
  * @param root - 仓库根目录
- * @param onUpdate - 每次读取到全部会话时回调
- * @param onError - 插件加载、启动或读取失败时回调
- * @param load - 插件加载函数，默认 loadSmtcHelper，测试时可替换
- * @returns 读取句柄
+ * @param onUpdate - 成功读取全部会话时回调
+ * @param onError - 读取失败时回调
+ * @param read - 原生会话读取函数，可在测试中替换
+ * @returns 可停止的读取句柄
  */
 export function watchSmtc(
   root: string,
   onUpdate: (sessions: SmtcSession[]) => void,
   onError: (message: string) => void,
-  load: (root: string) => HelperModule = loadSmtcHelper,
+  read: ReadSessions = readSessions,
 ): SmtcWatcher {
-  const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-  let monitor: HelperMonitor;
-  try {
-    const { SmtcMonitor } = load(root);
-    monitor = new SmtcMonitor();
-    monitor.on('error', (error) => onError(error.message));
-    monitor.start();
-  } catch (error) {
-    onError(message(error));
-    return { stop: () => {} };
-  }
-
-  const timer = setInterval(() => {
+  const controller = new AbortController();
+  let pending = false;
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- 定时回调处理读取错误，停止时取消子进程。
+  const timer = setInterval(async () => {
+    if (pending) return;
+    pending = true;
     try {
-      onUpdate(monitor.getMediaSessions().map(toSmtcSession));
+      const sessions = await read(root, controller.signal);
+      if (!controller.signal.aborted) onUpdate(sessions.map(toSmtcSession));
     } catch (error) {
-      onError(message(error));
+      if (!controller.signal.aborted) onError(error instanceof Error ? error.message : String(error));
+    } finally {
+      pending = false;
     }
   }, SMTC_INTERVAL_MS);
 
   return {
     stop: () => {
       clearInterval(timer);
-      monitor.stop();
+      controller.abort();
     },
   };
 }

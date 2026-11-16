@@ -226,6 +226,17 @@ test('native services use real streams, resume data and concurrent local assets'
       assert(existsSync(prepared.playbackPath));
       assert(prepared.coverPath && existsSync(prepared.coverPath));
     });
+    await t.test('Windows media sessions are available through desktop IPC and the Rust CLI', { skip: process.platform !== 'win32' }, async () => {
+      const media = await until(async () => (await invoke('debug:system-services')).media, (result) => result.ready || result.error);
+      assert.equal(media.error, null);
+      assert.equal(media.ready, true);
+      const detected = await invoke('music:detect-source-app-id');
+      assert(Array.isArray(detected.sources));
+      const output = execFileSync(binary, ['--smtc-sessions'], { windowsHide: true, encoding: 'utf8', timeout: 10000 });
+      const sessions = JSON.parse(output);
+      assert(Array.isArray(sessions));
+      assert(sessions.every(({ sourceAppId }) => typeof sourceAppId === 'string' && sourceAppId.length > 0));
+    });
     await t.test('native system volume remains available through the existing API without an extension', async () => {
       const extensions = await invoke('extension:list');
       assert(!extensions.some(({ id }) => id === 'volume-helper'));

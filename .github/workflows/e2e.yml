@@ -41,9 +41,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.0.x'
       - name: Install build dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Prepare isolated temporary updater signing identity
@@ -61,7 +58,7 @@ jobs:
           Get-ChildItem "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe" -ErrorAction SilentlyContinue | ForEach-Object { $_.VersionInfo | Select-Object FileName, ProductVersion }
       - name: Prepare native FFmpeg binary
         run: node node_modules/ffmpeg-static/install.js
-      - name: Publish native plugin resources
+      - name: Prepare native media tools
         run: npm run plugins:build
       - name: Test native Tauri API and Cargo unit/integration tests
         run: npm run test:api && npm run test:rust

@@ -35,6 +35,10 @@ pub(crate) fn run() {
     if features::agent::run_hook_cli() {
         return;
     }
+    #[cfg(windows)]
+    if features::media::run_smtc_cli() {
+        return;
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let handle = app.clone();

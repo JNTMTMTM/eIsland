@@ -35,7 +35,6 @@ Complete API reference for all eIsland native plugins. Windows plugins provide s
 
 | Plugin | Description |
 |--------|-------------|
-| [Windows SMTC Helper](media-notifications/smtc-helper.md) | System Media Transport Controls |
 | [macOS Media Helper](media-notifications/macos-media-helper.md) | Current Now Playing source, artwork, timeline, and asynchronous controls |
 | [Windows Toast Listener](media-notifications/toast-listener.md) | Toast notification listening and suppression |
 | [Windows Volume Analyzer](media-notifications/volume-analyzer.md) | Process-specific audio analysis (frequency, amplitude, beat) |

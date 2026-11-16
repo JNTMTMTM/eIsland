@@ -22,7 +22,6 @@ npm run <script>
 |--------|-----------|----------|------------|-------|-------|
 | **Processes Attacker** | `eisland-windows-processes-attacker` | C | node-gyp | ❌ | ❌ |
 | **Toast Listener** | `eisland-windows-toast-listener` | C++ | node-gyp | ✅ | ✅ |
-| **SMTC Helper** | `eisland-windows-smtc-helper` | C# | dotnet | ✅ | ✅ |
 | **macOS Media Helper** | `plugins/macos/eisland-macos-media-helper` | Swift + C / Node-API | Xcode tools via Node build script | ✅ | ✅ |
 | **Bluetooth Helper** | `eisland-windows-bluetooth-helper` | C# | dotnet | ✅ | ✅ |
 
@@ -48,7 +47,7 @@ Run from the **project root** to build or clean the Windows plugins at once. Bui
 |---------|-------------|
 | `npm run test:plugins:build` | Prepare the Windows plugins used by the integration tests |
 | `npm run plugins:clean` | Clean configured Windows plugins in parallel |
-| `npm run plugins:build` | Prepare FFmpeg and SMTC resources for the Windows bundle |
+| `npm run plugins:build` | Prepare FFmpeg and ffprobe for the Windows bundle |
 | `npm run native` | Compatibility alias for `plugins:build`; only builds native helpers |
 
 `plugins:build` downloads FFmpeg when missing. The individual `plugin:build:*` commands remain available for plugin development.
@@ -64,12 +63,11 @@ Each plugin also has a dedicated root-level command for targeted builds and clea
 | Bluetooth Helper | `npm run plugin:build:bluetooth` | `npm run plugin:clean:bluetooth` |
 | Power Helper | `npm run plugin:build:power` | `npm run plugin:clean:power` |
 | Processes Attacker | `npm run plugin:build:processes` | `npm run plugin:clean:processes` |
-| SMTC Helper | `npm run plugin:build:smtc` | `npm run plugin:clean:smtc` |
 | Toast Listener | `npm run plugin:build:toast` | `npm run plugin:clean:toast` |
 | WiFi Helper | `npm run plugin:build:wifi` | `npm run plugin:clean:wifi` |
 
 :::info NativeAOT Build Requirement
-Building NativeAOT DLLs (`npm run build:ctypes` for SMTC, Bluetooth, Power, WiFi helpers) requires `vswhere.exe` in PATH. If the build fails with `'vswhere.exe' is not recognized`, add it:
+Building NativeAOT DLLs (`npm run build:ctypes` for Bluetooth, Power, WiFi helpers) requires `vswhere.exe` in PATH. If the build fails with `'vswhere.exe' is not recognized`, add it:
 ```bash
 export PATH="/c/Program Files (x86)/Microsoft Visual Studio/Installer:$PATH"
 ```
@@ -128,52 +126,6 @@ This plugin has no automated tests or smoke scripts. Test manually by running th
 | Command | Script | Description |
 |---------|--------|-------------|
 | `npm run cli:suppression` | `node --experimental-strip-types test/windows-toast-listener.suppression.cli.ts` | Interactive CLI for toast suppression testing |
-
----
-
-## Windows SMTC Helper
-
-**Directory:** `plugins/windows/eisland-windows-smtc-helper` &nbsp;|&nbsp; **Language:** C# (.NET) &nbsp;|&nbsp; **Build:** `dotnet build` / `dotnet publish`
-
-:::info
-This is a pure .NET plugin with two build targets: a console exe (for Node.js) and a NativeAOT DLL (for Python ctypes / FFI).
-:::
-
-### Build
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run build` | `dotnet build src/eIslandSmtcHelper.csproj -c Release` | Build the .NET console exe |
-| `npm run build:ctypes` | `dotnet publish smtc-ctypes/eIslandSmtcCtypes.csproj -c Release -r win-x64` | Build the NativeAOT DLL for ctypes |
-| `npm run build:all` | `npm run build && npm run build:ctypes` | Build both exe and DLL |
-| `npm run clean` | `dotnet clean src/... + dotnet clean smtc-ctypes/...` | Remove all build artifacts |
-| `npm run rebuild` | `npm run clean && npm run build:all` | Full clean build (exe + DLL) |
-
-### Test
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm test` | `vitest run` | All tests — export verification, status shape, all commands |
-| `npm run test:play` | `vitest run test/smtc-helper.play.test.ts` | Play command tests only |
-| `npm run test:pause` | `vitest run test/smtc-helper.pause.test.ts` | Pause command tests only |
-| `npm run test:next` | `vitest run test/smtc-helper.next.test.ts` | Next command tests only |
-| `npm run test:previous` | `vitest run test/smtc-helper.previous.test.ts` | Previous command tests only |
-| `npm run test:timestamp` | `vitest run test/smtc-helper.timestamp.test.ts` | Timestamp (getTimestamp) tests |
-| `npm run test:ctypes` | `python test/smtc_ctypes_test.py` | Python ctypes test (requires `build:ctypes` first) |
-
-### Smoke
-
-| Command | Script | Description |
-|---------|--------|-------------|
-| `npm run smoke` | `node --experimental-strip-types test/smtc-helper.smoke.ts` | Full smoke — all 5 commands + formatted output |
-| `npm run smoke:play` | `node --experimental-strip-types test/smtc-helper.play.smoke.ts` | Play smoke — `getStatus()` → `play()` → `getStatus()` |
-| `npm run smoke:pause` | `node --experimental-strip-types test/smtc-helper.pause.smoke.ts` | Pause smoke — `getStatus()` → `pause()` → `getStatus()` |
-| `npm run smoke:next` | `node --experimental-strip-types test/smtc-helper.next.smoke.ts` | Next smoke — `getStatus()` → `next()` → `getStatus()` |
-| `npm run smoke:previous` | `node --experimental-strip-types test/smtc-helper.previous.smoke.ts` | Previous smoke — `getStatus()` → `previous()` → `getStatus()` |
-| `npm run smoke:status` | `node --experimental-strip-types test/smtc-helper.status.smoke.ts` | Status-only smoke — `getStatus()` with formatted output |
-| `npm run smoke:seek` | `node --experimental-strip-types test/smtc-helper.seek.smoke.ts` | Seek + extended controls — seek, stop, shuffle, repeat, rate |
-| `npm run smoke:monitor` | `node --experimental-strip-types test/smtc-helper.monitor.smoke.ts` | Monitor smoke — event-driven session tracking for 8s |
-| `npm run smoke:timestamp` | `node --experimental-strip-types test/smtc-helper.timestamp.smoke.ts` | Timestamp smoke — lightweight timestamp query, compares with `getStatus()` |
 
 ---
 
@@ -336,9 +288,6 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 |--------|---------|
 | Processes Attacker | `cd plugins/windows/eisland-windows-processes-attacker && npm run build` |
 | Toast Listener | `cd plugins/windows/eisland-windows-toast-listener && npm run build` |
-| SMTC Helper (exe) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build` |
-| SMTC Helper (DLL) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build:ctypes` |
-| SMTC Helper (all) | `cd plugins/windows/eisland-windows-smtc-helper && npm run build:all` |
 | Bluetooth Helper (exe) | `cd plugins/windows/eisland-windows-bluetooth-helper && npm run build` |
 | Bluetooth Helper (DLL) | `cd plugins/windows/eisland-windows-bluetooth-helper && npm run build:ctypes` |
 | Bluetooth Helper (all) | `cd plugins/windows/eisland-windows-bluetooth-helper && npm run build:all` |
@@ -356,7 +305,6 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 |--------|----------|
 | Processes Attacker | _(no tests)_ |
 | Toast Listener | `npm test` · `npm run test:polling` |
-| SMTC Helper | `npm test` · `npm run test:play` · `npm run test:pause` · `npm run test:next` · `npm run test:previous` · `npm run test:timestamp` · `npm run test:ctypes` |
 | Bluetooth Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
 | Power Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
 | WiFi Helper | `npm test` · `npm run test:query` · `npm run test:monitor` |
@@ -367,7 +315,6 @@ This plugin follows the same dual-build pattern as the Bluetooth and Power Helpe
 |--------|----------|
 | Processes Attacker | _(no smoke)_ |
 | Toast Listener | `npm run smoke` · `npm run smoke:polling` · `npm run smoke:event` · `npm run smoke:suppression` |
-| SMTC Helper | `npm run smoke` · `npm run smoke:play` · `npm run smoke:pause` · `npm run smoke:next` · `npm run smoke:previous` · `npm run smoke:status` · `npm run smoke:seek` · `npm run smoke:monitor` · `npm run smoke:timestamp` |
 | Bluetooth Helper | `npm run smoke` · `npm run smoke:monitor` |
 | Power Helper | `npm run smoke` · `npm run smoke:monitor` |
 | WiFi Helper | `npm run smoke` · `npm run smoke:monitor` |

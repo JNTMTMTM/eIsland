@@ -24,40 +24,6 @@ use crate::shared::Result;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
-pub fn native_path(app: &AppHandle, component: &str, file: &str) -> Result<PathBuf> {
-    let rid = match std::env::consts::ARCH {
-        "x86_64" => "win-x64",
-        "aarch64" => "win-arm64",
-        "x86" => "win-x86",
-        arch => return Err(format!("Unsupported native architecture: {arch}")),
-    };
-    let resource = app
-        .path()
-        .resource_dir()
-        .map_err(|e| e.to_string())?
-        .join("native")
-        .join(rid)
-        .join(component)
-        .join(file);
-    if resource.is_file() {
-        return Ok(resource);
-    }
-    #[cfg(debug_assertions)]
-    {
-        let development = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("resources/native")
-            .join(rid)
-            .join(component)
-            .join(file);
-        if development.is_file() {
-            return Ok(development);
-        }
-    }
-    Err(format!(
-        "Native helper missing: {component}/{file}; run npm run plugins:build"
-    ))
-}
-
 /// Resolve bundled media tools; production never falls back to the user's PATH.
 fn media_binary(app: &AppHandle, tool: &str) -> Result<PathBuf> {
     let name = format!("{tool}{}", if cfg!(windows) { ".exe" } else { "" });

@@ -19,7 +19,7 @@
  */
 
 /** @file build-native.mjs
- * @description 将现有 C# 插件发布到 Tauri 资源目录，不修改插件源码。
+ * @description 准备打包所需的视频工具并清理已退役的本地构建产物。
  * @author 鸡哥
  */
 import { spawnSync } from 'node:child_process';
@@ -35,36 +35,18 @@ if (process.platform === 'win32') {
   const rid = { x86_64: 'win-x64', x64: 'win-x64', aarch64: 'win-arm64', arm64: 'win-arm64', x86: 'win-x86', ia32: 'win-x86' }[architecture];
   if (!rid) throw new Error(`Unsupported native architecture: ${architecture}`);
   const nativeResources = resolve(root, 'src-tauri/resources/native');
-  const output = resolve(nativeResources, rid);
-  /** 发布一个插件，失败时中断打包，避免发布缺失的原生功能。
-   * @param name - 插件目录后缀。
-   * @param project - C# 项目文件名。
-   * @param destination - 发布目录。
-   */
-  const publish = (name, project, destination) => {
-    const result = spawnSync('dotnet', ['publish', resolve(root, `plugins/windows/eisland-windows-${name}/src`, project),
-      '-c', 'Release', '-r', rid, '--self-contained', 'true', '-o', destination], { cwd: root, stdio: 'inherit', windowsHide: true });
-    if (result.error) throw result.error;
-    if (result.status !== 0) throw new Error(`Native plugin publish failed: ${name}`);
-  };
   // Tauri bundles the resource tree recursively, including files from older local builds.
-  for (const legacyRid of ['win-x64', 'win-arm64', 'win-x86']) {
-    for (const component of ['volume', 'brightness', 'temperature', 'screenshot']) {
+  ['win-x64', 'win-arm64', 'win-x86'].forEach((legacyRid) => {
+    ['volume', 'brightness', 'temperature', 'screenshot', 'smtc'].forEach((component) => {
       const legacy = resolve(nativeResources, legacyRid, component);
-      if (!existsSync(legacy)) continue;
+      if (!existsSync(legacy)) return;
       const expected = resolve(realpathSync(root), 'src-tauri/resources/native', legacyRid, component);
       if (realpathSync(legacy).toLowerCase() !== expected.toLowerCase()) {
         throw new Error(`Refusing to remove redirected native resource: ${legacy}`);
       }
       rmSync(legacy, { recursive: true });
-    }
-  }
-  const smtc = resolve(output, 'smtc');
-  const staging = resolve(root, 'src-tauri/target/native-publish', rid, 'smtc');
-  publish('smtc-helper', 'eIslandSmtcHelper.csproj', staging);
-  mkdirSync(smtc, { recursive: true });
-  // dotnet publish's output contains the Native AOT library, not the intermediate managed DLL.
-  copyFileSync(resolve(staging, 'eIslandSmtcHelper.dll'), resolve(smtc, 'eIslandSmtcHelper.dll'));
+    });
+  });
   const ffmpeg = resolve(root, 'src-tauri/resources/native/ffmpeg');
   mkdirSync(ffmpeg, { recursive: true });
   const ffmpegBinary = createRequire(import.meta.url)('ffmpeg-static');
