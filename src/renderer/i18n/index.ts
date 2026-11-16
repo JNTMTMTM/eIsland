@@ -31,6 +31,15 @@ import enUS from '../../../i18n/en-US.json';
 import zhTW from '../../../i18n/zh-TW.json';
 import jaJP from '../../../i18n/ja-JP.json';
 
+declare module 'i18next' {
+  interface CustomTypeOptions {
+    /** 保持动态翻译键的回调兼容性，调用方可省略插值参数。 */
+    strictInterpolationChecks: false;
+    /** 保留词条中有意留空的显示文本。 */
+    returnEmptyString: true;
+  }
+}
+
 const I18N_LANGUAGE_STORE_KEY = 'i18n-language';
 const SUPPORTED_LANGUAGES = ['zh-CN', 'en-US', 'zh-TW', 'ja-JP'] as const;
 
@@ -61,6 +70,7 @@ function getStoredLanguage(): AppLanguage | null {
 
 /**
  * 获取当前生效的应用语言。
+ * @returns 归一化后的应用语言代码。
  */
 export function getLanguage(): AppLanguage {
   return normalizeLanguage(i18n.language);
@@ -74,6 +84,7 @@ function getInitialLanguage(): AppLanguage {
 
 /**
  * 设置应用语言并持久化到本地存储。
+ * @param language - 要切换到的应用语言代码。
  */
 export async function setLanguage(language: AppLanguage): Promise<void> {
   const safeLanguage = normalizeLanguage(language);
@@ -109,6 +120,7 @@ i18n
     },
     lng: getInitialLanguage(),
     fallbackLng: 'zh-CN',
+    returnEmptyString: true,
     interpolation: {
       escapeValue: false,
     },
@@ -120,7 +132,8 @@ i18n
 
 window.api?.onSettingsChanged?.((channel: string, value: unknown) => {
   if (channel === 'i18n:language' && typeof value === 'string') {
-    void setLanguage(normalizeLanguage(value));
+    // eslint-disable-next-line promise/prefer-await-to-then -- 设置事件回调同步返回，单独处理语言切换失败。
+    setLanguage(normalizeLanguage(value)).catch(() => {});
   }
 });
 
