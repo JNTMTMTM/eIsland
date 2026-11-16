@@ -46,7 +46,6 @@ export default defineConfig({
       exclude: [
         ...coverageConfigDefaults.exclude,
         '**/test/**',
-        ...(process.platform !== 'darwin' ? ['plugins/macos/**'] : []),
       ],
     },
     projects: [

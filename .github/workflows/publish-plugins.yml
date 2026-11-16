@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - 'plugins/windows/*/package.json'
-      - 'plugins/macos/*/package.json'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -23,7 +22,7 @@ jobs:
     permissions:
       contents: read
     # Keep native addon builds on VS2022 while using node-gyp 11.
-    runs-on: ${{ matrix.runner || 'windows-2022' }}
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -35,10 +34,6 @@ jobs:
           - eisland-windows-toast-listener
           - eisland-windows-volume-analyzer
           - eisland-windows-wifi-helper
-        include:
-          - plugin: eisland-macos-media-helper
-            platform: macos
-            runner: macos-15
 
     steps:
       - name: Checkout
@@ -50,8 +45,8 @@ jobs:
         id: version
         shell: bash
         run: |
-          curr=$(node -p "require('./plugins/${{ matrix.platform || 'windows' }}/${{ matrix.plugin }}/package.json').version")
-          prev=$( (git show HEAD~1:plugins/${{ matrix.platform || 'windows' }}/${{ matrix.plugin }}/package.json 2>/dev/null || git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null) | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
+          curr=$(node -p "require('./plugins/windows/${{ matrix.plugin }}/package.json').version")
+          prev=$( (git show HEAD~1:plugins/windows/${{ matrix.plugin }}/package.json 2>/dev/null || git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null) | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
           echo "current=$curr" >> "$GITHUB_OUTPUT"
           echo "previous=$prev" >> "$GITHUB_OUTPUT"
           if [ "$curr" = "$prev" ]; then
@@ -70,13 +65,13 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Setup .NET SDK
-        if: steps.version.outputs.skip != 'true' && matrix.platform != 'macos'
+        if: steps.version.outputs.skip != 'true'
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install Visual Studio Build Tools
-        if: steps.version.outputs.skip != 'true' && matrix.platform != 'macos'
+        if: steps.version.outputs.skip != 'true'
         shell: pwsh
         run: |
           $installerPath = "${{ runner.temp }}\vs_buildtools.exe"
@@ -84,17 +79,9 @@ jobs:
           Start-Process -FilePath $installerPath -ArgumentList '--quiet', '--norestart', '--nocache', '--add', 'Microsoft.VisualStudio.Workload.VCTools', '--includeRecommended' -Wait
           Remove-Item $installerPath
 
-      - name: Build and test macOS plugin
-        if: steps.version.outputs.skip != 'true' && matrix.platform == 'macos'
-        working-directory: plugins/macos/${{ matrix.plugin }}
-        run: |
-          npm ci
-          npm run build:all
-          npm test
-
       - name: Publish to npm
         if: steps.version.outputs.skip != 'true'
-        working-directory: plugins/${{ matrix.platform || 'windows' }}/${{ matrix.plugin }}
+        working-directory: plugins/windows/${{ matrix.plugin }}
         run: npm publish --access public ${{ inputs.dry_run && '--dry-run' || '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -104,7 +91,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    runs-on: ${{ matrix.runner || 'windows-2022' }}
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -116,10 +103,6 @@ jobs:
           - eisland-windows-toast-listener
           - eisland-windows-volume-analyzer
           - eisland-windows-wifi-helper
-        include:
-          - plugin: eisland-macos-media-helper
-            platform: macos
-            runner: macos-15
 
     steps:
       - name: Checkout
@@ -131,8 +114,8 @@ jobs:
         id: version
         shell: bash
         run: |
-          curr=$(node -p "require('./plugins/${{ matrix.platform || 'windows' }}/${{ matrix.plugin }}/package.json').version")
-          prev=$( (git show HEAD~1:plugins/${{ matrix.platform || 'windows' }}/${{ matrix.plugin }}/package.json 2>/dev/null || git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null) | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
+          curr=$(node -p "require('./plugins/windows/${{ matrix.plugin }}/package.json').version")
+          prev=$( (git show HEAD~1:plugins/windows/${{ matrix.plugin }}/package.json 2>/dev/null || git show HEAD~1:plugins/${{ matrix.plugin }}/package.json 2>/dev/null) | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || echo "0.0.0")
           echo "current=$curr" >> "$GITHUB_OUTPUT"
           echo "previous=$prev" >> "$GITHUB_OUTPUT"
           if [ "$curr" = "$prev" ]; then
@@ -152,13 +135,13 @@ jobs:
           scope: '@jntmtmtm'
 
       - name: Setup .NET SDK
-        if: steps.version.outputs.skip != 'true' && matrix.platform != 'macos'
+        if: steps.version.outputs.skip != 'true'
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install Visual Studio Build Tools
-        if: steps.version.outputs.skip != 'true' && matrix.platform != 'macos'
+        if: steps.version.outputs.skip != 'true'
         shell: pwsh
         run: |
           $installerPath = "${{ runner.temp }}\vs_buildtools.exe"
@@ -166,18 +149,10 @@ jobs:
           Start-Process -FilePath $installerPath -ArgumentList '--quiet', '--norestart', '--nocache', '--add', 'Microsoft.VisualStudio.Workload.VCTools', '--includeRecommended' -Wait
           Remove-Item $installerPath
 
-      - name: Build and test macOS plugin
-        if: steps.version.outputs.skip != 'true' && matrix.platform == 'macos'
-        working-directory: plugins/macos/${{ matrix.plugin }}
-        run: |
-          npm ci
-          npm run build:all
-          npm test
-
       - name: Rewrite scope for GitHub Packages
         if: steps.version.outputs.skip != 'true'
         shell: pwsh
-        working-directory: plugins/${{ matrix.platform || 'windows' }}/${{ matrix.plugin }}
+        working-directory: plugins/windows/${{ matrix.plugin }}
         run: |
           $pkg = Get-Content package.json -Raw | ConvertFrom-Json
           if ($pkg.name.StartsWith('@eisland/')) {
@@ -189,7 +164,7 @@ jobs:
 
       - name: Publish to GitHub Packages
         if: steps.version.outputs.skip != 'true'
-        working-directory: plugins/${{ matrix.platform || 'windows' }}/${{ matrix.plugin }}
+        working-directory: plugins/windows/${{ matrix.plugin }}
         run: npm publish --access public ${{ inputs.dry_run && '--dry-run' || '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

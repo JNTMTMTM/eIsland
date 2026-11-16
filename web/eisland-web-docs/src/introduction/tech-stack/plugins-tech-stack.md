@@ -6,7 +6,7 @@ icon: toolbox
 # Plugins Tech Stack
 
 :::warning
-This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes. The independent [macOS Media Helper](../../api-plugins/media-notifications/macos-media-helper.md) uses Swift + C / Node-API; its current-source backend is not equivalent to Windows SMTC multi-session enumeration.
+This document provides an overview of the native Node.js addon plugins used in the eIsland application. Windows plugins use C/C++ + Node-API or C# .NET with koffi FFI / child processes.
 
 The desktop performance monitor reads CPU, memory, and disk usage in Rust. Windows reads CPU clocks through PowrProf, GPU inventory and usage through DXGI and PDH, and available temperatures through ACPI, WDDM, and storage drivers. macOS uses available system temperature sensors. Unavailable readings remain empty.
 
@@ -15,12 +15,11 @@ The desktop app handles hardware brightness in Rust. Windows uses WMI and DXVA2.
 
 ## Overview
 
-The plugin system includes Windows native helpers and an independent macOS media helper.
+The plugin system includes Windows native helpers.
 
 | Plugin | Package | Purpose |
 |--------|---------|---------|
 | **Processes Attacker** | `@eisland/windows-processes-attacker` | Terminate processes by name or PID |
-| **macOS Media Helper** | `eisland-macos-media-helper` | Current-source metadata, artwork, timeline, events, and asynchronous playback commands |
 | **Bluetooth Helper** | `@eisland/windows-bluetooth-helper` | Bluetooth device enumeration and real-time connection monitoring |
 | **Power Helper** | `@eisland/windows-power-helper` | Battery status and power event monitoring |
 | **WiFi Helper** | `@eisland/windows-wifi-helper` | WiFi connection status and event monitoring |
@@ -33,11 +32,10 @@ The plugin system includes Windows native helpers and an independent macOS media
 | **C + N-API** | Processes Attacker | `node-gyp` | Native `.node` addon loaded by Node.js |
 | **C# NativeAOT + koffi FFI** | Bluetooth, Power, WiFi | `dotnet publish` (NativeAOT) | Self-contained DLL loaded via koffi |
 | **C++ + N-API** | Toast Listener | `node-gyp` | Native `.node` addon loaded by Node.js |
-| **Swift + C / Node-API** | macOS Media Helper | `xcrun clang` + `swiftc` via `scripts/build.mjs` | `.node` + Swift `.dylib` + framework loaded through system Perl |
 
 **Common Characteristics:**
 
-- **Platform**: Windows helpers use `"os": ["win32"]`; macOS helpers use `"os": ["darwin"]` with separate arm64 and x64 prebuilds.
+- **Platform**: Windows helpers use `"os": ["win32"]`.
 - **License**: GPL-3.0
 - **TypeScript**: `.d.ts` type declarations provided
 
