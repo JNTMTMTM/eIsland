@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import { viteBundler } from "@vuepress/bundler-vite";
 import { defineUserConfig } from "vuepress";
 
 import theme from "./theme.js";
@@ -34,6 +35,13 @@ export default defineUserConfig({
   lang: "en-US",
   title: "eIsland developers docs",
   description: "Make eisland greater again",
+
+  bundler: viteBundler({
+    viteOptions: {
+      // 搜索组件从 CSS 文件导入样式，静态渲染时由 Vite 处理。
+      ssr: { noExternal: ["@vuepress/search-helper"] },
+    },
+  }),
 
   theme,
 });
