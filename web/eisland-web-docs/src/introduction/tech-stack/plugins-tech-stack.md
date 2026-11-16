@@ -895,7 +895,7 @@ Plugins power several AI agent tools:
 | Tool | Plugin | Function Used |
 |------|--------|---------------|
 | `win.close` | Processes Attacker | `closeProcess(target)` |
-| `win.list` | Fullscreen Detector | `getFullscreenWindows()` |
+| `win.list` | None (Rust backend, `features/agent/system_tools.rs`) | `system:open-windows:with-icons:get`, with an optional `filter` matched against process name and title |
 
 ## Performance Characteristics
 

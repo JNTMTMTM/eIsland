@@ -101,16 +101,30 @@ fn is_fullscreen(window: HWND, excluded_pid: u32) -> bool {
     }
 }
 
+/// 枚举回调参数：排除的进程 ID 与是否已找到全屏窗口。
+struct Search {
+    excluded_pid: u32,
+    found: bool,
+}
+
 unsafe extern "system" fn visit(window: HWND, parameter: LPARAM) -> i32 {
-    let found = unsafe { &mut *(parameter as *mut bool) };
-    *found = is_fullscreen(window, std::process::id());
-    i32::from(!*found)
+    let search = unsafe { &mut *(parameter as *mut Search) };
+    search.found = is_fullscreen(window, search.excluded_pid);
+    i32::from(!search.found)
 }
 
 /// 任一显示器存在其他进程的可见全屏窗口时返回 true；找到后立即停止枚举。
 pub(crate) fn any() -> Result<bool, String> {
-    let mut found = false;
-    let completed = unsafe { EnumWindows(Some(visit), std::ptr::from_mut(&mut found) as LPARAM) };
+    any_except(std::process::id())
+}
+
+fn any_except(excluded_pid: u32) -> Result<bool, String> {
+    let mut search = Search {
+        excluded_pid,
+        found: false,
+    };
+    let completed = unsafe { EnumWindows(Some(visit), std::ptr::from_mut(&mut search) as LPARAM) };
+    let found = search.found;
     if completed == 0 && !found {
         return Err(format!(
             "EnumWindows failed: {}",

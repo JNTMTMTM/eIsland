@@ -96,7 +96,8 @@ async function ipc(page, channel, ...args) {
 async function captureMode(main, engine) {
   await ipc(main, 'store:write', 'screenshot-engine', engine);
   await assert.rejects(main.evaluate(() => window.__TAURI__.core.invoke('capture_pixels')), /restricted to capture/);
-  const expectedSource = engine === 'js' ? 'compatibility' : 'native';
+  // macOS 不读取截图模式设置，系统支持时始终使用 ScreenCaptureKit。
+  const expectedSource = engine === 'js' && process.platform === 'win32' ? 'compatibility' : 'native';
   const captureLogOffset = stderr.length;
   const primary = await ipc(main, 'system:screenshot');
   assert.equal(typeof primary, 'string');

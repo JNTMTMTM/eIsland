@@ -40,6 +40,10 @@
       "save": "保存",
       "cancel": "キャンセル",
       "done": "完了"
+    },
+    "source": {
+      "native": "ネイティブモード",
+      "compatibility": "互換モード"
     }
   },
   "guide": {

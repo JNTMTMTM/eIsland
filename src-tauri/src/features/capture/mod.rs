@@ -121,12 +121,15 @@ pub async fn primary(app: &AppHandle) -> Result<Value> {
     result
 }
 
-/// 启动一次选区截图。在恢复主窗口前忽略重复触发。
+/// 启动一次选区截图。进行中的重复触发会被忽略；旧选区窗口正在销毁时，请求在恢复后重新执行。
 pub async fn start(app: &AppHandle) -> Result<()> {
     {
         let state = app.state::<Desktop>();
         let mut s = state.inner.lock().unwrap();
         if s.capture_active {
+            if s.capture_closing {
+                s.capture_restart = true;
+            }
             return Ok(());
         }
         s.capture_active = true;
@@ -197,8 +200,13 @@ fn capture_displays(all: bool) -> Result<Frame> {
             })
             .collect::<std::result::Result<_, _>>()
             .map_err(|e| e.to_string())?;
-        if let Some(images) = capture(displays)? {
-            return frame_from_displays(screens, images, all, "native");
+        match capture(displays) {
+            Ok(Some(images)) => return frame_from_displays(screens, images, all, "native"),
+            Ok(None) => {}
+            // 系统接口超时或单屏失败时仍尝试兼容后端；权限缺失时兼容后端也会返回错误。
+            Err(error) => {
+                eprintln!("[Capture] ScreenCaptureKit failed: {error}; using compatibility capture")
+            }
         }
     }
 
@@ -426,6 +434,7 @@ pub(crate) fn show(window: &tauri::WebviewWindow) -> Result<()> {
 pub fn close(app: &AppHandle) -> Result<()> {
     if let Some(window) = app.get_webview_window("capture") {
         // Destroyed 事件负责恢复主窗口并释放本次截图状态。
+        app.state::<Desktop>().inner.lock().unwrap().capture_closing = true;
         return window.destroy().map_err(|e| e.to_string());
     }
     windows::restore_after_capture(app)

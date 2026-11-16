@@ -18,7 +18,7 @@
  * GNU General Public License for more details.
  */
 
-//! Windows clocks, ACPI zones, WDDM adapter temperatures, and storage sensors.
+//! Windows 时钟频率、ACPI 温区、WDDM 显卡温度与存储传感器。
 
 use super::{temperature, thermal_zone_category, valid_temperature, Temperature};
 use crate::infrastructure::platform::wmi::{instances, property, with_service};
@@ -162,7 +162,7 @@ fn gpu_temperature(luid: LUID) -> Option<f64> {
     if unsafe { D3DKMTQueryAdapterInfo(&mut query) } != 0 {
         return None;
     }
-    // WDDM reports the primary sensor in tenths of a degree Celsius.
+    // WDDM 的 Temperature 字段单位为 0.1 摄氏度（d3dkmthk.h：deci-Celsius）。
     valid_temperature(f64::from(result.Temperature) / 10.)
 }
 
@@ -179,7 +179,7 @@ pub(crate) fn gpu_temperatures() -> BTreeMap<String, f64> {
 }
 
 fn disk_interfaces() -> Vec<u16> {
-    // A hotplug between the size query and fetch can invalidate the buffer length.
+    // 查询大小与读取数据之间若发生热插拔，缓冲区长度可能失效。
     for _ in 0..3 {
         let mut size = 0;
         let status = unsafe {
@@ -213,7 +213,7 @@ fn disk_interfaces() -> Vec<u16> {
 }
 
 fn disk_temperatures(path: &[u16], disk: usize) -> Vec<Temperature> {
-    // Both queries are read-only and can be issued without requesting write access.
+    // 两次查询均为只读，无需申请写权限。
     let handle = unsafe {
         CreateFileW(
             path.as_ptr(),

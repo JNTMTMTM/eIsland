@@ -40,6 +40,10 @@
       "save": "Save",
       "cancel": "Cancel",
       "done": "Done"
+    },
+    "source": {
+      "native": "Native mode",
+      "compatibility": "Compatibility mode"
     }
   },
   "guide": {

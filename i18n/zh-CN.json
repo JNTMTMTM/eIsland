@@ -40,6 +40,10 @@
       "save": "保存",
       "cancel": "取消",
       "done": "完成"
+    },
+    "source": {
+      "native": "原生模式",
+      "compatibility": "兼容模式"
     }
   },
   "guide": {

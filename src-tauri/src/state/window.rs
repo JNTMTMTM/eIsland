@@ -48,6 +48,10 @@ pub struct WindowState {
     pub capture_pixels: Option<Vec<u8>>,
     pub capture_renderer_ready: bool,
     pub capture_active: bool,
+    /// 选区窗口已请求销毁，等待 Destroyed 事件恢复状态。
+    pub capture_closing: bool,
+    /// 销毁期间收到新的截图请求，恢复后需重新启动截图。
+    pub capture_restart: bool,
     pub closing_effects: std::collections::HashMap<String, u64>,
     pub effect_generation: u64,
 }

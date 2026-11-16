@@ -18,7 +18,7 @@
  * GNU General Public License for more details.
  */
 
-//! Hardware telemetry from the operating system and its installed device drivers.
+//! 从操作系统及已安装的设备驱动读取硬件遥测数据。
 
 #[cfg(windows)]
 mod windows;
@@ -53,7 +53,7 @@ fn thermal_zone_category(label: &str) -> &'static str {
     if label.to_ascii_lowercase().contains("cpu") {
         "cpu"
     } else {
-        // Firmware often supplies identifiers such as TZ00. These don't identify a CPU sensor.
+        // 固件常提供 TZ00 之类的标识，无法据此判断为 CPU 传感器。
         "system"
     }
 }

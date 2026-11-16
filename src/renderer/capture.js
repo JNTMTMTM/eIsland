@@ -26,7 +26,10 @@
 /* eslint no-use-before-define: ["error", { "functions": false }] -- 绘图函数声明会提升，事件回调按交互顺序组织。 */
 /* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsFor": ["el", "cv", "ctx"] }] -- Canvas 绘图和 DOM 布局必须修改传入的原生对象。 */
 import { desktop } from '../tauri/runtime';
-import captureSourceLabels from './capture-source-labels.json';
+import zhCN from '../../i18n/zh-CN.json';
+import zhTW from '../../i18n/zh-TW.json';
+import enUS from '../../i18n/en-US.json';
+import jaJP from '../../i18n/ja-JP.json';
 
 const bgCanvas = document.getElementById('bg-canvas');
 const drawCanvas = document.getElementById('draw-canvas');
@@ -103,6 +106,14 @@ let translationCache = null;
 let displayedImageVersion = 'original';
 
 let captureSourceLanguage = 'zh-CN';
+
+/** 截图后端标签取自根目录语言包，与应用其他界面共用同一翻译来源。 */
+const captureSourceLabels = {
+  'zh-CN': zhCN.capture.source,
+  'zh-TW': zhTW.capture.source,
+  'en-US': enUS.capture.source,
+  'ja-JP': jaJP.capture.source,
+};
 
 const CAPTURE_I18N = {
   'zh-CN': {

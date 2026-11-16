@@ -60,6 +60,12 @@ fn detects_untitled_fullscreen_and_filters_non_application_windows() {
         assert!(!is_fullscreen(window.0, 0), "hidden window");
         ShowWindow(window.0, SW_SHOWNOACTIVATE);
         assert!(is_fullscreen(window.0, 0), "untitled borderless fullscreen");
+        // 不排除本进程时，真实枚举必须找到测试窗口。
+        assert_eq!(
+            any_except(0),
+            Ok(true),
+            "enumeration finds fullscreen window"
+        );
         assert!(!is_fullscreen(window.0, std::process::id()), "own process");
         SetWindowLongPtrW(
             window.0,
