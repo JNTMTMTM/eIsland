@@ -117,7 +117,7 @@
     "@playwright/test": "^1.65.1",
     "@tauri-apps/cli": "^2.12.4",
     "@types/dompurify": "^3.2.0",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/react-katex": "^3.0.4",
