@@ -159,6 +159,19 @@ describe('useIslandHoverInteraction 真实轮询和状态交互', () => {
     expect(input.setLyricsTranslation).not.toHaveBeenCalled();
     expect(input.setIdle).toHaveBeenCalledTimes(1 - lyricsCalls);
   });
+  it.each([
+    ['lyrics', null, 'lyrics'], ['lyricsTranslation', 'Translated', 'lyricsTranslation'], ['idle', null, 'idle'],
+  ] as const)('暂停后从 %s 进入 hover，离开时回到原状态', async (from, translated, target) => {
+    const input = options('hover'); input.isHoveringRef.current = true; outside();
+    useIslandStore.setState({ state: 'idle', isPlaying: false, syncedLyrics: [{ time_ms: 0, text: 'Original' }],
+      translationLyrics: translated ? { status: 'available', lines: [{ time_ms: 0, text: translated }] } : null });
+    renderWithHooks(() => useIslandHoverInteraction(input)); runEffects();
+    useIslandStore.setState({ state: from }); useIslandStore.setState({ state: 'hover' });
+    await settle(); await vi.advanceTimersByTimeAsync(1);
+    expect(input.setLyrics).toHaveBeenCalledTimes(target === 'lyrics' ? 1 : 0);
+    expect(input.setLyricsTranslation).toHaveBeenCalledTimes(target === 'lyricsTranslation' ? 1 : 0);
+    expect(input.setIdle).toHaveBeenCalledTimes(target === 'idle' ? 1 : 0);
+  });
   it('歌词开启但未获取到歌词时离开 hover，以前奏样式进入歌词状态且不进入翻译', async () => {
     const input = options('hover'); input.isHoveringRef.current = true; outside();
     useIslandStore.setState({ isPlaying: true, syncedLyrics: null, lyricsLoading: false, mediaInfo: { title: 'Song', artist: '', album: '', duration_ms: 0 },
