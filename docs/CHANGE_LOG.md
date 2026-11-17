@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-17T20:54:43.183Z
+> 生成时间：2026-11-17T21:00:04.275Z
 
 ## 27.0.2
 
@@ -4344,9 +4344,16 @@
 
 ## Unreleased
 
+- 2026-11-17 | fb6446f8 | JNTMTMTM | Merge pull request #342 from JNTMTMTM/dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.138
+- 2026-11-17 | 53b3ad7a | 鸡哥 | fix(docs): retain compatible dependencies after Dependabot refresh
+- 2026-11-17 | a89dd955 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
+- 2026-11-17 | 52d49787 | 鸡哥 | fix(docs): keep Git plugin compatible with VuePress rc.31
+- 2026-11-17 | 17e6d046 | 鸡哥 | Merge remote-tracking branch 'origin/main' into dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.138
+- 2026-11-17 | f90eb967 | eislandBot | docs: auto update CHANGE_LOG.md for #339 by @dependabot[bot] [skip ci]
 - 2026-11-17 | b80ab55a | JNTMTMTM | Merge pull request #341 from JNTMTMTM/dependabot/npm_and_yarn/stylistic/eslint-plugin-6.0.0
 - 2026-11-17 | b557b703 | JNTMTMTM | Merge pull request #340 from JNTMTMTM/dependabot/npm_and_yarn/types/node-26.6.6
 - 2026-11-17 | 30fa30e1 | JNTMTMTM | Merge pull request #339 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b5cb062748
+- 2026-11-17 | ad725a72 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
 - 2026-11-17 | c797edf7 | dependabot[bot] | chore(deps): bump @stylistic/eslint-plugin from 5.10.0 to 6.0.0
 - 2026-11-17 | 09d62471 | dependabot[bot] | chore(deps): bump @types/node from 24.19.2 to 26.6.6
 - 2026-11-17 | f0061451 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 1 directory with 4 updates
