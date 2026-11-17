@@ -1,6 +1,6 @@
 {
   "name": "eisland-migration-adapter",
-  "version": "27.0.2",
+  "version": "27.0.3",
   "private": true,
   "description": "eIsland Electron to Tauri migration adapter",
   "author": "JNTMTMTM",
