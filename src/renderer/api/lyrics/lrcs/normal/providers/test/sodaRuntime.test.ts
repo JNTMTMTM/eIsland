@@ -78,7 +78,7 @@ describe('SodaMusic real normal provider boundaries', () => {
   it('returns the instrumental notice as a definitive result for instrumental tracks', async () => {
     qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: true });
     const result = await fetchLyricsWithTranslationFromSodaMusic('Song', 'Artist');
-    expect(result?.lyrics).toEqual([{ time_ms: 0, text: '纯音乐，请欣赏' }]);
+    expect(result?.lyrics).toEqual([{ time_ms: 0, text: '纯音乐，请欣赏', instrumental: true }]);
     expect(result?.translation.status).toBe('not-provided');
   });
   it('uses unknown authorization when valid lyrics omit auth', async () => {

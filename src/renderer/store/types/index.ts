@@ -79,6 +79,8 @@ export interface SyncedLyricLine {
   duration_ms?: number;
   /** 逐字音节数组, 存在且非空则启用逐字扫光渲染 */
   syllables?: SyncedLyricSyllable[];
+  /** 纯音乐提示行，不是真实歌词 */
+  instrumental?: boolean;
 }
 
 /** 媒体信息数据类型 */
@@ -354,6 +356,8 @@ export interface BindEmailContext {
 export interface IslandSlice {
   state: IslandState;
   authReturnState: IslandState | null;
+  /** 进入当前 hover 前是否停留在歌词或翻译歌词页；暂停后离开 hover 时据此回到原状态 */
+  hoverReturnLyrics: boolean;
   uiStateLocked: boolean;
   hoverTab: HoverTab;
   expandTab: ExpandTab;

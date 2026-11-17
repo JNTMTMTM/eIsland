@@ -56,6 +56,9 @@ const query = vi.fn<(selector: string) => EventTarget | null>();
 const idle = vi.fn();
 const hover = vi.fn();
 const expanded = vi.fn();
+const lyrics = vi.fn();
+const translation = vi.fn();
+const leaveTarget = vi.fn<() => 'idle' | 'lyrics' | 'lyricsTranslation'>();
 /** 提交真实键盘监听。
  * @param state - 当前状态
  */
@@ -64,7 +67,10 @@ function mount(state: IslandState = 'maxExpand'): void {
     state,
     setIdle: idle,
     setHover: hover,
-    setExpanded: expanded
+    setExpanded: expanded,
+    setLyrics: lyrics,
+    setLyricsTranslation: translation,
+    resolveLeaveTarget: leaveTarget
   });
   flushHookEffects();
 }
@@ -129,6 +135,14 @@ describe('useIslandEscapeNavigation runtime', () => {
     expect(expanded).toHaveBeenCalledTimes(state === 'maxExpand' ? 1 : 0);
     expect(hover).toHaveBeenCalledTimes(state === 'expanded' || state === 'questionnaire' ? 1 : 0);
     expect(idle).toHaveBeenCalledTimes(state === 'hover' ? 1 : 0);
+  });
+  it.each(['idle', 'lyrics', 'lyricsTranslation'] as const)('hover returns to the shared leave target %s', (target) => {
+    leaveTarget.mockReturnValue(target);
+    mount('hover');
+    expect(emit().defaultPrevented).toBe(true);
+    expect(idle).toHaveBeenCalledTimes(target === 'idle' ? 1 : 0);
+    expect(lyrics).toHaveBeenCalledTimes(target === 'lyrics' ? 1 : 0);
+    expect(translation).toHaveBeenCalledTimes(target === 'lyricsTranslation' ? 1 : 0);
   });
   it('idle has no parent and leaves native event untouched', () => {
     mount('idle');

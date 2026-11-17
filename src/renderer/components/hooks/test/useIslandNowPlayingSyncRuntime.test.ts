@@ -23,6 +23,7 @@
  * @description 音乐同步逐字歌词回退、播放时钟校准、状态版本、启动拉取当前会话和原生监听清理边界测试。
  * @author 鸡哥
  */
+import i18n from 'i18next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from 'zustand/vanilla';
 import { useLyricsDisplayStore } from '../../../store/lyricsDisplayStore';
@@ -852,6 +853,32 @@ describe('useIslandNowPlayingSync runtime', () => {
     await vi.advanceTimersByTimeAsync(2000);
     expect(timestamp).not.toHaveBeenCalled();
     expect(calibrationLogs().filter(([message]) => String(message).includes('status=scheduled '))).toEqual([]);
+  });
+  it.each(['normal', 'karaoke'] as const)('skips calibration for the %s instrumental notice and retranslates it on language change', async (source) => {
+    await i18n.init({ lng: 'zh-CN', resources: {
+      'zh-CN': { translation: { songTab: { lyrics: { instrumental: '纯音乐，请欣赏' } } } },
+      'en-US': { translation: { songTab: { lyrics: { instrumental: 'Instrumental' } } } },
+    } });
+    if (source === 'karaoke') {
+      karaokeEnabled.mockResolvedValue(true);
+      leaves.karaoke.mockResolvedValue([{ time_ms: 0, duration_ms: 0, text: '纯音乐，请欣赏', syllables: [], instrumental: true }]);
+    } else {
+      leaves.normal.mockResolvedValue({ lyrics: [{ time_ms: 0, text: '纯音乐，请欣赏', instrumental: true }], translation: { status: 'not-provided', lines: null } });
+    }
+    mount();
+    await emit(song());
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('[LyricsCalibrate] status=skipped '),
+      expect.objectContaining({ reason: 'instrumental' }),
+    );
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(timestamp).not.toHaveBeenCalled();
+    await i18n.changeLanguage('en-US');
+    expect(options.setSyncedLyrics).toHaveBeenLastCalledWith([expect.objectContaining({ text: 'Instrumental', instrumental: true })]);
+    unmountHook();
+    options.setSyncedLyrics.mockClear();
+    await i18n.changeLanguage('zh-CN');
+    expect(options.setSyncedLyrics).not.toHaveBeenCalled();
   });
   it('does not emit a late failure after the hook is disposed', async () => {
     const pending = deferred<Awaited<ReturnType<typeof timestamp>>>();

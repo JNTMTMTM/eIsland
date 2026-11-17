@@ -26,12 +26,12 @@
  * @docs https://github.com/cXp1r/lyricify-lyrics-provider-rs
  */
 
-import i18n from 'i18next';
 import type { LyricsFetchResult, LyricLine } from '../types';
 import { parseKrc } from '../helpers';
 import { missingTranslationLyrics, parseTranslationLyrics } from '../translation';
 import { logger } from '../../../../../utils/logger';
 import { searchWithScoring } from '../matcher';
+import { instrumentalLyricText } from '../../instrumental';
 import type { SearchCandidate } from '../searchTypes';
 import type { QishuiSong } from '../../../../../../shared/qishuiBusiness';
 
@@ -63,7 +63,7 @@ async function fetchLyricsByTrackId(trackId: string): Promise<LyricsFetchResult 
   // 纯音乐返回提示行作为确定结果，避免继续向其他歌词源回退。
   if (!content && detailJson?.instrumental) {
     logger.info(`${LOG_TAG} 纯音乐, trackId=${trackId}, auth=${auth}`);
-    return { lyrics: [{ time_ms: 0, text: i18n.t('songTab.lyrics.instrumental', { defaultValue: '纯音乐，请欣赏' }) }], translation: missingTranslationLyrics() };
+    return { lyrics: [{ time_ms: 0, text: instrumentalLyricText(), instrumental: true }], translation: missingTranslationLyrics() };
   }
   if (!content) {
     logger.warn(`${LOG_TAG} 歌词内容为空, trackId=${trackId}, auth=${auth}`);

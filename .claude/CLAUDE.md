@@ -105,13 +105,6 @@ Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` s
 
 **All frontend code must comply with [`docs/FRONTEND_STANDARDS.md`](docs/FRONTEND_STANDARDS.md). No exceptions.**
 
-## 9. Plugin Version Bump (Plugin Change Gate)
-
-**Any change to a plugin's source code requires a version bump in its `package.json`.**
-
-- After modifying files under `plugins/<platform>/<name>/`, check if `plugins/<platform>/<name>/package.json` version was incremented.
-- Follow semver: patch for bug fixes, minor for new features, major for breaking changes.
-
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

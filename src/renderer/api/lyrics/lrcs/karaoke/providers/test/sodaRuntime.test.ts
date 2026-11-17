@@ -78,7 +78,7 @@ describe('SodaMusic real karaoke provider boundaries', () => {
   it('returns a syllable-free instrumental notice for instrumental tracks', async () => {
     qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: true });
     const result = await fetchKaraokeFromSodaMusic('Song', 'Artist');
-    expect(result).toEqual([{ time_ms: 0, duration_ms: 0, text: '纯音乐，请欣赏', syllables: [] }]);
+    expect(result).toEqual([{ time_ms: 0, duration_ms: 0, text: '纯音乐，请欣赏', syllables: [], instrumental: true }]);
   });
   it('uses unknown authorization when valid lyrics omit auth', async () => {
     qishuiLyrics.mockResolvedValue({ lyric: '[1000,500]<0,500,0>Hello' });

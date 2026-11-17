@@ -168,7 +168,7 @@ describe('real provider source selection', () => {
   it('stops at the Qishui instrumental notice without requesting other providers', async () => {
     qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: true });
     const result = await fetchLyricsWithTranslation('Song', 'Artist', '汽水音乐');
-    expect(result?.lyrics).toEqual([{ time_ms: 0, text: '纯音乐，请欣赏' }]);
+    expect(result?.lyrics).toEqual([{ time_ms: 0, text: '纯音乐，请欣赏', instrumental: true }]);
     expect(netFetch).not.toHaveBeenCalled();
   });
 
@@ -208,7 +208,7 @@ describe('karaoke real source detection fallback', () => {
   it('stops at the Qishui instrumental notice without requesting other karaoke providers', async () => {
     qishuiLyrics.mockResolvedValue({ auth: 'seo_track', lyric: '', tlyric: '', instrumental: true });
     const result = await fetchKaraokeLyrics('Song', 'Artist', '汽水音乐');
-    expect(result).toEqual([{ time_ms: 0, duration_ms: 0, text: '纯音乐，请欣赏', syllables: [] }]);
+    expect(result).toEqual([{ time_ms: 0, duration_ms: 0, text: '纯音乐，请欣赏', syllables: [], instrumental: true }]);
     expect(netFetch).not.toHaveBeenCalled();
   });
 });

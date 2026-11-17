@@ -41,7 +41,7 @@ beforeEach(() => {
   vi.useFakeTimers(); resetBrowser(); query.mockReturnValue(null); mouse.mockImplementation(() => Promise.resolve({ mousePosition: { x: 20, y: 20 }, bounds: { x: 0, y: 0, width: 100, height: 100 } }));
   vi.stubGlobal('document', { querySelector: query });
   vi.stubGlobal('window', Object.assign(browser, { api: { ...browser.api, getMouseWindowState: mouse } }));
-  useIslandStore.setState({ uiStateLocked: false, isPlaying: false, syncedLyrics: null, translationLyrics: null, lyricsLoading: false, currentPositionMs: 0,
+  useIslandStore.setState({ uiStateLocked: false, isPlaying: false, isMusicPlaying: false, hoverReturnLyrics: false, syncedLyrics: null, translationLyrics: null, lyricsLoading: false, currentPositionMs: 0,
     timerData: { ...useIslandStore.getState().timerData, state: 'idle' } });
   useLyricsDisplayStore.setState({ lyricsEnabled: true });
 });
@@ -160,14 +160,13 @@ describe('useIslandHoverInteraction 真实轮询和状态交互', () => {
     expect(input.setIdle).toHaveBeenCalledTimes(1 - lyricsCalls);
   });
   it.each([
-    ['lyrics', null, 'lyrics'], ['lyricsTranslation', 'Translated', 'lyricsTranslation'], ['idle', null, 'idle'],
-  ] as const)('暂停后从 %s 进入 hover，离开时回到原状态', async (from, translated, target) => {
-    const input = options('hover'); input.isHoveringRef.current = true; outside();
-    useIslandStore.setState({ state: 'idle', isPlaying: false, syncedLyrics: [{ time_ms: 0, text: 'Original' }],
+    ['lyrics', 'hover', true, null, 'lyrics'], ['lyricsTranslation', 'hover', true, 'Translated', 'lyricsTranslation'], ['idle', 'hover', true, null, 'idle'],
+    ['lyrics（会话已结束）', 'hover', false, null, 'idle'], ['lyrics（经展开页离开）', 'expanded', true, null, 'idle'],
+  ] as const)('暂停后从 %s 进入 hover，离开时回到原状态', async (from, leaving, session, translated, target) => {
+    const input = options(leaving); input.isHoveringRef.current = true; input.expandLeaveIdleRef.current = true; outside();
+    useIslandStore.setState({ isPlaying: false, isMusicPlaying: session, hoverReturnLyrics: from !== 'idle', syncedLyrics: [{ time_ms: 0, text: 'Original' }],
       translationLyrics: translated ? { status: 'available', lines: [{ time_ms: 0, text: translated }] } : null });
-    renderWithHooks(() => useIslandHoverInteraction(input)); runEffects();
-    useIslandStore.setState({ state: from }); useIslandStore.setState({ state: 'hover' });
-    await settle(); await vi.advanceTimersByTimeAsync(1);
+    await mount(input);
     expect(input.setLyrics).toHaveBeenCalledTimes(target === 'lyrics' ? 1 : 0);
     expect(input.setLyricsTranslation).toHaveBeenCalledTimes(target === 'lyricsTranslation' ? 1 : 0);
     expect(input.setIdle).toHaveBeenCalledTimes(target === 'idle' ? 1 : 0);

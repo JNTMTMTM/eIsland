@@ -24,12 +24,11 @@
  * @author 鸡哥
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import useIslandStore from '../../store/isLandStore';
-import { isSongTitleMode } from '../../store/lyricsDisplayStore';
 import type { IslandState } from './useDynamicIslandShell';
 import { STATE_CONFIGS, isMouseInWindow } from '../config/dynamicIslandConfig';
-import { isCurrentLyricIdenticalToTranslation } from '../states/lyrics/utils/isCurrentLyricIdenticalToTranslation';
+import { resolveHoverLeaveTarget } from './hoverLeaveTarget';
 
 /** 不自动离开悬停状态的面板状态集合 */
 const AUTH_STATES = new Set(['login', 'register', 'resetPassword', 'setPassword', 'bindOAuth', 'bindEmail', 'payment', 'questionnaire', 'musicProvidersLogin', 'fileTransfer']);
@@ -73,14 +72,6 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
   } = options;
 
   /** pill 模式下始终 click-to-hover，读取 ref 保持运行时最新 */
-
-  /** 进入 hover 前停留的常驻状态是否为歌词页；暂停后离开 hover 时据此回到原状态而不是 idle */
-  const restingOnLyricsRef = useRef(false);
-  useEffect(() => useIslandStore.subscribe((next, prev) => {
-    if (next.state === prev.state) return;
-    if (next.state === 'idle') restingOnLyricsRef.current = false;
-    else if (next.state === 'lyrics' || next.state === 'lyricsTranslation') restingOnLyricsRef.current = true;
-  }), []);
 
   const clearAllTimers = useCallback(() => {
     if (enterTimerRef.current !== null) {
@@ -208,27 +199,10 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
               if (aborted || !isHoveringRef.current) return;
 
               isHoveringRef.current = false;
-              const store = useIslandStore.getState();
-              // 只显示歌名或未获取到歌词时以前奏样式展示歌名；有歌词（或加载中）时才考虑翻译歌词。
-              const hasLyricLine = !isSongTitleMode() && ((store.syncedLyrics?.length ?? 0) > 0 || store.lyricsLoading);
-              // 暂停时只有从歌词页进入 hover 才回到歌词页，从 idle 进入仍回到 idle。
-              const resumeLyrics = store.isPlaying || restingOnLyricsRef.current;
-              if (resumeLyrics && store.timerData.state === 'idle' && (hasLyricLine || Boolean(store.mediaInfo.title))) {
-                const hasTranslation = hasLyricLine && store.translationLyrics?.status === 'available'
-                  && Boolean(store.translationLyrics.lines && store.translationLyrics.lines.length > 0);
-                if (hasTranslation) {
-                  /** 原文与翻译完全一致时回退到普通歌词 */
-                  if (isCurrentLyricIdenticalToTranslation(store.syncedLyrics, store.translationLyrics, store.currentPositionMs)) {
-                    setLyrics();
-                  } else {
-                    setLyricsTranslation();
-                  }
-                } else {
-                  setLyrics();
-                }
-              } else {
-                setIdle(true);
-              }
+              const target = resolveHoverLeaveTarget(useIslandStore.getState(), state === 'hover');
+              if (target === 'lyrics') setLyrics();
+              else if (target === 'lyricsTranslation') setLyricsTranslation();
+              else setIdle(true);
             });
           }
         }
