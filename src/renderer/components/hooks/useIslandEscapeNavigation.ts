@@ -26,12 +26,17 @@
 
 import { useEffect } from 'react';
 import type { IslandState } from './useDynamicIslandShell';
+import type { HoverLeaveTarget } from './hoverLeaveTarget';
 
 interface UseIslandEscapeNavigationOptions {
   state: IslandState;
   setIdle: (force?: boolean) => void;
   setHover: () => void;
   setExpanded: () => void;
+  setLyrics: () => void;
+  setLyricsTranslation: () => void;
+  /** 从 hover 返回时的目标状态判定，与鼠标移出共用 */
+  resolveLeaveTarget: () => HoverLeaveTarget;
 }
 
 /**
@@ -68,6 +73,9 @@ export function useIslandEscapeNavigation(options: UseIslandEscapeNavigationOpti
     setIdle,
     setHover,
     setExpanded,
+    setLyrics,
+    setLyricsTranslation,
+    resolveLeaveTarget,
   } = options;
 
   useEffect(() => {
@@ -89,10 +97,14 @@ export function useIslandEscapeNavigation(options: UseIslandEscapeNavigationOpti
         return;
       }
 
-      setIdle();
+      // 与鼠标移出共用判定：暂停前停留在歌词页时回到原歌词状态。
+      const leaveTarget = resolveLeaveTarget();
+      if (leaveTarget === 'lyrics') setLyrics();
+      else if (leaveTarget === 'lyricsTranslation') setLyricsTranslation();
+      else setIdle();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [state, setExpanded, setHover, setIdle]);
+  }, [state, setExpanded, setHover, setIdle, setLyrics, setLyricsTranslation, resolveLeaveTarget]);
 }

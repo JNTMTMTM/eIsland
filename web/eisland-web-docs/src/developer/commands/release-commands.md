@@ -9,7 +9,7 @@ The three existing operations remain unchanged:
 
 | Command | Local build | Remote publication |
 | --- | --- | --- |
-| `npm run package` | Native plugins/resources, NSIS, official updater signature, verified hybrid JSON | None |
+| `npm run package` | Bundled media binaries, NSIS, official updater signature, verified hybrid JSON | None |
 | `npm run release:upload-only` | None; verifies an existing signed installer with its matching application | COS/OSS, optional R2/MinIO/GitHub, then ESA cache refresh |
 | `npm run release` | Runs package, then upload-only | Same publication behavior as upload-only |
 

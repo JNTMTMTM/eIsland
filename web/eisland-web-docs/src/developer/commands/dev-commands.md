@@ -9,7 +9,7 @@ Run application commands from the **repository root**, where the application `pa
 
 ## First setup
 
-Windows x64 requires Node.js 24.22.1, Rust with the MSVC toolchain, Visual Studio 2022 C++ build tools, .NET 10 SDK and WebView2.
+Windows x64 requires Node.js 24.22.1, Rust with the MSVC toolchain, Visual Studio 2022 C++ build tools, and WebView2.
 
 ```powershell
 npm ci --ignore-scripts
@@ -17,7 +17,7 @@ npm ci --prefix cli --ignore-scripts
 npm run plugins:build
 ```
 
-`plugins:build` publishes the volume, brightness, SMTC and temperature components and stages native FFmpeg in `src-tauri/resources/native/`. Missing FFmpeg is downloaded automatically; first setup requires network access. Repeat preparation after changing plugin sources or target architecture. Development and direct Tauri builds consume these resources.
+`plugins:build` prepares FFmpeg and ffprobe in `src-tauri/resources/native/` for the target architecture. First setup downloads missing binaries. Development and direct Tauri builds consume these resources.
 
 ## Start the desktop application
 
@@ -62,5 +62,5 @@ The desktop tests use isolated data directories. Set `EISLAND_SMOKE_BINARY` when
 
 - If port 1420 is occupied, inspect `netstat -ano | findstr :1420` and stop the development process that owns it before restarting.
 - If native resources are missing, run `npm run plugins:build`; its first run may download FFmpeg.
-- If Cargo cannot link, check the MSVC toolchain and the Visual Studio C++ workload. A renderer-only build does not validate the Rust executable or native plugins.
+- If Cargo cannot link, check the MSVC toolchain and the Visual Studio C++ workload. A renderer-only build does not validate the Rust executable or bundled media binaries.
 - `CARGO_TARGET_DIR` can relocate Cargo output. Update `EISLAND_SMOKE_BINARY` to the resulting executable path when running desktop tests.

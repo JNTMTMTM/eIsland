@@ -19,18 +19,26 @@
  */
 
 /**
- * @file vitest.config.mts
- * @description Vitest test configuration
+ * @file instrumental.ts
+ * @description 纯音乐提示行：常规与逐字歌词源共用的文本、标记与识别。
  * @author 鸡哥
  */
 
-import { defineConfig } from 'vitest/config';
+import i18n from 'i18next';
 
-export default defineConfig({
-  test: {
-    environment: 'node',
-    include: ['test/**/*.test.ts'],
-    clearMocks: true,
-    restoreMocks: true,
-  },
-});
+/**
+ * 获取当前界面语言的纯音乐提示文本
+ * @returns 本地化提示文本
+ */
+export function instrumentalLyricText(): string {
+  return i18n.t('songTab.lyrics.instrumental', { defaultValue: '纯音乐，请欣赏' });
+}
+
+/**
+ * 判断歌词是否为纯音乐提示行；该行不是真实歌词，不参与校准，切换语言时需重新翻译
+ * @param lines - 歌词行
+ * @returns 仅包含一条纯音乐提示行时返回 true
+ */
+export function isInstrumentalLyrics(lines: ReadonlyArray<{ instrumental?: boolean }> | null | undefined): boolean {
+  return lines?.length === 1 && lines[0].instrumental === true;
+}

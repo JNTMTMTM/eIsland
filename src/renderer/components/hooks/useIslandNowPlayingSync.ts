@@ -24,6 +24,7 @@
  * @author 鸡哥
  */
 
+import i18n from 'i18next';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { NowPlayingInfo } from '../../store/isLandStore';
 import type { SyncedLyricLine } from '../../store/types';
@@ -32,6 +33,7 @@ import { fetchLyricsWithTranslation } from '../../api/lyrics/lrcApi';
 import { fetchKaraokeLyrics } from '../../api/lyrics/lrcs/karaoke';
 import { resolveLyricsEnabled, useLyricsDisplayStore } from '../../store/lyricsDisplayStore';
 import type { KaraokeLine } from '../../api/lyrics/lrcs/karaoke';
+import { instrumentalLyricText, isInstrumentalLyrics } from '../../api/lyrics/lrcs/instrumental';
 
 interface UseIslandNowPlayingSyncOptions {
   progressEnabled?: boolean;
@@ -151,6 +153,8 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
     let calibrationEnabled = true;
     let calibrationDelayMs = 20000;
     let hasLyrics = false;
+    /** 当前显示的纯音乐提示行；切换界面语言时据此重新翻译 */
+    let instrumentalLyrics: SyncedLyricLine[] | null = null;
     let currentSource = '';
     let playing = false;
     let hasPosition = false;
@@ -296,6 +300,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
     const startLyricsLoad = (track: LyricsTrack): void => {
       requestVersion += 1;
       hasLyrics = false;
+      instrumentalLyrics = null;
       clearCalibration();
       setSyncedLyricsRef.current(null);
       setTranslationLyricsRef.current(null);
@@ -362,11 +367,17 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
                 text: line.text,
                 duration_ms: line.duration_ms,
                 syllables: line.syllables,
+                ...(line.instrumental ? { instrumental: true } : {}),
               }));
               setSyncedLyricsRef.current(mapped);
               setLyricsLoadingRef.current(false);
-              hasLyrics = true;
-              if (calibrationEnabled) {
+              // 纯音乐提示行不是真实歌词，不启动校准。
+              const instrumental = isInstrumentalLyrics(mapped);
+              instrumentalLyrics = instrumental ? mapped : null;
+              hasLyrics = !instrumental;
+              if (calibrationEnabled && instrumental) {
+                logCalibrationStatus('skipped', '纯音乐无歌词，不启动校准', { reason: 'instrumental' });
+              } else if (calibrationEnabled) {
                 scheduleCalibration(calibrationDelayMs);
               }
 
@@ -396,11 +407,13 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
         const lyrics = result?.lyrics ?? null;
         setSyncedLyricsRef.current(lyrics);
         setLyricsLoadingRef.current(false);
-        hasLyrics = Boolean(lyrics?.length);
+        const instrumental = isInstrumentalLyrics(lyrics);
+        instrumentalLyrics = instrumental ? lyrics : null;
+        hasLyrics = Boolean(lyrics?.length) && !instrumental;
         if (hasLyrics && calibrationEnabled) {
           scheduleCalibration(calibrationDelayMs);
         } else if (calibrationEnabled) {
-          logCalibrationStatus('skipped', '未获取到歌词，不启动校准', { reason: 'no-lyrics' });
+          logCalibrationStatus('skipped', instrumental ? '纯音乐无歌词，不启动校准' : '未获取到歌词，不启动校准', { reason: instrumental ? 'instrumental' : 'no-lyrics' });
         }
       };
 
@@ -437,6 +450,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
         songKeyRef.current = '';
         hasPosition = false;
         hasLyrics = false;
+        instrumentalLyrics = null;
         stopProgress();
         clearCalibration();
         setSyncedLyricsRef.current(null);
@@ -484,6 +498,14 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       reconcileProgress();
     };
 
+    // 纯音乐提示在获取时按当时语言生成，切换界面语言后重新翻译。
+    const retranslateInstrumental = (): void => {
+      if (!instrumentalLyrics) return;
+      instrumentalLyrics = [{ ...instrumentalLyrics[0], text: instrumentalLyricText() }];
+      setSyncedLyricsRef.current(instrumentalLyrics);
+    };
+    i18n.on('languageChanged', retranslateInstrumental);
+
     let receivedBroadcast = false;
     const unsubscribe = window.api?.onNowPlayingInfo((info: NowPlayingInfo | null) => {
       receivedBroadcast = true;
@@ -508,6 +530,7 @@ export function useIslandNowPlayingSync(options: UseIslandNowPlayingSyncOptions)
       requestVersion += 1;
       songKeyRef.current = '';
       unsubscribe?.();
+      i18n.off('languageChanged', retranslateInstrumental);
       unsubscribeCalibration?.();
       unsubscribeLyricsEnabled();
       stopProgress();

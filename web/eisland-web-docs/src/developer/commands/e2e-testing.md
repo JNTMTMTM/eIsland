@@ -9,7 +9,7 @@ Desktop tests launch the actual Tauri executable and connect to its WebView2 deb
 
 ## Prepare and run
 
-Run from the repository root on Windows x64 with Node.js 24.22.1, Rust MSVC, .NET 10, Visual Studio C++ tools and WebView2:
+Run from the repository root on Windows x64 with Node.js 24.22.1, Rust MSVC, Visual Studio C++ tools and WebView2:
 
 ```powershell
 npm ci --ignore-scripts

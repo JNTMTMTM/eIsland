@@ -45,4 +45,6 @@ export interface KaraokeLine {
   text: string;
   /** 音节数组；数组为空时该行只有行级时间戳、退化为普通同步行 */
   syllables: KaraokeSyllable[];
+  /** 纯音乐提示行，不是真实歌词 */
+  instrumental?: boolean;
 }

@@ -524,8 +524,14 @@ async fn lyrics(music: &Music, app: &AppHandle, id: &str) -> Result<Value> {
         payload=Some(public(music,PUBLIC_CONTENT,json!({"sources":"qishui","need_author":true,"need_album":true,"need_ugc":true,"need_stat":true,"item_ids":id})).await?);
         auth = "public";
     }
-    let payload = payload.unwrap_or(Value::Null);
-    let data = data(&payload);
+    let (content, translation, instrumental) = lyric_fields(&payload.unwrap_or(Value::Null));
+    Ok(
+        json!({"provider":"qishui","id":id,"auth":auth,"lyric":content,"tlyric":translation,"instrumental":instrumental}),
+    )
+}
+/// 从汽水详情响应中取出歌词、翻译与纯音乐标记。
+fn lyric_fields(payload: &Value) -> (String, String, bool) {
+    let data = data(payload);
     let track = object_or(&data["track"], data);
     let lyric = pick(track, &["lyric_info", "lyric"]);
     let lyric = if lyric.is_null() {
@@ -561,7 +567,13 @@ async fn lyrics(music: &Music, app: &AppHandle, id: &str) -> Result<Value> {
     } else {
         content
     };
-    Ok(json!({"provider":"qishui","id":id,"auth":auth,"lyric":content,"tlyric":translation}))
+    // 汽水对纯音乐不返回歌词内容，仅以 vocal=2 标记；前端据此显示纯音乐提示，不再回退其他歌词源。
+    let vocal = [&track["vocal"], &data["seo_track"]["track"]["vocal"]]
+        .into_iter()
+        .find(|value| !value.is_null())
+        .unwrap_or(&Value::Null);
+    let instrumental = content.is_empty() && num(vocal, 0.) == 2.;
+    (content, translation, instrumental)
 }
 fn membership(value: &Value) -> &'static str {
     fn contains(value: &Value, names: &[&str], positive: bool) -> bool {
@@ -837,6 +849,24 @@ mod tests {
         assert_eq!(value["id"], "123");
         assert_eq!(value["artist"], "A / B");
         assert_eq!(value["duration"], 200000.);
+    }
+    #[test]
+    fn instrumental_requires_vocal_flag_and_empty_lyrics() {
+        // seo_track 响应：歌词对象无 content，纯音乐以 seo_track.track.vocal=2 标记。
+        let seo = |vocal: Value, content: Value| json!({"lyric":{"type":"lrc","content":content},"seo_track":{"track":{"vocal":vocal}}});
+        assert_eq!(
+            lyric_fields(&seo(json!(2), Value::Null)),
+            (String::new(), String::new(), true)
+        );
+        assert!(lyric_fields(&seo(json!("2"), Value::Null)).2);
+        assert!(!lyric_fields(&seo(json!(1), Value::Null)).2);
+        assert!(!lyric_fields(&seo(Value::Null, Value::Null)).2);
+        let (content, _, instrumental) = lyric_fields(&seo(json!(2), json!("[0,1]<0,1,0>a")));
+        assert_eq!(content, "[0,1]<0,1,0>a");
+        assert!(!instrumental);
+        // 登录接口响应：vocal 位于 data.track。
+        let pc = json!({"data":{"track":{"vocal":2,"lyric":{}}}});
+        assert!(lyric_fields(&pc).2);
     }
     #[test]
     fn account_and_membership_boundaries_are_preserved() {

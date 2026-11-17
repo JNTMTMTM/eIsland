@@ -31,6 +31,7 @@ import { parseSyncedLines } from '../parsers';
 import { searchWithScoring } from '../../normal/matcher';
 import type { SearchCandidate } from '../../normal/searchTypes';
 import type { KaraokeLine } from '../types';
+import { instrumentalLyricText } from '../../instrumental';
 import type { QishuiSong } from '../../../../../../shared/qishuiBusiness';
 
 const LOG_TAG = '[KaraokeSodaMusic]';
@@ -58,6 +59,11 @@ async function fetchKaraokeByTrackId(trackId: string): Promise<KaraokeLine[] | n
   const detailJson = await window.api.qishuiLyrics(trackId);
   const auth = detailJson && typeof detailJson.auth === 'string' ? detailJson.auth : 'unknown';
   const content = detailJson && typeof detailJson.lyric === 'string' ? detailJson.lyric : null;
+  // 纯音乐返回无音节的提示行作为确定结果，避免继续向其他逐字源回退。
+  if (!content && detailJson?.instrumental) {
+    logger.info(`${LOG_TAG} 纯音乐, trackId=${trackId}, auth=${auth}`);
+    return [{ time_ms: 0, duration_ms: 0, text: instrumentalLyricText(), syllables: [], instrumental: true }];
+  }
   if (!content) {
     logger.warn(`${LOG_TAG} 歌词内容为空, trackId=${trackId}, auth=${auth}`);
     return null;

@@ -40,6 +40,7 @@ import { useIslandBackgroundVideoSync } from './useIslandBackgroundVideoSync';
 import { useIslandStateBridges } from './useIslandStateBridges';
 import { useIslandBackgroundMediaController } from './useIslandBackgroundMediaController';
 import { useIslandEscapeNavigation } from './useIslandEscapeNavigation';
+import { resolveEscapeLeaveTarget } from './hoverLeaveTarget';
 import { useIslandShellPresentation } from './useIslandShellPresentation';
 import { useIslandRuntimeRefs } from './useIslandRuntimeRefs';
 import { useIslandDrag } from './useIslandDrag';
@@ -249,6 +250,9 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setIdle,
     setHover,
     setExpanded,
+    setLyrics,
+    setLyricsTranslation,
+    resolveLeaveTarget: resolveEscapeLeaveTarget,
   });
 
   useIslandStartupAnnouncements({

@@ -20,19 +20,11 @@
 
 /**
  * @file vitest.config.mts
- * @description 按共享模块、原生插件、CLI 与渲染进程划分 Vitest 测试项目。
+ * @description 按共享模块、CLI 与渲染进程划分 Vitest 测试项目。
  * @author 鸡哥
  */
 
 import { coverageConfigDefaults, defineConfig } from 'vitest/config';
-
-/** 真实 Windows 插件测试会读取设备或发送系统命令，独立串行执行。 */
-const pluginIntegrationTests = [
-  'plugins/windows/**/test/{bluetooth,power,volume-analyzer,wifi}.test.ts',
-  'plugins/windows/**/test/{bluetooth,power,wifi}.monitor.test.ts',
-  'plugins/windows/**/test/windows-toast-listener.polling.test.ts',
-  'plugins/windows/**/test/windows-toast-listener.test.ts',
-];
 
 export default defineConfig({
   test: {
@@ -42,7 +34,7 @@ export default defineConfig({
     coverage: {
       // 保留覆盖率目录中的源码哈希与不可达审计；每轮报告仍由报告器覆盖。
       clean: false,
-      include: ['src/**/*.{ts,tsx,js}', 'plugins/*/*/*.js'],
+      include: ['src/**/*.{ts,tsx,js}'],
       exclude: [
         ...coverageConfigDefaults.exclude,
         '**/test/**',
@@ -54,25 +46,6 @@ export default defineConfig({
         test: {
           name: { label: 'shared', color: 'green' },
           include: ['src/shared/**/*.test.{ts,tsx}'],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: { label: 'plugins', color: 'blue' },
-          include: ['plugins/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}'],
-          exclude: pluginIntegrationTests,
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: { label: 'plugins-integration', color: 'blue' },
-          // 其他平台仍执行插件单元测试；真实 Windows 测试由 Windows CI 执行。
-          include: process.platform === 'win32' ? pluginIntegrationTests : [],
-          sequence: { groupOrder: 1 },
-          fileParallelism: false,
-          testTimeout: 15000,
         },
       },
       // CLI 是独立包，测试设置由自身配置维护，可在 cli/ 内单独运行。

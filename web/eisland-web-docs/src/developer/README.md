@@ -19,7 +19,6 @@ Environment configuration for frontend, backend, and plugin development.
 |----------|-------------|
 | [Frontend Setup](environment-setup/frontend-setup.md) | Node.js, npm, Electron, React, and frontend IDE configuration |
 | [Backend Setup](environment-setup/backend-setup.md) | Java JDK, Maven, MySQL, Redis, RabbitMQ, and backend IDE configuration |
-| [Plugin Setup](environment-setup/plugin-setup.md) | Plugin development toolchain, scaffolding, and testing environment |
 
 ### Git Operations
 
@@ -42,7 +41,6 @@ Detailed reference for npm scripts defined in `package.json`.
 | [Package Commands](commands/package-commands.md) | `package`, `postinstall` — building installers and managing native modules |
 | [Code Quality Commands](commands/quality-commands.md) | `comment:check`, `i18n:check` — validating comment standards and i18n completeness |
 | [Release Commands](commands/release-commands.md) | `release:notes`, `changelog:generate`, `release:upload*` — changelogs and artifact uploads |
-| [Plugin Commands](commands/plugin-commands.md) | `build`, `test`, `smoke` — building, testing, and smoke-testing all native plugins |
 
 ### Code Quality
 

@@ -22,13 +22,13 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { globSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { relative, resolve, sep } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 
-test('Windows root Vitest projects discover every source and plugin test exactly once', {
+test('Windows root Vitest projects discover every application and CLI test exactly once', {
   skip: process.platform !== 'win32',
 }, () => {
   const result = spawnSync(process.execPath, ['node_modules/vitest/vitest.mjs', 'list', '--filesOnly', '--json'], {
@@ -37,10 +37,11 @@ test('Windows root Vitest projects discover every source and plugin test exactly
   assert.equal(result.status, 0, result.stderr || result.error?.message);
   const entries = JSON.parse(result.stdout);
   const discovered = entries.map(({ file }) => resolve(file));
+  const dependencyTests = discovered.filter((file) => relative(root, file).split(sep).includes('node_modules'));
+  assert.deepEqual(dependencyTests, [], `Collected dependency tests:\n${dependencyTests.join('\n')}`);
   assert.equal(new Set(discovered).size, discovered.length, 'A test belongs to more than one project');
   const expected = globSync([
     'src/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}',
-    'plugins/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}',
     'cli/src/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}',
   ], { cwd: root, exclude: ['**/node_modules/**', '**/build/**', '**/bin/**', '**/obj/**'] }).map((file) => resolve(root, file));
   const included = new Set(discovered);
@@ -61,5 +62,5 @@ test('Windows root Vitest projects discover every source and plugin test exactly
   const untestedProjects = Array.from(new Set(entries.map(({ projectName }) => projectName)))
     .filter((name) => !ciProjects.has(name));
   assert.deepEqual(untestedProjects, [], 'Collected projects are missing from CI execution');
-  console.log(`All ${expected.length} source and plugin test files are collected exactly once.`);
+  console.log(`All ${expected.length} application and CLI test files are collected exactly once.`);
 });

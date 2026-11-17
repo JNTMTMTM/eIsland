@@ -66,6 +66,8 @@ export interface QishuiLyricsResult {
   auth: string;
   lyric: string;
   tlyric: string;
+  /** 汽水标记为纯音乐（无人声且无歌词） */
+  instrumental?: boolean;
 }
 
 export interface QishuiSongUrlResult {

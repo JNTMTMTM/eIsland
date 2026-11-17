@@ -105,18 +105,10 @@ Verification: `grep -rn "defaultValue" src/renderer/components/<changed-dir>/` s
 
 **All frontend code must comply with [`docs/FRONTEND_STANDARDS.md`](docs/FRONTEND_STANDARDS.md). No exceptions.**
 
-## 9. Plugin Version Bump (Plugin Change Gate)
+## 9. Pull Request Merge Method
 
-**Any change to a plugin's source code requires a version bump in its `package.json`.**
-
-- After modifying files under `plugins/<platform>/<name>/`, check if `plugins/<platform>/<name>/package.json` version was incremented.
-- Follow semver: patch for bug fixes, minor for new features, major for breaking changes.
-- The `publish-plugins.yml` workflow skips publish when the version is unchanged — forgetting the bump means the change never ships.
-
-**Creating a new plugin requires registering it in `.github/workflows/publish-plugins.yml`.**
-
-- Add the plugin name to both `publish-npm` and `publish-gpr` job matrices.
-- Without registration, the new plugin will never be published to npm or GitHub Packages.
+- Use **Create a merge commit** for every pull request. With GitHub CLI, run `gh pr merge <number> --merge`.
+- Do not use squash or rebase merges. A merge commit preserves the source branch's commits and the merge point in Git Graph after the source branch is deleted.
 
 ---
 

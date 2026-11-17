@@ -27,6 +27,8 @@
 export interface LyricLine {
   time_ms: number;
   text: string;
+  /** 纯音乐提示行，不是真实歌词 */
+  instrumental?: boolean;
 }
 
 export type TranslationLyricsStatus = 'available' | 'not-provided' | 'not-fetched' | 'unsupported';

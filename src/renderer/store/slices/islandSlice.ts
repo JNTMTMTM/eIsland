@@ -56,6 +56,7 @@ export const createIslandSlice: StateCreator<
 > = (set, get) => ({
   state: 'idle',
   authReturnState: null,
+  hoverReturnLyrics: false,
   uiStateLocked: false,
   paymentContext: { type: 'pro' },
   setPasswordContext: { tempToken: '', suggestedUsername: '', email: '' },
@@ -90,7 +91,11 @@ export const createIslandSlice: StateCreator<
     beginIslandWindowTransition(prev.state, 'hover');
     window.api?.expandWindow(getIslandMorphDuration(prev.animationSpeed, prev.springAnimation));
     window.api?.disableMousePassthrough();
-    return { state: 'hover', authReturnState: null };
+    // 只记录从常驻歌词页进入 hover；从展开页等返回 hover 时不再沿用更早的歌词页。
+    const hoverReturnLyrics = prev.state === 'hover'
+      ? prev.hoverReturnLyrics
+      : prev.state === 'lyrics' || prev.state === 'lyricsTranslation';
+    return { state: 'hover', authReturnState: null, hoverReturnLyrics };
   }),
 
   setExpanded: () => set((prev) => {

@@ -103,8 +103,9 @@ describe('qishuiBusiness contracts', () => {
       auth: string;
       lyric: string;
       tlyric: string;
+      instrumental?: boolean;
     }>();
-    const fixture: QishuiLyricsResult = { provider: 'qishui', id: 'sample', auth: 'sample', lyric: 'sample', tlyric: 'sample' };
+    const fixture: QishuiLyricsResult = { provider: 'qishui', id: 'sample', auth: 'sample', lyric: 'sample', tlyric: 'sample', instrumental: false };
     expect(fixture).toBeDefined();
     // @ts-expect-error QishuiLyricsResult.id 禁止使用契约外字段值。
     const invalid: QishuiLyricsResult['id'] = 123;

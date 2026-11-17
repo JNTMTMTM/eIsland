@@ -51,6 +51,7 @@ describe('createIslandSlice', () => {
     expandWindowFull: vi.fn(),
     expandWindowSettings: vi.fn(),
     expandWindowLyrics: vi.fn(),
+    expandWindowLyricsTranslation: vi.fn(),
     expandWindowNotification: vi.fn(),
   };
 
@@ -155,6 +156,27 @@ describe('createIslandSlice', () => {
     expect(store.getState().state).toBe('maxExpand');
     expect(store.getState().maxExpandLauncherVisible).toBe(false);
     expect(store.getState().maxExpandTab).toBe('settings');
+  });
+
+  it('records whether hover was entered from a lyrics page', () => {
+    const store = createSliceState(createIslandSlice);
+
+    store.getState().setLyricsTranslation();
+    store.getState().setHover();
+    expect(store.getState().hoverReturnLyrics).toBe(true);
+    store.getState().setHover();
+    expect(store.getState().hoverReturnLyrics).toBe(true);
+
+    store.getState().setExpanded();
+    store.getState().setHover();
+    expect(store.getState().hoverReturnLyrics).toBe(false);
+
+    store.getState().setLyrics();
+    store.getState().setHover();
+    expect(store.getState().hoverReturnLyrics).toBe(true);
+    store.getState().setIdle(true);
+    store.getState().setHover();
+    expect(store.getState().hoverReturnLyrics).toBe(false);
   });
 
   it('stores auth return state when entering login', () => {

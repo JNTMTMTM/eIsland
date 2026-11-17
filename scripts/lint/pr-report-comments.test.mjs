@@ -86,7 +86,7 @@ test('PR 摘要按 Tauri 构建配置、原生服务和界面分组', () => {
 
 test('原生测试工作流只提供可执行的 dispatch 项目', () => {
   const workflow = readFileSync(new URL('../../.github/workflows/test.yml', import.meta.url), 'utf8');
-  assert.match(workflow, /options: \[all, shared, plugins, renderer, cli\]/u);
+  assert.match(workflow, /options: \[all, shared, renderer, cli\]/u);
   assert.doesNotMatch(workflow, /legacy is available|options:.*legacy/u);
 });
 
