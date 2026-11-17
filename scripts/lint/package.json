@@ -7,7 +7,7 @@
     "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",
     "@eslint/compat": "^2.1.1",
     "@eslint/js": "^10.0.1",
-    "@stylistic/eslint-plugin": "^5.10.0",
+    "@stylistic/eslint-plugin": "^6.0.0",
     "@stylistic/stylelint-plugin": "^6.0.0",
     "eslint": "^10.15.0",
     "eslint-import-resolver-typescript": "^4.4.5",
