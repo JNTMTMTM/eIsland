@@ -1,7 +1,7 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-16T22:16:18.867Z
+> 生成时间：2026-11-17T19:07:11.745Z
 
 ## 27.0.2
 
@@ -4344,6 +4344,13 @@
 
 ## Unreleased
 
+- 2026-11-17 | a77479bb | JNTMTMTM | fix: 修复两个歌词状态机切换状态的行为错误 (#338)
+- 2026-11-17 | 0f51c35b | 鸡哥 | refactor: remove plugin version bump requirement and update related documentation
+- 2026-11-16 | 2ef4cf56 | 鸡哥 | feat(hook): enhance hover interaction logic to maintain state on pause
+- 2026-11-16 | 9eeae073 | 鸡哥 | Refactor code structure for improved readability and maintainability
+- 2026-11-16 | 2df3e66e | 鸡哥 | feat(i18n): add instrumental music notice in multiple languages and update related logic
+- 2026-11-16 | db2a0a35 | 鸡哥 | docs: add pull request merge method guidelines to AGENTS.md and CLAUDE.md
+- 2026-11-16 | bbf854a1 | eislandBot | docs: auto update CHANGE_LOG.md for #337 by @dependabot[bot] [skip ci]
 - 2026-11-16 | 8bc7af31 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git from 2.0.0-rc.132 to 2.0.0-rc.137 in /web/eisland-web-docs (#337)
 - 2026-11-16 | 79cc2a09 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 5 directories with 5 updates (#336)
 - 2026-11-16 | c30853e7 | eislandBot | docs: auto update CHANGE_LOG.md for #335 by @JNTMTMTM [skip ci]
