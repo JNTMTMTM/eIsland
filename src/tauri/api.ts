@@ -1792,6 +1792,11 @@ const api = {
    * @returns 异步原生操作的CodexMonitorMutationResult 结果。
    */
   codexMonitorDisable: (): Promise<CodexMonitorMutationResult> => desktop.invoke('codex:monitor:disable'),
+  /** 配置 Codex 原生命令 Hook。
+   * @param enabled - 是否写入 eIsland 管理的 Hook。
+   * @returns 变更结果和最新监控快照。
+   */
+  codexHookSet: (enabled: boolean): Promise<CodexMonitorMutationResult> => desktop.invoke('codex:hook:set', enabled),
   /** 原生桌面操作 codexEventsClear（codex:events:clear）。
    * @returns 异步原生操作的CodexStatusSnapshot 结果。
    */

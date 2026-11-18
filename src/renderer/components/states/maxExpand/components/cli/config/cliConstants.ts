@@ -31,7 +31,7 @@ export const EVENTS_PER_PAGE = 3;
 export const SESSIONS_PER_PAGE = 6;
 
 /** 流结束事件名 */
-export const STOP_EVENTS = new Set(['Stop', 'StopFailure', 'SubagentStop', 'SessionEnd']);
+export const STOP_EVENTS = new Set(['Stop', 'StopFailure', 'Interrupt', 'SubagentStop', 'SessionEnd']);
 
 /** 等待授权事件名 */
 export const PERMISSION_EVENTS = new Set(['PermissionRequest', 'PermissionDenied']);

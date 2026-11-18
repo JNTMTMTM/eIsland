@@ -34,7 +34,7 @@ export function useCliEvents(snapshot: CliStatusSnapshot) {
   const [eventFilter, setEventFilter] = useState<CliEventFilter>('all');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
-  const activeSessions = useMemo(() => snapshot.sessions.filter((s) => s.phase !== 'completed'), [snapshot.sessions]);
+  const activeSessions = useMemo(() => snapshot.enabled ? snapshot.sessions.filter((s) => s.phase !== 'completed') : [], [snapshot.enabled, snapshot.sessions]);
   const selectedSession = useMemo(
     () => snapshot.sessions.find((session) => session.id === selectedSessionId) ?? null,
     [selectedSessionId, snapshot.sessions],
@@ -47,11 +47,13 @@ export function useCliEvents(snapshot: CliStatusSnapshot) {
   }, [selectedSessionId, snapshot.sessions]);
 
   const filteredEvents = useMemo(
-    () => snapshot.events.filter((event) => {
-      if (selectedSessionId && event.sessionId !== selectedSessionId) return false;
-      return matchesFilter(event, eventFilter);
-    }),
-    [eventFilter, selectedSessionId, snapshot.events],
+    () => {
+      const events = selectedSession?.events?.length
+        ? selectedSession.events
+        : snapshot.events.filter((event) => !selectedSessionId || event.sessionId === selectedSessionId);
+      return events.filter((event) => matchesFilter(event, eventFilter));
+    },
+    [eventFilter, selectedSession, selectedSessionId, snapshot.events],
   );
 
   return {

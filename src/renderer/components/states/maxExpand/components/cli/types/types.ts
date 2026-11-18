@@ -101,6 +101,11 @@ export interface EventStreamPanelProps {
   clearEvents: () => Promise<void>;
   setCli: () => void;
   activeSessionCount: number;
+  loading?: boolean;
+  mutating?: boolean;
+  actionFailed?: boolean;
+  actionMessage?: string;
+  setCodexHook?: (enabled: boolean) => Promise<void>;
 }
 
 /** 热力图滚动引用 */

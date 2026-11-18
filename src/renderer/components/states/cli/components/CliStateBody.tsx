@@ -40,7 +40,8 @@ import type { CliStateBodyProps } from '../types/cliTypes';
  */
 export function CliStateBody({ activeSession, latestEvent, permissionCommand, onOpenPanel }: CliStateBodyProps): ReactElement {
   const { t } = useTranslation();
-  const title = activeSession?.title || t('maxExpand.cli.sessions', { defaultValue: '会话' });
+  const project = latestEvent?.cwd?.split(/[\\/]/).filter(Boolean).at(-1);
+  const title = activeSession?.title || project || t('maxExpand.cli.sessions');
   const phaseText = activeSession ? phaseLabel(activeSession.phase, t) : '';
 
   return (
@@ -48,7 +49,13 @@ export function CliStateBody({ activeSession, latestEvent, permissionCommand, on
       <span className="cli-state-title-row">
         <span className="cli-state-title">{title}</span>
         {phaseText && <span className={`cli-state-phase ${activeSession?.phase ?? ''}`}>{phaseText}</span>}
-        {latestEvent && <span className="cli-state-phase cli-state-event-tag">{latestEvent.eventName}</span>}
+        {latestEvent && (
+          <span className="cli-state-phase cli-state-event-tag"
+            title={latestEvent.source === 'hook' ? t('maxExpand.cli.codexHook.native') : undefined}
+          >
+            {latestEvent.eventName}
+          </span>
+        )}
       </span>
       {permissionCommand ? (
         <span className="cli-state-command">

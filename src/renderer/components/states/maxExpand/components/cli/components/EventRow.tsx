@@ -69,11 +69,16 @@ export function EventRow({ event, t, showPermission }: EventRowProps): ReactElem
       <div className="cli-event-card-header">
         <span className="cli-event-card-name">{event.eventName}</span>
         <div className="cli-event-card-header-right">
+          {event.source && (
+            <span className="rounded border border-current/10 px-1.5 py-0.5 text-[10px] opacity-70">
+              {t(event.source === 'hook' ? 'maxExpand.cli.codexHook.native' : 'maxExpand.cli.codexHook.logBadge')}
+            </span>
+          )}
           {event.toolName && <span className="cli-event-card-tool-tag">{event.toolName}</span>}
           <span className="cli-event-card-time">{formatTime(event.createdAt)}</span>
         </div>
       </div>
-      <div className="cli-event-card-body">{summary}</div>
+      {event.summary !== event.eventName && <div className="cli-event-card-body">{summary}</div>}
       {showPermission && (
         <div className="cli-event-card-permission">
           <button

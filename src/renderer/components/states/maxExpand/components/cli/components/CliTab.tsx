@@ -46,7 +46,10 @@ export function CliTab(): ReactElement {
   const setCli = useIslandStore((s) => s.setCli);
   const provider = useIslandStore((s) => s.cliProvider);
   const setProvider = useIslandStore((s) => s.setCliProvider);
-  const { snapshot, enableMonitor, disableMonitor, clearEvents, deleteSessions } = useCliStatus(provider);
+  const {
+    snapshot, enableMonitor, disableMonitor, clearEvents, deleteSessions,
+    loading, mutating, actionFailed, actionMessage, setCodexHook,
+  } = useCliStatus(provider);
   const {
     eventFilter,
     setEventFilter,
@@ -97,6 +100,11 @@ export function CliTab(): ReactElement {
         provider={provider}
         onProviderChange={setProvider}
         snapshot={snapshot}
+        loading={loading}
+        mutating={mutating}
+        actionFailed={actionFailed}
+        actionMessage={actionMessage}
+        setCodexHook={setCodexHook}
         eventFilter={eventFilter}
         setEventFilter={setEventFilter}
         selectedSessionTitle={selectedSession?.title}

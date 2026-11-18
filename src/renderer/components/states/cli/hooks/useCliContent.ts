@@ -55,7 +55,7 @@ export function useCliContent(): UseCliContentReturn {
 
   const { activeSession, latestEvent } = useMemo(
     () => selectActiveSession(snapshot),
-    [snapshot.sessions, snapshot.events],
+    [snapshot],
   );
 
   const permissionCommand = useMemo(() => extractPermissionCommand(activeSession), [activeSession]);

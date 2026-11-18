@@ -24,7 +24,7 @@
  * @author 鸡哥
  */
 
-import { useState, type ReactElement } from 'react';
+import { useCallback, useState, type ReactElement } from 'react';
 import { EVENT_FILTERS } from '../config/cliFilters';
 import type { EventStreamPanelProps } from '../types/types';
 import { filterLabel } from '../utils/cliFormatters';
@@ -36,6 +36,11 @@ import { CliProviderSwitch } from './CliProviderSwitch';
 /**
  * CLI 面板右侧事件流 + 控制区
  * @param props - 组件属性
+ * @param props.loading - 是否正在读取状态快照
+ * @param props.mutating - 是否有正在进行的监控操作
+ * @param props.actionFailed - 上一次监控操作是否失败
+ * @param props.actionMessage - 原生操作返回的诊断信息
+ * @param props.setCodexHook - 安装或移除 Codex 原生 Hook
  * @returns 事件流面板 React 元素
  */
 export function EventStreamPanel({
@@ -57,12 +62,30 @@ export function EventStreamPanel({
   clearEvents,
   setCli,
   activeSessionCount,
+  loading,
+  mutating,
+  actionFailed,
+  actionMessage,
+  setCodexHook,
 }: EventStreamPanelProps): ReactElement {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [heatmapVisible, setHeatmapVisible] = useState(false);
 
+  const hookConfigured = Boolean(snapshot.codexHookConfigured);
+  const hookAvailable = snapshot.receiverRunning && snapshot.enabled;
+  let hookStatus = 'maxExpand.cli.codexHook.log';
+  if (hookConfigured) {
+    hookStatus = snapshot.events.some((event) => event.source === 'hook')
+      ? 'maxExpand.cli.codexHook.received'
+      : 'maxExpand.cli.codexHook.trust';
+  }
+  const toggleCodexHook = useCallback((): void => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 监控操作已经处理原生错误，点击回调无需等待。
+    void setCodexHook?.(!hookConfigured);
+  }, [hookConfigured, setCodexHook]);
+
   return (
-    <div className="cli-tab-main">
+    <div className="cli-tab-main" aria-busy={loading || mutating}>
       <div className="cli-tab-main-header">
         <div className="cli-tab-stream-title">
           <CliProviderSwitch provider={provider} onChange={onProviderChange} />
@@ -105,6 +128,7 @@ export function EventStreamPanel({
             title={snapshot.enabled
               ? t(provider === 'claude' ? 'maxExpand.cli.disableHook' : 'maxExpand.cli.disableMonitor')
               : t(provider === 'claude' ? 'maxExpand.cli.enableHook' : 'maxExpand.cli.enableMonitor')}
+            disabled={loading || mutating}
             onClick={snapshot.enabled ? disableMonitor : enableMonitor}
           >
             <img src={snapshot.enabled ? SvgIcon.PAUSE : SvgIcon.CONTINUE} alt="" width="14" height="14" draggable={false} />
@@ -114,7 +138,7 @@ export function EventStreamPanel({
             type="button"
             title={t('maxExpand.cli.clear', { defaultValue: '清空' })}
             onClick={clearEvents}
-            disabled={snapshot.events.length === 0}
+            disabled={mutating || snapshot.events.length === 0}
           >
             <img src={SvgIcon.DELETE} alt="" width="14" height="14" draggable={false} />
           </button>
@@ -139,12 +163,31 @@ export function EventStreamPanel({
             type="button"
             title={t('maxExpand.cli.enterCliState', { defaultValue: '进入实时流' })}
             onClick={() => setCli()}
-            disabled={activeSessionCount === 0}
+            disabled={!snapshot.enabled || activeSessionCount === 0}
           >
             <img src={SvgIcon.AI} alt="" width="14" height="14" draggable={false} />
           </button>
         </div>
       </div>
+
+      {provider === 'codex' && setCodexHook && (
+        <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b border-current/10 px-3 py-1.5 text-xs">
+          <button className="cursor-pointer rounded-md border border-sky-400/30 bg-sky-400/10 px-2 py-1 font-medium disabled:cursor-not-allowed disabled:opacity-40"
+            type="button"
+            disabled={loading || mutating || (!hookConfigured && !hookAvailable)}
+            onClick={toggleCodexHook}
+            title={hookConfigured ? t('maxExpand.cli.codexHook.trust') : undefined}
+          >
+            {t(hookConfigured ? 'maxExpand.cli.codexHook.remove' : 'maxExpand.cli.codexHook.install')}
+          </button>
+          {snapshot.enabled && <span className="opacity-70">{t(hookStatus)}</span>}
+        </div>
+      )}
+      {actionFailed && (
+        <p role="alert" className="shrink-0 px-3 py-1 text-xs" title={actionMessage}>
+          {t('maxExpand.cli.actionFailed')}
+        </p>
+      )}
 
       <div className={`cli-tab-event-filters ${filtersVisible ? 'open' : ''}`} role="tablist" aria-label={t('maxExpand.cli.filterAria', { defaultValue: '事件筛选' })}>
         {EVENT_FILTERS.map((filter) => (
@@ -166,7 +209,8 @@ export function EventStreamPanel({
       </div>
 
       <div className="cli-tab-event-list">
-        {filteredEvents.length === 0 && (
+        {loading && <div className="p-8 text-center text-xs opacity-70" role="status">{t('maxExpand.cli.loading')}</div>}
+        {!loading && filteredEvents.length === 0 && (
           <div className="cli-tab-empty">{t('maxExpand.cli.emptyEvents', { defaultValue: '暂无事件' })}</div>
         )}
         {pagedEvents.map((event) => (

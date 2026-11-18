@@ -33,12 +33,15 @@ import type { CliProvider } from '../../store/types';
 import { AgentIcon } from '../../utils/SvgIcon';
 
 interface CliStatusSnapshot {
+  enabled?: boolean;
+  revision?: number;
   sessions: Array<{ id: string; phase: string; pendingPermission?: { id: string } | null }>;
   events?: Array<{ id: string; eventName?: string }>;
 }
 
 interface ProviderTracker {
   initialized: boolean;
+  revision?: number;
   sessionIds: Set<string>;
   topEventId: string | null;
   permissionIds: Set<string>;
@@ -72,8 +75,11 @@ export function useClaudeCliSessionStatus(): {
     const applySnapshot = (provider: CliProvider, snapshot: CliStatusSnapshot | null | undefined): void => {
       if (cancelled || !snapshot) return;
       const tracker = trackersRef.current[provider];
+      if (snapshot.revision !== undefined && tracker.revision !== undefined && snapshot.revision <= tracker.revision) return;
+      tracker.revision = snapshot.revision;
+      const activeSessions = snapshot.sessions.filter((session) => session.phase !== 'completed');
       const sessionIds = new Set(snapshot.sessions.map((session) => session.id));
-      activeByProviderRef.current[provider] = snapshot.sessions.some((session) => session.phase !== 'completed');
+      activeByProviderRef.current[provider] = snapshot.enabled !== false && activeSessions.length > 0;
       hasActiveSessionRef.current = Object.values(activeByProviderRef.current).some(Boolean);
 
       const pendingIds = new Set<string>(
@@ -84,17 +90,17 @@ export function useClaudeCliSessionStatus(): {
       const topEvent = snapshot.events?.[0];
       const topEventId = topEvent?.id ?? null;
       const isSessionStartEvent = /^sessionstart$/i.test(topEvent?.eventName ?? '');
-      const hasNewSessionId = [...sessionIds].some((id) => !tracker.sessionIds.has(id));
+      const hasNewSessionId = activeSessions.some(({ id }) => !tracker.sessionIds.has(id));
 
-      if (tracker.initialized) {
+      if (tracker.initialized && snapshot.enabled !== false) {
         [...pendingIds].some((id) => {
           if (tracker.permissionIds.has(id)) return false;
           playNotificationSoundOnce();
           const store = useIslandStore.getState();
           const launcherVisible = store.maxExpandAppModeEnabled && store.maxExpandLauncherVisible;
           const inCliView = store.state === 'cli' || (store.state === 'maxExpand' && !launcherVisible && store.maxExpandTab === 'cli');
+          if (store.cliProvider !== provider) store.setCliProvider(provider);
           if (!inCliView) {
-            store.setCliProvider(provider);
             store.setCli();
           }
           return true;

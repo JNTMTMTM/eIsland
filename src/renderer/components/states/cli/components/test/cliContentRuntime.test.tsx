@@ -150,7 +150,7 @@ async function mount(): Promise<ReactElement> {
  */
 function publish(sessions: CliSessionSnapshot[], events: CliHookEvent[] = []): ReactElement {
   const next = { ...snapshot };
-  Object.assign(next, { sessions, events, updatedAt: snapshot.updatedAt + 1 });
+  Object.assign(next, { sessions, events, enabled: true, updatedAt: snapshot.updatedAt + 1 });
   claudeReceive?.(next);
   return (expandParts(renderWithHooks(CliContent)) as ReactElement);
 }
@@ -208,10 +208,10 @@ describe('CLI内容真实快照、歌词配置与状态集成', () => {
     expect(textContent(tree)).not.toContain('当前会话');
   });
 
-  it.each([{}, { tool_input: null, toolInput: null, input: null }])('等待授权但无工具输入%j时保留权限操作并显示空事件', async (raw) => {
+  it.each([{}, { tool_input: null, toolInput: null, input: null }])('等待授权但无工具输入%j时保留权限操作并显示事件摘要', async (raw) => {
     await mount();
     const tree = publish([session('waiting_permission', event(raw))]);
-    expect(textContent(tree)).toContain(i18n.t('maxExpand.cli.emptyEvents'));
+    expect(textContent(tree)).toContain('实时事件');
     expect(elements(tree).some((node) => node.props.className === 'cli-state-command')).toBe(false);
     expect(findElement(tree, (node) => node.props.className === 'cli-state-icon').props.src).toBe(GifIcon.CLAWD_REVIEW);
   });

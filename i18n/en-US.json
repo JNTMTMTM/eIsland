@@ -1657,7 +1657,7 @@
       "detailNext": "Next page",
       "eyebrow": "CLI Activity",
       "title": "CLI Console",
-      "subtitle": "Monitor Claude Code and Codex CLI sessions, prompts, tool calls, and model output in real time. Claude Code uses a local hook; Codex sessions are detected automatically.",
+      "subtitle": "View sessions, prompts, tool calls, and output from Claude Code and Codex CLI. Codex supports native hooks and local session logs.",
       "provider": {
         "label": "Switch CLI activity source",
         "claude": "Claude",
@@ -1667,6 +1667,16 @@
       "disableHook": "Disable Status Hook",
       "enableMonitor": "Enable Codex Session Monitor",
       "disableMonitor": "Disable Codex Session Monitor",
+      "codexHook": {
+        "install": "Install native hooks",
+        "remove": "Remove native hooks",
+        "trust": "Configured. Open /hooks in Codex to review and trust eIsland.",
+        "log": "Reading local session logs.",
+        "received": "Native hook events received.",
+        "native": "Native hook",
+        "logBadge": "Session log"
+      },
+      "actionFailed": "CLI action failed",
       "clear": "Clear Records",
       "hookStatus": "Hook Status",
       "receiverStatus": "Receiver",

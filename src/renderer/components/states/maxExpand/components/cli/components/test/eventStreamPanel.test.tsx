@@ -53,4 +53,29 @@ describe('EventStreamPanel', () => {
     expect(value(heatmap, '.cli-tab-event-filters', 'className')).not.toContain('open');
     expect(value(render(Component, { ...populated, provider: 'codex' }), EventRow, 'showPermission')).toBe(false);
   });
+  it('offers Codex hook setup, then reflects hook delivery and removal', () => {
+    const setCodexHook = vi.fn();
+    const codex = {
+      setCodexHook,
+      ...props,
+      provider: 'codex',
+      snapshot: { ...props.snapshot, enabled: true, receiverRunning: true },
+    };
+    const selector = '.bg-sky-400/10';
+    const readingLogs = render(Component, codex);
+    expect(text(readingLogs)).toContain('maxExpand.cli.codexHook.log');
+    expect(text(readingLogs)).toContain('maxExpand.cli.codexHook.install');
+    trigger(readingLogs, selector, 'onClick');
+    expect(setCodexHook).toHaveBeenLastCalledWith(true);
+
+    const installed = { ...codex, snapshot: { ...codex.snapshot, codexHookConfigured: true } };
+    expect(text(render(Component, installed))).toContain('maxExpand.cli.codexHook.trust');
+    const receiving = render(Component, {
+      ...installed,
+      snapshot: { ...installed.snapshot, events: [{ source: 'hook' }] },
+    });
+    expect(text(receiving)).toContain('maxExpand.cli.codexHook.received');
+    trigger(receiving, selector, 'onClick');
+    expect(setCodexHook).toHaveBeenLastCalledWith(false);
+  });
 });

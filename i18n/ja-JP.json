@@ -1657,7 +1657,7 @@
       "detailNext": "次のページ",
       "eyebrow": "CLI アクティビティ",
       "title": "CLI コンソール",
-      "subtitle": "Claude Code と Codex CLI のセッション、プロンプト、ツール呼び出し、モデルの出力をリアルタイムで確認できます。Claude Code はローカルフックを使用し、Codex のセッションは自動で検出されます。",
+      "subtitle": "Claude Code と Codex CLI のセッション、プロンプト、ツール呼び出し、出力を確認できます。Codex はネイティブフックとローカルログに対応しています。",
       "provider": {
         "label": "CLI アクティビティの取得元を切り替え",
         "claude": "Claude",
@@ -1667,6 +1667,16 @@
       "disableHook": "ステータスフックを無効化",
       "enableMonitor": "Codex セッション監視を有効化",
       "disableMonitor": "Codex セッション監視を無効化",
+      "codexHook": {
+        "install": "ネイティブフックを追加",
+        "remove": "ネイティブフックを削除",
+        "trust": "設定済みです。Codex の /hooks で eIsland を確認し、信頼してください。",
+        "log": "ローカルセッションログを読み取っています。",
+        "received": "ネイティブフックのイベントを受信しました。",
+        "native": "ネイティブフック",
+        "logBadge": "セッションログ"
+      },
+      "actionFailed": "CLI の操作に失敗しました",
       "clear": "記録を消去",
       "hookStatus": "フックの状態",
       "receiverStatus": "受信プロセス",
