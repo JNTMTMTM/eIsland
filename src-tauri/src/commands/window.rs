@@ -23,7 +23,6 @@
 use super::input::{cursor, number, source};
 use crate::features::capture;
 use crate::features::windowing as windows;
-use crate::shared::geometry::Rect;
 use crate::shared::Result;
 use crate::state::Desktop;
 use serde_json::{json, Value};
@@ -45,6 +44,8 @@ pub(super) fn handles(channel: &str) -> bool {
                 | "window:get-mouse-position"
                 | "window:get-mouse-window-state"
                 | "window:move-delta"
+                | "window:shape-progress"
+                | "window:start-pill-drag"
                 | "window:hide"
                 | "window:show"
                 | "window:start-dragging"
@@ -144,37 +145,26 @@ pub(super) fn handle(
                 json!({"mousePosition":cursor(&app)?,"bounds":app.state::<Desktop>().inner.lock().unwrap().visible}),
             )
         }
-        "window:move-delta" => {
+        "window:move-delta" | "window:start-pill-drag" => {
             source(&window, "main")?;
             let (dx, dy) = (number(a)?.round(), number(b)?.round());
             if dx.abs() > 100000. || dy.abs() > 100000. {
                 return Err("Move exceeds desktop bounds".into());
             }
-            let (backing, visible) = {
-                let state = app.state::<Desktop>();
-                let mut s = state.inner.lock().unwrap();
-                s.generation += 1;
-                s.pending = None;
-                s.transition = None;
-                (
-                    Rect {
-                        x: s.backing.x + dx,
-                        y: s.backing.y + dy,
-                        ..s.backing
-                    },
-                    s.visible,
-                )
-            };
-            windows::apply_geometry(
-                &app,
-                Rect::centered(
-                    backing.x + backing.width / 2.,
-                    backing.y,
-                    visible.width,
-                    visible.height,
-                ),
-                visible,
-            )?;
+            if channel == "window:start-pill-drag" {
+                windows::start_pill_drag(&app, dx, dy)?;
+            } else {
+                windows::move_delta(&app, dx, dy)?;
+            }
+        }
+        "window:shape-progress" => {
+            source(&window, "main")?;
+            let id = a.as_u64().ok_or("Invalid shape transition id")?;
+            let progress = number(b)?;
+            if !(0. ..=1.).contains(&progress) {
+                return Err("Invalid shape transition progress".into());
+            }
+            windows::shape_progress(&app, id, progress)?;
         }
         "window:hide" => windows::hide_main(&app)?,
         "window:show" => windows::show_main(&app)?,

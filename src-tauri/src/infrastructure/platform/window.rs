@@ -21,6 +21,58 @@
 use crate::shared::geometry::Rect;
 use tauri::WebviewWindow;
 
+#[cfg(windows)]
+pub fn primary_button_down() -> bool {
+    use windows_sys::Win32::UI::{
+        Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON, VK_RBUTTON},
+        WindowsAndMessaging::{GetSystemMetrics, SM_SWAPBUTTON},
+    };
+    let button = if unsafe { GetSystemMetrics(SM_SWAPBUTTON) } == 0 {
+        VK_LBUTTON
+    } else {
+        VK_RBUTTON
+    };
+    unsafe { GetAsyncKeyState(i32::from(button)) < 0 }
+}
+
+#[cfg(not(windows))]
+pub fn primary_button_down() -> bool {
+    true
+}
+
+/// 用系统屏幕坐标启动原生移动，确保窗口保留 pointerdown 的抓取点。
+#[cfg(windows)]
+pub fn start_dragging(window: &WebviewWindow) -> Result<(), String> {
+    use windows_sys::Win32::{
+        Foundation::{HWND, POINT},
+        UI::{
+            Input::KeyboardAndMouse::ReleaseCapture,
+            WindowsAndMessaging::{GetCursorPos, PostMessageW, HTCAPTION, WM_NCLBUTTONDOWN},
+        },
+    };
+
+    let hwnd = window.hwnd().map_err(|e| e.to_string())?.0 as HWND;
+    let mut cursor = POINT { x: 0, y: 0 };
+    if unsafe { GetCursorPos(&mut cursor) } == 0 {
+        return Err(std::io::Error::last_os_error().to_string());
+    }
+    // WM_NCLBUTTONDOWN 的 lParam 是两个打包的有符号屏幕坐标。
+    let position = (u32::from(cursor.x as u16) | (u32::from(cursor.y as u16) << 16)) as isize;
+    if unsafe {
+        ReleaseCapture();
+        PostMessageW(hwnd, WM_NCLBUTTONDOWN, HTCAPTION as usize, position)
+    } == 0
+    {
+        return Err(std::io::Error::last_os_error().to_string());
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+pub fn start_dragging(window: &WebviewWindow) -> Result<(), String> {
+    window.start_dragging().map_err(|e| e.to_string())
+}
+
 /// 在窗口首次显示前禁用 Windows 桌面合成过渡。
 #[cfg(windows)]
 pub fn disable_transitions(window: &WebviewWindow) -> Result<(), String> {
@@ -48,11 +100,25 @@ pub fn disable_transitions(window: &WebviewWindow) -> Result<(), String> {
 /// Clip the reserved backing canvas to the currently visible island in device pixels.
 #[cfg(windows)]
 pub fn clip(window: &WebviewWindow, backing: Rect, visible: Rect) -> Result<(), String> {
+    clip_at_scale(
+        window,
+        backing,
+        visible,
+        window.scale_factor().map_err(|e| e.to_string())?,
+    )
+}
+
+#[cfg(windows)]
+pub fn clip_at_scale(
+    window: &WebviewWindow,
+    backing: Rect,
+    visible: Rect,
+    factor: f64,
+) -> Result<(), String> {
     use windows_sys::Win32::{
         Foundation::HWND,
         Graphics::Gdi::{CreateRectRgn, DeleteObject, SetWindowRgn},
     };
-    let factor = window.scale_factor().map_err(|e| e.to_string())?;
     let left = ((backing.width - visible.width) * factor / 2.).round() as i32;
     let right = left + (visible.width * factor).round() as i32;
     let bottom = (visible.height * factor).round() as i32;
@@ -73,6 +139,16 @@ pub fn clip(window: &WebviewWindow, backing: Rect, visible: Rect) -> Result<(), 
 
 #[cfg(not(windows))]
 pub fn clip(_window: &WebviewWindow, _backing: Rect, _visible: Rect) -> Result<(), String> {
+    Ok(())
+}
+
+#[cfg(not(windows))]
+pub fn clip_at_scale(
+    _window: &WebviewWindow,
+    _backing: Rect,
+    _visible: Rect,
+    _factor: f64,
+) -> Result<(), String> {
     Ok(())
 }
 

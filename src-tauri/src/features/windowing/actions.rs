@@ -38,17 +38,21 @@ pub(crate) fn set_shape(app: &AppHandle, mode: &str) -> Result<()> {
     if !matches!(mode, "notch" | "pill") {
         return Err("Invalid shape mode".into());
     }
-    store_write(app, "island-shape-mode", &json!(mode))?;
-    app.state::<Desktop>().inner.lock().unwrap().shape = mode.into();
-    windows::reposition(app)?;
-    let rect = app.state::<Desktop>().inner.lock().unwrap().visible;
-    windows::emit(
-        app,
-        "main",
-        "island:shape-mode:changed",
-        json!([mode, rect.x, rect.y]),
-    )?;
-    windows::broadcast(app, "island:shape-mode", json!(mode))
+    let mode = mode.to_owned();
+    windows::on_main_thread(app, move |app| {
+        if app.state::<Desktop>().inner.lock().unwrap().shape == mode {
+            return Ok(());
+        }
+        store_write(app, "island-shape-mode", &json!(mode))?;
+        let (id, target) = windows::layout::prepare_shape(app, &mode)?;
+        windows::emit(
+            app,
+            "main",
+            "island:shape-mode:changed",
+            json!([mode, target.x, target.y, id]),
+        )?;
+        windows::broadcast(app, "island:shape-mode", json!(mode))
+    })
 }
 
 pub(crate) fn open_logs(app: &AppHandle) -> Result<()> {
