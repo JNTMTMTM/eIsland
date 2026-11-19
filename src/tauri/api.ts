@@ -180,13 +180,28 @@ const api = {
     desktop.send('window:collapse', delayMs);
   },
   /**
-   * 按像素偏移移动窗口（用于拖动）
-   * @param dx - 水平偏移量
-   * @param dy - 垂直偏移量
+   * 按逻辑像素偏移移动窗口。
+   * @param dx - 水平偏移量。
+   * @param dy - 垂直偏移量。
    */
   moveWindowDelta: (dx: number, dy: number): void => {
     desktop.send('window:move-delta', dx, dy);
   },
+  /**
+   * 将胶囊窗口交给系统拖动。
+   * @param dx - 越过拖动阈值时的水平位移。
+   * @param dy - 越过拖动阈值时的垂直位移。
+   */
+  startPillDrag: (dx: number, dy: number): void => {
+    desktop.send('window:start-pill-drag', dx, dy);
+  },
+  /**
+   * 将轮廓动画当前帧的位置同步到原生窗口。
+   * @param id - 原生形态切换标识。
+   * @param progress - 已应用缓动的进度，范围为 0 到 1。
+   * @returns 原生窗口处理完当前帧后完成。
+   */
+  setShapeProgress: (id: number, progress: number): Promise<void> => desktop.invoke('window:shape-progress', id, progress),
   /**
    * 隐藏窗口
    */
@@ -1389,13 +1404,10 @@ const api = {
   shapeModeSet: (mode: string): Promise<boolean> => desktop.invoke('island:shape-mode:set', mode),
   /**
    * 监听形态模式变更通知（专用通道，由主进程主动推送）
-   * @param callback - 接收对应原生事件业务数据的回调。
+   * @param handler - 接收目标形态及原生切换标识的回调。
    * @returns 本次操作的事件取消订阅函数。
    */
-  onShapeModeChanged: (callback: (mode: string, targetX: number, targetY: number) => void): (() => void) => {
-    const handler = (mode: string, targetX: number, targetY: number): void => {
-      callback(mode, targetX, targetY);
-    };
+  onShapeModeChanged: (handler: (mode: string, targetX: number, targetY: number, id: number) => void): (() => void) => {
     desktop.on('island:shape-mode:changed', handler);
     return () => {
       desktop.off('island:shape-mode:changed', handler);

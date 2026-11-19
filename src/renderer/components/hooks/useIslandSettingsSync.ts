@@ -24,12 +24,9 @@
  * @author 鸡哥
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import useIslandStore from '../../store/isLandStore';
-import type { NotificationData } from '../../store/types';
-import { getIslandMorphDuration } from '../../store/constants/islandTransition';
-import { beginIslandWindowTransition, completeIslandWindowTransition, getIslandWindowTransitionId } from '../../utils/islandWindowTransition';
-import { ISLAND_WIDTH } from '../../../shared/islandDimensions';
 import {
   ISLAND_BG_MEDIA_STORE_KEY,
   ISLAND_BG_IMAGE_STORE_KEY,
@@ -45,6 +42,7 @@ import {
 } from '../config/dynamicIslandConfig';
 import { ISLAND_POSITION_LOCKED_STORE_KEY } from '../../../shared/storeKeys';
 import { ISLAND_AUTO_DIM_ENABLED_STORE_KEY, ISLAND_AUTO_DIM_DELAY_STORE_KEY, DEFAULT_AUTO_DIM_DELAY_SEC } from './useIslandAutoDim';
+import type { NotificationData } from '../../store/types';
 import type { IslandBgMediaConfig, UpdateSourceKey } from '../config/dynamicIslandConfig';
 
 interface UseIslandSettingsSyncOptions {
@@ -73,6 +71,7 @@ interface UseIslandSettingsSyncOptions {
  * @param options - 设置同步配置。
  */
 export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): void {
+  const shapeEventReceived = useRef(false);
   const {
     language,
     initRef,
@@ -110,6 +109,7 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         useIslandStore.getState().setAnimationSpeed(speed);
       }).catch(() => {});
       window.api?.shapeModeGet?.().then((value) => {
+        if (shapeEventReceived.current) return;
         const mode = value === 'notch' || value === 'pill' ? value : 'notch';
         useIslandStore.getState().setShapeMode(mode);
       }).catch(() => {});
@@ -216,10 +216,6 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
           const v = value === 'slow' || value === 'medium' || value === 'fast' ? value : 'medium';
           useIslandStore.getState().setAnimationSpeed(v);
         }
-        if (channel === 'island:shape-mode') {
-          const v = value === 'notch' || value === 'pill' ? value : 'notch';
-          useIslandStore.getState().setShapeMode(v);
-        }
         if (channel === 'store:island-bg-media') {
           const media = normalizeBgMediaConfig(value);
           if (!media) {
@@ -276,12 +272,6 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
         if (channel === `store:${ISLAND_BG_VIDEO_HW_DECODE_STORE_KEY}`) {
           if (typeof value === 'boolean') {
             setBgVideoHwDecode(value);
-          }
-        }
-        if (channel === 'island:position') {
-          const offset = value as { x: number; y: number };
-          if (offset && typeof offset.x === 'number' && typeof offset.y === 'number') {
-            window.api?.setIslandPositionOffset?.(offset).catch(() => {});
           }
         }
       });
@@ -361,133 +351,55 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     positionLockedRef,
   ]);
 
-  /** 专用形态模式变更监听（独立于 initRef 守卫，确保始终活跃） */
   useEffect(() => {
-    /**
-     * 平滑移动窗口（增量式，每帧计算差值）
-     * @param totalDx - 水平总位移
-     * @param totalDy - 垂直总位移
-     * @param duration - 动画时长（毫秒）
-     */
-    /** 当前动画帧 ID，用于取消 */
-    let animFrameId = 0;
-    let completionTimeout: ReturnType<typeof setTimeout> | undefined;
-    let shapeChangeVersion = 0;
+    let frameId = 0;
+    let activeId = 0;
+    const unsubscribe = window.api?.onShapeModeChanged?.((mode, _targetX, _targetY, id) => {
+      shapeEventReceived.current = true;
+      const nextMode = mode === 'pill' ? 'pill' : 'notch';
+      activeId = id;
+      cancelAnimationFrame(frameId);
 
-    const animateWindowMove = (totalDx: number, totalDy: number, duration: number): Promise<void> => {
-      return new Promise((resolve) => {
-        const startTime = performance.now();
-        let movedX = 0;
-        let movedY = 0;
-        const step = (now: number): void => {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          /** easeOutCubic 缓动 */
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const targetMovedX = Math.round(totalDx * eased);
-          const targetMovedY = Math.round(totalDy * eased);
-          const dx = targetMovedX - movedX;
-          const dy = targetMovedY - movedY;
-          if (dx !== 0 || dy !== 0) {
-            window.api?.moveWindowDelta?.(dx, dy);
-            movedX = targetMovedX;
-            movedY = targetMovedY;
+      // 在取样之前提交形态，使用浏览器实际创建的轮廓过渡（包括反向切换缩短的时长）。
+      const shell = document.querySelector<HTMLElement>('.island-shell');
+      flushSync(() => useIslandStore.getState().setShapeMode(nextMode));
+      const outline = shell?.getAnimations?.().find((animation): animation is CSSTransition =>
+        'transitionProperty' in animation && animation.transitionProperty === 'clip-path');
+      const timing = outline?.effect?.getTiming();
+      const duration = typeof timing?.duration === 'number' ? timing.duration : 0;
+      const clock = timing && duration > 0
+        ? new Animation(new KeyframeEffect(null, null, { ...timing, fill: 'both' }), document.timeline)
+        : null;
+      let startTime: number | undefined;
+
+      const step = (now: number): void => {
+        let progress = 1;
+        if (clock) {
+          startTime ??= typeof outline?.startTime === 'number' ? outline.startTime : now;
+          const elapsed = Math.max(0, now - startTime);
+          if (elapsed < duration) {
+            clock.currentTime = elapsed;
+            progress = Math.min(clock.effect?.getComputedTiming().progress ?? 0, 1 - Number.EPSILON);
           }
-          if (progress < 1) {
-            animFrameId = requestAnimationFrame(step);
-          } else {
-            resolve();
-          }
-        };
-        animFrameId = requestAnimationFrame(step);
-      });
-    };
-
-    /** 根据当前状态调用对应的窗口 resize */
-    const applyWindowForState = (state: string, delayMs = 0): void => {
-      if (state === 'hover') {
-        window.api?.expandWindow(delayMs);
-      } else if (state === 'notification' || state === 'agent' || state === 'stt' || state === 'cli') {
-        window.api?.expandWindowNotification(delayMs);
-      } else if (state === 'lyrics' || state === 'agentVoiceInput') {
-        window.api?.expandWindowLyrics(delayMs);
-      } else if (state === 'lyricsTranslation') {
-        window.api?.expandWindowLyricsTranslation(delayMs);
-      } else if (state === 'expanded' || state === 'fileTransfer') {
-        window.api?.expandWindowFull(delayMs);
-      } else if (state === 'maxExpand' || state === 'guide' || state === 'login' || state === 'register' || state === 'resetPassword' || state === 'setPassword' || state === 'bindOAuth' || state === 'bindEmail' || state === 'payment' || state === 'announcement' || state === 'questionnaire' || state === 'musicProvidersLogin') {
-        window.api?.expandWindowSettings(delayMs);
-      } else {
-        window.api?.collapseWindow(delayMs);
-      }
-    };
-
-    const unsub = window.api?.onShapeModeChanged?.((mode: string, targetX: number, targetY: number) => {
-      const nextMode = mode === 'notch' || mode === 'pill' ? mode : 'notch';
-      const store = useIslandStore.getState();
-
-      shapeChangeVersion += 1;
-      const currentVersion = shapeChangeVersion;
-      if (animFrameId) {
-        cancelAnimationFrame(animFrameId);
-        animFrameId = 0;
-      }
-      if (completionTimeout) clearTimeout(completionTimeout);
-
-      const currentState = store.state;
-      const transitionDuration = getIslandMorphDuration(store.animationSpeed, store.springAnimation);
-      const transitionId = store.shapeMode !== nextMode
-        ? beginIslandWindowTransition(store.shapeMode, nextMode, 'shape')
-        : getIslandWindowTransitionId('shape');
-      if (store.shapeMode !== nextMode) store.setShapeMode(nextMode);
-      applyWindowForState(currentState, transitionDuration);
-
-      const completeAfterPaint = (delay = 0): void => {
-        if (!transitionId || currentVersion !== shapeChangeVersion) return;
-        const queueFrame = (): void => {
-          animFrameId = requestAnimationFrame(() => {
-            if (currentVersion === shapeChangeVersion) completeIslandWindowTransition(transitionId);
-          });
-        };
-        if (delay) completionTimeout = setTimeout(queueFrame, delay);
-        else queueFrame();
-      };
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises -- IPC 监听器同步返回；内部已捕获异步失败并安排画布保护释放。
-      void (async () => {
-        try {
-          const [bounds, scale] = await Promise.all([window.api.getWindowBounds(), window.api.islandScaleGet?.() ?? 100]);
-          if (currentVersion !== shapeChangeVersion) return;
-          if (!bounds) {
-            completeAfterPaint(transitionDuration);
-            return;
-          }
-          const targetCenterX = targetX + Math.round(ISLAND_WIDTH * scale / 100) / 2;
-          const currentCenterX = bounds.x + bounds.width / 2;
-          const dx = Math.round(targetCenterX - currentCenterX);
-          const dy = Math.round(targetY - bounds.y);
-          await animateWindowMove(dx, dy, transitionDuration);
-          if (currentVersion !== shapeChangeVersion) return;
-          const settledBounds = await window.api.getWindowBounds();
-          if (currentVersion !== shapeChangeVersion) return;
-          if (settledBounds) {
-            const correctionX = Math.round(targetCenterX - (settledBounds.x + settledBounds.width / 2));
-            const correctionY = Math.round(targetY - settledBounds.y);
-            if (correctionX !== 0 || correctionY !== 0) {
-              window.api?.moveWindowDelta?.(correctionX, correctionY);
-            }
-          }
-          completeAfterPaint();
-        } catch {
-          // 原生位置读取失败时仍保留完整形变时间，随后释放当前画布保护。
-          completeAfterPaint(transitionDuration);
         }
-      })();
+        // 等原生窗口处理完当前帧后再取样，忙帧期间跳过中间位置，防止 IPC 队列积压。
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 帧回调同步返回，原生超时兜底释放画布。
+        void (async () => {
+          try {
+            await window.api.setShapeProgress(id, progress);
+            if (activeId === id && progress < 1) frameId = requestAnimationFrame(step);
+          } catch {
+            // 原生超时兜底会释放画布。
+          }
+        })();
+      };
+      frameId = requestAnimationFrame(step);
     });
+
     return () => {
-      shapeChangeVersion += 1;
-      if (animFrameId) cancelAnimationFrame(animFrameId);
-      if (completionTimeout) clearTimeout(completionTimeout);
-      unsub?.();
+      activeId = 0;
+      cancelAnimationFrame(frameId);
+      unsubscribe?.();
     };
   }, []);
 }

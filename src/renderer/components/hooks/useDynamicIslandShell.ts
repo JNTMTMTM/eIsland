@@ -83,7 +83,7 @@ export function useDynamicIslandShell(options: UseDynamicIslandShellOptions): Dy
   } = options;
 
   const prevStateRef = useRef(state);
-  const transitionId = useSyncExternalStore(subscribeIslandWindowTransition, () => getIslandWindowTransitionId('state'));
+  const transitionId = useSyncExternalStore(subscribeIslandWindowTransition, getIslandWindowTransitionId);
   const morphingRef = useRef(false);
   const [morphing, setMorphing] = useState(false);
   const [fromState, setFromState] = useState('');

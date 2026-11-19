@@ -117,7 +117,7 @@ describe('壳层真实状态动作和形变时序', () => {
     paint();
     expect(native.completeWindowTransition).toHaveBeenLastCalledWith(reversed);
   });
-  it('新切换和卸载取消旧确认帧，形态令牌不会被状态壳层误确认', async () => {
+  it('新状态切换和卸载取消旧确认帧', async () => {
     const input = options();
     await mount(input);
     beginIslandWindowTransition('idle', 'notification');
@@ -133,11 +133,6 @@ describe('壳层真实状态动作和形变时序', () => {
     paint();
     expect(native.completeWindowTransition).not.toHaveBeenCalled();
     completeIslandWindowTransition(latest);
-    native.completeWindowTransition.mockClear();
-    beginIslandWindowTransition('notch', 'pill', 'shape');
-    await mount(input);
-    paint();
-    expect(native.completeWindowTransition).not.toHaveBeenCalled();
   });
   it('初始状态不形变，状态变化显示前态，完成后清空并停止保护', async () => {
     const input = options(); expect(await mount(input)).toMatchObject({ morphing: false, fromState: '' });

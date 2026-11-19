@@ -66,22 +66,12 @@ describe('island window transition acknowledgements', () => {
     beginIslandWindowTransition('notification', 'idle');
     const current = beginIslandWindowTransition('idle', 'notification');
     expect(listener).toHaveBeenCalledTimes(2);
-    expect(getIslandWindowTransitionId('state')).toBe(current);
+    expect(getIslandWindowTransitionId()).toBe(current);
     completeIslandWindowTransition(current);
     expect(listener).toHaveBeenCalledTimes(3);
     unsubscribe();
     beginIslandWindowTransition('notification', 'hover');
     expect(listener).toHaveBeenCalledTimes(3);
-  });
-
-  it('keeps shape movement completion separate from shell state completion', () => {
-    const current = beginIslandWindowTransition('notch', 'pill', 'shape');
-    expect(getIslandWindowTransitionId('state')).toBe(0);
-    expect(getIslandWindowTransitionId('shape')).toBe(current);
-    completeIslandWindowTransition(0);
-    expect(complete).not.toHaveBeenCalled();
-    completeIslandWindowTransition(current);
-    expect(complete).toHaveBeenCalledExactlyOnceWith(current);
   });
 
   it.each(['width', 'clipPath', 'paddingInlineStart', 'paddingInlineEnd'])('waits for late CSS %s animations and a final frame, excluding infinite glow', async (property) => {
