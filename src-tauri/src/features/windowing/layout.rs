@@ -121,8 +121,7 @@ fn reposition_now(app: &AppHandle) -> Result<()> {
         let state = app.state::<Desktop>();
         let mut state = state.inner.lock().unwrap();
         state.center = area.x + area.width / 2. + state.offset.x;
-        let (width, height) =
-            geometry::state_size(&state.mode, state.shape == "pill", state.scale).unwrap();
+        let (width, height) = geometry::state_size(&state.mode, state.scale).unwrap();
         let y = area.y
             + if state.shape == "pill" {
                 46. + state.offset.y
@@ -178,7 +177,7 @@ pub(super) fn prepare_shape(app: &AppHandle, mode: &str) -> Result<(u64, Rect)> 
         let state = app.state::<Desktop>();
         let mut s = state.inner.lock().unwrap();
         let pill = mode == "pill";
-        let (width, height) = geometry::state_size(&s.mode, pill, s.scale).unwrap();
+        let (width, height) = geometry::state_size(&s.mode, s.scale).unwrap();
         s.shape = mode.into();
         s.center = area.x + area.width / 2. + s.offset.x;
         let y = area.y + if pill { 46. + s.offset.y } else { 0. };
@@ -296,7 +295,7 @@ fn finish_shape(app: &AppHandle) -> Result<()> {
         if s.pending.is_some() {
             return Ok(());
         }
-        let (width, height) = geometry::state_size(&s.mode, s.shape == "pill", s.scale).unwrap();
+        let (width, height) = geometry::state_size(&s.mode, s.scale).unwrap();
         if s.visible.width == width && s.visible.height == height {
             return Ok(());
         }
@@ -358,8 +357,7 @@ fn resize_now(app: &AppHandle, mode: &str, delay_ms: u64) -> Result<()> {
     let (target, protected, generation, wait, pending, moving) = {
         let state = app.state::<Desktop>();
         let mut s = state.inner.lock().unwrap();
-        let (width, height) =
-            geometry::state_size(mode, s.shape == "pill", s.scale).ok_or("Invalid island state")?;
+        let (width, height) = geometry::state_size(mode, s.scale).ok_or("Invalid island state")?;
         s.mode = mode.into();
         let moving = s.shape_motion.is_some();
         let center = if s.shape == "pill" || moving {

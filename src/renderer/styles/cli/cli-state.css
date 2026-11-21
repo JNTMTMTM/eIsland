@@ -47,6 +47,10 @@
   transform: translateY(-10px);
 }
 
+.island-shell.shape-pill .cli-state-icon {
+  transform: none;
+}
+
 .cli-state-icon--codex {
   padding: 16px;
   filter: brightness(0) invert(1);

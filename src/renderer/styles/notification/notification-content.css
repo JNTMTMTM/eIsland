@@ -34,6 +34,10 @@
   padding: 8px 12px;
 }
 
+.island-shell.shape-pill .notification-content {
+  padding-block: 4px;
+}
+
 .notification-main-row {
   display: flex;
   align-items: center;

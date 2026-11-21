@@ -32,7 +32,7 @@ use tauri::{AppHandle, WebviewWindow};
 pub(super) fn handles(channel: &str) -> bool {
     channel
         .strip_prefix("window:")
-        .is_some_and(|mode| crate::shared::geometry::state_size(mode, false, 100.).is_some())
+        .is_some_and(|mode| crate::shared::geometry::state_size(mode, 100.).is_some())
         || matches!(
             channel,
             "window:renderer-ready"
@@ -71,7 +71,7 @@ pub(super) fn handle(
     let a = args.first().unwrap_or(&Value::Null);
     let b = args.get(1).unwrap_or(&Value::Null);
     if let Some(mode) = channel.strip_prefix("window:") {
-        if crate::shared::geometry::state_size(mode, false, 100.).is_some() {
+        if crate::shared::geometry::state_size(mode, 100.).is_some() {
             source(&window, "main")?;
             windows::resize(&app, mode, a.as_u64().unwrap_or(0).min(30000))?;
             return Ok(Value::Null);

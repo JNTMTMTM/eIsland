@@ -37,7 +37,7 @@ function NotchPreview(): ReactElement {
       {/* 屏幕边框 */}
       <rect x="1" y="1" width="118" height="78" rx="8" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
       {/* 刘海屏形态 — 贴顶，底部圆角，顶部直角 */}
-      <path d="M30 0 H90 V11 Q90 22 79 22 H41 Q30 22 30 11 Z" fill="rgba(255,255,255,0.85)" />
+      <path d="M30 0 H90 V4.85 Q90 9.7 85.15 9.7 H34.85 Q30 9.7 30 4.85 Z" fill="rgba(255,255,255,0.85)" />
     </svg>
   );
 }
@@ -49,7 +49,7 @@ function PillPreview(): ReactElement {
       {/* 屏幕边框 */}
       <rect x="1" y="1" width="118" height="78" rx="8" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
       {/* 胶囊形态 — 全圆角，居中悬浮 */}
-      <rect x="26" y="25" width="68" height="20" rx="10" fill="rgba(255,255,255,0.85)" />
+      <rect x="30" y="30" width="60" height="9.7" rx="4.85" fill="rgba(255,255,255,0.85)" />
     </svg>
   );
 }

@@ -61,12 +61,11 @@
 /* ── 灵动岛胶囊形态（pill） ── */
 
 .island-shell.shape-pill {
-  --shell-pill-radius: 38px;
-  --shell-pill-inset-block: 12px;
-  --shell-pill-inset-inline: 12px;
+  --shell-pill-radius: 21px;
+  --shell-pill-inset-block: 6px;
+  --shell-pill-inset-inline: 8px;
 
   box-sizing: border-box;
-  height: 76px;
   border-radius: var(--shell-pill-radius);
   transform-origin: center center;
   cursor: grab;
@@ -78,22 +77,18 @@
 
 .island-shell.shape-pill.hover,
 .island-shell.shape-pill.lyricsTranslation {
-  --shell-pill-radius: 42px;
-  --shell-pill-inset-block: 8px;
-  --shell-pill-inset-inline: 18px;
-
-  height: 84px;
+  --shell-pill-radius: 30px;
+  --shell-pill-inset-block: 6px;
+  --shell-pill-inset-inline: 13px;
 }
 
 .island-shell.shape-pill.notification,
 .island-shell.shape-pill.agent,
 .island-shell.shape-pill.stt,
 .island-shell.shape-pill.cli {
-  --shell-pill-radius: 50px;
-  --shell-pill-inset-block: 8px;
-  --shell-pill-inset-inline: 24px;
-
-  height: 100px;
+  --shell-pill-radius: 44px;
+  --shell-pill-inset-block: 4px;
+  --shell-pill-inset-inline: 27px;
 }
 
 .island-shell.shape-pill.expanded,
@@ -111,37 +106,14 @@
 .island-shell.shape-pill.questionnaire,
 .island-shell.shape-pill[class~="musicProvidersLogin"] {
   --shell-pill-radius: 34px;
-  --shell-pill-inset-block: 7px;
-  --shell-pill-inset-inline: 15px;
-}
-
-.island-shell.shape-pill.expanded,
-.island-shell.shape-pill.fileTransfer {
-  height: 164px;
-}
-
-.island-shell.shape-pill.maxExpand,
-.island-shell.shape-pill.guide,
-.island-shell.shape-pill.login,
-.island-shell.shape-pill.register,
-.island-shell.shape-pill.resetPassword,
-.island-shell.shape-pill.setPassword,
-.island-shell.shape-pill.bindOAuth,
-.island-shell.shape-pill.bindEmail,
-.island-shell.shape-pill.payment,
-.island-shell.shape-pill.announcement,
-.island-shell.shape-pill.questionnaire,
-.island-shell.shape-pill[class~="musicProvidersLogin"] {
-  height: 416px;
-}
-
-.island-shell.shape-pill.lyrics,
-.island-shell.shape-pill.agentVoiceInput {
-  --shell-pill-radius: 30px;
   --shell-pill-inset-block: 4px;
-  --shell-pill-inset-inline: 16px;
+  --shell-pill-inset-inline: 19px;
+}
 
-  height: 60px;
+/** 语音球需要占满 42px 高度，轮廓留白移到两侧。 */
+.island-shell.shape-pill.agentVoiceInput {
+  --shell-pill-inset-block: 0;
+  --shell-pill-inset-inline: 21px;
 }
 
 .island-shell.spring-animation {

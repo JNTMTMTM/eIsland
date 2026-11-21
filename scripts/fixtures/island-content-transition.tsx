@@ -440,7 +440,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
           width = Math.max(width, bounds.width); height = Math.max(height, bounds.height);
           finalWidth = bounds.width; finalHeight = bounds.height;
           if (shape === 'pill' && state === 'musicProvidersLogin') {
-            assert(bounds.height === 416, 'Pill music provider login must share the 416px settings canvas.');
+            assert(bounds.height === 400, 'Pill music provider login must share the 400px settings canvas.');
             assert(getComputedStyle(element).borderRadius === '34px', 'Pill music provider login must share the settings corner radius.');
           }
         });
@@ -582,13 +582,16 @@ function testPillContentBounds(): void {
   shell.append(content);
   document.body.prepend(shell);
   try {
-    const states = ['idle', 'lyrics', 'lyricsTranslation', 'agentVoiceInput', 'hover', 'notification', 'agent', 'cli', 'stt',
-      'expanded', 'fileTransfer', 'maxExpand', 'login', 'announcement', 'musicProvidersLogin'];
+    const states = Object.keys(ISLAND_STATE_AREA);
     for (const corners of ['rounded', 'concave']) {
       for (const state of states) {
+        shell.className = `island-shell shape-notch corners-${corners} ${state}`;
+        const notch = shell.getBoundingClientRect();
         shell.className = `island-shell shape-pill corners-${corners} ${state}`;
+        const pill = shell.getBoundingClientRect();
         const { top, right, bottom, left } = content.getBoundingClientRect();
         const label = `${corners}/${state}`;
+        assert(pill.width === notch.width && pill.height === notch.height, `${label}: shape switching must keep the same dimensions.`);
         for (const x of [left + 1, right - 1]) {
           for (const y of [top + 1, bottom - 1]) {
             assert(document.elementFromPoint(x, y) === content, `${label}: an inner page corner is clipped.`);
@@ -597,9 +600,9 @@ function testPillContentBounds(): void {
       }
     }
     shell.className = 'island-shell shape-pill corners-rounded idle';
-    assert(shell.offsetWidth === 260 && shell.offsetHeight === 76 && getComputedStyle(shell).borderRadius === '38px',
-      'Idle Pill must have the reference aspect ratio and semicircular ends.');
-    checks.push('Pill content stays within the clip path for compact and expanded states');
+    assert(shell.offsetWidth === 260 && shell.offsetHeight === 42 && getComputedStyle(shell).borderRadius === '21px',
+      'Idle Pill uses the shared size and semicircular ends.');
+    checks.push('both shapes share the same size in all states and Pill content stays within the clip path');
   } finally {
     shell.remove();
   }

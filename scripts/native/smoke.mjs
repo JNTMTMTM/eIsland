@@ -302,10 +302,14 @@ try {
   await ipc(main, 'window:transition:complete', 991);
   assert.equal((await ipc(main, 'window:get-bounds')).width, 260);
   await ipc(main, 'island:scale:set', 125);
+  await ipc(main, 'window:collapse');
+  const notchBounds = await ipc(main, 'window:get-bounds');
   await ipc(main, 'island:shape-mode:set', 'pill');
   await delay(100);
   await ipc(main, 'window:collapse');
-  assert.equal((await ipc(main, 'window:get-bounds')).height, 95);
+  const pillBounds = await ipc(main, 'window:get-bounds');
+  assert.deepEqual([pillBounds.width, pillBounds.height], [notchBounds.width, notchBounds.height]);
+  assert.deepEqual([pillBounds.width, pillBounds.height], [325, 53]);
   await ipc(main, 'island:scale:set', 100);
   await ipc(main, 'island:shape-mode:set', 'notch');
   assert.equal(await ipc(main, 'app:open-standalone-window'), true);
