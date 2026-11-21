@@ -73,7 +73,8 @@ export function completeIslandWindowTransition(transitionId: number): void {
     const effect = animation.effect as KeyframeEffect | null;
     if (!effect?.getKeyframes || !Number.isFinite(effect.getComputedTiming().endTime)) return false;
     return effect.getKeyframes().some((frame) => Object.keys(frame).some((key) =>
-      ['width', 'height', 'transform', 'clipPath', 'paddingInline', 'paddingInlineStart', 'paddingInlineEnd'].includes(key)
+      ['width', 'height', 'transform', 'clipPath'].includes(key)
+      || key.startsWith('padding')
       || (key.startsWith('border') && key.endsWith('Radius'))));
   }) ?? [];
   if (animations.length) {

@@ -48,11 +48,11 @@ impl Rect {
 /// Match the shared renderer dimensions, including taller floating-pill states.
 pub fn state_size(mode: &str, pill: bool, scale: f64) -> Option<(f64, f64)> {
     let (width, height, pill_height) = match mode {
-        "collapse" => (260., 42., 52.),
-        "expand" => (500., 60., 72.),
+        "collapse" => (260., 42., 76.),
+        "expand" => (500., 60., 84.),
         "expand-notification" => (500., 88., 100.),
-        "expand-lyrics" => (500., 42., 52.),
-        "expand-lyrics-translation" => (500., 60., 72.),
+        "expand-lyrics" => (500., 42., 60.),
+        "expand-lyrics-translation" => (500., 60., 84.),
         "expand-full" => (860., 150., 164.),
         "expand-settings" => (860., 400., 416.),
         _ => return None,
@@ -104,6 +104,7 @@ mod tests {
             Some((1075., 520.))
         );
         assert_eq!(state_size("collapse", false, 50.), Some((130., 21.)));
+        assert_eq!(state_size("collapse", true, 125.), Some((325., 95.)));
         assert_eq!(state_size("untrusted", false, 100.), None);
     }
     #[test]

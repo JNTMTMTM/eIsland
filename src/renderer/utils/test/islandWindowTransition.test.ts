@@ -74,7 +74,7 @@ describe('island window transition acknowledgements', () => {
     expect(listener).toHaveBeenCalledTimes(3);
   });
 
-  it.each(['width', 'clipPath', 'paddingInlineStart', 'paddingInlineEnd'])('waits for late CSS %s animations and a final frame, excluding infinite glow', async (property) => {
+  it.each(['width', 'clipPath', 'paddingInlineStart', 'paddingInlineEnd', 'paddingTop', 'paddingBottom'])('waits for late CSS %s animations and a final frame, excluding infinite glow', async (property) => {
     let finish: () => void = () => {};
     const geometry = {
       playState: 'running',

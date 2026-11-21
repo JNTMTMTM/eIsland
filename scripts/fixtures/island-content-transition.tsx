@@ -428,7 +428,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
         row.style.cssText = 'position:absolute;left:0;top:0;width:1000px;';
         const element = document.createElement('div');
         row.append(element); host.append(row);
-        const classes = `island-shell shape-${shape} speed-${speed}${spring ? ' spring-animation' : ''}`;
+        const classes = `island-shell shape-${shape} corners-rounded speed-${speed}${spring ? ' spring-animation' : ''}`;
         element.style.cssText = 'transition:none;animation:none;';
         let width = 0;
         let height = 0;
@@ -441,7 +441,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
           finalWidth = bounds.width; finalHeight = bounds.height;
           if (shape === 'pill' && state === 'musicProvidersLogin') {
             assert(bounds.height === 416, 'Pill music provider login must share the 416px settings canvas.');
-            assert(getComputedStyle(element).borderRadius === '26px', 'Pill music provider login must keep the rounded settings shape.');
+            assert(getComputedStyle(element).borderRadius === '34px', 'Pill music provider login must share the settings corner radius.');
           }
         });
         element.className = `${classes} ${path[0]}`;
@@ -452,7 +452,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
       cases.forEach((item) => {
         const { element } = item;
         element.style.cssText = '';
-        element.className = `island-shell shape-${item.shape} speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[1]} morphing from-${item.path[0]}`;
+        element.className = `island-shell shape-${item.shape} corners-rounded speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[1]} morphing from-${item.path[0]}`;
         const style = getComputedStyle(element);
         assert(parseFloat(style.animationDuration) * 1000 <= item.guard,
           `${item.shape}/${item.speed}/${item.path.join('→')}: animation outlasts the native canvas guard.`);
@@ -471,7 +471,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
           const now = performance.now();
           const { element } = item;
           if (item.path.length > 2 && item.step === 1 && now - item.start >= 80) {
-            element.className = `island-shell shape-${item.shape} speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[2]} morphing from-${item.path[1]}`;
+            element.className = `island-shell shape-${item.shape} corners-rounded speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[2]} morphing from-${item.path[1]}`;
             element.getBoundingClientRect();
             Object.assign(item, { step: 2, start: performance.now() });
           }
@@ -573,7 +573,40 @@ async function testBusyShellAcknowledgements(): Promise<Record<string, unknown>[
   }
 }
 
+/** 用命中测试验证实际裁切路径包含内容区四角。 */
+function testPillContentBounds(): void {
+  const shell = document.createElement('div');
+  const content = document.createElement('div');
+  shell.style.transition = 'none';
+  content.style.cssText = 'position:relative;z-index:1;width:100%;height:100%;';
+  shell.append(content);
+  document.body.prepend(shell);
+  try {
+    const states = ['idle', 'lyrics', 'lyricsTranslation', 'agentVoiceInput', 'hover', 'notification', 'agent', 'cli', 'stt',
+      'expanded', 'fileTransfer', 'maxExpand', 'login', 'announcement', 'musicProvidersLogin'];
+    for (const corners of ['rounded', 'concave']) {
+      for (const state of states) {
+        shell.className = `island-shell shape-pill corners-${corners} ${state}`;
+        const { top, right, bottom, left } = content.getBoundingClientRect();
+        const label = `${corners}/${state}`;
+        for (const x of [left + 1, right - 1]) {
+          for (const y of [top + 1, bottom - 1]) {
+            assert(document.elementFromPoint(x, y) === content, `${label}: an inner page corner is clipped.`);
+          }
+        }
+      }
+    }
+    shell.className = 'island-shell shape-pill corners-rounded idle';
+    assert(shell.offsetWidth === 260 && shell.offsetHeight === 76 && getComputedStyle(shell).borderRadius === '38px',
+      'Idle Pill must have the reference aspect ratio and semicircular ends.');
+    checks.push('Pill content stays within the clip path for compact and expanded states');
+  } finally {
+    shell.remove();
+  }
+}
+
 window.runIslandTransitionTests = async () => {
+  testPillContentBounds();
   const shellTransitions = await testShellTransitions();
   const busyShellAcknowledgements = await testBusyShellAcknowledgements();
   await testLifecycle();

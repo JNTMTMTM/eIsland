@@ -49,7 +49,7 @@ function PillPreview(): ReactElement {
       {/* 屏幕边框 */}
       <rect x="1" y="1" width="118" height="78" rx="8" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
       {/* 胶囊形态 — 全圆角，居中悬浮 */}
-      <rect x="30" y="24" width="60" height="22" rx="11" fill="rgba(255,255,255,0.85)" />
+      <rect x="26" y="25" width="68" height="20" rx="10" fill="rgba(255,255,255,0.85)" />
     </svg>
   );
 }

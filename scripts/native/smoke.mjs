@@ -305,7 +305,7 @@ try {
   await ipc(main, 'island:shape-mode:set', 'pill');
   await delay(100);
   await ipc(main, 'window:collapse');
-  assert.equal((await ipc(main, 'window:get-bounds')).height, 65);
+  assert.equal((await ipc(main, 'window:get-bounds')).height, 95);
   await ipc(main, 'island:scale:set', 100);
   await ipc(main, 'island:shape-mode:set', 'notch');
   assert.equal(await ipc(main, 'app:open-standalone-window'), true);
