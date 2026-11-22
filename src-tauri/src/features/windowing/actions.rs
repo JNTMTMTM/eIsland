@@ -43,8 +43,9 @@ pub(crate) fn set_shape(app: &AppHandle, mode: &str) -> Result<()> {
         if app.state::<Desktop>().inner.lock().unwrap().shape == mode {
             return Ok(());
         }
-        store_write(app, "island-shape-mode", &json!(mode))?;
+        // 先完成原生准备再持久化，准备失败时当前与下次启动的形态保持一致。
         let (id, target) = windows::layout::prepare_shape(app, &mode)?;
+        store_write(app, "island-shape-mode", &json!(mode))?;
         windows::emit(
             app,
             "main",

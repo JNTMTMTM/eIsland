@@ -64,7 +64,10 @@ pub fn start_dragging(window: &WebviewWindow) -> Result<(), String> {
     if !primary_button_down() {
         return Ok(());
     }
-    let hwnd = window.hwnd().map_err(|e| e.to_string())?.0 as HWND;
+    begin_drag(window.hwnd().map_err(|e| e.to_string())?.0 as HWND)
+}
+
+fn begin_drag(hwnd: HWND) -> Result<(), String> {
     let mut cursor = POINT { x: 0, y: 0 };
     let mut bounds = RECT::default();
     if unsafe { GetCursorPos(&mut cursor) == 0 || GetWindowRect(hwnd, &mut bounds) == 0 } {
@@ -156,8 +159,11 @@ unsafe extern "system" fn drag_message(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use windows_sys::Win32::UI::WindowsAndMessaging::{
-        CreateWindowExW, DestroyWindow, SendMessageW, WS_POPUP,
+    use windows_sys::Win32::UI::{
+        Input::KeyboardAndMouse::GetFocus,
+        WindowsAndMessaging::{
+            CreateWindowExW, DestroyWindow, GetForegroundWindow, SendMessageW, WS_POPUP,
+        },
     };
 
     #[test]
@@ -180,13 +186,21 @@ mod tests {
             )
         };
         assert!(!window.is_null());
-        let result = install_drag(window, POINT { x: 0, y: 0 });
+        let (foreground, focus) = unsafe { (GetForegroundWindow(), GetFocus()) };
+        // 走 start_dragging 的同一路径：子类化并捕获鼠标，但不能激活窗口。
+        let result = begin_drag(window);
+        let captured = unsafe { GetCapture() } == window;
+        let kept_focus = unsafe { GetForegroundWindow() == foreground && GetFocus() == focus };
         if result.is_ok() {
             unsafe { SendMessageW(window, WM_LBUTTONUP, 0, 0) };
         }
-        let stopped = ACTIVE_DRAG.get().is_none();
+        let stopped = ACTIVE_DRAG.get().is_none() && unsafe { GetCapture() }.is_null();
+        let kept_focus =
+            kept_focus && unsafe { GetForegroundWindow() == foreground && GetFocus() == focus };
         unsafe { DestroyWindow(window) };
         result.unwrap();
+        assert!(captured);
+        assert!(kept_focus);
         assert!(stopped);
     }
 }

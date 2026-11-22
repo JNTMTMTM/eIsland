@@ -163,18 +163,25 @@ pub(super) fn install(enabled: bool) -> Result<()> {
         return Err("Codex hook receiver is not running".into());
     }
     let path = settings_path();
-    let previous = read_config(&path)?;
-    let mut config = previous.clone();
     let exe = enabled
         .then(std::env::current_exe)
         .transpose()
         .map_err(|e| e.to_string())?;
-    configure(&mut config, exe.as_deref())?;
-    if config != previous {
-        crate::infrastructure::storage::Store::new(path.parent().unwrap().to_path_buf())
-            .write("hooks", &config)?;
+    // Codex 不提供共享锁：写入前确认文件仍是计算时读到的版本，被改动就基于最新内容重算。
+    for _ in 0..3 {
+        let previous = read_config(&path)?;
+        let mut config = previous.clone();
+        configure(&mut config, exe.as_deref())?;
+        if config == previous {
+            return Ok(());
+        }
+        if read_config(&path)? != previous {
+            continue;
+        }
+        return crate::infrastructure::storage::Store::new(path.parent().unwrap().to_path_buf())
+            .write("hooks", &config);
     }
-    Ok(())
+    Err("Codex hooks.json changed during update, try again".into())
 }
 
 fn array(value: &Value) -> &[Value] {
@@ -279,7 +286,8 @@ fn session(id: &str, mut events: Vec<&Value>, time: u64) -> Option<Value> {
             "log"
         };
     }
-    if source == "log" && time.saturating_sub(timestamp(latest)) > STALE_MS {
+    // Codex 崩溃或被强制结束时不会发送 SessionEnd，hook 会话同样需要过期。
+    if time.saturating_sub(timestamp(latest)) > STALE_MS {
         phase = "completed";
         pending = Value::Null;
     }
@@ -539,6 +547,7 @@ mod tests {
             event("Stop", 8, "first", "hook"),
         ]);
         assert_eq!(reduce(&events, 8)["phase"], "running");
+        assert_eq!(reduce(&events, 8 + STALE_MS + 1)["phase"], "completed");
         events.push(event("Stop", 9, "second", "hook"));
         assert_eq!(reduce(&events, 9)["phase"], "idle");
         events.push(event("PostToolUse", 10, "second", "hook"));

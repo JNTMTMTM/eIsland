@@ -111,7 +111,7 @@ export function useCliStatus(provider: CliProvider): CliStatusActions {
     };
   }, [provider, active, applySnapshot]);
 
-  const runMutation = async (
+  const runMutation = useCallback(async (
     mutate: () => Promise<CliStatusSnapshot | { ok: boolean; snapshot: CliStatusSnapshot; message: string }>,
   ): Promise<void> => {
     if (!active || busyRef.current) return;
@@ -141,18 +141,31 @@ export function useCliStatus(provider: CliProvider): CliStatusActions {
         setMutating(false);
       }
     }
-  };
+  }, [active, applySnapshot]);
+
+  // 回调逐层传给 EventStreamPanel，保持引用稳定避免子组件无谓更新。
+  const enableMonitor = useCallback(() => runMutation(() => apiFor(provider).enable()), [runMutation, provider]);
+  const disableMonitor = useCallback(() => runMutation(() => apiFor(provider).disable()), [runMutation, provider]);
+  const clearEvents = useCallback(() => runMutation(() => apiFor(provider).clear()), [runMutation, provider]);
+  const deleteSessions = useCallback(
+    (ids: string[]) => runMutation(() => apiFor(provider).deleteSessions(ids)),
+    [runMutation, provider],
+  );
+  const setCodexHook = useCallback(
+    (enabled: boolean) => runMutation(() => window.api.codexHookSet(enabled)),
+    [runMutation],
+  );
 
   return {
     actionMessage,
     actionFailed,
     mutating,
+    enableMonitor,
+    disableMonitor,
+    clearEvents,
+    deleteSessions,
+    setCodexHook,
     snapshot: snapshotProviderRef.current === provider ? snapshot : EMPTY_CLI_STATUS,
     loading: snapshotProviderRef.current !== provider || loading,
-    enableMonitor: () => runMutation(() => apiFor(provider).enable()),
-    disableMonitor: () => runMutation(() => apiFor(provider).disable()),
-    clearEvents: () => runMutation(() => apiFor(provider).clear()),
-    deleteSessions: (ids) => runMutation(() => apiFor(provider).deleteSessions(ids)),
-    setCodexHook: (enabled) => runMutation(() => window.api.codexHookSet(enabled)),
   };
 }

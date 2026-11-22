@@ -1463,18 +1463,27 @@ pub fn run_hook_cli() -> bool {
                 .take(HOOK_BODY_LIMIT as u64 + 1)
                 .read_to_end(&mut body)
                 .map_err(|e| e.to_string())?;
-            if !body.is_empty() && body.len() <= HOOK_BODY_LIMIT {
-                crate::infrastructure::http::blocking_loopback_client()?
-                    .post(format!("http://127.0.0.1:{PORT}{}", codex_hooks::ENDPOINT))
-                    .timeout(Duration::from_secs(1))
-                    .header("Content-Type", "application/json")
-                    .body(body)
-                    .send()
-                    .map_err(|error| error.to_string())?;
+            if body.is_empty() {
+                return Err("Empty hook payload".into());
             }
+            if body.len() > HOOK_BODY_LIMIT {
+                return Err("Hook payload too large".into());
+            }
+            crate::infrastructure::http::blocking_loopback_client()?
+                .post(format!("http://127.0.0.1:{PORT}{}", codex_hooks::ENDPOINT))
+                .timeout(Duration::from_secs(1))
+                .header("Content-Type", "application/json")
+                .body(body)
+                .send()
+                .and_then(|response| response.error_for_status())
+                .map_err(|error| error.to_string())?;
             Ok(())
         };
-        let _ = run();
+        if let Err(error) = run() {
+            // Codex 把 0 和 2 以外的退出码视为不阻断的 hook 错误，并展示 stderr。
+            eprintln!("[eIsland] Codex hook not delivered: {error}");
+            std::process::exit(1);
+        }
         // Stop requires JSON. An empty object leaves Codex's decisions and context intact.
         println!("{{}}");
         return true;

@@ -37,6 +37,10 @@ pub fn on_main_thread<T: Send + 'static>(
     app: &AppHandle,
     operation: impl FnOnce(&AppHandle) -> Result<T> + Send + 'static,
 ) -> Result<T> {
+    // setup 等调用已在事件循环线程上，排队后阻塞等待会让闭包永远无法执行。
+    if std::thread::current().name() == Some("main") {
+        return operation(app);
+    }
     let handle = app.clone();
     let (send, receive) = std::sync::mpsc::sync_channel(1);
     app.run_on_main_thread(move || {
@@ -86,20 +90,34 @@ pub fn set_rect(window: &WebviewWindow, rect: Rect) -> Result<()> {
 
 fn apply_geometry(app: &AppHandle, target: Rect, visible: Rect) -> Result<()> {
     let window = main_window(app)?;
-    let previous = app.state::<Desktop>().inner.lock().unwrap().backing;
+    let (previous, previous_visible) = {
+        let state = app.state::<Desktop>();
+        let s = state.inner.lock().unwrap();
+        (s.backing, s.visible)
+    };
     let backing = Rect {
         height: visible.height,
         ..geometry::backing_rect(target, previous.width)
     };
-    window
-        .set_size(tauri::LogicalSize::new(backing.width, backing.height))
-        .map_err(|e| e.to_string())?;
-    if previous.width == 0. || backing.x != previous.x || backing.y != previous.y {
+    let applied = (|| {
         window
-            .set_position(tauri::LogicalPosition::new(backing.x, backing.y))
+            .set_size(tauri::LogicalSize::new(backing.width, backing.height))
             .map_err(|e| e.to_string())?;
+        if previous.width == 0. || backing.x != previous.x || backing.y != previous.y {
+            window
+                .set_position(tauri::LogicalPosition::new(backing.x, backing.y))
+                .map_err(|e| e.to_string())?;
+        }
+        native::clip(&window, backing, visible)
+    })();
+    if let Err(error) = applied {
+        // 状态只在全部成功后提交，失败时把原生窗口退回状态记录的边界。
+        if previous.width > 0. {
+            let _ = set_rect(&window, previous);
+            let _ = native::clip(&window, previous, previous_visible);
+        }
+        return Err(error);
     }
-    native::clip(&window, backing, visible)?;
     let state = app.state::<Desktop>();
     let mut state = state.inner.lock().unwrap();
     state.backing = backing;
@@ -175,9 +193,10 @@ pub(super) fn prepare_shape(app: &AppHandle, mode: &str) -> Result<(u64, Rect)> 
     let monitor = target_monitor(app)?;
     let area = monitor_rect(&monitor);
     record_moved(app, position, factor);
-    let (motion, target, visible, protected) = {
+    let (motion, target, visible, protected, rollback) = {
         let state = app.state::<Desktop>();
         let mut s = state.inner.lock().unwrap();
+        let rollback = (s.shape.clone(), s.center, s.shape_motion, s.pending);
         let pill = mode == "pill";
         let (width, height) = geometry::state_size(&s.mode, s.scale).unwrap();
         s.shape = mode.into();
@@ -213,10 +232,15 @@ pub(super) fn prepare_shape(app: &AppHandle, mode: &str) -> Result<(u64, Rect)> 
                 height,
             );
         }
-        (motion, target, s.visible, protected)
+        (motion, target, s.visible, protected, rollback)
     };
     if visible.width != protected.width || visible.height != protected.height {
-        apply_geometry(app, protected, protected)?;
+        if let Err(error) = apply_geometry(app, protected, protected) {
+            let state = app.state::<Desktop>();
+            let mut s = state.inner.lock().unwrap();
+            (s.shape, s.center, s.shape_motion, s.pending) = rollback;
+            return Err(error);
+        }
     }
     let state = app.state::<Desktop>();
     let store = state.store.lock().unwrap();
@@ -246,6 +270,12 @@ pub(super) fn prepare_shape(app: &AppHandle, mode: &str) -> Result<(u64, Rect)> 
                 Ok(false) => break,
                 Err(error) => {
                     eprintln!("[Window] shape transition: {error}");
+                    // 帧失败后不能保留 shape_motion，否则后续 resize 会一直当作仍在移动。
+                    if let Err(error) =
+                        on_main_thread(&handle, move |app| abandon_shape(app, motion.id))
+                    {
+                        eprintln!("[Window] shape transition cleanup: {error}");
+                    }
                     break;
                 }
             }
@@ -337,6 +367,14 @@ fn move_by(app: &AppHandle, window: &WebviewWindow, dx: f64, dy: f64) -> Result<
             position.y + (dy * factor).round() as i32,
         ),
     )
+}
+
+fn abandon_shape(app: &AppHandle, id: u64) -> Result<()> {
+    let current = app.state::<Desktop>().inner.lock().unwrap().shape_motion;
+    if current.is_some_and(|motion| motion.id == id) {
+        finish_shape(app)?;
+    }
+    Ok(())
 }
 
 fn finish_shape(app: &AppHandle) -> Result<()> {
