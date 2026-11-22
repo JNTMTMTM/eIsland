@@ -1,7 +1,136 @@
 # CHANGE LOG
 
 > 基于 Git 提交记录自动生成，按版本号顺序排列（含哈希与贡献者）。
-> 生成时间：2026-11-17T21:00:04.275Z
+> 生成时间：2026-11-22T20:37:32.931Z
+
+## 27.0.3
+
+- 2026-11-17 | f060739d | 鸡哥 | chore: update version to 27.0.3 in package files and configuration
+- 2026-11-17 | 56e27f2b | 鸡哥 | feat(docs): add release notes for version 27.0.3 with new features, improvements, and bug fixes
+- 2026-11-17 | fdef3c7b | eislandBot | docs: auto update CHANGE_LOG.md for #342 by @dependabot[bot] [skip ci]
+- 2026-11-17 | fb6446f8 | JNTMTMTM | Merge pull request #342 from JNTMTMTM/dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.138
+- 2026-11-17 | 53b3ad7a | 鸡哥 | fix(docs): retain compatible dependencies after Dependabot refresh
+- 2026-11-17 | a89dd955 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
+- 2026-11-17 | 52d49787 | 鸡哥 | fix(docs): keep Git plugin compatible with VuePress rc.31
+- 2026-11-17 | 17e6d046 | 鸡哥 | Merge remote-tracking branch 'origin/main' into dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.138
+- 2026-11-17 | f90eb967 | eislandBot | docs: auto update CHANGE_LOG.md for #339 by @dependabot[bot] [skip ci]
+- 2026-11-17 | b80ab55a | JNTMTMTM | Merge pull request #341 from JNTMTMTM/dependabot/npm_and_yarn/stylistic/eslint-plugin-6.0.0
+- 2026-11-17 | b557b703 | JNTMTMTM | Merge pull request #340 from JNTMTMTM/dependabot/npm_and_yarn/types/node-26.6.6
+- 2026-11-17 | 30fa30e1 | JNTMTMTM | Merge pull request #339 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b5cb062748
+- 2026-11-17 | ad725a72 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
+- 2026-11-17 | c797edf7 | dependabot[bot] | chore(deps): bump @stylistic/eslint-plugin from 5.10.0 to 6.0.0
+- 2026-11-17 | 09d62471 | dependabot[bot] | chore(deps): bump @types/node from 24.19.2 to 26.6.6
+- 2026-11-17 | f0061451 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 1 directory with 4 updates
+- 2026-11-17 | 6a466d96 | eislandBot | docs: auto update CHANGE_LOG.md for #338 by @JNTMTMTM [skip ci]
+- 2026-11-17 | a77479bb | JNTMTMTM | fix: 修复两个歌词状态机切换状态的行为错误 (#338)
+- 2026-11-17 | 0f51c35b | 鸡哥 | refactor: remove plugin version bump requirement and update related documentation
+- 2026-11-16 | 2ef4cf56 | 鸡哥 | feat(hook): enhance hover interaction logic to maintain state on pause
+- 2026-11-16 | 9eeae073 | 鸡哥 | Refactor code structure for improved readability and maintainability
+- 2026-11-16 | 2df3e66e | 鸡哥 | feat(i18n): add instrumental music notice in multiple languages and update related logic
+- 2026-11-16 | db2a0a35 | 鸡哥 | docs: add pull request merge method guidelines to AGENTS.md and CLAUDE.md
+- 2026-11-16 | bbf854a1 | eislandBot | docs: auto update CHANGE_LOG.md for #337 by @dependabot[bot] [skip ci]
+- 2026-11-16 | 8bc7af31 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git from 2.0.0-rc.132 to 2.0.0-rc.137 in /web/eisland-web-docs (#337)
+- 2026-11-16 | 79cc2a09 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 5 directories with 5 updates (#336)
+- 2026-11-16 | c30853e7 | eislandBot | docs: auto update CHANGE_LOG.md for #335 by @JNTMTMTM [skip ci]
+- 2026-11-16 | 7bb7f01b | JNTMTMTM | refactor: 使用 rust 重写 smtc 辅助程序 (#335)
+- 2026-11-16 | 70831f87 | 鸡哥 | feat(smtc): implement continuous session reading and improve error handling feat(i18n): add error messages for binary issues in multiple languages refactor(smtc): enhance media reading logic with retries and timeouts test(smtc): update tests for new continuous reading behavior and error handling
+- 2026-11-16 | dba6ad35 | 鸡哥 | Refactor platform-specific code for macOS removal
+- 2026-11-16 | 80b260af | 鸡哥 | Remove macOS Media Helper plugin and related files
+- 2026-11-15 | 36ee38b6 | 鸡哥 | refactor: remove SMTC Helper plugin references and update documentation
+- 2026-11-15 | 957dc1a7 | 鸡哥 | feat(package): add hasInstallScript property to package entries
+- 2026-11-16 | 0e34b7b0 | eislandBot | docs: auto update CHANGE_LOG.md for #332 by @dependabot[bot] [skip ci]
+- 2026-11-15 | 56fe173a | dependabot[bot] | chore(deps): bump stylelint-config-recommended-scss (#332)
+- 2026-11-16 | 4dd5e461 | eislandBot | docs: auto update CHANGE_LOG.md for #333 by @dependabot[bot] [skip ci]
+- 2026-11-15 | 59b433dd | dependabot[bot] | chore(deps): bump stylelint-config-standard-scss from 17.0.0 to 18.0.0 (#333)
+- 2026-11-15 | c45d1678 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 10 updates (#329)
+- 2026-11-15 | 5e51eeba | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments (#325)
+- 2026-11-16 | fd802f48 | eislandBot | docs: auto update CHANGE_LOG.md for #330 by @dependabot[bot] [skip ci]
+- 2026-11-15 | 2b201d41 | dependabot[bot] | chore(deps): upgrade i18next and react-i18next together (#330)
+- 2026-11-16 | f6b3f554 | eislandBot | docs: auto update CHANGE_LOG.md for #334 by @JNTMTMTM [skip ci]
+- 2026-11-15 | 66f0b1b9 | JNTMTMTM | Merge pull request #334 from JNTMTMTM/dev
+- 2026-11-15 | 45844c82 | 鸡哥 | feat(i18n): add source labels for capture modes in English, Japanese, and Chinese
+- 2026-11-15 | a643d3fa | 鸡哥 | Remove capture source labels JSON file for localization
+- 2026-11-15 | 4b919700 | 鸡哥 | Refactor fullscreen detection: Remove fullscreen detector plugin and implement native fullscreen detection in Rust for both Windows and macOS
+- 2026-11-15 | c62994c0 | 鸡哥 | Remove deprecated hardware info helper documentation files for Bluetooth, CPU, Disk, GPU, Memory, Monitor, Motherboard, and Network Adapter APIs.
+- 2026-11-15 | 23635362 | 鸡哥 | feat(capture): enhance capture cancellation with context menu support
+- 2026-11-15 | eba1baee | 鸡哥 | feat(capture): implement pixel capture functionality and enhance screenshot handling
+- 2026-11-15 | 304ce720 | 鸡哥 | Refactor screenshot functionality and remove deprecated components
+- 2026-11-15 | b35d0dd8 | 鸡哥 | feat(telemetry): add hardware telemetry support for Windows and macOS
+- 2026-11-15 | f3f51bf8 | eislandBot | docs: auto update CHANGE_LOG.md for #324 by @JNTMTMTM [skip ci]
+- 2026-11-15 | b1230495 | JNTMTMTM | Merge pull request #324 from JNTMTMTM/dev
+- 2026-11-15 | 85834c7a | 鸡哥 | feat: add retired extensions for volume and brightness control; enhance brightness control documentation
+- 2026-11-15 | 008d3744 | 鸡哥 | Implement brightness control for macOS and Windows
+- 2026-11-15 | 37ba6245 | 鸡哥 | refactor: remove Windows Application Icon Helper plugin and related documentation
+- 2026-11-15 | a4a3a18d | 鸡哥 | feat: update mcp.json to use workspaceFolder variable and add config.toml for codegraph server
+- 2026-11-15 | 5b3d4598 | 鸡哥 | Refactor volume management in eIsland
+- 2026-11-15 | 52abbf1b | eislandBot | docs: auto update CHANGE_LOG.md for #323 by @JNTMTMTM [skip ci]
+- 2026-11-15 | 6e2cb7cb | JNTMTMTM | Merge pull request #323 from JNTMTMTM/dev
+- 2026-11-15 | 9630dedb | 鸡哥 | feat: update server_request and kb_read documentation to Chinese; add tests for kb_read token validation
+- 2026-11-12 | 2695d459 | 鸡哥 | feat: remove MIMO and MiniMax references from codebase and documentation
+- 2026-11-12 | 622aa7fd | 鸡哥 | feat: remove unused SVG files for MIMO and MINIMAX
+- 2026-11-12 | 4bb30c93 | 鸡哥 | feat: add kb.read functionality and refactor web_search to use server_request
+- 2026-11-11 | b7319f9b | 鸡哥 | feat: add installer and uninstaller icons for NSIS packaging
+- 2026-11-12 | f1dc89a8 | eislandBot | docs: auto update CHANGE_LOG.md for #322 by @JNTMTMTM [skip ci]
+- 2026-11-11 | 952097b9 | JNTMTMTM | Merge pull request #322 from JNTMTMTM/dev
+- 2026-11-11 | c8e07fe9 | 鸡哥 | feat: enhance lyrics handling and state management across components
+- 2026-11-11 | 0d955418 | 鸡哥 | feat: enhance lyrics functionality and UI behavior
+- 2026-11-11 | e6a0d176 | 鸡哥 | feat: add lyrics display toggle functionality
+- 2026-11-11 | 3721aaf1 | eislandBot | docs: auto update CHANGE_LOG.md for #319 by @dependabot[bot] [skip ci]
+- 2026-11-11 | 4f550996 | JNTMTMTM | Merge pull request #319 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-4be7de7c94
+- 2026-11-11 | 1e001b65 | 鸡哥 | feat(font): add support for signed local asset server URLs in font loading
+- 2026-11-11 | b33549ce | 鸡哥 | fix(deps): update eslint-plugin-import-x to 4.18.1
+- 2026-11-11 | b23a6e28 | eislandBot | docs: auto update CHANGE_LOG.md for #320 by @JNTMTMTM [skip ci]
+- 2026-11-11 | 21845295 | JNTMTMTM | Merge pull request #320 from JNTMTMTM/dev
+- 2026-11-11 | f6165186 | 鸡哥 | refactor(fileTransfer): streamline React imports and enhance hook functionality
+- 2026-11-11 | b61579ed | 鸡哥 | feat(fileTransfer): implement file drag-and-drop functionality and improve state management
+- 2026-11-11 | 78ed1067 | 鸡哥 | fix(fileTransfer): update isHeavyState logic to show file shelf immediately in performance mode
+- 2026-11-10 | 2c707007 | 鸡哥 | fix(fileTransfer): adjust padding for file transfer grid to improve layout
+- 2026-11-10 | 2c608521 | 鸡哥 | feat(fileTransfer): restructure file transfer components and hooks for improved organization and functionality
+- 2026-11-10 | 878b9878 | 鸡哥 | refactor(fileTransfer): reorganize file transfer logic and store management
+- 2026-11-10 | 630d8111 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 2 directories with 10 updates
+- 2026-11-09 | 8b75a078 | 鸡哥 | feat: implement file transfer functionality with drag-and-drop support
+- 2026-11-09 | 486cc20a | 鸡哥 | feat: update empty state skill to reflect 14 modification points and adjust evals for new state handling
+- 2026-11-09 | be983458 | 鸡哥 | feat: refactor StandaloneWindowViewport to use resolvePage for dynamic tab rendering
+- 2026-11-09 | a7791f6a | 鸡哥 | feat: add file transfer state and content component
+- 2026-11-09 | dc71511b | eislandBot | docs: auto update CHANGE_LOG.md for #316 by @dependabot[bot] [skip ci]
+- 2026-11-09 | 807bdbe8 | JNTMTMTM | Merge pull request #316 from JNTMTMTM/dependabot/npm_and_yarn/stylelint-18.0.0
+- 2026-11-09 | ddb700bf | eislandBot | docs: auto update CHANGE_LOG.md for #314 by @dependabot[bot] [skip ci]
+- 2026-11-09 | 8e931905 | JNTMTMTM | Merge pull request #314 from JNTMTMTM/dependabot/npm_and_yarn/js-yaml-5.5.0
+- 2026-11-09 | fdfc3b96 | 鸡哥 | Merge validated main before final CI
+- 2026-11-09 | d380daed | eislandBot | docs: auto update CHANGE_LOG.md for #315 by @dependabot[bot] [skip ci]
+- 2026-11-09 | d9cfbe72 | 鸡哥 | Merge native event delivery test repair
+- 2026-11-09 | 09cc1186 | JNTMTMTM | Merge pull request #315 from JNTMTMTM/dependabot/npm_and_yarn/get-windows-10.0.0
+- 2026-11-09 | 42ff942e | 鸡哥 | fix(test): wait for native preview subscriptions and event delivery
+- 2026-11-09 | c5e715c6 | 鸡哥 | Merge validated get-windows upgrade for final integration tests
+- 2026-11-09 | a3c45f66 | 鸡哥 | Merge validated YAML upgrade before final dependency integration
+- 2026-11-09 | 6af8a6c4 | 鸡哥 | fix(lint): resolve Stylelint plugins from the tool workspace
+- 2026-11-09 | c24f098d | 鸡哥 | fix(test): isolate external player after syncing dependency branch
+- 2026-11-09 | 0b18396f | 鸡哥 | fix(test): isolate external player in native smoke tests
+- 2026-11-09 | a74ff317 | 鸡哥 | Merge validated grouped dependency updates
+- 2026-11-09 | 72f775bf | 鸡哥 | fix(test): isolate external announcement player during desktop smoke
+- 2026-11-09 | 27fe4703 | 鸡哥 | Merge validated grouped dependency updates and resolve the YAML lockfile
+- 2026-11-09 | bd104738 | 鸡哥 | Merge refreshed Dependabot head and preserve the verified SCSS migration
+- 2026-11-09 | 67119ee1 | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
+- 2026-11-09 | 95fa3e06 | dependabot[bot] | chore(deps): bump stylelint from 17.16.0 to 18.0.0
+- 2026-11-09 | e1647478 | dependabot[bot] | chore(deps): bump js-yaml from 4.3.2 to 5.5.0
+- 2026-11-09 | 3ebc3ffe | 鸡哥 | Merge main before validating dependency upgrade
+- 2026-11-09 | b963be7a | 鸡哥 | Merge main before validating dependency upgrade
+- 2026-11-09 | bdb85f2e | 鸡哥 | Merge validated dependency updates and retain Stylelint migration
+- 2026-11-09 | e7a62e9c | eislandBot | docs: auto update CHANGE_LOG.md for #313 by @dependabot[bot] [skip ci]
+- 2026-11-09 | fe158d1a | 鸡哥 | fix: migrate Stylelint 18 and Stylistic 6 together without dropping SCSS checks
+- 2026-11-09 | 8039997d | JNTMTMTM | Merge pull request #313 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-c1133b0d41
+- 2026-11-09 | e5fa9f34 | eislandBot | docs: auto update CHANGE_LOG.md for #312 by @dependabot[bot] [skip ci]
+- 2026-11-09 | a07c0f7b | JNTMTMTM | Merge pull request #312 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-da9d74feb1
+- 2026-11-10 | df748842 | 鸡哥 | Merge main before validating Stylelint 18 migration
+- 2026-11-09 | d48ac7f4 | eislandBot | docs: auto update CHANGE_LOG.md for #318 by @JNTMTMTM [skip ci]
+- 2026-11-09 | 7dd1aec4 | JNTMTMTM | Merge pull request #318 from JNTMTMTM/dev
+- 2026-11-09 | 921941b6 | 鸡哥 | docs(announcement): add V27.0.2 release notes
+- 2026-11-09 | fbacc431 | dependabot[bot] | chore(deps): bump @stylistic/stylelint-plugin from 5.3.1 to 6.0.0
+- 2026-11-09 | 64a3bd8c | dependabot[bot] | chore(deps): bump stylelint from 17.16.0 to 18.0.0
+- 2026-11-09 | 81d386ad | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
+- 2026-11-09 | 8b9527ad | dependabot[bot] | chore(deps): bump js-yaml from 4.3.2 to 5.5.0
+- 2026-11-09 | adfaab2a | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 17 directories with 19 updates
+- 2026-11-09 | c6d1acb9 | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
 
 ## 27.0.2
 
@@ -4344,126 +4473,13 @@
 
 ## Unreleased
 
-- 2026-11-17 | fb6446f8 | JNTMTMTM | Merge pull request #342 from JNTMTMTM/dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.138
-- 2026-11-17 | 53b3ad7a | 鸡哥 | fix(docs): retain compatible dependencies after Dependabot refresh
-- 2026-11-17 | a89dd955 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
-- 2026-11-17 | 52d49787 | 鸡哥 | fix(docs): keep Git plugin compatible with VuePress rc.31
-- 2026-11-17 | 17e6d046 | 鸡哥 | Merge remote-tracking branch 'origin/main' into dependabot/npm_and_yarn/web/eisland-web-docs/vuepress/plugin-git-2.0.0-rc.138
-- 2026-11-17 | f90eb967 | eislandBot | docs: auto update CHANGE_LOG.md for #339 by @dependabot[bot] [skip ci]
-- 2026-11-17 | b80ab55a | JNTMTMTM | Merge pull request #341 from JNTMTMTM/dependabot/npm_and_yarn/stylistic/eslint-plugin-6.0.0
-- 2026-11-17 | b557b703 | JNTMTMTM | Merge pull request #340 from JNTMTMTM/dependabot/npm_and_yarn/types/node-26.6.6
-- 2026-11-17 | 30fa30e1 | JNTMTMTM | Merge pull request #339 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-b5cb062748
-- 2026-11-17 | ad725a72 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git in /web/eisland-web-docs
-- 2026-11-17 | c797edf7 | dependabot[bot] | chore(deps): bump @stylistic/eslint-plugin from 5.10.0 to 6.0.0
-- 2026-11-17 | 09d62471 | dependabot[bot] | chore(deps): bump @types/node from 24.19.2 to 26.6.6
-- 2026-11-17 | f0061451 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 1 directory with 4 updates
-- 2026-11-17 | 6a466d96 | eislandBot | docs: auto update CHANGE_LOG.md for #338 by @JNTMTMTM [skip ci]
-- 2026-11-17 | a77479bb | JNTMTMTM | fix: 修复两个歌词状态机切换状态的行为错误 (#338)
-- 2026-11-17 | 0f51c35b | 鸡哥 | refactor: remove plugin version bump requirement and update related documentation
-- 2026-11-16 | 2ef4cf56 | 鸡哥 | feat(hook): enhance hover interaction logic to maintain state on pause
-- 2026-11-16 | 9eeae073 | 鸡哥 | Refactor code structure for improved readability and maintainability
-- 2026-11-16 | 2df3e66e | 鸡哥 | feat(i18n): add instrumental music notice in multiple languages and update related logic
-- 2026-11-16 | db2a0a35 | 鸡哥 | docs: add pull request merge method guidelines to AGENTS.md and CLAUDE.md
-- 2026-11-16 | bbf854a1 | eislandBot | docs: auto update CHANGE_LOG.md for #337 by @dependabot[bot] [skip ci]
-- 2026-11-16 | 8bc7af31 | dependabot[bot] | chore(deps): bump @vuepress/plugin-git from 2.0.0-rc.132 to 2.0.0-rc.137 in /web/eisland-web-docs (#337)
-- 2026-11-16 | 79cc2a09 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 5 directories with 5 updates (#336)
-- 2026-11-16 | c30853e7 | eislandBot | docs: auto update CHANGE_LOG.md for #335 by @JNTMTMTM [skip ci]
-- 2026-11-16 | 7bb7f01b | JNTMTMTM | refactor: 使用 rust 重写 smtc 辅助程序 (#335)
-- 2026-11-16 | 70831f87 | 鸡哥 | feat(smtc): implement continuous session reading and improve error handling feat(i18n): add error messages for binary issues in multiple languages refactor(smtc): enhance media reading logic with retries and timeouts test(smtc): update tests for new continuous reading behavior and error handling
-- 2026-11-16 | dba6ad35 | 鸡哥 | Refactor platform-specific code for macOS removal
-- 2026-11-16 | 80b260af | 鸡哥 | Remove macOS Media Helper plugin and related files
-- 2026-11-15 | 36ee38b6 | 鸡哥 | refactor: remove SMTC Helper plugin references and update documentation
-- 2026-11-15 | 957dc1a7 | 鸡哥 | feat(package): add hasInstallScript property to package entries
-- 2026-11-16 | 0e34b7b0 | eislandBot | docs: auto update CHANGE_LOG.md for #332 by @dependabot[bot] [skip ci]
-- 2026-11-15 | 56fe173a | dependabot[bot] | chore(deps): bump stylelint-config-recommended-scss (#332)
-- 2026-11-16 | 4dd5e461 | eislandBot | docs: auto update CHANGE_LOG.md for #333 by @dependabot[bot] [skip ci]
-- 2026-11-15 | 59b433dd | dependabot[bot] | chore(deps): bump stylelint-config-standard-scss from 17.0.0 to 18.0.0 (#333)
-- 2026-11-15 | c45d1678 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 3 directories with 10 updates (#329)
-- 2026-11-15 | 5e51eeba | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments (#325)
-- 2026-11-16 | fd802f48 | eislandBot | docs: auto update CHANGE_LOG.md for #330 by @dependabot[bot] [skip ci]
-- 2026-11-15 | 2b201d41 | dependabot[bot] | chore(deps): upgrade i18next and react-i18next together (#330)
-- 2026-11-16 | f6b3f554 | eislandBot | docs: auto update CHANGE_LOG.md for #334 by @JNTMTMTM [skip ci]
-- 2026-11-15 | 66f0b1b9 | JNTMTMTM | Merge pull request #334 from JNTMTMTM/dev
-- 2026-11-15 | 45844c82 | 鸡哥 | feat(i18n): add source labels for capture modes in English, Japanese, and Chinese
-- 2026-11-15 | a643d3fa | 鸡哥 | Remove capture source labels JSON file for localization
-- 2026-11-15 | 4b919700 | 鸡哥 | Refactor fullscreen detection: Remove fullscreen detector plugin and implement native fullscreen detection in Rust for both Windows and macOS
-- 2026-11-15 | c62994c0 | 鸡哥 | Remove deprecated hardware info helper documentation files for Bluetooth, CPU, Disk, GPU, Memory, Monitor, Motherboard, and Network Adapter APIs.
-- 2026-11-15 | 23635362 | 鸡哥 | feat(capture): enhance capture cancellation with context menu support
-- 2026-11-15 | eba1baee | 鸡哥 | feat(capture): implement pixel capture functionality and enhance screenshot handling
-- 2026-11-15 | 304ce720 | 鸡哥 | Refactor screenshot functionality and remove deprecated components
-- 2026-11-15 | b35d0dd8 | 鸡哥 | feat(telemetry): add hardware telemetry support for Windows and macOS
-- 2026-11-15 | f3f51bf8 | eislandBot | docs: auto update CHANGE_LOG.md for #324 by @JNTMTMTM [skip ci]
-- 2026-11-15 | b1230495 | JNTMTMTM | Merge pull request #324 from JNTMTMTM/dev
-- 2026-11-15 | 85834c7a | 鸡哥 | feat: add retired extensions for volume and brightness control; enhance brightness control documentation
-- 2026-11-15 | 008d3744 | 鸡哥 | Implement brightness control for macOS and Windows
-- 2026-11-15 | 37ba6245 | 鸡哥 | refactor: remove Windows Application Icon Helper plugin and related documentation
-- 2026-11-15 | a4a3a18d | 鸡哥 | feat: update mcp.json to use workspaceFolder variable and add config.toml for codegraph server
-- 2026-11-15 | 5b3d4598 | 鸡哥 | Refactor volume management in eIsland
-- 2026-11-15 | 52abbf1b | eislandBot | docs: auto update CHANGE_LOG.md for #323 by @JNTMTMTM [skip ci]
-- 2026-11-15 | 6e2cb7cb | JNTMTMTM | Merge pull request #323 from JNTMTMTM/dev
-- 2026-11-15 | 9630dedb | 鸡哥 | feat: update server_request and kb_read documentation to Chinese; add tests for kb_read token validation
-- 2026-11-12 | 2695d459 | 鸡哥 | feat: remove MIMO and MiniMax references from codebase and documentation
-- 2026-11-12 | 622aa7fd | 鸡哥 | feat: remove unused SVG files for MIMO and MINIMAX
-- 2026-11-12 | 4bb30c93 | 鸡哥 | feat: add kb.read functionality and refactor web_search to use server_request
-- 2026-11-11 | b7319f9b | 鸡哥 | feat: add installer and uninstaller icons for NSIS packaging
-- 2026-11-12 | f1dc89a8 | eislandBot | docs: auto update CHANGE_LOG.md for #322 by @JNTMTMTM [skip ci]
-- 2026-11-11 | 952097b9 | JNTMTMTM | Merge pull request #322 from JNTMTMTM/dev
-- 2026-11-11 | c8e07fe9 | 鸡哥 | feat: enhance lyrics handling and state management across components
-- 2026-11-11 | 0d955418 | 鸡哥 | feat: enhance lyrics functionality and UI behavior
-- 2026-11-11 | e6a0d176 | 鸡哥 | feat: add lyrics display toggle functionality
-- 2026-11-11 | 3721aaf1 | eislandBot | docs: auto update CHANGE_LOG.md for #319 by @dependabot[bot] [skip ci]
-- 2026-11-11 | 4f550996 | JNTMTMTM | Merge pull request #319 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-4be7de7c94
-- 2026-11-11 | 1e001b65 | 鸡哥 | feat(font): add support for signed local asset server URLs in font loading
-- 2026-11-11 | b33549ce | 鸡哥 | fix(deps): update eslint-plugin-import-x to 4.18.1
-- 2026-11-11 | b23a6e28 | eislandBot | docs: auto update CHANGE_LOG.md for #320 by @JNTMTMTM [skip ci]
-- 2026-11-11 | 21845295 | JNTMTMTM | Merge pull request #320 from JNTMTMTM/dev
-- 2026-11-11 | f6165186 | 鸡哥 | refactor(fileTransfer): streamline React imports and enhance hook functionality
-- 2026-11-11 | b61579ed | 鸡哥 | feat(fileTransfer): implement file drag-and-drop functionality and improve state management
-- 2026-11-11 | 78ed1067 | 鸡哥 | fix(fileTransfer): update isHeavyState logic to show file shelf immediately in performance mode
-- 2026-11-10 | 2c707007 | 鸡哥 | fix(fileTransfer): adjust padding for file transfer grid to improve layout
-- 2026-11-10 | 2c608521 | 鸡哥 | feat(fileTransfer): restructure file transfer components and hooks for improved organization and functionality
-- 2026-11-10 | 878b9878 | 鸡哥 | refactor(fileTransfer): reorganize file transfer logic and store management
-- 2026-11-10 | 630d8111 | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 2 directories with 10 updates
-- 2026-11-09 | 8b75a078 | 鸡哥 | feat: implement file transfer functionality with drag-and-drop support
-- 2026-11-09 | 486cc20a | 鸡哥 | feat: update empty state skill to reflect 14 modification points and adjust evals for new state handling
-- 2026-11-09 | be983458 | 鸡哥 | feat: refactor StandaloneWindowViewport to use resolvePage for dynamic tab rendering
-- 2026-11-09 | a7791f6a | 鸡哥 | feat: add file transfer state and content component
-- 2026-11-09 | dc71511b | eislandBot | docs: auto update CHANGE_LOG.md for #316 by @dependabot[bot] [skip ci]
-- 2026-11-09 | 807bdbe8 | JNTMTMTM | Merge pull request #316 from JNTMTMTM/dependabot/npm_and_yarn/stylelint-18.0.0
-- 2026-11-09 | ddb700bf | eislandBot | docs: auto update CHANGE_LOG.md for #314 by @dependabot[bot] [skip ci]
-- 2026-11-09 | 8e931905 | JNTMTMTM | Merge pull request #314 from JNTMTMTM/dependabot/npm_and_yarn/js-yaml-5.5.0
-- 2026-11-09 | fdfc3b96 | 鸡哥 | Merge validated main before final CI
-- 2026-11-09 | d380daed | eislandBot | docs: auto update CHANGE_LOG.md for #315 by @dependabot[bot] [skip ci]
-- 2026-11-09 | d9cfbe72 | 鸡哥 | Merge native event delivery test repair
-- 2026-11-09 | 09cc1186 | JNTMTMTM | Merge pull request #315 from JNTMTMTM/dependabot/npm_and_yarn/get-windows-10.0.0
-- 2026-11-09 | 42ff942e | 鸡哥 | fix(test): wait for native preview subscriptions and event delivery
-- 2026-11-09 | c5e715c6 | 鸡哥 | Merge validated get-windows upgrade for final integration tests
-- 2026-11-09 | a3c45f66 | 鸡哥 | Merge validated YAML upgrade before final dependency integration
-- 2026-11-09 | 6af8a6c4 | 鸡哥 | fix(lint): resolve Stylelint plugins from the tool workspace
-- 2026-11-09 | c24f098d | 鸡哥 | fix(test): isolate external player after syncing dependency branch
-- 2026-11-09 | 0b18396f | 鸡哥 | fix(test): isolate external player in native smoke tests
-- 2026-11-09 | a74ff317 | 鸡哥 | Merge validated grouped dependency updates
-- 2026-11-09 | 72f775bf | 鸡哥 | fix(test): isolate external announcement player during desktop smoke
-- 2026-11-09 | 27fe4703 | 鸡哥 | Merge validated grouped dependency updates and resolve the YAML lockfile
-- 2026-11-09 | bd104738 | 鸡哥 | Merge refreshed Dependabot head and preserve the verified SCSS migration
-- 2026-11-09 | 67119ee1 | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
-- 2026-11-09 | 95fa3e06 | dependabot[bot] | chore(deps): bump stylelint from 17.16.0 to 18.0.0
-- 2026-11-09 | e1647478 | dependabot[bot] | chore(deps): bump js-yaml from 4.3.2 to 5.5.0
-- 2026-11-09 | 3ebc3ffe | 鸡哥 | Merge main before validating dependency upgrade
-- 2026-11-09 | b963be7a | 鸡哥 | Merge main before validating dependency upgrade
-- 2026-11-09 | bdb85f2e | 鸡哥 | Merge validated dependency updates and retain Stylelint migration
-- 2026-11-09 | e7a62e9c | eislandBot | docs: auto update CHANGE_LOG.md for #313 by @dependabot[bot] [skip ci]
-- 2026-11-09 | fe158d1a | 鸡哥 | fix: migrate Stylelint 18 and Stylistic 6 together without dropping SCSS checks
-- 2026-11-09 | 8039997d | JNTMTMTM | Merge pull request #313 from JNTMTMTM/dependabot/npm_and_yarn/npm-minor-patch-c1133b0d41
-- 2026-11-09 | e5fa9f34 | eislandBot | docs: auto update CHANGE_LOG.md for #312 by @dependabot[bot] [skip ci]
-- 2026-11-09 | a07c0f7b | JNTMTMTM | Merge pull request #312 from JNTMTMTM/dependabot/github_actions/actions-minor-patch-da9d74feb1
-- 2026-11-10 | df748842 | 鸡哥 | Merge main before validating Stylelint 18 migration
-- 2026-11-09 | d48ac7f4 | eislandBot | docs: auto update CHANGE_LOG.md for #318 by @JNTMTMTM [skip ci]
-- 2026-11-09 | 7dd1aec4 | JNTMTMTM | Merge pull request #318 from JNTMTMTM/dev
-- 2026-11-09 | 921941b6 | 鸡哥 | docs(announcement): add V27.0.2 release notes
-- 2026-11-09 | fbacc431 | dependabot[bot] | chore(deps): bump @stylistic/stylelint-plugin from 5.3.1 to 6.0.0
-- 2026-11-09 | 64a3bd8c | dependabot[bot] | chore(deps): bump stylelint from 17.16.0 to 18.0.0
-- 2026-11-09 | 81d386ad | dependabot[bot] | chore(deps): bump get-windows from 9.3.0 to 10.0.0
-- 2026-11-09 | 8b9527ad | dependabot[bot] | chore(deps): bump js-yaml from 4.3.2 to 5.5.0
-- 2026-11-09 | adfaab2a | dependabot[bot] | chore(deps): bump the npm-minor-patch group across 17 directories with 19 updates
-- 2026-11-09 | c6d1acb9 | dependabot[bot] | ci(deps): bump burnett01/rsync-deployments
+- 2026-11-22 | 227d8f9d | JNTMTMTM | Merge pull request #343 from JNTMTMTM/dev
+- 2026-11-22 | 6f14698c | 鸡哥 | feat(codex): enhance hook installation and error handling for configuration updates feat(drag): refactor dragging logic to maintain window focus and capture state refactor(windowing): improve shape preparation and error rollback mechanisms refactor(cli): optimize useCliStatus hook with stable callbacks and improved state management docs(shape-modes): update documentation to reflect changes in transition handling and internal flow
+- 2026-11-22 | ddd8664d | 鸡哥 | feat(interaction): enhance mouse interaction handling for Dynamic Island and Notch
+- 2026-11-22 | 3c3c9f01 | 鸡哥 | feat(drag): implement mouse dragging functionality for the Pill window refactor(window): remove unused shape progress handling and streamline IPC commands refactor(settings): simplify shape mode change handling in settings synchronization
+- 2026-11-21 | 104c7500 | 鸡哥 | refactor: unify shape dimensions and styles for pill and notch states
+- 2026-11-21 | ca3bb963 | 鸡哥 | feat: update pill dimensions and styles for improved UI consistency
+- 2026-11-18 | 75801984 | 鸡哥 | feat(windowing): implement shape motion handling and drag functionality
+- 2026-11-18 | 053721eb | 鸡哥 | refactor: streamline island settings synchronization and drag handling
+- 2026-11-18 | 09a54b1a | 鸡哥 | feat(cli): enhance EventStreamPanel with Codex hook management and loading states
+- 2026-11-17 | caa3c5ad | 鸡哥 | chore: update version to 27.0.3 in package.json and package-lock.json
