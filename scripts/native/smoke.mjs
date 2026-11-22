@@ -301,11 +301,47 @@ try {
   assert.equal((await ipc(main, 'window:get-bounds')).width, 860, 'stale ack must be ignored');
   await ipc(main, 'window:transition:complete', 991);
   assert.equal((await ipc(main, 'window:get-bounds')).width, 260);
+  const mainWindow = async () => (await ipc(main, 'debug:windows')).find(({ label }) => label === 'main');
+  const dock = await mainWindow();
   await ipc(main, 'island:scale:set', 125);
+  await ipc(main, 'window:collapse');
+  const notchBounds = await ipc(main, 'window:get-bounds');
   await ipc(main, 'island:shape-mode:set', 'pill');
   await delay(100);
   await ipc(main, 'window:collapse');
-  assert.equal((await ipc(main, 'window:get-bounds')).height, 65);
+  const pillBounds = await ipc(main, 'window:get-bounds');
+  assert.deepEqual([pillBounds.width, pillBounds.height], [notchBounds.width, notchBounds.height]);
+  assert.deepEqual([pillBounds.width, pillBounds.height], [325, 53]);
+  if (process.platform === 'win32') {
+    await ipc(main, 'window:start-pill-drag', -360, 280);
+    const dragged = await ipc(main, 'window:get-bounds');
+    assert(dragged.x < notchBounds.x && dragged.y > notchBounds.y);
+    // Pause WebView frame callbacks for longer than the slowest outline transition.
+    // The native window must dock without receiving a frame from its renderer.
+    const windows = await main.evaluate(async () => {
+      const originalFrame = window.requestAnimationFrame;
+      let resume;
+      const paused = new Promise((resolve) => { resume = resolve; });
+      window.requestAnimationFrame = (callback) => originalFrame.call(window, () => {
+        void paused.then(() => callback(performance.now()));
+      });
+      try {
+        await window.desktop.invoke('island:shape-mode:set', 'notch');
+        await new Promise((resolve) => { setTimeout(resolve, 1500); });
+        // Simulate the idle poll reporting the cursor outside immediately before the first click.
+        await window.desktop.invoke('window:enable-mouse-passthrough');
+        return await window.desktop.invoke('debug:windows');
+      } finally {
+        window.requestAnimationFrame = originalFrame;
+        resume();
+      }
+    });
+    const docked = windows.find(({ label }) => label === 'main');
+    assert.equal(docked.ignoresCursor, false, 'The docked Notch must receive its first mouse event');
+    assert.equal(docked.position.y, dock.position.y, 'The native window must reach the top before WebView frames resume');
+    const center = (win) => win.position.x + win.size.width / 2;
+    assert(Math.abs(center(docked) - center(dock)) <= 1, 'The native window must be centered on the dock');
+  }
   await ipc(main, 'island:scale:set', 100);
   await ipc(main, 'island:shape-mode:set', 'notch');
   assert.equal(await ipc(main, 'app:open-standalone-window'), true);

@@ -53,8 +53,9 @@ interface UseIslandHoverInteractionOptions {
 /**
  * @description 处理灵动岛进入/离开窗口时的状态切换逻辑。
  * @param options - 悬停交互控制参数。
+ * @returns 鼠标首次移入可见壳层时的处理函数。
  */
-export function useIslandHoverInteraction(options: UseIslandHoverInteractionOptions): void {
+export function useIslandHoverInteraction(options: UseIslandHoverInteractionOptions): () => void {
   const {
     state,
     setHover,
@@ -71,7 +72,13 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
     forceClickToHover = false,
   } = options;
 
-  /** pill 模式下始终 click-to-hover，读取 ref 保持运行时最新 */
+  const compact = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation';
+
+  const enterHover = useCallback(() => {
+    isHoveringRef.current = true;
+    setHover();
+    if (state === 'lyrics' || state === 'lyricsTranslation') setHoverTab('lyrics');
+  }, [isHoveringRef, setHover, setHoverTab, state]);
 
   const clearAllTimers = useCallback(() => {
     if (enterTimerRef.current !== null) {
@@ -154,9 +161,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
         }
 
         if (!isHoveringRef.current && enterTimerRef.current === null) {
-          /** pill 模式下 idle/lyrics/lyricsTranslation/agentVoiceInput 均需点击才展开 */
-          const clickToHoverStates = state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput';
-          if (clickToHoverStates && (forceClickToHover || idleClickExpandRef.current)) {
+          if (compact && (forceClickToHover || idleClickExpandRef.current)) {
             if (config.mousePassthrough) {
               setMousePassthrough(false);
             }
@@ -165,14 +170,10 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
               enterTimerRef.current = null;
               if (aborted || isHoveringRef.current) return;
 
-              isHoveringRef.current = true;
               if (config.mousePassthrough) {
                 setMousePassthrough(false);
               }
-              setHover();
-              if (state === 'lyrics' || state === 'lyricsTranslation') {
-                setHoverTab('lyrics');
-              }
+              enterHover();
             });
           }
         }
@@ -182,7 +183,7 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
           enterTimerRef.current = null;
         }
 
-        if ((state === 'idle' || state === 'lyrics' || state === 'lyricsTranslation' || (state as string) === 'agentVoiceInput') && (forceClickToHover || idleClickExpandRef.current) && !isHoveringRef.current) {
+        if (compact && (forceClickToHover || idleClickExpandRef.current) && !isHoveringRef.current) {
           setMousePassthrough(true);
         }
 
@@ -220,11 +221,11 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
     };
   }, [
     state,
-    setHover,
+    compact,
+    enterHover,
     setIdle,
     setLyrics,
     setLyricsTranslation,
-    setHoverTab,
     clearAllTimers,
     isHoveringRef,
     idleClickExpandRef,
@@ -234,4 +235,11 @@ export function useIslandHoverInteraction(options: UseIslandHoverInteractionOpti
     leaveTimerRef,
     forceClickToHover,
   ]);
+
+  return useCallback(() => {
+    if (!compact || forceClickToHover || idleClickExpandRef.current || useIslandStore.getState().uiStateLocked) return;
+    if (document.querySelector('.slider-captcha-overlay')) return;
+    clearAllTimers();
+    enterHover();
+  }, [clearAllTimers, compact, enterHover, forceClickToHover, idleClickExpandRef]);
 }

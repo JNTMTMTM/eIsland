@@ -25,20 +25,17 @@
 
 let nextTransitionId = 0;
 let activeTransitionId = 0;
-let activeKind: 'state' | 'shape' = 'state';
 const listeners = new Set<() => void>();
 
 /**
- * 在发送尺寸请求前开始一次状态或形态切换；同状态内容刷新继续使用当前令牌。
- * @param from - 当前状态或形态。
- * @param to - 目标状态或形态。
- * @param kind - 状态形变由壳层确认；形态切换由窗口移动动画确认。
+ * 在发送尺寸请求前开始一次状态切换；同状态内容刷新继续使用当前令牌。
+ * @param from - 当前状态。
+ * @param to - 目标状态。
  * @returns 当前切换令牌。
  */
-export function beginIslandWindowTransition(from: string, to: string, kind: 'state' | 'shape' = 'state'): number {
+export function beginIslandWindowTransition(from: string, to: string): number {
   if (from !== to) {
     activeTransitionId = ++nextTransitionId;
-    activeKind = kind;
     window.api?.beginWindowTransition?.(activeTransitionId);
     listeners.forEach((listener) => listener());
   }
@@ -47,11 +44,9 @@ export function beginIslandWindowTransition(from: string, to: string, kind: 'sta
 
 /**
  * 读取当前形变对应的原生窗口保护令牌。
- * @param kind - 可选的令牌类别，避免壳层提前确认仍在进行的形态移动。
  * @returns 当前切换令牌；0 表示没有等待中的切换。
  */
-export function getIslandWindowTransitionId(kind?: 'state' | 'shape'): number {
-  if (kind && kind !== activeKind) return 0;
+export function getIslandWindowTransitionId(): number {
   return activeTransitionId;
 }
 
@@ -78,7 +73,8 @@ export function completeIslandWindowTransition(transitionId: number): void {
     const effect = animation.effect as KeyframeEffect | null;
     if (!effect?.getKeyframes || !Number.isFinite(effect.getComputedTiming().endTime)) return false;
     return effect.getKeyframes().some((frame) => Object.keys(frame).some((key) =>
-      ['width', 'height', 'transform', 'clipPath', 'paddingInline', 'paddingInlineStart', 'paddingInlineEnd'].includes(key)
+      ['width', 'height', 'transform', 'clipPath'].includes(key)
+      || key.startsWith('padding')
       || (key.startsWith('border') && key.endsWith('Radius'))));
   }) ?? [];
   if (animations.length) {

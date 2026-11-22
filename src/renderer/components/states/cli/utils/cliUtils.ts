@@ -35,13 +35,13 @@ import type { CliActiveSelection, CliPermissionCommand } from '../types/cliTypes
  * @param snapshot - CLI 状态快照
  * @returns 活跃会话与最新事件
  */
-export function selectActiveSession(snapshot: Pick<CliStatusSnapshot, 'sessions' | 'events'>): CliActiveSelection {
-  const active = snapshot.sessions
-    .filter((session) => session.phase !== 'completed')
-    .sort((a, b) => b.lastEventAt - a.lastEventAt);
+export function selectActiveSession(snapshot: Pick<CliStatusSnapshot, 'sessions' | 'events'> & { enabled?: boolean }): CliActiveSelection {
+  const priority = { waiting_permission: 3, running: 2, idle: 1, completed: 0 };
+  const active = snapshot.enabled === false ? [] : snapshot.sessions.filter((session) => session.phase !== 'completed');
+  active.sort((a, b) => priority[b.phase] - priority[a.phase] || b.lastEventAt - a.lastEventAt);
   const session = active[0] ?? null;
   const event = session
-    ? snapshot.events.find((item) => item.sessionId === session.id) ?? null
+    ? session.pendingPermission ?? session.events?.[0] ?? snapshot.events.find((item) => item.sessionId === session.id) ?? null
     : snapshot.events[0] ?? null;
   return { activeSession: session, latestEvent: event };
 }
@@ -72,11 +72,11 @@ export function resolveStateIcon(
  */
 export function extractPermissionCommand(activeSession: CliSessionSnapshot | null): CliPermissionCommand | null {
   if (!activeSession || activeSession.phase !== 'waiting_permission') return null;
-  const raw = activeSession.pendingPermission?.raw as Record<string, unknown> | undefined;
+  const pending = activeSession.pendingPermission;
+  const raw = pending?.raw;
   const toolInput = (raw?.tool_input ?? raw?.toolInput ?? raw?.input) as Record<string, unknown> | undefined;
-  if (!toolInput) return null;
-  const command = typeof toolInput.command === 'string' ? toolInput.command : '';
-  const description = typeof toolInput.description === 'string' ? toolInput.description : '';
+  const command = typeof toolInput?.command === 'string' ? toolInput.command : (pending?.toolInputPreview ?? '');
+  const description = typeof toolInput?.description === 'string' ? toolInput.description : '';
   if (!command && !description) return null;
-  return { command, description, toolName: activeSession.pendingPermission?.toolName ?? '' };
+  return { command, description, toolName: pending?.toolName ?? '' };
 }

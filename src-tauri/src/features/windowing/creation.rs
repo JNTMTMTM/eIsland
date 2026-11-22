@@ -20,7 +20,7 @@
 
 //! 原生 WebView 窗口创建、安全导航约束与窗口事件绑定。
 
-use super::{hide_menu, main_window, reposition, restore_after_capture, target_monitor};
+use super::{hide_menu, layout, main_window, restore_after_capture, target_monitor};
 use crate::shared::Result;
 use crate::state::Desktop;
 use tauri::AppHandle;
@@ -113,6 +113,18 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
             .set_min_size(Some(tauri::LogicalSize::new(1155., 640.)))
             .map_err(|e| e.to_string())?;
     }
+    if label == "main"
+        && app
+            .state::<Desktop>()
+            .inner
+            .lock()
+            .unwrap()
+            .passthrough_locked
+    {
+        window
+            .set_ignore_cursor_events(true)
+            .map_err(|e| e.to_string())?;
+    }
     if matches!(label, "guide" | "splash" | "standalone") {
         window.center().map_err(|e| e.to_string())?;
     }
@@ -158,10 +170,17 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
                 state.main_ready = false;
                 state.pending = None;
                 state.transition = None;
+                state.shape_motion = None;
                 state.generation += 1;
                 Ok(())
             }
-            tauri::WindowEvent::ScaleFactorChanged { .. } if kind == "main" => reposition(&handle),
+            tauri::WindowEvent::Moved(position) if kind == "main" => main_window(&handle)
+                .and_then(|window| window.scale_factor().map_err(|e| e.to_string()))
+                .map(|scale| layout::record_moved(&handle, *position, scale)),
+            tauri::WindowEvent::ScaleFactorChanged { scale_factor, .. } if kind == "main" => {
+                main_window(&handle)
+                    .and_then(|window| layout::reclip(&handle, &window, *scale_factor))
+            }
             _ => Ok(()),
         };
         if let Err(error) = result {

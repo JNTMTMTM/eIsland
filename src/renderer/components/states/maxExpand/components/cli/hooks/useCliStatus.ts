@@ -28,6 +28,9 @@ interface CliStatusActions {
   snapshot: CliStatusSnapshot;
   loading: boolean;
   actionMessage: string;
+  actionFailed: boolean;
+  mutating: boolean;
+  setCodexHook: (enabled: boolean) => Promise<void>;
   enableMonitor: () => Promise<void>;
   disableMonitor: () => Promise<void>;
   clearEvents: () => Promise<void>;
@@ -62,11 +65,20 @@ export function useCliStatus(provider: CliProvider): CliStatusActions {
   const [snapshot, setSnapshot] = useState<CliStatusSnapshot>(EMPTY_CLI_STATUS);
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState('');
+  const [actionFailed, setActionFailed] = useState(false);
+  const [mutating, setMutating] = useState(false);
+  const busyRef = useRef(false);
+  const applySnapshot = useCallback((next: CliStatusSnapshot): void => {
+    setSnapshot((current) => (next.revision ?? 0) < (current.revision ?? 0) ? current : next);
+  }, []);
   const snapshotProviderRef = useRef(provider);
   const requestGenerationRef = useRef(0);
 
   useEffect(() => {
     requestGenerationRef.current += 1;
+    busyRef.current = false;
+    setMutating(false);
+    setActionFailed(false);
     if (snapshotProviderRef.current !== provider) {
       snapshotProviderRef.current = provider;
       setSnapshot(EMPTY_CLI_STATUS);
@@ -81,7 +93,7 @@ export function useCliStatus(provider: CliProvider): CliStatusActions {
     let receivedUpdate = false;
     api.get().then((next) => {
       if (cancelled || receivedUpdate) return;
-      setSnapshot(next);
+      applySnapshot(next);
       setLoading(false);
     }).catch(() => {
       if (!cancelled) setLoading(false);
@@ -89,7 +101,7 @@ export function useCliStatus(provider: CliProvider): CliStatusActions {
     const unsubscribe = api.subscribe((next) => {
       if (cancelled) return;
       receivedUpdate = true;
-      setSnapshot(next);
+      applySnapshot(next);
       setLoading(false);
     });
     return () => {
@@ -97,41 +109,63 @@ export function useCliStatus(provider: CliProvider): CliStatusActions {
       requestGenerationRef.current += 1;
       unsubscribe();
     };
-  }, [provider, active]);
+  }, [provider, active, applySnapshot]);
 
-  const enableMonitor = useCallback(async (): Promise<void> => {
-    if (!active) return;
+  const runMutation = useCallback(async (
+    mutate: () => Promise<CliStatusSnapshot | { ok: boolean; snapshot: CliStatusSnapshot; message: string }>,
+  ): Promise<void> => {
+    if (!active || busyRef.current) return;
     const generation = requestGenerationRef.current;
+    busyRef.current = true;
+    setMutating(true);
     setActionMessage('');
-    const result = await apiFor(provider).enable();
-    if (generation !== requestGenerationRef.current) return;
-    setSnapshot(result.snapshot);
-    setActionMessage(result.message);
-  }, [provider, active]);
+    setActionFailed(false);
+    try {
+      const result = await mutate();
+      if (generation !== requestGenerationRef.current) return;
+      if ('snapshot' in result) {
+        applySnapshot(result.snapshot);
+        setActionMessage(result.message);
+        setActionFailed(!result.ok);
+      } else {
+        applySnapshot(result);
+      }
+    } catch (error) {
+      if (generation === requestGenerationRef.current) {
+        setActionFailed(true);
+        setActionMessage(String(error));
+      }
+    } finally {
+      if (generation === requestGenerationRef.current) {
+        busyRef.current = false;
+        setMutating(false);
+      }
+    }
+  }, [active, applySnapshot]);
 
-  const disableMonitor = useCallback(async (): Promise<void> => {
-    if (!active) return;
-    const generation = requestGenerationRef.current;
-    setActionMessage('');
-    const result = await apiFor(provider).disable();
-    if (generation !== requestGenerationRef.current) return;
-    setSnapshot(result.snapshot);
-    setActionMessage(result.message);
-  }, [provider, active]);
+  // 回调逐层传给 EventStreamPanel，保持引用稳定避免子组件无谓更新。
+  const enableMonitor = useCallback(() => runMutation(() => apiFor(provider).enable()), [runMutation, provider]);
+  const disableMonitor = useCallback(() => runMutation(() => apiFor(provider).disable()), [runMutation, provider]);
+  const clearEvents = useCallback(() => runMutation(() => apiFor(provider).clear()), [runMutation, provider]);
+  const deleteSessions = useCallback(
+    (ids: string[]) => runMutation(() => apiFor(provider).deleteSessions(ids)),
+    [runMutation, provider],
+  );
+  const setCodexHook = useCallback(
+    (enabled: boolean) => runMutation(() => window.api.codexHookSet(enabled)),
+    [runMutation],
+  );
 
-  const clearEvents = useCallback(async (): Promise<void> => {
-    if (!active) return;
-    const generation = requestGenerationRef.current;
-    const next = await apiFor(provider).clear();
-    if (generation === requestGenerationRef.current) setSnapshot(next);
-  }, [provider, active]);
-
-  const deleteSessions = useCallback(async (sessionIds: string[]): Promise<void> => {
-    if (!active) return;
-    const generation = requestGenerationRef.current;
-    const next = await apiFor(provider).deleteSessions(sessionIds);
-    if (generation === requestGenerationRef.current) setSnapshot(next);
-  }, [provider, active]);
-
-  return { snapshot, loading, actionMessage, enableMonitor, disableMonitor, clearEvents, deleteSessions };
+  return {
+    actionMessage,
+    actionFailed,
+    mutating,
+    enableMonitor,
+    disableMonitor,
+    clearEvents,
+    deleteSessions,
+    setCodexHook,
+    snapshot: snapshotProviderRef.current === provider ? snapshot : EMPTY_CLI_STATUS,
+    loading: snapshotProviderRef.current !== provider || loading,
+  };
 }

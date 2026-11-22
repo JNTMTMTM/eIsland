@@ -26,16 +26,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useIslandSettingsSync } from '../useIslandSettingsSync';
-import { ISLAND_WIDTH } from '../../../../shared/islandDimensions';
 import { renderWithHooks, resetLifecycle, runEffects, unmountHooks } from '../../components/test/contentLifecycleHarness';
-import { beginIslandWindowTransition, completeIslandWindowTransition, getIslandWindowTransitionId } from '../../../utils/islandWindowTransition';
 import type useIslandStore from '../../../store/isLandStore';
 
 type Store = ReturnType<typeof useIslandStore.getState>;
 const io = vi.hoisted(() => ({
-  state: ((): Store['state'] => 'idle')(),
-  animationSpeed: ((): Store['animationSpeed'] => 'medium')(),
-  springAnimation: true,
   shapeMode: ((): Store['shapeMode'] => 'notch')(),
   setSpringAnimation: vi.fn<Store['setSpringAnimation']>(),
   setAnimationSpeed: vi.fn<Store['setAnimationSpeed']>(),
@@ -56,10 +51,7 @@ vi.mock('react', async (original) => ({
 }));
 
 type Options = Parameters<typeof useIslandSettingsSync>[0];
-type Bounds = Awaited<ReturnType<Window['api']['getWindowBounds']>>;
 const api = {
-  beginWindowTransition: vi.fn<(id: number) => void>(),
-  completeWindowTransition: vi.fn<(id: number) => void>(),
   enableMousePassthrough: vi.fn<Window['api']['enableMousePassthrough']>(),
   expandMouseleaveIdleGet: vi.fn<Window['api']['expandMouseleaveIdleGet']>(),
   maxexpandMouseleaveIdleGet: vi.fn<Window['api']['maxexpandMouseleaveIdleGet']>(),
@@ -71,16 +63,7 @@ const api = {
   loadWallpaperFile: vi.fn<Window['api']['loadWallpaperFile']>(),
   setIslandPositionOffset: vi.fn<Window['api']['setIslandPositionOffset']>(),
   onSettingsChanged: vi.fn<Window['api']['onSettingsChanged']>(),
-  onShapeModeChanged: vi.fn<Window['api']['onShapeModeChanged']>(),
-  getWindowBounds: vi.fn<Window['api']['getWindowBounds']>(),
-  moveWindowDelta: vi.fn<Window['api']['moveWindowDelta']>(),
-  expandWindow: vi.fn<Window['api']['expandWindow']>(),
-  expandWindowNotification: vi.fn<Window['api']['expandWindowNotification']>(),
-  expandWindowLyrics: vi.fn<Window['api']['expandWindowLyrics']>(),
-  expandWindowLyricsTranslation: vi.fn<Window['api']['expandWindowLyricsTranslation']>(),
-  expandWindowFull: vi.fn<Window['api']['expandWindowFull']>(),
-  expandWindowSettings: vi.fn<Window['api']['expandWindowSettings']>(),
-  collapseWindow: vi.fn<Window['api']['collapseWindow']>()
+  onShapeModeChanged: vi.fn<Window['api']['onShapeModeChanged']>()
 };
 const unsubscribeSettings = vi.fn<() => void>();
 const unsubscribeShape = vi.fn<() => void>();
@@ -88,9 +71,6 @@ const setProperty = vi.fn<(key: string, value: string) => void>();
 const getLayer = vi.fn<(id: string) => { style: { opacity: string; filter: string } } | null>();
 const layer = { style: { opacity: '', filter: '' } };
 const values = new Map<string, unknown>();
-const frames = new Map<number, FrameRequestCallback>();
-const cancelFrame = vi.fn<typeof cancelAnimationFrame>();
-let frameId = 0;
 let options: Options;
 let surface: EventTarget;
 
@@ -130,22 +110,11 @@ function broadcast(channel: string, value: unknown): void {
 /**
  * 发送真实注册的形态变更事件。
  * @param mode - 原生形态。
- * @param x - 最终窗口水平位置。
- * @param y - 最终窗口垂直位置。
+ * @param id - 原生形态切换标识。
  */
-function shape(mode = 'pill', x = 0, y = 0): void {
+function shape(mode: string, id: number): void {
   const [[listener]] = api.onShapeModeChanged.mock.calls;
-  listener(mode, x, y);
-}
-
-/**
- * 驱动已经安排的真实动画帧，保持原生帧的一次性语义。
- * @param now - 帧时间。
- */
-function tick(now: number): void {
-  const pending = [...frames];
-  frames.clear();
-  pending.forEach(([, callback]) => callback(now));
+  listener(mode, 0, 0, id);
 }
 
 /**
@@ -161,11 +130,6 @@ beforeEach(() => {
   resetLifecycle();
   vi.clearAllMocks();
   values.clear();
-  frames.clear();
-  frameId = 0;
-  io.state = 'idle';
-  io.animationSpeed = 'medium';
-  io.springAnimation = true;
   io.shapeMode = 'notch';
   io.setShapeMode.mockImplementation((mode) => { io.shapeMode = mode; });
   api.storeRead.mockReset().mockImplementation((key) => Promise.resolve(values.get(key)));
@@ -178,9 +142,7 @@ beforeEach(() => {
   api.shapeModeGet.mockReset().mockResolvedValue('notch');
   api.onSettingsChanged.mockReset().mockReturnValue(unsubscribeSettings);
   api.onShapeModeChanged.mockReset().mockReturnValue(unsubscribeShape);
-  api.getWindowBounds.mockReset().mockResolvedValue({ x: 0, y: 0, width: ISLAND_WIDTH, height: 40 });
   api.setIslandPositionOffset.mockReset().mockResolvedValue(true);
-  cancelFrame.mockReset().mockImplementation((id) => { frames.delete(id); });
   getLayer.mockReset().mockReturnValue(layer);
   layer.style.opacity = '';
   layer.style.filter = '';
@@ -207,17 +169,9 @@ beforeEach(() => {
   surface = new EventTarget();
   vi.stubGlobal('window', Object.assign(surface, { api }));
   vi.stubGlobal('document', { getElementById: getLayer, querySelector: () => null, documentElement: { style: { setProperty } } });
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-    frameId += 1;
-    frames.set(frameId, callback);
-    return frameId;
-  });
-  vi.stubGlobal('cancelAnimationFrame', cancelFrame);
-  vi.spyOn(performance, 'now').mockReturnValue(0);
 });
 afterEach(() => {
   unmountHooks();
-  completeIslandWindowTransition(getIslandWindowTransitionId());
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -365,7 +319,6 @@ describe('Island IPC and local settings', () => {
     expect(options.autoDimDelayRef.current).toBe(23);
     broadcast('island:spring-animation', false);
     ['slow', 'medium', 'fast', 'invalid'].forEach((value) => broadcast('island:animation-speed', value));
-    ['notch', 'pill', 'invalid'].forEach((value) => broadcast('island:shape-mode', value));
     expect(io.setSpringAnimation).toHaveBeenLastCalledWith(false);
     expect(io.setAnimationSpeed).toHaveBeenLastCalledWith('medium');
     expect(io.setShapeMode).toHaveBeenLastCalledWith('notch');
@@ -418,20 +371,10 @@ describe('Island IPC and local settings', () => {
     expect(options.setBgVideoRate).toHaveBeenLastCalledWith(3);
   });
 
-  it('validates position messages, catches movement failures and supports an absent optional setter', async () => {
+  it('does not send native position change notifications back to the setter', async () => {
     await commit();
-    [null, {}, { x: '1', y: 2 }, { x: 1, y: '2' }].forEach((value) => broadcast('island:position', value));
-    expect(api.setIslandPositionOffset).not.toHaveBeenCalled();
-    api.setIslandPositionOffset.mockRejectedValue(new Error('window closed'));
     broadcast('island:position', { x: 1, y: 2 });
-    await settle();
-    expect(api.setIslandPositionOffset).toHaveBeenCalledWith({ x: 1, y: 2 });
-    vi.stubGlobal('window', Object.assign(surface, { api: { ...api, setIslandPositionOffset: undefined } }));
-    broadcast('island:position', { x: 3, y: 4 });
-    Reflect.deleteProperty(surface, 'api');
-    vi.stubGlobal('window', surface);
-    broadcast('island:position', { x: 5, y: 6 });
-    expect(api.setIslandPositionOffset).toHaveBeenCalledOnce();
+    expect(api.setIslandPositionOffset).not.toHaveBeenCalled();
   });
 
   it('applies only validated local background, dim and position lock event details', async () => {
@@ -468,182 +411,16 @@ describe('Island IPC and local settings', () => {
   });
 });
 
-describe('Island shape transitions and window animations', () => {
-  it('keeps shape protection through correction and confirms only after the final frame', async () => {
+describe('Island shape transitions', () => {
+  it('applies each native shape change without waiting for a painting opportunity', async () => {
     await commit();
-    shape();
-    const [[id]] = api.beginWindowTransition.mock.calls;
-    await settle();
-    tick(700);
-    await settle();
-    expect(api.completeWindowTransition).not.toHaveBeenCalled();
-    tick(716);
-    expect(api.completeWindowTransition).toHaveBeenCalledWith(id);
-  });
-  it('never confirms a newer state token or an unchanged shape using that state token', async () => {
-    await commit();
-    shape();
-    await settle();
-    tick(700);
-    await settle();
-    const id = beginIslandWindowTransition('notification', 'idle');
-    tick(716);
-    expect(api.completeWindowTransition).not.toHaveBeenCalled();
-    shape();
-    await settle();
-    tick(700);
-    await settle();
-    tick(716);
-    expect(api.completeWindowTransition).not.toHaveBeenCalled();
-    expect(getIslandWindowTransitionId()).toBe(id);
-  });
-  it('releases protection after the full duration and a frame when native bounds fail', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    try {
-      await commit();
-      api.getWindowBounds.mockRejectedValueOnce(new Error('bounds unavailable'));
-      shape();
-      const [[id]] = api.beginWindowTransition.mock.calls;
-      await settle();
-      await vi.advanceTimersByTimeAsync(699);
-      expect(frames.size).toBe(0);
-      expect(api.completeWindowTransition).not.toHaveBeenCalled();
-      await vi.advanceTimersByTimeAsync(1);
-      tick(716);
-      expect(api.completeWindowTransition).toHaveBeenCalledWith(id);
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-  it.each([['slow', 660], ['medium', 420], ['fast', 220]] as const)('shape switching without spring uses the %s duration', async (speed, duration) => {
-    io.animationSpeed = speed;
-    io.springAnimation = false;
-    io.state = 'notification';
-    await commit();
-    shape();
-    await settle();
-    tick(duration);
-    await settle();
-    expect(api.expandWindowNotification).toHaveBeenCalledWith(duration);
-  });
-  it.each([
-    ['hover', 'expandWindow'], ['notification', 'expandWindowNotification'], ['agent', 'expandWindowNotification'],
-    ['stt', 'expandWindowNotification'], ['cli', 'expandWindowNotification'], ['lyrics', 'expandWindowLyrics'],
-    ['agentVoiceInput', 'expandWindowLyrics'], ['lyricsTranslation', 'expandWindowLyricsTranslation'],
-    ['expanded', 'expandWindowFull'], ['maxExpand', 'expandWindowSettings'], ['guide', 'expandWindowSettings'],
-    ['login', 'expandWindowSettings'], ['register', 'expandWindowSettings'], ['resetPassword', 'expandWindowSettings'],
-    ['setPassword', 'expandWindowSettings'], ['bindOAuth', 'expandWindowSettings'], ['bindEmail', 'expandWindowSettings'],
-    ['payment', 'expandWindowSettings'], ['announcement', 'expandWindowSettings'], ['questionnaire', 'expandWindowSettings'],
-    ['musicProvidersLogin', 'expandWindowSettings'], ['idle', 'collapseWindow']
-  ] as const)('resizes state %s through %s', async (state, method) => {
-    io.state = state;
-    await commit();
-    shape();
-    await settle();
-    tick(700);
-    await settle();
-    expect(api[method]).toHaveBeenCalledWith(700);
-    expect(io.setShapeMode).toHaveBeenLastCalledWith('pill');
-    expect(api.moveWindowDelta).not.toHaveBeenCalled();
-  });
-
-  it('animates rounded incremental movement and corrects settled window bounds', async () => {
-    await commit();
-    api.getWindowBounds.mockResolvedValueOnce({ x: 0, y: 0, width: ISLAND_WIDTH, height: 40 })
-      .mockResolvedValueOnce({ x: 90, y: 45, width: ISLAND_WIDTH, height: 40 });
-    shape('pill', 100, 50);
-    await settle();
-    tick(0);
-    expect(api.moveWindowDelta).not.toHaveBeenCalled();
-    tick(350);
-    expect(api.moveWindowDelta).toHaveBeenLastCalledWith(88, 44);
-    tick(700);
-    await settle();
-    expect(api.moveWindowDelta.mock.calls).toEqual([[88, 44], [12, 6], [10, 5]]);
-    expect(api.getWindowBounds).toHaveBeenCalledTimes(2);
-  });
-
-  it('normalizes unknown shapes and leaves an unchanged shape untouched', async () => {
-    await commit();
-    io.setShapeMode.mockClear();
-    shape('invalid');
-    await settle();
-    tick(700);
-    await settle();
-    expect(io.setShapeMode).not.toHaveBeenCalled();
-    expect(api.collapseWindow).toHaveBeenCalledWith(700);
-  });
-
-  it('absorbs bounds failures and handles missing initial and settled bounds', async () => {
-    await commit();
-    api.getWindowBounds.mockRejectedValueOnce(new Error('window disappeared'));
-    shape();
-    await settle();
-    expect(frames.size).toBe(0);
-    api.getWindowBounds.mockResolvedValueOnce(null as unknown as Bounds);
-    shape();
-    await settle();
-    expect(frames.size).toBe(0);
-    api.getWindowBounds.mockResolvedValueOnce({ x: 0, y: 0, width: ISLAND_WIDTH, height: 40 }).mockResolvedValueOnce(null as unknown as Bounds);
-    shape();
-    await settle();
-    tick(700);
-    await settle();
-    expect(api.moveWindowDelta).not.toHaveBeenCalled();
-  });
-
-  it('discards stale initial bounds and cancels already scheduled frames on newer shape changes', async () => {
-    await commit();
-    let resolve: ((value: Bounds) => void) | undefined;
-    api.getWindowBounds.mockReturnValueOnce(new Promise((done) => { resolve = done; }));
-    shape('pill', 100, 50);
-    shape('notch', 0, 0);
-    await settle();
-    resolve?.({ x: 0, y: 0, width: ISLAND_WIDTH, height: 40 });
-    await settle();
-    expect(frames.size).toBe(1);
-    shape('pill', 5, 5);
-    expect(cancelFrame).toHaveBeenCalled();
-    await settle();
-    expect(frames.size).toBe(1);
+    broadcast('island:shape-mode', 'pill');
+    expect(io.shapeMode).toBe('notch');
+    shape('pill', 1);
+    expect(io.shapeMode).toBe('pill');
+    shape('notch', 2);
+    expect(io.shapeMode).toBe('notch');
     unmountHooks();
-    expect(frames.size).toBe(0);
     expect(unsubscribeShape).toHaveBeenCalledOnce();
-  });
-
-  it('discards an animation completion superseded before its Promise continuation', async () => {
-    await commit();
-    shape('pill', 0, 0);
-    await settle();
-    tick(700);
-    shape('notch', 0, 0);
-    await settle();
-    expect(api.getWindowBounds).toHaveBeenCalledTimes(2);
-  });
-
-  it('discards settled bounds superseded while their native request is pending', async () => {
-    await commit();
-    let resolve: ((value: Bounds) => void) | undefined;
-    api.getWindowBounds.mockResolvedValueOnce({ x: 0, y: 0, width: ISLAND_WIDTH, height: 40 })
-      .mockReturnValueOnce(new Promise((done) => { resolve = done; }));
-    shape('pill', 0, 0);
-    await settle();
-    tick(700);
-    await settle();
-    shape('notch', 0, 0);
-    resolve?.({ x: 100, y: 100, width: ISLAND_WIDTH, height: 40 });
-    await settle();
-    expect(api.moveWindowDelta).not.toHaveBeenCalled();
-  });
-
-  it('supports missing optional movement bridges during animation and correction', async () => {
-    await commit();
-    vi.stubGlobal('window', Object.assign(surface, { api: { ...api, moveWindowDelta: undefined } }));
-    shape('pill', 100, 50);
-    await settle();
-    tick(700);
-    await settle();
-    expect(api.moveWindowDelta).not.toHaveBeenCalled();
-    expect(api.getWindowBounds).toHaveBeenCalledTimes(2);
   });
 });

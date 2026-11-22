@@ -428,7 +428,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
         row.style.cssText = 'position:absolute;left:0;top:0;width:1000px;';
         const element = document.createElement('div');
         row.append(element); host.append(row);
-        const classes = `island-shell shape-${shape} speed-${speed}${spring ? ' spring-animation' : ''}`;
+        const classes = `island-shell shape-${shape} corners-rounded speed-${speed}${spring ? ' spring-animation' : ''}`;
         element.style.cssText = 'transition:none;animation:none;';
         let width = 0;
         let height = 0;
@@ -440,8 +440,8 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
           width = Math.max(width, bounds.width); height = Math.max(height, bounds.height);
           finalWidth = bounds.width; finalHeight = bounds.height;
           if (shape === 'pill' && state === 'musicProvidersLogin') {
-            assert(bounds.height === 416, 'Pill music provider login must share the 416px settings canvas.');
-            assert(getComputedStyle(element).borderRadius === '26px', 'Pill music provider login must keep the rounded settings shape.');
+            assert(bounds.height === 400, 'Pill music provider login must share the 400px settings canvas.');
+            assert(getComputedStyle(element).borderRadius === '34px', 'Pill music provider login must share the settings corner radius.');
           }
         });
         element.className = `${classes} ${path[0]}`;
@@ -452,7 +452,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
       cases.forEach((item) => {
         const { element } = item;
         element.style.cssText = '';
-        element.className = `island-shell shape-${item.shape} speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[1]} morphing from-${item.path[0]}`;
+        element.className = `island-shell shape-${item.shape} corners-rounded speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[1]} morphing from-${item.path[0]}`;
         const style = getComputedStyle(element);
         assert(parseFloat(style.animationDuration) * 1000 <= item.guard,
           `${item.shape}/${item.speed}/${item.path.join('→')}: animation outlasts the native canvas guard.`);
@@ -471,7 +471,7 @@ async function testShellTransitions(): Promise<{ cases: number; frames: number }
           const now = performance.now();
           const { element } = item;
           if (item.path.length > 2 && item.step === 1 && now - item.start >= 80) {
-            element.className = `island-shell shape-${item.shape} speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[2]} morphing from-${item.path[1]}`;
+            element.className = `island-shell shape-${item.shape} corners-rounded speed-${item.speed}${item.spring ? ' spring-animation' : ''} ${item.path[2]} morphing from-${item.path[1]}`;
             element.getBoundingClientRect();
             Object.assign(item, { step: 2, start: performance.now() });
           }
@@ -573,7 +573,43 @@ async function testBusyShellAcknowledgements(): Promise<Record<string, unknown>[
   }
 }
 
+/** 用命中测试验证实际裁切路径包含内容区四角。 */
+function testPillContentBounds(): void {
+  const shell = document.createElement('div');
+  const content = document.createElement('div');
+  shell.style.transition = 'none';
+  content.style.cssText = 'position:relative;z-index:1;width:100%;height:100%;';
+  shell.append(content);
+  document.body.prepend(shell);
+  try {
+    const states = Object.keys(ISLAND_STATE_AREA);
+    for (const corners of ['rounded', 'concave']) {
+      for (const state of states) {
+        shell.className = `island-shell shape-notch corners-${corners} ${state}`;
+        const notch = shell.getBoundingClientRect();
+        shell.className = `island-shell shape-pill corners-${corners} ${state}`;
+        const pill = shell.getBoundingClientRect();
+        const { top, right, bottom, left } = content.getBoundingClientRect();
+        const label = `${corners}/${state}`;
+        assert(pill.width === notch.width && pill.height === notch.height, `${label}: shape switching must keep the same dimensions.`);
+        for (const x of [left + 1, right - 1]) {
+          for (const y of [top + 1, bottom - 1]) {
+            assert(document.elementFromPoint(x, y) === content, `${label}: an inner page corner is clipped.`);
+          }
+        }
+      }
+    }
+    shell.className = 'island-shell shape-pill corners-rounded idle';
+    assert(shell.offsetWidth === 260 && shell.offsetHeight === 42 && getComputedStyle(shell).borderRadius === '21px',
+      'Idle Pill uses the shared size and semicircular ends.');
+    checks.push('both shapes share the same size in all states and Pill content stays within the clip path');
+  } finally {
+    shell.remove();
+  }
+}
+
 window.runIslandTransitionTests = async () => {
+  testPillContentBounds();
   const shellTransitions = await testShellTransitions();
   const busyShellAcknowledgements = await testBusyShellAcknowledgements();
   await testLifecycle();

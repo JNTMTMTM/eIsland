@@ -44,7 +44,7 @@
               height 0.4s ease,
               border-radius 0.4s ease,
               clip-path 0.4s ease,
-              padding-inline 0.4s ease,
+              padding 0.4s ease,
               background 0.4s ease,
               box-shadow 0.4s ease,
               opacity 0.8s ease;
@@ -62,9 +62,11 @@
 
 .island-shell.shape-pill {
   --shell-pill-radius: 21px;
+  --shell-pill-inset-block: 6px;
+  --shell-pill-inset-inline: 8px;
 
-  height: 52px;
-  border-radius: 21px;
+  box-sizing: border-box;
+  border-radius: var(--shell-pill-radius);
   transform-origin: center center;
   cursor: grab;
 }
@@ -73,11 +75,11 @@
   cursor: grabbing;
 }
 
-.island-shell.shape-pill.hover {
+.island-shell.shape-pill.hover,
+.island-shell.shape-pill.lyricsTranslation {
   --shell-pill-radius: 30px;
-
-  height: 72px;
-  border-radius: 30px;
+  --shell-pill-inset-block: 6px;
+  --shell-pill-inset-inline: 13px;
 }
 
 .island-shell.shape-pill.notification,
@@ -85,9 +87,8 @@
 .island-shell.shape-pill.stt,
 .island-shell.shape-pill.cli {
   --shell-pill-radius: 44px;
-
-  height: 100px;
-  border-radius: 44px;
+  --shell-pill-inset-block: 4px;
+  --shell-pill-inset-inline: 27px;
 }
 
 .island-shell.shape-pill.expanded,
@@ -104,44 +105,15 @@
 .island-shell.shape-pill.announcement,
 .island-shell.shape-pill.questionnaire,
 .island-shell.shape-pill[class~="musicProvidersLogin"] {
-  --shell-pill-radius: 26px;
-
-  border-radius: 26px;
+  --shell-pill-radius: 34px;
+  --shell-pill-inset-block: 4px;
+  --shell-pill-inset-inline: 19px;
 }
 
-.island-shell.shape-pill.expanded,
-.island-shell.shape-pill.fileTransfer {
-  height: 164px;
-}
-
-.island-shell.shape-pill.maxExpand,
-.island-shell.shape-pill.guide,
-.island-shell.shape-pill.login,
-.island-shell.shape-pill.register,
-.island-shell.shape-pill.resetPassword,
-.island-shell.shape-pill.setPassword,
-.island-shell.shape-pill.bindOAuth,
-.island-shell.shape-pill.bindEmail,
-.island-shell.shape-pill.payment,
-.island-shell.shape-pill.announcement,
-.island-shell.shape-pill.questionnaire,
-.island-shell.shape-pill[class~="musicProvidersLogin"] {
-  height: 416px;
-}
-
-.island-shell.shape-pill.lyrics,
+/** 语音球需要占满 42px 高度，轮廓留白移到两侧。 */
 .island-shell.shape-pill.agentVoiceInput {
-  --shell-pill-radius: 21px;
-
-  height: 52px;
-  border-radius: 21px;
-}
-
-.island-shell.shape-pill.lyricsTranslation {
-  --shell-pill-radius: 30px;
-
-  height: 72px;
-  border-radius: 30px;
+  --shell-pill-inset-block: 0;
+  --shell-pill-inset-inline: 21px;
 }
 
 .island-shell.spring-animation {
@@ -149,7 +121,7 @@
               height 0.68s cubic-bezier(0.22, 1, 0.36, 1),
               border-radius 0.68s cubic-bezier(0.22, 1, 0.36, 1),
               clip-path 0.68s cubic-bezier(0.22, 1, 0.36, 1),
-              padding-inline 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+              padding 0.68s cubic-bezier(0.22, 1, 0.36, 1),
               background 0.45s ease,
               box-shadow 0.68s ease;
 }
@@ -324,7 +296,7 @@
               height 0.64s ease,
               border-radius 0.64s ease,
               clip-path 0.64s ease,
-              padding-inline 0.64s ease,
+              padding 0.64s ease,
               background 0.64s ease,
               box-shadow 0.64s ease;
 }
@@ -333,7 +305,7 @@
               height 1.08s cubic-bezier(0.22, 1, 0.36, 1),
               border-radius 1.08s cubic-bezier(0.22, 1, 0.36, 1),
               clip-path 1.08s cubic-bezier(0.22, 1, 0.36, 1),
-              padding-inline 1.08s cubic-bezier(0.22, 1, 0.36, 1),
+              padding 1.08s cubic-bezier(0.22, 1, 0.36, 1),
               background 0.72s ease,
               box-shadow 1.08s ease;
 }
@@ -347,7 +319,7 @@
               height 0.2s ease,
               border-radius 0.2s ease,
               clip-path 0.2s ease,
-              padding-inline 0.2s ease,
+              padding 0.2s ease,
               background 0.2s ease,
               box-shadow 0.2s ease;
 }
@@ -356,7 +328,7 @@
               height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
               border-radius 0.34s cubic-bezier(0.22, 1, 0.36, 1),
               clip-path 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-              padding-inline 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+              padding 0.34s cubic-bezier(0.22, 1, 0.36, 1),
               background 0.22s ease,
               box-shadow 0.34s ease;
 }
@@ -372,6 +344,10 @@
   z-index: 1;
   white-space: nowrap;
   animation: contentFadeIn 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.island-shell.shape-pill .idle-content {
+  padding-inline: 8px;
 }
 
 @keyframes contentFadeIn {
@@ -692,10 +668,11 @@
 
 }
 
-/** 与 notch 保持相同的曲线指令，使浏览器能插值轮廓；控制点系数对应圆角的三次贝塞尔近似。 */
+/** 保留与 notch 同构的曲线路径，并将页面四角放在轮廓以内。背景仍铺满外壳。 */
 .island-shell.shape-pill:is(.corners-concave, .corners-rounded) {
-  padding-inline: 0;
-  border-radius: 0;
+  padding-block: var(--shell-pill-inset-block);
+  padding-inline: var(--shell-pill-inset-inline);
+  border-radius: var(--shell-pill-radius);
   clip-path: shape(
     from var(--shell-pill-radius) 0,
     hline to calc(100% - var(--shell-pill-radius)),
@@ -708,12 +685,5 @@
     curve to var(--shell-pill-radius) 0 with 0 calc(var(--shell-pill-radius) * .4477) / calc(var(--shell-pill-radius) * .4477) 0,
     close
   );
-
-}
-
-/** 两种边角配置下胶囊均保留圆角继承，避免背景与音乐描边被轮廓裁断。 */
-.island-shell.shape-pill.corners-concave,
-.island-shell.shape-pill.corners-rounded {
-  border-radius: var(--shell-pill-radius);
 
 }

@@ -45,21 +45,20 @@ impl Rect {
     }
 }
 
-/// Match the shared renderer dimensions, including taller floating-pill states.
-pub fn state_size(mode: &str, pill: bool, scale: f64) -> Option<(f64, f64)> {
-    let (width, height, pill_height) = match mode {
-        "collapse" => (260., 42., 52.),
-        "expand" => (500., 60., 72.),
-        "expand-notification" => (500., 88., 100.),
-        "expand-lyrics" => (500., 42., 52.),
-        "expand-lyrics-translation" => (500., 60., 72.),
-        "expand-full" => (860., 150., 164.),
-        "expand-settings" => (860., 400., 416.),
+/// 两种形态按相同的界面状态尺寸和用户缩放计算原生窗口。
+pub fn state_size(mode: &str, scale: f64) -> Option<(f64, f64)> {
+    let (width, height) = match mode {
+        "collapse" => (260., 42.),
+        "expand" | "expand-lyrics-translation" => (500., 60.),
+        "expand-notification" => (500., 88.),
+        "expand-lyrics" => (500., 42.),
+        "expand-full" => (860., 150.),
+        "expand-settings" => (860., 400.),
         _ => return None,
     };
     Some((
         (width * scale / 100.0).round(),
-        ((if pill { pill_height } else { height }) * scale / 100.0).round(),
+        (height * scale / 100.0).round(),
     ))
 }
 
@@ -98,13 +97,11 @@ pub fn menu_rect(anchor: Point, area: Rect, height: f64) -> Rect {
 mod tests {
     use super::*;
     #[test]
-    fn pill_and_scale_match_renderer_contract() {
-        assert_eq!(
-            state_size("expand-settings", true, 125.),
-            Some((1075., 520.))
-        );
-        assert_eq!(state_size("collapse", false, 50.), Some((130., 21.)));
-        assert_eq!(state_size("untrusted", false, 100.), None);
+    fn scale_matches_shared_renderer_dimensions() {
+        assert_eq!(state_size("expand-settings", 125.), Some((1075., 500.)));
+        assert_eq!(state_size("collapse", 50.), Some((130., 21.)));
+        assert_eq!(state_size("collapse", 125.), Some((325., 53.)));
+        assert_eq!(state_size("untrusted", 100.), None);
     }
     #[test]
     fn shrinking_retains_center_and_backing_width() {

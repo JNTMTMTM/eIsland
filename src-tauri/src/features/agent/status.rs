@@ -18,6 +18,9 @@
  * GNU General Public License for more details.
  */
 
+#[path = "codex_hooks.rs"]
+mod codex_hooks;
+
 use super::{now, save, store, usage};
 use crate::shared::Result;
 use serde_json::{json, Value};
@@ -67,6 +70,7 @@ struct Log {
     offset: u64,
     id: String,
     cwd: Value,
+    turn_id: Value,
     events: Vec<Value>,
     heatmap: HashMap<String, Value>,
 }
@@ -155,28 +159,28 @@ fn provider(channel: &str) -> &str {
         "claude-code"
     }
 }
-fn data_key(provider: &str) -> String {
-    if provider == "codex" {
-        "codex-status-state".into()
-    } else {
-        "claude-code-status".into()
-    }
+fn blank() -> Value {
+    json!({"revision":0,"enabled":false,"receiverRunning":false,"receiverUrl":null,"settingsPath":"","hookScriptPath":"","sessions":[],"events":[],"heatmap":{},"updatedAt":now()})
 }
-fn blank(provider: &str) -> Value {
-    json!({"revision":0,"enabled":provider=="codex"||managed(),"receiverRunning":if provider=="codex"{false}else{RUNNING.load(Ordering::Acquire)},"receiverUrl":if provider=="codex"{Value::Null}else{json!(format!("http://127.0.0.1:{PORT}/claude-code/hook"))},"settingsPath":if provider=="codex"{usage::home().join(".codex/sessions")}else{setting_path()},"hookScriptPath":if provider=="codex"{String::new()}else{std::env::current_exe().map(|v|v.to_string_lossy().into_owned()).unwrap_or_default()},"sessions":[],"events":[],"heatmap":{},"updatedAt":now()})
+fn codex_metadata(app: &AppHandle, snapshot: &mut Value) {
+    snapshot["enabled"] = json!(store(app, codex_hooks::STATE, json!({}))["enabled"] != false);
+    snapshot["receiverRunning"] = json!(RUNNING.load(Ordering::Acquire));
+    snapshot["settingsPath"] = json!(codex_hooks::settings_path());
+    snapshot["codexHookConfigured"] = json!(codex_hooks::configured());
 }
 fn snapshot(app: &AppHandle, provider: &str) -> Value {
     let mut result = if provider == "codex" {
-        store(app, "codex-status-snapshot", blank(provider))
+        store(app, "codex-status-snapshot", blank())
     } else {
-        store(app, "claude-code-status", blank(provider))
+        store(app, "claude-code-status", blank())
     };
     if !result.is_object() {
-        result = blank(provider);
+        result = blank();
     }
     if provider == "codex" {
-        result["enabled"] = json!(store(app, "codex-status-state", json!({}))["enabled"] != false);
+        codex_metadata(app, &mut result);
     } else {
+        result["settingsPath"] = json!(setting_path());
         result["enabled"] = json!(managed());
         result["receiverRunning"] = json!(RUNNING.load(Ordering::Acquire));
         result["receiverUrl"] = if RUNNING.load(Ordering::Acquire) {
@@ -243,7 +247,7 @@ pub fn start(app: &AppHandle) {
         let mut processes = sysinfo::System::new();
         let mut external_agents = ExternalAgentEdges::default();
         while !STOPPED.load(Ordering::Acquire) {
-            if store(&monitor, "codex-status-state", json!({}))["enabled"] != false {
+            if store(&monitor, codex_hooks::STATE, json!({}))["enabled"] != false {
                 if let Err(error) = scan_codex(&monitor) {
                     eprintln!("[Codex] {error}");
                 }
@@ -334,7 +338,8 @@ fn kind(event: &str) -> &str {
         "SessionStart" | "TurnStart" | "SubagentStart" | "PreCompact" => "session",
         "PermissionRequest" | "PermissionDenied" => "permission",
         "PreToolUse" | "PostToolUse" | "PostToolUseFailure" => "tool",
-        "Stop" | "StopFailure" | "AssistantOutput" | "SessionEnd" | "SubagentStop" => "completed",
+        "Stop" | "StopFailure" | "Interrupt" | "AssistantOutput" | "SessionEnd"
+        | "SubagentStop" => "completed",
         "UserPromptSubmit" => "message",
         "Notification" => "notification",
         _ => "unknown",
@@ -677,10 +682,10 @@ impl Drop for HookPermit {
     }
 }
 
-fn read_hook_payload(stream: &mut TcpStream, timeout: Duration) -> Result<Value> {
+fn read_hook_payload(stream: &mut TcpStream, timeout: Duration) -> Result<(bool, Value)> {
     let deadline = std::time::Instant::now() + timeout;
     let mut wire = Vec::with_capacity(4096);
-    let (offset, length) = loop {
+    let (offset, length, codex) = loop {
         let mut headers = vec![httparse::EMPTY_HEADER; 4096];
         let mut request = httparse::Request::new(&mut headers);
         match request
@@ -696,8 +701,24 @@ fn read_hook_payload(stream: &mut TcpStream, timeout: Duration) -> Result<Value>
                 {
                     return Err("Hook headers exceed limit".into());
                 }
-                if method != "POST" || path != "/claude-code/hook" || request.version != Some(1) {
+                let codex = path == codex_hooks::ENDPOINT;
+                if method != "POST"
+                    || (!codex && path != "/claude-code/hook")
+                    || request.version != Some(1)
+                {
                     return Err("Invalid hook endpoint".into());
+                }
+                if codex
+                    && (request
+                        .headers
+                        .iter()
+                        .any(|header| header.name.eq_ignore_ascii_case("Origin"))
+                        || !request.headers.iter().any(|header| {
+                            header.name.eq_ignore_ascii_case("Content-Type")
+                                && header.value.eq_ignore_ascii_case(b"application/json")
+                        }))
+                {
+                    return Err("Codex hook requests require native JSON input".into());
                 }
                 let mut length = None;
                 for header in request.headers.iter() {
@@ -721,7 +742,7 @@ fn read_hook_payload(stream: &mut TcpStream, timeout: Duration) -> Result<Value>
                 if length > HOOK_BODY_LIMIT {
                     return Err("Hook body exceeds 2 MiB".into());
                 }
-                break (offset, length);
+                break (offset, length, codex);
             }
             httparse::Status::Partial => {
                 if wire.len() >= HOOK_LINE_LIMIT + HOOK_HEADER_LIMIT {
@@ -740,7 +761,7 @@ fn read_hook_payload(stream: &mut TcpStream, timeout: Duration) -> Result<Value>
     if !payload.is_object() {
         return Err("Hook payload must be an object".into());
     }
-    Ok(payload)
+    Ok((codex, payload))
 }
 fn read_hook_bytes(
     stream: &mut TcpStream,
@@ -780,8 +801,13 @@ fn respond_hook(stream: &mut TcpStream, result: Result<String>) -> Result<()> {
     stream.flush().map_err(|error| error.to_string())
 }
 fn receive(app: &AppHandle, mut stream: TcpStream) -> Result<()> {
-    let result = read_hook_payload(&mut stream, HOOK_IO_TIMEOUT)
-        .and_then(|payload| receive_payload(app, payload));
+    let result = read_hook_payload(&mut stream, HOOK_IO_TIMEOUT).and_then(|(codex, payload)| {
+        if codex {
+            codex_hooks::receive(app, payload)
+        } else {
+            receive_payload(app, payload)
+        }
+    });
     respond_hook(&mut stream, result)
 }
 fn receive_payload(app: &AppHandle, mut payload: Value) -> Result<String> {
@@ -998,19 +1024,27 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
     let operation = channel.split_once(':').map(|(_, v)| v).unwrap_or("");
     match operation {
         "status:get" => Ok(snapshot(app, provider)),
-        "monitor:enable" | "monitor:disable" => {
-            let enabled = operation.ends_with("enable");
-            let mut state = store(app, &data_key(provider), json!({}));
+        "monitor:enable" | "monitor:disable" if provider == "codex" => {
+            let enabled = operation == "monitor:enable";
+            let _logs = codex_hooks::LOG_VIEW.lock().unwrap();
+            let mut state = store(app, codex_hooks::STATE, json!({}));
             state["enabled"] = json!(enabled);
-            save(app, &data_key(provider), &state)?;
-            if enabled {
-                scan_codex(app)?;
-            }
-            let mut snapshot = snapshot(app, provider);
-            snapshot["enabled"] = json!(enabled);
-            snapshot["receiverRunning"] = json!(enabled);
+            save(app, codex_hooks::STATE, &state)?;
+            let current = publish(app, provider, snapshot(app, provider))?;
             Ok(
-                json!({"ok":true,"message":if enabled{"Codex monitor enabled"}else{"Codex monitor disabled"},"snapshot":publish(app,provider,snapshot)?}),
+                json!({"ok":true,"message":if enabled{"Codex monitor enabled"}else{"Codex monitor disabled"},"snapshot":current}),
+            )
+        }
+        "hook:set" if provider == "codex" => {
+            let enabled = args
+                .first()
+                .and_then(Value::as_bool)
+                .ok_or("Missing Codex hook state")?;
+            let _logs = codex_hooks::LOG_VIEW.lock().unwrap();
+            let result = codex_hooks::install(enabled);
+            let current = publish(app, provider, snapshot(app, provider))?;
+            Ok(
+                json!({"ok":result.is_ok(),"message":result.err().unwrap_or_default(),"snapshot":current}),
             )
         }
         "hook:install" | "hook:uninstall" => {
@@ -1028,7 +1062,8 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
                 .cloned()
                 .unwrap_or_default();
             if provider == "codex" {
-                let mut state = store(app, "codex-status-state", json!({}));
+                let logs = codex_hooks::LOG_VIEW.lock().unwrap();
+                let mut state = store(app, codex_hooks::STATE, json!({}));
                 if operation == "events:clear" {
                     state["clearBefore"] = json!(now());
                     state["deletedBeforeBySession"] = json!({});
@@ -1042,9 +1077,9 @@ pub async fn handle(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Va
                         }
                     }
                 }
-                save(app, "codex-status-state", &state)?;
-                scan_codex(app)?;
-                return Ok(snapshot(app, provider));
+                save(app, codex_hooks::STATE, &state)?;
+                codex_hooks::prune(app, &state)?;
+                return codex_hooks::refresh(app, logs.as_ref());
             }
             let _guard = CLAUDE_EVENTS.lock().unwrap();
             let mut current = snapshot(app, provider);
@@ -1141,7 +1176,7 @@ fn detail(app: &AppHandle, provider: &str, id: &str, offset: u64) -> Result<Valu
             })
         })
         .ok_or("CLI event is no longer available")?;
-    let codex = event["detailProvider"] == "codex";
+    let codex = event["detailSource"].is_object();
     let path = if codex {
         PathBuf::from(
             event["transcriptPath"]
@@ -1178,6 +1213,20 @@ fn detail(app: &AppHandle, provider: &str, id: &str, offset: u64) -> Result<Valu
         json!({"text":String::from_utf8_lossy(&bytes[..length]),"offset":start,"nextOffset":if next<total&&length>0{Some(next)}else{None},"totalBytes":total}),
     )
 }
+/// Codex stores runtime context using the user role even though it is not a submitted prompt.
+fn codex_context_message(payload: &Value) -> bool {
+    payload["content"].as_array().is_some_and(|blocks| {
+        !blocks.is_empty()
+            && blocks.iter().all(|block| {
+                block["text"].as_str().is_some_and(|text| {
+                    let text = text.trim();
+                    text.starts_with("<environment_context>")
+                        && text.ends_with("</environment_context>")
+                })
+            })
+    })
+}
+
 fn codex_event(
     value: &Value,
     path: &Path,
@@ -1191,6 +1240,11 @@ fn codex_event(
     if kind == "session_meta" {
         log.id = payload["id"].as_str().unwrap_or(&log.id).to_owned();
         log.cwd = payload["cwd"].clone();
+    }
+    if payload["turn_id"].is_string()
+        && (kind == "turn_context" || payload["type"] == "task_started")
+    {
+        log.turn_id = payload["turn_id"].clone();
     }
     if kind == "turn_context" {
         if payload["cwd"].is_string() {
@@ -1216,7 +1270,7 @@ fn codex_event(
             "function_call" | "custom_tool_call" | "local_shell_call" => "PreToolUse",
             "function_call_output" | "custom_tool_call_output" => "PostToolUse",
             "message" => {
-                if payload["role"] == "user" {
+                if payload["role"] == "user" && !codex_context_message(payload) {
                     "UserPromptSubmit"
                 } else if payload["role"] == "assistant" {
                     "AssistantOutput"
@@ -1234,6 +1288,7 @@ fn codex_event(
     let text = payload
         .get("message")
         .or_else(|| payload.get("text"))
+        .or_else(|| payload.get("last_agent_message"))
         .map(preview)
         .filter(|v| !v.is_empty())
         .unwrap_or_else(|| {
@@ -1251,6 +1306,13 @@ fn codex_event(
     normalized["text"] = json!(text);
     let mut event = payload_event(&normalized, name, &log.id, &log.cwd, time, &id);
     event["detailProvider"] = json!("codex");
+    event["source"] = json!("log");
+    event["turnId"] = payload
+        .get("turn_id")
+        .filter(|v| v.is_string())
+        .unwrap_or(&log.turn_id)
+        .clone();
+    event["callId"] = payload["call_id"].clone();
     event["transcriptPath"] = json!(path);
     event["detailSource"] = json!({"offset":offset,"bytes":bytes});
     if let Some(previous) = log.events.iter().position(|item| {
@@ -1305,7 +1367,7 @@ fn codex_event(
     Some(event)
 }
 fn scan_codex(app: &AppHandle) -> Result<()> {
-    let root = usage::home().join(".codex/sessions");
+    let root = codex_hooks::home().join("sessions");
     let mut paths = walkdir::WalkDir::new(&root)
         .follow_links(false)
         .into_iter()
@@ -1323,7 +1385,6 @@ fn scan_codex(app: &AppHandle) -> Result<()> {
     paths.truncate(1000);
     let mut logs = LOGS.get_or_init(Default::default).lock().unwrap();
     logs.retain(|path, _| paths.contains(path));
-    let mut dirty = false;
     for path in paths {
         let Ok(mut file) = File::open(&path) else {
             continue;
@@ -1361,39 +1422,17 @@ fn scan_codex(app: &AppHandle) -> Result<()> {
                     if let Some(event) = codex_event(&value, &path, log.offset, bytes, log) {
                         log.events.insert(0, event);
                         log.events.truncate(40);
-                        dirty = true;
                     }
                 }
             }
             log.offset += bytes as u64;
         }
     }
-    let state = store(app, "codex-status-state", json!({}));
-    let mut current = blank("codex");
-    current["receiverRunning"] = json!(state["enabled"] != false);
-    current["enabled"] = json!(state["enabled"] != false);
-    let cutoff = state["clearBefore"].as_u64().unwrap_or(0);
-    let mut events = Vec::new();
     let mut sessions = Vec::new();
     let mut heatmap = json!({});
     for log in logs.values() {
-        let deleted = state["deletedBeforeBySession"][&log.id]
-            .as_u64()
-            .unwrap_or(0);
-        let visible = log
-            .events
-            .iter()
-            .filter(|event| event["createdAt"].as_u64().unwrap_or(0) > cutoff.max(deleted))
-            .collect::<Vec<_>>();
-        if let Some(latest) = visible.first() {
-            let phase = if now().saturating_sub(latest["createdAt"].as_u64().unwrap_or(0)) > 600000
-            {
-                "completed"
-            } else {
-                phase(latest)
-            };
-            sessions.push(json!({"id":log.id,"title":log.cwd.as_str().and_then(|v|Path::new(v).file_name()).map(|v|v.to_string_lossy().into_owned()).unwrap_or_else(||log.id.clone()),"phase":phase,"cwd":log.cwd,"transcriptPath":latest["transcriptPath"],"lastSummary":latest["summary"],"lastEventAt":latest["createdAt"],"pendingPermission":if phase=="waiting_permission"{(**latest).clone()}else{Value::Null},"events":visible}));
-            events.extend(visible);
+        if !log.events.is_empty() {
+            sessions.push(json!({"id":log.id,"events":log.events}));
         }
         for (date, counts) in &log.heatmap {
             if !heatmap[date].is_object() {
@@ -1407,25 +1446,48 @@ fn scan_codex(app: &AppHandle) -> Result<()> {
             }
         }
     }
-    sessions.sort_by_key(|session| std::cmp::Reverse(session["lastEventAt"].as_u64().unwrap_or(0)));
-    events.sort_by_key(|event| std::cmp::Reverse(event["createdAt"].as_u64().unwrap_or(0)));
-    events.truncate(120);
-    current["sessions"] = json!(sessions);
-    current["events"] = json!(events);
-    current["heatmap"] = heatmap;
     drop(logs);
-    let old = snapshot(app, "codex");
-    if dirty
-        || old["events"] != current["events"]
-        || old["sessions"] != current["sessions"]
-        || old["heatmap"] != current["heatmap"]
-    {
-        publish(app, "codex", current)?;
+    let mut view = codex_hooks::LOG_VIEW.lock().unwrap();
+    *view = Some(codex_hooks::LogView { sessions, heatmap });
+    if store(app, codex_hooks::STATE, json!({}))["enabled"] != false {
+        codex_hooks::refresh(app, view.as_ref())?;
     }
     Ok(())
 }
 pub fn run_hook_cli() -> bool {
     let arguments = std::env::args().collect::<Vec<_>>();
+    if arguments.iter().any(|arg| arg == codex_hooks::SWITCH) {
+        let run = || -> Result<()> {
+            let mut body = Vec::new();
+            std::io::stdin()
+                .take(HOOK_BODY_LIMIT as u64 + 1)
+                .read_to_end(&mut body)
+                .map_err(|e| e.to_string())?;
+            if body.is_empty() {
+                return Err("Empty hook payload".into());
+            }
+            if body.len() > HOOK_BODY_LIMIT {
+                return Err("Hook payload too large".into());
+            }
+            crate::infrastructure::http::blocking_loopback_client()?
+                .post(format!("http://127.0.0.1:{PORT}{}", codex_hooks::ENDPOINT))
+                .timeout(Duration::from_secs(1))
+                .header("Content-Type", "application/json")
+                .body(body)
+                .send()
+                .and_then(|response| response.error_for_status())
+                .map_err(|error| error.to_string())?;
+            Ok(())
+        };
+        if let Err(error) = run() {
+            // Codex 把 0 和 2 以外的退出码视为不阻断的 hook 错误，并展示 stderr。
+            eprintln!("[eIsland] Codex hook not delivered: {error}");
+            std::process::exit(1);
+        }
+        // Stop requires JSON. An empty object leaves Codex's decisions and context intact.
+        println!("{{}}");
+        return true;
+    }
     let Some(index) = arguments.iter().position(|v| v == "--eisland-claude-hook") else {
         return false;
     };
@@ -1488,7 +1550,7 @@ mod tests {
         let address = listener.local_addr().unwrap();
         let worker = std::thread::spawn(move || {
             let (mut socket, _) = listener.accept().unwrap();
-            read_hook_payload(&mut socket, timeout)
+            read_hook_payload(&mut socket, timeout).map(|(_, payload)| payload)
         });
         let mut socket = TcpStream::connect(address).unwrap();
         socket.write_all(wire).unwrap();
@@ -1562,7 +1624,7 @@ mod tests {
             let address = listener.local_addr().unwrap();
             let worker = std::thread::spawn(move || {
                 let (mut socket, _) = listener.accept().unwrap();
-                let payload = read_hook_payload(&mut socket, HOOK_IO_TIMEOUT).unwrap();
+                let (_, payload) = read_hook_payload(&mut socket, HOOK_IO_TIMEOUT).unwrap();
                 assert_eq!(payload["text"], "中文😀");
                 respond_hook(
                     &mut socket,
@@ -1645,6 +1707,30 @@ mod tests {
             .iter()
             .any(|item| item["label"] == "toolResult" && item["value"] == "contents"));
     }
+    #[test]
+    fn codex_rollout_context_does_not_count_as_a_prompt() {
+        let record = |text: &str| {
+            json!({
+                "timestamp": "2026-11-04T12:00:00Z", "type": "response_item",
+                "payload": {"type":"message","role":"user","content":[{"type":"input_text","text":text}]}
+            })
+        };
+        let mut log = Log::default();
+        let path = Path::new("rollout.jsonl");
+        assert!(codex_event(
+            &record("<environment_context>sample</environment_context>"),
+            path,
+            0,
+            1,
+            &mut log
+        )
+        .is_none());
+        assert!(log.heatmap.is_empty());
+        let prompt = codex_event(&record("actual prompt"), path, 1, 1, &mut log).unwrap();
+        assert_eq!(prompt["eventName"], "UserPromptSubmit");
+        assert_eq!(prompt["summary"], "actual prompt");
+    }
+
     #[test]
     fn codex_events_preserve_byte_ranges_for_bounded_detail_reads() {
         let mut log = Log {

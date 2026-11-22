@@ -29,12 +29,17 @@ import { EMPTY_CLI_STATUS, type CliStatusSnapshot } from '../../types/types';
 import { useCliStatus } from '../useCliStatus';
 import type { CliProvider } from '../../../../../../../store/types';
 
-const { stateMock, effectMock, refMock, activity } = vi.hoisted(() => ({
+const { stateMock, effectMock, refMock, activity, callbacks } = vi.hoisted(() => ({
   stateMock: vi.fn(), effectMock: vi.fn(), refMock: vi.fn(), activity: { active: true },
+  callbacks: { index: 0, slots: [] as Array<{ callback: unknown; deps: unknown[] }> },
 }));
 vi.mock('react', () => ({
   useState: stateMock, useEffect: effectMock, useRef: refMock,
-  useCallback: (callback: unknown) => callback,
+  useCallback: (callback: unknown, deps: unknown[]) => {
+    const slot = callbacks.slots[callbacks.index];
+    if (!slot || deps.some((dep, index) => dep !== slot.deps[index])) callbacks.slots[callbacks.index] = { callback, deps };
+    return callbacks.slots[callbacks.index++].callback;
+  },
 }));
 vi.mock('../../../../../../hooks/islandContentActivity', () => ({ useIslandContentActive: () => activity.active }));
 
@@ -56,6 +61,7 @@ const codexSubscribe = vi.fn();
 const snapshot = { ...EMPTY_CLI_STATUS, enabled: true, updatedAt: 10 };
 
 beforeEach(() => {
+  callbacks.slots = [];
   states = [];
   refs = [];
   previousDeps = [];
@@ -65,7 +71,7 @@ beforeEach(() => {
   stateMock.mockImplementation((initial: unknown) => {
     const index = stateIndex++;
     if (!(index in states)) states[index] = initial;
-    return [states[index], (value: unknown) => { states[index] = value; }];
+    return [states[index], (value: unknown) => { states[index] = typeof value === 'function' ? (value as (current: unknown) => unknown)(states[index]) : value; }];
   });
   refMock.mockImplementation((initial: unknown) => {
     const index = refIndex++;
@@ -96,6 +102,7 @@ afterEach(() => {
 function render(provider: CliProvider = 'claude'): ReturnType<typeof useCliStatus> {
   stateIndex = 0;
   refIndex = 0;
+  callbacks.index = 0;
   const result = useCliStatus(provider);
   if (pendingEffect) {
     cleanup?.();

@@ -21,6 +21,20 @@
 use crate::shared::geometry::Rect;
 use tauri::WebviewWindow;
 
+#[cfg(windows)]
+mod drag;
+
+#[cfg(windows)]
+pub use drag::{cancel_dragging, start_dragging};
+
+#[cfg(not(windows))]
+pub fn start_dragging(window: &WebviewWindow) -> Result<(), String> {
+    window.start_dragging().map_err(|e| e.to_string())
+}
+
+#[cfg(not(windows))]
+pub fn cancel_dragging(_window: &WebviewWindow) {}
+
 /// 在窗口首次显示前禁用 Windows 桌面合成过渡。
 #[cfg(windows)]
 pub fn disable_transitions(window: &WebviewWindow) -> Result<(), String> {
@@ -48,11 +62,25 @@ pub fn disable_transitions(window: &WebviewWindow) -> Result<(), String> {
 /// Clip the reserved backing canvas to the currently visible island in device pixels.
 #[cfg(windows)]
 pub fn clip(window: &WebviewWindow, backing: Rect, visible: Rect) -> Result<(), String> {
+    clip_at_scale(
+        window,
+        backing,
+        visible,
+        window.scale_factor().map_err(|e| e.to_string())?,
+    )
+}
+
+#[cfg(windows)]
+pub fn clip_at_scale(
+    window: &WebviewWindow,
+    backing: Rect,
+    visible: Rect,
+    factor: f64,
+) -> Result<(), String> {
     use windows_sys::Win32::{
         Foundation::HWND,
         Graphics::Gdi::{CreateRectRgn, DeleteObject, SetWindowRgn},
     };
-    let factor = window.scale_factor().map_err(|e| e.to_string())?;
     let left = ((backing.width - visible.width) * factor / 2.).round() as i32;
     let right = left + (visible.width * factor).round() as i32;
     let bottom = (visible.height * factor).round() as i32;
@@ -73,6 +101,16 @@ pub fn clip(window: &WebviewWindow, backing: Rect, visible: Rect) -> Result<(), 
 
 #[cfg(not(windows))]
 pub fn clip(_window: &WebviewWindow, _backing: Rect, _visible: Rect) -> Result<(), String> {
+    Ok(())
+}
+
+#[cfg(not(windows))]
+pub fn clip_at_scale(
+    _window: &WebviewWindow,
+    _backing: Rect,
+    _visible: Rect,
+    _factor: f64,
+) -> Result<(), String> {
     Ok(())
 }
 

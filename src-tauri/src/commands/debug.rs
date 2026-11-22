@@ -103,10 +103,27 @@ pub(super) fn handle(
             return Ok(json!(app
                 .webview_windows()
                 .iter()
-                .map(|(label, w)| json!({
-                    "label":label,"visible":w.is_visible().ok(),"size":w.inner_size().ok(),
-                    "position":w.outer_position().ok(),"scale":w.scale_factor().ok(),
-                }))
+                .map(|(label, w)| {
+                    #[cfg(windows)]
+                    let ignores_cursor = w.hwnd().ok().map(|hwnd| {
+                        use windows_sys::Win32::UI::WindowsAndMessaging::{
+                            GetWindowLongW, GWL_EXSTYLE, WS_EX_TRANSPARENT,
+                        };
+                        unsafe {
+                            GetWindowLongW(hwnd.0 as _, GWL_EXSTYLE) as u32 & WS_EX_TRANSPARENT != 0
+                        }
+                    });
+                    #[cfg(not(windows))]
+                    let ignores_cursor: Option<bool> = None;
+                    json!({
+                        "label": label,
+                        "visible": w.is_visible().ok(),
+                        "size": w.inner_size().ok(),
+                        "position": w.outer_position().ok(),
+                        "scale": w.scale_factor().ok(),
+                        "ignoresCursor": ignores_cursor,
+                    })
+                })
                 .collect::<Vec<_>>()));
         }
         #[cfg(debug_assertions)]

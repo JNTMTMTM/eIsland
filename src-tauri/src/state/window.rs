@@ -21,6 +21,12 @@
 use crate::shared::geometry::{Point, Rect};
 use serde_json::Value;
 
+#[derive(Clone, Copy)]
+pub struct ShapeMotion {
+    pub id: u64,
+    pub position: Option<(Point, Point)>,
+}
+
 pub struct WindowState {
     pub mode: String,
     pub shape: String,
@@ -31,6 +37,8 @@ pub struct WindowState {
     pub visible: Rect,
     pub backing: Rect,
     pub transition: Option<u64>,
+    pub shape_motion: Option<ShapeMotion>,
+    pub shape_revision: u64,
     pub pending: Option<Rect>,
     pub generation: u64,
     pub always_on_top: bool,

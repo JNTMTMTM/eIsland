@@ -1657,7 +1657,7 @@
       "detailNext": "下一页",
       "eyebrow": "CLI 活动",
       "title": "CLI 控制台",
-      "subtitle": "实时汇总 Claude Code 与 Codex CLI 的会话、提示词、工具调用和模型输出。Claude Code 使用本地 Hook，Codex 自动读取本机会话记录。",
+      "subtitle": "汇总 Claude Code 与 Codex CLI 的会话、提示词、工具调用和输出。Codex 支持原生 Hook 和本机会话日志。",
       "provider": {
         "label": "切换 CLI 活动来源",
         "claude": "Claude",
@@ -1667,6 +1667,16 @@
       "disableHook": "关闭状态 Hook",
       "enableMonitor": "启用 Codex 会话监视",
       "disableMonitor": "关闭 Codex 会话监视",
+      "codexHook": {
+        "install": "安装原生 Hook",
+        "remove": "移除原生 Hook",
+        "trust": "已配置。请在 Codex 中打开 /hooks 审查并信任 eIsland。",
+        "log": "当前从本机会话日志读取。",
+        "received": "已收到原生 Hook 事件。",
+        "native": "原生 Hook",
+        "logBadge": "会话日志"
+      },
+      "actionFailed": "CLI 操作失败",
       "clear": "清空记录",
       "hookStatus": "Hook 状态",
       "receiverStatus": "接收器",

@@ -57,6 +57,7 @@ interface DynamicIslandCoordinatorState {
   shellClassName: string;
   shellStyle: React.CSSProperties | undefined;
   handleIslandClick: () => void;
+  handleIslandMouseEnter: () => void;
   bgMedia: { type: 'image' | 'video'; previewUrl: string } | null;
   bgVideoElementRef: React.MutableRefObject<HTMLVideoElement | null>;
   bgVideoHwDecode: boolean;
@@ -281,7 +282,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     setNotificationRef,
   });
 
-  useIslandHoverInteraction({
+  const handleIslandMouseEnter = useIslandHoverInteraction({
     state,
     setHover,
     setIdle,
@@ -319,6 +320,7 @@ export function useDynamicIslandCoordinator(options: UseDynamicIslandCoordinator
     shellClassName,
     shellStyle,
     handleIslandClick: wrapClick(handleIslandClick),
+    handleIslandMouseEnter,
     bgMedia,
     bgVideoElementRef,
     bgVideoHwDecode,

@@ -23,7 +23,6 @@
 use super::input::{cursor, number, source};
 use crate::features::capture;
 use crate::features::windowing as windows;
-use crate::shared::geometry::Rect;
 use crate::shared::Result;
 use crate::state::Desktop;
 use serde_json::{json, Value};
@@ -33,7 +32,7 @@ use tauri::{AppHandle, WebviewWindow};
 pub(super) fn handles(channel: &str) -> bool {
     channel
         .strip_prefix("window:")
-        .is_some_and(|mode| crate::shared::geometry::state_size(mode, false, 100.).is_some())
+        .is_some_and(|mode| crate::shared::geometry::state_size(mode, 100.).is_some())
         || matches!(
             channel,
             "window:renderer-ready"
@@ -45,6 +44,7 @@ pub(super) fn handles(channel: &str) -> bool {
                 | "window:get-mouse-position"
                 | "window:get-mouse-window-state"
                 | "window:move-delta"
+                | "window:start-pill-drag"
                 | "window:hide"
                 | "window:show"
                 | "window:start-dragging"
@@ -70,7 +70,7 @@ pub(super) fn handle(
     let a = args.first().unwrap_or(&Value::Null);
     let b = args.get(1).unwrap_or(&Value::Null);
     if let Some(mode) = channel.strip_prefix("window:") {
-        if crate::shared::geometry::state_size(mode, false, 100.).is_some() {
+        if crate::shared::geometry::state_size(mode, 100.).is_some() {
             source(&window, "main")?;
             windows::resize(&app, mode, a.as_u64().unwrap_or(0).min(30000))?;
             return Ok(Value::Null);
@@ -125,15 +125,22 @@ pub(super) fn handle(
         }
         "window:enable-mouse-passthrough" | "window:disable-mouse-passthrough" => {
             source(&window, "main")?;
-            let locked = app
-                .state::<Desktop>()
-                .inner
-                .lock()
-                .unwrap()
-                .passthrough_locked;
-            window
-                .set_ignore_cursor_events(locked || channel == "window:enable-mouse-passthrough")
-                .map_err(|e| e.to_string())?;
+            // Windows 的 SetWindowRgn 已让裁剪区外的点击穿透。可见区必须能接收首次
+            // mouseenter 和按下事件；只有用户的穿透锁快捷键可以忽略整个窗口。
+            #[cfg(not(windows))]
+            {
+                let locked = app
+                    .state::<Desktop>()
+                    .inner
+                    .lock()
+                    .unwrap()
+                    .passthrough_locked;
+                window
+                    .set_ignore_cursor_events(
+                        locked || channel == "window:enable-mouse-passthrough",
+                    )
+                    .map_err(|e| e.to_string())?;
+            }
         }
         "window:get-bounds" => {
             return Ok(json!(app.state::<Desktop>().inner.lock().unwrap().visible))
@@ -144,37 +151,17 @@ pub(super) fn handle(
                 json!({"mousePosition":cursor(&app)?,"bounds":app.state::<Desktop>().inner.lock().unwrap().visible}),
             )
         }
-        "window:move-delta" => {
+        "window:move-delta" | "window:start-pill-drag" => {
             source(&window, "main")?;
             let (dx, dy) = (number(a)?.round(), number(b)?.round());
             if dx.abs() > 100000. || dy.abs() > 100000. {
                 return Err("Move exceeds desktop bounds".into());
             }
-            let (backing, visible) = {
-                let state = app.state::<Desktop>();
-                let mut s = state.inner.lock().unwrap();
-                s.generation += 1;
-                s.pending = None;
-                s.transition = None;
-                (
-                    Rect {
-                        x: s.backing.x + dx,
-                        y: s.backing.y + dy,
-                        ..s.backing
-                    },
-                    s.visible,
-                )
-            };
-            windows::apply_geometry(
-                &app,
-                Rect::centered(
-                    backing.x + backing.width / 2.,
-                    backing.y,
-                    visible.width,
-                    visible.height,
-                ),
-                visible,
-            )?;
+            if channel == "window:start-pill-drag" {
+                windows::start_pill_drag(&app, dx, dy)?;
+            } else {
+                windows::move_delta(&app, dx, dy)?;
+            }
         }
         "window:hide" => windows::hide_main(&app)?,
         "window:show" => windows::show_main(&app)?,

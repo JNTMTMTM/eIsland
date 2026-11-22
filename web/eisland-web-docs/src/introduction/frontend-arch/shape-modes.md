@@ -156,7 +156,7 @@ Selecting a radio button triggers an immediate hot-switch — the island animate
 A configurable keyboard shortcut toggles between notch and pill modes. The hotkey can be set in **Settings > Shortcuts > Toggle Shape Mode**.
 
 :::note
-All three methods (guide, settings UI, hotkey) trigger the same internal flow: write config → broadcast change → notify renderer → animate transition. The guide and settings page both listen to `onSettingsChanged` for cross-window sync — changing the shape in one window updates the selection in the other.
+All three methods (guide, settings UI, hotkey) trigger the same internal flow: prepare native transition → write config → notify renderer → broadcast change. The guide and settings page both listen to `onSettingsChanged` for cross-window sync — changing the shape in one window updates the selection in the other.
 :::
 
 ---
@@ -175,7 +175,7 @@ The shape mode uses a multi-layer IPC architecture:
        │                                          │
        │◄─────── island:shape-mode:changed ───────┤
        │                                          │
-       │  (animated transition)                   │
+       │                       (native transition) │
        ▼                                          ▼
   CSS class switch                        Window bounds update
 ```
@@ -192,60 +192,34 @@ The shape mode uses a multi-layer IPC architecture:
 | `toggle-shape-mode-hotkey:set` | Renderer → Main | Set new hotkey |
 
 :::important
-The `island:shape-mode:changed` event includes the target `(x, y)` bounds so the renderer can animate the window position smoothly during the transition.
+The `island:shape-mode:changed` event carries `[mode, x, y, id]`: the target position and the transition id. The window has already started moving when the renderer receives it.
 :::
 
 ---
 
 ## Animated Transitions
 
-When the shape mode changes, the renderer performs an animated transition managed by `useIslandSettingsSync`.
+Shape transitions run in the native windowing layer (`src-tauri/src/features/windowing/layout.rs`). The renderer only applies the new shape mode.
 
-:::important
-The main process computes `targetX` based on `islandWidth` (260 px, the idle width). However, `lyrics`, `lyricsTranslation`, and `agentVoiceInput` states use a wider window (500 px). The transition logic accounts for this width mismatch to prevent diagonal drift during mode switches.
+### Native Window Transition
+
+`prepare_shape` runs on the window thread:
+
+1. Cancel any active Pill drag and read the window's actual position as the start point
+2. Compute the target: screen top for notch, `workArea.y + 46` plus the user offset for pill, centered on the display
+3. Grow the window to cover both the current and target sizes, so the outline never clips during the move
+4. Start a 16 ms frame task that moves the window along the same cubic-bezier curve as the `shell.css` clip-path transition. The duration follows the animation speed and spring settings.
+5. After the last frame, shrink the window to the target state size
+
+The settings write happens only after `prepare_shape` succeeds. If preparing fails, the in-memory state rolls back and the saved mode stays unchanged. If a frame fails, the transition state is cleared so later resizes do not treat the window as still moving.
+
+:::note
+Each transition has an id. A quick reverse switch starts a new id, and frames from the old transition stop without overwriting the new position. Dragging the Pill during a transition hands the position to the user, and the outline transition still finishes.
 :::
 
-### Idle-Size States
+### Renderer Role
 
-The `isIdleSize` group includes `idle` (260 px wide) and the 500 px-wide content states (`lyrics`, `lyricsTranslation`, `agentVoiceInput`). The transition behavior differs based on the actual window width.
-
-#### Pill → Notch (`idle` — 260 px)
-
-1. Animate window position (X and Y) to notch target
-2. Switch CSS class to `shape-notch`
-3. Resize window to notch dimensions
-
-#### Pill → Notch (`lyrics` / `lyricsTranslation` / `agentVoiceInput` — 500 px)
-
-1. Compute corrected target X from notch-mode center and actual window width
-2. Animate window diagonally (X and Y) to notch target — avoids two-step repositioning
-3. Switch CSS class to `shape-notch`
-4. Resize window to notch dimensions
-
-#### Notch → Pill (`idle` — 260 px)
-
-1. Resize window to pill dimensions
-2. Switch CSS class to `shape-pill`
-3. Animate window position downward to pill Y offset
-
-#### Notch → Pill (`lyrics` / `lyricsTranslation` / `agentVoiceInput` — 500 px)
-
-1. Resize window (width unchanged at 500 px, height adjusts)
-2. Switch CSS class to `shape-pill`
-3. Animate window vertically downward (dx = 0, horizontal center preserved)
-
-### Non-Idle States
-
-#### Pill → Notch
-
-1. Switch CSS class to `shape-notch`
-2. Let the current state's expand handler set correct position
-
-#### Notch → Pill
-
-1. Switch CSS class to `shape-pill`
-2. Resize window to pill dimensions
-3. Animate window downward by `pillNotchDeltaY` (46 px)
+`useIslandSettingsSync` listens to `onShapeModeChanged` and calls `setShapeMode`. `useIslandShellPresentation` then switches the `shape-${shapeMode}` CSS class, which transitions the outline. The renderer does not move or resize the window.
 
 ---
 
@@ -261,7 +235,8 @@ The `isIdleSize` group includes `idle` (260 px wide) and the 500 px-wide content
 | Preload bridge | `src/preload/index.ts` | `shapeModeGet`, `shapeModeSet`, `onShapeModeChanged` |
 | Store type | `src/renderer/store/types/index.ts` | `IslandShapeMode` type definition |
 | Store slice | `src/renderer/store/slices/islandSlice.ts` | `shapeMode` state, `setShapeMode` action |
-| Settings sync | `src/renderer/components/hooks/useIslandSettingsSync.ts` | Init fetch, broadcast listener, animated transitions |
+| Native transition | `src-tauri/src/features/windowing/layout.rs` | `prepare_shape`, frame-driven window move, final resize |
+| Settings sync | `src/renderer/components/hooks/useIslandSettingsSync.ts` | Init fetch, shape-mode listener |
 | Shell class | `src/renderer/components/hooks/useIslandShellPresentation.ts` | `shape-${shapeMode}` CSS class generation |
 | Drag support | `src/renderer/components/hooks/useIslandDrag.ts` | Pill-only drag in idle/lyrics states |
 | Hover interaction | `src/renderer/components/hooks/useIslandHoverInteraction.ts` | Pill forces click-to-hover |

@@ -34,6 +34,8 @@ export interface ClaudeCodeHookEventDetailItem {
 export interface ClaudeCodeHookEvent {
   id: string;
   eventName: string;
+  /** Codex 事件的采集来源。 */
+  source?: 'hook' | 'log';
   kind: 'session' | 'message' | 'tool' | 'permission' | 'notification' | 'completed' | 'unknown';
   sessionId: string;
   cwd: string | null;
@@ -57,6 +59,8 @@ export interface ClaudeCodeHookEvent {
 export interface ClaudeCodeSessionSnapshot {
   id: string;
   title: string;
+  /** 最近一次会话状态变更的采集来源。 */
+  source?: 'hook' | 'log';
   phase: 'idle' | 'running' | 'waiting_permission' | 'completed';
   cwd: string | null;
   transcriptPath: string | null;
@@ -72,6 +76,8 @@ export interface ClaudeCodeStatusSnapshot {
   revision?: number;
   enabled: boolean;
   receiverRunning: boolean;
+  /** Codex 用户配置中存在 eIsland 管理的 Hook。 */
+  codexHookConfigured?: boolean;
   receiverUrl: string | null;
   settingsPath: string;
   hookScriptPath: string;

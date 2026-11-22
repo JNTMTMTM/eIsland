@@ -24,7 +24,7 @@ use crate::shared::geometry::Rect;
 use serde_json::{json, Value};
 mod window;
 use std::{path::PathBuf, sync::Mutex};
-pub(crate) use window::WindowState;
+pub(crate) use window::{ShapeMotion, WindowState};
 
 pub struct Desktop {
     pub inner: Mutex<WindowState>,
@@ -60,6 +60,8 @@ impl Desktop {
                 visible: Rect::default(),
                 backing: Rect::default(),
                 transition: None,
+                shape_motion: None,
+                shape_revision: 0,
                 pending: None,
                 generation: 0,
                 always_on_top: true,
