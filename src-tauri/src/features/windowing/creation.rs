@@ -40,6 +40,7 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         "splash" => ("html/DynamicIslandSplash.html", 600., 400.),
         "guide" => ("html/DynamicIslandGuide.html", 860., 500.),
         "standalone" => ("html/DynamicIslandStandalone.html", 1155., 640.),
+        "explorer" => ("html/DynamicIslandExplorer.html", 900., 600.),
         "tray-menu" => ("html/DynamicIslandTrayMenu.html?theme=dark", 272., 373.),
         "capture" => ("capture.html", 800., 600.),
         "agent-voice-input" | "cli-glow" => {
@@ -48,6 +49,7 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
         _ => return Err("Unknown window label".into()),
     };
     let effect = matches!(label, "agent-voice-input" | "cli-glow");
+    let desktop_window = matches!(label, "standalone" | "explorer");
     let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App(page.into()));
     #[cfg(debug_assertions)]
     let builder = if let Some(directory) = std::env::var_os("EISLAND_WEBVIEW_DATA_DIR") {
@@ -58,7 +60,7 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
     // Transparent WebView2 content must not expose the HWND's redirected background
     // when SetWindowRgn changes the visible area during an island transition.
     #[cfg(windows)]
-    let builder = builder.no_redirection_bitmap(label != "standalone");
+    let builder = builder.no_redirection_bitmap(!desktop_window);
     #[cfg(debug_assertions)]
     let builder = if let Ok(args) = std::env::var("EISLAND_WEBVIEW_DEBUG_ARGS") {
         builder.additional_browser_args(&args)
@@ -69,25 +71,29 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
     #[cfg(debug_assertions)]
     eprintln!("[WebView] creating {label}");
     let window = builder
-        .title("eIsland")
+        .title(if label == "explorer" {
+            "eIsland Explorer"
+        } else {
+            "eIsland"
+        })
         .inner_size(width, height)
         .visible(false)
-        .decorations(false)
-        .transparent(label != "standalone")
-        .background_color(if label == "standalone" {
+        .decorations(label == "explorer")
+        .transparent(!desktop_window)
+        .background_color(if desktop_window {
             tauri::webview::Color(0, 0, 0, 255)
         } else {
             tauri::webview::Color(0, 0, 0, 0)
         })
         // Windows shadows add a native 1px frame and system corners over the
         // transparent splash's CSS-rounded surface.
-        .shadow(label == "splash" && !cfg!(windows))
-        .resizable(label == "standalone")
-        .skip_taskbar(label != "standalone" && label != "guide")
-        .always_on_top(label != "standalone" && label != "guide")
+        .shadow(label == "explorer" || (label == "splash" && !cfg!(windows)))
+        .resizable(desktop_window)
+        .skip_taskbar(!desktop_window && label != "guide")
+        .always_on_top(!desktop_window && label != "guide")
         // WebView2 must initialize its render HWND before Wry registers file-drop targets.
         // Hidden, unfocused views can otherwise miss Explorer drops (wry#1638).
-        .focused(cfg!(windows) && matches!(label, "main" | "standalone"))
+        .focused(cfg!(windows) && (label == "main" || desktop_window))
         .focusable(!effect && label != "splash")
         .on_new_window(move |url, _features| {
             if matches!(url.scheme(), "http" | "https") {
@@ -125,7 +131,7 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
             .set_ignore_cursor_events(true)
             .map_err(|e| e.to_string())?;
     }
-    if matches!(label, "guide" | "splash" | "standalone") {
+    if desktop_window || matches!(label, "guide" | "splash") {
         window.center().map_err(|e| e.to_string())?;
     }
     if effect {

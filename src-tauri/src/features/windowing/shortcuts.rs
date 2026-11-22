@@ -47,6 +47,7 @@ const SHORTCUTS: &[(&str, &str)] = &[
     ("open-clipboard-history-hotkey", ""),
     ("next-song-hotkey", ""),
     ("play-pause-song-hotkey", ""),
+    ("toggle-explorer-hotkey", "Ctrl+Alt+E"),
 ];
 
 pub(crate) fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Option<Value>> {
@@ -98,6 +99,13 @@ pub(crate) fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Option
                     .value(key, json!(default));
                 if old == *a {
                     return Ok(Some(json!(true)));
+                }
+                // 录入时系统注册已暂停，仍需保留其他动作（含 Explorer）的组合。
+                if parsed
+                    .and_then(|shortcut| bound_action(app, &shortcut))
+                    .is_some_and(|owner| owner != key)
+                {
+                    return Ok(Some(json!(false)));
                 }
                 let old_parsed = old.as_str().and_then(|v| v.parse::<Shortcut>().ok());
                 let same_binding = parsed == old_parsed;
@@ -151,19 +159,18 @@ pub fn register_shortcuts(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-pub fn shortcut_action(app: &AppHandle, pressed: &str) -> Result<()> {
-    let action = {
-        let state = app.state::<Desktop>();
-        let store = state.store.lock().unwrap();
-        SHORTCUTS.iter().find_map(|(key, default)| {
-            let value = store.value(key, json!(default));
-            value
-                .as_str()
-                .and_then(|v| v.parse::<Shortcut>().ok())
-                .filter(|v| v.to_string() == pressed)
-                .map(|_| *key)
-        })
-    };
+fn bound_action(app: &AppHandle, shortcut: &Shortcut) -> Option<&'static str> {
+    let state = app.state::<Desktop>();
+    let store = state.store.lock().unwrap();
+    SHORTCUTS.iter().find_map(|(key, default)| {
+        let value = store.value(key, json!(default));
+        let binding = value.as_str()?.parse::<Shortcut>().ok()?;
+        (binding == *shortcut).then_some(*key)
+    })
+}
+
+pub fn shortcut_action(app: &AppHandle, pressed: &Shortcut) -> Result<()> {
+    let action = bound_action(app, pressed);
     match action {
         Some("hide-hotkey") => {
             let hidden = {
@@ -206,6 +213,7 @@ pub fn shortcut_action(app: &AppHandle, pressed: &str) -> Result<()> {
             windows::reposition(app)
         }
         Some("show-settings-window-hotkey") => menu_action(app, "open-settings"),
+        Some("toggle-explorer-hotkey") => super::visibility::toggle_explorer(app),
         Some("next-song-hotkey" | "play-pause-song-hotkey") => {
             let handle = app.clone();
             let channel = if action == Some("next-song-hotkey") {

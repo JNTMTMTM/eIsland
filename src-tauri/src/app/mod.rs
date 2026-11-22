@@ -57,9 +57,9 @@ pub(crate) fn run() {
                         return;
                     }
                     let handle = app.clone();
-                    let shortcut = shortcut.to_string();
+                    let shortcut = *shortcut;
                     // WebView2 creation must stay outside the synchronous callback.
-                    tauri::async_runtime::spawn(async move {
+                    tauri::async_runtime::spawn_blocking(move || {
                         if let Err(error) =
                             features::windowing::shortcuts::shortcut_action(&handle, &shortcut)
                         {

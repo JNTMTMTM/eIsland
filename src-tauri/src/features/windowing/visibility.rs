@@ -105,6 +105,27 @@ pub fn show_standalone(app: &AppHandle) -> Result<()> {
     window.set_focus().map_err(|e| e.to_string())
 }
 
+/// 快捷键回调可并发到达，先完成当前窗口的创建或关闭，再处理下一次按键。
+pub(super) fn toggle_explorer(app: &AppHandle) -> Result<()> {
+    static TOGGLE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    let _guard = TOGGLE.lock().unwrap();
+    if let Some(window) = app.get_webview_window("explorer") {
+        let (closed_tx, closed_rx) = std::sync::mpsc::channel();
+        window.on_window_event(move |event| {
+            if matches!(event, tauri::WindowEvent::Destroyed) {
+                let _ = closed_tx.send(());
+            }
+        });
+        window.destroy().map_err(|error| error.to_string())?;
+        // destroy 只投递关闭请求。窗口已由标题栏关闭时，监听器随窗口释放也会唤醒等待。
+        let _ = closed_rx.recv();
+        return Ok(());
+    }
+    let window = create(app, "explorer")?;
+    window.show().map_err(|error| error.to_string())?;
+    window.set_focus().map_err(|error| error.to_string())
+}
+
 pub fn restore_after_capture(app: &AppHandle) -> Result<()> {
     let state = app.state::<Desktop>();
     // 判断与清除隐藏标记在同一把锁内完成，避免并发的隐藏请求被覆盖。

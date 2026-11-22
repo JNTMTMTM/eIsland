@@ -53,6 +53,7 @@ pub const LABELS: &[&str] = &[
     "splash",
     "guide",
     "standalone",
+    "explorer",
     "tray-menu",
     "capture",
     "agent-voice-input",
