@@ -25,7 +25,6 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
 import useIslandStore from '../../store/isLandStore';
 import {
   ISLAND_BG_MEDIA_STORE_KEY,
@@ -351,55 +350,8 @@ export function useIslandSettingsSync(options: UseIslandSettingsSyncOptions): vo
     positionLockedRef,
   ]);
 
-  useEffect(() => {
-    let frameId = 0;
-    let activeId = 0;
-    const unsubscribe = window.api?.onShapeModeChanged?.((mode, _targetX, _targetY, id) => {
-      shapeEventReceived.current = true;
-      const nextMode = mode === 'pill' ? 'pill' : 'notch';
-      activeId = id;
-      cancelAnimationFrame(frameId);
-
-      // 在取样之前提交形态，使用浏览器实际创建的轮廓过渡（包括反向切换缩短的时长）。
-      const shell = document.querySelector<HTMLElement>('.island-shell');
-      flushSync(() => useIslandStore.getState().setShapeMode(nextMode));
-      const outline = shell?.getAnimations?.().find((animation): animation is CSSTransition =>
-        'transitionProperty' in animation && animation.transitionProperty === 'clip-path');
-      const timing = outline?.effect?.getTiming();
-      const duration = typeof timing?.duration === 'number' ? timing.duration : 0;
-      const clock = timing && duration > 0
-        ? new Animation(new KeyframeEffect(null, null, { ...timing, fill: 'both' }), document.timeline)
-        : null;
-      let startTime: number | undefined;
-
-      const step = (now: number): void => {
-        let progress = 1;
-        if (clock) {
-          startTime ??= typeof outline?.startTime === 'number' ? outline.startTime : now;
-          const elapsed = Math.max(0, now - startTime);
-          if (elapsed < duration) {
-            clock.currentTime = elapsed;
-            progress = Math.min(clock.effect?.getComputedTiming().progress ?? 0, 1 - Number.EPSILON);
-          }
-        }
-        // 等原生窗口处理完当前帧后再取样，忙帧期间跳过中间位置，防止 IPC 队列积压。
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises -- 帧回调同步返回，原生超时兜底释放画布。
-        void (async () => {
-          try {
-            await window.api.setShapeProgress(id, progress);
-            if (activeId === id && progress < 1) frameId = requestAnimationFrame(step);
-          } catch {
-            // 原生超时兜底会释放画布。
-          }
-        })();
-      };
-      frameId = requestAnimationFrame(step);
-    });
-
-    return () => {
-      activeId = 0;
-      cancelAnimationFrame(frameId);
-      unsubscribe?.();
-    };
-  }, []);
+  useEffect(() => window.api?.onShapeModeChanged?.((mode) => {
+    shapeEventReceived.current = true;
+    useIslandStore.getState().setShapeMode(mode === 'pill' ? 'pill' : 'notch');
+  }), []);
 }

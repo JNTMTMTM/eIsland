@@ -36,7 +36,7 @@ pub(crate) use creation::create;
 mod layout;
 pub(crate) use layout::{
     finish_resize, monitor_id, monitor_rect, move_delta, on_main_thread, reposition, resize,
-    set_rect, shape_progress, start_pill_drag, target_monitor,
+    set_rect, start_pill_drag, target_monitor,
 };
 mod visibility;
 pub(crate) use visibility::{

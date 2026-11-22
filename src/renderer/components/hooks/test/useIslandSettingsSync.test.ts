@@ -63,8 +63,7 @@ const api = {
   loadWallpaperFile: vi.fn<Window['api']['loadWallpaperFile']>(),
   setIslandPositionOffset: vi.fn<Window['api']['setIslandPositionOffset']>(),
   onSettingsChanged: vi.fn<Window['api']['onSettingsChanged']>(),
-  onShapeModeChanged: vi.fn<Window['api']['onShapeModeChanged']>(),
-  setShapeProgress: vi.fn<Window['api']['setShapeProgress']>()
+  onShapeModeChanged: vi.fn<Window['api']['onShapeModeChanged']>()
 };
 const unsubscribeSettings = vi.fn<() => void>();
 const unsubscribeShape = vi.fn<() => void>();
@@ -72,9 +71,6 @@ const setProperty = vi.fn<(key: string, value: string) => void>();
 const getLayer = vi.fn<(id: string) => { style: { opacity: string; filter: string } } | null>();
 const layer = { style: { opacity: '', filter: '' } };
 const values = new Map<string, unknown>();
-const frames = new Map<number, FrameRequestCallback>();
-const cancelFrame = vi.fn<typeof cancelAnimationFrame>();
-let frameId = 0;
 let options: Options;
 let surface: EventTarget;
 
@@ -122,16 +118,6 @@ function shape(mode: string, id: number): void {
 }
 
 /**
- * 驱动已经安排的真实动画帧，保持原生帧的一次性语义。
- * @param now - 帧时间。
- */
-function tick(now: number): void {
-  const pending = [...frames];
-  frames.clear();
-  pending.forEach(([, callback]) => callback(now));
-}
-
-/**
  * 通过 EventTarget 发出本地自定义事件。
  * @param type - 本地事件名称。
  * @param detail - 同步数据。
@@ -144,8 +130,6 @@ beforeEach(() => {
   resetLifecycle();
   vi.clearAllMocks();
   values.clear();
-  frames.clear();
-  frameId = 0;
   io.shapeMode = 'notch';
   io.setShapeMode.mockImplementation((mode) => { io.shapeMode = mode; });
   api.storeRead.mockReset().mockImplementation((key) => Promise.resolve(values.get(key)));
@@ -158,9 +142,7 @@ beforeEach(() => {
   api.shapeModeGet.mockReset().mockResolvedValue('notch');
   api.onSettingsChanged.mockReset().mockReturnValue(unsubscribeSettings);
   api.onShapeModeChanged.mockReset().mockReturnValue(unsubscribeShape);
-  api.setShapeProgress.mockReset().mockResolvedValue(undefined);
   api.setIslandPositionOffset.mockReset().mockResolvedValue(true);
-  cancelFrame.mockReset().mockImplementation((id) => { frames.delete(id); });
   getLayer.mockReset().mockReturnValue(layer);
   layer.style.opacity = '';
   layer.style.filter = '';
@@ -187,12 +169,6 @@ beforeEach(() => {
   surface = new EventTarget();
   vi.stubGlobal('window', Object.assign(surface, { api }));
   vi.stubGlobal('document', { getElementById: getLayer, querySelector: () => null, documentElement: { style: { setProperty } } });
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-    frameId += 1;
-    frames.set(frameId, callback);
-    return frameId;
-  });
-  vi.stubGlobal('cancelAnimationFrame', cancelFrame);
 });
 afterEach(() => {
   unmountHooks();
@@ -435,59 +411,16 @@ describe('Island IPC and local settings', () => {
   });
 });
 
-describe('Island shape transitions and window animations', () => {
-  it('commits the shape before sending the final native frame when CSS has no transition', async () => {
+describe('Island shape transitions', () => {
+  it('applies each native shape change without waiting for a painting opportunity', async () => {
     await commit();
     broadcast('island:shape-mode', 'pill');
     expect(io.shapeMode).toBe('notch');
     shape('pill', 1);
     expect(io.shapeMode).toBe('pill');
-    expect(api.setShapeProgress).not.toHaveBeenCalled();
-    tick(16);
-    expect(api.setShapeProgress).toHaveBeenCalledExactlyOnceWith(1, 1);
-    await settle();
-    expect(frames.size).toBe(0);
-  });
-
-  it('waits for native acknowledgements and discards an in-flight frame on reversal', async () => {
-    let release: (() => void) | undefined;
-    await commit();
-    api.setShapeProgress.mockReturnValueOnce(new Promise<void>((resolve) => { release = resolve; }));
-    const timing = { duration: 100, easing: 'ease' };
-    vi.stubGlobal('document', {
-      querySelector: () => ({
-        getAnimations: () => [{ transitionProperty: 'clip-path', startTime: 0, effect: { getTiming: () => timing } }]
-      })
-    });
-    vi.stubGlobal('KeyframeEffect', vi.fn());
-    vi.stubGlobal('Animation', class {
-      currentTime = 0;
-
-      effect = { getComputedTiming: () => ({ progress: this.currentTime / timing.duration }) };
-    });
-
-    shape('pill', 1);
-    tick(20);
-    expect(api.setShapeProgress).toHaveBeenCalledExactlyOnceWith(1, 0.2);
-    tick(40);
-    expect(frames.size).toBe(0);
     shape('notch', 2);
-    release?.();
-    await settle();
-    expect(frames.size).toBe(1);
-    tick(60);
-    await settle();
-    tick(100);
-    await settle();
-    expect(api.setShapeProgress.mock.calls).toEqual([[1, 0.2], [2, 0.6], [2, 1]]);
-  });
-
-  it('cancels queued native frames when the shape effect unmounts', async () => {
-    await commit();
-    shape('pill', 1);
+    expect(io.shapeMode).toBe('notch');
     unmountHooks();
-    tick(16);
     expect(unsubscribeShape).toHaveBeenCalledOnce();
-    expect(api.setShapeProgress).not.toHaveBeenCalled();
   });
 });

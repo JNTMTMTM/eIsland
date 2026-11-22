@@ -196,13 +196,6 @@ const api = {
     desktop.send('window:start-pill-drag', dx, dy);
   },
   /**
-   * 将轮廓动画当前帧的位置同步到原生窗口。
-   * @param id - 原生形态切换标识。
-   * @param progress - 已应用缓动的进度，范围为 0 到 1。
-   * @returns 原生窗口处理完当前帧后完成。
-   */
-  setShapeProgress: (id: number, progress: number): Promise<void> => desktop.invoke('window:shape-progress', id, progress),
-  /**
    * 隐藏窗口
    */
   hideWindow: (): void => {

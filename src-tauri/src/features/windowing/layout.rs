@@ -26,6 +26,7 @@ use crate::shared::geometry;
 use crate::shared::geometry::{Point, Rect};
 use crate::shared::Result;
 use crate::state::{Desktop, ShapeMotion};
+use std::time::{Duration, Instant};
 use tauri::AppHandle;
 use tauri::Manager;
 use tauri::PhysicalPosition;
@@ -164,9 +165,10 @@ pub(super) fn reclip(app: &AppHandle, window: &WebviewWindow, factor: f64) -> Re
     native::clip_at_scale(window, backing, visible, factor)
 }
 
-/// 保留当前窗口位置，先为轮廓形变准备足够的画布，再交给渲染层推进位移。
+/// 从实际窗口位置开始归位，窗口移动与 WebView 的绘制时机独立。
 pub(super) fn prepare_shape(app: &AppHandle, mode: &str) -> Result<(u64, Rect)> {
     let window = main_window(app)?;
+    native::cancel_dragging(&window);
     let position = window.outer_position().map_err(|e| e.to_string())?;
     let size = window.outer_size().map_err(|e| e.to_string())?;
     let factor = window.scale_factor().map_err(|e| e.to_string())?;
@@ -216,42 +218,92 @@ pub(super) fn prepare_shape(app: &AppHandle, mode: &str) -> Result<(u64, Rect)> 
     if visible.width != protected.width || visible.height != protected.height {
         apply_geometry(app, protected, protected)?;
     }
+    let state = app.state::<Desktop>();
+    let store = state.store.lock().unwrap();
+    let spring = store.value("spring-animation", serde_json::json!(true)) == true;
+    let speed = store.value("animation-speed", serde_json::json!("medium"));
+    // 对应 shell.css 中 clip-path 的六档过渡时长。
+    let duration_ms = match (speed.as_str(), spring) {
+        (Some("fast"), true) => 340,
+        (Some("slow"), true) => 1080,
+        (_, true) => 680,
+        (Some("fast"), false) => 200,
+        (Some("slow"), false) => 640,
+        (_, false) => 400,
+    };
     let handle = app.clone();
+    let started = Instant::now();
     tauri::async_runtime::spawn(async move {
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-        if let Err(error) = shape_progress(&handle, motion.id, 1.) {
-            eprintln!("[Window] shape transition: {error}");
+        let mut frames = tokio::time::interval(Duration::from_millis(16));
+        frames.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        loop {
+            frames.tick().await;
+            match on_main_thread(&handle, move |app| {
+                let elapsed = started.elapsed().as_secs_f64() * 1000. / duration_ms as f64;
+                advance_shape(app, motion.id, shape_easing(elapsed, spring))
+            }) {
+                Ok(true) => {}
+                Ok(false) => break,
+                Err(error) => {
+                    eprintln!("[Window] shape transition: {error}");
+                    break;
+                }
+            }
         }
     });
     Ok((motion.id, target))
 }
 
-/// 只移动 HWND，避免每帧调整 WebView 尺寸和重建窗口裁剪区域。
-pub fn shape_progress(app: &AppHandle, id: u64, progress: f64) -> Result<()> {
-    on_main_thread(app, move |app| {
-        let state = app.state::<Desktop>();
-        let Some(motion) = state
-            .inner
-            .lock()
-            .unwrap()
-            .shape_motion
-            .filter(|motion| motion.id == id)
-        else {
-            return Ok(());
-        };
-        if let Some((from, to)) = motion.position {
-            let window = main_window(app)?;
-            let width = f64::from(window.outer_size().map_err(|e| e.to_string())?.width);
-            let x = from.x + (to.x - from.x) * progress - width / 2.;
-            let y = from.y + (to.y - from.y) * progress;
-            let position = PhysicalPosition::new(x.round() as i32, y.round() as i32);
-            move_to(app, &window, position)?;
+/// 在 CSS 贝塞尔曲线上按经过时间取样，让原生位移与轮廓使用相同的缓动。
+fn shape_easing(elapsed: f64, spring: bool) -> f64 {
+    if elapsed >= 1. || elapsed <= 0. {
+        return elapsed.clamp(0., 1.);
+    }
+    let (x1, y1, x2) = if spring {
+        (0.22, 1., 0.36)
+    } else {
+        (0.25, 0.1, 0.25)
+    };
+    let bezier = |t: f64, p1: f64, p2: f64| {
+        let u = 1. - t;
+        3. * u * u * t * p1 + 3. * u * t * t * p2 + t * t * t
+    };
+    let (mut low, mut high) = (0., 1.);
+    for _ in 0..16 {
+        let t = (low + high) / 2.;
+        if bezier(t, x1, x2) < elapsed {
+            low = t;
+        } else {
+            high = t;
         }
-        if progress >= 1. {
-            finish_shape(app)?;
-        }
-        Ok(())
-    })
+    }
+    bezier((low + high) / 2., y1, 1.)
+}
+
+/// 返回是否继续本次动画；快速反向切换时旧帧不能覆盖新位置。
+fn advance_shape(app: &AppHandle, id: u64, progress: f64) -> Result<bool> {
+    let state = app.state::<Desktop>();
+    let Some(motion) = state
+        .inner
+        .lock()
+        .unwrap()
+        .shape_motion
+        .filter(|motion| motion.id == id)
+    else {
+        return Ok(false);
+    };
+    if let Some((from, to)) = motion.position {
+        let window = main_window(app)?;
+        let width = f64::from(window.outer_size().map_err(|e| e.to_string())?.width);
+        let x = from.x + (to.x - from.x) * progress - width / 2.;
+        let y = from.y + (to.y - from.y) * progress;
+        let position = PhysicalPosition::new(x.round() as i32, y.round() as i32);
+        move_to(app, &window, position)?;
+    }
+    if progress >= 1. {
+        finish_shape(app)?;
+    }
+    Ok(progress < 1.)
 }
 
 fn move_to(app: &AppHandle, window: &WebviewWindow, position: PhysicalPosition<i32>) -> Result<()> {
@@ -339,10 +391,7 @@ pub fn start_pill_drag(app: &AppHandle, dx: f64, dy: f64) -> Result<()> {
         let window = main_window(app)?;
         // 系统从接管时的指针位置开始拖动，先补上越过阈值的位移，保住按下时的抓取点。
         move_by(app, &window, dx, dy)?;
-        if native::primary_button_down() {
-            native::start_dragging(&window)?;
-        }
-        Ok(())
+        native::start_dragging(&window)
     })
 }
 

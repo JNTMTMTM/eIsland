@@ -44,7 +44,6 @@ pub(super) fn handles(channel: &str) -> bool {
                 | "window:get-mouse-position"
                 | "window:get-mouse-window-state"
                 | "window:move-delta"
-                | "window:shape-progress"
                 | "window:start-pill-drag"
                 | "window:hide"
                 | "window:show"
@@ -156,15 +155,6 @@ pub(super) fn handle(
             } else {
                 windows::move_delta(&app, dx, dy)?;
             }
-        }
-        "window:shape-progress" => {
-            source(&window, "main")?;
-            let id = a.as_u64().ok_or("Invalid shape transition id")?;
-            let progress = number(b)?;
-            if !(0. ..=1.).contains(&progress) {
-                return Err("Invalid shape transition progress".into());
-            }
-            windows::shape_progress(&app, id, progress)?;
         }
         "window:hide" => windows::hide_main(&app)?,
         "window:show" => windows::show_main(&app)?,
