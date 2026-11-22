@@ -328,6 +328,8 @@ try {
       try {
         await window.desktop.invoke('island:shape-mode:set', 'notch');
         await new Promise((resolve) => { setTimeout(resolve, 1500); });
+        // Simulate the idle poll reporting the cursor outside immediately before the first click.
+        await window.desktop.invoke('window:enable-mouse-passthrough');
         return await window.desktop.invoke('debug:windows');
       } finally {
         window.requestAnimationFrame = originalFrame;
@@ -335,6 +337,7 @@ try {
       }
     });
     const docked = windows.find(({ label }) => label === 'main');
+    assert.equal(docked.ignoresCursor, false, 'The docked Notch must receive its first mouse event');
     assert.equal(docked.position.y, dock.position.y, 'The native window must reach the top before WebView frames resume');
     const center = (win) => win.position.x + win.size.width / 2;
     assert(Math.abs(center(docked) - center(dock)) <= 1, 'The native window must be centered on the dock');

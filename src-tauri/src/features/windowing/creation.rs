@@ -113,6 +113,18 @@ pub fn create(app: &AppHandle, label: &str) -> Result<WebviewWindow> {
             .set_min_size(Some(tauri::LogicalSize::new(1155., 640.)))
             .map_err(|e| e.to_string())?;
     }
+    if label == "main"
+        && app
+            .state::<Desktop>()
+            .inner
+            .lock()
+            .unwrap()
+            .passthrough_locked
+    {
+        window
+            .set_ignore_cursor_events(true)
+            .map_err(|e| e.to_string())?;
+    }
     if matches!(label, "guide" | "splash" | "standalone") {
         window.center().map_err(|e| e.to_string())?;
     }

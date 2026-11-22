@@ -72,6 +72,28 @@ async function mount(input: Options): Promise<void> {
   renderWithHooks(() => useIslandHoverInteraction(input)); runEffects(); await settle(); await vi.advanceTimersByTimeAsync(1);
 }
 describe('useIslandHoverInteraction 真实轮询和状态交互', () => {
+  it('Pill 归位后首次移入 Notch 即展开，即使上一轮鼠标查询尚未返回', () => {
+    mouse.mockImplementation(() => new Promise(() => {}));
+    const input = options();
+    const render = (pill: boolean) => renderWithHooks(() => useIslandHoverInteraction({ ...input, forceClickToHover: pill }));
+    const enterPill = render(true);
+    runEffects();
+    enterPill();
+    expect(input.setHover).not.toHaveBeenCalled();
+    const enterNotch = render(false);
+    runEffects();
+    input.isHoveringRef.current = true;
+    enterNotch();
+    expect(input.setHover).toHaveBeenCalledOnce();
+  });
+  it('Notch 设置为点击展开时，首次移入仍等待点击', () => {
+    const input = options();
+    input.idleClickExpandRef.current = true;
+    const enter = renderWithHooks(() => useIslandHoverInteraction(input));
+    runEffects();
+    enter();
+    expect(input.setHover).not.toHaveBeenCalled();
+  });
   it.each(['idle', 'lyrics', 'lyricsTranslation', 'hover'] as const)('窗口内 %s 自动进入 hover 并选择歌词页', async (state) => {
     const input = options(state); await mount(input);
     expect(input.setHover).toHaveBeenCalledOnce(); expect(input.isHoveringRef.current).toBe(true);

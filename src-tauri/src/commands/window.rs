@@ -125,15 +125,22 @@ pub(super) fn handle(
         }
         "window:enable-mouse-passthrough" | "window:disable-mouse-passthrough" => {
             source(&window, "main")?;
-            let locked = app
-                .state::<Desktop>()
-                .inner
-                .lock()
-                .unwrap()
-                .passthrough_locked;
-            window
-                .set_ignore_cursor_events(locked || channel == "window:enable-mouse-passthrough")
-                .map_err(|e| e.to_string())?;
+            // Windows 的 SetWindowRgn 已让裁剪区外的点击穿透。可见区必须能接收首次
+            // mouseenter 和按下事件；只有用户的穿透锁快捷键可以忽略整个窗口。
+            #[cfg(not(windows))]
+            {
+                let locked = app
+                    .state::<Desktop>()
+                    .inner
+                    .lock()
+                    .unwrap()
+                    .passthrough_locked;
+                window
+                    .set_ignore_cursor_events(
+                        locked || channel == "window:enable-mouse-passthrough",
+                    )
+                    .map_err(|e| e.to_string())?;
+            }
         }
         "window:get-bounds" => {
             return Ok(json!(app.state::<Desktop>().inner.lock().unwrap().visible))

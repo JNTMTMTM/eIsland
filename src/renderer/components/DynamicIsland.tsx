@@ -59,6 +59,7 @@ function DynamicIsland(): JSX.Element {
 
   const {
     handleIslandClick,
+    handleIslandMouseEnter,
     shellClassName,
     shellStyle,
     bgMedia,
@@ -83,6 +84,7 @@ function DynamicIsland(): JSX.Element {
     <div
       className={shellClassName}
       onClick={handleIslandClick}
+      onMouseEnter={handleIslandMouseEnter}
       style={shellStyle}
     >
       <DynamicIslandBackground
