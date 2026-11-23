@@ -25,7 +25,7 @@ jobs:
 
       # VuePress 的 /xxx 链接以 src 为根，不能按仓库根目录检查或生成修复建议。
       - name: Check repository Markdown links
-        uses: dvdstelt/hyperhawk@ed46ad292b0c81d5aeecb9efc30425d31de522d1 # v1.11.0
+        uses: dvdstelt/hyperhawk@27640667b07a79413cc11bd63412489d31c198e1 # v1.12.0
         with:
           token: ${{ github.token }}
           files: '**/*.md,!web/eisland-web-docs/src/**/*.md'
@@ -34,7 +34,7 @@ jobs:
           strict: false
 
       - name: Check documentation external links
-        uses: dvdstelt/hyperhawk@ed46ad292b0c81d5aeecb9efc30425d31de522d1 # v1.11.0
+        uses: dvdstelt/hyperhawk@27640667b07a79413cc11bd63412489d31c198e1 # v1.12.0
         with:
           token: ${{ github.token }}
           files: 'web/eisland-web-docs/src/**/*.md'
