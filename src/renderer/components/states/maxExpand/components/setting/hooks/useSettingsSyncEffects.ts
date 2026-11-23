@@ -50,6 +50,7 @@ import type { useSettingsNavigation } from './useSettingsNavigation';
 import type useUpdateSettingsState from './useUpdateSettingsState';
 
 interface SettingsSyncEffectsOptions {
+  setToggleExplorerHotkey: (value: string) => void;
   setActiveTab: ReturnType<typeof useSettingsNavigation>['setActiveTab'];
   setAboutInitialPage: ReturnType<typeof useSettingsNavigation>['setAboutInitialPage'];
   setUserInitialProfilePage: ReturnType<typeof useSettingsNavigation>['setUserInitialProfilePage'];
@@ -105,6 +106,7 @@ export function useSettingsSyncEffects(options: SettingsSyncEffectsOptions): voi
     setAutoDimDelaySec,
     setAutoHideFullscreenWindowsState,
     setWhitelist,
+    setToggleExplorerHotkey,
     setLyricsKaraoke,
     setUpdateSource,
   } = options;
@@ -153,6 +155,9 @@ export function useSettingsSyncEffects(options: SettingsSyncEffectsOptions): voi
     const unsub = window.api.onSettingsChanged((channel: string, value: unknown) => {
       if (channel === `store:${SETTINGS_OPEN_TAB_STORE_KEY}`) {
         applyOpenTabIntent(value);
+      }
+      if (channel === 'toggle-explorer-hotkey' && typeof value === 'string') {
+        setToggleExplorerHotkey(value);
       }
       if (channel === 'i18n:language' && (value === 'zh-CN' || value === 'en-US' || value === 'zh-TW' || value === 'ja-JP')) {
         setAppLanguage(value);

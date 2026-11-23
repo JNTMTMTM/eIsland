@@ -245,6 +245,8 @@
     "storeWrite",
     "themeModeGet",
     "themeModeSet",
+    "toggleExplorerHotkeyGet",
+    "toggleExplorerHotkeySet",
     "togglePassthroughHotkeyGet",
     "togglePassthroughHotkeySet",
     "toggleShapeModeHotkeyGet",

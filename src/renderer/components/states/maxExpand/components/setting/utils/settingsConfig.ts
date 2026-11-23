@@ -583,6 +583,7 @@ export const SEARCHABLE_SETTINGS: SearchableSettingItem[] = [
   { label: '还原默认位置快捷键', desc: '按下此快捷键将把灵动岛恢复到默认顶部居中位置', labelKey: 'settings.shortcut.window.resetPosition.title', descKey: 'settings.shortcut.window.resetPosition.hint', tab: 'shortcut' },
   { label: '隐藏/显示托盘图标快捷键', desc: '按下此快捷键将隐藏或显示系统托盘中的灵动岛图标', labelKey: 'settings.shortcut.window.toggleTray.title', descKey: 'settings.shortcut.window.toggleTray.hint', tab: 'shortcut' },
   { label: '显示配置窗口快捷键', desc: '仅在独立窗口模式下生效：按下后将打开独立配置窗口并切换到设置页', labelKey: 'settings.shortcut.window.showConfig.title', descKey: 'settings.shortcut.window.showConfig.hint', tab: 'shortcut' },
+  { label: 'Explorer 窗口快捷键', desc: '按一次打开 Explorer 窗口，再按一次关闭。清除后停用此快捷键。', labelKey: 'settings.shortcut.window.toggleExplorer.title', descKey: 'settings.shortcut.window.toggleExplorer.hint', tab: 'shortcut' },
   { label: '打开剪贴板历史快捷键', desc: '按下后将打开灵动岛并直接切换到剪贴板历史界面', labelKey: 'settings.shortcut.window.openClipboardHistory.title', descKey: 'settings.shortcut.window.openClipboardHistory.hint', tab: 'shortcut' },
   { label: '切换鼠标穿透快捷键', desc: '按下此快捷键将锁定或解锁鼠标穿透状态，锁定后灵动岛不会拦截鼠标事件', labelKey: 'settings.shortcut.window.togglePassthrough.title', descKey: 'settings.shortcut.window.togglePassthrough.hint', tab: 'shortcut' },
   { label: '切换 UI 状态锁定快捷键', desc: '按下后锁定当前 UI 状态，锁定期间不会因鼠标进入/移出或自动逻辑切换状态，再次按下解锁', labelKey: 'settings.shortcut.window.toggleUiLock.title', descKey: 'settings.shortcut.window.toggleUiLock.hint', tab: 'shortcut' },

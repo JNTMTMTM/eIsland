@@ -33,7 +33,7 @@ vi.mock('react', async (original) => ({
   ...(await import('../../../../../../test/elementHarness')).hookMocks,
   ...(await import('./settingsCoverageHarness')).lifecycleHooks
 }));
-const setterNames = ["setActiveTab", "setAboutInitialPage", "setUserInitialProfilePage", "setAppSettingsPage", "setAppLanguage", "setStandaloneMacControls", "setBgImageOpacity", "setBgImageBlur", "setBgMedia", "setBgMediaPreviewUrl", "setBgVideoFit", "setBgVideoMuted", "setBgVideoLoop", "setBgVideoVolume", "setBgVideoRate", "setBgVideoHwDecode", "setSyncDesktopWallpaperOnBackgroundChange", "setIslandPositionLocked", "setAutoDimEnabled", "setAutoDimDelaySec", "setAutoHideFullscreenWindowsState", "setWhitelist", "setLyricsKaraoke", "setUpdateSource"] as const;
+const setterNames = ["setActiveTab", "setAboutInitialPage", "setUserInitialProfilePage", "setAppSettingsPage", "setAppLanguage", "setStandaloneMacControls", "setBgImageOpacity", "setBgImageBlur", "setBgMedia", "setBgMediaPreviewUrl", "setBgVideoFit", "setBgVideoMuted", "setBgVideoLoop", "setBgVideoVolume", "setBgVideoRate", "setBgVideoHwDecode", "setSyncDesktopWallpaperOnBackgroundChange", "setIslandPositionLocked", "setAutoDimEnabled", "setAutoDimDelaySec", "setAutoHideFullscreenWindowsState", "setWhitelist", "setToggleExplorerHotkey", "setLyricsKaraoke", "setUpdateSource"] as const;
 const setters = Object.fromEntries(setterNames.map((name) => [name, vi.fn<(value: unknown) => void>()])) as Record<typeof setterNames[number], Mock<(value: unknown) => void>>;
 const unsubscribe = vi.fn();
 const removeEventListener = vi.fn();
@@ -258,6 +258,12 @@ describe('实际跨窗口配置事件', () => {
     expect(setters.setUpdateSource).toHaveBeenLastCalledWith('github');
     changed?.('store:update-source', 'unknown');
     expect(setters.setUpdateSource).toHaveBeenLastCalledWith('esa-cdn');
+  });
+  it('同步其他窗口改绑或清除的 Explorer 快捷键', () => {
+    changed?.('toggle-explorer-hotkey', 'Alt+F9');
+    expect(setters.setToggleExplorerHotkey).toHaveBeenLastCalledWith('Alt+F9');
+    changed?.('toggle-explorer-hotkey', '');
+    expect(setters.setToggleExplorerHotkey).toHaveBeenLastCalledWith('');
   });
   it('未知channel不触发任何setter', () => {
     changed?.('unknown:channel', true);

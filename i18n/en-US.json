@@ -3780,6 +3780,7 @@
     },
     "hotkey": {
       "duplicateHotkey": "Duplicate hotkey",
+      "clearFailed": "Could not clear the shortcut. Try again.",
       "registerFailed": "Hotkey registration failed",
       "registerFailedRetry": "Hotkey registration failed, please try another combination"
     },
@@ -3819,6 +3820,10 @@
         "showConfig": {
           "title": "Show Settings Window Shortcut",
           "hint": "Only works in standalone mode: press to open the standalone settings window and switch to the Settings page"
+        },
+        "toggleExplorer": {
+          "title": "Explorer window shortcut",
+          "hint": "Press once to open Explorer and again to close it. Clear the shortcut to disable it."
         },
         "openClipboardHistory": {
           "title": "Open Clipboard History Shortcut",

@@ -127,6 +127,17 @@ const bindings = [{
   setError: 'setShowSettingsWindowHotkeyError',
   api: 'showSettingsWindowHotkeySet'
 }, {
+  handler: 'handleToggleExplorerHotkeyKeyDown',
+  page: 'window',
+  value: 'toggleExplorerHotkey',
+  setValue: 'setToggleExplorerHotkey',
+  recording: 'toggleExplorerHotkeyRecording',
+  error: 'toggleExplorerHotkeyError',
+  ref: 'toggleExplorerHotkeyInputRef',
+  setRecording: 'setToggleExplorerHotkeyRecording',
+  setError: 'setToggleExplorerHotkeyError',
+  api: 'toggleExplorerHotkeySet'
+}, {
   handler: 'handleOpenClipboardHistoryHotkeyKeyDown',
   page: 'clipboard',
   value: 'openClipboardHistoryHotkey',
@@ -292,7 +303,9 @@ describe.each(bindings)('$api真实字段', (binding) => {
       expect(blur).toHaveBeenCalledOnce();
       expect(elementProps(findElement(row(state[binding.ref]), (node) => node.type === 'input')).value).toBe('settings.shortcut.common.notSetValue');
     } else {
-      expect(render().state[binding.error]).toBe('previous error');
+      expect(render().state[binding.error]).toBe(
+        binding.value === 'toggleExplorerHotkey' ? 'settings.hotkey.clearFailed' : 'previous error'
+      );
       expect(blur).not.toHaveBeenCalled();
     }
   });

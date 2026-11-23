@@ -3780,6 +3780,7 @@
     },
     "hotkey": {
       "duplicateHotkey": "重复快捷键",
+      "clearFailed": "清除快捷键失败，请重试。",
       "registerFailed": "快捷键注册失败",
       "registerFailedRetry": "快捷键注册失败，请尝试其他组合"
     },
@@ -3819,6 +3820,10 @@
         "showConfig": {
           "title": "显示配置窗口快捷键",
           "hint": "仅在独立窗口模式下生效：按下后将打开独立配置窗口并切换到设置页"
+        },
+        "toggleExplorer": {
+          "title": "Explorer 窗口快捷键",
+          "hint": "按一次打开 Explorer 窗口，再按一次关闭。清除后停用此快捷键。"
         },
         "openClipboardHistory": {
           "title": "打开剪贴板历史快捷键",

@@ -83,6 +83,29 @@ test('settings events receive native arguments and cancelled listeners stay deta
   second(); emit(); assert.equal(values.length, 1);
 });
 
+test('Explorer shortcut recording orders suspend, save and resume and releases the queue on failure', async () => {
+  const calls = [];
+  let rejectSave;
+  const { window } = page(async (_command, { channel, args }) => {
+    calls.push([channel, ...args]);
+    if (channel === 'toggle-explorer-hotkey:set') {
+      return new Promise((_resolve, reject) => { rejectSave = reject; });
+    }
+    return channel === 'toggle-explorer-hotkey:get' ? 'Ctrl+Alt+E' : true;
+  });
+  const { api } = window;
+  const suspend = api.hotkeySuspend();
+  const save = api.toggleExplorerHotkeySet('Alt+F9');
+  const resume = api.hotkeyResume();
+  await suspend;
+  assert.equal(await api.toggleExplorerHotkeyGet(), 'Ctrl+Alt+E');
+  assert.deepEqual(calls, [['hotkey:suspend'], ['toggle-explorer-hotkey:set', 'Alt+F9'], ['toggle-explorer-hotkey:get']]);
+  rejectSave(new Error('already registered'));
+  await assert.rejects(save, /already registered/u);
+  assert.equal(await resume, true);
+  assert.deepEqual(calls.at(-1), ['hotkey:resume']);
+});
+
 test('file paths come from the native selector instead of browser-controlled File names', async () => {
   const { window } = page(async (_command, { channel }) => channel === 'app:pick-files' ? ['C:\\music\\track.flac'] : null);
   const files = await window.api.selectFiles();

@@ -111,6 +111,15 @@ const bindings = [{
   setError: 'setShowSettingsWindowHotkeyError',
   api: 'showSettingsWindowHotkeySet'
 }, {
+  handler: 'handleToggleExplorerHotkeyKeyDown',
+  value: 'toggleExplorerHotkey',
+  recording: 'toggleExplorerHotkeyRecording',
+  error: 'toggleExplorerHotkeyError',
+  ref: 'toggleExplorerHotkeyInputRef',
+  setRecording: 'setToggleExplorerHotkeyRecording',
+  setError: 'setToggleExplorerHotkeyError',
+  api: 'toggleExplorerHotkeySet'
+}, {
   handler: 'handleOpenClipboardHistoryHotkeyKeyDown',
   value: 'openClipboardHistoryHotkey',
   recording: 'openClipboardHistoryHotkeyRecording',

@@ -29,8 +29,12 @@ use crate::{
     state::Desktop,
 };
 use serde_json::{json, Value};
+use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+
+// 各窗口各自发送 IPC，保存、暂停和恢复必须共用一把锁，避免旧组合残留在系统中。
+static REGISTRATION: Mutex<()> = Mutex::new(());
 
 const SHORTCUTS: &[(&str, &str)] = &[
     ("hide-hotkey", "Alt+X"),
@@ -59,12 +63,14 @@ pub(crate) fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Option
         }
     }
     if channel == "hotkey:suspend" {
+        let _guard = REGISTRATION.lock().unwrap();
         app.global_shortcut()
             .unregister_all()
             .map_err(|error| error.to_string())?;
         return Ok(Some(json!(true)));
     }
     if channel == "hotkey:resume" {
+        let _guard = REGISTRATION.lock().unwrap();
         register_shortcuts(app)?;
         return Ok(Some(json!(true)));
     }
@@ -85,6 +91,7 @@ pub(crate) fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Option
                 ));
             }
             if operation == "set" {
+                let _guard = REGISTRATION.lock().unwrap();
                 let next = a.as_str().ok_or("Expected string")?;
                 let parsed = if next.is_empty() {
                     None
@@ -97,9 +104,6 @@ pub(crate) fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Option
                     .lock()
                     .unwrap()
                     .value(key, json!(default));
-                if old == *a {
-                    return Ok(Some(json!(true)));
-                }
                 // 录入时系统注册已暂停，仍需保留其他动作（含 Explorer）的组合。
                 if parsed
                     .and_then(|shortcut| bound_action(app, &shortcut))
@@ -109,22 +113,31 @@ pub(crate) fn handle(app: &AppHandle, channel: &str, a: &Value) -> Result<Option
                 }
                 let old_parsed = old.as_str().and_then(|v| v.parse::<Shortcut>().ok());
                 let same_binding = parsed == old_parsed;
-                if let Some(shortcut) = parsed.filter(|_| !same_binding) {
+                // 即使重新录入原组合，也须确认系统接受它，避免把注册失败显示为保存成功。
+                let to_register = parsed.filter(|shortcut| {
+                    !same_binding || !app.global_shortcut().is_registered(*shortcut)
+                });
+                if let Some(shortcut) = to_register {
                     app.global_shortcut()
                         .register(shortcut)
                         .map_err(|e| e.to_string())?;
                 }
+                if old == *a {
+                    return Ok(Some(json!(true)));
+                }
                 if let Err(error) = store_write(app, key, a) {
-                    if let Some(shortcut) = parsed.filter(|_| !same_binding) {
+                    if let Some(shortcut) = to_register {
                         let _ = app.global_shortcut().unregister(shortcut);
                     }
                     return Err(error);
                 }
                 // Recording suspends all shortcuts before saving. The previous
                 // binding may already be released, or only its spelling changed.
-                if let Some(old) = old_parsed
-                    .filter(|old| !same_binding && app.global_shortcut().is_registered(*old))
-                {
+                if let Some(old) = old_parsed.filter(|old| {
+                    !same_binding
+                        && app.global_shortcut().is_registered(*old)
+                        && bound_action(app, old).is_none()
+                }) {
                     app.global_shortcut()
                         .unregister(old)
                         .map_err(|e| e.to_string())?;

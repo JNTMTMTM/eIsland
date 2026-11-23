@@ -907,6 +907,17 @@ const api = {
    */
   showSettingsWindowHotkeySet: (accelerator: string): Promise<boolean> => desktop.invoke('show-settings-window-hotkey:set', accelerator),
   /**
+   * 获取用于打开和关闭 Explorer 窗口的快捷键。
+   * @returns 当前快捷键字符串
+   */
+  toggleExplorerHotkeyGet: (): Promise<string> => desktop.invoke('toggle-explorer-hotkey:get'),
+  /**
+   * 设置用于打开和关闭 Explorer 窗口的快捷键。
+   * @param accelerator - 全局快捷键组合，空字符串表示清除
+   * @returns 是否注册成功
+   */
+  toggleExplorerHotkeySet: (accelerator: string): Promise<boolean> => desktop.invoke('toggle-explorer-hotkey:set', accelerator),
+  /**
    * 获取当前打开剪贴板历史快捷键
    * @returns 当前快捷键字符串
    */
