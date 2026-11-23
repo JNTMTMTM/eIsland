@@ -53,6 +53,10 @@ pub async fn desktop_ipc(
     if features::agent::handles(&channel) {
         return features::agent::handle(&app, window.label(), &channel, &args).await;
     }
+    if channel.starts_with("explorer:") {
+        source(&window, "explorer")?;
+        return features::files::explorer::handle(&app, &channel, args).await;
+    }
     if channel == "runtime:schedule-wakeup" {
         return features::runtime::schedule(&app, window.label(), &args);
     }

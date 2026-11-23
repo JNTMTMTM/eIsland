@@ -18,6 +18,8 @@
  * GNU General Public License for more details.
  */
 
+pub(crate) mod explorer;
+
 use crate::shared::Result;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::{json, Value};

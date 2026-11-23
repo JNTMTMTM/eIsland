@@ -20,15 +20,43 @@
 
 /**
  * @file ExplorerWindow.tsx
- * @description Explorer 的空白内容区，标题栏和窗口控件由系统提供。
+ * @description 组合独立文件管理器的导航、文件列表和编辑操作。
  * @author 鸡哥
  */
 /* eslint project/filename: "off" -- 窗口模块规范要求组件文件使用 PascalCase。 */
+import { useTranslation } from 'react-i18next';
+import styles from '../styles/explorer.module.css';
+import useExplorer from '../hooks/useExplorer';
+import useExplorerKeys from '../hooks/useExplorerKeys';
+import { ExplorerDialog, ExplorerError } from './ExplorerDialog';
+import { ExplorerActions, ExplorerFiles } from './ExplorerFiles';
+import { ExplorerNavigation, ExplorerPlaces } from './ExplorerNavigation';
 
 /**
  * 渲染独立窗口的内容区。
- * @returns 空白的主内容元素。
+ * @returns 随应用主题切换的文件管理器。
  */
 export default function ExplorerWindow() {
-  return <main />;
+  const explorer = useExplorer();
+  const { t } = useTranslation();
+  useExplorerKeys(explorer);
+  const path = explorer.directory?.path ?? '';
+  const place = explorer.places.find((p) => p.path === path && p.kind !== 'drive');
+  const folder = explorer.directory?.parent ? path.split(/[\\/]/u).filter(Boolean).pop() : path;
+  const title = place ? t(`explorer.${place.kind}`) : folder;
+  return (
+    <main className={styles.root}>
+      <ExplorerNavigation explorer={explorer} />
+      <div className={styles.body}>
+        <ExplorerPlaces explorer={explorer} />
+        <section className={styles.content}>
+          <h1 title={path}>{title || t('explorer.title')}</h1>
+          <ExplorerActions explorer={explorer} />
+          {!explorer.dialog && <ExplorerError explorer={explorer} />}
+          <ExplorerFiles explorer={explorer} />
+        </section>
+      </div>
+      {explorer.dialog && <ExplorerDialog explorer={explorer} />}
+    </main>
+  );
 }

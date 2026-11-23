@@ -24,9 +24,15 @@
  * @author 鸡哥
  */
 import { createRoot } from 'react-dom/client';
+import '../../../i18n';
+import '../../../styles/reset/reset.css';
+import { initFonts } from '../../../utils/font';
+import { initTheme } from '../../../utils/theme';
 import ExplorerWindow from './index';
 
 const root = document.getElementById('root');
 if (root) {
+  // eslint-disable-next-line promise/prefer-await-to-then -- 外观设置与窗口加载并行。
+  Promise.all([initTheme(), initFonts()]).catch(console.error);
   createRoot(root).render(<ExplorerWindow />);
 }
