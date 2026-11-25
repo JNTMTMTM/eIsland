@@ -300,6 +300,14 @@ export const SettingsTab = memo(function SettingsTab(): ReactElement {
     setShowSettingsWindowHotkeyError,
     handleShowSettingsWindowHotkeyKeyDown,
     setShowSettingsWindowHotkey,
+    toggleExplorerHotkeyInputRef,
+    toggleExplorerHotkeyRecording,
+    toggleExplorerHotkeyError,
+    toggleExplorerHotkey,
+    setToggleExplorerHotkeyRecording,
+    setToggleExplorerHotkeyError,
+    handleToggleExplorerHotkeyKeyDown,
+    setToggleExplorerHotkey,
     openClipboardHistoryHotkeyInputRef,
     openClipboardHistoryHotkeyRecording,
     openClipboardHistoryHotkeyError,
@@ -795,6 +803,14 @@ export const SettingsTab = memo(function SettingsTab(): ReactElement {
               setShowSettingsWindowHotkeyError={setShowSettingsWindowHotkeyError}
               handleShowSettingsWindowHotkeyKeyDown={handleShowSettingsWindowHotkeyKeyDown}
               setShowSettingsWindowHotkey={setShowSettingsWindowHotkey}
+              toggleExplorerHotkeyInputRef={toggleExplorerHotkeyInputRef}
+              toggleExplorerHotkeyRecording={toggleExplorerHotkeyRecording}
+              toggleExplorerHotkeyError={toggleExplorerHotkeyError}
+              toggleExplorerHotkey={toggleExplorerHotkey}
+              setToggleExplorerHotkeyRecording={setToggleExplorerHotkeyRecording}
+              setToggleExplorerHotkeyError={setToggleExplorerHotkeyError}
+              handleToggleExplorerHotkeyKeyDown={handleToggleExplorerHotkeyKeyDown}
+              setToggleExplorerHotkey={setToggleExplorerHotkey}
               openClipboardHistoryHotkeyInputRef={openClipboardHistoryHotkeyInputRef}
               openClipboardHistoryHotkeyRecording={openClipboardHistoryHotkeyRecording}
               openClipboardHistoryHotkeyError={openClipboardHistoryHotkeyError}

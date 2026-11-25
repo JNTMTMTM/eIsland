@@ -25,7 +25,7 @@
  */
 
 /** 设置页现有快捷键动作标识。 */
-export type HotkeyAction = 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input' | 'toggle-shape-mode';
+export type HotkeyAction = 'hide' | 'quit' | 'screenshot' | 'next-song' | 'play-pause-song' | 'reset-position' | 'toggle-tray' | 'show-settings-window' | 'toggle-explorer' | 'open-clipboard-history' | 'toggle-passthrough' | 'toggle-ui-lock' | 'agent-voice-input' | 'toggle-shape-mode';
 
 /** 配置冲突检测所需的动作与 accelerator 绑定。 */
 export interface HotkeyBinding {

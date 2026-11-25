@@ -94,6 +94,14 @@ interface ShortcutSettingsSectionProps {
   setShowSettingsWindowHotkeyError: (value: string) => void;
   handleShowSettingsWindowHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
   setShowSettingsWindowHotkey: (value: string) => void;
+  toggleExplorerHotkeyInputRef: RefObject<HTMLInputElement | null>;
+  toggleExplorerHotkeyRecording: boolean;
+  toggleExplorerHotkeyError: string;
+  toggleExplorerHotkey: string;
+  setToggleExplorerHotkeyRecording: (value: boolean) => void;
+  setToggleExplorerHotkeyError: (value: string) => void;
+  handleToggleExplorerHotkeyKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  setToggleExplorerHotkey: (value: string) => void;
   openClipboardHistoryHotkeyInputRef: RefObject<HTMLInputElement | null>;
   openClipboardHistoryHotkeyRecording: boolean;
   openClipboardHistoryHotkeyError: string;
@@ -215,6 +223,15 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
     setShowSettingsWindowHotkeyError,
     handleShowSettingsWindowHotkeyKeyDown,
     setShowSettingsWindowHotkey,
+
+    toggleExplorerHotkeyInputRef,
+    toggleExplorerHotkeyRecording,
+    toggleExplorerHotkeyError,
+    toggleExplorerHotkey,
+    setToggleExplorerHotkeyRecording,
+    setToggleExplorerHotkeyError,
+    handleToggleExplorerHotkeyKeyDown,
+    setToggleExplorerHotkey,
 
     openClipboardHistoryHotkeyInputRef,
     openClipboardHistoryHotkeyRecording,
@@ -424,6 +441,43 @@ export function ShortcutSettingsSection(props: ShortcutSettingsSectionProps): Re
                   )}
                 </div>
                 {showSettingsWindowHotkeyError && <div className="settings-hotkey-error">{showSettingsWindowHotkeyError}</div>}
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <label htmlFor="toggle-explorer-hotkey" className="settings-card-title">{t('settings.shortcut.window.toggleExplorer.title', { defaultValue: 'Explorer 窗口快捷键' })}</label>
+                  <div className="settings-card-subtitle">{t('settings.shortcut.window.toggleExplorer.hint', { defaultValue: '按一次打开 Explorer 窗口，再按一次关闭。清除后停用此快捷键。' })}</div>
+                </div>
+                <div className="settings-hotkey-row">
+                  <input
+                    id="toggle-explorer-hotkey"
+                    ref={toggleExplorerHotkeyInputRef}
+                    className={`settings-hotkey-input ${toggleExplorerHotkeyRecording ? 'recording' : ''}${toggleExplorerHotkeyError ? ' error' : ''}`}
+                    type="text"
+                    aria-invalid={Boolean(toggleExplorerHotkeyError)}
+                    readOnly
+                    value={toggleExplorerHotkeyRecording ? recordingValue : (toggleExplorerHotkey || notSetValue)}
+                    onFocus={() => { setToggleExplorerHotkeyRecording(true); setToggleExplorerHotkeyError(''); window.api.hotkeySuspend().catch(() => {}); }}
+                    onBlur={() => { setToggleExplorerHotkeyRecording(false); window.api.hotkeyResume().catch(() => {}); }}
+                    onKeyDown={handleToggleExplorerHotkeyKeyDown}
+                  />
+                  <button className="settings-hotkey-btn" type="button" onClick={() => { setToggleExplorerHotkeyRecording(true); toggleExplorerHotkeyInputRef.current?.focus(); }}>{toggleExplorerHotkeyRecording ? recordingBtn : editBtn}</button>
+                  {toggleExplorerHotkey && (
+                    <button className="settings-hotkey-btn" type="button" onClick={() => {
+                      window.api.toggleExplorerHotkeySet('').then((ok) => {
+                        if (ok) {
+                          setToggleExplorerHotkey('');
+                          setToggleExplorerHotkeyError('');
+                          setToggleExplorerHotkeyRecording(false);
+                          toggleExplorerHotkeyInputRef.current?.blur();
+                        } else {
+                          setToggleExplorerHotkeyError(t('settings.hotkey.clearFailed'));
+                        }
+                      }).catch(() => setToggleExplorerHotkeyError(t('settings.hotkey.clearFailed')));
+                    }}>{clearBtn}</button>
+                  )}
+                </div>
+                {toggleExplorerHotkeyError && <div role="alert" className="settings-hotkey-error">{toggleExplorerHotkeyError}</div>}
               </div>
 
             </div>

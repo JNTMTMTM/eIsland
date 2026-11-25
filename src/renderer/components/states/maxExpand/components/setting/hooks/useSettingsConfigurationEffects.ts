@@ -80,6 +80,7 @@ interface SettingsConfigurationEffectsOptions {
   setResetPositionHotkey: ReturnType<typeof useSettingsShortcuts>['setResetPositionHotkey'];
   setToggleTrayHotkey: ReturnType<typeof useSettingsShortcuts>['setToggleTrayHotkey'];
   setShowSettingsWindowHotkey: ReturnType<typeof useSettingsShortcuts>['setShowSettingsWindowHotkey'];
+  setToggleExplorerHotkey: ReturnType<typeof useSettingsShortcuts>['setToggleExplorerHotkey'];
   setOpenClipboardHistoryHotkey: ReturnType<typeof useSettingsShortcuts>['setOpenClipboardHistoryHotkey'];
   setTogglePassthroughHotkey: ReturnType<typeof useSettingsShortcuts>['setTogglePassthroughHotkey'];
   setToggleUiLockHotkey: ReturnType<typeof useSettingsShortcuts>['setToggleUiLockHotkey'];
@@ -131,6 +132,7 @@ export function useSettingsConfigurationEffects(options: SettingsConfigurationEf
     setResetPositionHotkey,
     setToggleTrayHotkey,
     setShowSettingsWindowHotkey,
+    setToggleExplorerHotkey,
     setOpenClipboardHistoryHotkey,
     setTogglePassthroughHotkey,
     setToggleUiLockHotkey,
@@ -321,6 +323,10 @@ export function useSettingsConfigurationEffects(options: SettingsConfigurationEf
     window.api.showSettingsWindowHotkeyGet().then((key) => {
       if (cancelled) return;
       setShowSettingsWindowHotkey(key || '');
+    }).catch(() => { });
+    window.api.toggleExplorerHotkeyGet().then((key) => {
+      if (cancelled) return;
+      setToggleExplorerHotkey(key || '');
     }).catch(() => { });
     window.api.openClipboardHistoryHotkeyGet().then((key) => {
       if (cancelled) return;

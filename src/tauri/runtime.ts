@@ -125,13 +125,15 @@ export async function selectNativeFiles(): Promise<File[]> {
   return filesForPaths(await tauri.core.invoke<string[]>('desktop_ipc', { channel: 'app:pick-files', args: [] }));
 }
 
-/** 调用原生 Rust 宿主；窗口变更按发送顺序提交。
+/** 调用原生 Rust 宿主；窗口变更与快捷键录入操作按发送顺序提交。
  * @param channel - Rust 注册的业务操作。
  * @param args - 业务参数。
  * @returns 原生操作结果。
  */
 async function invoke<T>(channel: string, ...args: unknown[]): Promise<T> {
-  if (!channel.startsWith('window:')) {
+  const hotkeyMutation = channel === 'hotkey:suspend' || channel === 'hotkey:resume'
+    || channel === 'hotkey:set' || channel.endsWith('-hotkey:set');
+  if (!channel.startsWith('window:') && !hotkeyMutation) {
     await ready;
     return tauri.core.invoke<T>('desktop_ipc', { channel, args });
   }

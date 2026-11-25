@@ -347,6 +347,21 @@ try {
   assert.equal(await ipc(main, 'app:open-standalone-window'), true);
   const standalone = await pageFor('standalone');
   await standalone.waitForSelector('#root > *');
+  const originalExplorerKey = await main.evaluate(() => window.api.toggleExplorerHotkeyGet());
+  const explorerKeys = ['Ctrl+Alt+Shift+F9', 'Ctrl+Alt+Shift+F10'];
+  try {
+    // 两个设置窗口同时改绑后，被替换的组合应立即可重新注册。
+    const results = await Promise.all([main, standalone].map((page, index) =>
+      page.evaluate((key) => window.api.toggleExplorerHotkeySet(key), explorerKeys[index])));
+    assert.deepEqual(results, [true, true]);
+    const saved = await ipc(main, 'toggle-explorer-hotkey:get');
+    assert(explorerKeys.includes(saved));
+    assert.equal(await ipc(main, 'toggle-explorer-hotkey:set', explorerKeys.find((key) => key !== saved)), true);
+    assert.equal(await ipc(main, 'toggle-explorer-hotkey:set', ''), true);
+    assert.equal(await ipc(standalone, 'toggle-explorer-hotkey:get'), '');
+  } finally {
+    assert.equal(await ipc(main, 'toggle-explorer-hotkey:set', originalExplorerKey), true);
+  }
   await assert.rejects(ipc(standalone, 'window:expand-full'), /restricted to main/);
   await ipc(standalone, 'window:maximize');
   await ipc(standalone, 'window:maximize');

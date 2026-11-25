@@ -92,6 +92,12 @@ export function useSettingsShortcuts(options: SettingsShortcutsOptions) {
   const [showSettingsWindowHotkeyError, setShowSettingsWindowHotkeyError] = useState<string>('');
   const showSettingsWindowHotkeyInputRef = useRef<HTMLInputElement>(null);
 
+  /** Explorer 窗口快捷键相关状态 */
+  const [toggleExplorerHotkey, setToggleExplorerHotkey] = useState<string>('');
+  const [toggleExplorerHotkeyRecording, setToggleExplorerHotkeyRecording] = useState(false);
+  const [toggleExplorerHotkeyError, setToggleExplorerHotkeyError] = useState<string>('');
+  const toggleExplorerHotkeyInputRef = useRef<HTMLInputElement>(null);
+
   /** 打开剪贴板历史快捷键相关状态 */
   const [openClipboardHistoryHotkey, setOpenClipboardHistoryHotkey] = useState<string>('');
   const [openClipboardHistoryHotkeyRecording, setOpenClipboardHistoryHotkeyRecording] = useState(false);
@@ -130,6 +136,7 @@ export function useSettingsShortcuts(options: SettingsShortcutsOptions) {
     { key: 'reset-position', value: resetPositionHotkey },
     { key: 'toggle-tray', value: toggleTrayHotkey },
     { key: 'show-settings-window', value: showSettingsWindowHotkey },
+    { key: 'toggle-explorer', value: toggleExplorerHotkey },
     { key: 'open-clipboard-history', value: openClipboardHistoryHotkey },
     { key: 'toggle-passthrough', value: togglePassthroughHotkey },
     { key: 'toggle-ui-lock', value: toggleUiLockHotkey },
@@ -314,6 +321,36 @@ export function useSettingsShortcuts(options: SettingsShortcutsOptions) {
       }
     }).catch(() => {
       setShowSettingsWindowHotkeyError(t('settings.hotkey.registerFailed', { defaultValue: '快捷键注册失败' }));
+    });
+  };
+
+  /**
+   * Explorer 窗口快捷键录入键盘事件处理
+   * @param e - React 键盘事件
+   */
+  const handleToggleExplorerHotkeyKeyDown = (e: KeyboardEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setToggleExplorerHotkeyError('');
+    const acc = keyEventToAccelerator(e);
+    if (!acc) return;
+    if (isDuplicateHotkey(acc, 'toggle-explorer', hotkeyBindings)) {
+      setToggleExplorerHotkeyError(t('settings.hotkey.duplicateHotkey', { defaultValue: '重复快捷键' }));
+      setToggleExplorerHotkeyRecording(false);
+      toggleExplorerHotkeyInputRef.current?.blur();
+      return;
+    }
+
+    window.api.toggleExplorerHotkeySet(acc).then((ok) => {
+      if (ok) {
+        setToggleExplorerHotkey(acc);
+        setToggleExplorerHotkeyRecording(false);
+        toggleExplorerHotkeyInputRef.current?.blur();
+      } else {
+        setToggleExplorerHotkeyError(t('settings.hotkey.registerFailedRetry', { defaultValue: '快捷键注册失败，请尝试其他组合' }));
+      }
+    }).catch(() => {
+      setToggleExplorerHotkeyError(t('settings.hotkey.registerFailed', { defaultValue: '快捷键注册失败' }));
     });
   };
 
@@ -560,6 +597,13 @@ export function useSettingsShortcuts(options: SettingsShortcutsOptions) {
     showSettingsWindowHotkeyError,
     setShowSettingsWindowHotkeyError,
     showSettingsWindowHotkeyInputRef,
+    toggleExplorerHotkey,
+    setToggleExplorerHotkey,
+    toggleExplorerHotkeyRecording,
+    setToggleExplorerHotkeyRecording,
+    toggleExplorerHotkeyError,
+    setToggleExplorerHotkeyError,
+    toggleExplorerHotkeyInputRef,
     openClipboardHistoryHotkey,
     setOpenClipboardHistoryHotkey,
     openClipboardHistoryHotkeyRecording,
@@ -601,6 +645,7 @@ export function useSettingsShortcuts(options: SettingsShortcutsOptions) {
     handleResetPositionHotkeyKeyDown,
     handleToggleTrayHotkeyKeyDown,
     handleShowSettingsWindowHotkeyKeyDown,
+    handleToggleExplorerHotkeyKeyDown,
     handleOpenClipboardHistoryHotkeyKeyDown,
     handleTogglePassthroughHotkeyKeyDown,
     handleToggleUiLockHotkeyKeyDown,

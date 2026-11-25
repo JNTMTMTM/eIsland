@@ -53,7 +53,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         ...Object.fromEntries([
-          'DynamicIslandIndex.html', 'DynamicIslandStandalone.html', 'DynamicIslandSplash.html',
+          'DynamicIslandIndex.html', 'DynamicIslandStandalone.html', 'DynamicIslandExplorer.html', 'DynamicIslandSplash.html',
           'DynamicIslandGuide.html', 'DynamicIslandTrayMenu.html', 'DynamicIslandAibackground/index.html',
         ].map((page) => [page, resolve(__dirname, 'src/renderer/html', page)])),
         capture: resolve(__dirname, 'src/renderer/capture.html'),

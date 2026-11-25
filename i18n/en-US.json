@@ -1,4 +1,50 @@
 {
+  "explorer": {
+    "title": "File Explorer",
+    "quickAccess": "Quick access",
+    "drives": "Drives",
+    "home": "Home",
+    "desktop": "Desktop",
+    "documents": "Documents",
+    "downloads": "Downloads",
+    "back": "Back",
+    "forward": "Forward",
+    "up": "Up one level",
+    "refresh": "Refresh",
+    "address": "Folder path",
+    "filter": "Filter this folder",
+    "create": "New folder",
+    "copy": "Copy",
+    "cut": "Cut",
+    "paste": "Paste",
+    "rename": "Rename",
+    "trash": "Move to Recycle Bin",
+    "name": "Name",
+    "modified": "Date modified",
+    "size": "Size",
+    "loading": "Loading folder…",
+    "noMatches": "No matching items",
+    "empty": "This folder is empty",
+    "chooseLocation": "Select a location or enter a folder path",
+    "items": "{{count}} items",
+    "working": "Working…",
+    "copyPending": "Ready to copy: {{name}}",
+    "movePending": "Ready to move: {{name}}",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "confirmTrash": "Move “{{name}}” to the Recycle Bin?",
+    "cancel": "Cancel",
+    "save": "Confirm",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "errors": {
+      "invalidPath": "Enter a full folder path.",
+      "invalidName": "Enter a valid Windows file name.",
+      "insideSource": "The destination is inside the source folder.",
+      "cancelled": "Operation cancelled.",
+      "unsupported": "This operation is unavailable on this system."
+    }
+  },
   "common": {
     "appName": "eIsland",
     "errors": {
@@ -3780,6 +3826,7 @@
     },
     "hotkey": {
       "duplicateHotkey": "Duplicate hotkey",
+      "clearFailed": "Could not clear the shortcut. Try again.",
       "registerFailed": "Hotkey registration failed",
       "registerFailedRetry": "Hotkey registration failed, please try another combination"
     },
@@ -3819,6 +3866,10 @@
         "showConfig": {
           "title": "Show Settings Window Shortcut",
           "hint": "Only works in standalone mode: press to open the standalone settings window and switch to the Settings page"
+        },
+        "toggleExplorer": {
+          "title": "Explorer window shortcut",
+          "hint": "Press once to open Explorer and again to close it. Clear the shortcut to disable it."
         },
         "openClipboardHistory": {
           "title": "Open Clipboard History Shortcut",
